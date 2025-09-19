@@ -46,7 +46,7 @@ public abstract class CollidableComponent : EntityComponent
     private CollisionGroup _collisionGroup;
 
     private ICollider _collider;
-    private IContactEventHandler? _trigger;
+    private IContactHandler? _trigger;
     private ISimulationSelector _simulationSelector = SceneBasedSimulationSelector.Shared;
 
     [DataMemberIgnore]
@@ -215,7 +215,7 @@ public abstract class CollidableComponent : EntityComponent
     /// Provides the ability to collect and mutate contact data when this object collides with other objects.
     /// </summary>
     [Display(category: CategoryContacts)]
-    public IContactEventHandler? ContactEventHandler
+    public IContactHandler? ContactEventHandler
     {
         get
         {
