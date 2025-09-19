@@ -316,7 +316,6 @@ namespace Stride.Importer.ThreeD
                 }
             }
 
-
             return modelData;
         }
 
@@ -787,9 +786,6 @@ namespace Stride.Importer.ThreeD
             GenerateUniqueNames(meshNames, baseNames, idx => orderedMeshPtrs[idx]);
         }
 
-
-
-
         private unsafe void GenerateAnimationNames(Scene* scene, Dictionary<IntPtr, string> animationNames)
         {
             var baseNames = new List<string>();
@@ -1247,7 +1243,6 @@ namespace Stride.Importer.ThreeD
             System.IO.File.WriteAllBytes(path, buffer);
         }
 
-        // MeshConverter.cs — inside class MeshConverter
         private unsafe Dictionary<string, MaterialAsset> ExtractMaterials(
             Scene* scene,
             Dictionary<IntPtr, string> materialNames,

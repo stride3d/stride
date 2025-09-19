@@ -50,7 +50,6 @@ namespace Stride.Assets.Presentation.Templates
         protected static readonly PropertyKey<Skeleton> SkeletonToUseKey = new PropertyKey<Skeleton>("SkeletonToUse", typeof(ModelFromFileTemplateGenerator));
         protected static readonly PropertyKey<bool> SplitHierarchyKey = new PropertyKey<bool>("SplitHierarchy", typeof(ModelFromFileTemplateGenerator));
 
-
         public override bool IsSupportingTemplate(TemplateDescription templateDescription)
         {
             return templateDescription.Id == Id;
@@ -267,66 +266,6 @@ namespace Stride.Assets.Presentation.Templates
             }
 
             return importedAssets;
-        }
-
-        // Filters the asset-level materials list so this ModelAsset only keeps the material that matches `wantedMaterialName`
-        // Keep only the material whose *asset name* (without extension) matches wantedMaterialName.
-        // Works across Stride branches where ModelMaterial may expose either "Material" or "MaterialInstance".
-        private static void KeepOnlyMaterialByName(ModelAsset modelAsset, string wantedMaterialName)
-        {
-            if (modelAsset?.Materials == null || modelAsset.Materials.Count == 0 || string.IsNullOrWhiteSpace(wantedMaterialName))
-                return;
-
-            var kept = new List<Stride.Assets.Models.ModelMaterial>();
-
-            foreach (var mm in modelAsset.Materials)
-            {
-                // Try to get a reference object we can resolve via AttachedReferenceManager:
-                // 1) ModelMaterial.Material (asset reference)
-                // 2) ModelMaterial.MaterialInstance (runtime instance that still carries a reference)
-                object materialRefObj = null;
-                var mmType = mm.GetType();
-
-                var propMaterial = mmType.GetProperty("Material");
-                if (propMaterial != null)
-                    materialRefObj = propMaterial.GetValue(mm);
-
-                if (materialRefObj == null)
-                {
-                    var propMaterialInstance = mmType.GetProperty("MaterialInstance");
-                    if (propMaterialInstance != null)
-                        materialRefObj = propMaterialInstance.GetValue(mm);
-                }
-
-                // Resolve the attached reference (if any) to get the asset URL
-                string assetUrl = null;
-                if (materialRefObj != null)
-                {
-                    var aref = AttachedReferenceManager.GetAttachedReference(materialRefObj);
-                    assetUrl = aref?.Url; // this is a string in your branch
-                }
-
-                // Compare by asset name (no extension)
-                if (!string.IsNullOrEmpty(assetUrl))
-                {
-                    var nameNoExt = Path.GetFileNameWithoutExtension(assetUrl);
-                    if (string.Equals(nameNoExt, wantedMaterialName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        kept.Add(mm);
-                    }
-                }
-            }
-
-            if (kept.Count > 0)
-            {
-                modelAsset.Materials.Clear();
-                modelAsset.Materials.AddRange(kept);
-            }
-            else if (modelAsset.Materials.Count > 1)
-            {
-                // Fallback so the asset stays valid if we couldn't match by name
-                modelAsset.Materials.RemoveRange(1, modelAsset.Materials.Count - 1);
-            }
         }
 
         private static AssetItem BuildPrefabForSplitHierarchy(string baseName, EntityInfo entityInfo, IList<AssetItem> perMeshModels, AssetItem allModelAsset, UDirectory targetLocation)

@@ -188,7 +188,6 @@ namespace Stride.Assets.Models
             assetReferences.Add(assetItem);
             return assetItem;
         }
-
         private static void ImportAnimation(List<AssetItem> assetReferences, UFile localPath, string animationNodeName, int animationNodeIndex, [MaybeNull]AssetItem skeletonAsset, [MaybeNull]ModelAsset modelAsset, TimeSpan animationStartTime, TimeSpan animationEndTime)
         {
             var assetSource = localPath;
@@ -216,7 +215,6 @@ namespace Stride.Assets.Models
 
             assetReferences.Add(new AssetItem(animUrl, asset));
         }
-
         private static ModelAsset ImportModel(List<AssetItem> assetReferences, UFile assetSource, UFile localPath, EntityInfo entityInfo, bool shouldPostFixName, AssetItem skeletonAsset)
         {
             var asset = new ModelAsset { Source = assetSource };
@@ -291,7 +289,6 @@ namespace Stride.Assets.Models
             assetReferences.Add(assetItem);
             return asset;
         }
-
         private static void ImportMaterials(List<AssetItem> assetReferences, Dictionary<string, MaterialAsset> materials)
         {
             if (materials != null)
