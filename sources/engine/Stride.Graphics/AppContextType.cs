@@ -58,11 +58,14 @@ namespace Stride.Games
         /// </summary>
         UWPCoreWindow,
 
-#pragma warning disable SA1300 // Element must begin with upper-case letter
         /// <summary>
         /// Game running on iOS in a iPhoneOSGameView.
         /// </summary>
         iOS,
-#pragma warning restore SA1300 // Element must begin with upper-case letter
+
+        /// <summary>
+        /// Game running on a custom context.
+        /// </summary>
+        Custom,
     }
 }
