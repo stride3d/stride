@@ -178,6 +178,9 @@ public partial class SPVGenerator : IIncrementalGenerator
 
                 // Body 2
                 body2.AppendLine($"{(tmp == 0 ? "" : "else ")}if(o.Name == \"{operandName}\")");
+                // Optional operands
+                if (operand.Quantifier == "?")
+                    body2.AppendLine("if (o.Words.Length > 0)");
                 if (typename.StartsWith("LiteralArray"))
                     body2.AppendLine($"{fieldName} = o.To{typename}();");
                 else if (operand.Class is string s && s.Contains("Enum"))
