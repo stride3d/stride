@@ -11,5 +11,7 @@ namespace Stride.Importer.Common
         public string MeshName;
         public string NodeName;
         public HashSet<string> BoneNodes;
+        public int OriginalMaterialIndex { get; set; }
+
     }
 }

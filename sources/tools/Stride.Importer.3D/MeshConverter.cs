@@ -293,7 +293,8 @@ namespace Stride.Importer.ThreeD
                     {
                         Draw = meshInfo.Draw,
                         Name = meshInfo.Name,
-                        MaterialIndex = meshInfo.MaterialIndex,
+                        //MaterialIndex = meshInfo.MaterialIndex,
+                        MaterialIndex = (keptMeshIndex >= 0 ? 0 : meshInfo.MaterialIndex),
                         NodeIndex = nodeIndex,
                     };
 
@@ -315,6 +316,8 @@ namespace Stride.Importer.ThreeD
                     modelData.Meshes.Add(nodeMeshData);
                 }
             }
+
+
 
             return modelData;
         }
@@ -1609,7 +1612,8 @@ namespace Stride.Importer.ThreeD
                 {
                     MeshName = meshNames[(IntPtr)mesh],
                     MaterialName = materialNames[(IntPtr)lMaterial],
-                    NodeName = SearchMeshNode(scene->MRootNode, i, nodeNames)
+                    NodeName = SearchMeshNode(scene->MRootNode, i, nodeNames),
+                    OriginalMaterialIndex = (int)mesh->MMaterialIndex
                 };
 
                 meshList.Add(meshParams);

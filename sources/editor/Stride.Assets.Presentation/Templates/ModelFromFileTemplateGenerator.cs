@@ -220,6 +220,17 @@ namespace Stride.Assets.Presentation.Templates
                                 perMeshModels.Add(item);
                             }
 
+                            for (int i = 0; i < entityInfo.Models.Count; i++)
+                            {
+                                var item = perMeshModels[i];
+                                if (item?.Asset is ModelAsset modelAsset)
+                                {
+                                    TrimModelAssetToSingleMaterialByIndex(modelAsset,
+                                        entityInfo.Models[i].OriginalMaterialIndex);   // <- the index from step 1
+                                }
+                            }
+
+
                             // No combined "(All)" model when splitting; Prefab is the combined representation
                             AssetItem allModelAsset = null;
 
@@ -267,6 +278,17 @@ namespace Stride.Assets.Presentation.Templates
 
             return importedAssets;
         }
+
+        private static void TrimModelAssetToSingleMaterialByIndex(ModelAsset asset, int keepIndex)
+        {
+            if (asset?.Materials == null) return;
+            if (keepIndex < 0 || keepIndex >= asset.Materials.Count) return;
+
+            var keep = asset.Materials[keepIndex];
+            asset.Materials.Clear();
+            asset.Materials.Add(keep);
+        }
+
 
         private static AssetItem BuildPrefabForSplitHierarchy(string baseName, EntityInfo entityInfo, IList<AssetItem> perMeshModels, AssetItem allModelAsset, UDirectory targetLocation)
         {
