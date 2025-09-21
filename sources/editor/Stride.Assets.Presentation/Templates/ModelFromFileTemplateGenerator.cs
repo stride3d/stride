@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.IO; 
 using System.Linq;
 using System.Threading.Tasks;
 using Stride.Assets.Entities;
@@ -14,14 +15,14 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Templates;
 using Stride.Core.IO;
+using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Serialization;
 using Stride.Core.Settings;
 using Stride.Engine;
-using Stride.Rendering;
 using Stride.Importer.Common;
-using System.IO; 
+using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.Templates
 {
@@ -321,6 +322,18 @@ namespace Stride.Assets.Presentation.Templates
 
                 stack.Push(e);
                 entities.Add(e);
+            }
+
+
+            // AFTER the for(...) that pushes entities on the stack, BEFORE attaching ModelComponents
+            for (int i = 0; i < entityInfo.Nodes.Count; i++)
+            {
+                var n = entityInfo.Nodes[i];
+                var e = entities[i];
+
+                e.Transform.Position = n.Position;
+                e.Transform.Rotation = n.Rotation;
+                e.Transform.Scale = n.Scale ;
             }
 
             // 2) Attach ModelComponent to nodes that host meshes (match by NodeName)

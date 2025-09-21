@@ -316,9 +316,28 @@ namespace Stride.Importer.ThreeD
                     modelData.Meshes.Add(nodeMeshData);
                 }
             }
+            // Neutralize node binding for per-mesh export (split-hierarchy case)
+            if (keptMeshIndex >= 0)
+            {
+                // Replace node table with a single identity root
+                nodes.Clear();
+                nodes.Add(new ModelNodeDefinition
+                {
+                    ParentIndex = -1,
+                    Name = "Root",
+                    Flags = ModelNodeFlags.Default,
+                    Transform =
+                    {
+                        Position = Vector3.Zero,
+                        Rotation = Quaternion.Identity,
+                        Scale    = Vector3.One
+                    }
+                });
 
-
-
+                // Re-bind all meshes to that root (index 0)
+                for (int mi = 0; mi < modelData.Meshes.Count; mi++)
+                    modelData.Meshes[mi].NodeIndex = 0;
+            }
             return modelData;
         }
 
@@ -1655,7 +1674,12 @@ namespace Stride.Importer.ThreeD
                 Preserve = true
             };
 
+            // read FBX node matrix and decompose
+            var m = node->MTransformation.ToStrideMatrix();
+            m.Decompose(out newNodeInfo.Scale, out newNodeInfo.Rotation, out newNodeInfo.Position);
+
             allNodes.Add(newNodeInfo);
+
             for (uint i = 0; i < node->MNumChildren; ++i)
                 GetNodes(node->MChildren[i], depth + 1, nodeNames, allNodes);
         }
