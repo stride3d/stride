@@ -175,11 +175,19 @@ namespace Stride.Assets.Presentation.Templates
                             assets.RemoveAll(a => a.Asset is ModelAsset);
 
                             var perMeshAssets = new List<AssetItem>();
+                            var partCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                             for (int i = 0; i < entityInfo.Models.Count; i++)
                             {
                                 var rawMeshName = entityInfo.Models[i].MeshName;
                                 var meshPart = SanitizePart(rawMeshName) ?? $"Mesh-{i + 1}";
-                                var desiredNoExt = $"{baseName}-{meshPart}";
+
+                                // Disambiguate *before* checking the filesystem list
+                                if (!partCounts.TryGetValue(meshPart, out var dupCount))
+                                    dupCount = 0;
+                                partCounts[meshPart] = dupCount + 1;
+
+                                var disambiguated = (dupCount == 0) ? meshPart : $"{meshPart}-{dupCount + 1}";
+                                var desiredNoExt = $"{baseName}-{disambiguated}";
 
                                 // Ensure uniqueness *within this import batch*
                                 var uniqueFile = MakeUniqueFileName(desiredNoExt, assets);
@@ -206,20 +214,9 @@ namespace Stride.Assets.Presentation.Templates
                             }
 
 
-                            // Build prefab using these per-mesh models
-                            var perMeshByName = assets
-                                .Where(a => a.Asset is ModelAsset)
-                                .ToDictionary(a => a.Location.GetFileNameWithoutExtension(), a => a, StringComparer.OrdinalIgnoreCase);
+                            // Build prefab using the per-mesh models in the same order we created them
+                            var perMeshModels = perMeshAssets;
 
-                            var perMeshModels = new List<AssetItem>(entityInfo.Models.Count);
-                            for (int i = 0; i < entityInfo.Models.Count; i++)
-                            {
-                                var rawMeshName = entityInfo.Models[i].MeshName;
-                                var meshPart = SanitizePart(rawMeshName) ?? $"Mesh-{i + 1}";
-                                var expectedName = $"{baseName}-{meshPart}";
-                                perMeshByName.TryGetValue(expectedName, out var item);
-                                perMeshModels.Add(item);
-                            }
 
                             for (int i = 0; i < entityInfo.Models.Count; i++)
                             {
@@ -290,7 +287,6 @@ namespace Stride.Assets.Presentation.Templates
             asset.Materials.Add(keep);
         }
 
-
         private static AssetItem BuildPrefabForSplitHierarchy(string baseName, EntityInfo entityInfo, IList<AssetItem> perMeshModels, AssetItem allModelAsset, UDirectory targetLocation)
         {
             if (entityInfo?.Nodes == null || entityInfo.Nodes.Count == 0)
@@ -324,8 +320,7 @@ namespace Stride.Assets.Presentation.Templates
                 entities.Add(e);
             }
 
-
-            // AFTER the for(...) that pushes entities on the stack, BEFORE attaching ModelComponents
+            // 1b) Apply TRS from node info to the created entities (before attaching ModelComponents)
             for (int i = 0; i < entityInfo.Nodes.Count; i++)
             {
                 var n = entityInfo.Nodes[i];
@@ -333,12 +328,13 @@ namespace Stride.Assets.Presentation.Templates
 
                 e.Transform.Position = n.Position;
                 e.Transform.Rotation = n.Rotation;
-                e.Transform.Scale = n.Scale ;
+                e.Transform.Scale = n.Scale;
             }
 
             // 2) Attach ModelComponent to nodes that host meshes (match by NodeName)
             if (entityInfo.Models != null && entityInfo.Models.Count > 0)
             {
+                // Map node name → entity index
                 var nodeNameToIndex = new Dictionary<string, int>(StringComparer.Ordinal);
                 for (int i = 0; i < entityInfo.Nodes.Count; i++)
                 {
@@ -347,6 +343,10 @@ namespace Stride.Assets.Presentation.Templates
                         nodeNameToIndex.Add(n, i);
                 }
 
+                // Track extra mesh children so we never add 2+ ModelComponents to the same Entity
+                var extraChildCountByNode = new Dictionary<int, int>();
+
+                // Iterate meshes in the same order as perMeshModels
                 for (int m = 0; m < entityInfo.Models.Count; m++)
                 {
                     var meshInfo = entityInfo.Models[m];
@@ -364,13 +364,39 @@ namespace Stride.Assets.Presentation.Templates
                             // Reference the imported Model asset (no duplication)
                             Model = AttachedReferenceManager.CreateProxyObject<Model>(modelItem.Id, modelItem.Location)
                         };
-                        entities[nodeIndex].Components.Add(mc);
+
+                        // Host entity is the node entity by default
+                        var host = entities[nodeIndex];
+
+                        // If host already has a ModelComponent, spawn a child entity for this additional mesh
+                        if (host.Get<ModelComponent>() != null)
+                        {
+                            if (!extraChildCountByNode.TryGetValue(nodeIndex, out var k))
+                                k = 0;
+                            k++;
+                            extraChildCountByNode[nodeIndex] = k;
+
+                            var childName = string.IsNullOrEmpty(meshInfo.NodeName)
+                                ? $"Mesh_{m}"
+                                : $"{meshInfo.NodeName}_Mesh{k}";
+
+                            var child = new Entity(childName);
+                            host.AddChild(child);
+
+                            // IMPORTANT: also register this child so it ends up in prefab.Hierarchy.Parts
+                            entities.Add(child);
+
+                            host = child; // attach the component to the child
+                        }
+
+                        host.Components.Add(mc); // guaranteed first ModelComponent on 'host'
                     }
                 }
             }
 
             root ??= entities[0];
 
+            // Heuristic: collapse trivial wrapper root (same name/base or "RootNode") with a single child
             var firstNode = entityInfo.Nodes[0];
             var firstName = firstNode.Name ?? string.Empty;
             bool looksLikeWrapper =
@@ -396,10 +422,11 @@ namespace Stride.Assets.Presentation.Templates
                 var design = new EntityDesign(e);
                 prefab.Hierarchy.Parts.Add(e.Id, design);
             }
+
             // RootParts: list of Entity (your API expects Entity here)
             prefab.Hierarchy.RootParts.Add(root);
 
-            prefab.Id = AssetId.New(); // <<—— ensure unique Id
+            prefab.Id = AssetId.New(); // ensure unique Id
             var prefabUrl = new UFile($"{baseName} Prefab");
             return new AssetItem(UPath.Combine(targetLocation, prefabUrl), prefab);
         }
