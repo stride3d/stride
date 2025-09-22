@@ -65,7 +65,7 @@ public struct Relaxed<T> :
     IHalf2Semantic,
     IUShort4Semantic,
     IByte4Semantic,
-    IUNorm4Semantic
+    IColorSemantic
     where T : ISemantic
 {
     public static string Name => T.Name;

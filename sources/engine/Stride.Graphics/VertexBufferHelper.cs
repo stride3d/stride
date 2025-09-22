@@ -88,7 +88,7 @@ public readonly struct VertexBufferHelper
         IConverter<Half4, TValue>,
         IConverter<UShort4, TValue>,
         IConverter<Byte4, TValue>,
-        IConverter<UNormByte4, TValue>,
+        IConverter<Color, TValue>,
         ISemantic
         where TValue : unmanaged
     {
@@ -138,7 +138,7 @@ public readonly struct VertexBufferHelper
                     case PixelFormat.R16G16B16A16_Float: SelectSrcType<Relaxed<PositionSemantic>, Half4>(parameters, srcOffset, destOffset, srcFormat); break;
                     case PixelFormat.R16G16B16A16_UInt: SelectSrcType<Relaxed<PositionSemantic>, UShort4>(parameters, srcOffset, destOffset, srcFormat); break;
                     case PixelFormat.R8G8B8A8_UInt: SelectSrcType<Relaxed<PositionSemantic>, Byte4>(parameters, srcOffset, destOffset, srcFormat); break;
-                    case PixelFormat.R8G8B8A8_UNorm: SelectSrcType<Relaxed<PositionSemantic>, UNormByte4>(parameters, srcOffset, destOffset, srcFormat); break;
+                    case PixelFormat.R8G8B8A8_UNorm: SelectSrcType<Relaxed<PositionSemantic>, Color>(parameters, srcOffset, destOffset, srcFormat); break;
                     default: throw new NotImplementedException($"Unsupported format when converting vertex element ({srcDef.VertexElement.Format})");
                 }
             }
@@ -159,7 +159,7 @@ public readonly struct VertexBufferHelper
             IConverter<Half4, TOutput>,
             IConverter<UShort4, TOutput>,
             IConverter<Byte4, TOutput>,
-            IConverter<UNormByte4, TOutput>,
+            IConverter<Color, TOutput>,
             ISemantic
             where TOutput : unmanaged
         {
@@ -172,7 +172,7 @@ public readonly struct VertexBufferHelper
                 case PixelFormat.R16G16B16A16_Float: InterleavedCopy<TSemantic, Half4, TOutput>(param, srcElemOffset, destElemOffset); break;
                 case PixelFormat.R16G16B16A16_UInt: InterleavedCopy<TSemantic, UShort4, TOutput>(param, srcElemOffset, destElemOffset); break;
                 case PixelFormat.R8G8B8A8_UInt: InterleavedCopy<TSemantic, Byte4, TOutput>(param, srcElemOffset, destElemOffset); break;
-                case PixelFormat.R8G8B8A8_UNorm: InterleavedCopy<TSemantic, UNormByte4, TOutput>(param, srcElemOffset, destElemOffset); break;
+                case PixelFormat.R8G8B8A8_UNorm: InterleavedCopy<TSemantic, Color, TOutput>(param, srcElemOffset, destElemOffset); break;
                 default: throw new NotImplementedException($"Unsupported format when converting vertex element ({format})");
             }
         }
@@ -238,7 +238,7 @@ public readonly struct VertexBufferHelper
         IConverter<Half4, TDest>,
         IConverter<UShort4, TDest>,
         IConverter<Byte4, TDest>,
-        IConverter<UNormByte4, TDest>,
+        IConverter<Color, TDest>,
         ISemantic 
         where TDest : unmanaged
         where TReader : IReader<TDest>
@@ -254,7 +254,7 @@ public readonly struct VertexBufferHelper
                 case PixelFormat.R16G16B16A16_Float: InnerRead<TSemantic, TReader, Half4, TDest>(destination, reader, elementData); break;
                 case PixelFormat.R16G16B16A16_UInt: InnerRead<TSemantic, TReader, UShort4, TDest>(destination, reader, elementData); break;
                 case PixelFormat.R8G8B8A8_UInt: InnerRead<TSemantic, TReader, Byte4, TDest>(destination, reader, elementData); break;
-                case PixelFormat.R8G8B8A8_UNorm: InnerRead<TSemantic, TReader, UNormByte4, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R8G8B8A8_UNorm: InnerRead<TSemantic, TReader, Color, TDest>(destination, reader, elementData); break;
                 default: throw new NotImplementedException($"Unsupported format when converting vertex element ({elementData.VertexElement.Format})");
             }
 
@@ -320,7 +320,7 @@ public readonly struct VertexBufferHelper
         IConverter<TDest, Half4>,
         IConverter<TDest, UShort4>,
         IConverter<TDest, Byte4>,
-        IConverter<TDest, UNormByte4>, 
+        IConverter<TDest, Color>, 
         IConverter<Vector2, TDest>,
         IConverter<Vector3, TDest>,
         IConverter<Vector4, TDest>,
@@ -328,7 +328,7 @@ public readonly struct VertexBufferHelper
         IConverter<Half4, TDest>,
         IConverter<UShort4, TDest>,
         IConverter<Byte4, TDest>, 
-        IConverter<UNormByte4, TDest>, 
+        IConverter<Color, TDest>, 
         ISemantic
         where TDest : unmanaged
         where TWriter : IWriter<TDest>
@@ -344,7 +344,7 @@ public readonly struct VertexBufferHelper
                 case PixelFormat.R16G16B16A16_Float: InnerWrite<TSemantic, TWriter, Half4, TDest>(writer, elementData); break;
                 case PixelFormat.R16G16B16A16_UInt: InnerWrite<TSemantic, TWriter, UShort4, TDest>(writer, elementData); break;
                 case PixelFormat.R8G8B8A8_UInt: InnerWrite<TSemantic, TWriter, Byte4, TDest>(writer, elementData); break;
-                case PixelFormat.R8G8B8A8_UNorm: InnerWrite<TSemantic, TWriter, UNormByte4, TDest>(writer, elementData); break;
+                case PixelFormat.R8G8B8A8_UNorm: InnerWrite<TSemantic, TWriter, Color, TDest>(writer, elementData); break;
                 default: throw new NotImplementedException($"Unsupported format when converting vertex element ({elementData.VertexElement.Format})");
             }
 
