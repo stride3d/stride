@@ -64,9 +64,9 @@ public static partial class Spv
             return this;
         }
 
-        readonly DisWriter AppendIdRef(int id)
+        readonly DisWriter AppendIdRef(int id, bool useNames = true)
         {
-            if (data.UseNames && data.NameTable.TryGetValue(id, out var name))
+            if (data.UseNames && useNames && data.NameTable.TryGetValue(id, out var name))
                 return Append($"%{name} ", ConsoleColor.Green);
             else return Append($"%{id} ", ConsoleColor.Green);
         }
@@ -219,7 +219,7 @@ public static partial class Spv
                 var nameInst = (OpName)instruction;
                 data.NameTable[nameInst.Target] = nameInst.Name;
                 AppendResultId();
-                Append("OpName ", ConsoleColor.Blue).AppendLiteralNumber(nameInst.Target).AppendLiteralString(nameInst.Name).AppendLine("");
+                Append("OpName ", ConsoleColor.Blue).AppendIdRef(nameInst.Target, false).AppendLiteralString(nameInst.Name).AppendLine("");
             }
             else if (instruction.Op == Op.OpMemberName)
             {
