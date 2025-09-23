@@ -165,6 +165,34 @@ namespace Stride.Importer.ThreeD
                 if (extractTextureDependencies)
                     entityInfo.TextureDependencies = ExtractTextureDependencies(scene);
 
+                // Aggregate materials per NODE not per mesh to account for multiple material limitation on assimp
+                if (entityInfo.Models != null && entityInfo.Models.Count > 0)
+                {
+                    foreach (var m in entityInfo.Models)
+                    {
+                        var key = string.IsNullOrEmpty(m.NodeName) ? m.MeshName : m.NodeName;
+                        if (string.IsNullOrEmpty(key))
+                            continue;
+
+                        int matIndex = -1;
+                        var t = m.GetType();
+                        var prop = t.GetProperty("OriginalMaterialIndex") ?? t.GetProperty("MaterialIndex");
+                        if (prop != null)
+                            matIndex = (int)prop.GetValue(m);
+
+                        if (matIndex < 0) continue;
+
+                        if (!entityInfo.NodeNameToMaterialIndices.TryGetValue(key, out var list))
+                        {
+                            list = new List<int>();
+                            entityInfo.NodeNameToMaterialIndices[key] = list;
+                        }
+
+                        if (!list.Contains(matIndex))
+                            list.Add(matIndex);
+                    }
+                }
+
                 return entityInfo;
             }
             catch (Exception ex)
