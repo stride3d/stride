@@ -180,8 +180,11 @@ internal class ContactEventsManager : IDisposable
         var orderedPair = new OrderedPair(a, b);
 
         bool aFlipped = ReferenceEquals(a, orderedPair.B); // Whether the manifold is flipped from a's point of view
-        bool bFlipped = !aFlipped;
-        (a, b) = (orderedPair.A, orderedPair.B);
+        if (aFlipped)
+        {
+            (childIndexA, childIndexB) = (childIndexB, childIndexA);
+            (a, b) = (b, a);
+        }
 
         var contactDataForA = new ContactData<TManifold>
         {
@@ -199,7 +202,7 @@ internal class ContactEventsManager : IDisposable
             EventSource = b,
             Other = a,
             Manifold = manifold,
-            FlippedManifold = bFlipped,
+            FlippedManifold = !aFlipped,
             ChildIndexSource = childIndexB,
             ChildIndexOther = childIndexA,
             Simulation = _simulation,
