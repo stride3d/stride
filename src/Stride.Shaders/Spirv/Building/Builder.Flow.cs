@@ -11,6 +11,9 @@ public partial class SpirvBuilder
         var i = Buffer.Insert(Position++, new OpLabel(context.Bound++));
         Buffer.Insert(Position, new OpUnreachable());
         var result = new SpirvBlock(i.ResultId, CurrentFunction ?? throw new NotImplementedException(), name);
+
+        CurrentFunction.Value.BasicBlocks.Add(result.Id, result);
+
         return result;
     }
 

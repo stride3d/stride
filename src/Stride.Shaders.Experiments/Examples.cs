@@ -378,7 +378,7 @@ public static partial class Examples
                 //temp.InsertOpFunction(i.Position, i.ResultId.Value, i.ResultType!.Value, function.FunctionControl, function.FunctionType);
             }
 
-            if (i.Data.Op == Op.OpVariable && (OpVariable)i is {} variable)
+            if (i.Data.Op == Op.OpVariable && (OpVariable)i is {} variable && variable.Storageclass != Specification.StorageClass.Function)
             {
                 var variableName = names[variable.ResultId];
                 currentShader!.Variables.Add(variableName, variable.ResultId);

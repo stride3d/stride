@@ -47,8 +47,33 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         var list = parameters.Values;
         Span<int> compiledParams = stackalloc int[list.Count];
         var tmp = 0;
+
         foreach (var p in list)
-            compiledParams[tmp++] = p.Compile(table, shader, compiler).Id;
+        {
+            var paramSource = p.Compile(table, shader, compiler).Id;
+            var paramType = context.GetOrRegister(functionType.ParameterTypes[tmp]);
+
+            // Wrap param in proper pointer type (function)
+            var paramVariable = context.Bound++;
+
+            if (builder.CurrentFunction is SpirvFunction f)
+            {
+                var currentPosition = builder.Position;
+                builder.SetPositionTo(f.BasicBlocks.First().Value, true);
+                // Go after label
+                builder.Position++;
+                builder.Insert(new OpVariable(paramType, paramVariable, Specification.StorageClass.Function, null));
+
+                builder.Position = currentPosition + 1;
+            }
+
+            var loadedParam = context.Bound++;
+            builder.Insert(new OpLoad(compiler.Context.Types[p.ValueType], loadedParam, paramSource, null));
+            builder.Insert(new OpStore(paramVariable, loadedParam, null));
+
+            compiledParams[tmp++] = paramVariable;
+        }
+
         return builder.CallFunction(context, Name, [.. compiledParams]);
     }
     public override string ToString()
