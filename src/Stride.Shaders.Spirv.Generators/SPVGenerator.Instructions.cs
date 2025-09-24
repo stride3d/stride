@@ -187,9 +187,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                     body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
                 else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename}>();");
                 // Body 3
-                if (typename.StartsWith("LiteralArray"))
-                    body3.AppendLine($"{fieldName}.Assign({operandName});");
-                else body3.AppendLine($"{fieldName} = {operandName};");
+                body3.AppendLine($"{fieldName} = {operandName};");
             }
             body2.AppendLine("}");
 
