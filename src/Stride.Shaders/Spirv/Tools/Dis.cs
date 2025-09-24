@@ -197,6 +197,19 @@ public static partial class Spv
             DisHeader();
             foreach (var instruction in data)
             {
+                if (instruction.Op == Op.OpName)
+                {
+                    var nameInst = (OpName)instruction;
+                    data.NameTable[nameInst.Target] = nameInst.Name;
+                }
+                else if (instruction.Op == Op.OpMemberName)
+                {
+                    var memberInst = (OpMemberName)instruction;
+                    data.NameTable[memberInst.Type + memberInst.Member] = memberInst.Name;
+                }
+            }
+            foreach (var instruction in data)
+            {
                 DisInstruction(instruction, this);
             }
         }
@@ -217,16 +230,14 @@ public static partial class Spv
             if (instruction.Op == Op.OpName)
             {
                 var nameInst = (OpName)instruction;
-                data.NameTable[nameInst.Target] = nameInst.Name;
                 AppendResultId();
-                Append("OpName ", ConsoleColor.Blue).AppendIdRef(nameInst.Target, false).AppendLiteralString(nameInst.Name).AppendLine("");
+                Append("OpName ", ConsoleColor.Blue).AppendIdRef(nameInst.Target).AppendLiteralString(nameInst.Name).AppendLine("");
             }
             else if (instruction.Op == Op.OpMemberName)
             {
                 var memberInst = (OpMemberName)instruction;
-                data.NameTable[memberInst.Type + memberInst.Member] = memberInst.Name;
                 AppendResultId();
-                Append("OpMemberName ", ConsoleColor.Blue).AppendIdRef(memberInst.Type, false).AppendLiteralNumber(memberInst.Member).AppendLiteralString(memberInst.Name).AppendLine("");
+                Append("OpMemberName ", ConsoleColor.Blue).AppendIdRef(memberInst.Type).AppendLiteralNumber(memberInst.Member).AppendLiteralString(memberInst.Name).AppendLine("");
             }
             else
             {
