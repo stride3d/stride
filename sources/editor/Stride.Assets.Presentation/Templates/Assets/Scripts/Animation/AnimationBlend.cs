@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Collections;
@@ -71,7 +72,7 @@ public class ##Scriptname## : SyncScript, IBlendTreeBuilder
         currentTime = (currentTicks.Ticks/(double) blendedMaxDuration);
     }
 
-    public void BuildBlendTree(FastList<AnimationOperation> blendStack)
+    public void BuildBlendTree(List<AnimationOperation> blendStack)
     {
         // Note! The tree has to be flattened and given as a stack!
         blendStack.Add(AnimationOperation.NewPush(anim1Evaluator, TimeSpan.FromTicks((long)(currentTime * Animation1.Duration.Ticks))));
