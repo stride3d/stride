@@ -92,7 +92,8 @@ public struct LiteralArray<T> : ISpirvElement, IFromSpirv<LiteralArray<T>>, IDis
     void UpdateWords()
     {
         Memory?.Dispose();
-        Memory = MemoryOwner<int>.Allocate(Elements.Length * 2, AllocationMode.Clear);
+        var memorySize = Elements.Length > 0 && Elements.Span[0] is long or ulong or double or ValueTuple<int, int> ? Elements.Length * 2 : Elements.Length;
+        Memory = MemoryOwner<int>.Allocate(memorySize, AllocationMode.Clear);
         var pos = 0;
         foreach (var element in Elements.Span)
         {
