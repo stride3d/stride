@@ -99,7 +99,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                 {
                     if (instruction.Op == Op.OpDecorateString
-                        && ((OpDecorate)instruction) is
+                        && ((OpDecorateString)instruction) is
                         {
                             Decoration: Decoration.UserSemantic,
                             Target: int t,
@@ -160,7 +160,7 @@ namespace Stride.Shaders.Spirv.Processing
                     context.AddName(variable, $"in_{stream.Value.Stream.Name}");
 
                     if (stream.Value.Stream.Semantic != null)
-                        context.Add(new OpDecorate(variable, Decoration.UserSemantic, null, null, stream.Value.Stream.Semantic));
+                        context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Stream.Semantic));
 
                     inputStreams.Add((stream.Value.Stream, variable.ResultId));
                 }
@@ -172,7 +172,7 @@ namespace Stride.Shaders.Spirv.Processing
                     context.AddName(variable, $"out_{stream.Value.Stream.Name}");
 
                     if (stream.Value.Stream.Semantic != null)
-                        context.Add(new OpDecorate(variable, Decoration.UserSemantic, null, null, stream.Value.Stream.Semantic));
+                        context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Stream.Semantic));
 
                     outputStreams.Add((stream.Value.Stream, variable.ResultId));
                 }

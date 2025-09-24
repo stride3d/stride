@@ -355,7 +355,10 @@ public static class IMemoryInstructionExtensions
         Decoration? decoration = op switch
         {
             OpDecorate opd => opd.Decoration,
+            OpDecorateId opd => opd.Decoration,
+            OpDecorateString opd => opd.Decoration,
             OpMemberDecorate opd => opd.Decoration,
+            OpMemberDecorateString opd => opd.Decoration,
             _ => null
         };
 

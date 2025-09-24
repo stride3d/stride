@@ -51,7 +51,7 @@ public partial class SPVGenerator : IIncrementalGenerator
 
                 if (instruction.OpName.EndsWith("Constant"))
                     WriteConstantInstructions(grammar, instruction, builder, body1, body2, body3, body4);
-                else if (instruction.OpName.EndsWith("Decorate"))
+                else if (instruction.OpName.Contains("Decorate"))
                     WriteDecorateInstructions(grammar, instruction, builder, body1, body2, body3, body4);
                 else if (instruction.OpName.StartsWith("OpCopyMemory"))
                     WriteCopyMemoryInstructions(grammar, instruction, body1, body2, body3, body4);
@@ -270,9 +270,12 @@ public partial class SPVGenerator : IIncrementalGenerator
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
         {
-            operands.Add(new() { Name = "additional1", Kind = "LiteralInteger", Quantifier = "?" });
-            operands.Add(new() { Name = "additional2", Kind = "LiteralInteger", Quantifier = "?" });
-            operands.Add(new() { Name = "additionalString", Kind = "LiteralString", Quantifier = "?" });
+            if (instruction.OpName.EndsWith("Id"))
+                operands.Add(new() { Name = "additionalId", Kind = "IdRef" });
+            else if (instruction.OpName.EndsWith("String"))
+                operands.Add(new() { Name = "additionalString", Kind = "LiteralString" });
+            else
+                operands.Add(new() { Name = "additionalInteger", Kind = "LiteralInteger", Quantifier = "?" });
             body2.AppendLine("foreach (var o in index.Data)")
             .AppendLine("{");
 

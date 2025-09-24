@@ -17,7 +17,22 @@ public ref struct OpDataEnumerator
     public OpDataEnumerator(Span<int> instruction)
     {
         this.instruction = instruction;
-        logicalOperands = InstructionInfo.GetInfo(OpCode);
+
+        Decoration? decoration = null;
+        switch (OpCode)
+        {
+            case Op.OpDecorate:
+            case Op.OpDecorateId:
+            case Op.OpDecorateString:
+                decoration = (Decoration)instruction[2];
+                break;
+            case Op.OpMemberDecorate:
+            case Op.OpMemberDecorateString:
+                decoration = (Decoration)instruction[3];
+                break;
+        }
+
+        logicalOperands = InstructionInfo.GetInfo(new OperandKey(OpCode, decoration));
         oid = -1;
         wid = 0;
     }

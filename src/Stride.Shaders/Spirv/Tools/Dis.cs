@@ -226,7 +226,7 @@ public static partial class Spv
                 var memberInst = (OpMemberName)instruction;
                 data.NameTable[memberInst.Type + memberInst.Member] = memberInst.Name;
                 AppendResultId();
-                Append("OpMemberName ", ConsoleColor.Blue).AppendLiteralNumber(memberInst.Type).AppendLiteralNumber(memberInst.Member).AppendLiteralString(memberInst.Name).AppendLine("");
+                Append("OpMemberName ", ConsoleColor.Blue).AppendIdRef(memberInst.Type, false).AppendLiteralNumber(memberInst.Member).AppendLiteralString(memberInst.Name).AppendLine("");
             }
             else
             {
