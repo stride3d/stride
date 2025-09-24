@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -71,7 +72,7 @@ internal class ContactEventsManager : IDisposable
         else
             _bodyListenerFlags.Remove(reference.RawHandleValue);
 
-        ClearCollisionsOf(collidable);
+        ClearCollisionsOf(collidable, reference.Packed);
     }
 
     /// <summary>
@@ -97,31 +98,29 @@ internal class ContactEventsManager : IDisposable
             return _bodyListenerFlags.Contains(reference.RawHandleValue);
     }
 
-    public void ClearCollisionsOf(CollidableComponent collidable)
+    public void ClearCollisionsOf(CollidableComponent collidable, uint packed)
     {
         foreach (var workerStore in _manifoldStoresPerWorker)
         {
             foreach (var typeStore in workerStore)
-                typeStore.ClearEventsOf(collidable);
+                typeStore.ClearEventsOf(collidable, packed);
         }
 
         // Really slow, but improving performance has a huge amount of gotchas since user code
         // may cause this method to be re-entrant through handler calls.
         // Something to investigate later
 
-        var manifold = new EmptyManifold();
         foreach (var (pair, state) in _trackedCollisions)
         {
             if (!ReferenceEquals(pair.A, collidable) && !ReferenceEquals(pair.B, collidable))
                 continue;
 
-            ClearCollision(pair, in manifold);
+            ClearCollision(pair);
         }
     }
 
-    private void ClearCollision(OrderedPair pair, in EmptyManifold manifold)
+    private void ClearCollision(OrderedPair pair)
     {
-        const bool flippedManifold = false; // The flipped manifold argument does not make sense in this context given that we pass an empty one
 #if DEBUG
         ref var stateRef = ref CollectionsMarshal.GetValueRefOrAddDefault(_trackedCollisions, pair, out _);
         _trackedCollisions.Remove(pair, out var state);
@@ -132,32 +131,14 @@ internal class ContactEventsManager : IDisposable
 
         if (state.TryClear(Events.TouchingA))
         {
-            state.HandlerA?.OnStoppedTouching(
-                new ContactData<EmptyManifold>
-                {
-                    EventSource = pair.A,
-                    Other = pair.B,
-                    Manifold = manifold,
-                    FlippedManifold = flippedManifold,
-                    ChildIndexSource = 0,
-                    ChildIndexOther = 0,
-                    Simulation = _simulation,
-                });
+            var contactDataForA = new Contacts<EmptyManifold>(pair.A, pair.B, isSourceOriginalA: true, ReadOnlySpan<ContactGroup<EmptyManifold>>.Empty, _simulation);
+            state.HandlerA?.OnStoppedTouching(contactDataForA);
         }
 
         if (state.TryClear(Events.TouchingB))
         {
-            state.HandlerB?.OnStoppedTouching(
-                new ContactData<EmptyManifold>
-                {
-                    EventSource = pair.B,
-                    Other = pair.A,
-                    Manifold = manifold,
-                    FlippedManifold = flippedManifold,
-                    ChildIndexSource = 0,
-                    ChildIndexOther = 0,
-                    Simulation = _simulation,
-                });
+            var contactDataForB = new Contacts<EmptyManifold>(pair.B, pair.A, isSourceOriginalA: false, ReadOnlySpan<ContactGroup<EmptyManifold>>.Empty, _simulation);
+            state.HandlerB?.OnStoppedTouching(contactDataForB);
         }
 
         _outdatedPairs.Remove(pair);
@@ -171,42 +152,20 @@ internal class ContactEventsManager : IDisposable
         if (aListener == false && bListener == false)
             return;
 
-        IPerTypeManifoldStore.StoreManifold(_manifoldStoresPerWorker, workerIndex, ref manifold, _simulation.GetComponent(pair.A), _simulation.GetComponent(pair.B), childIndexA, childIndexB);
+        IPerTypeManifoldStore.StoreManifold(_manifoldStoresPerWorker, workerIndex, ref manifold, pair, childIndexA, childIndexB);
     }
 
-    private void RunManifoldEvent<TManifold>(CollidableComponent a, CollidableComponent b, int childIndexA, int childIndexB, TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+    private void RunManifoldEvent<TManifold>(Span<ContactGroup<TManifold>> unsafeInfos) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-        // We must first sort the collidables to ensure calls happen in a deterministic order, and to mimic `ClearCollision`'s order
-        var orderedPair = new OrderedPair(a, b);
+        // We have to do a stackalloc'ed copy as On*Touching may end up clearing the memory region where unsafeInfos resides through ClearEventsOf
+        Span<ContactGroup<TManifold>> safeInfos = stackalloc ContactGroup<TManifold>[unsafeInfos.Length];
+        unsafeInfos.CopyTo(safeInfos);
 
-        bool aFlipped = ReferenceEquals(a, orderedPair.B); // Whether the manifold is flipped from a's point of view
-        if (aFlipped)
-        {
-            (childIndexA, childIndexB) = (childIndexB, childIndexA);
-            (a, b) = (b, a);
-        }
+        var orderedPair = new OrderedPair(_simulation.GetComponent(safeInfos[0].Pair.A), _simulation.GetComponent(safeInfos[0].Pair.B));
 
-        var contactDataForA = new ContactData<TManifold>
-        {
-            EventSource = a,
-            Other = b,
-            Manifold = manifold,
-            FlippedManifold = aFlipped,
-            ChildIndexSource = childIndexA,
-            ChildIndexOther = childIndexB,
-            Simulation = _simulation,
-        };
-
-        var contactDataForB = new ContactData<TManifold>
-        {
-            EventSource = b,
-            Other = a,
-            Manifold = manifold,
-            FlippedManifold = !aFlipped,
-            ChildIndexSource = childIndexB,
-            ChildIndexOther = childIndexA,
-            Simulation = _simulation,
-        };
+        bool isAOriginalA = safeInfos[0].Pair.A.Packed == safeInfos[0].SortedPair.A;
+        var contactDataForA = new Contacts<TManifold>(orderedPair.A, orderedPair.B, isSourceOriginalA: isAOriginalA, safeInfos, _simulation);
+        var contactDataForB = new Contacts<TManifold>(orderedPair.B, orderedPair.A, isSourceOriginalA: isAOriginalA == false, safeInfos, _simulation);
 
         IContactHandler? handlerA, handlerB;
         ref var collisionState = ref CollectionsMarshal.GetValueRefOrAddDefault(_trackedCollisions, orderedPair, out bool alreadyExisted);
@@ -218,17 +177,20 @@ internal class ContactEventsManager : IDisposable
         else
         {
             collisionState.Alive = true; // This is set as a flag to check for removal events
-            handlerA = collisionState.HandlerA = a.ContactEventHandler;
-            handlerB = collisionState.HandlerB = b.ContactEventHandler;
+            handlerA = collisionState.HandlerA = orderedPair.A.ContactEventHandler;
+            handlerB = collisionState.HandlerB = orderedPair.B.ContactEventHandler;
         }
 
         bool touching = false;
-        for (int i = 0; i < manifold.Count; ++i)
+        for (int i = 0; i < safeInfos.Length; i++)
         {
-            if (manifold.GetDepth(i) >= 0)
+            for (int j = 0; j < safeInfos[i].Manifold.Count; ++j)
             {
-                touching = true;
-                break;
+                if (safeInfos[i].Manifold.GetDepth(j) >= 0)
+                {
+                    touching = true;
+                    break;
+                }
             }
         }
 
@@ -294,7 +256,7 @@ internal class ContactEventsManager : IDisposable
 
         //Remove any stale collisions. Stale collisions are those which should have received a new manifold update but did not because the manifold is no longer active.
         foreach (var pair in _outdatedPairs)
-            ClearCollision(pair, in manifold);
+            ClearCollision(pair);
     }
 
     /// <summary>
@@ -323,9 +285,9 @@ internal class ContactEventsManager : IDisposable
     {
         void RunEvents(ContactEventsManager eventsManager);
 
-        void ClearEventsOf(CollidableComponent collidableComponent);
+        void ClearEventsOf(CollidableComponent collidableComponent, uint packed);
 
-        public static unsafe void StoreManifold<TManifold>(IPerTypeManifoldStore[][] manifoldLists, int workerIndex, ref TManifold manifold, CollidableComponent a, CollidableComponent b, int childIndexA, int childIndexB) where TManifold : unmanaged, IContactManifold<TManifold>
+        public static unsafe void StoreManifold<TManifold>(IPerTypeManifoldStore[][] manifoldLists, int workerIndex, ref TManifold manifold, CollidablePair pair, int childIndexA, int childIndexB) where TManifold : unmanaged, IContactManifold<TManifold>
         {
             var manifoldsForWorker = manifoldLists[workerIndex];
             int typeIndex = TypeIndex<TManifold>.Index;
@@ -346,15 +308,30 @@ internal class ContactEventsManager : IDisposable
             }
 
             var handler = (ListOf<TManifold>)manifoldsForWorker[typeIndex];
-            handler.Add((manifold, a, b, childIndexA, childIndexB));
+
+            var newValue = new ContactGroup<TManifold>(ref manifold, pair, childIndexA, childIndexB);
+            int index = handler.BinarySearch(newValue, Comparer<TManifold>.SharedInstance);
+            if (index < 0)
+                handler.Insert(~index, newValue);
+            else
+                handler.Insert(index, newValue);
         }
 
         private static int indexMax = -1;
         private static unsafe delegate*<IPerTypeManifoldStore>[] manifoldStoreConstructors = [];
         private static object perTypeLock = new();
 
-        // On purpose, we want
-        // ReSharper disable once UnusedTypeParameter
+        private class Comparer<TManifold> : IComparer<ContactGroup<TManifold>> where TManifold : unmanaged, IContactManifold<TManifold>
+        {
+            public static Comparer<TManifold> SharedInstance = new();
+
+            public int Compare(ContactGroup<TManifold> x, ContactGroup<TManifold> y)
+            {
+                int aComp = x.SortedPair.A.CompareTo(y.SortedPair.A);
+                return aComp != 0 ? aComp : x.SortedPair.B.CompareTo(y.SortedPair.B);
+            }
+        }
+
         private static class TypeIndex<TManifold> where TManifold : unmanaged, IContactManifold<TManifold>
         {
             public static readonly int Index;
@@ -374,14 +351,19 @@ internal class ContactEventsManager : IDisposable
             private static ListOf<TManifold> ManifoldCtor() => new();
         }
 
-        private class ListOf<TManifold> : List<(TManifold manifold, CollidableComponent a, CollidableComponent b, int childIndexA, int childIndexB)>, IPerTypeManifoldStore where TManifold : unmanaged, IContactManifold<TManifold>
+        private class ListOf<TManifold> : List<ContactGroup<TManifold>>, IPerTypeManifoldStore where TManifold : unmanaged, IContactManifold<TManifold>
         {
             public void RunEvents(ContactEventsManager eventsManager)
             {
                 for (int i = Count - 1; i >= 0; i--) // reverse as the scope may end up calling ClearRelatedContacts
                 {
-                    var (manifold, a, b, childIndexA, childIndexB) = this[i];
-                    eventsManager.RunManifoldEvent(a, b, childIndexA, childIndexB, manifold);
+                    var refPair = this[i].SortedPair;
+                    int endExclusive = i + 1;
+                    for (; i > 0 && this[i - 1].SortedPair == refPair; i--){ } // Find the range of collisions sharing the same pair
+
+                    var transientSpan = CollectionsMarshal.AsSpan(this)[i..endExclusive];
+
+                    eventsManager.RunManifoldEvent(transientSpan);
                     if (i > Count) // If the method above ended up removing a significant amount of events, make sure to continue from a sane spot
                         i = Count;
                 }
@@ -389,12 +371,14 @@ internal class ContactEventsManager : IDisposable
                 Clear();
             }
 
-            public void ClearEventsOf(CollidableComponent collidableComponent)
+            public void ClearEventsOf(CollidableComponent collidableComponent, uint packed)
             {
+                Debug.Assert(collidableComponent.CollidableReference.HasValue);
+
                 var spanOfThis = CollectionsMarshal.AsSpan(this);
                 for (int i = spanOfThis.Length - 1; i >= 0; i--)
                 {
-                    if (spanOfThis[i].a == collidableComponent || spanOfThis[i].b == collidableComponent)
+                    if (spanOfThis[i].Pair.A.Packed == packed || spanOfThis[i].Pair.B.Packed == packed)
                         RemoveAt(i);
                 }
             }
@@ -437,22 +421,6 @@ internal class ContactEventsManager : IDisposable
         TouchingB = 0b10,
     }
 
-    private readonly record struct OrderedPair
-    {
-        public readonly CollidableComponent A, B;
-        public OrderedPair(CollidableComponent a, CollidableComponent b)
-        {
-            if (a.InstanceIndex != b.InstanceIndex)
-                (A, B) = a.InstanceIndex > b.InstanceIndex ? (a, b) : (b, a);
-            else if (a.GetHashCode() != b.GetHashCode())
-                (A, B) = a.GetHashCode() > b.GetHashCode() ? (a, b) : (b, a);
-            else if (ReferenceEquals(a, b))
-                (A, B) = (a, b);
-            else
-                throw new InvalidOperationException("Could not order this pair of collidable, incredibly unlikely event");
-        }
-    }
-
 
     private struct EmptyManifold : IContactManifold<EmptyManifold>
     {
@@ -471,5 +439,22 @@ internal class ContactEventsManager : IDisposable
         public int GetFeatureId(int contactIndex) => throw new IndexOutOfRangeException("This manifold is empty");
         public Vector3 GetNormal(int contactIndex) => throw new IndexOutOfRangeException("This manifold is empty");
         public Vector3 GetOffset(int contactIndex) => throw new IndexOutOfRangeException("This manifold is empty");
+    }
+}
+
+internal readonly record struct OrderedPair
+{
+    public readonly CollidableComponent A, B;
+
+    public OrderedPair(CollidableComponent a, CollidableComponent b)
+    {
+        Debug.Assert(a.CollidableReference.HasValue);
+        Debug.Assert(b.CollidableReference.HasValue);
+        (A, B) = a.CollidableReference.Value.Packed > b.CollidableReference.Value.Packed ? (a, b) : (b, a);
+    }
+
+    public static (uint A, uint B) Sort(CollidablePair pair)
+    {
+        return pair.A.Packed > pair.B.Packed ? (pair.A.Packed, pair.B.Packed) : (pair.B.Packed, pair.A.Packed);
     }
 }

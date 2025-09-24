@@ -163,75 +163,55 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactHand
     }
 
     bool IContactHandler.NoContactResponse => NoContactResponse;
-    void IContactHandler.OnStartedTouching<TManifold>(ContactData<TManifold> contactData) => OnStartedTouching(contactData);
-    void IContactHandler.OnTouching<TManifold>(ContactData<TManifold> contactData) => OnTouching(contactData);
-    void IContactHandler.OnStoppedTouching<TManifold>(ContactData<TManifold> contactData) => OnStoppedTouching(contactData);
+    void IContactHandler.OnStartedTouching<TManifold>(Contacts<TManifold> contacts) => OnStartedTouching(contacts);
+    void IContactHandler.OnTouching<TManifold>(Contacts<TManifold> contacts) => OnTouching(contacts);
+    void IContactHandler.OnStoppedTouching<TManifold>(Contacts<TManifold> contacts) => OnStoppedTouching(contacts);
 
 
     protected bool NoContactResponse => false;
 
     /// <inheritdoc cref="IContactHandler.OnStartedTouching{TManifold}"/>
-    protected virtual void OnStartedTouching<TManifold>(ContactData<TManifold> contactData) where TManifold : unmanaged, IContactManifold<TManifold>
+    protected virtual void OnStartedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-        foreach (var contact in contactData)
+        foreach (var contact in contacts)
         {
-            Contacts.Add((contactData.Other, new Contact
+            Contacts.Add((contacts.Other, new Contact
             {
                 Normal = contact.Normal,
                 Depth = contact.Depth,
                 FeatureId = contact.FeatureId,
-                Offset = contact.Point - (Vector3)contactData.EventSource.Pose!.Value.Position,
+                Offset = contact.Point - (Vector3)contacts.EventSource.Pose!.Value.Position,
             }));
         }
     }
 
     /// <inheritdoc cref="IContactHandler.OnTouching{TManifold}"/>
-    protected virtual void OnTouching<TManifold>(ContactData<TManifold> contactData) where TManifold : unmanaged, IContactManifold<TManifold>
+    protected virtual void OnTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-        int contactsRetained = 0;
         for (int i = Contacts.Count - 1; i >= 0; i--)
         {
-            var contact = Contacts[i];
-            if (contact.Source != contactData.Other)
-            {
-                foreach (var newContact in contactData)
-                {
-                    if (newContact.FeatureId == contact.Contact.FeatureId)
-                    {
-                        contactsRetained |= 1 << newContact.Index;
-                        goto RETAIN_CONTACT;
-                    }
-                }
-
-                Contacts.RemoveAt(i);
-            }
-
-            RETAIN_CONTACT:
-            {
-            }
+            if (Contacts[i].Source == contacts.Other)
+                Contacts.SwapRemoveAt(i);
         }
 
-        foreach (var contact in contactData)
+        foreach (var contact in contacts)
         {
-            if ((contactsRetained & (1 << contact.Index)) == 0)
+            Contacts.Add((contacts.Other, new Contact
             {
-                Contacts.Add((contactData.Other, new Contact
-                {
-                    Normal = contact.Normal,
-                    Depth = contact.Depth,
-                    FeatureId = contact.FeatureId,
-                    Offset = contact.Point - (Vector3)contactData.EventSource.Pose!.Value.Position,
-                }));
-            }
+                Normal = contact.Normal,
+                Depth = contact.Depth,
+                FeatureId = contact.FeatureId,
+                Offset = contact.Point - (Vector3)contacts.EventSource.Pose!.Value.Position,
+            }));
         }
     }
 
     /// <inheritdoc cref="IContactHandler.OnStoppedTouching{TManifold}"/>
-    protected virtual void OnStoppedTouching<TManifold>(ContactData<TManifold> contactData) where TManifold : unmanaged, IContactManifold<TManifold>
+    protected virtual void OnStoppedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         for (int i = Contacts.Count - 1; i >= 0; i--)
         {
-            if (Contacts[i].Source == contactData.Other)
+            if (Contacts[i].Source == contacts.Other)
                 Contacts.SwapRemoveAt(i);
         }
     }

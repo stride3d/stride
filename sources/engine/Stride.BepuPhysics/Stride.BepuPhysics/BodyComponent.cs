@@ -488,14 +488,6 @@ public class BodyComponent : CollidableComponent
         BodyReference = null;
     }
 
-    protected override int GetHandleValue()
-    {
-        if (BodyReference is { } bRef)
-            return bRef.Handle.Value;
-
-        throw new InvalidOperationException();
-    }
-
     /// <summary>
     /// A special variant taking the center of mass into consideration
     /// </summary>

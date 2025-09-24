@@ -271,12 +271,12 @@ namespace Stride.BepuPhysics.Tests
 
             public event Action? StartedTouching, StoppedTouching;
 
-            public void OnStartedTouching<TManifold>(ContactData<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+            public void OnStartedTouching<TManifold>(Contacts<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
             {
                 StartedTouching?.Invoke();
             }
 
-            public void OnStoppedTouching<TManifold>(ContactData<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+            public void OnStoppedTouching<TManifold>(Contacts<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
             {
                 StoppedTouching?.Invoke();
             }

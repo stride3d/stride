@@ -18,18 +18,18 @@ public class Trigger : IContactHandler
     public bool NoContactResponse => true;
     public event TriggerDelegate? OnEnter, OnLeave;
 
-    void IContactHandler.OnStartedTouching<TManifold>(ContactData<TManifold> contactData) => OnStartedTouching(contactData);
-    void IContactHandler.OnStoppedTouching<TManifold>(ContactData<TManifold> contactData) => OnStoppedTouching(contactData);
+    void IContactHandler.OnStartedTouching<TManifold>(Contacts<TManifold> contacts) => OnStartedTouching(contacts);
+    void IContactHandler.OnStoppedTouching<TManifold>(Contacts<TManifold> contacts) => OnStoppedTouching(contacts);
 
     /// <inheritdoc cref="IContactHandler.OnStartedTouching{TManifold}"/>
-    protected void OnStartedTouching<TManifold>(ContactData<TManifold> contactData) where TManifold : unmanaged, IContactManifold<TManifold>
+    protected void OnStartedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-        OnEnter?.Invoke(contactData.EventSource, contactData.Other);
+        OnEnter?.Invoke(contacts.EventSource, contacts.Other);
     }
 
     /// <inheritdoc cref="IContactHandler.OnStoppedTouching{TManifold}"/>
-    protected void OnStoppedTouching<TManifold>(ContactData<TManifold> contactData) where TManifold : unmanaged, IContactManifold<TManifold>
+    protected void OnStoppedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-        OnLeave?.Invoke(contactData.EventSource, contactData.Other);
+        OnLeave?.Invoke(contacts.EventSource, contacts.Other);
     }
 }

@@ -16,8 +16,8 @@ public interface IContactHandler
     /// Fires the first time a pair is observed to be touching. Touching means that there are contacts with nonnegative depths in the manifold.
     /// </summary>
     /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
-    /// <param name="contactData">Data associated with this contact event.</param>
-    void OnStartedTouching<TManifold>(ContactData<TManifold> contactData) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <param name="contacts">Data associated with this contact event.</param>
+    void OnStartedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
@@ -25,8 +25,8 @@ public interface IContactHandler
     /// Fires whenever a pair is observed to be touching. Touching means that there are contacts with nonnegative depths in the manifold. Will not fire for sleeping pairs.
     /// </summary>
     /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
-    /// <param name="contactData">Data associated with this contact event.</param>
-    void OnTouching<TManifold>(ContactData<TManifold> contactData) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <param name="contacts">Data associated with this contact event.</param>
+    void OnTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
@@ -35,8 +35,8 @@ public interface IContactHandler
     /// Fires when a pair stops touching. Touching means that there are contacts with nonnegative depths in the manifold.
     /// </summary>
     /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
-    /// <param name="contactData">Data associated with this contact event.</param>
-    void OnStoppedTouching<TManifold>(ContactData<TManifold> contactData) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <param name="contacts">Data associated with this contact event.</param>
+    void OnStoppedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 }
