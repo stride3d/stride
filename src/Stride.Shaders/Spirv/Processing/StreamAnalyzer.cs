@@ -42,7 +42,7 @@ namespace Stride.Shaders.Spirv.Processing
                 if (stream.Value.Stream.Semantic is { } semantic && (semantic.StartsWith("SV_Target") || semantic == "SV_Depth"))
                     stream.Value.Stream.Output = true;
             }
-            GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.Id, entryPointPS.Name, streams);
+            var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.Id, entryPointPS.Name, streams);
 
             // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
             foreach (var stream in streams)
@@ -51,7 +51,9 @@ namespace Stride.Shaders.Spirv.Processing
                     stream.Value.Stream.Read = false;
             }
             PropagateStreamsFromPreviousStage(streams);
-            GenerateStreamWrapper(buffer, context, Specification.ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, streams);
+            GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, streams);
+
+            buffer.FluentAdd(new OpExecutionMode(psWrapper.ResultId, ExecutionMode.OriginUpperLeft));
         }
 
         private static void PropagateStreamsFromPreviousStage(SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
@@ -135,7 +137,7 @@ namespace Stride.Shaders.Spirv.Processing
             return streams;
         }
 
-        private void GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
+        private OpFunction GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
         {
             ProcessMethod(buffer, entryPointId, streams);
 
@@ -153,11 +155,12 @@ namespace Stride.Shaders.Spirv.Processing
                 if (!stream.Value.IsDirect)
                     continue;
 
+                var baseType = ((PointerType)stream.Value.Stream.Type).BaseType;
                 if (stream.Value.Stream.Input)
                 {
-                    context.FluentAdd(new OpTypePointer(context.Bound++, StorageClass.Input, context.Types[stream.Value.Stream.Type]), out var pointerType);
-                    context.FluentAdd(new OpVariable(pointerType.ResultId, context.Bound++, StorageClass.Input, null), out var variable);
-                    context.AddName(variable, $"in_{stream.Value.Stream.Name}");
+                    context.FluentAdd(new OpTypePointer(context.Bound++, StorageClass.Input, context.Types[baseType]), out var pointerType);
+                    context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Input, null), out var variable);
+                    context.AddName(variable, $"in_{stage}_{stream.Value.Stream.Name}");
 
                     if (stream.Value.Stream.Semantic != null)
                         context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Stream.Semantic));
@@ -167,9 +170,9 @@ namespace Stride.Shaders.Spirv.Processing
 
                 if (stream.Value.Stream.Output)
                 {
-                    context.FluentAdd(new OpTypePointer(context.Bound++, StorageClass.Output, context.Types[stream.Value.Stream.Type]), out var pointerType)
-                    .FluentAdd(new OpVariable(context.Bound++, pointerType, StorageClass.Output, null), out var variable);
-                    context.AddName(variable, $"out_{stream.Value.Stream.Name}");
+                    context.FluentAdd(new OpTypePointer(context.Bound++, StorageClass.Output, context.Types[baseType]), out var pointerType);
+                    context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Output, null), out var variable);
+                    context.AddName(variable, $"out_{stage}_{stream.Value.Stream.Name}");
 
                     if (stream.Value.Stream.Semantic != null)
                         context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Stream.Semantic));
@@ -200,7 +203,7 @@ namespace Stride.Shaders.Spirv.Processing
                 foreach (var stream in outputStreams)
                 {
                     var baseType = ((PointerType)stream.Info.Type).BaseType;
-                    buffer.FluentAdd(new OpLoad(context.Bound++, context.Types[baseType], stream.Info.Id, null), out var loadedValue);
+                    buffer.FluentAdd(new OpLoad( context.Types[baseType], context.Bound++, stream.Info.Id, null), out var loadedValue);
                     buffer.Add(new OpStore(stream.Id, loadedValue.ResultId, null));
                 }
 
@@ -214,6 +217,8 @@ namespace Stride.Shaders.Spirv.Processing
                     pvariables[inputStreams.Count + i] = outputStreams[i].Id;
                 context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [..pvariables]));
             }
+
+            return newEntryPointFunction;
         }
 
         /// <summary>
@@ -261,7 +266,7 @@ namespace Stride.Shaders.Spirv.Processing
             for (var index = 0; index < buffer.Count; index++)
             {
                 var instruction = buffer[index];
-                if (instruction.Op is Op.OpFunction)
+                if (instruction.Op is Op.OpFunction && ((OpFunction)instruction).ResultId == functionId)
                     return index;
             }
             throw new NotImplementedException();
