@@ -471,6 +471,8 @@ public static partial class Examples
                 temp.RemoveAt(i--);
         }
 
+        temp.Sort();
+
         var source = Spv.Dis(temp, true);
 
         File.WriteAllText("test.spvdis", source);
