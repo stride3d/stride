@@ -12,24 +12,24 @@ namespace Stride.Shaders.Spirv.Core;
 public readonly partial struct LogicalOperand
 {
     public string? Name { get; init; }
-    public string? SpvClass { get; init; }
+    public string? DecorationName { get; init; }
     public OperandKind? Kind { get; init; }
     public OperandQuantifier? Quantifier { get; init; }
 
     public LogicalOperand() { }
 
-    public LogicalOperand(OperandKind? kind, OperandQuantifier? quantifier, string? name = null, string? spvClass = null)
+    public LogicalOperand(OperandKind? kind, OperandQuantifier? quantifier, string? name = null, string? decorationName = null)
     {
         Name = name;
         Kind = kind;
-        SpvClass = spvClass;
+        DecorationName = decorationName;
         Quantifier = quantifier;
     }
-    public LogicalOperand(string kind, string quantifier, string? name = null, string? spvClass = null)
+    public LogicalOperand(string kind, string quantifier, string? name = null, string? decorationName = null)
     {
         Name = name;
         Kind = Enum.Parse<OperandKind>(kind);
-        SpvClass = spvClass;
+        DecorationName = decorationName;
         Quantifier = Enum.Parse<OperandQuantifier>(quantifier);
     }
 }

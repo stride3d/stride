@@ -269,11 +269,17 @@ public partial class SPVGenerator : IIncrementalGenerator
         if (instruction.Operands?.AsList() is List<OperandData> operands)
         {
             if (instruction.OpName.EndsWith("Id"))
+                // Note: not sure if this is correct, it might need to be an array (quantifier *) which we don't support nicely yet
                 operands.Add(new() { Name = "additionalId", Kind = "IdRef" });
             else if (instruction.OpName.EndsWith("String"))
-                operands.Add(new() { Name = "additionalString", Kind = "LiteralString" });
+                operands.Add(new() { Name = "additionalString", Kind = "LiteralString", Quantifier = "?" });
             else
+            {
+                // Note: not sure if this is correct, it might need to be an array (quantifier *) which we don't support nicely yet
                 operands.Add(new() { Name = "additionalInteger", Kind = "LiteralInteger", Quantifier = "?" });
+                operands.Add(new() { Name = "additionalInteger2", Kind = "LiteralInteger", Quantifier = "?" });
+            }
+
             body2.AppendLine("foreach (var o in index.Data)")
             .AppendLine("{");
 
@@ -304,7 +310,9 @@ public partial class SPVGenerator : IIncrementalGenerator
                     body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
 
                 // Body 2
-                body2.AppendLine($"{(tmp == 0 ? "" : "else ")}if(o.Name == \"{operandName}\")");
+                if (tmp != 0)
+                    body2.Append($"else ");
+                body2.AppendLine($"if(o.Name == \"{operandName}\")");
                 if (typename.StartsWith("LiteralArray"))
                     body2.AppendLine($"{fieldName} = o.To{typename}();");
                 else if (operand.Class is string s && s.Contains("Enum"))
