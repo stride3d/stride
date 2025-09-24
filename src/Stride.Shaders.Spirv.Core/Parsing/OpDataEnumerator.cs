@@ -93,11 +93,11 @@ public ref struct OpDataEnumerator
                     { Quantifier: OperandQuantifier.One, Kind: OperandKind.LiteralString } => (true, wid + Operands[wid..].LengthOfString(), oid + 1),
                     { Quantifier: OperandQuantifier.One, Kind: _ } => (true, wid + 1, oid + 1),
                     { Quantifier: OperandQuantifier.ZeroOrOne, Kind: OperandKind.PairIdRefIdRef or OperandKind.PairIdRefLiteralInteger or OperandKind.PairLiteralIntegerIdRef }
-                        => (wid < Operands.Length - 2, wid + (wid < Operands.Length - 2 ? 2 : 0), oid + wid < Operands.Length - 2 ? 1 : 0),
+                        => (wid < Operands.Length - 2, wid + (wid < Operands.Length - 2 ? 2 : 0), oid + (wid < Operands.Length - 2 ? 1 : 0)),
                     { Quantifier: OperandQuantifier.ZeroOrOne, Kind: OperandKind.LiteralString }
-                        => (wid < Operands.Length - 1, wid + (wid < Operands.Length - 1 ? Operands[wid..].LengthOfString() : 0), oid + wid < Operands.Length ? 1 : 0),
+                        => (wid < Operands.Length - 1, wid + (wid < Operands.Length - 1 ? Operands[wid..].LengthOfString() : 0), oid + (wid < Operands.Length ? 1 : 0)),
                     { Quantifier: OperandQuantifier.ZeroOrOne, Kind: _ }
-                        => (wid < Operands.Length - 1, wid + (wid < Operands.Length ? 1 : 0), oid + wid < Operands.Length ? 1 : 0),
+                        => (wid < Operands.Length - 1, wid + (wid < Operands.Length ? 1 : 0), oid + (wid < Operands.Length ? 1 : 0)),
                     { Quantifier: OperandQuantifier.ZeroOrMore }
                         => (wid < Operands.Length - 1, wid < Operands.Length - 1 ? Operands.Length : wid, oid + (wid < Operands.Length - 1 ? 0 : 1)),
                     _ => (false, wid, oid)
@@ -172,13 +172,13 @@ public ref struct OpDataEnumerator
                 { Quantifier: OperandQuantifier.ZeroOrOne, Kind: OperandKind.LiteralString }
                     => new(logOp.Name, OperandKind.LiteralString, logOp.Quantifier ?? OperandQuantifier.One, Operands.Slice(wid, Operands[wid..].LengthOfString())),
                 { Quantifier: OperandQuantifier.ZeroOrOne, Kind: _ }
-                    => new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, wid < Operands.Length -1 ? Operands.Slice(wid, 1) : []),
+                    => new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, wid < Operands.Length ? Operands.Slice(wid, 1) : []),
                 { Quantifier: OperandQuantifier.ZeroOrMore, Kind: OperandKind.PairIdRefIdRef or OperandKind.PairIdRefLiteralInteger or OperandKind.PairLiteralIntegerIdRef }
-                   => new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, wid < Operands.Length - 1 ? Operands[wid..] : []),
+                   => new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, wid < Operands.Length ? Operands[wid..] : []),
                 { Quantifier: OperandQuantifier.ZeroOrMore, Kind: OperandKind.LiteralString }
                     => throw new Exception("params of strings is not yet implemented"),
                 { Quantifier: OperandQuantifier.ZeroOrMore, Kind: _ }
-                    => new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, wid < Operands.Length - 1 ? Operands[wid..] : []),
+                    => new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, wid < Operands.Length ? Operands[wid..] : []),
                 _ => throw new NotImplementedException()
             }
         };
