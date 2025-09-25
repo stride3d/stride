@@ -157,6 +157,44 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public static void OnContactRollTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                int contactStarted = 0, contactStopped = 0, passedGoal = 0;
+                var killTrigger = new ContactEvents { NoContactResponse = true };
+                var contacts = new ContactEvents { NoContactResponse = false };
+                var sphere = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new SphereCollider() } } } };
+                var slope = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new(2, 0.1f, 2) } } }, ContactEventHandler = contacts } };
+                var goal = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new(10, 0.1f, 10) } } }, ContactEventHandler = killTrigger } };
+                contacts.StartedTouching += () => contactStarted++;
+                contacts.StoppedTouching += () => contactStopped++;
+                killTrigger.StoppedTouching += () => passedGoal++;
+
+                sphere.Transform.Position.Y = 3;
+                slope.Transform.Rotation = Quaternion.RotationZ(10);
+                goal.Transform.Position.Y = -10;
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { sphere, slope, goal });
+
+                var simulation = sphere.GetSimulation();
+
+                while (passedGoal == 0)
+                    await simulation.AfterUpdate();
+
+                Assert.Equal(1, contactStarted);
+
+                Assert.Equal(contactStarted, contactStopped);
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
         public static void OnTriggerRemovalTest()
         {
             var game = new GameTest();
@@ -165,7 +203,7 @@ namespace Stride.BepuPhysics.Tests
                 game.ScreenShotAutomationEnabled = false;
 
                 int startedTouching = 0, stoppedTouching = 0;
-                var trigger = new Trigger();
+                var trigger = new ContactEvents { NoContactResponse = true };
                 var e1 = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = trigger } };
                 var e2 = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } } };
                 trigger.StartedTouching += () => startedTouching++;
@@ -201,7 +239,7 @@ namespace Stride.BepuPhysics.Tests
                 game.ScreenShotAutomationEnabled = false;
 
                 int startedTouching = 0, stoppedTouching = 0;
-                var trigger = new Trigger();
+                var trigger = new ContactEvents { NoContactResponse = true };
                 var e1 = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = trigger } };
                 var e2 = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } } };
                 trigger.StartedTouching += () => startedTouching++;
@@ -265,9 +303,9 @@ namespace Stride.BepuPhysics.Tests
             }
         }
 
-        private class Trigger : IContactHandler
+        private class ContactEvents : IContactHandler
         {
-            public bool NoContactResponse => true;
+            public required bool NoContactResponse { get; init; }
 
             public event Action? StartedTouching, StoppedTouching;
 
