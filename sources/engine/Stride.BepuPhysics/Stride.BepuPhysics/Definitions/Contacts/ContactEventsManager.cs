@@ -103,7 +103,7 @@ internal class ContactEventsManager : IDisposable
         foreach (var workerStore in _manifoldStoresPerWorker)
         {
             foreach (var typeStore in workerStore)
-                typeStore.ClearEventsOf(collidable, packed);
+                typeStore.ClearEventsOf(packed);
         }
 
         // Really slow, but improving performance has a huge amount of gotchas since user code
@@ -252,8 +252,6 @@ internal class ContactEventsManager : IDisposable
                 typeStore.RunEvents(this);
         }
 
-        var manifold = new EmptyManifold();
-
         //Remove any stale collisions. Stale collisions are those which should have received a new manifold update but did not because the manifold is no longer active.
         foreach (var pair in _outdatedPairs)
             ClearCollision(pair);
@@ -285,7 +283,7 @@ internal class ContactEventsManager : IDisposable
     {
         void RunEvents(ContactEventsManager eventsManager);
 
-        void ClearEventsOf(CollidableComponent collidableComponent, uint packed);
+        void ClearEventsOf(uint packed);
 
         public static unsafe void StoreManifold<TManifold>(IPerTypeManifoldStore[][] manifoldLists, int workerIndex, ref TManifold manifold, CollidablePair pair, int childIndexA, int childIndexB) where TManifold : unmanaged, IContactManifold<TManifold>
         {
@@ -371,10 +369,8 @@ internal class ContactEventsManager : IDisposable
                 Clear();
             }
 
-            public void ClearEventsOf(CollidableComponent collidableComponent, uint packed)
+            public void ClearEventsOf(uint packed)
             {
-                Debug.Assert(collidableComponent.CollidableReference.HasValue);
-
                 var spanOfThis = CollectionsMarshal.AsSpan(this);
                 for (int i = spanOfThis.Length - 1; i >= 0; i--)
                 {
