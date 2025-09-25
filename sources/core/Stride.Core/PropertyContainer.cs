@@ -514,17 +514,7 @@ public struct PropertyContainer : IDictionary<PropertyKey, object>, IReadOnlyDic
         {
             if (tryToAdd)
             {
-                try
-                {
-                    properties.Add(propertyKey, valueToSet);
-                }
-                catch(ArgumentException ex)
-                {
-                    if (System.Diagnostics.Debugger.IsAttached)
-                    {
-                        System.Diagnostics.Debugger.Break();
-                    }
-                }
+                properties.TryAdd(propertyKey, valueToSet);
             }
             else
                 properties[propertyKey] = valueToSet;
