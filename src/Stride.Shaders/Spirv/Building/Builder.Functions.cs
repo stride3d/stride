@@ -21,7 +21,20 @@ public partial class SpirvBuilder
         return result;
     }
 
-    public void EndFunction() => Buffer.Insert(Position++, new OpFunctionEnd());
+    public void EndFunction()
+    {
+        // If there was no explicit return, add one
+        var lastInstruction = Buffer[Position];
+        if (lastInstruction.Op == Op.OpUnreachable)
+        {
+            if (CurrentFunction.Value.FunctionType.ReturnType != ScalarType.From("void"))
+                throw new InvalidOperationException("No function termination, but a return value is expected");
+
+            Return(null);
+        }
+
+        Buffer.Insert(Position++, new OpFunctionEnd());
+    }
 
     public SpirvValue AddFunctionParameter(SpirvContext context, string name, SymbolType type)
     {
