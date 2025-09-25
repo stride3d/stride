@@ -46,12 +46,12 @@ namespace BepuSample.Game.Components.Utils
         public bool Contact { get; private set; } = false;
         public bool NoContactResponse => false;
 
-        void IContactHandler.OnStartedTouching<TManifold>(ContactData<TManifold> contactData)
+        void IContactHandler.OnStartedTouching<TManifold>(Contacts<TManifold> contacts)
         {
             Contact = true;
         }
 
-        void IContactHandler.OnStoppedTouching<TManifold>(ContactData<TManifold> contactData)
+        void IContactHandler.OnStoppedTouching<TManifold>(Contacts<TManifold> contacts)
         {
             Contact = false;
         }
