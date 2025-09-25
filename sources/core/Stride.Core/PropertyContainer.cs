@@ -513,9 +513,7 @@ public struct PropertyContainer : IDictionary<PropertyKey, object>, IReadOnlyDic
         else
         {
             if (tryToAdd)
-            {
                 properties.TryAdd(propertyKey, valueToSet);
-            }
             else
                 properties[propertyKey] = valueToSet;
         }
