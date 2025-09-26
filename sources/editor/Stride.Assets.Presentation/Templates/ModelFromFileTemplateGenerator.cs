@@ -191,23 +191,24 @@ namespace Stride.Assets.Presentation.Templates
                                 AssetItem itemForThisMesh;
 
                                 if (i == 0)
-                                {
-                                    
+                                {                 
                                     var baseModel = (ModelAsset)firstModelItem.Asset;
-                                    baseModel.Id = AssetId.New(); 
+                                    baseModel.Id = AssetId.New();
+                                    baseModel.MeshName = rawMeshName;
                                     itemForThisMesh = new AssetItem(UPath.Combine(parameters.TargetLocation, uniqueFile), baseModel);
                                 }
                                 else
                                 {
                                     var clonedAsset = AssetCloner.Clone(firstModelItem.Asset);
-                                    ((ModelAsset)clonedAsset).Id = AssetId.New(); 
+                                    ((ModelAsset)clonedAsset).Id = AssetId.New();
+                                    ((ModelAsset)clonedAsset).MeshName = rawMeshName;
                                     itemForThisMesh = new AssetItem(UPath.Combine(parameters.TargetLocation, uniqueFile), clonedAsset);
                                 }
-                              
+
                                 perMeshAssets.Add(itemForThisMesh);
                                 assets.Add(itemForThisMesh); 
                             }
-;
+
                             //Assign materials 
                             foreach (var item in perMeshAssets)
                             {
@@ -248,12 +249,7 @@ namespace Stride.Assets.Presentation.Templates
             if (asset == null || asset.Materials==null)
                 return;
 
-
-            string sourceName = Path.GetFileNameWithoutExtension(asset.Source);
-            string assetName = assetItem.Location.ToString();
-            
-            string underlyingMeshName= assetName.Substring(sourceName.Length+1);
-            var underlyingModel=entityInfo.Models.Where(C=>C.MeshName==underlyingMeshName).FirstOrDefault();
+            var underlyingModel=entityInfo.Models.Where(C=>C.MeshName==asset.MeshName).FirstOrDefault();          
             var nodeContainingMesh=entityInfo.Nodes.Where(c=>c.Name== underlyingModel.NodeName).FirstOrDefault();
 
             var materialIndices=entityInfo.NodeNameToMaterialIndices?.Where(c=>c.Key== nodeContainingMesh.Name)?.FirstOrDefault().Value;
@@ -271,8 +267,7 @@ namespace Stride.Assets.Presentation.Templates
             }
 
             asset.Materials.Clear();
-            materialsToApply?.ForEach(_mat => asset.Materials.Add(_mat));
-            
+            materialsToApply?.ForEach(_mat => asset.Materials.Add(_mat));          
         }
 
         private static AssetItem? BuildPrefabForSplitHierarchy(string baseName, EntityInfo entityInfo, IList<AssetItem> perMeshModels, UDirectory targetLocation)

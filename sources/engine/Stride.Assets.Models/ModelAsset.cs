@@ -94,5 +94,8 @@ namespace Stride.Assets.Models
         /// <inheritdoc/>
         [DataMemberIgnore]
         public override UFile MainSource => Source;
+
+        [DataMemberIgnore]
+        public string MeshName { get; set; } = null;
     }
 }

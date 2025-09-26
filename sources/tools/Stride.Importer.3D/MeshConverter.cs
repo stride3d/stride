@@ -344,8 +344,9 @@ namespace Stride.Importer.ThreeD
                     modelData.Meshes.Add(nodeMeshData);
                 }
             }
-            // Neutralize node binding for per-mesh export (split-hierarchy case)
-            if (keptMeshIndex >= 0)
+            // Incase split heirarchy, each mesh is positioned and rotated at entity level, scaled to account for assimp 
+            // stride conversion factor of 0.01f
+           if (keptMeshIndex >= 0)
             {
                 // Replace node table with a single identity root
                 nodes.Clear();
@@ -358,11 +359,11 @@ namespace Stride.Importer.ThreeD
                     {
                         Position = Vector3.Zero,
                         Rotation = Quaternion.Identity,
-                        Scale    = Vector3.One
+                        Scale    = new Vector3(100,100,100)
                     }
                 });
 
-                // Re-bind all meshes to that root (index 0)
+               
                 for (int mi = 0; mi < modelData.Meshes.Count; mi++)
                     modelData.Meshes[mi].NodeIndex = 0;
             }
