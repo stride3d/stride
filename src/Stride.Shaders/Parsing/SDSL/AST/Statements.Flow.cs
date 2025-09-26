@@ -13,7 +13,12 @@ public class Break(TextLocation info) : Statement(info)
 {
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context, module) = compiler;
+
+        if (builder.CurrentEscapeBlocks is not { } escapeBlocks)
+            throw new InvalidOperationException("Can't process break statement (no context)");
+
+        builder.Insert(new OpBranch(escapeBlocks.MergeBlock));
     }
 }
 public class Discard(TextLocation info) : Statement(info)
@@ -27,7 +32,12 @@ public class Continue(TextLocation info) : Statement(info)
 {
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context, module) = compiler;
+
+        if (builder.CurrentEscapeBlocks is not { } escapeBlocks)
+            throw new InvalidOperationException("Can't process continue statement (no context)");
+
+        builder.Insert(new OpBranch(escapeBlocks.ContinueBlock));
     }
 }
 
