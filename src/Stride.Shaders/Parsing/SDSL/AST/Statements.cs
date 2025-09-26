@@ -224,7 +224,6 @@ public class BlockStatement(TextLocation info) : Statement(info)
     {
         table.Push();
         var (builder, context, _) = compiler;
-        builder.CreateBlock(context);
         foreach (var s in Statements)
             s.Compile(table, shader, compiler);
         table.Pop();
