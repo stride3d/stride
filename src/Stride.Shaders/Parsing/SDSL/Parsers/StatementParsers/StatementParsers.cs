@@ -209,7 +209,7 @@ public record struct ContinueParser : IParser<Statement>
             && Tokens.Char(';', ref scanner, advance: true)
         )
         {
-            parsed = new Break(scanner[position..scanner.Position]);
+            parsed = new Continue(scanner[position..scanner.Position]);
             return true;
         }
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
