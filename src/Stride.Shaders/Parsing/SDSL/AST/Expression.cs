@@ -1,10 +1,11 @@
-using System.Text;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
+using System;
+using System.Text;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -56,16 +57,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
             // Wrap param in proper pointer type (function)
             var paramVariable = context.Bound++;
 
-            if (builder.CurrentFunction is SpirvFunction f)
-            {
-                var currentPosition = builder.Position;
-                builder.SetPositionTo(f.BasicBlocks.First().Value, true);
-                // Go after label
-                builder.Position++;
-                builder.Insert(new OpVariable(paramType, paramVariable, Specification.StorageClass.Function, null));
-
-                builder.Position = currentPosition + 1;
-            }
+            builder.AddFunctionVariable(paramType, paramVariable);
 
             var loadedParam = context.Bound++;
             builder.Insert(new OpLoad(compiler.Context.Types[p.ValueType], loadedParam, paramSource, null));
@@ -76,6 +68,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 
         return builder.CallFunction(context, Name, [.. compiledParams]);
     }
+
     public override string ToString()
     {
         return $"{Name}({string.Join(", ", Parameters)})";
@@ -110,7 +103,26 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context, _) = compiler;
+        var expression = Expression.CompileAsValue(table, shader, compiler);
+        Type = Expression.Type;
+        if (Expression.Type is PointerType pointerType && pointerType.BaseType is ScalarType { TypeName: "int" or "long" })
+        {
+            var indexLiteral = new IntegerLiteral(new(32, false, true), 1, new());
+            indexLiteral.Compile(table, shader, compiler);
+            var constant1 = context.CreateConstant(indexLiteral);
+            var result = builder.BinaryOperation(context, context.GetOrRegister(pointerType.BaseType), expression, Operator.Plus, constant1);
+
+            builder.Insert(new OpStore(expression.Id, result.Id, null));
+
+            // Note: should we fetch the value again? (new OpLoad)
+            // return Expression.Compile(table, shader, compiler);
+            return result;
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

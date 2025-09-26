@@ -119,6 +119,8 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
+        var (builder, context, _) = compiler;
+
         var compiledValues = new SpirvValue[Variables.Count];
         for (var index = 0; index < Variables.Count; index++)
         {
@@ -134,7 +136,10 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
                 Type = Variables[0].Value!.Type;
             }
             else
+            {
                 table.Errors.Add(new(Info, SDSLErrorMessages.SDSL0104));
+                return;
+            }
         }
         else
         {
@@ -142,18 +147,35 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
             table.DeclaredTypes.TryAdd(TypeName.ToString(), Type);
         }
 
-        var (builder, context, _) = compiler;
-        var registeredType = context.GetOrRegister(new PointerType(Type!, Specification.StorageClass.Function));
-        foreach (var d in Variables)
+        var underlyingType = context.GetOrRegister(Type);
+        Type = new PointerType(Type, Specification.StorageClass.Function);
+
+        var registeredType = context.GetOrRegister(Type);
+        for (var index = 0; index < Variables.Count; index++)
         {
+            var d = Variables[index];
+
             var variable = context.Bound++;
             builder.Insert(new OpVariable(registeredType, variable, Specification.StorageClass.Function, null));
+
+            builder.AddFunctionVariable(registeredType, variable);
             context.AddName(variable, d.Variable);
 
             table.CurrentFrame.Add(d.Variable, new(new(d.Variable, SymbolKind.Variable), Type, variable));
 
             if (builder.CurrentFunction is SpirvFunction f)
                 f.Variables.Add(d.Variable, new(variable, registeredType, d.Variable));
+
+            if (d.Value != null)
+            {
+                var source = compiledValues[index];
+
+                var sourceLoad = context.Bound++;
+                builder.Insert(new OpLoad(underlyingType, sourceLoad, source.Id, Specification.MemoryAccessMask.None));
+                source = new(sourceLoad, underlyingType);
+
+                builder.Insert(new OpStore(variable, source.Id, null));
+            }
         }
     }
     public override string ToString()

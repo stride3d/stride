@@ -19,6 +19,8 @@ public partial class SpirvBuilder()
 
     public int IfBlockCount { get; internal set; } = 0;
 
+    public int ForBlockCount { get; internal set; } = 0;
+
     public static bool IsFunctionTermination(Op op)
     {
         switch (op)
@@ -51,6 +53,26 @@ public partial class SpirvBuilder()
                 return false;
         }
     }
+
+    public void AddFunctionVariable(int paramType, int paramVariable)
+    {
+        if (CurrentFunction is not SpirvFunction f)
+            throw new InvalidOperationException();
+
+        var currentPosition = Position;
+        var currentBlock = CurrentBlock;
+
+        SetPositionTo(f.BasicBlocks.First().Value, true);
+        // Go after label and the last OpVariable
+        Position++;
+        while (Buffer[Position].Op == Op.OpVariable)
+            Position++;
+        Insert(new OpVariable(paramType, paramVariable, StorageClass.Function, null));
+
+        Position = currentPosition + 1;
+        CurrentBlock = currentBlock;
+    }
+
 
     public void SetPositionTo<TBlock>(TBlock block, bool beggining = false)
         where TBlock : IInstructionBlock

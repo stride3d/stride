@@ -61,7 +61,7 @@ public record struct ForParser : IParser<For>
         )
         {
             Statement? init = null;
-            Statement? condition = null;
+            Expression? condition = null;
             List<Statement>? expressions = null;
             Parsers.Spaces0(ref scanner, result, out _);
 
@@ -74,8 +74,8 @@ public record struct ForParser : IParser<For>
             Parsers.Spaces0(ref scanner, result, out _);
             // Parsing the condition
 
-            if (StatementParsers.Expression(ref scanner, result, out condition)){}
-            else if (StatementParsers.Empty(ref scanner, result, out condition)){}
+            if (ExpressionParser.Expression(ref scanner, result, out condition)
+                && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), advance: true)) {}
             else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0037, scanner[scanner.Position], scanner.Memory));
             
             Parsers.Spaces0(ref scanner, result, out _);

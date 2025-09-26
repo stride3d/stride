@@ -91,6 +91,18 @@ public partial class SpirvBuilder
             (Operator.Equals, ScalarType { TypeName: "int" }, ScalarType { TypeName: "int" })
                 => Buffer.InsertData(Position++, new OpIEqual(resultType, context.Bound++, left.Id, right.Id)),
 
+            (Operator.Lower, ScalarType { TypeName: "int" }, ScalarType { TypeName: "int" })
+                => Buffer.InsertData(Position++, new OpSLessThan(resultType, context.Bound++, left.Id, right.Id)),
+
+            (Operator.LowerOrEqual, ScalarType { TypeName: "int" }, ScalarType { TypeName: "int" })
+                => Buffer.InsertData(Position++, new OpSLessThanEqual(resultType, context.Bound++, left.Id, right.Id)),
+
+            (Operator.Greater, ScalarType { TypeName: "int" }, ScalarType { TypeName: "int" })
+                => Buffer.InsertData(Position++, new OpSGreaterThan(resultType, context.Bound++, left.Id, right.Id)),
+
+            (Operator.GreaterOrEqual, ScalarType { TypeName: "int" }, ScalarType { TypeName: "int" })
+                => Buffer.InsertData(Position++, new OpSGreaterThanEqual(resultType, context.Bound++, left.Id, right.Id)),
+
             _ => throw new NotImplementedException()
         };
 
