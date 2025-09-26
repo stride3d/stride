@@ -11,24 +11,29 @@ shader TestBasic : TestBase
         float4 CBufferValue1;
     }
 
+    cbuffer Test456
+    {
+        int CBufferValue2;
+    }
+
     void VSMain()
     {
         streams.Position = streams.InputPosition;
-        return;
     }
 
     void Test()
     {
         streams.ColorTarget = streams.ExtraColor;
         SetColor(streams.ExtraColor);
-        return;
     }
 
     void PSMain()
     {
-        streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
-        streams.ColorTarget = streams.ExtraColor * CBufferValue1;
+        if (CBufferValue2 == 12)
+            streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
+        else
+            streams.ColorTarget = streams.ExtraColor * CBufferValue1;
+        Test();
         //Test();
-        return;
     }
 }

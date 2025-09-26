@@ -214,23 +214,23 @@ public class SpirvContext(SpirvModule module)
 
     public SpirvValue CreateConstant(Literal literal)
     {
-        // object literalValue = literal switch
-        // {
-        //     BoolLiteral lit => lit.Value,
-        //     IntegerLiteral lit => lit.Suffix.Size switch
-        //     {
-        //         > 32 => lit.LongValue,
-        //         _ => lit.IntValue,
-        //     },
-        //     FloatLiteral lit => lit.Suffix.Size switch
-        //     {
-        //         > 32 => lit.DoubleValue,
-        //         _ => (float)lit.DoubleValue,
-        //     },
-        // };
+        object literalValue = literal switch
+        {
+            BoolLiteral lit => lit.Value,
+            IntegerLiteral lit => lit.Suffix.Size switch
+            {
+                > 32 => lit.LongValue,
+                _ => lit.IntValue,
+            },
+            FloatLiteral lit => lit.Suffix.Size switch
+            {
+                > 32 => lit.DoubleValue,
+                _ => (float)lit.DoubleValue,
+            },
+        };
 
-        // if (LiteralConstants.TryGetValue((literal.Type, literalValue), out var result))
-        //     return result;
+        if (LiteralConstants.TryGetValue((literal.Type, literalValue), out var result))
+             return result;
         var instruction = literal switch
         {
             BoolLiteral { Value: true } lit => Buffer.Add(new OpConstantTrue(GetOrRegister(lit.Type), Bound++)),
@@ -253,8 +253,8 @@ public class SpirvContext(SpirvModule module)
             _ => throw new NotImplementedException()
         };
 
-        SpirvValue result = new(instruction);
-        // LiteralConstants.Add((literal.Type, literalValue), result);
+        result = new(instruction);
+        LiteralConstants.Add((literal.Type, literalValue), result);
         AddName(result.Id, literal switch
         {
             BoolLiteral lit => $"{lit.Type}_{lit.Value}",

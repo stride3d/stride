@@ -9,10 +9,12 @@ public partial class SpirvBuilder
     public SpirvBlock CreateBlock(SpirvContext context, string? name = null)
     {
         var i = Buffer.Insert(Position++, new OpLabel(context.Bound++));
-        Buffer.Insert(Position, new OpUnreachable());
+        if (name != null)
+            context.AddName(i.ResultId, name);
         var result = new SpirvBlock(i.ResultId, CurrentFunction ?? throw new NotImplementedException(), name);
 
         CurrentFunction.Value.BasicBlocks.Add(result.Id, result);
+        CurrentBlock = result;
 
         return result;
     }
@@ -24,12 +26,5 @@ public partial class SpirvBuilder
             SpirvValue v => Buffer.InsertData(Position++, new OpReturnValue(v.Id)),
             _ => Buffer.InsertData(Position++, new OpReturn())
         };
-        CleanBlock();
-    }
-
-    public void CleanBlock()
-    {
-        if (Buffer[Position].Op == Specification.Op.OpUnreachable)
-            Buffer.RemoveAt(Position);
     }
 }

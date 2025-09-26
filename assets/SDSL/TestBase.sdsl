@@ -7,6 +7,5 @@ shader TestBase
     void SetColor(float4 color)
     {
         streams.ColorTarget = color;
-        return;
     }
 }

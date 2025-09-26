@@ -24,8 +24,8 @@ public partial class SpirvBuilder
     public void EndFunction()
     {
         // If there was no explicit return, add one
-        var lastInstruction = Buffer[Position];
-        if (lastInstruction.Op == Op.OpUnreachable)
+        var lastInstruction = Buffer[Position - 1];
+        if (!IsBlockTermination(lastInstruction.Op))
         {
             if (CurrentFunction.Value.FunctionType.ReturnType != ScalarType.From("void"))
                 throw new InvalidOperationException("No function termination, but a return value is expected");

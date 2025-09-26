@@ -13,9 +13,44 @@ namespace Stride.Shaders.Spirv.Building;
 public partial class SpirvBuilder()
 {
     NewSpirvBuffer Buffer { get; init; } = new();
-    public SpirvFunction? CurrentFunction { get; private set; }
-    public SpirvBlock? CurrentBlock { get; private set; }
+    public SpirvFunction? CurrentFunction { get; internal set; }
+    public SpirvBlock? CurrentBlock { get; internal set; }
     public int Position { get; internal set; } = 0;
+
+    public int IfBlockCount { get; internal set; } = 0;
+
+    public static bool IsFunctionTermination(Op op)
+    {
+        switch (op)
+        {
+            case Op.OpReturn:
+            case Op.OpReturnValue:
+            case Op.OpKill:
+            case Op.OpUnreachable:
+            case Op.OpTerminateInvocation:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public static bool IsBlockTermination(Op op)
+    {
+        switch (op)
+        {
+            case Op.OpReturn:
+            case Op.OpReturnValue:
+            case Op.OpKill:
+            case Op.OpUnreachable:
+            case Op.OpTerminateInvocation:
+            case Op.OpBranch:
+            case Op.OpBranchConditional:
+            case Op.OpSwitch:
+                return true;
+            default:
+                return false;
+        }
+    }
 
     public void SetPositionTo<TBlock>(TBlock block, bool beggining = false)
         where TBlock : IInstructionBlock
@@ -47,8 +82,9 @@ public partial class SpirvBuilder()
                     return;
                 }
             }
-            if (block is SpirvBlock && blockFound && blockTermination.Contains((int)e.Op))
+            if (block is SpirvBlock block2 && blockFound && IsBlockTermination(e.Op))
             {
+                CurrentBlock = block2;
                 Position = pos;
                 return;
             }
