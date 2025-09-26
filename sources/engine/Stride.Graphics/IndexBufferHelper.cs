@@ -17,7 +17,7 @@ namespace Stride.Graphics;
 /// ]]>
 /// </code>
 /// </example>
-public class IndexBufferHelper
+public readonly struct IndexBufferHelper
 {
     /// <summary>
     /// Full index buffer, does not account for the binding offset or length
