@@ -204,7 +204,6 @@ namespace Stride.Assets.Presentation.Templates
                                     ((ModelAsset)clonedAsset).MeshName = rawMeshName;
                                     itemForThisMesh = new AssetItem(UPath.Combine(parameters.TargetLocation, uniqueFile), clonedAsset);
                                 }
-
                                 perMeshAssets.Add(itemForThisMesh);
                                 assets.Add(itemForThisMesh); 
                             }

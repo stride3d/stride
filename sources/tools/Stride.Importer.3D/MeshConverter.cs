@@ -362,7 +362,6 @@ namespace Stride.Importer.ThreeD
                         Scale    = new Vector3(100,100,100)
                     }
                 });
-
                
                 for (int mi = 0; mi < modelData.Meshes.Count; mi++)
                     modelData.Meshes[mi].NodeIndex = 0;
