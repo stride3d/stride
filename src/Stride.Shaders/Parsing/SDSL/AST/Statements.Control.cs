@@ -22,40 +22,39 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
     {
         var (builder, context, module) = compiler;
 
-        var blockTrueBranchPositions = stackalloc int[ElseIfs.Count + 1];
-        var selectionMergePositions = stackalloc int[ElseIfs.Count + 1];
-        var ifTestConditions = stackalloc int[ElseIfs.Count + 1];
+        var blockTrueIds = stackalloc int[ElseIfs.Count + 1];
+        var blockMergeIds = stackalloc int[ElseIfs.Count + 1];
 
         // Create and connect true/false blocks
         for (int i = 0; i < ElseIfs.Count + 1; ++i)
         {
             var currentIf = i == 0 ? If : ElseIfs[i - 1];
 
+            blockTrueIds[i] = context.Bound++;
+            blockMergeIds[i] = context.Bound++;
+
             var conditionValue = currentIf.Condition.CompileAsValue(table, shader, compiler);
             if (currentIf.Condition.ValueType != ScalarType.From("bool"))
                 table.Errors.Add(new(currentIf.Condition.Info, "not a boolean"));
 
-            // OpSelectionMerge and OpBranchConditional (will be filled later)
-            selectionMergePositions[i] = builder.Position;
-            var ifTestMerge = new OpSelectionMerge(0, Specification.SelectionControlMask.None);
-            builder.Insert(ifTestMerge);
-            ifTestConditions[i] = builder.Position;
-            var ifTestCondition = new OpBranchConditional(conditionValue.Id, 0, 0, []);
-            builder.Insert(ifTestCondition);
+            int? falseBlock = (i + 1 < ElseIfs.Count + 1 || Else != null)
+                ? context.Bound++
+                : null;
 
-            var blockTrue = builder.CreateBlock(context, $"if_true_{builder.IfBlockCount + i}");
-            ifTestCondition.TrueLabel = blockTrue.Id;
+            // OpSelectionMerge and OpBranchConditional (will be filled later)
+            builder.Insert(new OpSelectionMerge(blockMergeIds[i], Specification.SelectionControlMask.None));
+            builder.Insert(new OpBranchConditional(conditionValue.Id, blockTrueIds[i], falseBlock ?? blockMergeIds[i], []));
+
+            builder.CreateBlock(context, blockTrueIds[i], $"if_true_{builder.IfBlockCount + i}");
             currentIf.Body.Compile(table, shader, compiler);
 
             // Do we have a specific false block?
-            if (i + 1 < ElseIfs.Count + 1 || Else != null)
+            if (falseBlock != null)
             {
-                var blockTrueBranch = new OpBranch(0);
-                blockTrueBranchPositions[i] = builder.Position;
+                var blockTrueBranch = new OpBranch(blockMergeIds[i]);
                 builder.Insert(blockTrueBranch);
 
-                var blockFalse = builder.CreateBlock(context, $"if_false_{builder.IfBlockCount + i}");
-                ifTestCondition.FalseLabel = blockFalse.Id;
+                builder.CreateBlock(context, falseBlock.Value, $"if_false_{builder.IfBlockCount + i}");
 
                 // If there's an else without condition and we are at the last iteration, add the code now (otherwise it will happen next loop)
                 if (i + 1 == ElseIfs.Count + 1)
@@ -66,26 +65,8 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
         // Create and connect merge branches
         for (int i = ElseIfs.Count; i >= 0; --i)
         {
-            var mergeBranch = new OpBranch(0);
-            builder.Insert(mergeBranch);
-
-            var blockMerge = builder.CreateBlock(context, $"if_merge_{builder.IfBlockCount + i}");
-            mergeBranch.TargetLabel = blockMerge.Id;
-
-            if (i + 1 < ElseIfs.Count + 1 || Else != null)
-            {
-                var blockTrueBranch = (OpBranch)builder.GetBuffer()[blockTrueBranchPositions[i]];
-                blockTrueBranch.TargetLabel = blockMerge.Id;
-            }
-            else
-            {
-                // If there is no false block, we adjust the OpConditionlBranch false to directly point to the merge block
-                var ifTestCondition = (OpBranchConditional)builder.GetBuffer()[ifTestConditions[i]];
-                ifTestCondition.FalseLabel = blockMerge.Id;
-            }
-
-            var selectionMerge = (OpSelectionMerge)builder.GetBuffer()[selectionMergePositions[i]];
-            selectionMerge.MergeBlock = blockMerge.Id;
+            builder.Insert(new OpBranch(blockMergeIds[i]));
+            builder.CreateBlock(context, blockMergeIds[i], $"if_merge_{builder.IfBlockCount + i}");
         }
 
         builder.IfBlockCount += ElseIfs.Count + 1;

@@ -29,9 +29,16 @@ shader TestBasic : TestBase
 
     void PSMain()
     {
+        streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
+
+        for (int i = 0; i < 4; ++i)
+            streams.ColorTarget = streams.ColorTarget * CBufferValue1;
+
         if (CBufferValue2 == 12)
             streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
-        else
+        else if (CBufferValue2 == 13)
+            streams.ColorTarget = streams.ExtraColor * CBufferValue1;
+        else //if (CBufferValue2 == 14)
             streams.ColorTarget = streams.ExtraColor * CBufferValue1;
         Test();
         //Test();

@@ -17,43 +17,6 @@ public partial class SpirvBuilder()
     public SpirvBlock? CurrentBlock { get; internal set; }
     public int Position { get; internal set; } = 0;
 
-    public int IfBlockCount { get; internal set; } = 0;
-
-    public int ForBlockCount { get; internal set; } = 0;
-
-    public static bool IsFunctionTermination(Op op)
-    {
-        switch (op)
-        {
-            case Op.OpReturn:
-            case Op.OpReturnValue:
-            case Op.OpKill:
-            case Op.OpUnreachable:
-            case Op.OpTerminateInvocation:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static bool IsBlockTermination(Op op)
-    {
-        switch (op)
-        {
-            case Op.OpReturn:
-            case Op.OpReturnValue:
-            case Op.OpKill:
-            case Op.OpUnreachable:
-            case Op.OpTerminateInvocation:
-            case Op.OpBranch:
-            case Op.OpBranchConditional:
-            case Op.OpSwitch:
-                return true;
-            default:
-                return false;
-        }
-    }
-
     public void AddFunctionVariable(int paramType, int paramVariable)
     {
         if (CurrentFunction is not SpirvFunction f)

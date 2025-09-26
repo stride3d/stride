@@ -103,43 +103,41 @@ public class For(Statement initializer, Expression cond, List<Statement> update,
 
         Initializer.Compile(table, shader, compiler);
 
-        var startBranch = new OpBranch(0);
-        builder.Insert(startBranch);
+        // Prepare blocks ids
+        var forCheckBlock = context.Bound++;
+        var forBodyBlock = context.Bound++;
+        var previousEscapeBlocks = builder.CurrentEscapeBlocks;
+        var currentEscapeBlocks = new SpirvBuilder.EscapeBlocks(context.Bound++, context.Bound++);
+        builder.CurrentEscapeBlocks = currentEscapeBlocks;
 
-        var forCheckBlock = builder.CreateBlock(context, $"for_check_{builder.ForBlockCount}");
-        startBranch.TargetLabel = forCheckBlock.Id;
+        builder.Insert(new OpBranch(forCheckBlock));
+
+        // Check block
+        builder.CreateBlock(context, forCheckBlock, $"for_check_{builder.ForBlockCount}");
 
         var conditionValue = Condition.CompileAsValue(table, shader, compiler);
         if (Condition.ValueType != ScalarType.From("bool"))
             table.Errors.Add(new(Condition.Info, "not a boolean"));
 
-        var loopMerge = new OpLoopMerge(0, 0, Specification.LoopControlMask.None);
-        builder.Insert(loopMerge);
-
-        var branchConditional = new OpBranchConditional(conditionValue.Id, 0, 0, []);
-        builder.Insert(branchConditional);
+        builder.Insert(new OpLoopMerge(currentEscapeBlocks.MergeBlock, currentEscapeBlocks.ContinueBlock, Specification.LoopControlMask.None));
+        builder.Insert(new OpBranchConditional(conditionValue.Id, forBodyBlock, currentEscapeBlocks.MergeBlock, []));
 
         // Body block
-        var forBodyBlock = builder.CreateBlock(context, $"for_body_{builder.ForBlockCount}");
-        branchConditional.TrueLabel = forBodyBlock.Id;
+        builder.CreateBlock(context, forBodyBlock, $"for_body_{builder.ForBlockCount}");
         Body.Compile(table, shader, compiler);
-        var forBodyBranch = new OpBranch(0);
-        builder.Insert(forBodyBranch);
+        builder.Insert(new OpBranch(currentEscapeBlocks.ContinueBlock));
 
         // Continue block
-        var forContinueBlock = builder.CreateBlock(context, $"for_continue_{builder.ForBlockCount}");
-        loopMerge.ContinueTarget = forContinueBlock.Id;
-        forBodyBranch.TargetLabel = forContinueBlock.Id;
+        builder.CreateBlock(context, currentEscapeBlocks.ContinueBlock, $"for_continue_{builder.ForBlockCount}");
         foreach (var update in Update)
             update.Compile(table, shader, compiler);
-        builder.Insert(new OpBranch(forCheckBlock.Id));
+        builder.Insert(new OpBranch(forCheckBlock));
 
         // Merge block
-        var forMergeBlock = builder.CreateBlock(context, $"for_merge_{builder.ForBlockCount}");
-        branchConditional.FalseLabel = forMergeBlock.Id;
-        loopMerge.MergeBlock = forMergeBlock.Id;
+        builder.CreateBlock(context, currentEscapeBlocks.MergeBlock, $"for_merge_{builder.ForBlockCount}");
 
-        builder.ForBlockCount++; 
+        builder.ForBlockCount++;
+        builder.CurrentEscapeBlocks = previousEscapeBlocks;
     }
 
     public override string ToString()
