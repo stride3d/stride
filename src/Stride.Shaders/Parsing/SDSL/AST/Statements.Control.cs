@@ -51,8 +51,8 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
             // Do we have a specific false block?
             if (falseBlock != null)
             {
-                var blockTrueBranch = new OpBranch(blockMergeIds[i]);
-                builder.Insert(blockTrueBranch);
+                if (!SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+                    builder.Insert(new OpBranch(blockMergeIds[i]));
 
                 builder.CreateBlock(context, falseBlock.Value, $"if_false_{builder.IfBlockCount + i}");
 
@@ -65,7 +65,8 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
         // Create and connect merge branches
         for (int i = ElseIfs.Count; i >= 0; --i)
         {
-            builder.Insert(new OpBranch(blockMergeIds[i]));
+            if (!SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+                builder.Insert(new OpBranch(blockMergeIds[i]));
             builder.CreateBlock(context, blockMergeIds[i], $"if_merge_{builder.IfBlockCount + i}");
         }
 

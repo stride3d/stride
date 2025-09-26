@@ -225,7 +225,12 @@ public class BlockStatement(TextLocation info) : Statement(info)
         table.Push();
         var (builder, context, _) = compiler;
         foreach (var s in Statements)
+        {
             s.Compile(table, shader, compiler);
+            if (SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+                break;
+        }
+
         table.Pop();
     }
 

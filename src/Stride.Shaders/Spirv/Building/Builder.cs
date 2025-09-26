@@ -90,6 +90,11 @@ public partial class SpirvBuilder()
     [Obsolete("Use the insert method instead")]
     public NewSpirvBuffer GetBuffer() => Buffer;
 
+    public Op GetLastInstructionType()
+    {
+        return Buffer[Position - 1].Op;
+    }
+
     public override string ToString()
     {
         return Spv.Dis(Buffer);

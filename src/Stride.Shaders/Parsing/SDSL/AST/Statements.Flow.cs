@@ -135,13 +135,15 @@ public class For(Statement initializer, Expression cond, List<Statement> update,
         // Body block
         builder.CreateBlock(context, forBodyBlock, $"for_body_{builder.ForBlockCount}");
         Body.Compile(table, shader, compiler);
-        builder.Insert(new OpBranch(currentEscapeBlocks.ContinueBlock));
+        if (!SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+            builder.Insert(new OpBranch(currentEscapeBlocks.ContinueBlock));
 
         // Continue block
         builder.CreateBlock(context, currentEscapeBlocks.ContinueBlock, $"for_continue_{builder.ForBlockCount}");
         foreach (var update in Update)
             update.Compile(table, shader, compiler);
-        builder.Insert(new OpBranch(forCheckBlock));
+        if (!SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+            builder.Insert(new OpBranch(forCheckBlock));
 
         // Merge block
         builder.CreateBlock(context, currentEscapeBlocks.MergeBlock, $"for_merge_{builder.ForBlockCount}");

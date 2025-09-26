@@ -32,14 +32,30 @@ shader TestBasic : TestBase
         streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
 
         for (int i = 0; i < 4; ++i)
+        {
+            if (i == 1)
+                break;
+            if (i == 2)
+                continue;
+            if (i == 3)
+                return;
             streams.ColorTarget = streams.ColorTarget * CBufferValue1;
+        }
 
+        // if with an ending else
         if (CBufferValue2 == 12)
             streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
         else if (CBufferValue2 == 13)
             streams.ColorTarget = streams.ExtraColor * CBufferValue1;
-        else //if (CBufferValue2 == 14)
+        else
             streams.ColorTarget = streams.ExtraColor * CBufferValue1;
+
+        // if without an ending else
+        if (CBufferValue2 == 12)
+            streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
+        else if (CBufferValue2 == 13)
+            streams.ColorTarget = streams.ExtraColor * CBufferValue1;
+
         Test();
         //Test();
     }
