@@ -88,6 +88,9 @@ public partial class SpirvBuilder
             (Operator.LogicalOR, ScalarType { TypeName: "bool" }, ScalarType { TypeName: "bool" })
                 => Buffer.InsertData(Position++, new OpLogicalOr(resultType, context.Bound++, left.Id, right.Id)),
 
+            (Operator.Equals, ScalarType { TypeName: "int" }, ScalarType { TypeName: "int" })
+                => Buffer.InsertData(Position++, new OpIEqual(resultType, context.Bound++, left.Id, right.Id)),
+
             _ => throw new NotImplementedException()
         };
 

@@ -52,7 +52,17 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     _ => throw new InvalidOperationException(),
                 });
             }
-            else if (instruction.Op == Op.OpTypePointer && (OpTypePointer)instruction is {} pointerInstruction)
+            else if (instruction.Op == Op.OpTypeInt)
+            {
+                OpTypeInt intInstruction = instruction;
+                types.Add(intInstruction.ResultId, ScalarType.From("int"));
+            }
+            else if (instruction.Op == Op.OpTypeBool)
+            {
+                OpTypeBool boolInstruction = instruction;
+                types.Add(boolInstruction.ResultId, ScalarType.From("bool"));
+            }
+            else if (instruction.Op == Op.OpTypePointer && (OpTypePointer)instruction is { } pointerInstruction)
             {
                 var innerType = types[pointerInstruction.Type];
                 types.Add(pointerInstruction.ResultId, new PointerType(innerType, pointerInstruction.Storageclass));

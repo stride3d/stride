@@ -53,6 +53,8 @@ public static class OperatorTable
         {
             // Boolean operations
             (>= 22 and < 26, ScalarType{ TypeName : "bool"}, ScalarType {TypeName: "bool"}) => left,
+            // Equalities
+            (>= 22 and < 26, ScalarType l, ScalarType r) when l == r => ScalarType.From("bool"),
             // Linear algebra
             (>=8 and < 13, ScalarType {TypeName: "int" or "uint" or "float" or "long" or "ulong" or "double"} l, ScalarType r) when l.TypeName == r.TypeName => right,
             (>=8 and < 13, ScalarType { TypeName: "int" or "uint" or "long" or "ulong" }, ScalarType { TypeName: "float" or "double"}) => right,

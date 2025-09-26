@@ -260,7 +260,7 @@ public static partial class Spv
                             => (operand.Quantifier, operand.Words.Length) switch
                             {
                                 (OperandQuantifier.One or OperandQuantifier.ZeroOrOne, 1) => AppendLiteralNumber(operand.ToLiteral<int>()),
-                                (OperandQuantifier.ZeroOrMore, > 0) => AppendLiteralNumbers<int>(operand.Words),
+                                (OperandQuantifier.ZeroOrMore, _) => AppendLiteralNumbers<int>(operand.Words),
                                 _ => throw new NotImplementedException("Unsupported literal integer quantifier " + operand.Quantifier + " with length " + operand.Words.Length)
                             },
                         OperandKind.LiteralContextDependentNumber => AppendContextDependentNumber(operand, data, buffer),
