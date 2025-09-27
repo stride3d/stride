@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 //  Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.Contracts;
 using BepuPhysics.CollisionDetection;
+using Stride.Core.Mathematics;
 
 namespace Stride.BepuPhysics.Definitions.Contacts;
 
@@ -24,35 +26,79 @@ public readonly ref struct Contacts<TManifold> where TManifold : unmanaged, ICon
     /// <summary>
     /// Contact group registered between these two bodies, one per compound child hit
     /// </summary>
-    public ReadOnlySpan<ContactGroup<TManifold>> Groups { get; }
+    public required ReadOnlySpan<ContactGroup<TManifold>> Groups { get; init; }
 
     /// <summary>
     /// The simulation this contact occured in
     /// </summary>
-    public BepuSimulation Simulation { get; }
+    public required BepuSimulation Simulation { get; init; }
 
     /// <summary>
     /// Whether <see cref="EventSource"/> maps to the unsorted, original A
     /// </summary>
-    public bool IsSourceOriginalA { get; }
+    public required bool IsSourceOriginalA { get; init; }
 
     /// <summary>
     /// The collidable which is bound to this <see cref="IContactHandler"/>
     /// </summary>
-    public CollidableComponent EventSource { get; }
+    public required CollidableComponent EventSource { get; init; }
 
     /// <summary>
     /// The other collidable
     /// </summary>
-    public CollidableComponent Other { get; }
+    public required CollidableComponent Other { get; init; }
 
-    public Contacts(CollidableComponent source, CollidableComponent other, bool isSourceOriginalA, ReadOnlySpan<ContactGroup<TManifold>> groups, BepuSimulation simulation)
+    /// <summary>
+    /// The linear velocity <see cref="EventSource"/> had at the time of contact
+    /// </summary>
+    public required Vector3 SourceLinearVelocity { get; init; }
+
+    /// <summary>
+    /// The angular velocity <see cref="EventSource"/> had at the time of contact
+    /// </summary>
+    public required Vector3 SourceAngularVelocity { get; init; }
+
+    /// <summary>
+    /// The linear velocity <see cref="Other"/> had at the time of contact
+    /// </summary>
+    public required Vector3 OtherLinearVelocity { get; init; }
+
+    /// <summary>
+    /// The angular velocity <see cref="Other"/> had at the time of contact
+    /// </summary>
+    public required Vector3 OtherAngularVelocity { get; init; }
+
+    [Pure]
+    public Vector3 ComputeImpactForce(Contact<TManifold> contact)
     {
-        EventSource = source;
-        Other = other;
-        IsSourceOriginalA = isSourceOriginalA;
-        Groups = groups;
-        Simulation = simulation;
+        var impactPos = contact.Point;
+        float invMassOther, invMassThis;
+        Vector3 impactVelOther, impactVelThis;
+        if (Other is BodyComponent bodyOther)
+        {
+            impactVelOther = OtherLinearVelocity + Vector3.Cross(OtherAngularVelocity, impactPos - bodyOther.Position);
+            invMassOther = bodyOther.BodyInertia.InverseMass;
+        }
+        else
+        {
+            impactVelOther = default;
+            invMassOther = 0;
+        }
+
+        if (EventSource is BodyComponent bodySource)
+        {
+            impactVelThis = SourceLinearVelocity + Vector3.Cross(SourceAngularVelocity, impactPos - bodySource.Position);
+            invMassThis = bodySource.BodyInertia.InverseMass;
+        }
+        else
+        {
+            impactVelThis = default;
+            invMassThis = 0;
+        }
+
+        var relativeImpactVel = impactVelOther - impactVelThis;
+        float effectiveMass = 1f / (invMassOther + invMassThis);
+        return relativeImpactVel * effectiveMass / (float)Simulation.FixedTimeStepSeconds;
     }
 
     /// <inheritdoc cref="Contacts{TManifold}"/>

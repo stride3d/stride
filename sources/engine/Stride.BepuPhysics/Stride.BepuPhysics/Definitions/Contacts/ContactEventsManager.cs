@@ -19,7 +19,7 @@ namespace Stride.BepuPhysics.Definitions.Contacts;
 internal class ContactEventsManager : IDisposable
 {
     private readonly Dictionary<OrderedPair, LastCollisionState> _trackedCollisions = new();
-    private readonly HashSet<OrderedPair> _outdatedPairs = new();
+    private readonly Dictionary<OrderedPair, PreCollisionVelocities> _outdatedPairs = new();
     private readonly BufferPool _pool;
     private readonly BepuSimulation _simulation;
     private IndexSet _staticListenerFlags;
@@ -124,24 +124,46 @@ internal class ContactEventsManager : IDisposable
 #if DEBUG
         ref var stateRef = ref CollectionsMarshal.GetValueRefOrAddDefault(_trackedCollisions, pair, out _);
         _trackedCollisions.Remove(pair, out var state);
-        System.Diagnostics.Debug.Assert(stateRef.Alive == false); // Notify HandleManifoldInner higher up the call stack that the manifold they are processing is dead
+        Debug.Assert(stateRef.Alive == false); // Notify HandleManifoldInner higher up the call stack that the manifold they are processing is dead
 #else
         _trackedCollisions.Remove(pair, out var state);
 #endif
 
+        _outdatedPairs.Remove(pair, out var velocities);
+
         if (state.TryClear(Events.TouchingA))
         {
-            var contactDataForA = new Contacts<EmptyManifold>(pair.A, pair.B, isSourceOriginalA: true, ReadOnlySpan<ContactGroup<EmptyManifold>>.Empty, _simulation);
+            var contactDataForA = new Contacts<EmptyManifold>
+            {
+                Groups = ReadOnlySpan<ContactGroup<EmptyManifold>>.Empty,
+                Simulation = _simulation,
+                IsSourceOriginalA = true,
+                EventSource = pair.A,
+                Other = pair.B,
+                SourceLinearVelocity = velocities.LinearA,
+                SourceAngularVelocity = velocities.AngularA,
+                OtherLinearVelocity = velocities.LinearB,
+                OtherAngularVelocity = velocities.AngularB,
+            };
             state.HandlerA?.OnStoppedTouching(contactDataForA);
         }
 
         if (state.TryClear(Events.TouchingB))
         {
-            var contactDataForB = new Contacts<EmptyManifold>(pair.B, pair.A, isSourceOriginalA: false, ReadOnlySpan<ContactGroup<EmptyManifold>>.Empty, _simulation);
+            var contactDataForB = new Contacts<EmptyManifold>
+            {
+                Groups = ReadOnlySpan<ContactGroup<EmptyManifold>>.Empty,
+                Simulation = _simulation,
+                IsSourceOriginalA = false,
+                EventSource = pair.B,
+                Other = pair.A,
+                SourceLinearVelocity = velocities.LinearB,
+                SourceAngularVelocity = velocities.AngularB,
+                OtherLinearVelocity = velocities.LinearA,
+                OtherAngularVelocity = velocities.AngularA,
+            };
             state.HandlerB?.OnStoppedTouching(contactDataForB);
         }
-
-        _outdatedPairs.Remove(pair);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -163,9 +185,33 @@ internal class ContactEventsManager : IDisposable
 
         var orderedPair = new OrderedPair(_simulation.GetComponent(safeInfos[0].Pair.A), _simulation.GetComponent(safeInfos[0].Pair.B));
 
+        _outdatedPairs.Remove(orderedPair, out var velocities);
+
         bool isAOriginalA = safeInfos[0].Pair.A.Packed == safeInfos[0].SortedPair.A;
-        var contactDataForA = new Contacts<TManifold>(orderedPair.A, orderedPair.B, isSourceOriginalA: isAOriginalA, safeInfos, _simulation);
-        var contactDataForB = new Contacts<TManifold>(orderedPair.B, orderedPair.A, isSourceOriginalA: isAOriginalA == false, safeInfos, _simulation);
+        var contactDataForA = new Contacts<TManifold>
+        {
+            Groups = safeInfos,
+            Simulation = _simulation,
+            IsSourceOriginalA = isAOriginalA,
+            EventSource = orderedPair.A,
+            Other = orderedPair.B,
+            SourceLinearVelocity = velocities.LinearA,
+            SourceAngularVelocity = velocities.AngularA,
+            OtherLinearVelocity = velocities.LinearB,
+            OtherAngularVelocity = velocities.AngularB,
+        };
+        var contactDataForB = new Contacts<TManifold>
+        {
+            Groups = safeInfos,
+            Simulation = _simulation,
+            IsSourceOriginalA = isAOriginalA == false,
+            EventSource = orderedPair.B,
+            Other = orderedPair.A,
+            SourceLinearVelocity = velocities.LinearB,
+            SourceAngularVelocity = velocities.AngularB,
+            OtherLinearVelocity = velocities.LinearA,
+            OtherAngularVelocity = velocities.AngularA,
+        };
 
         IContactHandler? handlerA, handlerB;
         ref var collisionState = ref CollectionsMarshal.GetValueRefOrAddDefault(_trackedCollisions, orderedPair, out bool alreadyExisted);
@@ -240,8 +286,6 @@ internal class ContactEventsManager : IDisposable
                     return;
             }
         }
-
-        _outdatedPairs.Remove(orderedPair);
     }
 
     public void Flush()
@@ -254,7 +298,7 @@ internal class ContactEventsManager : IDisposable
 
         //Remove any stale collisions. Stale collisions are those which should have received a new manifold update but did not because the manifold is no longer active.
         foreach (var pair in _outdatedPairs)
-            ClearCollision(pair);
+            ClearCollision(pair.Key);
     }
 
     /// <summary>
@@ -274,9 +318,38 @@ internal class ContactEventsManager : IDisposable
             if ((aRef.Mobility != CollidableMobility.Static && bodyHandleToLocation[aRef.BodyHandle.Value].SetIndex == 0)
                 || (bRef.Mobility != CollidableMobility.Static && bodyHandleToLocation[bRef.BodyHandle.Value].SetIndex == 0))
             {
-                _outdatedPairs.Add(trackedCollision.Key); // It's active, if manifolds did not signal that they touched we should discard this one
+                PreCollisionVelocities velocities;
+                if (trackedCollision.Key.A is BodyComponent aBody)
+                {
+                    velocities.AngularA = aBody.AngularVelocity;
+                    velocities.LinearA = aBody.LinearVelocity;
+                }
+                else
+                {
+                    velocities.AngularA = default;
+                    velocities.LinearA = default;
+                }
+
+                if (trackedCollision.Key.B is BodyComponent bBody)
+                {
+                    velocities.AngularB = bBody.AngularVelocity;
+                    velocities.LinearB = bBody.LinearVelocity;
+                }
+                else
+                {
+                    velocities.AngularB = default;
+                    velocities.LinearB = default;
+                }
+
+                _outdatedPairs.Add(trackedCollision.Key, velocities); // It's active, if manifolds did not signal that they touched we should discard this one
             }
         }
+    }
+
+    private struct PreCollisionVelocities
+    {
+        public Vector3 LinearA, AngularA;
+        public Vector3 LinearB, AngularB;
     }
 
     private interface IPerTypeManifoldStore

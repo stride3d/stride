@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Constraints;
 using Stride.BepuPhysics.Definitions;
@@ -170,9 +171,9 @@ namespace Stride.BepuPhysics.Tests
                 var sphere = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new SphereCollider() } } } };
                 var slope = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new(2, 0.1f, 2) } } }, ContactEventHandler = contacts } };
                 var goal = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new(10, 0.1f, 10) } } }, ContactEventHandler = killTrigger } };
-                contacts.StartedTouching += () => contactStarted++;
-                contacts.StoppedTouching += () => contactStopped++;
-                killTrigger.StoppedTouching += () => passedGoal++;
+                contacts.StartedTouching += (_, _) => contactStarted++;
+                contacts.StoppedTouching += (_, _) => contactStopped++;
+                killTrigger.StoppedTouching += (_, _) => passedGoal++;
 
                 sphere.Transform.Position.Y = 3;
                 slope.Transform.Rotation = Quaternion.RotationZ(10);
@@ -206,11 +207,11 @@ namespace Stride.BepuPhysics.Tests
                 var trigger = new ContactEvents { NoContactResponse = true };
                 var e1 = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = trigger } };
                 var e2 = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } } };
-                trigger.StartedTouching += () => startedTouching++;
-                trigger.StoppedTouching += () => stoppedTouching++;
+                trigger.StartedTouching += (_, _) => startedTouching++;
+                trigger.StoppedTouching += (_, _) => stoppedTouching++;
 
                 // Remove the component as soon as it enters the trigger to test if the system handles that case properly
-                trigger.StartedTouching += () => e1.Scene = null;
+                trigger.StartedTouching += (_, _) => e1.Scene = null;
 
                 e1.Transform.Position.Y = 3;
 
@@ -231,6 +232,62 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public void ContactImpulseTest2()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var contactE = new ContactSampleForces();
+                var e1 = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = contactE } };
+                var e2 = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } } };
+
+                var source = e1.Get<BodyComponent>()!;
+                source.ContinuousDetectionMode = ContinuousDetectionMode.Continuous;
+                e1.Transform.Position.Y = 3;
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { e1, e2 });
+                source.LinearVelocity = new Vector3(0, -100, 0);
+
+                var simulation = e1.GetSimulation();
+
+                while (contactE.Exit == false)
+                    await simulation.AfterUpdate();
+
+                Assert.NotEmpty(contactE.ImpactForces.Where(x => x.Length() > 100));
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        private class ContactSampleForces : IContactHandler
+        {
+            public bool NoContactResponse => false;
+
+            public List<Vector3> ImpactForces = new();
+            public bool Exit;
+
+            public void OnStartedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
+            {
+                foreach (var contact in contacts)
+                {
+                    ImpactForces.Add(contacts.ComputeImpactForce(contact));
+                }
+            }
+
+            public void OnTouching<TManifold>(Contacts<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+            {
+            }
+
+            public void OnStoppedTouching<TManifold>(Contacts<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+            {
+                Exit = true;
+            }
+        }
+
+        [Fact]
         public static void OnTriggerTest()
         {
             var game = new GameTest();
@@ -242,8 +299,8 @@ namespace Stride.BepuPhysics.Tests
                 var trigger = new ContactEvents { NoContactResponse = true };
                 var e1 = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = trigger } };
                 var e2 = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } } };
-                trigger.StartedTouching += () => startedTouching++;
-                trigger.StoppedTouching += () => stoppedTouching++;
+                trigger.StartedTouching += (_, _) => startedTouching++;
+                trigger.StoppedTouching += (_, _) => stoppedTouching++;
 
                 e1.Transform.Position.Y = 3;
 
@@ -307,16 +364,21 @@ namespace Stride.BepuPhysics.Tests
         {
             public required bool NoContactResponse { get; init; }
 
-            public event Action? StartedTouching, StoppedTouching;
+            public event Action<CollidableComponent, CollidableComponent>? StartedTouching, Touching, StoppedTouching;
 
             public void OnStartedTouching<TManifold>(Contacts<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
             {
-                StartedTouching?.Invoke();
+                StartedTouching?.Invoke(manifold.EventSource, manifold.Other);
+            }
+
+            public void OnTouching<TManifold>(Contacts<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+            {
+                Touching?.Invoke(manifold.EventSource, manifold.Other);
             }
 
             public void OnStoppedTouching<TManifold>(Contacts<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
             {
-                StoppedTouching?.Invoke();
+                StoppedTouching?.Invoke(manifold.EventSource, manifold.Other);
             }
         }
     }

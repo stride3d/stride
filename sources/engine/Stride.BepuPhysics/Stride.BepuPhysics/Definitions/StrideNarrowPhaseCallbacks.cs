@@ -70,7 +70,7 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
         if (manifold.Count != 0)
         {
             ++configuredManifold;
-            Debug.Assert(configuredChildIndex == configuredManifold);
+            Debug.Assert(configuredChildIndex >= configuredManifold);
         }
 #endif
 
@@ -85,11 +85,15 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ConfigureContactManifold(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB, ref ConvexContactManifold manifold)
     {
-        contactEvents.StoreManifold(workerIndex, pair, childIndexA, childIndexB, ref manifold);
-        #if DEBUG
-        Debug.Assert(manifold.Count > 0);
-        configuredChildIndex++;
-        #endif
+        if (manifold.Count != 0)
+        {
+            contactEvents.StoreManifold(workerIndex, pair, childIndexA, childIndexB, ref manifold);
+            #if DEBUG
+            Debug.Assert(configuredChildIndex >= configuredManifold);
+            configuredChildIndex++;
+            #endif
+        }
+
         return true;
     }
 
