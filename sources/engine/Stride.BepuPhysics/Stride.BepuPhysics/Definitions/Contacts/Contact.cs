@@ -43,9 +43,9 @@ public ref struct Contact<TManifold> where TManifold : unmanaged, IContactManifo
     public int FeatureId => ContactGroup.Manifold.GetFeatureId(Index);
 
     /// <summary>
-    /// The contact's normal, oriented based on <see cref="Contacts{TManifold}.EventSource"/>
+    /// The normal on <see cref="Contacts{TManifold}.Other"/>'s surface. Points from <see cref="Contacts{TManifold}.Other"/> towards <see cref="Contacts{TManifold}.EventSource"/>'s surface
     /// </summary>
-    public Vector3 Normal => Contacts.IsSourceOriginalA ? -ContactGroup.Manifold.GetNormal(Index) : ContactGroup.Manifold.GetNormal(Index);
+    public Vector3 Normal => Contacts.IsSourceOriginalA ? ContactGroup.Manifold.GetNormal(Index) : -ContactGroup.Manifold.GetNormal(Index);
 
     /// <summary>
     /// When <see cref="Contacts{TManifold}.EventSource"/> has a <see cref="Stride.BepuPhysics.Definitions.Colliders.CompoundCollider"/>,
@@ -60,7 +60,7 @@ public ref struct Contact<TManifold> where TManifold : unmanaged, IContactManifo
     public int OtherChildIndex => Contacts.IsSourceOriginalA ? ContactGroup.ChildIndexB : ContactGroup.ChildIndexA;
 
     /// <summary> The position at which the contact occured </summary>
-    /// <remarks> This may not be accurate if either collidables are not part of the simulation anymore </remarks>
+    /// <remarks> This may not be accurate if they separated within this tick, or when you removed either of them from the simulation within this scope </remarks>
     public Vector3 Point
     {
         get
