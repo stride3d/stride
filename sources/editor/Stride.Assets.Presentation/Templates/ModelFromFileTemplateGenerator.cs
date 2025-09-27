@@ -249,12 +249,12 @@ namespace Stride.Assets.Presentation.Templates
             if (asset == null || asset.Materials==null)
                 return;
 
-            var underlyingModel=entityInfo.Models.Where(C=>C.MeshName==asset.MeshName).FirstOrDefault();          
-            var nodeContainingMesh=entityInfo.Nodes.Where(c=>c.Name== underlyingModel.NodeName).FirstOrDefault();
+            var underlyingModel=entityInfo.Models.FirstOrDefault(c => c.MeshName == asset.MeshName);          
+            var nodeContainingMesh=entityInfo.Nodes.FirstOrDefault(c => c.Name == underlyingModel.NodeName);
 
             entityInfo.NodeNameToMaterialIndices.TryGetValue(nodeContainingMesh.Name, out var materialIndices);
 
-            if (materialIndices?.Count()< 1)  
+            if (materialIndices?.Count< 1)  
                 return;
 
             for (int i = asset.Materials.Count - 1; i >= 0; i--)
