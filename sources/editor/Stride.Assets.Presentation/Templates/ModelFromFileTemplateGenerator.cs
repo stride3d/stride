@@ -133,7 +133,7 @@ namespace Stride.Assets.Presentation.Templates
             var importAnimations = parameters.Tags.Get(ImportAnimationsKey);
             var importSkeleton = parameters.Tags.Get(ImportSkeletonKey);
             var skeletonToReuse = parameters.Tags.Get(SkeletonToUseKey);
-            var splitHierarchy = parameters.Tags.Get(SplitHierarchyKey);   // <-- you read it here
+            var splitHierarchy = parameters.Tags.Get(SplitHierarchyKey);
 
             var importParameters = new AssetImporterParameters { Logger = parameters.Logger };
             importParameters.InputParameters.Set(ModelAssetImporter.DeduplicateMaterialsKey, deduplicateMaterials);
@@ -148,6 +148,7 @@ namespace Stride.Assets.Presentation.Templates
 
             foreach (var file in files)
             {
+                // TODO: should we allow to select the importer?
                 var importer = AssetRegistry.FindImporterForFile(file).OfType<ModelAssetImporter>().FirstOrDefault();
                 if (importer == null)
                 {
@@ -251,22 +252,16 @@ namespace Stride.Assets.Presentation.Templates
             var underlyingModel=entityInfo.Models.Where(C=>C.MeshName==asset.MeshName).FirstOrDefault();          
             var nodeContainingMesh=entityInfo.Nodes.Where(c=>c.Name== underlyingModel.NodeName).FirstOrDefault();
 
-            var materialIndices=entityInfo.NodeNameToMaterialIndices?.Where(c=>c.Key== nodeContainingMesh.Name)?.FirstOrDefault().Value;
-        
-            if(materialIndices?.Count()< 1)  
-                return; 
+            entityInfo.NodeNameToMaterialIndices.TryGetValue(nodeContainingMesh.Name, out var materialIndices);
 
-            List<ModelMaterial> materialsToApply = null;
-            for (int i = 0; i < asset.Materials.Count; i++)
+            if (materialIndices?.Count()< 1)  
+                return;
+
+            for (int i = asset.Materials.Count - 1; i >= 0; i--)
             {
-                if (materialIndices.Contains(i))
-                {
-                    (materialsToApply??=new List<ModelMaterial>()).Add(asset.Materials[i]);
-                }
+                if (!materialIndices.Contains(i))
+                    asset.Materials.RemoveAt(i);
             }
-
-            asset.Materials.Clear();
-            materialsToApply?.ForEach(_mat => asset.Materials.Add(_mat));          
         }
 
         private static AssetItem? BuildPrefabForSplitHierarchy(string baseName, EntityInfo entityInfo, IList<AssetItem> perMeshModels, UDirectory targetLocation)
@@ -397,7 +392,7 @@ namespace Stride.Assets.Presentation.Templates
             return new AssetItem(UPath.Combine(targetLocation, prefabUrl), prefab);
         }
 
-        private static string SanitizePart(string s)
+        private static string? SanitizePart(string? s)
         {
             if (string.IsNullOrWhiteSpace(s))
                 return null;
