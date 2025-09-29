@@ -22,6 +22,7 @@ namespace Stride.Shaders.Spirv.Processing
             /// </summary>
             public bool Input => Read || (Output && !Write);
             public bool Output { get; set; }
+            public bool Private => Read || Write;
 
             public bool Read { get; set; }
             public bool Write { get; set; }
@@ -149,6 +150,7 @@ namespace Stride.Shaders.Spirv.Processing
             };
             List<(StreamInfo Info, int Id)> inputStreams = [];
             List<(StreamInfo Info, int Id)> outputStreams = [];
+            List<StreamInfo> privateStreams = [];
             foreach (var stream in streams)
             {
                 // Only direct access to global variables (not temporary variables created within function)
@@ -156,6 +158,9 @@ namespace Stride.Shaders.Spirv.Processing
                     continue;
 
                 var baseType = ((PointerType)stream.Value.Stream.Type).BaseType;
+                if (stream.Value.Stream.Private)
+                    privateStreams.Add(stream.Value.Stream);
+
                 if (stream.Value.Stream.Input)
                 {
                     context.FluentAdd(new OpTypePointer(context.Bound++, StorageClass.Input, context.Types[baseType]), out var pointerType);
@@ -210,11 +215,13 @@ namespace Stride.Shaders.Spirv.Processing
                 buffer.Add(new OpReturn());
                 buffer.Add(new OpFunctionEnd());
 
-                Span<int> pvariables = stackalloc int[inputStreams.Count + outputStreams.Count];
+                Span<int> pvariables = stackalloc int[inputStreams.Count + outputStreams.Count + privateStreams.Count];
                 for (int i = 0; i < inputStreams.Count; i++)
                     pvariables[i] = inputStreams[i].Id;
                 for (int i = 0; i < outputStreams.Count; i++)
                     pvariables[inputStreams.Count + i] = outputStreams[i].Id;
+                for (int i = 0; i < privateStreams.Count; i++)
+                    pvariables[inputStreams.Count + outputStreams.Count + i] = privateStreams[i].Id;
                 context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [..pvariables]));
             }
 
