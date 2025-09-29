@@ -30,6 +30,10 @@ namespace Stride.Shaders.Spirv.Processing
             public override string ToString() => $"{Type} {Name} {(Read ? "R" : "")} {(Write ? "W" : "")}";
         }
 
+        record struct AnalysisResult(SortedList<int, (StreamInfo Stream, bool IsDirect)> Streams, List<int> Blocks)
+        {
+        }
+
         public void Process(NewSpirvBuffer buffer, SpirvContext context)
         {
             context.Module.Functions.TryGetValue("VSMain", out var entryPointVS);
@@ -37,7 +41,8 @@ namespace Stride.Shaders.Spirv.Processing
             if (entryPointPS.Id == 0)
                 throw new InvalidOperationException($"{nameof(StreamAnalyzer)}: At least a pixel shader is expected");
 
-            var streams = CreateStreams(buffer, context);
+            var analysisResult = Analyze(buffer, context);
+            var streams = analysisResult.Streams;
 
             // Expected at the end of pixel shader
             foreach (var stream in streams)
@@ -45,7 +50,7 @@ namespace Stride.Shaders.Spirv.Processing
                 if (stream.Value.Stream.Semantic is { } semantic && (semantic.StartsWith("SV_Target") || semantic == "SV_Depth"))
                     stream.Value.Stream.Output = true;
             }
-            var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.Id, entryPointPS.Name, streams);
+            var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.Id, entryPointPS.Name, analysisResult);
 
             // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
             foreach (var stream in streams)
@@ -55,7 +60,7 @@ namespace Stride.Shaders.Spirv.Processing
             }
             PropagateStreamsFromPreviousStage(streams);
             if (entryPointVS.Id != 0)
-                GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, streams);
+                GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, analysisResult);
 
             buffer.FluentAdd(new OpExecutionMode(psWrapper.ResultId, ExecutionMode.OriginUpperLeft));
         }
@@ -70,15 +75,20 @@ namespace Stride.Shaders.Spirv.Processing
             }
         }
 
-        private SortedList<int, (StreamInfo Stream, bool IsDirect)> CreateStreams(NewSpirvBuffer buffer, SpirvContext context)
+        private AnalysisResult Analyze(NewSpirvBuffer buffer, SpirvContext context)
         {
             var streams = new SortedList<int, (StreamInfo Stream, bool IsDirect)>();
+
+            HashSet<int> blockTypes = new();
+            Dictionary<int, int> blockPointerTypes = new();
+            List<int> blockIds = new();
 
             // Build name table
             SortedList<int, NameId> nameTable = [];
             SortedList<int, string> semanticTable = [];
             foreach (var instruction in buffer)
             {
+                // Names
                 {
                     if (instruction.Op == Op.OpName
                         && ((OpName)instruction) is
@@ -103,6 +113,32 @@ namespace Stride.Shaders.Spirv.Processing
                     }
                 }
 
+                // CBuffer
+                // Encoded in this format:
+                // OpDecorate %type_CBuffer1 Block
+                // %_ptr_Uniform_type_CBuffer1 = OpTypePointer Uniform %type_CBuffer1
+                // %CBuffer1 = OpVariable %_ptr_Uniform_type_CBuffer1 Uniform
+                {
+                    if (instruction.Op == Op.OpDecorate
+                        && ((OpDecorate)instruction) is { Decoration: Decoration.Block, Target: var bufferType })
+                    {
+                        blockTypes.Add(bufferType);
+                    }
+                    else if (instruction.Op == Op.OpTypePointer
+                        && ((OpTypePointer)instruction) is { Storageclass: StorageClass.Uniform, ResultId: var pointerType, Type: var bufferType2 }
+                        && blockTypes.Contains(bufferType2))
+                    {
+                        blockPointerTypes.Add(pointerType, bufferType2);
+                    }
+                    else if (instruction.Op == Op.OpVariable
+                        && ((OpVariable)instruction) is { Storageclass: StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
+                        && blockPointerTypes.TryGetValue(pointerType2, out var bufferType3))
+                    {
+                        blockIds.Add(bufferId);
+                    }
+                }
+
+                // Semantic
                 {
                     if (instruction.Op == Op.OpDecorateString
                         && ((OpDecorateString)instruction) is
@@ -138,11 +174,13 @@ namespace Stride.Shaders.Spirv.Processing
                 }
             }
 
-            return streams;
+            return new(streams, blockIds);
         }
 
-        private OpFunction GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
+        private OpFunction GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult)
         {
+            var streams = analysisResult.Streams;
+
             ProcessMethod(buffer, entryPointId, streams);
 
             var stage = executionModel switch
@@ -218,13 +256,15 @@ namespace Stride.Shaders.Spirv.Processing
                 buffer.Add(new OpReturn());
                 buffer.Add(new OpFunctionEnd());
 
-                Span<int> pvariables = stackalloc int[inputStreams.Count + outputStreams.Count + privateStreams.Count];
+                Span<int> pvariables = stackalloc int[inputStreams.Count + outputStreams.Count + privateStreams.Count + analysisResult.Streams.Count];
                 for (int i = 0; i < inputStreams.Count; i++)
                     pvariables[i] = inputStreams[i].Id;
                 for (int i = 0; i < outputStreams.Count; i++)
                     pvariables[inputStreams.Count + i] = outputStreams[i].Id;
                 for (int i = 0; i < privateStreams.Count; i++)
                     pvariables[inputStreams.Count + outputStreams.Count + i] = privateStreams[i].Id;
+                for (int i = 0; i < analysisResult.Blocks.Count; i++)
+                    pvariables[inputStreams.Count + outputStreams.Count + privateStreams.Count + i] = analysisResult.Blocks[i];
                 context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [..pvariables]));
             }
 

@@ -135,6 +135,7 @@ public partial class SPVGenerator : IIncrementalGenerator
             (string s, "?") when s.Contains("Enum") => $".. {fieldName} is null ? (Span<int>)[] : [(int){fieldName}.Value]",
             (string, "*") => $".. {fieldName}.Words",
             (string, "?") => $".. {fieldName} is null ? (Span<int>)[] : {fieldName}.AsDisposableLiteralValue().Words",
+            (_, "?") => $".. {fieldName} is null ? (Span<int>)[] : {fieldName}.AsDisposableLiteralValue().Words",
             _ => $".. {fieldName}.AsDisposableLiteralValue().Words"
         };
     }

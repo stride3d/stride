@@ -123,8 +123,8 @@ public ref struct OpDataEnumerator
         {
             Op.OpDecorate => oid switch
             {
-                0 => new(OperandKind.IdRef, OperandQuantifier.One, Operands.Slice(wid, 1)),
-                1 => new(OperandKind.Decoration, OperandQuantifier.One, Operands.Slice(wid, 1)),
+                0 => new(logOp.Name, OperandKind.IdRef, OperandQuantifier.One, Operands.Slice(wid, 1)),
+                1 => new(logOp.Name, OperandKind.Decoration, OperandQuantifier.One, Operands.Slice(wid, 1)),
                 2 => new SpvOperand() with
                 {
                     Kind = (Decoration)Operands[1] switch
