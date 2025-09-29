@@ -164,8 +164,8 @@ public sealed class NewSpirvBuffer() : IDisposable
 
     public void Add(OpData data)
     {
-        if (InstructionInfo.GetInfo(data).GetResultIndex(out int index) && index >= Header.Bound)
-            Header = Header with { Bound = data.Memory.Span[index] + 1 };
+        if (data.IdResult is int index && index >= Header.Bound)
+            Header = Header with { Bound = index + 1 };
         Instructions.Add(data);
     }
 
@@ -194,8 +194,8 @@ public sealed class NewSpirvBuffer() : IDisposable
         else Instructions.Add(new(instruction.InstructionMemory));
         instruction.DataIndex = new(Instructions.Count - 1, this);
 
-        if (instruction.GetInfo().GetResultIndex(out int index) && index >= Header.Bound)
-            Header = Header with { Bound = instruction.InstructionMemory.Span[index] + 1 };
+        if (instruction.GetInfo().GetResultIndex(out int rid) && instruction.InstructionMemory.Span[rid + 1] >= Header.Bound)
+            Header = Header with { Bound = instruction.InstructionMemory.Span[rid + 1] + 1 };
     }
     public NewSpirvBuffer FluentAdd<T>(in T instruction) where T : struct, IMemoryInstruction
     {
@@ -208,8 +208,8 @@ public sealed class NewSpirvBuffer() : IDisposable
         }
         else Instructions.Add(new(instruction.InstructionMemory));
         var tmp = instruction;
-        if (tmp.GetInfo().GetResultIndex(out int index) && index >= Header.Bound)
-            Header = Header with { Bound = tmp.InstructionMemory.Span[index] + 1 };
+        if (tmp.GetInfo().GetResultIndex(out int rid) && tmp.InstructionMemory.Span[rid + 1] >= Header.Bound)
+            Header = Header with { Bound = tmp.InstructionMemory.Span[rid + 1] + 1 };
         return this;
     }
     public NewSpirvBuffer FluentAdd<T>(in T instruction, out T result) where T : struct, IMemoryInstruction
@@ -224,8 +224,8 @@ public sealed class NewSpirvBuffer() : IDisposable
         }
         else Instructions.Add(new(instruction.InstructionMemory));
         var tmp = instruction;
-        if (tmp.GetInfo().GetResultIndex(out int index) && index >= Header.Bound)
-            Header = Header with { Bound = instruction.InstructionMemory.Span[index] + 1 };
+        if (tmp.GetInfo().GetResultIndex(out int rid) && instruction.InstructionMemory.Span[rid + 1] >= Header.Bound)
+            Header = Header with { Bound = instruction.InstructionMemory.Span[rid + 1] + 1 };
         return this;
     }
 
@@ -236,8 +236,8 @@ public sealed class NewSpirvBuffer() : IDisposable
     {
         Instructions.Insert(index, new(data.InstructionMemory));
         var tmp = data;
-        if (tmp.GetInfo().GetResultIndex(out int rid) && rid >= Header.Bound)
-            Header = Header with { Bound = tmp.InstructionMemory.Span[rid] + 1 };
+        if (tmp.GetInfo().GetResultIndex(out int rid) && tmp.InstructionMemory.Span[rid + 1] >= Header.Bound)
+            Header = Header with { Bound = tmp.InstructionMemory.Span[rid + 1] + 1 };
         return data;
     }
     public OpData InsertData<T>(int index, in T data)
