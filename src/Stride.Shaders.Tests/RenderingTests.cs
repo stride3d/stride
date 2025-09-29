@@ -46,7 +46,7 @@ public class RenderingTests(ITestOutputHelper Output)
 
     [Theory]
     [MemberData(nameof(GetTestFiles))]
-    public void RenderTest1(string shaderName, string methodName, Dictionary<string, string> parameters)
+    public void RenderTest1(string shaderName, string methodName, string args)
     {
         // Compiler shader
         var shaderMixer = new ShaderMixer(new ShaderLoader());
@@ -63,6 +63,7 @@ public class RenderingTests(ITestOutputHelper Output)
         var renderer = new OpenGLFrameRenderer((uint)width, (uint)height);
 
         // Setup parameters
+        var parameters = TestHeaderParser.ParseParameters(args);
         foreach (var param in parameters)
         {
             // Note: Name is cbuffer name (not variable)
@@ -94,8 +95,7 @@ public class RenderingTests(ITestOutputHelper Output)
             foreach (var test in TestHeaderParser.ParseHeaders(code))
             {
                 var shadername = Path.GetFileNameWithoutExtension(filename);
-                if (shadername == "IfElseif")
-                    yield return [shadername, test.Name, test.Parameters];
+                yield return [shadername, test.Name, test.Parameters];
             }
         }
 
@@ -124,9 +124,9 @@ public class RenderingTests(ITestOutputHelper Output)
 public sealed class TestHeader
 {
     public string Name { get; }
-    public Dictionary<string, string> Parameters { get; }
+    public string Parameters { get; }
 
-    public TestHeader(string name, Dictionary<string, string> parameters)
+    public TestHeader(string name, string parameters)
     {
         Name = name;
         Parameters = parameters;
@@ -159,7 +159,7 @@ public static class TestHeaderParser
             var args = m.Groups["args"].Value;
 
             var parameters = ParseParameters(args);
-            yield return new TestHeader(name, parameters);
+            yield return new TestHeader(name, args);
         }
     }
 
@@ -167,7 +167,7 @@ public static class TestHeaderParser
     /// Splits "A=1, B=foo, ExpectedResult=0xFF" into a dictionary.
     /// Supports quoted values with commas: A="hello, world".
     /// </summary>
-    private static Dictionary<string, string> ParseParameters(string args)
+    public static Dictionary<string, string> ParseParameters(string args)
     {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var piece in SplitArgs(args))

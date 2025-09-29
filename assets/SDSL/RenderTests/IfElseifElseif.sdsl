@@ -1,9 +1,11 @@
 // PSMain(ExpectedResult=#FFFFFFFF, Test=1)
-// PSMain(ExpectedResult=#7F7F7F7F, Test=0)
+// PSMain(ExpectedResult=#7F7F7F7F, Test=2)
+// PSMain(ExpectedResult=#FF7F7F7F, Test=3)
+// PSMain(ExpectedResult=#00000000, Test=0)
 
 namespace Stride.Shaders.Tests;
 
-shader IfElse
+shader IfElseifFalseFalse
 {
     stream float4 ColorTarget : SV_Target0;
 
@@ -17,7 +19,9 @@ shader IfElse
         streams.ColorTarget = float4(0.0, 0.0, 0.0, 0.0);
         if (Test1 == 1)
             streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
-        else
+        else if (Test1 == 2)
             streams.ColorTarget = float4(0.5, 0.5, 0.5, 0.5);
+        else if (Test1 == 3)
+            streams.ColorTarget = float4(1.0, 0.5, 0.5, 0.5);
     }
 }
