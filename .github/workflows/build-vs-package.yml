@@ -49,7 +49,7 @@ jobs:
           dotnet-version: '10.0.x'
       - uses: microsoft/setup-msbuild@v2
         with:
-          vs-prerelease: true
+          vs-version: '[18.0,19.0)'
       - name: Build
         run: |
           msbuild build\Stride.VisualStudio.sln `
