@@ -59,6 +59,8 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - uses: microsoft/setup-msbuild@v2
+        with:
+          vs-prerelease: true
       - name: Build
         run: |
           msbuild build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
