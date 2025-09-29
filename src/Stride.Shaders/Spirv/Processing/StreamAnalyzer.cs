@@ -32,8 +32,10 @@ namespace Stride.Shaders.Spirv.Processing
 
         public void Process(NewSpirvBuffer buffer, SpirvContext context)
         {
-            var entryPointVS = context.Module.Functions["VSMain"];
-            var entryPointPS = context.Module.Functions["PSMain"];
+            context.Module.Functions.TryGetValue("VSMain", out var entryPointVS);
+            context.Module.Functions.TryGetValue("PSMain", out var entryPointPS);
+            if (entryPointPS.Id == 0)
+                throw new InvalidOperationException($"{nameof(StreamAnalyzer)}: At least a pixel shader is expected");
 
             var streams = CreateStreams(buffer, context);
 
@@ -52,7 +54,8 @@ namespace Stride.Shaders.Spirv.Processing
                     stream.Value.Stream.Read = false;
             }
             PropagateStreamsFromPreviousStage(streams);
-            GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, streams);
+            if (entryPointVS.Id != 0)
+                GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, streams);
 
             buffer.FluentAdd(new OpExecutionMode(psWrapper.ResultId, ExecutionMode.OriginUpperLeft));
         }

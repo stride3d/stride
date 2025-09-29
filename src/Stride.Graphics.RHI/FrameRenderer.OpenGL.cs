@@ -1,6 +1,7 @@
 ﻿using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using System.Text;
 
 namespace Stride.Graphics.RHI;
 
@@ -24,7 +25,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
     byte[]? fragmentSpirv = fragmentSpirv;
 
     //Vertex shaders are run on each vertex.
-    private static readonly string VertexShaderSource = @"
+    public string VertexShaderSource = @"
         #version 330 core //Using version GLSL version 3.3
         layout (location = 0) in vec4 vPos;
         
@@ -35,7 +36,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         ";
 
     //Fragment shaders are run on each fragment/pixel of the geometry.
-    private static readonly string FragmentShaderSource = @"
+    public string FragmentShaderSource = @"
         #version 330 core
         out vec4 FragColor;
 
@@ -75,8 +76,6 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         Gl = GL.GetApi(window);
 
         // Generate a FBO
-
-
         Gl.GenFramebuffers(1, out Fbo);
         Gl.BindFramebuffer(FramebufferTarget.Framebuffer, Fbo);
 
@@ -126,7 +125,9 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
             unsafe
             {
                 fixed (byte* spirv = fragmentSpirv)
-                    Gl.ShaderBinary([fragmentShader], GLEnum.SpirVBinary, (void*)spirv, (uint)fragmentSpirv.Length);
+                    Gl.ShaderBinary([fragmentShader], GLEnum.ShaderBinaryFormatSpirV, (void*)spirv, (uint)fragmentSpirv.Length);
+
+                Gl.SpecializeShader(fragmentShader, "PSMain_wrapper", 0, null, null);
             }
         }
         else
@@ -171,6 +172,22 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         //Bind the geometry and shader.
         Gl.BindVertexArray(Vao);
         Gl.UseProgram(Shader);
+
+        foreach (var param in Parameters)
+        {
+            var blockIndex = Gl.GetUniformBlockIndex(Shader, $"type_{param.Key}");
+            if ((GLEnum)blockIndex == GLEnum.InvalidIndex)
+                continue;
+            Gl.UniformBlockBinding(Shader, blockIndex, 0);
+
+            int data = param.Value;
+            Gl.GenBuffers(1, out uint ubo);
+            Gl.BindBuffer(GLEnum.UniformBuffer, ubo);
+            Gl.BufferData(GLEnum.UniformBuffer, sizeof(uint), &data, GLEnum.DynamicDraw);
+            Gl.BindBuffer(GLEnum.UniformBuffer, 0); // Unbind
+
+            Gl.BindBufferRange(GLEnum.UniformBuffer, 0, ubo, 0, sizeof(uint));
+        }
 
         //Draw the geometry.
         Gl.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);

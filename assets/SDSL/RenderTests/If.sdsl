@@ -1,0 +1,21 @@
+// PSMain(ExpectedResult=#FFFFFFFF, Test1=1)
+// PSMain(ExpectedResult=#00000000, Test1=0)
+
+namespace Stride.Shaders.Tests;
+
+shader IfTrue
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(0.0, 0.0, 0.0, 0.0);
+        if (Test1)
+            streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
+    }
+}
