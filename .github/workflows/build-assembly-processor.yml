@@ -42,12 +42,12 @@ jobs:
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           lfs: true
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '8.0.x'
       - name: Build
         run: |
           dotnet build build\Stride.AssemblyProcessor.sln `

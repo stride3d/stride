@@ -56,12 +56,12 @@ jobs:
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.graphics-api || inputs.graphics-api || 'OpenGL' }})
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           lfs: true
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '8.0.x'
       - uses: microsoft/setup-msbuild@v2
       - name: Build
         run: |
