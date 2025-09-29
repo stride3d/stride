@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
 using Stride.TextureConverter.Requests;
@@ -124,7 +125,7 @@ namespace Stride.TextureConverter.TexLibraries
                 current = request.TextureList[i];
                 buffer = arrayData + offset1;
                 offset1 += current.DataSize;
-                Unsafe.CopyBlockUnaligned((void*)buffer, (void*)current.Data, (uint)current.DataSize);
+                Utilities.CopyWithAlignmentFallback((void*)buffer, (void*)current.Data, (uint)current.DataSize);
 
                 offset2 = 0;
                 currentData = buffer;
@@ -258,7 +259,7 @@ namespace Stride.TextureConverter.TexLibraries
 
             for (int i = 0; i < subImageCount; ++i)
             {
-                Unsafe.CopyBlockUnaligned(
+                Utilities.CopyWithAlignmentFallback(
                     destination: (void*)array.SubImageArray[indice].Data,
                     source: (void*)request.Texture.SubImageArray[i].Data,
                     byteCount: (uint)request.Texture.SubImageArray[i].DataSize);
@@ -301,7 +302,7 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 subImages[i] = array.SubImageArray[i];
                 subImages[i].Data = bufferData + offset;
-                Unsafe.CopyBlockUnaligned((void*)subImages[i].Data, (void*)array.SubImageArray[i].Data, (uint)array.SubImageArray[i].DataSize);
+                Utilities.CopyWithAlignmentFallback((void*)subImages[i].Data, (void*)array.SubImageArray[i].Data, (uint)array.SubImageArray[i].DataSize);
                 offset += array.SubImageArray[i].DataSize;
             }
 
@@ -310,7 +311,7 @@ namespace Stride.TextureConverter.TexLibraries
             for (int i = 0; i < subImageCount; ++i)
             {
                 subImages[ct] = request.Texture.SubImageArray[i];
-                Unsafe.CopyBlockUnaligned((void*)subImages[ct].Data, (void*)request.Texture.SubImageArray[i].Data, (uint)request.Texture.SubImageArray[i].DataSize);
+                Utilities.CopyWithAlignmentFallback((void*)subImages[ct].Data, (void*)request.Texture.SubImageArray[i].Data, (uint)request.Texture.SubImageArray[i].DataSize);
                 offset += request.Texture.SubImageArray[i].DataSize;
                 ++ct;
             }
@@ -320,7 +321,7 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 subImages[ct] = array.SubImageArray[i];
                 subImages[ct].Data = bufferData + offset;
-                Unsafe.CopyBlockUnaligned((void*)subImages[ct].Data, (void*)array.SubImageArray[i].Data, (uint)array.SubImageArray[i].DataSize);
+                Utilities.CopyWithAlignmentFallback((void*)subImages[ct].Data, (void*)array.SubImageArray[i].Data, (uint)array.SubImageArray[i].DataSize);
                 offset += array.SubImageArray[i].DataSize;
                 ++ct;
             }
@@ -368,7 +369,7 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 subImages[i] = array.SubImageArray[i];
                 subImages[i].Data = buffer + offset;
-                Unsafe.CopyBlockUnaligned((void*)subImages[i].Data, (void*)array.SubImageArray[i].Data, (uint)array.SubImageArray[i].DataSize);
+                Utilities.CopyWithAlignmentFallback((void*)subImages[i].Data, (void*)array.SubImageArray[i].Data, (uint)array.SubImageArray[i].DataSize);
                 offset += array.SubImageArray[i].DataSize;
             }
 
@@ -376,7 +377,7 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 subImages[indice] = array.SubImageArray[i];
                 subImages[indice].Data = buffer + offset;
-                Unsafe.CopyBlockUnaligned((void*)subImages[indice].Data, (void*)array.SubImageArray[i].Data, (uint)array.SubImageArray[i].DataSize);
+                Utilities.CopyWithAlignmentFallback((void*)subImages[indice].Data, (void*)array.SubImageArray[i].Data, (uint)array.SubImageArray[i].DataSize);
                 offset += array.SubImageArray[i].DataSize;
                 ++indice;
             }

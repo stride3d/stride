@@ -104,7 +104,7 @@ public sealed class ContentChunk
                     var read = (uint)stream.Read(buffer, 0, (int)Math.Min(count, bufferCapacity));
                     if (read <= 0)
                         break;
-                    Unsafe.CopyBlockUnaligned(chunkBytesPtr, bufferStart, read);
+                    Utilities.CopyWithAlignmentFallback(chunkBytesPtr, bufferStart, read);
                     chunkBytesPtr += read;
                     count -= read;
                 } while (count > 0);

@@ -91,7 +91,7 @@ namespace Stride.Extensions
                     var sourceBuffer = meshDrawData.VertexBuffers[0].Buffer.GetSerializationData();
                     fixed (byte* sourceBufferDataStart = &sourceBuffer.Content[0])
                     {
-                        Unsafe.CopyBlockUnaligned(destBufferDataCurrent, sourceBufferDataStart, (uint)sourceBuffer.Content.Length);
+                        Utilities.CopyWithAlignmentFallback(destBufferDataCurrent, sourceBufferDataStart, (uint)sourceBuffer.Content.Length);
                         destBufferDataCurrent += sourceBuffer.Content.Length;
                     }
                 }
@@ -135,7 +135,7 @@ namespace Stride.Extensions
 
                         fixed (byte* sourceBufferDataStart = &sourceBufferContent[0])
                         {
-                            Unsafe.CopyBlockUnaligned(destBufferDataCurrent, sourceBufferDataStart,
+                            Utilities.CopyWithAlignmentFallback(destBufferDataCurrent, sourceBufferDataStart,
                                 (uint)sourceBufferContent.Length);
                             destBufferDataCurrent += sourceBufferContent.Length;
                         }

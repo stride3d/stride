@@ -179,7 +179,7 @@ namespace Stride.Animations
                     if (factorLeft > 0.0f && factorRight == 0.0f)
                     {
                         *resultData++ = 1.0f;
-                        Unsafe.CopyBlockUnaligned(resultData, sourceLeftData, (uint)channel.Size);
+                        Utilities.CopyWithAlignmentFallback(resultData, sourceLeftData, (uint)channel.Size);
                         continue;
                     }
 
@@ -187,7 +187,7 @@ namespace Stride.Animations
                     if (factorRight > 0.0f && factorLeft == 0.0f)
                     {
                         *resultData++ = 1.0f;
-                        Unsafe.CopyBlockUnaligned(resultData, sourceRightData, (uint)channel.Size);
+                        Utilities.CopyWithAlignmentFallback(resultData, sourceRightData, (uint)channel.Size);
                         continue;
                     }
 
@@ -202,7 +202,7 @@ namespace Stride.Animations
                             switch (channel.BlendType)
                             {
                                 case BlendType.Blit:
-                                    Unsafe.CopyBlockUnaligned(
+                                    Utilities.CopyWithAlignmentFallback(
                                         resultData,
                                         blendFactor < 0.5f ? sourceLeftData : sourceRightData,
                                         (uint)channel.Size);
@@ -229,7 +229,7 @@ namespace Stride.Animations
                             switch (channel.BlendType)
                             {
                                 case BlendType.Blit:
-                                    Unsafe.CopyBlockUnaligned(resultData, sourceLeftData, (uint)channel.Size);
+                                    Utilities.CopyWithAlignmentFallback(resultData, sourceLeftData, (uint)channel.Size);
                                     break;
                                 case BlendType.Float2:
                                     Vector2 rightValue2;
@@ -257,7 +257,7 @@ namespace Stride.Animations
                             switch (channel.BlendType)
                             {
                                 case BlendType.Blit:
-                                    Unsafe.CopyBlockUnaligned(resultData, sourceLeftData, (uint)channel.Size);
+                                    Utilities.CopyWithAlignmentFallback(resultData, sourceLeftData, (uint)channel.Size);
                                     break;
                                 case BlendType.Float2:
                                     Vector2 rightValue2;

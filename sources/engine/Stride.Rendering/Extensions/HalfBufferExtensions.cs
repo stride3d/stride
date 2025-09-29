@@ -114,7 +114,7 @@ namespace Stride.Extensions
                         else
                         {
                             // Copy as is
-                            Unsafe.CopyBlockUnaligned(newBufferElementPtr, oldBufferElementPtr, (uint)element.VertexElementWithOffset.Size);
+                            Utilities.CopyWithAlignmentFallback(newBufferElementPtr, oldBufferElementPtr, (uint)element.VertexElementWithOffset.Size);
                         }
                     }
 

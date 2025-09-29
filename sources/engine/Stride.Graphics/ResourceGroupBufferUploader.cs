@@ -76,7 +76,7 @@ namespace Stride.Graphics
                         if (hasResourceRenaming)
                         {
                             var mappedConstantBuffer = commandList.MapSubresource(preallocatedBuffer, 0, MapMode.WriteDiscard);
-                            Unsafe.CopyBlockUnaligned((void*)mappedConstantBuffer.DataBox.DataPointer, (void*)resourceGroup.ConstantBuffer.Data, (uint)resourceGroup.ConstantBuffer.Size);
+                            Utilities.CopyWithAlignmentFallback((void*)mappedConstantBuffer.DataBox.DataPointer, (void*)resourceGroup.ConstantBuffer.Data, (uint)resourceGroup.ConstantBuffer.Size);
                             commandList.UnmapSubresource(mappedConstantBuffer);
                         }
                         else

@@ -43,7 +43,7 @@ namespace Stride.Extensions
                 {
                     foreach (var vertexElementWithOffset in offsets)
                     {
-                        Unsafe.CopyBlockUnaligned(ptrOutput, ptrInput + vertexElementWithOffset.Offset, (uint)vertexElementWithOffset.Size);
+                        Utilities.CopyWithAlignmentFallback(ptrOutput, ptrInput + vertexElementWithOffset.Offset, (uint)vertexElementWithOffset.Size);
                         ptrOutput += vertexElementWithOffset.Size;
                     }
                     ptrInput += declaration.VertexStride;
