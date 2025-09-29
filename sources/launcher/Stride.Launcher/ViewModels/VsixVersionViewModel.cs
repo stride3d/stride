@@ -85,10 +85,13 @@ namespace Stride.LauncherApp.ViewModels
             switch (vsixSupportedVsVersion)
             {
                 case NugetStore.VsixSupportedVsVersion.VS2019:
-                    vsixTarget = string.Format(vsixTarget,"2019");
+                    vsixTarget = string.Format(vsixTarget, "2019");
                     break;
                 case NugetStore.VsixSupportedVsVersion.VS2022:
-                    vsixTarget = string.Format(vsixTarget, "2022"); ;
+                    vsixTarget = string.Format(vsixTarget, "2022");
+                    break;
+                case NugetStore.VsixSupportedVsVersion.VS2026:
+                    vsixTarget = string.Format(vsixTarget, "2026");
                     break;
             }
             return $"{vsixTarget}: {status}";
