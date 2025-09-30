@@ -48,6 +48,9 @@ public class AssetNodeContainer : NodeContainer, IPrimitiveTypeFilter
     
     public virtual bool IsPrimitiveType(Type type)
     {
+        if (type is null)
+            return false;
+
         if (Nullable.GetUnderlyingType(type) is { } underlyingType)
             type = underlyingType;
 
