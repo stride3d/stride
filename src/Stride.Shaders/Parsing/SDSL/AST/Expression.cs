@@ -23,14 +23,7 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
     public SpirvValue CompileAsValue(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var result = Compile(table, shader, compiler);
-        var type = compiler.Context.ReverseTypes[result.TypeId];
-        if (type is PointerType pointerType)
-        {
-            type = pointerType.BaseType;
-            var inst = compiler.Builder.Insert(new OpLoad(compiler.Context.Types[type], compiler.Context.Bound++, result.Id, null));
-            result = new(inst.ResultId, inst.ResultType);
-        }
-        return result;
+        return compiler.Builder.AsValue(compiler.Context, result);
     }
 }
 

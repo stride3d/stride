@@ -9,6 +9,18 @@ namespace Stride.Shaders.Spirv.Building;
 
 public partial class SpirvBuilder
 {
+    public SpirvValue AsValue(SpirvContext context, SpirvValue result)
+    {
+        var type = context.ReverseTypes[result.TypeId];
+        if (type is PointerType pointerType)
+        {
+            type = pointerType.BaseType;
+            var inst = Insert(new OpLoad(context.Types[type], context.Bound++, result.Id, null));
+            result = new(inst.ResultId, inst.ResultType);
+        }
+        return result;
+    }
+
     public SpirvValue BinaryOperation(SpirvContext context, int resultType, in SpirvValue left, Operator op, in SpirvValue right, string? name = null)
     {
 
@@ -18,7 +30,7 @@ public partial class SpirvBuilder
                 when l.IsIntegerVector() && r.IsIntegerVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
                 => Buffer.InsertData(Position++, new OpIAdd(resultType, context.Bound++, left.Id, right.Id)),
 
-            (Operator.Plus, ScalarType l, ScalarType r)
+            (Operator.Plus, SymbolType l, SymbolType r)
                 when l.IsFloatingVector() && r.IsFloatingVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
                 => Buffer.InsertData(Position++, new OpFAdd(resultType, context.Bound++, left.Id, right.Id)),
 

@@ -1,0 +1,30 @@
+// PSMain(ExpectedResult=#7F7F0000)
+
+namespace Stride.Shaders.Tests;
+
+shader ForContinue
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(0.0, 0.0, 0.0, 0.0);
+        for (int i = 0; i < 10; ++i)
+        {
+            if (i % 2 == 0)
+                continue;
+            streams.ColorTarget += float4(0.1, 0.0, 0.0, 0.0);
+        }
+        for (i = 0; i < 10; ++i)
+        {
+            if (i % 2 == 1)
+                continue;
+            streams.ColorTarget += float4(0.0, 0.1, 0.0, 0.0);
+        }
+    }
+}

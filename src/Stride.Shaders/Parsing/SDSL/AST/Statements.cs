@@ -205,6 +205,41 @@ public class Assign(TextLocation info) : Statement(info)
                 source = new(sourceLoad, underlyingType);
             }
 
+            if (variable.Operator != AssignOperator.Simple)
+            {
+                var binaryOperator = (variable.Operator) switch
+                {
+                    AssignOperator.Plus => Operator.Plus,
+                    AssignOperator.Minus => Operator.Minus,
+                    AssignOperator.Mul => Operator.Mul,
+                    AssignOperator.Div => Operator.Div,
+                    AssignOperator.Mod => Operator.Mod,
+                    AssignOperator.RightShift => Operator.RightShift,
+                    AssignOperator.LeftShift => Operator.LeftShift,
+                    AssignOperator.AND => Operator.AND,
+                    AssignOperator.OR => Operator.OR,
+                    AssignOperator.XOR => Operator.XOR,
+                };
+
+                var left = builder.AsValue(context, target);
+                var right = builder.AsValue(context, source);
+
+                if (
+                    OperatorTable.BinaryOperationResultingType(
+                        variable.Variable.ValueType ?? throw new NotImplementedException("Missing type"),
+                        variable.Value.ValueType ?? throw new NotImplementedException("Missing type"),
+                        binaryOperator,
+                        out var t
+                    )
+                )
+                    Type = t;
+                else
+                    table.Errors.Add(new(Info, SDSLErrorMessages.SDSL0104));
+
+                source = builder.BinaryOperation(context, context.GetOrRegister(Type), left, binaryOperator, right);
+            }
+
+
             builder.Insert(new OpStore(target.Id, source.Id, null));
         }
     }
