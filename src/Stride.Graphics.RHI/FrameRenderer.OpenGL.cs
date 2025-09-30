@@ -175,18 +175,25 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
 
         foreach (var param in Parameters)
         {
-            var blockIndex = Gl.GetUniformBlockIndex(Shader, $"type_{param.Key}");
-            if ((GLEnum)blockIndex == GLEnum.InvalidIndex)
-                continue;
-            Gl.UniformBlockBinding(Shader, blockIndex, 0);
+            if (param.Key.StartsWith("cbuffer."))
+            {
+                var cbufferName = param.Key.Substring("cbuffer.".Length);
+                var blockIndex = Gl.GetUniformBlockIndex(Shader, $"type_{cbufferName}");
+                if ((GLEnum)blockIndex == GLEnum.InvalidIndex)
+                    continue;
+                Gl.UniformBlockBinding(Shader, blockIndex, 0);
 
-            int data = param.Value;
-            Gl.GenBuffers(1, out uint ubo);
-            Gl.BindBuffer(GLEnum.UniformBuffer, ubo);
-            Gl.BufferData(GLEnum.UniformBuffer, sizeof(uint), &data, GLEnum.DynamicDraw);
-            Gl.BindBuffer(GLEnum.UniformBuffer, 0); // Unbind
+                // Note: we only support a single int value for now
+                if (!int.TryParse(param.Value, out var data))
+                    throw new NotImplementedException("Tests only support a single integer in cbuffer");
 
-            Gl.BindBufferRange(GLEnum.UniformBuffer, 0, ubo, 0, sizeof(uint));
+                Gl.GenBuffers(1, out uint ubo);
+                Gl.BindBuffer(GLEnum.UniformBuffer, ubo);
+                Gl.BufferData(GLEnum.UniformBuffer, sizeof(uint), &data, GLEnum.DynamicDraw);
+                Gl.BindBuffer(GLEnum.UniformBuffer, 0); // Unbind
+
+                Gl.BindBufferRange(GLEnum.UniformBuffer, 0, ubo, 0, sizeof(uint));
+            }
         }
 
         //Draw the geometry.

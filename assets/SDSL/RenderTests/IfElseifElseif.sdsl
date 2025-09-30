@@ -1,7 +1,7 @@
-// PSMain(ExpectedResult=#FFFFFFFF, Test=1)
-// PSMain(ExpectedResult=#7F7F7F7F, Test=2)
-// PSMain(ExpectedResult=#FF7F7F7F, Test=3)
-// PSMain(ExpectedResult=#00000000, Test=0)
+// PSMain(ExpectedResult=#FFFFFFFF, cbuffer.Test=1)
+// PSMain(ExpectedResult=#7F7F7F7F, cbuffer.Test=2)
+// PSMain(ExpectedResult=#FF7F7F7F, cbuffer.Test=3)
+// PSMain(ExpectedResult=#00000000, cbuffer.Test=0)
 
 namespace Stride.Shaders.Tests;
 

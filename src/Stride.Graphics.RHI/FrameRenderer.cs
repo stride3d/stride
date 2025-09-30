@@ -7,7 +7,7 @@ public abstract class FrameRenderer(uint width = 800, uint height = 600, byte[]?
     byte[]? vertexSpirv = vertexSpirv;
     byte[]? fragmentSpirv = fragmentSpirv;
 
-    public Dictionary<string, int> Parameters { get; } = new();
+    public Dictionary<string, string> Parameters { get; } = new();
 
     public abstract void RenderFrame(Span<byte> bytes);
 }

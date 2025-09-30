@@ -65,12 +65,7 @@ public class RenderingTests(ITestOutputHelper Output)
         // Setup parameters
         var parameters = TestHeaderParser.ParseParameters(args);
         foreach (var param in parameters)
-        {
-            // Note: Name is cbuffer name (not variable)
-            //       For now, value is only a single integer, but we might support more later.
-            if (int.TryParse(param.Value, out var value))
-                renderer.Parameters.Add(param.Key, value);
-        }
+            renderer.Parameters.Add(param.Key, param.Value);
 
         renderer.FragmentShaderSource = code;
         using var frameBuffer = MemoryOwner<byte>.Allocate(width * height * 4);
