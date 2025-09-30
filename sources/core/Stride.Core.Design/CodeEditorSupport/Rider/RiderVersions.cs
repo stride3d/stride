@@ -19,7 +19,7 @@ public static class RiderVersions
         foreach (var info in pathLocator.GetAllRiderPaths())
         {
             if(info.Path != null)
-                instances.Add(new IDEInfo(pathLocator.GetBuildNumber(info.Path), $"Rider {pathLocator.GetBuildNumber(info.Path)}", info.Path , "", IDEType.Rider));
+                instances.Add(new IDEInfo($"Rider {pathLocator.GetBuildNumber(info.Path)}", info.Path, IDEType.Rider, pathLocator.GetBuildNumber(info.Path)));
         }
 
         return instances;

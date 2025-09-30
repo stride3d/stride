@@ -14,7 +14,7 @@ public static class VisualStudioVersions
     /// <summary>
     /// Only lists VS2019+ (previous versions are not supported due to lack of buildTransitive targets).
     /// </summary>
-    public static IEnumerable<IDEInfo> AvailableInstances => IDEInfos.Value.Where(x => x.InstallationVersion.Major >= 16 && x.HasProgram);
+    public static IEnumerable<IDEInfo> AvailableInstances => IDEInfos.Value.Where(x => x.InstallationVersion?.Major >= 16 && x.HasProgram);
 
     private static List<IDEInfo> BuildIDEInfos()
     {
@@ -97,8 +97,8 @@ public static class VisualStudioVersions
                         vsixInstallerPath = null;
                     }
 
-                    var ideInfo = new IDEInfo(installationVersion, displayName,
-                        programPath, setupInstance2.GetInstanceId(), IDEType.VisualStudio) { VsixInstallerPath = vsixInstallerPath };
+                    var ideInfo = new IDEInfo(displayName,
+                        programPath, IDEType.VisualStudio, installationVersion) { VsixInstallerPath = vsixInstallerPath };
 
                     // Fill packages
                     foreach (var package in setupInstance2.GetPackages())
