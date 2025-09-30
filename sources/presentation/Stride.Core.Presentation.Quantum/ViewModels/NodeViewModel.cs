@@ -352,7 +352,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             {
                 currentValue = nodePresenter.Value;
             }
-            else if (nodePresenter.Factory.IsPrimitiveType(nodePresenter.Value?.GetType()))
+            else if (nodePresenter.Value != null && nodePresenter.Factory.IsPrimitiveType(nodePresenter.Value.GetType()))
             {
                 if (!AreValueEqual(currentValue, nodePresenter.Value))
                     return DifferentValues;
