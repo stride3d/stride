@@ -131,10 +131,7 @@ public record struct NamespaceParsers : IParser<ShaderNamespace>
             if (Tokens.Char(';', ref scanner, advance: true))
             {
                 Parsers.Spaces0(ref scanner, result, out _);
-                while (!scanner.IsEof && (
-                    Tokens.AnyOf(["effect", "shader", "params"], ref scanner, out _)
-                    || Parsers.SequenceOf(ref scanner, ["internal", "shader"])
-                ))
+                while (!scanner.IsEof)
                 {
                     if(ShaderClassParsers.Class(ref scanner, result, out var shader) && Parsers.Spaces0(ref scanner, result, out _))
                         ns.Declarations.Add(shader);
