@@ -29,10 +29,13 @@ namespace Stride.Engine.Design
     [DataSerializerGlobal(typeof(CloneSerializer<OfflineRasterizedSpriteFont>), Profile = "Clone")]
     [DataSerializerGlobal(typeof(CloneSerializer<RuntimeRasterizedSpriteFont>), Profile = "Clone")]
     [DataSerializerGlobal(typeof(CloneSerializer<SignedDistanceFieldSpriteFont>), Profile = "Clone")]
+    [DataSerializerGlobal(typeof(CloneSerializer<Prefab>), Profile = "Clone")]
+    [DataSerializerGlobal(typeof(CloneSerializer<Entity>), Profile = "Clone")]
     public class EntityCloner
     {
         private static readonly CloneContext cloneContext = new CloneContext();
         private static SerializerSelector cloneSerializerSelector = null;
+        private static SerializerSelector entitySerializerSelector = null;
         public static readonly PropertyKey<CloneContext> CloneContextProperty = new PropertyKey<CloneContext>("CloneContext", typeof(EntityCloner));
 
         // CloneObject TLS used to clone entities, so that we don't create one everytime we clone
@@ -51,7 +54,7 @@ namespace Stride.Engine.Design
         /// </summary>
         /// <param name="prefab">The prefab to clone.</param>
         /// <returns>A cloned prefab</returns>
-        public static Prefab Clone(Prefab prefab)
+        public static List<Entity> Instantiate(Prefab prefab)
         {
             if (prefab == null) throw new ArgumentNullException(nameof(prefab));
             var clonedObjects = ClonedObjects();
@@ -61,7 +64,8 @@ namespace Stride.Engine.Design
                 {
                     CollectEntityTreeHelper(entity, clonedObjects);
                 }
-                return Clone(clonedObjects, null, prefab);
+
+                return Clone(clonedObjects, null, prefab.Entities);
             }
             finally
             {
@@ -132,12 +136,17 @@ namespace Stride.Engine.Design
                 cloneSerializerSelector = new SerializerSelector(true, false, "Default", "Clone");
             }
 
+            if (entitySerializerSelector == null)
+            {
+                entitySerializerSelector = new SerializerSelector(true, false, "Default");
+            }
+
             // Initialize CloneContext
             lock (cloneContext)
             {
                 try
                 {
-                    cloneContext.EntitySerializerSelector = cloneSerializerSelector;
+                    cloneContext.EntitySerializerSelector = entitySerializerSelector;
 
                     cloneContext.ClonedObjects = clonedObjects;
                     cloneContext.MappedObjects = mappedObjects;
