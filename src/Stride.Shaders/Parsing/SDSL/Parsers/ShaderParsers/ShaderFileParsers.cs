@@ -131,9 +131,17 @@ public record struct NamespaceParsers : IParser<ShaderNamespace>
             if (Tokens.Char(';', ref scanner, advance: true))
             {
                 Parsers.Spaces0(ref scanner, result, out _);
-                while (ShaderClassParsers.Class(ref scanner, result, out var shader))
+                while (!scanner.IsEof)
                 {
-                    ns.Declarations.Add(shader);
+                    if(ShaderClassParsers.Class(ref scanner, result, out var shader) && Parsers.Spaces0(ref scanner, result, out _))
+                        ns.Declarations.Add(shader);
+                    else if( EffectParser.Effect(ref scanner, result, out var effect) && Parsers.Spaces0(ref scanner, result, out _))
+                        ns.Declarations.Add(effect);
+                    else if( ParamsParsers.Params(ref scanner, result, out var p) && Parsers.Spaces0(ref scanner, result, out _))
+                        ns.Declarations.Add(p);
+                    else
+                        return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
+                    Parsers.Spaces0(ref scanner, result, out _);
                 }
             }
             else if (Tokens.Char('{', ref scanner, advance: true))
