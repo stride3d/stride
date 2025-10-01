@@ -717,6 +717,8 @@ public sealed class BepuSimulation : IDisposable
 
             Elider.SimulationUpdate(_simulationUpdateComponents, this, simTimeStepInSec);
 
+            Dispatcher.ForBatched(Bodies.Count, new UpdatePreviousVelocities { Bodies = Bodies });
+
             Simulation.Timestep(simTimeStepInSec, _threadDispatcher); //perform physic simulation using SimulationFixedStep
             ContactEvents.Flush(); //Fire event handler stuff.
 
@@ -969,5 +971,23 @@ public sealed class BepuSimulation : IDisposable
         public void GetResult() { }
 
         public TickAwaiter GetAwaiter() => this;
+    }
+
+    private readonly struct UpdatePreviousVelocities : Dispatcher.IBatchJob
+    {
+        public required List<BodyComponent?> Bodies { get; init; }
+
+        public void Process(int start, int endExclusive)
+        {
+            for (; start < endExclusive; start++)
+            {
+                var body = Bodies[start];
+                if (body is not null)
+                {
+                    body.PreviousAngularVelocity = body.AngularVelocity;
+                    body.PreviousLinearVelocity = body.LinearVelocity;
+                }
+            }
+        }
     }
 }

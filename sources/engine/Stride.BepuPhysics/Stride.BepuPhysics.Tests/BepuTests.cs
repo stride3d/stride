@@ -232,7 +232,7 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
-        public void ContactImpulseTest2()
+        public void ContactImpulseTest()
         {
             var game = new GameTest();
             game.Script.AddTask(async () =>

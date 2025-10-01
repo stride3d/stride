@@ -48,26 +48,6 @@ public readonly ref struct Contacts<TManifold> where TManifold : unmanaged, ICon
     /// </summary>
     public required CollidableComponent Other { get; init; }
 
-    /// <summary>
-    /// The linear velocity <see cref="EventSource"/> had at the time of contact
-    /// </summary>
-    public required Vector3 SourceLinearVelocity { get; init; }
-
-    /// <summary>
-    /// The angular velocity <see cref="EventSource"/> had at the time of contact
-    /// </summary>
-    public required Vector3 SourceAngularVelocity { get; init; }
-
-    /// <summary>
-    /// The linear velocity <see cref="Other"/> had at the time of contact
-    /// </summary>
-    public required Vector3 OtherLinearVelocity { get; init; }
-
-    /// <summary>
-    /// The angular velocity <see cref="Other"/> had at the time of contact
-    /// </summary>
-    public required Vector3 OtherAngularVelocity { get; init; }
-
     [Pure]
     public Vector3 ComputeImpactForce(Contact<TManifold> contact)
     {
@@ -76,7 +56,7 @@ public readonly ref struct Contacts<TManifold> where TManifold : unmanaged, ICon
         Vector3 impactVelOther, impactVelThis;
         if (Other is BodyComponent bodyOther)
         {
-            impactVelOther = OtherLinearVelocity + Vector3.Cross(OtherAngularVelocity, impactPos - bodyOther.Position);
+            impactVelOther = bodyOther.PreviousLinearVelocity + Vector3.Cross(bodyOther.PreviousAngularVelocity, impactPos - bodyOther.Position);
             invMassOther = bodyOther.BodyInertia.InverseMass;
         }
         else
@@ -87,7 +67,7 @@ public readonly ref struct Contacts<TManifold> where TManifold : unmanaged, ICon
 
         if (EventSource is BodyComponent bodySource)
         {
-            impactVelThis = SourceLinearVelocity + Vector3.Cross(SourceAngularVelocity, impactPos - bodySource.Position);
+            impactVelThis = bodySource.PreviousLinearVelocity + Vector3.Cross(bodySource.PreviousAngularVelocity, impactPos - bodySource.Position);
             invMassThis = bodySource.BodyInertia.InverseMass;
         }
         else
