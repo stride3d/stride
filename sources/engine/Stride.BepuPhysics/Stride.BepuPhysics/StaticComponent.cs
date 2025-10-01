@@ -106,12 +106,4 @@ public class StaticComponent : CollidableComponent
 
         Processor.Statics.Remove(this);
     }
-
-    protected override int GetHandleValue()
-    {
-        if (StaticReference is { } sRef)
-            return sRef.Handle.Value;
-
-        throw new InvalidOperationException();
-    }
 }

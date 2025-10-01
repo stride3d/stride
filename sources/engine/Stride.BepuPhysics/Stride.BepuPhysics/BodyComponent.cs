@@ -221,6 +221,23 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
+    /// The translation velocity in unit per second during the previous physics tick
+    /// </summary>
+    [DataMemberIgnore]
+    public Vector3 PreviousLinearVelocity { get; internal set; }
+
+    /// <summary>
+    /// The rotation velocity in unit per second during the previous physics tick
+    /// </summary>
+    /// <remarks>
+    /// The rotation format is in axis-angle,
+    /// meaning that AngularVelocity.Normalized is the axis of rotation,
+    /// while AngularVelocity.Length is the amount of rotation around that axis in radians per second
+    /// </remarks>
+    [DataMemberIgnore]
+    public Vector3 PreviousAngularVelocity { get; internal set; }
+
+    /// <summary>
     /// The position of this body in the physics scene, setting it will teleport this object to the position provided.
     /// </summary>
     /// <remarks>
@@ -437,6 +454,8 @@ public class BodyComponent : CollidableComponent
         }
         else
         {
+            LinearVelocity = AngularVelocity = default;
+
             var bHandle = Simulation.Simulation.Bodies.Add(bDescription);
             BodyReference = Simulation.Simulation.Bodies[bHandle];
             BodyReference.Value.Collidable.Continuity = ContinuousDetection;
@@ -486,14 +505,6 @@ public class BodyComponent : CollidableComponent
         Parent = null;
 
         BodyReference = null;
-    }
-
-    protected override int GetHandleValue()
-    {
-        if (BodyReference is { } bRef)
-            return bRef.Handle.Value;
-
-        throw new InvalidOperationException();
     }
 
     /// <summary>

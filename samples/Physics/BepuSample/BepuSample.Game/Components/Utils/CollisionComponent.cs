@@ -41,17 +41,17 @@ namespace BepuSample.Game.Components.Utils
         }
     }
 
-    public class MyCustomContactEventHandler : IContactEventHandler
+    public class MyCustomContactEventHandler : IContactHandler
     {
         public bool Contact { get; private set; } = false;
         public bool NoContactResponse => false;
 
-        void IContactEventHandler.OnStartedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation)
+        void IContactHandler.OnStartedTouching<TManifold>(Contacts<TManifold> contacts)
         {
             Contact = true;
         }
 
-        void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation)
+        void IContactHandler.OnStoppedTouching<TManifold>(Contacts<TManifold> contacts)
         {
             Contact = false;
         }

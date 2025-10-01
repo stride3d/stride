@@ -84,7 +84,7 @@ public class CollidableProcessor : EntityProcessor<CollidableComponent>
         if (component is ISimulationUpdate simulationUpdate)
             component.Simulation?.Unregister(simulationUpdate);
 
-        component.Detach(false);
+        component.Detach();
 
         component.Processor = null;
     }
