@@ -9,20 +9,22 @@ namespace Stride.Shaders.Spirv.Processing
 {
     public class StreamAnalyzer
     {
-        class StreamInfo(string? semantic, string name, SymbolType type, int id)
+        class StreamInfo(string? semantic, string name, SymbolType type, int variableId)
         {
             public string? Semantic { get; } = semantic;
             public string Name { get; } = name;
             public SymbolType Type { get; } = type;
 
-            public int Id { get; } = id;
+            public int VariableId { get; } = variableId;
+
+            public int? LayoutLocation { get; set; }
 
             /// <summary>
             /// We automatically mark input: a variable read before it's written to, or an output without a write.
             /// </summary>
             public bool Input => Read || (Output && !Write);
             public bool Output { get; set; }
-            public bool Private => Read || Write;
+            public bool Private => Input || Output || Read || Write;
 
             public bool Read { get; set; }
             public bool Write { get; set; }
@@ -47,20 +49,31 @@ namespace Stride.Shaders.Spirv.Processing
             // Expected at the end of pixel shader
             foreach (var stream in streams)
             {
-                if (stream.Value.Stream.Semantic is { } semantic && (semantic.StartsWith("SV_Target") || semantic == "SV_Depth"))
+                if (stream.Value.Stream.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_TARGET") || semantic.ToUpperInvariant() == "SV_DEPTH"))
                     stream.Value.Stream.Output = true;
             }
-            var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.Id, entryPointPS.Name, analysisResult);
+
+            int layoutLocationCount = 0;
+            var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.Id, entryPointPS.Name, analysisResult, ref layoutLocationCount);
 
             // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
             foreach (var stream in streams)
             {
-                if (stream.Value.Stream.Semantic is { } semantic && (semantic == "SV_Coverage" || semantic == "SV_IsFrontFace" || semantic == "VFACE"))
+                if (stream.Value.Stream.Semantic is { } semantic && (semantic.ToUpperInvariant() == "SV_COVERAGE" || semantic.ToUpperInvariant() == "SV_ISFRONTFACE" || semantic.ToUpperInvariant() == "VFACE"))
                     stream.Value.Stream.Read = false;
             }
             PropagateStreamsFromPreviousStage(streams);
             if (entryPointVS.Id != 0)
-                GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, analysisResult);
+            {
+                // Expected at the end of vertex shader
+                foreach (var stream in streams)
+                {
+                    if (stream.Value.Stream.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_POSITION")))
+                        stream.Value.Stream.Output = true;
+                }
+
+                GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, analysisResult, ref layoutLocationCount);
+            }
 
             buffer.FluentAdd(new OpExecutionMode(psWrapper.ResultId, ExecutionMode.OriginUpperLeft));
         }
@@ -177,7 +190,7 @@ namespace Stride.Shaders.Spirv.Processing
             return new(streams, blockIds);
         }
 
-        private OpFunction GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult)
+        private OpFunction GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult, ref int layoutLocationCount)
         {
             var streams = analysisResult.Streams;
 
@@ -207,6 +220,9 @@ namespace Stride.Shaders.Spirv.Processing
                     context.FluentAdd(new OpTypePointer(context.Bound++, StorageClass.Input, context.Types[baseType]), out var pointerType);
                     context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Input, null), out var variable);
                     context.AddName(variable, $"in_{stage}_{stream.Value.Stream.Name}");
+                    if (stream.Value.Stream.LayoutLocation == null)
+                        stream.Value.Stream.LayoutLocation = layoutLocationCount++;
+                    context.Add(new OpDecorate(variable, Decoration.Location, stream.Value.Stream.LayoutLocation));
 
                     if (stream.Value.Stream.Semantic != null)
                         context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Stream.Semantic));
@@ -220,10 +236,21 @@ namespace Stride.Shaders.Spirv.Processing
                     context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Output, null), out var variable);
                     context.AddName(variable, $"out_{stage}_{stream.Value.Stream.Name}");
 
-                    if (stream.Value.Stream.Semantic != null)
-                        context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Stream.Semantic));
+                    if (stream.Value.Stream.Semantic?.ToUpperInvariant() == "SV_POSITION")
+                    {
+                        context.Add(new OpDecorate(variable, Decoration.BuiltIn, (int)BuiltIn.Position));
+                    }
+                    else
+                    {
+                        context.Add(new OpDecorate(variable, Decoration.Location, stream.Value.Stream.LayoutLocation));
+                        if (stream.Value.Stream.Semantic != null)
+                            context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Stream.Semantic));
+                    }
 
                     outputStreams.Add((stream.Value.Stream, variable.ResultId));
+
+                    // We reset this layout location (only in_ will be read in next step)
+                    stream.Value.Stream.LayoutLocation = null;
                 }
             }
 
@@ -241,7 +268,7 @@ namespace Stride.Shaders.Spirv.Processing
                 {
                     var baseType = ((PointerType)stream.Info.Type).BaseType;
                     buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, stream.Id, null), out var loadedValue);
-                    buffer.Add(new OpStore(stream.Info.Id, loadedValue.ResultId, null));
+                    buffer.Add(new OpStore(stream.Info.VariableId, loadedValue.ResultId, null));
                 }
 
                 buffer.Add(new OpFunctionCall(voidType, context.Bound++, entryPointId, []));
@@ -249,7 +276,7 @@ namespace Stride.Shaders.Spirv.Processing
                 foreach (var stream in outputStreams)
                 {
                     var baseType = ((PointerType)stream.Info.Type).BaseType;
-                    buffer.FluentAdd(new OpLoad( context.Types[baseType], context.Bound++, stream.Info.Id, null), out var loadedValue);
+                    buffer.FluentAdd(new OpLoad( context.Types[baseType], context.Bound++, stream.Info.VariableId, null), out var loadedValue);
                     buffer.Add(new OpStore(stream.Id, loadedValue.ResultId, null));
                 }
 
@@ -262,7 +289,7 @@ namespace Stride.Shaders.Spirv.Processing
                 for (int i = 0; i < outputStreams.Count; i++)
                     pvariables[inputStreams.Count + i] = outputStreams[i].Id;
                 for (int i = 0; i < privateStreams.Count; i++)
-                    pvariables[inputStreams.Count + outputStreams.Count + i] = privateStreams[i].Id;
+                    pvariables[inputStreams.Count + outputStreams.Count + i] = privateStreams[i].VariableId;
                 for (int i = 0; i < analysisResult.Blocks.Count; i++)
                     pvariables[inputStreams.Count + outputStreams.Count + privateStreams.Count + i] = analysisResult.Blocks[i];
                 context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [..pvariables]));

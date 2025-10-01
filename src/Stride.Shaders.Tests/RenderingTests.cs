@@ -17,6 +17,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using Silk.NET.SPIRV;
 using Xunit.Abstractions;
 
 namespace Stride.Shaders.Parsing.Tests;
@@ -55,9 +56,15 @@ public class RenderingTests(ITestOutputHelper Output)
 
         // Convert to GLSL
         var translator = new SpirvTranslator(bytecode.AsMemory().Cast<byte, uint>());
-        var code = translator.Translate(Backend.Glsl);
+        var entryPoints = translator.GetEntryPoints();
+        var codePS = translator.Translate(Backend.Glsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Fragment));
+        var codeVS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex))
+            ? translator.Translate(Backend.Glsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
+            : null;
 
-        Output.WriteLine(code);
+        if (codeVS != null)
+            Output.WriteLine(codeVS);
+        Output.WriteLine(codePS);
 
         // Execute test
         var renderer = new OpenGLFrameRenderer((uint)width, (uint)height);
@@ -67,7 +74,9 @@ public class RenderingTests(ITestOutputHelper Output)
         foreach (var param in parameters)
             renderer.Parameters.Add(param.Key, param.Value);
 
-        renderer.FragmentShaderSource = code;
+        renderer.FragmentShaderSource = codePS;
+        if (codeVS != null)
+            renderer.VertexShaderSource = codeVS;
         using var frameBuffer = MemoryOwner<byte>.Allocate(width * height * 4);
         renderer.RenderFrame(frameBuffer.Span);
         var pixels = Image.LoadPixelData<Rgba32>(frameBuffer.Span, width, height);

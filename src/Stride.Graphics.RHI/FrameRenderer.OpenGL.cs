@@ -1,6 +1,7 @@
 ﻿using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using System;
 using System.Text;
 
 namespace Stride.Graphics.RHI;
@@ -112,10 +113,10 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         Gl.CompileShader(vertexShader);
 
         //Checking the shader for compilation errors.
-        string infoLog = Gl.GetShaderInfoLog(vertexShader);
-        if (!string.IsNullOrWhiteSpace(infoLog))
+        string shaderLog = Gl.GetShaderInfoLog(vertexShader);
+        if (!string.IsNullOrWhiteSpace(shaderLog))
         {
-            Console.WriteLine($"Error compiling vertex shader {infoLog}");
+            Console.WriteLine($"Error compiling vertex shader {shaderLog}");
         }
 
         //Creating a fragment shader.
@@ -137,10 +138,10 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         }
 
         //Checking the shader for compilation errors.
-        infoLog = Gl.GetShaderInfoLog(fragmentShader);
-        if (!string.IsNullOrWhiteSpace(infoLog))
+        shaderLog = Gl.GetShaderInfoLog(fragmentShader);
+        if (!string.IsNullOrWhiteSpace(shaderLog))
         {
-            Console.WriteLine($"Error compiling fragment shader {infoLog}");
+            Console.WriteLine($"Error compiling fragment shader {shaderLog}");
         }
 
         //Combining the shaders under one shader program.
@@ -151,9 +152,10 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
 
         //Checking the linking for errors.
         Gl.GetProgram(Shader, GLEnum.LinkStatus, out var status);
+        var programLog = Gl.GetProgramInfoLog(Shader);
         if (status == 0)
         {
-            Console.WriteLine($"Error linking shader {Gl.GetProgramInfoLog(Shader)}");
+            Console.WriteLine($"Error linking shader {programLog}");
         }
 
         //Delete the no longer useful individual shaders;
@@ -162,9 +164,43 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         Gl.DeleteShader(vertexShader);
         Gl.DeleteShader(fragmentShader);
 
-        //Tell opengl how to give the data to the shaders.
-        Gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), null);
-        Gl.EnableVertexAttribArray(0);
+
+        Gl.GetProgram(Shader, GLEnum.ActiveAttributes, out var attributeCount);
+        for (uint i = 0; i < attributeCount; ++i)
+        {
+            Gl.GetActiveAttrib(Shader, i, 256, out _, out var attribSize, out AttributeType attribType, out string attribName);
+
+            if (attribName == "in_VS_Position" || attribName == "vPos")
+            {
+                //Tell opengl how to give the data to the shaders.
+                Gl.VertexAttribPointer(i, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), null);
+                Gl.EnableVertexAttribArray(i);
+            }
+            else
+            {
+                foreach (var param in Parameters)
+                {
+                    if (!param.Key.StartsWith("stream.") || !attribName.StartsWith("in_VS_"))
+                        continue;
+
+                    var paramName = param.Key.Substring("stream.".Length);
+                    attribName = attribName.Substring("in_VS_".Length);
+
+                    if (paramName == attribName)
+                    {
+                        if (attribType == AttributeType.Float)
+                            Gl.VertexAttrib1(i, float.Parse(param.Value));
+                        else if (attribType == AttributeType.Int)
+                            Gl.VertexAttrib1(i, int.Parse(param.Value));
+                        else if (attribType == AttributeType.FloatVec4)
+                        {
+                            var values = param.Value.TrimStart('(').TrimEnd(')').Split(' ', StringSplitOptions.TrimEntries);
+                            Gl.VertexAttrib4(i, float.Parse(values[0]), float.Parse(values[1]), float.Parse(values[2]), float.Parse(values[3]));
+                        }
+                    }
+                }
+            }
+        }
 
         // Just render once
         Gl.Clear((uint)ClearBufferMask.ColorBufferBit);
@@ -200,8 +236,10 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         Gl.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);
 
         Gl.ReadPixels(0, 0, width, height, GLEnum.Rgba, GLEnum.UnsignedByte, result);
-        window?.Close();
-        window?.Dispose();
+        // Useful with RenderDoc
+        window.SwapBuffers();
+        window.Close();
+        window.Dispose();
 
     }
 }

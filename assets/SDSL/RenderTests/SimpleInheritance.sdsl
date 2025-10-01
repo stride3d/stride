@@ -1,0 +1,26 @@
+// PSMain(ExpectedResult=#7F7F7F7F, stream.ExtraColor=(0.5 0.5 0.5 0.5))
+
+namespace Stride.Shaders.Tests;
+
+shader SimpleInheritance : SimpleInheritanceBase
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ExtraColor : COLOR;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void Test()
+    {
+        streams.ColorTarget = streams.ExtraColor;
+        SetColor(streams.ExtraColor);
+    }
+
+    void PSMain()
+    {
+        Test();
+    }
+}
