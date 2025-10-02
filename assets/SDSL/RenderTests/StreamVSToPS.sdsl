@@ -1,20 +1,23 @@
-// PSMain(ExpectedResult=#7F7F7F7F)
+// PSMain(ExpectedResult=#7F7F7F7F, stream.ExtraColor=(0.5 0.5 0.5 0.5))
 
 namespace Stride.Shaders.Tests;
 
-shader PositionStreams
+shader StreamVSToPS
 {
     stream float4 Position : POSITION;
     stream float4 ShadingPosition : SV_Position;
     stream float4 ColorTarget : SV_Target0;
+    stream float4 ExtraColor;
+    stream float4 ExtraColor2;
 
     void VSMain()
     {
         streams.ShadingPosition = streams.Position;
+        streams.ExtraColor2 = streams.ExtraColor;
     }
 
     void PSMain()
     {
-        streams.ColorTarget = float4(0.5, 0.5, 0.5, 0.5);
+        streams.ColorTarget = streams.ExtraColor2;
     }
 }

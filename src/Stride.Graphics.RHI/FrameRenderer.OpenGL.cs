@@ -169,12 +169,13 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         for (uint i = 0; i < attributeCount; ++i)
         {
             Gl.GetActiveAttrib(Shader, i, 256, out _, out var attribSize, out AttributeType attribType, out string attribName);
+            var attribIndex = (uint)Gl.GetAttribLocation(Shader, attribName);
 
             if (attribName == "in_VS_Position" || attribName == "vPos")
             {
                 //Tell opengl how to give the data to the shaders.
-                Gl.VertexAttribPointer(i, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), null);
-                Gl.EnableVertexAttribArray(i);
+                Gl.VertexAttribPointer(attribIndex, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), null);
+                Gl.EnableVertexAttribArray(attribIndex);
             }
             else
             {
@@ -189,13 +190,13 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
                     if (paramName == attribName)
                     {
                         if (attribType == AttributeType.Float)
-                            Gl.VertexAttrib1(i, float.Parse(param.Value));
+                            Gl.VertexAttrib1(attribIndex, float.Parse(param.Value));
                         else if (attribType == AttributeType.Int)
-                            Gl.VertexAttrib1(i, int.Parse(param.Value));
+                            Gl.VertexAttrib1(attribIndex, int.Parse(param.Value));
                         else if (attribType == AttributeType.FloatVec4)
                         {
                             var values = param.Value.TrimStart('(').TrimEnd(')').Split(' ', StringSplitOptions.TrimEntries);
-                            Gl.VertexAttrib4(i, float.Parse(values[0]), float.Parse(values[1]), float.Parse(values[2]), float.Parse(values[3]));
+                            Gl.VertexAttrib4(attribIndex, float.Parse(values[0]), float.Parse(values[1]), float.Parse(values[2]), float.Parse(values[3]));
                         }
                     }
                 }
