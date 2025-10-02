@@ -24,11 +24,12 @@ public static partial class Examples
 
         // context.AddGlobalVariable(new(new("color", SymbolKind.Variable, Storage.Stream), VectorType.From("float4")));
 
-        var function = builder.CreateFunction(
+        var function = builder.DeclareFunction(
             context,
             "add",
             new(ScalarType.From("int"), [ScalarType.From("int"), ScalarType.From("int")])
         );
+        builder.BeginFunction(context, function);
         builder.AddFunctionParameter(context, "a", ScalarType.From("int"));
         builder.AddFunctionParameter(context, "b", ScalarType.From("int"));
         builder.SetPositionTo(function);

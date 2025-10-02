@@ -236,6 +236,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             member.Compile(table, this, compiler);
         foreach (var member in Elements.OfType<ShaderMember>())
             member.Compile(table, this, compiler);
+
+        // In case calling a method not yet processed, we first register method types
+        // (SPIR-V allow forward calling)
+        foreach (var method in Elements.OfType<ShaderMethod>())
+            method.Declare(table, this, compiler);
         foreach (var method in Elements.OfType<ShaderMethod>())
             method.Compile(table, this, compiler);
 

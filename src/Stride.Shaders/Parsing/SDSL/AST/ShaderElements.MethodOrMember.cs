@@ -6,6 +6,7 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -147,6 +148,8 @@ public class ShaderMethod(
         bool isClone = false
     ) : MethodOrMember(info, isStaged)
 {
+    // Saved between Declare and Compile pass
+    private SpirvFunction function;
 
     public SymbolType? ReturnType { get; set; }
     public TypeName ReturnTypeName { get; set; } = returnType;
@@ -173,6 +176,16 @@ public class ShaderMethod(
 
     public BlockStatement? Body { get; set; }
 
+    public void Declare(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    {
+        var (builder, context, _) = compiler;
+
+        function = builder.DeclareFunction(context, Name, (FunctionType)Type);
+        var symbol = new Symbol(new(Name, SymbolKind.Method), Type, function.Id);
+        table.CurrentShader.Components.Add(symbol);
+        table.CurrentFrame.Add(Name, symbol);
+    }
+
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         table.Push();
@@ -184,10 +197,9 @@ public class ShaderMethod(
         }
         
         var (builder, context, _) = compiler;
-        SpirvFunction function;
         if (Type is FunctionType ftype)
         {
-            function = builder.CreateFunction(context, Name, ftype);
+            builder.BeginFunction(context, function);
             foreach (var p in Parameters)
             {
                 var parameterType = new PointerType(p.Type, Specification.StorageClass.Function);
@@ -208,10 +220,6 @@ public class ShaderMethod(
         else throw new NotImplementedException();
 
         table.Pop();
-
-        var symbol = new Symbol(new(Name, SymbolKind.Method), Type, function.Id);
-        table.CurrentShader.Components.Add(symbol);
-        table.CurrentFrame.Add(Name, symbol);
     }
 
     public override string ToString()

@@ -1,0 +1,25 @@
+// PSMain(ExpectedResult=#7F7F7F7F)
+
+namespace Stride.Shaders.Tests;
+
+shader MethodForwardCall
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void PSMain()
+    {
+        Test();
+    }
+
+    void Test()
+    {
+        streams.ColorTarget = float4(0.5, 0.5, 0.5, 0.5);
+    }
+}

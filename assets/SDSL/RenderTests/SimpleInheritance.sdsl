@@ -16,7 +16,6 @@ shader SimpleInheritance : SimpleInheritanceBase
 {
     stream float4 Position : POSITION;
     stream float4 ShadingPosition : SV_Position;
-    stream float4 ExtraColor : COLOR;
 
     void VSMain()
     {
@@ -25,7 +24,7 @@ shader SimpleInheritance : SimpleInheritanceBase
 
     void Test()
     {
-        streams.ColorTarget = streams.ExtraColor;
+        streams.ColorTarget = float4(0.0, 1.0, 1.0, 0.0);
         SetColor(float4(0.5, 0.5, 0.5, 0.5));
     }
 
