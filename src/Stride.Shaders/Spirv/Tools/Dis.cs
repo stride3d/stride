@@ -1,13 +1,11 @@
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.Json;
 using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
-using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Core.Parsing;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Text;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Tools;
@@ -200,7 +198,14 @@ public static partial class Spv
                 if (instruction.Op == Op.OpName)
                 {
                     var nameInst = (OpName)instruction;
-                    data.NameTable[nameInst.Target] = nameInst.Name;
+                    var name = nameInst.Name;
+                    // Try to find an available name (in case there is a duplicate)
+                    int tryCount = 0;
+                    while (!data.UsedNames.Add(name))
+                    {
+                        name = $"{nameInst.Name}_{++tryCount}";
+                    }
+                    data.NameTable[nameInst.Target] = name;
                 }
                 else if (instruction.Op == Op.OpMemberName)
                 {
@@ -761,6 +766,7 @@ public static partial class Spv
     {
         static int MAX_OFFSET = 16;
         public Dictionary<MemberIndex, string> NameTable { get; }
+        public HashSet<string> UsedNames { get; } = new();
         public NewSpirvBuffer Buffer { get; }
         public int IdOffset { get; private set; }
         public bool UseNames { get; private set; }
