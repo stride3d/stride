@@ -107,12 +107,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
     private static ShaderSymbol LoadShader(IExternalShaderLoader externalShaderLoader, Mixin mixin)
     {
-        externalShaderLoader.LoadExternalReference(mixin.Name, out var bytecode);
-        if (bytecode is null)
-            throw new InvalidOperationException($"Could not load shader '{mixin.Name}'");
-        using var mem = MemoryOwner<int>.Allocate(bytecode.Length / 4);
-        MemoryMarshal.Cast<byte, int>(bytecode).CopyTo(mem.Span);
-        var buffer = new NewSpirvBuffer(mem.Span);
+        externalShaderLoader.LoadExternalBuffer(mixin.Name, out var buffer);
 
         ProcessNameAndTypes(buffer, out var names, out var types);
 
@@ -154,6 +149,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         table.Push();
         foreach (var mixin in Mixins)
         {
+            // Check if shader isn't already loaded as part of current bytecode
             var shaderType = LoadShader(table.ShaderLoader, mixin);
 
             RegisterShaderType(table, shaderType);

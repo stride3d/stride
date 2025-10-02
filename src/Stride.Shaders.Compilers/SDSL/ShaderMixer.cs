@@ -190,15 +190,13 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
 
         temp.Sort();
 
-        bytecode = MemoryMarshal.AsBytes(temp.ToBuffer().Span).ToArray();
+        bytecode = temp.ToBytecode();
 
         //File.WriteAllBytes("test.spv", bytecode);
 
         Spv.Dis(temp, true);
         //File.WriteAllText("test.spvdis", source);
     }
-
-    Dictionary<string, NewSpirvBuffer> loadedShaders = new();
 
     class ShaderInfo
     {
@@ -208,13 +206,8 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
 
     NewSpirvBuffer GetOrLoadShader(string name)
     {
-        if (loadedShaders.TryGetValue(name, out var buffer))
-            return buffer;
-
-        ShaderLoader.LoadExternalReference(name, out var bytecode);
-        buffer = new NewSpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));
-
-        loadedShaders.Add(name, buffer);
+        if (!ShaderLoader.LoadExternalBuffer(name, out var buffer))
+            throw new InvalidOperationException($"Could not load shader [{name}]");
 
         return buffer;
     }

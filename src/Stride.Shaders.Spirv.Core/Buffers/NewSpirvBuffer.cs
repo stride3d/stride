@@ -293,6 +293,11 @@ public sealed class NewSpirvBuffer() : IDisposable
         Instructions.AddRange(sortedInstructions);
     }
 
+    public byte[] ToBytecode()
+    {
+        return MemoryMarshal.AsBytes(ToBuffer().Span).ToArray();
+    }
+
     public SpanOwner<int> ToBuffer()
     {
         var result = SpanOwner<int>.Allocate(5 + Instructions.Sum(i => i.Memory.Length));

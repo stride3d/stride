@@ -4,7 +4,7 @@
 
 namespace Stride.Shaders.Tests;
 
-shader IfElseifFalseFalse
+shader IfElseif
 {
     stream float4 ColorTarget : SV_Target0;
 

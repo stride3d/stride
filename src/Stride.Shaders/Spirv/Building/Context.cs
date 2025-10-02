@@ -11,7 +11,31 @@ namespace Stride.Shaders.Spirv.Building;
 
 public interface IExternalShaderLoader
 {
-    public bool LoadExternalReference(string name, [MaybeNullWhen(false)] out byte[] bytecode);
+    public void RegisterShader(string name, NewSpirvBuffer buffer);
+    public bool LoadExternalBuffer(string name, [MaybeNullWhen(false)] out NewSpirvBuffer bytecode);
+}
+
+public abstract class ShaderLoaderBase : IExternalShaderLoader
+{
+    private Dictionary<string, NewSpirvBuffer> loadedShaders = new();
+
+    public void RegisterShader(string name, NewSpirvBuffer buffer)
+    {
+        loadedShaders.Add(name, buffer);
+    }
+
+    public abstract bool LoadExternalFile(string name, [MaybeNullWhen(false)] out NewSpirvBuffer buffer);
+
+    public bool LoadExternalBuffer(string name, [MaybeNullWhen(false)] out NewSpirvBuffer buffer)
+    {
+        if (!loadedShaders.ContainsKey(name) && !LoadExternalFile(name, out buffer))
+        {
+            throw new InvalidOperationException($"Shader {name} could not be found");
+        }
+
+        buffer = loadedShaders[name];
+        return true;
+    }
 }
 
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 

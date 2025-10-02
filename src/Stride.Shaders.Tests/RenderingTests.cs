@@ -27,21 +27,20 @@ public class RenderingTests(ITestOutputHelper Output)
     static int width = 1;
     static int height = 1;
 
-    class ShaderLoader : IExternalShaderLoader
+    class ShaderLoader : ShaderLoaderBase
     {
-        public bool LoadExternalReference(string name, [MaybeNullWhen(false)] out byte[] bytecode)
+        public override bool LoadExternalFile(string name, [MaybeNullWhen(false)] out NewSpirvBuffer buffer)
         {
             var filename = $"./assets/SDSL/RenderTests/{name}.sdsl";
             if (!File.Exists(filename))
             {
-                bytecode = null;
+                buffer = null;
                 return false;
             }
-
             var text = MonoGamePreProcessor.OpenAndRun(filename);
             var sdslc = new SDSLC();
             sdslc.ShaderLoader = this;
-            return sdslc.Compile(text, out bytecode);
+            return sdslc.Compile(text, out buffer);
         }
     }
 

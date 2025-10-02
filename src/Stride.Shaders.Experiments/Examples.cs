@@ -8,6 +8,7 @@ using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
 using System.Diagnostics.CodeAnalysis;
+using Stride.Shaders.Spirv.Core.Buffers;
 using SourceLanguage = Silk.NET.Shaderc.SourceLanguage;
 
 namespace Stride.Shaders.Experiments;
@@ -206,20 +207,20 @@ public static partial class Examples
         return false;
     }
 
-    public class ShaderLoader : IExternalShaderLoader
+    public class ShaderLoader : ShaderLoaderBase
     {
-        public bool LoadExternalReference(string name, [MaybeNullWhen(false)] out byte[] bytecode)
+        public override bool LoadExternalFile(string name, [MaybeNullWhen(false)] out NewSpirvBuffer buffer)
         {
             var filename = $"./assets/SDSL/{name}.sdsl";
             if (!File.Exists(filename))
             {
-                bytecode = null;
+                buffer = null;
                 return false;
             }
             var text = MonoGamePreProcessor.OpenAndRun(filename);
             var sdslc = new SDSLC();
             sdslc.ShaderLoader = this;
-            return sdslc.Compile(text, out bytecode);
+            return sdslc.Compile(text, out buffer);
         }
     }
 
@@ -231,10 +232,10 @@ public static partial class Examples
         {
             ShaderLoader = new ShaderLoader()
         };
-        sdslc.Compile(text, out var bytecode);
+        sdslc.Compile(text, out var buffer);
 
+        var bytecode = buffer.ToBytecode();
         File.WriteAllBytes("TestBasic.sdspv", bytecode);
-        var test = bytecode.AsMemory().Cast<byte, uint>().ToArray();
         var code = new SpirvTranslator(bytecode.AsMemory().Cast<byte, uint>());
         // Console.WriteLine(code.Translate(Backend.Hlsl));
 
