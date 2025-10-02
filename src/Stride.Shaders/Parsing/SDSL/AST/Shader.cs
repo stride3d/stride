@@ -6,6 +6,7 @@ using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
+using System;
 using System.Runtime.InteropServices;
 using static Stride.Shaders.Spirv.Specification;
 
@@ -105,22 +106,23 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         return types;
     }
 
-    private static ShaderSymbol LoadShader(IExternalShaderLoader externalShaderLoader, Mixin mixin)
+    private static ShaderSymbol LoadShader(IExternalShaderLoader externalShaderLoader, string mixin)
     {
-        externalShaderLoader.LoadExternalBuffer(mixin.Name, out var buffer);
+        externalShaderLoader.LoadExternalBuffer(mixin, out var buffer);
 
         ProcessNameAndTypes(buffer, out var names, out var types);
 
         var symbols = new List<Symbol>();
         foreach (var instruction in buffer)
         {
-            if (instruction.Op == Op.OpVariable && (OpVariable)instruction is {} variableInstruction)
+            if (instruction.Op == Op.OpVariable && (OpVariable)instruction is {} variable && variable.Storageclass != Specification.StorageClass.Function)
             {
-                var variableName = names[variableInstruction.ResultId];
-                var variableType = types[variableInstruction.ResultType];
+                if (!names.TryGetValue(variable.ResultId, out var variableName))
+                    variableName = $"_{variable.ResultId}";
+                var variableType = types[variable.ResultType];
 
                 var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream);
-                symbols.Add(new(sid, variableType, variableInstruction.ResultId));
+                symbols.Add(new(sid, variableType, variable.ResultId));
             }
 
             if (instruction.Op == Op.OpFunction)
@@ -134,7 +136,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
         }
 
-        var shaderType = new ShaderSymbol(mixin.Name, symbols);
+        var shaderType = new ShaderSymbol(mixin, symbols);
         return shaderType;
     }
 
@@ -143,11 +145,17 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         table.DeclaredTypes.Add(shaderType.Name, shaderType);
     }
 
-
     public void Compile(CompilerUnit compiler, SymbolTable table)
     {
         table.Push();
+
+        var inheritanceList = new List<string>();
         foreach (var mixin in Mixins)
+        {
+            SpirvBuilder.BuildInheritanceList(table.ShaderLoader, mixin.Name, inheritanceList);
+        }
+
+        foreach (var mixin in inheritanceList)
         {
             // Check if shader isn't already loaded as part of current bytecode
             var shaderType = LoadShader(table.ShaderLoader, mixin);
@@ -165,7 +173,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 {
                     var argSym = arg.TypeName.ResolveType(table);
                     table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
-                    arg.Type = argSym;
+                    arg.Type = new PointerType(argSym, Specification.StorageClass.Function);
                     ftype.ParameterTypes.Add(arg.Type);
                 }
                 func.Type = ftype;
@@ -200,19 +208,23 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         var (builder, context, _) = compiler;
         context.PutShaderName(Name);
 
-        foreach (var mixin in Mixins)
+        foreach (var mixin in inheritanceList)
         {
             // Import types and variables/functions
-            context.FluentAdd(new OpSDSLImportShader(context.Bound++, new(mixin.Name)), out var shader);
+            context.FluentAdd(new OpSDSLImportShader(context.Bound, new(mixin)), out var shader);
+            context.AddName(context.Bound, mixin);
+            context.Bound++;
 
-            var shaderType = (ShaderSymbol)table.DeclaredTypes[mixin.Name];
+            var shaderType = (ShaderSymbol)table.DeclaredTypes[mixin];
 
             foreach (var c in shaderType.Components)
             {
                 if (c.Id.Kind == SymbolKind.Variable)
                 {
                     var variableTypeId = context.GetOrRegister(c.Type);
-                    context.FluentAdd(new OpSDSLImportVariable(variableTypeId, context.Bound++, c.Id.Name, shader.ResultId), out var variable);
+                    context.FluentAdd(new OpSDSLImportVariable(variableTypeId, context.Bound, c.Id.Name, shader.ResultId), out var variable);
+                    context.AddName(context.Bound, c.Id.Name);
+                    context.Bound++;
                     context.Module.InheritedVariables.Add(c.Id.Name, new(variable.ResultId, variable.ResultType, variable.VariableName));
                     table.CurrentFrame.Add(c.Id.Name, c with { IdRef = variable.ResultId });
                 }
@@ -221,8 +233,12 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var functionType = (FunctionType)c.Type;
 
                     var functionReturnTypeId = context.GetOrRegister(functionType.ReturnType);
-                    context.FluentAdd(new OpSDSLImportFunction(functionReturnTypeId, context.Bound++, c.Id.Name, shader.ResultId), out var function);
-                    context.Module.InheritedFunctions.Add(c.Id.Name, new(function.ResultId, c.Id.Name, functionType));
+                    context.FluentAdd(new OpSDSLImportFunction(functionReturnTypeId, context.Bound, c.Id.Name, shader.ResultId), out var function);
+                    context.AddName(context.Bound, c.Id.Name);
+                    context.Bound++;
+                    if (!context.Module.InheritedFunctions.TryGetValue(c.Id.Name, out var inheritedFunctions))
+                        context.Module.InheritedFunctions.Add(c.Id.Name, inheritedFunctions = new());
+                    inheritedFunctions.Add(new(function.ResultId, c.Id.Name, functionType));
                     table.CurrentFrame.Add(c.Id.Name, c with { IdRef = function.ResultId });
                 }
             }

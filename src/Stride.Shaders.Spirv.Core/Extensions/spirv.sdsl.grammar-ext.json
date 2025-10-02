@@ -92,9 +92,49 @@
           "name": "shader"
         }
       ]
+    },
+    {
+      "opname": "OpSDSLFunctionInfo",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdRef",
+          "name": "parentFunction"
+        },
+        {
+          "kind": "FunctionFlags",
+          "name": "flags"
+        }
+      ]
     }
   ],
   "operand_kinds": [
+    {
+      "category": "BitEnum",
+      "kind": "FunctionFlags",
+      "enumerants": [
+        {
+          "enumerant": "None",
+          "value": "0x0000"
+        },
+        {
+          "enumerant": "Abstract",
+          "value": "0x0001"
+        },
+        {
+          "enumerant": "Virtual",
+          "value": "0x0002"
+        },
+        {
+          "enumerant": "Override",
+          "value": "0x0004"
+        },
+        {
+          "enumerant": "Static",
+          "value": "0x0010"
+        }
+      ]
+    },
     {
       "kind": "ExecutionModel",
       "enumerants": [

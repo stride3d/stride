@@ -133,17 +133,12 @@ public partial class SpirvBuilder
     }
     public SpirvValue CallFunction(SpirvContext context, string name, Span<int> parameters)
     {
-        var func = FindFunction(context, name);
+        var funcGroup = context.FindFunctions(name);
 
+        // TODO: find proper overload
+        var func = funcGroup.First();
         var fcall = Buffer.InsertData(Position++, new OpFunctionCall(context.GetOrRegister(func.FunctionType.ReturnType), context.Bound++, func.Id, [.. parameters]));
         return new(fcall, func.Name);
-    }
-
-    private static SpirvFunction FindFunction(SpirvContext context, string name)
-    {
-        if (!context.Module.Functions.TryGetValue(name, out var func))
-            context.Module.InheritedFunctions.TryGetValue(name, out func);
-        return func;
     }
 
     public SpirvValue CompositeConstruct(SpirvContext context, CompositeLiteral literal, Span<int> values)

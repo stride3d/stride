@@ -198,7 +198,7 @@ public static partial class Spv
                 if (instruction.Op == Op.OpName)
                 {
                     var nameInst = (OpName)instruction;
-                    var name = nameInst.Name;
+                    var name = nameInst.Name.Replace(".", "_");
                     // Try to find an available name (in case there is a duplicate)
                     int tryCount = 0;
                     while (!data.UsedNames.Add(name))
@@ -647,6 +647,13 @@ public static partial class Spv
                         {
                             (OperandQuantifier.One or OperandQuantifier.ZeroOrOne, 1) => Append(operand.ToEnum<FPEncoding>().ToString(), ConsoleColor.Yellow).Append(' '),
                             (OperandQuantifier.ZeroOrMore, > 0) => AppendEnums<FPEncoding>(operand).Append(' '),
+                            (OperandQuantifier.ZeroOrOne or OperandQuantifier.ZeroOrMore, 0) => Append(""),
+                            _ => throw new NotImplementedException("Unsupported image operands quantifier " + operand.Quantifier + " with length " + operand.Words.Length)
+                        },
+                        OperandKind.FunctionFlags => (operand.Quantifier, operand.Words.Length) switch
+                        {
+                            (OperandQuantifier.One or OperandQuantifier.ZeroOrOne, 1) => Append(operand.ToEnum<FunctionFlagsMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                            (OperandQuantifier.ZeroOrMore, > 0) => AppendEnums<FunctionFlagsMask>(operand).Append(' '),
                             (OperandQuantifier.ZeroOrOne or OperandQuantifier.ZeroOrMore, 0) => Append(""),
                             _ => throw new NotImplementedException("Unsupported image operands quantifier " + operand.Quantifier + " with length " + operand.Words.Length)
                         },

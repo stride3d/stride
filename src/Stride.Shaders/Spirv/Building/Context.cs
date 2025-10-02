@@ -62,7 +62,7 @@ public class SpirvContext(SpirvModule module)
     }
 
     public void AddName(int target, string name)
-        => Buffer.Add(new OpName(target, name.Replace('.', '_')));
+        => Buffer.Add(new OpName(target, name));
 
     public void AddMemberName(int target, int accessor, string name)
         => Buffer.Add(new OpMemberName(target, accessor, name.Replace('.', '_')));
@@ -220,7 +220,7 @@ public class SpirvContext(SpirvModule module)
         Span<int> types = stackalloc int[functionType.ParameterTypes.Count];
         int tmp = 0;
         foreach (var f in functionType.ParameterTypes)
-            types[tmp] = GetOrRegister(new PointerType(f, Specification.StorageClass.Function));
+            types[tmp] = GetOrRegister(f);
         var result = Buffer.Add(new OpTypeFunction(Bound++, GetOrRegister(functionType.ReturnType), [.. types]));
         // disabled for now: currently it generates name with {}, not working with most SPIRV tools
         // AddName(result, functionType.ToId());
@@ -313,5 +313,15 @@ public class SpirvContext(SpirvModule module)
     public override string ToString()
     {
         return Spv.Dis(Buffer);
+    }
+
+    public List<SpirvFunction> FindFunctions(string name)
+    {
+        var result = new List<SpirvFunction>();
+        if (Module.Functions.TryGetValue(name, out var funcGroup))
+            result.AddRange(funcGroup); 
+        if (Module.InheritedFunctions.TryGetValue(name, out funcGroup))
+            result.AddRange(funcGroup);
+        return result;
     }
 }

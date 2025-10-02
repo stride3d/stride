@@ -117,6 +117,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         if (!string.IsNullOrWhiteSpace(shaderLog))
         {
             Console.WriteLine($"Error compiling vertex shader {shaderLog}");
+            throw new InvalidOperationException(shaderLog);
         }
 
         //Creating a fragment shader.
@@ -142,6 +143,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         if (!string.IsNullOrWhiteSpace(shaderLog))
         {
             Console.WriteLine($"Error compiling fragment shader {shaderLog}");
+            throw new InvalidOperationException(shaderLog);
         }
 
         //Combining the shaders under one shader program.

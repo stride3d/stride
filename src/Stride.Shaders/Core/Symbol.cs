@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Stride.Shaders.Core;
 
 
@@ -8,6 +10,7 @@ public enum SymbolKind
     Shader,
     Struct,
     Method,
+    MethodGroup,
     Variable,
     Constant,
     ConstantGeneric,
@@ -35,7 +38,12 @@ public enum StreamIO : byte
 
 public record struct SymbolID(string Name, SymbolKind Kind, Storage Storage = 0);
 public record struct StreamInfo(ushort EntryPoint, StreamIO Stream);
-public record struct Symbol(SymbolID Id, SymbolType Type, int IdRef, int? AccessChain = null);
+
+/// <summary>
+/// Defines a symbol.
+/// </summary>
+/// <param name="GroupMembers">Only used for specific <see cref="Type"/> such as <see cref="FunctionGroupType"/></param>
+public record struct Symbol(SymbolID Id, SymbolType Type, int IdRef, int? AccessChain = null, ImmutableArray<Symbol> GroupMembers = default);
 
 
 

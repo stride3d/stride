@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Stride.Shaders.Core;
 using Stride.Shaders.Core.Analysis;
 using Stride.Shaders.Parsing.Analysis;
@@ -181,9 +182,24 @@ public class ShaderMethod(
         var (builder, context, _) = compiler;
 
         function = builder.DeclareFunction(context, Name, (FunctionType)Type);
+
         var symbol = new Symbol(new(Name, SymbolKind.Method), Type, function.Id);
         table.CurrentShader.Components.Add(symbol);
-        table.CurrentFrame.Add(Name, symbol);
+
+        if (table.CurrentFrame.TryGetValue(Name, out var existingSymbol))
+        {
+            // If there is already a function symbol with same name, let's create or add to a group.
+            if (existingSymbol.Type is FunctionType)
+                existingSymbol = new Symbol(new(Name, SymbolKind.MethodGroup), new FunctionGroupType(), 0, GroupMembers: ImmutableArray.Create(existingSymbol));
+
+            existingSymbol.GroupMembers = existingSymbol.GroupMembers.Add(symbol);
+
+            table.CurrentFrame[Name] = existingSymbol;
+        }
+        else
+        {
+            table.CurrentFrame.Add(Name, symbol);
+        }
     }
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
@@ -200,6 +216,28 @@ public class ShaderMethod(
         if (Type is FunctionType ftype)
         {
             builder.BeginFunction(context, function);
+
+            var functionInfo = new OpSDSLFunctionInfo(0, Specification.FunctionFlagsMask.None);
+
+            if (IsOverride == true)
+            {
+                // Find parent function
+                var inheritedFunctions = context.Module.InheritedFunctions[function.Name];
+                var parentFunction = inheritedFunctions.Last(x => x.FunctionType == function.FunctionType);
+
+                functionInfo.ParentFunction = parentFunction.Id;
+                functionInfo.Flags |= Specification.FunctionFlagsMask.Override;
+            }
+
+            if (IsAbstract == true)
+                functionInfo.Flags |= Specification.FunctionFlagsMask.Abstract;
+            if (IsVirtual == true)
+                functionInfo.Flags |= Specification.FunctionFlagsMask.Virtual;
+            if (IsStatic)
+                functionInfo.Flags |= Specification.FunctionFlagsMask.Static;
+
+            builder.Insert(functionInfo);
+
             foreach (var p in Parameters)
             {
                 var parameterType = new PointerType(p.Type, Specification.StorageClass.Function);

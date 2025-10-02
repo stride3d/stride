@@ -131,6 +131,7 @@ public sealed record Texture3DType(SymbolType BaseType, int Width, int Height, i
     public override string ToString() => $"Texture<{BaseType}, {Width}, {Height}, {Depth}>";
 }
 
+public sealed record FunctionGroupType() : SymbolType();
 
 public sealed record FunctionType(SymbolType ReturnType, List<SymbolType> ParameterTypes) : SymbolType()
 {

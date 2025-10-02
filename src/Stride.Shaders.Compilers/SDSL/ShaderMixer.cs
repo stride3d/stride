@@ -6,9 +6,9 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Processing;
+using Stride.Shaders.Spirv.Tools;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using Stride.Shaders.Spirv.Tools;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Compilers.SDSL;
@@ -20,14 +20,14 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         // TODO: support proper shader mixin source
         //var shaderMixin = new ShaderMixinSource { Mixins = { new ShaderClassCode(entryShaderName) } };
 
-        var buffer = GetOrLoadShader(entryShaderName);
+        var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, entryShaderName);
 
         // Step: expand "for"
         // TODO
 
         // Step: build mixins: top level and (TODO) compose
         var inheritanceList = new List<string>();
-        BuildInheritanceList(buffer, inheritanceList);
+        SpirvBuilder.BuildInheritanceList(ShaderLoader, buffer, inheritanceList);
         inheritanceList.Add(entryShaderName);
 
         var temp = new NewSpirvBuffer();
@@ -36,7 +36,7 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
 
         foreach (var shaderName in inheritanceList)
         {
-            var shader = GetOrLoadShader(shaderName);
+            var shader = SpirvBuilder.GetOrLoadShader(ShaderLoader, shaderName);
             offset += nextOffset;
             nextOffset = 0;
             shader.Header = shader.Header with { Bound = shader.Header.Bound + offset };
@@ -90,9 +90,6 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
             {
                 var functionName = names[function.ResultId];
                 currentShader!.Functions.Add(functionName, function.ResultId);
-
-                //temp.Remove(i.Position);
-                //temp.InsertOpFunction(i.Position, i.ResultId.Value, i.ResultType!.Value, function.FunctionControl, function.FunctionType);
             }
 
             if (i.Data.Op == Op.OpVariable && (OpVariable)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
@@ -158,12 +155,39 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         context.Bound = offset + nextOffset + 1;
         //Spv.Dis(temp, true);
         ShaderClass.ProcessNameAndTypes(temp, out var names2, out var types);
-        foreach (var i in temp)
+
+        Dictionary<int, int> methodOverrides = new Dictionary<int, int>();
+        for (var index = 0; index < temp.Count; index++)
         {
+            var i = temp[index];
             if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
                 var functionName = names2[function.ResultId];
-                context.Module.Functions.Add(functionName, new SpirvFunction(function.ResultId, functionName, (FunctionType)types[function.FunctionType]));
+                if (!context.Module.Functions.TryGetValue(functionName, out var functions))
+                    context.Module.Functions.Add(functionName, functions = new());
+                functions.Add(new SpirvFunction(function.ResultId, functionName, (FunctionType)types[function.FunctionType]));
+
+                if (temp[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)temp[index + 1] is {} functionInfo)
+                {
+                    if (functionInfo.ParentFunction != 0)
+                    {
+                        // TODO: better structure for more direct lookup by id?
+                        // TODO: iterate to find real parent? or find it directly when computing shader?
+                        methodOverrides[functionInfo.ParentFunction] = function.ResultId;
+                    }
+
+                    if ((functionInfo.Flags & FunctionFlagsMask.Abstract) != 0)
+                    {
+                        while (temp[index].Op != Op.OpFunctionEnd)
+                        {
+                            SetOpNop(temp[index++].Data.Memory.Span);
+                        }
+                        SetOpNop(temp[index].Data.Memory.Span);
+                        // Let's go to next instruction since we erased current function
+                        continue;
+                    }
+                }
+                SetOpNop(temp[index + 1].Data.Memory.Span);
             }
         }
 
@@ -171,6 +195,18 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         {
             context.Types.Add(type.Value, type.Key);
             context.ReverseTypes.Add(type.Key, type.Value);
+        }
+
+        // Patch virtual method calls
+        foreach (var i in temp)
+        {
+            if (i.Data.Op == Op.OpFunctionCall && (OpFunctionCall)i is { } functionCall)
+            {
+                if (methodOverrides.TryGetValue(functionCall.Function, out var functionOverride))
+                {
+                    functionCall.Function = functionOverride;
+                }
+            }
         }
 
         context.Insert(0, new OpCapability(Capability.Shader));
@@ -204,39 +240,10 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         public Dictionary<string, int> Variables { get; } = new();
     }
 
-    NewSpirvBuffer GetOrLoadShader(string name)
-    {
-        if (!ShaderLoader.LoadExternalBuffer(name, out var buffer))
-            throw new InvalidOperationException($"Could not load shader [{name}]");
-
-        return buffer;
-    }
-
     static void SetOpNop(Span<int> words)
     {
         words[0] = words.Length << 16;
         words[1..].Clear();
-    }
-
-    private void BuildInheritanceList(NewSpirvBuffer buffer, List<string> inheritanceList)
-    {
-        // Build shader name mapping
-        var shaderMapping = new Dictionary<int, string>();
-        foreach (var i in buffer)
-            if (i.Op == Specification.Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)
-                shaderMapping[importShader.ResultId] = importShader.ShaderName;
-
-        // Check inheritance
-        foreach (var i in buffer)
-        {
-            if (i.Op == Specification.Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)i is { } inherit)
-            {
-                var shaderName = shaderMapping[inherit.Shader];
-                var shader = GetOrLoadShader(shaderName);
-                BuildInheritanceList(shader, inheritanceList);
-                inheritanceList.Add(shaderName);
-            }
-        }
     }
 
     public static void OffsetIds(OpData inst, int offset)
