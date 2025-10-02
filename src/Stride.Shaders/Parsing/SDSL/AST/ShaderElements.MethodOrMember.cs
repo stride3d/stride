@@ -85,7 +85,7 @@ public sealed class ShaderMember(
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, _) = compiler;
+        var (builder, context) = compiler;
         var registeredType = context.GetOrRegister(Type);
         var variable = context.Bound++;
         // TODO: Add a StreamSDSL storage class?
@@ -179,27 +179,13 @@ public class ShaderMethod(
 
     public void Declare(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, _) = compiler;
+        var (builder, context) = compiler;
 
         function = builder.DeclareFunction(context, Name, (FunctionType)Type);
 
         var symbol = new Symbol(new(Name, SymbolKind.Method), Type, function.Id);
         table.CurrentShader.Components.Add(symbol);
-
-        if (table.CurrentFrame.TryGetValue(Name, out var existingSymbol))
-        {
-            // If there is already a function symbol with same name, let's create or add to a group.
-            if (existingSymbol.Type is FunctionType)
-                existingSymbol = new Symbol(new(Name, SymbolKind.MethodGroup), new FunctionGroupType(), 0, GroupMembers: ImmutableArray.Create(existingSymbol));
-
-            existingSymbol.GroupMembers = existingSymbol.GroupMembers.Add(symbol);
-
-            table.CurrentFrame[Name] = existingSymbol;
-        }
-        else
-        {
-            table.CurrentFrame.Add(Name, symbol);
-        }
+        table.CurrentFrame.Add(Name, symbol);
     }
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
@@ -212,7 +198,7 @@ public class ShaderMethod(
             arg.Type = argSym;
         }
         
-        var (builder, context, _) = compiler;
+        var (builder, context) = compiler;
         if (Type is FunctionType ftype)
         {
             builder.BeginFunction(context, function);
@@ -222,10 +208,12 @@ public class ShaderMethod(
             if (IsOverride == true)
             {
                 // Find parent function
-                var inheritedFunctions = context.Module.InheritedFunctions[function.Name];
-                var parentFunction = inheritedFunctions.Last(x => x.FunctionType == function.FunctionType);
+                var parentSymbol = table.ResolveSymbol(function.Name);
+                // TODO: find proper overload
+                if (parentSymbol.Type is FunctionGroupType)
+                    parentSymbol = parentSymbol.GroupMembers.Last(x => x.IdRef != function.Id && (FunctionType)x.Type == function.FunctionType);
 
-                functionInfo.ParentFunction = parentFunction.Id;
+                functionInfo.ParentFunction = parentSymbol.IdRef;
                 functionInfo.Flags |= Specification.FunctionFlagsMask.Override;
             }
 

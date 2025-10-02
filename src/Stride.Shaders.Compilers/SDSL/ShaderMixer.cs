@@ -1,5 +1,6 @@
 ﻿using Stride.Shaders.Core;
 using Stride.Shaders.Parsing;
+using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
@@ -33,6 +34,8 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         var temp = new NewSpirvBuffer();
         var offset = 0;
         var nextOffset = 0;
+
+        var table = new SymbolTable();
 
         foreach (var shaderName in inheritanceList)
         {
@@ -151,7 +154,7 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         //Console.WriteLine("Done type remapping");
         //Spv.Dis(temp, true);
 
-        var context = new SpirvContext(new());
+        var context = new SpirvContext();
         context.Bound = offset + nextOffset + 1;
         //Spv.Dis(temp, true);
         ShaderClass.ProcessNameAndTypes(temp, out var names2, out var types);
@@ -163,9 +166,8 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
             if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
                 var functionName = names2[function.ResultId];
-                if (!context.Module.Functions.TryGetValue(functionName, out var functions))
-                    context.Module.Functions.Add(functionName, functions = new());
-                functions.Add(new SpirvFunction(function.ResultId, functionName, (FunctionType)types[function.FunctionType]));
+                var symbol = new Symbol(new(functionName, SymbolKind.Method), types[function.FunctionType], function.ResultId);
+                table.CurrentFrame.Add(functionName, symbol);
 
                 if (temp[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)temp[index + 1] is {} functionInfo)
                 {
@@ -212,7 +214,7 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         context.Insert(0, new OpCapability(Capability.Shader));
         context.Insert(1, new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
         context.Insert(2, new OpExtension("SPV_GOOGLE_hlsl_functionality1"));
-        new StreamAnalyzer().Process(temp, context);
+        new StreamAnalyzer().Process(table, temp, context);
 
         foreach (var inst in context.GetBuffer())
             temp.Add(inst.Data);

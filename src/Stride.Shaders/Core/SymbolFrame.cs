@@ -1,3 +1,7 @@
+using Stride.Shaders.Parsing.Analysis;
+using System.Collections.Immutable;
+using System.Xml.Linq;
+
 namespace Stride.Shaders.Core;
 
 public class SymbolFrame()
@@ -11,7 +15,23 @@ public class SymbolFrame()
     }
 
     public void Add(string name, Symbol symbol)
-        => symbols.Add(name, symbol);
+    {
+        if (symbol.Type is FunctionType && TryGetValue(name, out var existingSymbol))
+        {
+            // If there is already a function symbol with same name, let's create or add to a group.
+            if (existingSymbol.Type is FunctionType)
+                existingSymbol = new Symbol(new(name, SymbolKind.MethodGroup), new FunctionGroupType(), 0, GroupMembers: [existingSymbol]);
+
+            existingSymbol.GroupMembers = existingSymbol.GroupMembers.Add(symbol);
+
+            symbols[name] = existingSymbol;
+        }
+        else
+        {
+            symbols.Add(name, symbol);
+        }
+    }
+
     public void Remove(string name)
         => symbols.Remove(name);
     public bool ContainsKey(string name) => symbols.ContainsKey(name);

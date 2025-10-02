@@ -20,7 +20,7 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
 
     public override unsafe void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, module) = compiler;
+        var (builder, context) = compiler;
 
         var blockTrueIds = stackalloc int[ElseIfs.Count + 1];
         var blockMergeIds = stackalloc int[ElseIfs.Count + 1];

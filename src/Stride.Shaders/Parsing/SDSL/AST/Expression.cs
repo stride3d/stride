@@ -34,10 +34,15 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var functionType = (FunctionType)Name.ResolveType(table);
+        var functionSymbol = table.ResolveSymbol(Name);
+        // TODO: find proper overload
+        if (functionSymbol.Type is FunctionGroupType)
+            functionSymbol = functionSymbol.GroupMembers.First();
+        var functionType = (FunctionType)functionSymbol.Type;
+
         Type = functionType.ReturnType;
 
-        var (builder, context, module) = compiler;
+        var (builder, context) = compiler;
         var list = parameters.Values;
         Span<int> compiledParams = stackalloc int[list.Count];
         var tmp = 0;
@@ -59,7 +64,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
             compiledParams[tmp++] = paramVariable;
         }
 
-        return builder.CallFunction(context, Name, [.. compiledParams]);
+        return builder.CallFunction(table, context, Name, [.. compiledParams]);
     }
 
     public override string ToString()
@@ -96,7 +101,7 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, _) = compiler;
+        var (builder, context) = compiler;
         var expression = Expression.CompileAsValue(table, shader, compiler);
         Type = Expression.Type;
         if (Expression.Type is PointerType pointerType && pointerType.BaseType is ScalarType { TypeName: "int" or "long" })
@@ -149,7 +154,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, _) = compiler;
+        var (builder, context) = compiler;
         SpirvValue source;
         var variable = context.Bound++;
 
@@ -192,7 +197,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             currentValueType = accessor.Type;
         }
 
-        if (currentValueType is not PointerType)
+        if (currentValueType is not PointerType && currentValueType != ScalarType.From("void"))
             throw new InvalidOperationException();
 
         Type = currentValueType;
@@ -242,7 +247,7 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
         else
             table.Errors.Add(new(Info, SDSLErrorMessages.SDSL0104));
 
-        var (builder, context, _) = compiler;
+        var (builder, context) = compiler;
         return builder.BinaryOperation(context, context.GetOrRegister(Type), left, Op, right);
     }
 

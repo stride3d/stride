@@ -1,4 +1,5 @@
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Parsing.SDSL.AST;
@@ -123,22 +124,27 @@ public partial class SpirvBuilder
         return new(instruction, name);
     }
 
-    public SpirvValue CallFunction(SpirvContext context, string name, ReadOnlySpan<SpirvValue> parameters)
+    public SpirvValue CallFunction(SymbolTable table, SpirvContext context, string name, ReadOnlySpan<SpirvValue> parameters)
     {
         Span<int> paramsIds = stackalloc int[parameters.Length];
         var tmp = 0;
         foreach (var p in parameters)
             paramsIds[tmp++] = p.Id;
-        return CallFunction(context, name, [.. paramsIds]);
+        return CallFunction(table, context, name, [.. paramsIds]);
     }
-    public SpirvValue CallFunction(SpirvContext context, string name, Span<int> parameters)
+    public SpirvValue CallFunction(SymbolTable table, SpirvContext context, string name, Span<int> parameters)
     {
-        var funcGroup = context.FindFunctions(name);
+        //var funcGroup = context.FindFunctions(name);
+        var functionSymbol = table.ResolveSymbol(name);
+        // TODO: find proper overload
+        if (functionSymbol.Type is FunctionGroupType)
+            functionSymbol = functionSymbol.GroupMembers.First();
 
         // TODO: find proper overload
-        var func = funcGroup.First();
-        var fcall = Buffer.InsertData(Position++, new OpFunctionCall(context.GetOrRegister(func.FunctionType.ReturnType), context.Bound++, func.Id, [.. parameters]));
-        return new(fcall, func.Name);
+        //var func = funcGroup.First();
+        var functionType = (FunctionType)functionSymbol.Type;
+        var fcall = Buffer.InsertData(Position++, new OpFunctionCall(context.GetOrRegister(functionType.ReturnType), context.Bound++, functionSymbol.IdRef, [.. parameters]));
+        return new(fcall, functionSymbol.Id.Name);
     }
 
     public SpirvValue CompositeConstruct(SpirvContext context, CompositeLiteral literal, Span<int> values)

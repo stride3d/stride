@@ -11,24 +11,21 @@ public abstract class CompilerArgument;
 
 public class CompilerUnit
 {
-    public SpirvModule Module { get; }
     public SpirvContext Context { get; }
     public SpirvBuilder Builder { get; }
     public List<CompilerArgument> Arguments { get; }
 
     public CompilerUnit()
     {
-        Module = new SpirvModule();
-        Context = new SpirvContext(Module);
+        Context = new SpirvContext();
         Builder = new SpirvBuilder();
         Arguments = [];
     }
 
-    public void Deconstruct(out SpirvBuilder builder, out SpirvContext context, out SpirvModule module)
+    public void Deconstruct(out SpirvBuilder builder, out SpirvContext context)
     {
         builder = Builder;
         context = Context;
-        module = Module;
     }
 
 #pragma warning disable CS0618 // Type or member is obsolete

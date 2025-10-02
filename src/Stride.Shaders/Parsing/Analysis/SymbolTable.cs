@@ -2,6 +2,7 @@ using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace Stride.Shaders.Parsing.Analysis;
 
@@ -11,12 +12,13 @@ public record struct SemanticErrors(TextLocation Location, string Message);
 public partial class SymbolTable : ISymbolProvider
 {
     public Dictionary<string, SymbolType> DeclaredTypes { get; } = [];
-    public SymbolFrame CurrentFrame => CurrentSymbols[^1];
-    public RootSymbolFrame RootSymbols { get; } = new();
-    public SymbolFrame Streams { get; } = new();
 
+    public RootSymbolFrame RootSymbols { get; } = new();
     public List<SemanticErrors> Errors { get; } = [];
 
+    // Used by Identifier.ResolveSymbol
+    public SymbolFrame CurrentFrame => CurrentSymbols[^1];
+    // Used by Identifier.ResolveSymbol
     public List<SymbolFrame> CurrentSymbols { get; } = new();
 
     public ShaderSymbol? CurrentShader { get; set; }
@@ -47,15 +49,26 @@ public partial class SymbolTable : ISymbolProvider
             RootSymbols.Add(name, symbol);
     }
 
-    public bool TryFind(string name, out Symbol symbol)
+    public bool TryResolveSymbol(string name, out Symbol symbol)
     {
 
-        if (CurrentSymbols is not null)
-            for (int i = CurrentSymbols.Count - 1; i >= 0; i--)
-                if (CurrentSymbols[i].TryGetValue(name, out symbol))
-                    return true;
-        return RootSymbols.TryGetValue(name, out symbol);
+        for (int i = CurrentSymbols.Count - 1; i >= 0; i--)
+            if (CurrentSymbols[i].TryGetValue(name, out symbol))
+                return true;
+        symbol = default;
+        return false;
     }
 
+    public Symbol ResolveSymbol(string name)
+    {
+        for (int i = CurrentSymbols.Count - 1; i >= 0; --i)
+        {
+            if (CurrentSymbols[i].TryGetValue(name, out var symbol))
+            {
+                return symbol;
+            }
+        }
 
+        throw new NotImplementedException($"Cannot find symbol {name}.");
+    }
 }

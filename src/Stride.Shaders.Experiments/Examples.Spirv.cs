@@ -16,7 +16,7 @@ public static partial class Examples
     public static void GenerateSpirv()
     {
         var compiler = new CompilerUnit();
-        var (builder, context, module) = compiler;
+        var (builder, context) = compiler;
 
         context.GetOrRegister(new MatrixType(ScalarType.From("float"), 4, 3));
         context.GetOrRegister(ScalarType.From("int"));

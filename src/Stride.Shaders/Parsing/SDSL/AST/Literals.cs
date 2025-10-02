@@ -150,7 +150,7 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, module) = compiler;
+        var (builder, context) = compiler;
         Span<int> values = stackalloc int[Values.Count];
         int tmp = 0;
         foreach (var v in Values)
@@ -224,44 +224,12 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public static implicit operator string(Identifier identifier) => identifier.Name;
 
-    public Symbol ResolveSymbol(SymbolTable table)
-    {
-        for (int i = table.CurrentSymbols.Count - 1; i >= 0; --i)
-        {
-            if (table.CurrentSymbols![i]
-                .TryGetValue(Name, out var symbol))
-            {
-                return symbol;
-            }
-        }
-
-        throw new NotImplementedException($"Cannot find symbol {Name}.");
-    }
-
-    public SymbolType ResolveType(SymbolTable table)
-    {
-        return ResolveSymbol(table).Type;
-        for (int i = table.CurrentSymbols.Count - 1; i >= 0; --i)
-        {
-            if (table.CurrentSymbols![i]
-                .TryGetValue(Name, out var symbol))
-            {
-                if (symbol.Type is not UndefinedType and not null)
-                    return symbol.Type;
-                else
-                    return symbol.Type ?? new UndefinedType(Name);
-            }
-        }
-
-        throw new NotImplementedException($"Cannot find symbol {Name}.");
-    }
-
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var symbol = ResolveSymbol(table);
+        var symbol = table.ResolveSymbol(Name);
         Type = symbol.Type;
 
-        var (builder, context, _) = compiler;
+        var (builder, context) = compiler;
         var resultType = context.GetOrRegister(Type);
         var result = new SpirvValue(symbol.IdRef, resultType, Name);
 
@@ -274,7 +242,6 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         }
 
         return result;
-        // throw new NotImplementedException();
     }
 
     public override string ToString()

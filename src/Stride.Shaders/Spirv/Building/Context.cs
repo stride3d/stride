@@ -40,11 +40,10 @@ public abstract class ShaderLoaderBase : IExternalShaderLoader
 
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 
 // SPIR-V parameters
-public class SpirvContext(SpirvModule module)
+public class SpirvContext
 {
     public int Bound { get; set; } = 1;
     public string? Name { get; private set; }
-    public SpirvModule Module { get; } = module;
     public SortedList<string, SpirvValue> Variables { get; } = [];
     public Dictionary<SymbolType, int> Types { get; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; } = [];
@@ -313,15 +312,5 @@ public class SpirvContext(SpirvModule module)
     public override string ToString()
     {
         return Spv.Dis(Buffer);
-    }
-
-    public List<SpirvFunction> FindFunctions(string name)
-    {
-        var result = new List<SpirvFunction>();
-        if (Module.Functions.TryGetValue(name, out var funcGroup))
-            result.AddRange(funcGroup); 
-        if (Module.InheritedFunctions.TryGetValue(name, out funcGroup))
-            result.AddRange(funcGroup);
-        return result;
     }
 }

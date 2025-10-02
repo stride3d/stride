@@ -4,6 +4,7 @@ using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
 using System.IO;
+using Stride.Shaders.Parsing.Analysis;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Processing
@@ -38,11 +39,11 @@ namespace Stride.Shaders.Spirv.Processing
         {
         }
 
-        public void Process(NewSpirvBuffer buffer, SpirvContext context)
+        public void Process(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context)
         {
-            var entryPointVS = context.FindFunctions("VSMain").FirstOrDefault();
-            var entryPointPS = context.FindFunctions("PSMain").First();
-            if (entryPointPS.Id == 0)
+            table.TryResolveSymbol("VSMain", out var entryPointVS);
+            var entryPointPS = table.ResolveSymbol("PSMain");
+            if (entryPointPS.IdRef == 0)
                 throw new InvalidOperationException($"{nameof(StreamAnalyzer)}: At least a pixel shader is expected");
 
             var analysisResult = Analyze(buffer, context);
@@ -55,7 +56,7 @@ namespace Stride.Shaders.Spirv.Processing
                     stream.Value.Stream.Output = true;
             }
 
-            var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.Id, entryPointPS.Name, analysisResult);
+            var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult);
 
             // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
             foreach (var stream in streams)
@@ -64,7 +65,7 @@ namespace Stride.Shaders.Spirv.Processing
                     stream.Value.Stream.Read = false;
             }
             PropagateStreamsFromPreviousStage(streams);
-            if (entryPointVS.Id != 0)
+            if (entryPointVS.IdRef != 0)
             {
                 // Expected at the end of vertex shader
                 foreach (var stream in streams)
@@ -73,7 +74,7 @@ namespace Stride.Shaders.Spirv.Processing
                         stream.Value.Stream.Output = true;
                 }
 
-                GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, analysisResult);
+                GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult);
             }
 
             buffer.FluentAdd(new OpExecutionMode(psWrapper.ResultId, ExecutionMode.OriginUpperLeft));

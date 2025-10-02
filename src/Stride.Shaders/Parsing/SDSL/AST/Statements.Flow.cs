@@ -13,7 +13,7 @@ public class Break(TextLocation info) : Statement(info)
 {
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, module) = compiler;
+        var (builder, context) = compiler;
 
         if (builder.CurrentEscapeBlocks is not { } escapeBlocks)
             throw new InvalidOperationException("Can't process break statement (no context)");
@@ -32,7 +32,7 @@ public class Continue(TextLocation info) : Statement(info)
 {
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, module) = compiler;
+        var (builder, context) = compiler;
 
         if (builder.CurrentEscapeBlocks is not { } escapeBlocks)
             throw new InvalidOperationException("Can't process continue statement (no context)");
@@ -109,7 +109,7 @@ public class For(Statement initializer, Expression cond, List<Statement> update,
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, module) = compiler;
+        var (builder, context) = compiler;
 
         Initializer.Compile(table, shader, compiler);
 

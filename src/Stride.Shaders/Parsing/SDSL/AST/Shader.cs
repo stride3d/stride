@@ -205,7 +205,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             member.ProcessSymbol(table);
         }
 
-        var (builder, context, _) = compiler;
+        var (builder, context) = compiler;
         context.PutShaderName(Name);
 
         foreach (var mixin in inheritanceList)
@@ -225,7 +225,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     context.FluentAdd(new OpSDSLImportVariable(variableTypeId, context.Bound, c.Id.Name, shader.ResultId), out var variable);
                     context.AddName(context.Bound, c.Id.Name);
                     context.Bound++;
-                    context.Module.InheritedVariables.Add(c.Id.Name, new(variable.ResultId, variable.ResultType, variable.VariableName));
                     table.CurrentFrame.Add(c.Id.Name, c with { IdRef = variable.ResultId });
                 }
                 else if (c.Id.Kind == SymbolKind.Method)
@@ -236,16 +235,12 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     context.FluentAdd(new OpSDSLImportFunction(functionReturnTypeId, context.Bound, c.Id.Name, shader.ResultId), out var function);
                     context.AddName(context.Bound, c.Id.Name);
                     context.Bound++;
-                    if (!context.Module.InheritedFunctions.TryGetValue(c.Id.Name, out var inheritedFunctions))
-                        context.Module.InheritedFunctions.Add(c.Id.Name, inheritedFunctions = new());
-                    inheritedFunctions.Add(new(function.ResultId, c.Id.Name, functionType));
                     table.CurrentFrame.Add(c.Id.Name, c with { IdRef = function.ResultId });
                 }
             }
 
             // Mark inherit
             context.Add(new OpSDSLMixinInherit(shader.ResultId));
-            context.Module.InheritedMixins.Add(shaderType);
         }
 
         foreach (var member in Elements.OfType<CBuffer>())

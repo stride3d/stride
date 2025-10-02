@@ -17,9 +17,13 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
     public readonly bool Compile(string code, [MaybeNullWhen(false)] out NewSpirvBuffer lastBuffer)
     {
         var parsed = SDSLParser.Parse(code);
+        lastBuffer = null;
+        if (parsed.Errors.Count > 0)
+        {
+            throw new Exception("Some parse errors");
+        }
         if(parsed.AST is ShaderFile sf)
         {
-            lastBuffer = null;
             foreach (var declaration in sf.Namespaces.First().Declarations)
             {
                 if (declaration is ShaderClass shader)

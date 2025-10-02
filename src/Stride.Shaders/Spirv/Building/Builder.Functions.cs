@@ -16,9 +16,6 @@ public partial class SpirvBuilder
             context.GetOrRegister(t);
         context.AddName(func, name);
         var result = new SpirvFunction(func, name, ftype);
-        if (!context.Module.Functions.TryGetValue(name, out var functions))
-            context.Module.Functions.Add(name, functions = new());
-        functions.Add(result);
         return result;
     }
 

@@ -43,7 +43,7 @@ public class Return(TextLocation info, Expression? expression = null) : Statemen
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, _, _) = compiler;
+        var (builder, _) = compiler;
         builder.Return(Value?.Compile(table, shader, compiler));
         Type = Value?.Type ?? ScalarType.From("void");
     }
@@ -119,7 +119,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, _) = compiler;
+        var (builder, context) = compiler;
 
         var compiledValues = new SpirvValue[Variables.Count];
         for (var index = 0; index < Variables.Count; index++)
@@ -190,7 +190,7 @@ public class Assign(TextLocation info) : Statement(info)
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, _) = compiler;
+        var (builder, context) = compiler;
         foreach (var variable in Variables)
         {
             var target = variable.Variable.Compile(table, shader, compiler);
@@ -258,7 +258,7 @@ public class BlockStatement(TextLocation info) : Statement(info)
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         table.Push();
-        var (builder, context, _) = compiler;
+        var (builder, context) = compiler;
         foreach (var s in Statements)
         {
             s.Compile(table, shader, compiler);
