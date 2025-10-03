@@ -18,11 +18,10 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Silk.NET.SPIRV;
-using Xunit.Abstractions;
 
 namespace Stride.Shaders.Parsing.Tests;
 
-public class RenderingTests(ITestOutputHelper Output)
+public class RenderingTests
 {
     static int width = 1;
     static int height = 1;
@@ -62,8 +61,8 @@ public class RenderingTests(ITestOutputHelper Output)
             : null;
 
         if (codeVS != null)
-            Output.WriteLine(codeVS);
-        Output.WriteLine(codePS);
+            Console.WriteLine(codeVS);
+        Console.WriteLine(codePS);
 
         // Execute test
         var renderer = new OpenGLFrameRenderer((uint)width, (uint)height);
