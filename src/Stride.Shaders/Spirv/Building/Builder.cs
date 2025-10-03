@@ -28,7 +28,7 @@ public partial class SpirvBuilder()
         SetPositionTo(f.BasicBlocks.First().Value, true);
         // Go after label and the last OpVariable
         Position++;
-        while (Buffer[Position].Op == Op.OpVariable)
+        while (Position + 1 < Buffer.Count && Buffer[Position].Op == Op.OpVariable)
             Position++;
         Insert(new OpVariable(paramType, paramVariable, StorageClass.Function, null));
 

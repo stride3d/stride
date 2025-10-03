@@ -31,6 +31,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 {
     public Identifier Name = name;
     public ShaderExpressionList Parameters = parameters;
+    public bool IsBaseCall { get; set; } = false;
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -64,6 +65,8 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
             compiledParams[tmp++] = paramVariable;
         }
 
+        if (IsBaseCall)
+            builder.Insert(new OpSDSLBase());
         return builder.CallFunction(table, context, Name, [.. compiledParams]);
     }
 
@@ -168,6 +171,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         }
         else if ((Source is Identifier { Name: "base" } || Source is Identifier { Name: "this" }) && Accessors[0] is MethodCall methodCall)
         {
+            if (Source is Identifier { Name: "base" })
+                methodCall.IsBaseCall = true;
             source = methodCall.Compile(table, shader, compiler);
             currentValueType = methodCall.Type;
             firstIndex = 1;

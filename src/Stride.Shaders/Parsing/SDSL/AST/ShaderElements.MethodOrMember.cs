@@ -203,7 +203,7 @@ public class ShaderMethod(
         {
             builder.BeginFunction(context, function);
 
-            var functionInfo = new OpSDSLFunctionInfo(0, Specification.FunctionFlagsMask.None);
+            var functionInfo = new OpSDSLFunctionInfo(Specification.FunctionFlagsMask.None, 0);
 
             if (IsOverride == true)
             {
@@ -213,7 +213,7 @@ public class ShaderMethod(
                 if (parentSymbol.Type is FunctionGroupType)
                     parentSymbol = parentSymbol.GroupMembers.Last(x => x.IdRef != function.Id && (FunctionType)x.Type == function.FunctionType);
 
-                functionInfo.ParentFunction = parentSymbol.IdRef;
+                functionInfo.Parent = parentSymbol.IdRef;
                 functionInfo.Flags |= Specification.FunctionFlagsMask.Override;
             }
 

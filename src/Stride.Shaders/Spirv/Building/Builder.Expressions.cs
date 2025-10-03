@@ -140,8 +140,6 @@ public partial class SpirvBuilder
         if (functionSymbol.Type is FunctionGroupType)
             functionSymbol = functionSymbol.GroupMembers.First();
 
-        // TODO: find proper overload
-        //var func = funcGroup.First();
         var functionType = (FunctionType)functionSymbol.Type;
         var fcall = Buffer.InsertData(Position++, new OpFunctionCall(context.GetOrRegister(functionType.ReturnType), context.Bound++, functionSymbol.IdRef, [.. parameters]));
         return new(fcall, functionSymbol.Id.Name);

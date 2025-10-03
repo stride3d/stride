@@ -98,14 +98,18 @@
       "class": "Miscellaneous",
       "operands": [
         {
-          "kind": "IdRef",
-          "name": "parentFunction"
-        },
-        {
           "kind": "FunctionFlags",
           "name": "flags"
+        },
+        {
+          "kind": "IdRef",
+          "name": "parent"
         }
       ]
+    },
+    {
+      "opname": "OpSDSLBase",
+      "class": "Miscellaneous"
     }
   ],
   "operand_kinds": [

@@ -1,0 +1,49 @@
+// PSMain(ExpectedResult=#FFFFFFFF)
+
+namespace Stride.Shaders.Tests;
+
+shader SimpleInheritanceBase
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void Test()
+    {
+        streams.ColorTarget = float4(0.0, 1.0, 1.0, 0.0);
+        this.SetColor(float4(0.5, 0.5, 0.5, 0.5));
+    }
+
+    void PSMain()
+    {
+        Test();
+    }
+
+    abstract void SetColor(float4 color);
+}
+
+shader SimpleInheritanceBaseOverride1 : SimpleInheritanceBase
+{
+    override void SetColor(float4 color)
+    {
+        streams.ColorTarget = color;
+    }
+}
+
+shader SimpleInheritanceBaseOverride2 : SimpleInheritanceBase
+{
+    override void SetColor(float4 color)
+    {
+        base.SetColor(color);
+        streams.ColorTarget += color;
+    }
+}
+
+shader SimpleInheritanceBaseThis : SimpleInheritanceBaseOverride1, SimpleInheritanceBaseOverride2
+{
+}
