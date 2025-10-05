@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Markdown.Avalonia;
+using Stride.GameStudio.Avalonia.Services;
 
 namespace Stride.GameStudio.Avalonia.Views;
 
@@ -54,11 +55,11 @@ public partial class AboutWindow : Window
 
     private void License_OnClick(object? sender, RoutedEventArgs e)
     {
-        OpenLink("LICENSE.md");
+        MarkdownFileViewerService.ShowFile("LICENSE.md", "License");
     }
 
     private void ThirdParty_OnClick(object? sender, RoutedEventArgs e)
     {
-        OpenLink("THIRD PARTY.md");
+        MarkdownFileViewerService.ShowFile("THIRD PARTY.md", "Third Party Licenses");
     }
 }

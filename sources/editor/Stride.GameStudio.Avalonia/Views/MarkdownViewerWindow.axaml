@@ -1,0 +1,18 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:markdown="clr-namespace:Markdown.Avalonia;assembly=Markdown.Avalonia"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        x:Class="Stride.GameStudio.Avalonia.Views.MarkdownViewerWindow"
+        Width="600" Height="300"
+         Icon="/Assets/GameStudio.ico"
+        Title="{sd:LocalizeString About Stride, Context=About}" ShowInTaskbar="False"
+        CanResize="False" SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterOwner">
+
+  <ScrollViewer Margin="10">
+    <markdown:MarkdownScrollViewer x:Name="MarkdownViewer" />
+  </ScrollViewer>
+</Window>

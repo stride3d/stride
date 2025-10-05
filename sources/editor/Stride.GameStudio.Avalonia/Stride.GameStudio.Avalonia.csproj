@@ -34,6 +34,7 @@
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
+    <PackageReference Include="Markdown.Avalonia" />
     <PackageReference Include="Xaml.Behaviors.Interactions" />
   </ItemGroup>
 
@@ -44,6 +45,12 @@
   <ItemGroup>
     <!-- TODO xplat-editor that reference shouldn't be explicit and such assembly should be loaded as external plugins -->
     <ProjectReference Include="..\Stride.Assets.Editor.Avalonia\Stride.Assets.Editor.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\MarkdownViewerWindow.axaml.cs">
+      <DependentUpon>MarkdownViewerWindow.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />
