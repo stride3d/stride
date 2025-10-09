@@ -58,7 +58,11 @@
         {
           "kind": "LiteralString",
           "name": "shaderName"
-        }
+        },
+        {
+          "kind": "ImportType",
+          "name":  "type"
+        }        
       ]
     },
     {
@@ -108,7 +112,17 @@
       ]
     },
     {
-      "opname": "OpSDSLBase",
+      "opname": "OpSDSLCallTarget",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdRef",
+          "name": "target"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLCallBase",
       "class": "Miscellaneous"
     }
   ],
@@ -136,6 +150,20 @@
         {
           "enumerant": "Static",
           "value": "0x0010"
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "ImportType",
+      "enumerants": [
+        {
+          "enumerant": "External",
+          "value": 0
+        },
+        {
+          "enumerant": "Inherit",
+          "value": 1
         }
       ]
     },

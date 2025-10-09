@@ -174,6 +174,7 @@ public class SpirvContext
                 ConstantBufferSymbol cb => RegisterCBuffer(cb),
                 FunctionType f => RegisterFunctionType(f),
                 PointerType p => RegisterPointerType(p),
+                ShaderSymbol s => RegisterShaderType(s),
                 // TextureSymbol t => Buffer.AddOpTypeImage(Bound++, Register(t.BaseType), t.),
                 // StructSymbol st => RegisterStruct(st),
                 _ => throw new NotImplementedException($"Can't add type {type}")
@@ -182,6 +183,28 @@ public class SpirvContext
             ReverseTypes[instruction ?? -1] = type;
             return instruction ?? -1;
         }
+    }
+
+    private int RegisterShaderType(ShaderSymbol shaderSymbol)
+    {
+        FluentAdd(new OpSDSLImportShader(Bound++, new(shaderSymbol.Name), ImportType.External), out var shader);
+        AddName(shader.ResultId, shaderSymbol.Name);
+        for (var index = 0; index < shaderSymbol.Components.Count; index++)
+        {
+            var c = shaderSymbol.Components[index];
+            if (c.Id.Kind == SymbolKind.Method)
+            {
+                var functionType = (FunctionType)c.Type;
+                var functionReturnTypeId = GetOrRegister(functionType.ReturnType);
+
+                c.IdRef = Bound++;
+                Add(new OpSDSLImportFunction(functionReturnTypeId, c.IdRef, c.Id.Name, shader.ResultId));
+                AddName(c.IdRef, c.Id.Name);
+            }
+            shaderSymbol.Components[index] = c;
+        }
+
+        return shader.ResultId;
     }
 
     private int RegisterCBuffer(ConstantBufferSymbol cb)

@@ -4,6 +4,7 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text;
 
@@ -291,18 +292,20 @@ public class TypeName(string name, TextLocation info, bool isArray) : Literal(in
     public List<Expression>? ArraySize { get; set; }
     public List<TypeName> Generics { get; set; } = [];
 
-    public SymbolType ResolveType(SymbolTable table)
+    public bool TryResolveType(SymbolTable table, [MaybeNullWhen(false)] out SymbolType symbolType)
     {
         if (!IsArray && Generics.Count == 0)
         {
-            if (table.DeclaredTypes.TryGetValue(Name, out var type))
-                return type;
+            if (table.DeclaredTypes.TryGetValue(Name, out symbolType))
+                return true;
             else if (SymbolType.TryGetNumeric(Name, out var numeric))
             {
                 table.DeclaredTypes.Add(numeric.ToString(), numeric);
-                return numeric;
+                symbolType = numeric;
+                return true;
             }
-            else throw new NotImplementedException();
+
+            return false;
         }
         // else if (IsArray && Generics.Count == 0)
         // {
@@ -312,7 +315,15 @@ public class TypeName(string name, TextLocation info, bool isArray) : Literal(in
         //     }
         //     else table.Errors.Add(new(Info, "type not found"));
         // }
-        else throw new NotImplementedException();
+        symbolType = null;
+        return false;
+    }
+
+    public SymbolType ResolveType(SymbolTable table)
+    {
+        if (!TryResolveType(table, out var result))
+            throw new InvalidOperationException($"Could not resolve type [{Name}]");
+        return result;
     }
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)

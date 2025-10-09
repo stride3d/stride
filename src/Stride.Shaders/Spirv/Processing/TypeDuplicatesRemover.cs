@@ -14,7 +14,7 @@ namespace Stride.Shaders.Spirv.Processing;
 
 /// <summary>
 /// Remove duplicate simple types.
-/// Should be applied before the IdRefOffsetter.
+/// Should be applied after the IdRefOffsetter.
 /// </summary>
 public struct TypeDuplicateRemover : INanoPass
 {

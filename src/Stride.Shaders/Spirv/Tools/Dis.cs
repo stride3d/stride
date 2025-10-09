@@ -657,6 +657,13 @@ public static partial class Spv
                             (OperandQuantifier.ZeroOrOne or OperandQuantifier.ZeroOrMore, 0) => Append(""),
                             _ => throw new NotImplementedException("Unsupported image operands quantifier " + operand.Quantifier + " with length " + operand.Words.Length)
                         },
+                        OperandKind.ImportType => (operand.Quantifier, operand.Words.Length) switch
+                        {
+                            (OperandQuantifier.One or OperandQuantifier.ZeroOrOne, 1) => Append(operand.ToEnum<ImportType>().ToString(), ConsoleColor.Yellow).Append(' '),
+                            (OperandQuantifier.ZeroOrMore, > 0) => AppendEnums<ImportType>(operand).Append(' '),
+                            (OperandQuantifier.ZeroOrOne or OperandQuantifier.ZeroOrMore, 0) => Append(""),
+                            _ => throw new NotImplementedException("Unsupported image operands quantifier " + operand.Quantifier + " with length " + operand.Words.Length)
+                        },
                         _ => throw new Exception($"Unhandled operand kind {operand.Kind} with quantifier {operand.Quantifier}"),
                     };
                     // _ = (operand.Kind, operand.Quantifier) switch

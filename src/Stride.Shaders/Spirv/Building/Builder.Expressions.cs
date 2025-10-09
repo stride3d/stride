@@ -124,21 +124,11 @@ public partial class SpirvBuilder
         return new(instruction, name);
     }
 
-    public SpirvValue CallFunction(SymbolTable table, SpirvContext context, string name, ReadOnlySpan<SpirvValue> parameters)
+    public SpirvValue CallFunction(SymbolTable table, SpirvContext context, Symbol functionSymbol, Span<int> parameters)
     {
-        Span<int> paramsIds = stackalloc int[parameters.Length];
-        var tmp = 0;
-        foreach (var p in parameters)
-            paramsIds[tmp++] = p.Id;
-        return CallFunction(table, context, name, [.. paramsIds]);
-    }
-    public SpirvValue CallFunction(SymbolTable table, SpirvContext context, string name, Span<int> parameters)
-    {
-        //var funcGroup = context.FindFunctions(name);
-        var functionSymbol = table.ResolveSymbol(name);
-        // TODO: find proper overload
+        // Note: Overload should have been chosen before
         if (functionSymbol.Type is FunctionGroupType)
-            functionSymbol = functionSymbol.GroupMembers.First();
+            throw new InvalidOperationException();
 
         var functionType = (FunctionType)functionSymbol.Type;
         var fcall = Buffer.InsertData(Position++, new OpFunctionCall(context.GetOrRegister(functionType.ReturnType), context.Bound++, functionSymbol.IdRef, [.. parameters]));

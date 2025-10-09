@@ -31,11 +31,25 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 {
     public Identifier Name = name;
     public ShaderExpressionList Parameters = parameters;
+
+    public SpirvValue? MemberCall { get; set; }
     public bool IsBaseCall { get; set; } = false;
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var functionSymbol = table.ResolveSymbol(Name);
+        var (builder, context) = compiler;
+
+        Symbol functionSymbol;
+        if (MemberCall != null)
+        {
+            var type = (ShaderSymbol)((PointerType)context.ReverseTypes[MemberCall.Value.TypeId]).BaseType;
+            functionSymbol = type.Components.Single(x => x.Id.Name == Name);
+        }
+        else
+        {
+            functionSymbol = table.ResolveSymbol(Name);
+        }
+
         // TODO: find proper overload
         if (functionSymbol.Type is FunctionGroupType)
             functionSymbol = functionSymbol.GroupMembers.First();
@@ -43,8 +57,8 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 
         Type = functionType.ReturnType;
 
-        var (builder, context) = compiler;
         var list = parameters.Values;
+
         Span<int> compiledParams = stackalloc int[list.Count];
         var tmp = 0;
 
@@ -65,9 +79,16 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
             compiledParams[tmp++] = paramVariable;
         }
 
-        if (IsBaseCall)
-            builder.Insert(new OpSDSLBase());
-        return builder.CallFunction(table, context, Name, [.. compiledParams]);
+        if (MemberCall != null)
+        {
+            builder.Insert(new OpSDSLCallTarget(MemberCall.Value.Id));
+        }
+        else if (IsBaseCall)
+        {
+            builder.Insert(new OpSDSLCallBase());
+        }
+
+        return builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
     }
 
     public override string ToString()
@@ -158,14 +179,14 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        SpirvValue source;
+        SpirvValue result;
         var variable = context.Bound++;
 
         int firstIndex = 0;
         SymbolType currentValueType;
         if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
         {
-            source = streamVar.Compile(table, shader, compiler);
+            result = streamVar.Compile(table, shader, compiler);
             currentValueType = streamVar.Type;
             firstIndex = 1;
         }
@@ -173,47 +194,63 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         {
             if (Source is Identifier { Name: "base" })
                 methodCall.IsBaseCall = true;
-            source = methodCall.Compile(table, shader, compiler);
+            result = methodCall.Compile(table, shader, compiler);
             currentValueType = methodCall.Type;
             firstIndex = 1;
         }
         else
         {
-            source = Source.Compile(table, shader, compiler);
+            result = Source.Compile(table, shader, compiler);
             currentValueType = Source.Type;
         }
 
         Span<int> indexes = stackalloc int[Accessors.Count];
-        for (var i = firstIndex; i < Accessors.Count; i++)
+        for (var i = firstIndex; i <= Accessors.Count; i++)
         {
-            var accessor = Accessors[i];
-            if (currentValueType is PointerType p && p.BaseType is StructType s && accessor is Identifier field)
+            // Last accessor (or method call next)
+            if (i == Accessors.Count || Accessors[i] is MethodCall)
             {
-                var index = s.TryGetFieldIndex(field);
-                if (index == -1)
-                    throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
-                //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
-                var indexLiteral = new IntegerLiteral(new(32, false, true), index, new());
-                indexLiteral.Compile(table, shader, compiler);
-                indexes[i] = context.CreateConstant(indexLiteral).Id;
+                // Do we need to issue an OpAccessChain?
+                if (i > firstIndex)
+                {
+                    var resultType = context.GetOrRegister(Type);
+                    var accessChain = builder.Insert(new OpAccessChain(variable, resultType, result.Id, [.. indexes.Slice(firstIndex, i - firstIndex)]));
+                    result = new SpirvValue(accessChain.ResultId, resultType);
+                }
+
+                if (i == Accessors.Count)
+                    break;
+
+                firstIndex = i + 1;
             }
-            else throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
+
+            var accessor = Accessors[i];
+            switch (currentValueType, accessor)
+            {
+                case (PointerType { BaseType: ShaderSymbol s }, MethodCall methodCall2):
+                    methodCall2.MemberCall = result;
+                    result = methodCall2.Compile(table, shader, compiler);
+                    break;
+                case (PointerType { BaseType: StructType s }, Identifier field):
+                    var index = s.TryGetFieldIndex(field);
+                    if (index == -1)
+                        throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
+                    //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
+                    var indexLiteral = new IntegerLiteral(new(32, false, true), index, new());
+                    indexLiteral.Compile(table, shader, compiler);
+                    indexes[i] = context.CreateConstant(indexLiteral).Id;
+                    break;
+                // TODO: Swizzle, etc.
+                default:
+                    throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
+            }
 
             currentValueType = accessor.Type;
         }
 
-        if (currentValueType is not PointerType && currentValueType != ScalarType.From("void"))
-            throw new InvalidOperationException();
-
         Type = currentValueType;
 
-        // Do we need the OpAccessChain? (if we have streams.StreamVar, we can return StreamVar as is)
-        if (firstIndex == Accessors.Count)
-            return source;
-
-        var resultType = context.GetOrRegister(Type);
-        var result = builder.Insert(new OpAccessChain(variable, resultType, source.Id, [.. indexes]));
-        return new(result.ResultId, resultType);
+        return result;
     }
 
     public override string ToString()
