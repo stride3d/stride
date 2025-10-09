@@ -31,8 +31,10 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         var context = new SpirvContext();
         var table = new SymbolTable();
 
+        var shaderSource = EvaluateEffects(new ShaderClassSource { ClassName = entryShaderName });
+
         // Root shader
-        MergeSDSLMixin(context, table, temp, entryShaderName);
+        MergeSDSLMixin(context, table, temp, shaderSource);
 
         context.Insert(0, new OpCapability(Capability.Shader));
         context.Insert(1, new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
@@ -71,6 +73,92 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         //File.WriteAllText("test.spvdis", source);
     }
 
+    private void Merge(ShaderMixinSource mixinTree, ShaderSource source)
+    {
+        switch (source)
+        {
+            case ShaderClassSource classSource:
+                mixinTree.Mixins.Add(classSource);
+                break;
+            case ShaderMixinSource mixinSource:
+                foreach (var mixin in mixinSource.Mixins)
+                {
+                    mixinTree.Mixins.Add(mixin);
+                }
+
+                foreach (var composition in mixinSource.Compositions)
+                {
+                    if (mixinTree.Compositions.TryGetValue(composition.Key, out var mixinTreeComposition))
+                        mixinTree.Compositions.Add(composition.Key, mixinTreeComposition = new ShaderMixinSource());
+                    Merge(mixinTreeComposition, composition.Value);
+                }
+                
+                break;
+        }
+    }
+
+    private ShaderSource EvaluateEffects(ShaderSource source)
+    {
+        switch (source)
+        {
+            case ShaderClassSource classSource:
+                if (classSource.GenericArguments != null && classSource.GenericArguments.Length > 0)
+                    throw new NotImplementedException();
+
+                var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, classSource.ClassName);
+                if (buffer[0].Op == Op.OpSDSLEffect)
+                {
+                    var mixinTree = new ShaderMixinSource();
+                    foreach (var instruction in buffer)
+                    {
+                        if (instruction.Op == Op.OpSDSLMixin && (OpSDSLMixin)instruction is { } mixinInstruction)
+                        {
+                            var instSource = new ShaderClassSource { ClassName = mixinInstruction.Mixin };
+                            var evaluatedSource = EvaluateEffects(instSource);
+
+                            Merge(mixinTree, evaluatedSource);
+                        }
+                        else if (instruction.Op == Op.OpSDSLMixinCompose && (OpSDSLMixinCompose)instruction is { } mixinComposeInstruction)
+                        {
+                            var instSource = new ShaderClassSource { ClassName = mixinComposeInstruction.Mixin };
+                            var evaluatedSource = EvaluateEffects(instSource);
+
+                            MergeComposition(mixinTree, mixinComposeInstruction.Identifier, evaluatedSource);
+                        }
+                    }
+
+                    return mixinTree;
+                }
+
+                return classSource;
+            case ShaderMixinSource mixinSource:
+                var result = new ShaderMixinSource();
+                foreach (var mixin in mixinSource.Mixins)
+                {
+                    var evaluatedMixin = EvaluateEffects(mixin);
+                    Merge(result, evaluatedMixin);
+                }
+
+                foreach (var composition in mixinSource.Compositions)
+                {
+                    var evaluatedMixin = EvaluateEffects(composition.Value);
+                    MergeComposition(result, composition.Key, evaluatedMixin);
+                }
+
+                return result;
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
+    private void MergeComposition(ShaderMixinSource mixinTree, string compositionName, ShaderSource evaluatedSource)
+    {
+        if (!mixinTree.Compositions.TryGetValue(compositionName, out var composition))
+            mixinTree.Compositions.Add(compositionName, composition = new());
+
+        Merge(composition, evaluatedSource);
+    }
+
     class MethodGroup
     {
         public string Name;
@@ -89,22 +177,40 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         public Dictionary<int, MixinResult> Compositions { get; } = new();
     }
 
-    MixinResult MergeSDSLMixin(SpirvContext context, SymbolTable table, NewSpirvBuffer temp, string entryShaderName)
+    MixinResult MergeSDSLMixin(SpirvContext context, SymbolTable table, NewSpirvBuffer temp, ShaderSource entryShaderName)
     {
         var mixinResult = new MixinResult();
 
         // TODO: support proper shader mixin source
         //var shaderMixin = new ShaderMixinSource { Mixins = { new ShaderClassCode(entryShaderName) } };
 
-        var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, entryShaderName);
-
         // Step: expand "for"
         // TODO
+        var mixinsToMerge = new List<ShaderClassSource>();
+        if (entryShaderName is ShaderClassSource classSource)
+        {
+            mixinsToMerge.Add(classSource);
+        }
+        else if (entryShaderName is ShaderMixinSource mixinSource)
+        {
+            foreach (var mixin in mixinSource.Mixins)
+            {
+                mixinsToMerge.Add(mixin);
+            }
+        }
 
         // Step: build mixins: top level and (TODO) compose
         var inheritanceList = new List<string>();
-        SpirvBuilder.BuildInheritanceList(ShaderLoader, buffer, inheritanceList);
-        inheritanceList.Add(entryShaderName);
+        foreach (var mixinToMerge in mixinsToMerge)
+        {
+            if (mixinToMerge.GenericArguments != null && mixinToMerge.GenericArguments.Length > 0)
+                throw new NotImplementedException();
+
+            var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge.ClassName);
+            SpirvBuilder.BuildInheritanceList(ShaderLoader, buffer, inheritanceList);
+            if (!inheritanceList.Contains(mixinToMerge.ClassName))
+                inheritanceList.Add(mixinToMerge.ClassName);
+        }
 
         var offset = context.Bound;
         var nextOffset = 0;
@@ -244,15 +350,14 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
             {
                 if (variable.Value.Type is PointerType pointer && pointer.BaseType is ShaderSymbol)
                 {
-
-                    MixinResult compositionResult;
-                    if (variable.Key == "Comp0")
-                        compositionResult = MergeSDSLMixin(context, table, temp, "CompositionShaderA");
-                    else if (variable.Key == "Comp1")
-                        compositionResult = MergeSDSLMixin(context, table, temp, "CompositionShaderB");
-                    else
+                    if (entryShaderName is not ShaderMixinSource mixinSource || !mixinSource.Compositions.TryGetValue(variable.Key, out var compositionMixin))
+                    {
+                        compositionMixin = new ShaderMixinSource { Mixins = {  } };
                         throw new NotImplementedException();
+                    }
 
+                    var compositionResult = MergeSDSLMixin(context, table, temp, compositionMixin);
+                    
                     mixinResult.Compositions.Add(variable.Value.Id, compositionResult);
                 }
             }

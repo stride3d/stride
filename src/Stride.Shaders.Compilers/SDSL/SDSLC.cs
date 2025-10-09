@@ -9,6 +9,7 @@ using Stride.Shaders.Spirv.Processing;
 using Stride.Shaders.Spirv.Tools;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Stride.Shaders.Parsing.SDFX.AST;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
@@ -43,6 +44,17 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     lastBuffer = merged;
 
                     ShaderLoader.RegisterShader(shader.Name, merged);
+                }
+                else if (declaration is ShaderEffect effect)
+                {
+                    var compiler = new CompilerUnit();
+                    effect.Compile(compiler);
+
+                    var merged = compiler.ToBuffer();
+                    var dis = Spv.Dis(merged, true);
+                    lastBuffer = merged;
+
+                    ShaderLoader.RegisterShader(effect.Name, merged);
                 }
                 else
                 {

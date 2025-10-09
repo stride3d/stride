@@ -240,28 +240,4 @@ public static partial class Examples
         // Console.WriteLine(code.Translate(Backend.Hlsl));
 
     }
-
-    public abstract class ShaderSource
-    {
-    }
-
-    public struct ShaderMacro
-    {
-        public string Name;
-        public string Definition;
-    }
-
-    public class ShaderMixinSource : ShaderSource
-    {
-        public List<ShaderClassCode> Mixins { get; } = [];
-
-        public SortedList<string, ShaderSource> Compositions { get; } = [];
-
-        public List<ShaderMacro> Macros { get; } = [];
-    }
-
-    public sealed class ShaderClassCode(string className) : ShaderSource
-    {
-        public string ClassName { get; } = className;
-    }
 }

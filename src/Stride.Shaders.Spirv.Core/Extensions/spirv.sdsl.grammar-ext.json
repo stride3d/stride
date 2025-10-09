@@ -15,6 +15,20 @@
       "class": "Miscellaneous"
     },
     {
+      "opname": "OpSDSLEffect",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "effectName"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLEffectEnd",
+      "class": "Miscellaneous"
+    },
+    {
       "opname": "OpSDSLMixinInherit",
       "class": "Miscellaneous",
       "operands": [
@@ -61,8 +75,8 @@
         },
         {
           "kind": "ImportType",
-          "name":  "type"
-        }        
+          "name": "type"
+        }
       ]
     },
     {
@@ -124,6 +138,30 @@
     {
       "opname": "OpSDSLCallBase",
       "class": "Miscellaneous"
+    },
+    {
+      "opname": "OpSDSLMixin",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "mixin"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLMixinCompose",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "identifier"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "mixin"
+        }
+      ]
     }
   ],
   "operand_kinds": [

@@ -1,8 +1,15 @@
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
+using Stride.Shaders.Spirv.Building;
 namespace Stride.Shaders.Parsing.SDFX.AST;
 
-public class EffectFlow(TextLocation info) : EffectStatement(info);
+public class EffectFlow(TextLocation info) : EffectStatement(info)
+{
+    public override void Compile(CompilerUnit compiler)
+    {
+        throw new NotImplementedException();
+    }
+}
 
 public class EffectControl(If first, TextLocation info) : EffectFlow(info)
 {

@@ -2,6 +2,7 @@
 using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
 using Silk.NET.OpenGL;
+using Silk.NET.SPIRV;
 using Silk.NET.SPIRV.Cross;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -16,8 +17,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
-using Silk.NET.SPIRV;
 
 namespace Stride.Shaders.Parsing.Tests;
 
