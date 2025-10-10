@@ -348,12 +348,11 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         {
             foreach (var variable in shader.Variables)
             {
-                if (variable.Value.Type is PointerType pointer && pointer.BaseType is ShaderSymbol)
+                if (variable.Value.Type is PointerType pointer && pointer.BaseType is ShaderSymbol shaderSymbol)
                 {
                     if (entryShaderName is not ShaderMixinSource mixinSource || !mixinSource.Compositions.TryGetValue(variable.Key, out var compositionMixin))
                     {
-                        compositionMixin = new ShaderMixinSource { Mixins = {  } };
-                        throw new NotImplementedException();
+                        compositionMixin = new ShaderMixinSource { Mixins = { new ShaderClassSource { ClassName = shaderSymbol.Name } } };
                     }
 
                     var compositionResult = MergeSDSLMixin(context, table, temp, compositionMixin);

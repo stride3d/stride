@@ -6,7 +6,7 @@ shader CompositionBase
 {
 	float4 Compute()
 	{
-		return float4(0.0, 0.0, 0.0, 0.0);
+		return float4(0.1, 0.1, 0.1, 0.1);
 	}
 };
  
@@ -14,7 +14,7 @@ shader CompositionShaderA : CompositionBase
 {
 	override float4 Compute()
 	{
-		return float4(0.3, 0.3, 0.3, 0.3);
+		return float4(0.2, 0.2, 0.2, 0.2);
 	}
 };
  
@@ -22,7 +22,7 @@ shader CompositionShaderB : CompositionBase
 {
 	override float4 Compute()
 	{
-		return float4(0.2, 0.2, 0.2, 0.2);
+		return base.Compute() + float4(0.1, 0.1, 0.1, 0.1);
 	}
 };
  
@@ -32,10 +32,11 @@ shader CompositionTest
 
 	CompositionBase Comp0;
 	CompositionBase Comp1;
+	CompositionBase Comp2;
  
 	void PSMain()
 	{
-		streams.ColorTarget = Comp0.Compute() + Comp1.Compute();
+		streams.ColorTarget = Comp0.Compute() + Comp1.Compute() + Comp2.Compute();
 	}
 };
 
@@ -44,4 +45,5 @@ effect CompositionTest1
 	mixin CompositionTest;
 	mixin compose Comp0 = CompositionShaderA;
 	mixin compose Comp1 = CompositionShaderB;
+	// Comp2 will have default value
 }
