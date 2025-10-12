@@ -74,48 +74,7 @@ namespace Stride.Importer.ThreeD
         {
             textureNameCount.Clear();
         }
-
-        private void DecideKeptMeshIndexFromOutput()
-        {
-            keptMeshIndex = -1;
-            keptMeshNameHint = null;
-
-            try
-            {
-                var name = System.IO.Path.GetFileNameWithoutExtension(vfsOutputFilename);
-                if (string.IsNullOrEmpty(name))
-                    return;
-
-                // "(All)" => all meshes
-                if (name.EndsWith(" (All)", StringComparison.OrdinalIgnoreCase))
-                    return;
-
-                // "(Mesh X)" => keep mesh X-1 (legacy)
-                const string tag = " (Mesh ";
-                if (name.EndsWith(")", StringComparison.Ordinal))
-                {
-                    var start = name.LastIndexOf(tag, StringComparison.OrdinalIgnoreCase);
-                    if (start >= 0)
-                    {
-                        var numStr = name.Substring(start + tag.Length, name.Length - (start + tag.Length) - 1);
-                        if (int.TryParse(numStr, out var oneBased) && oneBased >= 1)
-                        {
-                            keptMeshIndex = oneBased - 1;
-                            return;
-                        }
-                    }
-                }
-
-                // Otherwise: remember the full output name; we will try to match a mesh by name later
-                keptMeshNameHint = name;
-            }
-            catch
-            {
-                keptMeshIndex = -1;
-                keptMeshNameHint = null;
-            }
-        }
-
+  
         public unsafe EntityInfo ExtractEntity(string inputFilename, string outputFilename, bool extractTextureDependencies, bool deduplicateMaterials)
         {
             try
@@ -234,6 +193,18 @@ namespace Stride.Importer.ThreeD
             return ProcessSkeleton(scene);
         }
 
+        public void KeepOnlyMeshByName(string name)
+        {
+            keptMeshIndex = -1;
+            keptMeshNameHint = string.IsNullOrWhiteSpace(name) ? null : name;
+        }
+
+        public void KeepOnlyMeshByIndex(int index)
+        {
+            keptMeshNameHint = null;
+            keptMeshIndex = index >= 0 ? index : -1;
+        }
+
         private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, aiPostProcessSteps postProcessFlags)
         {
             ResetConversionData();
@@ -241,7 +212,6 @@ namespace Stride.Importer.ThreeD
             vfsInputFilename = inputFilename;
             vfsOutputFilename = outputFilename;
             vfsInputPath = VirtualFileSystem.GetParentFolder(inputFilename);
-            DecideKeptMeshIndexFromOutput();
 
             var propStore = assimp.CreatePropertyStore();
             assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", 0); // Trade some issues for others, see: https://github.com/assimp/assimp/issues/894, https://github.com/assimp/assimp/issues/1974

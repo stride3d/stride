@@ -41,6 +41,9 @@ namespace Stride.Assets.Models
         {
             var converter = CreateMeshConverter(commandContext);
 
+             if (!string.IsNullOrWhiteSpace(KeepOnlyMeshName))
+                converter.KeepOnlyMeshByName(KeepOnlyMeshName);
+
             // Note: FBX exporter uses Materials for the mapping, but Assimp already uses indices so we can reuse them
             // We should still unify the behavior to be more consistent at some point (i.e. if model was changed on the HDD but not in the asset).
             // This should probably be better done during a large-scale FBX/Assimp refactoring.
