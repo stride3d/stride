@@ -433,7 +433,9 @@
                                        Width="20" Height="20" />
                               </ToggleButton>
                               <Popup x:Name="Popup"
-                                     IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
+                                     IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}"
+                                     IsLightDismissEnabled="True"
+                                     PointerWheelChanged="OnPopupWheelChanged">
                                 <Border Margin="4" Background="{DynamicResource SystemChromeMediumLowColor}" CornerRadius="5">
                                   <Border.Effect>
                                     <DropShadowEffect BlurRadius="5" Opacity="0.4" />

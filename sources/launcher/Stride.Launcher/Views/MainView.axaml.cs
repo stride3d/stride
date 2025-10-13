@@ -43,4 +43,9 @@ public partial class MainView : UserControl
             window?.BeginMoveDrag(e);
         }
     }
+
+    private void OnPopupWheelChanged(object sender, PointerWheelEventArgs e)
+    {
+        e.Handled = true;
+    }
 }
