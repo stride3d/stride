@@ -34,8 +34,30 @@
     <DynamicResource ResourceKey="ImageBackground"/>
   </UserControl.Background>
 
-  <Grid>
-    <DockPanel>
+  <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, *">
+	  <!-- Draggable titlebar region -->
+	  <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+			  Height="40"
+			  Background="Transparent"
+			  PointerPressed="OnTitleBarPointerPressed"
+			  IsHitTestVisible="True">
+		  <Grid ColumnDefinitions="Auto, *, Auto">
+			  <!-- Icon and Title -->
+			  <StackPanel Grid.Column="0"
+						  Orientation="Horizontal"
+						  Spacing="8"
+						  Margin="12,0"
+						  VerticalAlignment="Center"
+						  IsHitTestVisible="False">
+				  <Image Source="/Assets/Images/EditorIcon.png"
+						 Width="20" Height="20"/>
+				  <TextBlock Text="{Binding $parent[Window].Title}"
+							 VerticalAlignment="Center"
+							 FontWeight="SemiBold"/>
+			  </StackPanel>
+		  </Grid>
+	  </Border>
+	  <DockPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
       <!-- Status -->
       <Border DockPanel.Dock="Bottom"
               Background="{DynamicResource BackgroundEmphasis}"
@@ -205,6 +227,7 @@
                     <!-- Launch game studio -->
                     <Button Command="{Binding StartStudioCommand}"
                             Content="{Binding ActiveVersion.FullName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
+                            Padding="0, 3, 0, 0"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Background="{DynamicResource BackgroundEmphasis}"
@@ -411,17 +434,18 @@
                               </ToggleButton>
                               <Popup x:Name="Popup"
                                      IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
-                                <Border Margin="4" Background="{DynamicResource SystemChromeMediumLowColor}">
+                                <Border Margin="4" Background="{DynamicResource SystemChromeMediumLowColor}" CornerRadius="5">
                                   <Border.Effect>
                                     <DropShadowEffect BlurRadius="5" Opacity="0.4" />
                                   </Border.Effect>
-                                  <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="256">
+                                  <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="400">
                                     <ItemsControl ItemsSource="{Binding AlternateVersions}">
                                       <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type vm:StrideStoreAlternateVersionViewModel}">
                                           <Button Content="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}"
                                                   Command="{Binding SetAsActiveCommand}"
-                                                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                                                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                                  Padding="5" Margin="5">
                                             <Interaction.Behaviors>
                                               <EventTriggerBehavior EventName="Click">
                                                 <ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="False" />
@@ -520,7 +544,7 @@
               <!-- Recent projects  -->
               <DockPanel>
                 <Border DockPanel.Dock="Top">
-                  <DockPanel Height="48" Margin="10,0">
+                  <DockPanel Height="76" Margin="10,0">
                     <Image Source="/Assets/Images/recent-projects.png"
                            Width="26" Height="26"
                            VerticalAlignment="Center" />
@@ -569,20 +593,24 @@
                                     </Popup>
                                     <TextBlock DockPanel.Dock="Bottom"
                                                Text="{Binding FullPath}"
+                                               Margin="0, 10, 0, 0"
+                                               FontSize="12"
                                                FontStyle="Italic" />
                                   </DockPanel>
-                                  <DockPanel>
-                                    <!-- Discovering -->
-                                    <TextBlock Text="{Binding StrideVersionName}"
-                                               FontSize="14"
-                                               IsVisible="{Binding StrideVersionName, Converter={sd:ObjectToBool}}" />
-                                    <!-- Unknown -->
-                                    <TextBlock Text="{x:Static l:Strings.UnknownVersion}"
-                                               FontSize="14"
-                                               IsVisible="{Binding StrideVersionName, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
-                                    <TextBlock Text="{Binding Name}"
-                                               FontSize="16" FontWeight="Bold" />
-                                  </DockPanel>
+                                    <DockPanel LastChildFill="False">
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontSize="16"
+                                                   FontWeight="Bold"
+                                                   DockPanel.Dock="Left" />
+                                        <TextBlock Text="{Binding StrideVersionName}"
+                                                   FontSize="14"
+                                                   DockPanel.Dock="Right"
+                                                   IsVisible="{Binding StrideVersionName, Converter={sd:ObjectToBool}}" />
+                                        <TextBlock Text="{x:Static l:Strings.UnknownVersion}"
+                                                   FontSize="14"
+                                                   DockPanel.Dock="Right"
+                                                   IsVisible="{Binding StrideVersionName, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
+                                    </DockPanel>
                                 </DockPanel>
                               </Button>
                               <Border.ContextMenu>
@@ -603,7 +631,7 @@
 
             <!-- THIRD COLUMN -->
             <Border Grid.Column="1">
-              <TabControl>
+              <TabControl Margin="0, 5, 0, 0">
                 <TabControl.ItemsPanel>
                   <ItemsPanelTemplate>
                     <UniformGrid Rows="1" Height="32" Margin="0,12,0,32"/>
@@ -612,16 +640,19 @@
                 <TabControl.Styles>
                   <Style Selector="TabItem">
                     <Setter Property="FontSize" Value="18" />
+                    <Setter Property="HorizontalAlignment" Value="Center"></Setter>
                   </Style>
                 </TabControl.Styles>
                 <!-- Getting started -->
                 <TabItem Header="{x:Static l:Strings.TabGettingStarted}">
-                  <ScrollViewer>
+                  <ScrollViewer Margin="0, 5, 0, 0">
                     <StackPanel>
                       <Border IsVisible="{Binding !ActiveDocumentationPages.Count, FallbackValue={x:False}}">
                         <TextBlock Text="{x:Static l:Strings.NoDocumentation}"
-                                   FontSize="16" Margin="20"
-                                   TextAlignment="Center" VerticalAlignment="Center" />
+                                   FontSize="16"
+                                   Margin="20"
+                                   TextAlignment="Center"
+                                   VerticalAlignment="Center" />
                       </Border>
                       <ItemsControl ItemsSource="{Binding ActiveDocumentationPages}">
                         <ItemsControl.ItemTemplate>
@@ -629,12 +660,18 @@
                             <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTileList}">
                               <Button Command="{Binding OpenUrlCommand}"
                                       HorizontalAlignment="Stretch"
+                                      Padding="10"
                                       HorizontalContentAlignment="Stretch">
                                 <DockPanel>
                                   <TextBlock DockPanel.Dock="Top"
+                                             FontWeight="Bold"
+                                             FontSize="14"
                                              HorizontalAlignment="Left"
                                              Text="{Binding Title}" />
-                                  <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                  <TextBlock Text="{Binding Description}"
+                                             Margin="0, 5, 0, 0"
+                                             FontSize="12"
+                                             TextWrapping="Wrap" />
                                 </DockPanel>
                               </Button>
                             </Border>
@@ -664,9 +701,10 @@
                                 <DockPanel Margin="4">
                                   <TextBlock DockPanel.Dock="Top"
                                              Margin="0,4" HorizontalAlignment="Left"
-                                             FontSize="16"
+                                             FontSize="14"
                                              Text="{Binding Title}" TextWrapping="Wrap" />
                                   <TextBlock Margin="0,8,0,4" HorizontalAlignment="Right"
+                                             FontSize="12"
                                              Text="{Binding Date, StringFormat={x:Static l:Strings.NewsDate}}" />
                                 </DockPanel>
                               </Button>

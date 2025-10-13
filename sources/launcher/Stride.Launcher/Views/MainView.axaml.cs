@@ -2,7 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using Stride.Core.CodeEditorSupport.VisualStudio;
 using Stride.Launcher.Services;
 
@@ -30,6 +32,15 @@ public partial class MainView : UserControl
             .Any(ide => ide.InstallationVersion.Major == 16 || ide.InstallationVersion.Major == 17))
         {
             button.IsVisible = false;
+        }
+    }
+
+    private void OnTitleBarPointerPressed(object sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            var window = this.FindAncestorOfType<Window>();
+            window?.BeginMoveDrag(e);
         }
     }
 }
