@@ -125,6 +125,43 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public static void ConstraintsForceTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var e1 = new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+                var c = new OneBodyLinearMotorConstraintComponent
+                {
+                    A = e1,
+                    LocalOffset = Vector3.Zero,
+                    MotorMaximumForce = 3,
+                    MotorDamping = 1,
+                };
+
+                Assert.Equal(0f, c.GetAccumulatedForceMagnitude());
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new EntityComponent[] { e1, c }.Select(x => new Entity { x }));
+
+                Assert.Equal(0f, c.GetAccumulatedForceMagnitude());
+
+                do
+                {
+                    await e1.Simulation!.AfterUpdate();
+
+                    // Given current gravity, the constraint should pull the body in under 5 seconds,
+                    // otherwise something is wrong and this loop would likely continue indefinitely
+                    Assert.True(game.UpdateTime.Total.TotalSeconds < 5d);
+                } while (c.GetAccumulatedForceMagnitude() < float.BitDecrement(c.MotorMaximumForce));
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
         public static void OnContactRemovalTest()
         {
             var game = new GameTest();

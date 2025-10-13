@@ -53,6 +53,23 @@ public abstract class ConstraintComponentBase : EntityComponent
     /// <remarks> May not be attached if it is not in a scene, when not <see cref="Enabled"/>, when any of its target is null, not in a scene or in a different simulation </remarks>
     public abstract bool Attached { get; }
 
+    /// <summary>
+    /// Returns the squared sum of all impulses this constraint applied on the last tick
+    /// </summary>
+    /// <remarks>
+    /// Impulses increase depending on <see cref="BepuSimulation.FixedTimeStep"/>, as well as the amount of <see cref="BepuSimulation.SolverSubStep"/>.
+    /// You may want to use <see cref="GetAccumulatedForceMagnitude"/> instead.
+    /// </remarks>
+    public abstract float GetAccumulatedImpulseMagnitude();
+
+    /// <summary>
+    /// Returns the squared sum of all forces this constraint applied on the last tick
+    /// </summary>
+    /// <remarks>
+    /// This can be used to compare with a given motor constraints' MaximumForce property for example.
+    /// </remarks>
+    public abstract float GetAccumulatedForceMagnitude();
+
     protected abstract void BodiesChanged();
 
     internal abstract void Activate(BepuConfiguration bepuConfig);
