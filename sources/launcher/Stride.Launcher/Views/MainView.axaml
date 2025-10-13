@@ -599,19 +599,21 @@
                                                FontSize="12"
                                                FontStyle="Italic" />
                                   </DockPanel>
-                                    <DockPanel LastChildFill="False">
-                                        <TextBlock Text="{Binding Name}"
-                                                   FontSize="16"
-                                                   FontWeight="Bold"
-                                                   DockPanel.Dock="Left" />
+                                    <DockPanel>
+                                        <!-- Discovering -->
                                         <TextBlock Text="{Binding StrideVersionName}"
                                                    FontSize="14"
                                                    DockPanel.Dock="Right"
                                                    IsVisible="{Binding StrideVersionName, Converter={sd:ObjectToBool}}" />
+                                        <!-- Unknown -->
                                         <TextBlock Text="{x:Static l:Strings.UnknownVersion}"
                                                    FontSize="14"
                                                    DockPanel.Dock="Right"
                                                    IsVisible="{Binding StrideVersionName, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontSize="16"
+                                                   FontWeight="Bold"
+                                                   DockPanel.Dock="Left" />
                                     </DockPanel>
                                 </DockPanel>
                               </Button>
