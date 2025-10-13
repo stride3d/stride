@@ -74,7 +74,19 @@ namespace Stride.Importer.ThreeD
         {
             textureNameCount.Clear();
         }
-  
+
+        public void KeepOnlyMeshByName(string name)
+        {
+            keptMeshIndex = -1;
+            keptMeshNameHint = string.IsNullOrWhiteSpace(name) ? null : name;
+        }
+
+        public void KeepOnlyMeshByIndex(int index)
+        {
+            keptMeshNameHint = null;
+            keptMeshIndex = index >= 0 ? index : -1;
+        }
+
         public unsafe EntityInfo ExtractEntity(string inputFilename, string outputFilename, bool extractTextureDependencies, bool deduplicateMaterials)
         {
             try
@@ -191,18 +203,6 @@ namespace Stride.Importer.ThreeD
             var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags);
 
             return ProcessSkeleton(scene);
-        }
-
-        public void KeepOnlyMeshByName(string name)
-        {
-            keptMeshIndex = -1;
-            keptMeshNameHint = string.IsNullOrWhiteSpace(name) ? null : name;
-        }
-
-        public void KeepOnlyMeshByIndex(int index)
-        {
-            keptMeshNameHint = null;
-            keptMeshIndex = index >= 0 ? index : -1;
         }
 
         private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, aiPostProcessSteps postProcessFlags)

@@ -91,6 +91,9 @@ namespace Stride.Assets.Models
         [Category]
         public List<IModelModifier> Modifiers { get; } = new List<IModelModifier>();
 
+        [DataMember(55)]
+        public int KepMeshIndex { get; set; } = -1;
+
         /// <inheritdoc/>
         [DataMemberIgnore]
         public override UFile MainSource => Source;

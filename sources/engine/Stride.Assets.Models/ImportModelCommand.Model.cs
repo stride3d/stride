@@ -31,6 +31,8 @@ namespace Stride.Assets.Models
         public List<ModelMaterial> Materials { get; set; }
         public string EffectName { get; set; }
 
+        public int KeptMeshIndex { get; set; } = -1;
+
         public List<IModelModifier> ModelModifiers { get; set; }
 
         /// <summary>

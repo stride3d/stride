@@ -196,6 +196,7 @@ namespace Stride.Assets.Presentation.Templates
                                     var baseModel = (ModelAsset)firstModelItem.Asset;
                                     baseModel.Id = AssetId.New();
                                     baseModel.MeshName = rawMeshName;
+                                    baseModel.KepMeshIndex = i;
                                     itemForThisMesh = new AssetItem(UPath.Combine(parameters.TargetLocation, uniqueFile), baseModel);
                                 }
                                 else
@@ -203,6 +204,7 @@ namespace Stride.Assets.Presentation.Templates
                                     var clonedAsset = AssetCloner.Clone(firstModelItem.Asset);
                                     ((ModelAsset)clonedAsset).Id = AssetId.New();
                                     ((ModelAsset)clonedAsset).MeshName = rawMeshName;
+                                    ((ModelAsset)clonedAsset).KepMeshIndex = i;
                                     itemForThisMesh = new AssetItem(UPath.Combine(parameters.TargetLocation, uniqueFile), clonedAsset);
                                 }
                                 perMeshAssets.Add(itemForThisMesh);
