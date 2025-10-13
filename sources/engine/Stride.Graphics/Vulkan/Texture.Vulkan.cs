@@ -3,6 +3,7 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Runtime.CompilerServices;
+using Stride.Core;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
@@ -339,7 +340,7 @@ namespace Stride.Graphics
                     uploadMemory += alignment;
                     uploadOffset += alignment;
 
-                    Unsafe.CopyBlockUnaligned((void*) uploadMemory, (void*) (dataBoxes[i].DataPointer), (uint) slicePitch);
+                    Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) (dataBoxes[i].DataPointer), (uint) slicePitch);
 
                     if (Usage == GraphicsResourceUsage.Staging)
                     {

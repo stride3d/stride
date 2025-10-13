@@ -78,13 +78,16 @@ namespace Stride.Rendering
             if (parameterCollection.DataValues != null)
             {
                 if (parameterCollection.DataValues.Length == 0)
+                {
                     DataValues = [];
-                else {
+                }
+                else
+                {
                     DataValues = new byte[parameterCollection.DataValues.Length];
                     fixed (byte* dataValuesSources = parameterCollection.DataValues)
                     fixed (byte* dataValuesDest = DataValues)
                     {
-                        Unsafe.CopyBlockUnaligned(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
+                        Utilities.CopyWithAlignmentFallback(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
                     }
                 }
             }
@@ -322,14 +325,18 @@ namespace Stride.Rendering
             var stride = Align(Unsafe.SizeOf<T>());
             var values = new T[parameter.Count];
 
-            ref var data = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(DataValues), parameter.Offset);
-            for (int i = 0; i < values.Length; ++i)
+            fixed (byte* dataValues = DataValues)
             {
-                values[i] = Unsafe.ReadUnaligned<T>(ref data);
-                data = ref Unsafe.Add(ref data, stride);
-            }
+                var dataPtr = dataValues + parameter.Offset;
 
-            return values;
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    values[i] = Unsafe.Read<T>(dataPtr);
+                    dataPtr += stride;
+                }
+
+                return values;
+            }
         }
 
         /// <summary>
@@ -357,7 +364,7 @@ namespace Stride.Rendering
             fixed (byte* sourceDataValues = DataValues)
             fixed (byte* destDataValues = destination.DataValues)
             {
-                Unsafe.CopyBlockUnaligned(
+                Utilities.CopyWithAlignmentFallback(
                     destination: destDataValues + destParameter.Offset,
                     source: sourceDataValues + sourceParameter.Offset,
                     (uint)sizeInBytes);
@@ -371,7 +378,10 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <param name="value"></param>
         public unsafe void Set<T>(ValueParameter<T> parameter, T value) where T : struct
-            => Unsafe.WriteUnaligned(ref DataValues[parameter.Offset], value);
+        {
+            fixed (void* ptr = &DataValues[parameter.Offset])
+                Unsafe.Write(ptr, value);
+        }
 
         /// <summary>
         /// Sets a blittable value.
@@ -380,7 +390,10 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <param name="value"></param>
         public unsafe void Set<T>(ValueParameter<T> parameter, ref T value) where T : struct
-            => Unsafe.WriteUnaligned(ref DataValues[parameter.Offset], value);
+        {
+            fixed (void* ptr = &DataValues[parameter.Offset])
+                Unsafe.Write(ptr, value);
+        }
 
         /// <summary>
         /// Sets blittable values.
@@ -399,11 +412,15 @@ namespace Stride.Rendering
                 throw new IndexOutOfRangeException();
             }
 
-            ref var data = ref DataValues[parameter.Offset];
-            for (var i = 0; i < count; i++)
+            fixed (byte* dataValues = DataValues)
             {
-                Unsafe.WriteUnaligned(ref data, Unsafe.Add(ref firstValue, i));
-                data = ref Unsafe.Add(ref data, stride);
+                var dataPtr = dataValues + parameter.Offset;
+
+                for (int i = 0; i < count; ++i)
+                {
+                    Unsafe.Write(dataPtr, Unsafe.Add(ref firstValue, i));
+                    dataPtr += stride;
+                }
             }
         }
 
@@ -446,7 +463,10 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <returns></returns>
         public unsafe T Get<T>(ValueParameter<T> parameter) where T : struct
-            => Unsafe.ReadUnaligned<T>(ref DataValues[parameter.Offset]);
+        {
+            fixed (void* ptr = &DataValues[parameter.Offset])
+                return Unsafe.Read<T>(ptr);
+        }
 
         /// <summary>
         /// Gets a permutation.
@@ -802,7 +822,7 @@ namespace Stride.Rendering
                         {
                             fixed (byte* destDataValues = destination.DataValues)
                             fixed (byte* sourceDataValues = source.DataValues)
-                                Unsafe.CopyBlockUnaligned(
+                                Utilities.CopyWithAlignmentFallback(
                                     destination: destDataValues + range.DestStart,
                                     source: sourceDataValues + range.SourceStart,
                                     byteCount: (uint)range.Size);
@@ -815,7 +835,7 @@ namespace Stride.Rendering
             {
                 fixed (byte* destPtr = destination.DataValues)
                 fixed (byte* sourcePtr = source.DataValues)
-                    Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)destinationLayout.BufferSize);
+                    Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)destinationLayout.BufferSize);
 
                 var resourceCount = destinationLayout.ResourceCount;
                 for (int i = 0; i < resourceCount; ++i)

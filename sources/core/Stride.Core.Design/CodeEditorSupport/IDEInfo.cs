@@ -8,22 +8,20 @@ public sealed class IDEInfo
     /// <summary>
     /// Initializes a new instance of the <see cref="IDEInfo"/> class.
     /// </summary>
-    /// <param name="installationVersion">The version of the IDE instance.</param>
     /// <param name="displayName">The display name of the IDE instance</param>
     /// <param name="programPath">The path to the installation root of the IDE instance.</param>
-    /// <param name="instanceId">The unique identifier for this installation instance.</param>
     /// <param name="ideType">The type of IDE instance</param>
+    /// <param name="installationVersion">The version of the IDE instance.</param>
     /// <exception cref="ArgumentNullException"></exception>
-    public IDEInfo(Version installationVersion, string displayName, string? programPath, string instanceId, IDEType ideType)
+    public IDEInfo(string displayName, string? programPath, IDEType ideType, Version? installationVersion = null)
     {
         DisplayName = displayName ?? throw new ArgumentNullException(nameof(displayName));
-        InstallationVersion = installationVersion ?? throw new ArgumentNullException(nameof(installationVersion));
-        InstanceId = instanceId ?? throw new ArgumentNullException(nameof(instanceId));
         ProgramPath = programPath;
         IDEType = ideType;
+        InstallationVersion = installationVersion;
     }
     
-    public static readonly IDEInfo DefaultIDE = new(new Version("0.0"), "Default IDE", string.Empty, string.Empty, IDEType.VisualStudio);
+    public static readonly IDEInfo DefaultIDE = new( "Default IDE", string.Empty, IDEType.VisualStudio);
 
     /// <summary> 
     /// Gets the type of the IDE. 
@@ -37,22 +35,17 @@ public sealed class IDEInfo
 
     /// <summary>Gets the version of the product installed in this instance.</summary>
     /// <value>The version of the product installed in this instance.</value>
-    public Version InstallationVersion { get; }
+    public Version? InstallationVersion { get; }
 
     /// <summary>
     /// The path to the executable of this IDE, or <c>null</c>.
     /// </summary>
     public string? ProgramPath { get; }
-    
-    /// <summary>
-    /// The hex code for this installation instance. It is used, for example, to create a unique folder in %LocalAppData%
-    /// </summary>
-    public string InstanceId { get; }
 
     /// <summary>
     /// The path to the VSIX installer of this IDE, or <c>null</c>.
     /// </summary>
-    public string? VsixInstallerPath { get; set; }
+    public string? VsixInstallerPath { get; init; }
 
     /// <summary>
     /// The package names and versions of packages installed to this instance.
