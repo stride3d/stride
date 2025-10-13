@@ -874,7 +874,10 @@ namespace Stride.Importer.ThreeD
 
                 totalClusterCount = (int)mesh->MNumBones;
                 if (totalClusterCount > 0)
+                {
                     hasSkinningPosition = true;
+                    hasSkinningNormal = mesh->MNormals != null;
+                }
             }
 
             // Build the vertex declaration
