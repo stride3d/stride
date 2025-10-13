@@ -52,12 +52,48 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
+      - name: Install Android Workload
+        run: dotnet workload install android
+      - name: Remove Conflicting NDK
+        shell: pwsh
+        run: |
+          $conflictingNdk = "C:\Android\android-sdk\ndk\26.3.11579264"
+          if (Test-Path $conflictingNdk) {
+            Write-Host "Removing conflicting NDK 26.3.11579264"
+            Remove-Item -Path $conflictingNdk -Recurse -Force
+          }
+      - name: Setup Android
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 12266719
+          accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: true
+          packages: tools platform-tools ndk;21.4.7075529
+      - name: Configure NDK Environment
+        shell: pwsh
+        run: |
+          $ndkPath = "$env:ANDROID_SDK_ROOT\ndk\21.4.7075529"
+          echo "ANDROID_NDK_ROOT=$ndkPath" >> $env:GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$ndkPath" >> $env:GITHUB_ENV
+          echo "Using NDK at: $ndkPath"
+      - uses: microsoft/setup-msbuild@v2
+      - name: Debug NDK Configuration
+        shell: pwsh
+        run: |
+          Write-Host "ANDROID_SDK_ROOT: $env:ANDROID_SDK_ROOT"
+          Write-Host "ANDROID_NDK_ROOT: $env:ANDROID_NDK_ROOT"
+          Write-Host "ANDROID_NDK_HOME: $env:ANDROID_NDK_HOME"
+          Write-Host "NDK Path exists: $(Test-Path $env:ANDROID_NDK_ROOT)"
+          if (Test-Path "$env:ANDROID_NDK_ROOT\source.properties") {
+            Get-Content "$env:ANDROID_NDK_ROOT\source.properties"
+          }
       - name: Build
         run: |
-          dotnet msbuild build\Stride.Android.sln `
+          msbuild build\Stride.Android.sln `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Android `
             -p:StrideSkipUnitTests=true `
-            -p:StrideSkipAutoPack=true
+            -p:StrideSkipAutoPack=true `
+            -p:_AndroidNdkDirectory="$env:ANDROID_NDK_ROOT"
