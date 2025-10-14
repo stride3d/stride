@@ -5,14 +5,13 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Core.Assets.Editor.Services;
+using System.Collections.Generic;
 using Stride.Core.Annotations;
-using Stride.Core.Collections;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Engine;
@@ -71,7 +70,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                     {
                         // Find this light probe in Quantum
                         var assetNode = editor.NodeContainer.GetOrCreateNode(lightProbe);
-                        var zeroCoefficients = new FastList<Color3>();
+                        var zeroCoefficients = new List<Color3>();
                         for (int i = 0; i < LightProbeGenerator.LambertHamonicOrder * LightProbeGenerator.LambertHamonicOrder; ++i)
                             zeroCoefficients.Add(default(Color3));
                         assetNode[nameof(LightProbeComponent.Coefficients)].Update(zeroCoefficients);
@@ -108,22 +107,17 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
 
         private async Task CaptureCubemap()
         {
-            var dialog = ServiceProvider.Get<IEditorDialogService>().CreateFileSaveModalDialog();
-            dialog.Filters.Add(new FileDialogFilter("DDS texture", "dds"));
-            dialog.DefaultExtension = "dds";
-            if (editor.Session.SolutionPath != null)
-                dialog.InitialDirectory = editor.Session.SolutionPath.GetFullDirectory().ToWindowsPath();
-
-            var result = await dialog.ShowModal();
-            if (result == DialogResult.Ok)
+            var filepath = await ServiceProvider.Get<IDialogService>().SaveFilePickerAsync(
+                editor.Session.SolutionPath?.GetFullDirectory().ToOSPath(),
+                [new FilePickerFilter("DDS texture") { Patterns = ["*.dds"] }],
+                "dds");
+            if (filepath is not null)
             {
                 // Capture cubemap
-                using (var image = await CubemapService.CaptureCubemap())
-                {
-                    // And save it
-                    using (var file = File.Create(dialog.FilePath))
-                        image.Save(file, ImageFileType.Dds);
-                }
+                using var image = await CubemapService.CaptureCubemap();
+                // And save it
+                using var file = File.Create(filepath);
+                image.Save(file, ImageFileType.Dds);
             }
         }
     }

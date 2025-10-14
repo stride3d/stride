@@ -27,5 +27,5 @@ MapItems3:
     11000000110000001100000011000000~key2: 2
     12000000120000001200000012000000~key3: 3
     13000000130000001300000013000000~key4: 3
-CustomObjectWithProtectedSet:
+CustomObjectWithInternalSet:
     Name: customObject

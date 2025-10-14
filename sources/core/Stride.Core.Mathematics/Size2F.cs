@@ -21,122 +21,145 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Stride.Core.Mathematics
+namespace Stride.Core.Mathematics;
+
+/// <summary>
+/// Defines a 2D rectangular size (width,height).
+/// </summary>
+[DataContract("Size2F")]
+[DataStyle(DataStyle.Compact)]
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
+public struct Size2F : IEquatable<Size2F>, ISpanFormattable
 {
     /// <summary>
-    /// Defines a 2D rectangular size (width,height).
+    /// A zero size with (width, height) = (0,0)
     /// </summary>
-    [DataContract("Size2F")]
-    [DataStyle(DataStyle.Compact)]
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct Size2F : IEquatable<Size2F>
+    public static readonly Size2F Zero = new(0, 0);
+
+    /// <summary>
+    /// A zero size with (width, height) = (0,0)
+    /// </summary>
+    public static readonly Size2F Empty = Zero;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Size2F"/> struct.
+    /// </summary>
+    /// <param name="width">The x.</param>
+    /// <param name="height">The y.</param>
+    public Size2F(float width, float height)
     {
-        /// <summary>
-        /// A zero size with (width, height) = (0,0)
-        /// </summary>
-        public static readonly Size2F Zero = new Size2F(0, 0);
+        Width = width;
+        Height = height;
+    }
 
-        /// <summary>
-        /// A zero size with (width, height) = (0,0)
-        /// </summary>
-        public static readonly Size2F Empty = Zero;
+    /// <summary>
+    /// Width.
+    /// </summary>
+    [DataMember(0)]
+    public float Width;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Size2F"/> struct.
-        /// </summary>
-        /// <param name="width">The x.</param>
-        /// <param name="height">The y.</param>
-        public Size2F(float width, float height)
-        {
-            Width = width;
-            Height = height;
-        }
+    /// <summary>
+    /// Height.
+    /// </summary>
+    [DataMember(1)]
+    public float Height;
 
-        /// <summary>
-        /// Width.
-        /// </summary>
-        [DataMember(0)]
-        public float Width;
+    /// <summary>
+    /// Determines whether the specified <see cref="object"/> is equal to this instance.
+    /// </summary>
+    /// <param name="other">The <see cref="object"/> to compare with this instance.</param>
+    /// <returns>
+    ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
+    /// </returns>
+    public readonly bool Equals(Size2F other)
+    {
+        return other.Width == Width && other.Height == Height;
+    }
 
-        /// <summary>
-        /// Height.
-        /// </summary>
-        [DataMember(1)]
-        public float Height;
+    /// <inheritdoc/>
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
+    {
+        return obj is Size2F size && Equals(size);
+    }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="object"/> is equal to this instance.
-        /// </summary>
-        /// <param name="other">The <see cref="object"/> to compare with this instance.</param>
-        /// <returns>
-        ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public bool Equals(Size2F other)
-        {
-            return other.Width == Width && other.Height == Height;
-        }
+    /// <inheritdoc/>
+    public override readonly int GetHashCode()
+    {
+        return HashCode.Combine(Width, Height);
+    }
 
-        /// <inheritdoc/>
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (obj.GetType() != typeof(Size2F)) return false;
-            return Equals((Size2F)obj);
-        }
+    /// <summary>
+    /// Implements the operator ==.
+    /// </summary>
+    /// <param name="left">The left.</param>
+    /// <param name="right">The right.</param>
+    /// <returns>
+    /// The result of the operator.
+    /// </returns>
+    public static bool operator ==(Size2F left, Size2F right)
+    {
+        return left.Equals(right);
+    }
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (Width.GetHashCode() * 397) ^ Height.GetHashCode();
-            }
-        }
+    /// <summary>
+    /// Implements the operator !=.
+    /// </summary>
+    /// <param name="left">The left.</param>
+    /// <param name="right">The right.</param>
+    /// <returns>
+    /// The result of the operator.
+    /// </returns>
+    public static bool operator !=(Size2F left, Size2F right)
+    {
+        return !left.Equals(right);
+    }
 
-        /// <summary>
-        /// Implements the operator ==.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static bool operator ==(Size2F left, Size2F right)
-        {
-            return left.Equals(right);
-        }
+    /// <inheritdoc/>
+    public override readonly string ToString() => $"{this}";
 
-        /// <summary>
-        /// Implements the operator !=.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static bool operator !=(Size2F left, Size2F right)
-        {
-            return !left.Equals(right);
-        }
+    /// <summary>
+    /// Returns a <see cref="string"/> that represents this instance.
+    /// </summary>
+    /// <param name="format">The format.</param>
+    /// <param name="formatProvider">The format provider.</param>
+    /// <returns>
+    /// A <see cref="string"/> that represents this instance.
+    /// </returns>
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
+    {
+        var handler = new DefaultInterpolatedStringHandler(3, 2, formatProvider);
+        handler.AppendLiteral("(");
+        handler.AppendFormatted(Width, format);
+        handler.AppendLiteral(",");
+        handler.AppendFormatted(Height, format);
+        handler.AppendLiteral(")");
+        return handler.ToStringAndClear();
+    }
 
-        /// <inheritdoc/>
-        public override string ToString()
-        {
-            return string.Format("({0},{1})", Width, Height);
-        }                
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(3, 2, destination, provider, out _);
+        handler.AppendLiteral("(");
+        handler.AppendFormatted(Width, format1);
+        handler.AppendLiteral(",");
+        handler.AppendFormatted(Height, format1);
+        handler.AppendLiteral(")");
+        return destination.TryWrite(ref handler, out charsWritten);
+    }
 
-        /// <summary>
-        /// Deconstructs the vector's components into named variables.
-        /// </summary>
-        /// <param name="width">The Width component</param>
-        /// <param name="height">The Height component</param>
-        public void Deconstruct(out float width, out float height)
-        {
-            width = Width;
-            height = Height;
-        }
+    /// <summary>
+    /// Deconstructs the vector's components into named variables.
+    /// </summary>
+    /// <param name="width">The Width component</param>
+    /// <param name="height">The Height component</param>
+    public readonly void Deconstruct(out float width, out float height)
+    {
+        width = Width;
+        height = Height;
     }
 }

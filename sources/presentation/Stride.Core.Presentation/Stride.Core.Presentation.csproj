@@ -1,17 +1,11 @@
 <Project>
-
   <Import Project="..\..\targets\Stride.Core.props" />
 
   <PropertyGroup>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-    <StrideLocalized>true</StrideLocalized>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\build\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <UseWPF>true</UseWPF>
-    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,31 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.3" />
-    <Compile Update="**\*.xaml.cs" SubType="Code" DependentUpon="%(Filename)" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
-    <ProjectReference Include="..\..\presentation\Stride.Core.Translation.Presentation\Stride.Core.Translation.Presentation.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Resources\Cursors\CursorDrag.cur" />
-    <Resource Include="Resources\Images\calendar--pencil.png" />
-    <Resource Include="Resources\Images\close_window.png" />
-    <Resource Include="Resources\Images\error-32.png" />
-    <Resource Include="Resources\Images\info-32.png" />
-    <Resource Include="Resources\Images\question-32.png" />
-    <Resource Include="Resources\Images\gear--pencil.png" />
-    <Resource Include="Resources\Images\lock-unlock.png" />
-    <Resource Include="Resources\Images\lock.png" />
-    <Resource Include="Resources\Images\eraser.png" />
-    <Resource Include="Resources\Images\ruler-triangle.png" />
-    <Resource Include="Resources\Images\cursor_north_south.png" />
-    <Resource Include="Resources\Images\cursor_west_east.png" />
-    <Resource Include="Resources\Images\warning-32.png" />
+    <ProjectReference Include="..\..\core\Stride.Core.Translation\Stride.Core.Translation.csproj" />
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />

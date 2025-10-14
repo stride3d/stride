@@ -21,7 +21,7 @@ namespace Stride.Graphics.Data
                 var isStreamable = stream.ReadBoolean();
                 if (!isStreamable)
                 {
-                    var image = Image.Load(stream.NativeStream);
+                    var image = Image.Load(stream.UnderlyingStream);
                     textureData.InitializeFrom(image);
                 }
                 else
@@ -41,7 +41,7 @@ namespace Stride.Graphics.Data
             }
             else
             {
-                textureData.Save(stream.NativeStream, ImageFileType.Stride);
+                textureData.Save(stream.UnderlyingStream, ImageFileType.Stride);
             }
         }
 
@@ -122,7 +122,7 @@ namespace Stride.Graphics.Data
                             if (!chunk.IsLoaded)
                                 throw new ContentStreamingException("Data chunk is not loaded.", storage);
 
-                            Unsafe.CopyBlockUnaligned((void*)bufferPtr, (void*)data, (uint)chunk.Size);
+                            Utilities.CopyWithAlignmentFallback((void*)bufferPtr, (void*)data, (uint)chunk.Size);
                             bufferPtr += chunk.Size;
                         }
                     }

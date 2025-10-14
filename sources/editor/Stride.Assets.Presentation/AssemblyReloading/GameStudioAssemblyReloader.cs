@@ -58,7 +58,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                     throw;
                 }
 
-                var reloadOperation = new ReloadAssembliesOperation(assemblyContainer, modifiedAssemblies, Enumerable.Empty<IDirtiable>());
+                var reloadOperation = new ReloadAssembliesOperation(assemblyContainer, modifiedAssemblies, []);
                 session.UndoRedoService.SetName(reloadOperation, "Reload assemblies");
 
                 // Reload assemblies
@@ -66,15 +66,14 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 session.UndoRedoService.PushOperation(reloadOperation);
 
                 postReloadAction();
-                var postReloadOperation = new AnonymousDirtyingOperation(Enumerable.Empty<IDirtiable>(), postReloadAction, postReloadAction);
+                var postReloadOperation = new AnonymousDirtyingOperation([], postReloadAction, postReloadAction);
                 session.UndoRedoService.PushOperation(postReloadOperation);
                 session.UndoRedoService.SetName(postReloadOperation, "Post reload action");
 
                 // Restore deserialized objects (or IUnloadable if it didn't work)
-                var reloadingVisitor = new ReloadingVisitor(log, loadedAssembliesSet);
                 try
                 {
-                    PostAssemblyReloading(session.UndoRedoService, session.AssetNodeContainer, reloadingVisitor, log, assetItemsToReload);
+                    PostAssemblyReloading(session.UndoRedoService, session.AssetNodeContainer, log, assetItemsToReload);
                 }
                 catch (Exception e)
                 {
@@ -132,7 +131,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             return assetItemsToReload;
         }
 
-        private static void PostAssemblyReloading(IUndoRedoService actionService, SessionNodeContainer nodeContainer, ReloadingVisitor reloaderVisitor, ILogger log, Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload)
+        private static void PostAssemblyReloading(IUndoRedoService actionService, SessionNodeContainer nodeContainer, ILogger log, Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload)
         {
             log?.Info("Updating components with newly loaded assemblies");
 
@@ -140,7 +139,43 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             foreach (var asset in assetItemsToReload)
             {
                 // Deserialize objects with reloaded types from Yaml
-                reloaderVisitor.Run(asset.Key.Asset, asset.Value);
+                var objectReferences = new YamlAssetMetadata<Guid>();
+                foreach (var itemToReload in asset.Value)
+                {
+                    var expectedPath = itemToReload.Path.Decompose().LastOrDefault()?.GetIndex() != null ? itemToReload.ParentPath : itemToReload.Path;
+                    if (expectedPath.TryGetValue(asset.Key.Asset, out _) == false)
+                        continue;
+
+                    var eventReader = new EventReader(new MemoryParser(itemToReload.ParsingEvents));
+                    var settings = log != null ? new SerializerContextSettings { Logger = log } : null;
+                    PropertyContainer properties;
+                    itemToReload.UpdatedObject = AssetYamlSerializer.Default.Deserialize(eventReader, null, itemToReload.ExpectedType, out properties, settings);
+
+                    // We will have broken references here because we are deserializing objects individually, so we don't pass any logger to discard warnings
+                    var metadata = YamlAssetSerializer.CreateAndProcessMetadata(properties, itemToReload.UpdatedObject, false);
+
+                    itemToReload.Overrides = metadata.RetrieveMetadata(AssetObjectSerializerBackend.OverrideDictionaryKey);
+
+                    var references = metadata.RetrieveMetadata(AssetObjectSerializerBackend.ObjectReferencesKey);
+                    if (references != null)
+                    {
+                        var basePath = YamlAssetPath.FromMemberPath(expectedPath, asset.Key.Asset);
+                        foreach (var reference in references)
+                        {
+                            var basePathWithIndex = basePath.Clone();
+                            if (itemToReload.GraphPathIndex != NodeIndex.Empty)
+                            {
+                                if (itemToReload.ItemId == ItemId.Empty)
+                                    basePathWithIndex.PushIndex(itemToReload.GraphPathIndex.Value);
+                                else
+                                    basePathWithIndex.PushItemId(itemToReload.ItemId);
+                            }
+
+                            var actualPath = basePathWithIndex.Append(reference.Key);
+                            objectReferences.Set(actualPath, reference.Value);
+                        }
+                    }
+                }
 
                 // Set new values
                 var overrides = new YamlAssetMetadata<OverrideType>();
@@ -164,7 +199,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                     }
                 }
 
-                FixupObjectReferences.RunFixupPass(asset.Key.Asset, reloaderVisitor.ObjectReferences, true, false, log);
+                FixupObjectReferences.RunFixupPass(asset.Key.Asset, objectReferences, true, false, log);
 
                 var rootNode = (IAssetNode)nodeContainer.GetNode(asset.Key.Asset);            
                 AssetPropertyGraph.ApplyOverrides(rootNode, overrides);
@@ -192,10 +227,22 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 operationType = ContentChangeType.CollectionRemove;
                 ((IObjectNode)node).Remove(oldValue, index);
             }
-            else
+            else if (node is IMemberNode memberNode)
             {
                 operationType = ContentChangeType.ValueChange;
-                ((IMemberNode)node).Update(null);
+                memberNode.Update(null);
+            }
+            else if (node is IObjectNode objectNode)
+            {
+                var unloadedAsset = (Asset)UnloadableObjectInstantiator.CreateUnloadableObject(typeof(Asset), itemToReload.ExpectedType.Name, "Test", "Reloading", itemToReload.ParsingEvents);
+                unloadedAsset.Id = asset.Id;
+                asset.UpdateAsset(unloadedAsset, new LoggerResult());
+                operationType = ContentChangeType.ValueChange;
+                //objectNode.Update(unloadedAsset, NodeIndex.Empty);
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
 
             // Save the change on the stack
@@ -221,10 +268,20 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 operationType = ContentChangeType.CollectionAdd;
                 ((IAssetObjectNode)node).Restore(itemToReload.UpdatedObject, index, itemToReload.ItemId);
             }
-            else
+            else if (node is IMemberNode memberNode)
             {
                 operationType = ContentChangeType.ValueChange;
-                ((IMemberNode)node).Update(itemToReload.UpdatedObject);
+                memberNode.Update(itemToReload.UpdatedObject);
+            }
+            else if (node is IObjectNode objectNode)
+            {
+                operationType = ContentChangeType.ValueChange;
+                //objectNode.Update(itemToReload.UpdatedObject, NodeIndex.Empty);
+                asset.UpdateAsset((Asset)itemToReload.UpdatedObject, new LoggerResult());
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
 
             // Save the change on the stack
@@ -249,6 +306,18 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 UnloadedAssemblies = unloadedAssemblies;
             }
 
+            public override void VisitObject(object obj, ObjectDescriptor descriptor, bool visitMembers)
+            {
+                // For asset roots (not reference), we want the base type rather than the real one (which will be unloaded)
+                var expectedType = descriptor.Type;
+                if (obj is Asset)
+                    expectedType = typeof(Asset);
+
+                if (ProcessObject(obj, expectedType)) return;
+
+                base.VisitObject(obj, descriptor, visitMembers);
+            }
+
             public override void VisitCollectionItem(IEnumerable collection, CollectionDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
             {
                 if (ProcessObject(item, descriptor.ElementType)) return;
@@ -261,13 +330,6 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 if (ProcessObject(item, descriptor.ElementType)) return;
 
                 base.VisitArrayItem(array, descriptor, index, item, itemDescriptor);
-            }
-
-            public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object value)
-            {
-                if (ProcessObject(value, member.TypeDescriptor.Type)) return;
-
-                base.VisitObjectMember(container, containerDescriptor, member, value);
             }
 
             public override void VisitDictionaryKeyValue(object dictionary, DictionaryDescriptor descriptor, object key, ITypeDescriptor keyDescriptor, object value, ITypeDescriptor valueDescriptor)
@@ -363,71 +425,6 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                     }
                 }
                 return metadata;
-            }
-        }
-
-        private class ReloadingVisitor : ReloaderVisitorBase
-        {
-            private Asset root;
-            public YamlAssetMetadata<Guid> ObjectReferences;
-
-            public ReloadingVisitor(ILogger log, HashSet<Assembly> unloadedAssemblies)
-                : base(log, unloadedAssemblies)
-            {
-            }
-
-            public void Run(Asset asset, List<ItemToReload> itemsToReload)
-            {
-                Reset();
-                ItemsToReload = itemsToReload;
-                root = asset;
-                ObjectReferences = new YamlAssetMetadata<Guid>();
-                Visit(asset);
-                ItemsToReload = null;
-            }
-
-            protected override bool ProcessObject(object obj, Type expectedType)
-            {
-                foreach (var unloadedObject in ItemsToReload)
-                {
-                    // If a collection, stop at parent path level (since index will be already removed, we will never visit the target slot)
-                    // TODO: Check if the fact we didn't enter in an item with index affect visitor states
-                    // Other case, stop on the actual member (since we'll just visit null)
-                    var expectedPath = unloadedObject.Path.Decompose().Last().GetIndex() != null ? unloadedObject.ParentPath : unloadedObject.Path;
-
-                    if (CurrentPath.Match(expectedPath))
-                    {
-                        var eventReader = new EventReader(new MemoryParser(unloadedObject.ParsingEvents));
-                        var settings = Log != null ? new SerializerContextSettings { Logger = Log } : null;
-                        PropertyContainer properties;
-                        unloadedObject.UpdatedObject = AssetYamlSerializer.Default.Deserialize(eventReader, null, unloadedObject.ExpectedType, out properties, settings);
-                        // We will have broken references here because we are deserializing objects individually, so we don't pass any logger to discard warnings
-                        var metadata = YamlAssetSerializer.CreateAndProcessMetadata(properties, unloadedObject.UpdatedObject, false);
-
-                        var overrides = metadata.RetrieveMetadata(AssetObjectSerializerBackend.OverrideDictionaryKey);
-                        unloadedObject.Overrides = overrides;
-
-                        var references = metadata.RetrieveMetadata(AssetObjectSerializerBackend.ObjectReferencesKey);
-                        if (references != null)
-                        {
-                            var basePath = YamlAssetPath.FromMemberPath(CurrentPath, root);
-                            foreach (var reference in references)
-                            {
-                                var basePathWithIndex = basePath.Clone();
-                                if (unloadedObject.GraphPathIndex != NodeIndex.Empty)
-                                {
-                                    if (unloadedObject.ItemId == ItemId.Empty)
-                                        basePathWithIndex.PushIndex(unloadedObject.GraphPathIndex.Value);
-                                    else
-                                        basePathWithIndex.PushItemId(unloadedObject.ItemId);
-                                }
-                                var actualPath = basePathWithIndex.Append(reference.Key);
-                                ObjectReferences.Set(actualPath, reference.Value);
-                            }
-                        }
-                    }
-                }
-                return false;
             }
         }
 

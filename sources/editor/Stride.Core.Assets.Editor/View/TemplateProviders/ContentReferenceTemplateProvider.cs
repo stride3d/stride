@@ -1,9 +1,5 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Presentation.Quantum;
-using Stride.Core.Presentation.Quantum.View;
 using Stride.Core.Presentation.Quantum.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.TemplateProviders
@@ -16,16 +12,14 @@ namespace Stride.Core.Assets.Editor.View.TemplateProviders
 
         public override bool MatchNode(NodeViewModel node)
         {
-            var isReference = typeof(AssetReference).IsAssignableFrom(node.Type);
-
-            if (!isReference)
+            if (AssetRegistry.CanBeAssignedToContentTypes(node.Type, checkIsUrlType: true))
             {
-                isReference = AssetRegistry.IsContentType(node.Type);
+                object hasDynamic;
+                node.AssociatedData.TryGetValue("DynamicThumbnail", out hasDynamic);
+                return (bool)(hasDynamic ?? false) == DynamicThumbnail;
             }
 
-            object hasDynamic;
-            node.AssociatedData.TryGetValue("DynamicThumbnail", out hasDynamic);
-            return isReference && (bool)(hasDynamic ?? false) == DynamicThumbnail;
+            return false;
         }
     }
 }

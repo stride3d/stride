@@ -3,8 +3,7 @@
                     xmlns:templateProviders="clr-namespace:Stride.Assets.Presentation.TemplateProviders"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
                     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-                    xmlns:qvm="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
-                    xmlns:view="clr-namespace:Stride.Core.Presentation.Quantum.View;assembly=Stride.Core.Presentation.Quantum">
+                    xmlns:qvm="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum">
 
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/DefaultPropertyTemplateProviders.xaml"/>
@@ -34,7 +33,7 @@
           <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
             <CheckBox Margin="4,0" VerticalAlignment="Center"
                       IsThreeState="{Binding Enabled.NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static qvm:NodeViewModel.DifferentValues}}"
-                      IsChecked="{Binding Enabled.NodeValue, Converter={view:DifferentValueToParam}, ConverterParameter={x:Null}}"
+                      IsChecked="{Binding Enabled.NodeValue, Converter={sd:DifferentValueToParam}, ConverterParameter={x:Null}}"
                       Visibility="{Binding HasChild_Enabled, Converter={sd:VisibleOrCollapsed}}"/>
             <Image Source="{Binding NodeValue, Converter={sd:Chained {sd:ObjectToType}, {sd:TypeToResource}}}" MaxWidth="16" MaxHeight="16"
                    RenderOptions.BitmapScalingMode="NearestNeighbor" Margin="0,0,4,0"/>

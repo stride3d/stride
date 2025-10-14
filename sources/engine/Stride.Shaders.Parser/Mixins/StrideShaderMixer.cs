@@ -1319,7 +1319,12 @@ namespace Stride.Shaders.Parser.Mixins
         /// <returns>true/false</returns>
         private bool IsOutOfCBufferVariable(Variable variable)
         {
-            return variable.Type.IsSamplerType() || variable.Type is TextureType || variable.Type.IsStateType() || variable.Type.ResolveType() is ObjectType;
+            return variable.Type.IsSamplerType()
+                || variable.Type is TextureType
+                || variable.Type.IsStateType()
+                || variable.Type.ResolveType() is ObjectType
+                || variable.Qualifiers.Contains(StorageQualifier.Shared)
+                || variable.Qualifiers.Contains(StorageQualifier.GroupShared);
         }
 
         /// <summary>
@@ -1329,7 +1334,13 @@ namespace Stride.Shaders.Parser.Mixins
         /// <returns>true/false</returns>
         private bool KeepVariableInCBuffer(Variable variable)
         {
-            return !(variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern) || variable.Qualifiers.Contains(StrideStorageQualifier.Stream) || variable.Qualifiers.Contains(StrideStorageQualifier.PatchStream) || IsOutOfCBufferVariable(variable) || variable.Qualifiers.Contains(StorageQualifier.Const));
+            return !(variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern)
+                || variable.Qualifiers.Contains(StrideStorageQualifier.Stream)
+                || variable.Qualifiers.Contains(StrideStorageQualifier.PatchStream)
+                || IsOutOfCBufferVariable(variable)
+                || variable.Qualifiers.Contains(StorageQualifier.Const)
+                || variable.Qualifiers.Contains(StorageQualifier.Shared)
+                || variable.Qualifiers.Contains(StorageQualifier.GroupShared));
         }
 
         // Group everything by constant buffers

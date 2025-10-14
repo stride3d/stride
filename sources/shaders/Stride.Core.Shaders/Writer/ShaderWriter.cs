@@ -561,7 +561,7 @@ namespace Stride.Core.Shaders.Writer
                 return;
             }
 
-            var isStringLiteral = literal.Value is string && !literal.Text.StartsWith("\"");
+            var isStringLiteral = literal.Value is string && !literal.Text.StartsWith('\"');
             if (isStringLiteral)
             {
                 Write("\"");

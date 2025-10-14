@@ -6,6 +6,9 @@ namespace CSharpBeginner.Code
     /// <summary>
     /// This script demonstrates how to access the entity where the script is attached to. 
     /// We also learn how to access a parent of our entity and how to check if that entity exists.
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/entity.html
+    /// </para>
     /// </summary>
     public class GettingTheEntityDemo : SyncScript
     {

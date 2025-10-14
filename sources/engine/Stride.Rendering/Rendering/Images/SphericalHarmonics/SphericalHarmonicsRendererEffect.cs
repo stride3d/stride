@@ -17,6 +17,7 @@ namespace Stride.Rendering.Images.SphericalHarmonics
             EffectName = "SphericalHarmonicsRendererEffect";
         }
 
+        /// <inheritdoc/>
         protected override void UpdateParameters()
         {
             base.UpdateParameters();

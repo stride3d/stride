@@ -70,9 +70,15 @@ namespace Stride.Graphics
         public int PreferredFullScreenOutputIndex;
 
         /// <summary>
-        /// The colorspace used.
+        /// The colorspace of the rendering pipeline.
         /// </summary>
         public ColorSpace ColorSpace;
+
+        /// <summary>
+        /// The colorspace type used for the swapchain output. Currently only supported by the DirectX backend.
+        /// </summary>
+        public ColorSpaceType OutputColorSpace;
+        
 
         #endregion
 
@@ -92,6 +98,7 @@ namespace Stride.Graphics
             IsFullScreen = false;
             RefreshRate = new Rational(60, 1); // by default
             ColorSpace = ColorSpace.Linear;
+            OutputColorSpace = ColorSpaceType.RgbFullG22NoneP709; // default rgb output for monitors with a standard gamma of 2.2
         }
 
         /// <summary>

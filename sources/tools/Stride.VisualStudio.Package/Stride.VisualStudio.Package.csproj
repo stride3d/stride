@@ -2,7 +2,6 @@
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">17.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
@@ -18,6 +17,8 @@
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <VSSDKTargetPlatformRegRootSuffix>Stride</VSSDKTargetPlatformRegRootSuffix>
     <DefineConstants>$(DefineConstants);STRIDE_VSPACKAGE</DefineConstants>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>  
   <ItemGroup>
     <None Remove="NShader\Common\GLSLKeywords.map" />
@@ -25,16 +26,17 @@
     <None Remove="NShader\Common\StrideShaderKeywords.map" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.31902.203" ExcludeAssets="runtime">
+    <PackageReference Include="Microsoft.VisualStudio.SDK" ExcludeAssets="runtime">
         <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Build" Version="17.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.0.0" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.Commands" Version="6.4.0" />
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.Commands" />
+	<PackageReference Include="Polysharp" />
 
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Design" />
@@ -51,18 +53,18 @@
     </Compile>
     <Compile Include="..\..\core\Stride.Core.Design\Extensions\ExceptionExtensions.cs" Link="Assets\ExceptionExtensions.cs" />
     <Compile Include="..\..\core\Stride.Core.Design\PackageVersion.cs" Link="Core\PackageVersion.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\KeyedCollectionExtensions.cs" Link="Core\VisualStudio\KeyedCollectionExtensions.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\KnownProjectTypeGuid.cs" Link="Core\VisualStudio\KnownProjectTypeGuid.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\Project.cs" Link="Core\VisualStudio\Project.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\ProjectCollection.cs" Link="Core\VisualStudio\ProjectCollection.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\PropertyItem.cs" Link="Core\VisualStudio\PropertyItem.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\PropertyItemCollection.cs" Link="Core\VisualStudio\PropertyItemCollection.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\Section.cs" Link="Core\VisualStudio\Section.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\SectionCollection.cs" Link="Core\VisualStudio\SectionCollection.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\Solution.cs" Link="Core\VisualStudio\Solution.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\SolutionFileException.cs" Link="Core\VisualStudio\SolutionFileException.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\SolutionReader.cs" Link="Core\VisualStudio\SolutionReader.cs" />
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\SolutionWriter.cs" Link="Core\VisualStudio\SolutionWriter.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\KeyedCollectionExtensions.cs" Link="Core\Solutions\KeyedCollectionExtensions.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\KnownProjectTypeGuid.cs" Link="Core\Solutions\KnownProjectTypeGuid.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\Project.cs" Link="Core\Solutions\Project.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\ProjectCollection.cs" Link="Core\Solutions\ProjectCollection.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\PropertyItem.cs" Link="Core\Solutions\PropertyItem.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\PropertyItemCollection.cs" Link="Core\Solutions\PropertyItemCollection.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\Section.cs" Link="Core\Solutions\Section.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\SectionCollection.cs" Link="Core\Solutions\SectionCollection.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\Solution.cs" Link="Core\Solutions\Solution.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionFileException.cs" Link="Core\Solutions\SolutionFileException.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionReader.cs" Link="Core\Solutions\SolutionReader.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\Solutions\SolutionWriter.cs" Link="Core\Solutions\SolutionWriter.cs" />
     <Compile Include="..\..\core\Stride.Core\ScalarStyle.cs" Link="Yaml\ScalarStyle.cs" />
     <Compile Include="..\..\core\Stride.Core\DataStyle.cs" Link="Yaml\DataStyle.cs" />
     <Compile Include="..\..\core\Stride.Core.Yaml\*.cs" Link="Yaml\%(Filename)%(Extension).cs" />
@@ -77,9 +79,6 @@
     <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="Core\LoaderToolLocator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="MyControl.xaml.cs">
-      <DependentUpon>MyControl.xaml</DependentUpon>
-    </Compile>
     <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -131,12 +130,6 @@
     <EmbeddedResource Include="NShader\Common\StrideShaderKeywords.map" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="MyControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
@@ -146,9 +139,7 @@
     <Folder Include="NuGet\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj">
-      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
-    </ProjectReference>
+    <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>

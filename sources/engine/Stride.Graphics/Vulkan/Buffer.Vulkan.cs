@@ -2,11 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
-using System.Collections.Generic;
-
+using System.Runtime.CompilerServices;
+using Stride.Core;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
-using Stride.Core;
 
 namespace Stride.Graphics
 {
@@ -28,7 +27,7 @@ namespace Stride.Graphics
             bufferDescription = description;
             //nativeDescription = ConvertToNativeDescription(Description);
             ViewFlags = viewFlags;
-            InitCountAndViewFormat(out this.elementCount, ref viewFormat);
+            InitCountAndViewFormat(out elementCount, ref viewFormat);
             ViewFormat = viewFormat;
             Recreate(dataPointer);
 
@@ -90,8 +89,8 @@ namespace Stride.Graphics
             var createInfo = new VkBufferCreateInfo
             {
                 sType = VkStructureType.BufferCreateInfo,
-                size = (ulong)bufferDescription.SizeInBytes,
-                flags = VkBufferCreateFlags.None,
+                size = (ulong) bufferDescription.SizeInBytes,
+                flags = VkBufferCreateFlags.None
             };
 
             createInfo.usage |= VkBufferUsageFlags.TransferSrc;
@@ -128,6 +127,18 @@ namespace Stride.Graphics
                     NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader;
                 }
 
+                if ((ViewFlags & BufferFlags.StructuredBuffer) != 0)
+                {
+                    createInfo.usage |= VkBufferUsageFlags.StorageBuffer;
+                    NativeAccessMask |= VkAccessFlags.UniformRead;
+                    NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader;
+
+                    if ((ViewFlags & BufferFlags.UnorderedAccess) != 0)
+                    {
+                        NativeAccessMask |= VkAccessFlags.ShaderWrite;
+                    }
+                }
+
                 if ((ViewFlags & BufferFlags.ShaderResource) != 0)
                 {
                     createInfo.usage |= VkBufferUsageFlags.UniformTexelBuffer;
@@ -148,7 +159,7 @@ namespace Stride.Graphics
             // Allocate memory
             var memoryProperties = VkMemoryPropertyFlags.DeviceLocal;
             if (bufferDescription.Usage == GraphicsResourceUsage.Staging || Usage == GraphicsResourceUsage.Dynamic)
-            { 
+            {
                 memoryProperties = VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent;
             }
 
@@ -184,41 +195,39 @@ namespace Stride.Graphics
                     if (Usage == GraphicsResourceUsage.Dynamic)
                     {
                         void* uploadMemory;
-                        vkMapMemory(GraphicsDevice.NativeDevice, NativeMemory, 0, (ulong)SizeInBytes, VkMemoryMapFlags.None, &uploadMemory);
-                        Utilities.CopyMemory((IntPtr)uploadMemory, dataPointer, SizeInBytes);
+                        vkMapMemory(GraphicsDevice.NativeDevice, NativeMemory, 0, (ulong) SizeInBytes, VkMemoryMapFlags.None, &uploadMemory);
+                        Utilities.CopyWithAlignmentFallback(uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
                         vkUnmapMemory(GraphicsDevice.NativeDevice, NativeMemory);
                     }
                     else
                     {
                         var sizeInBytes = bufferDescription.SizeInBytes;
-                        VkBuffer uploadResource;
-                        int uploadOffset;
-                        var uploadMemory = GraphicsDevice.AllocateUploadBuffer(sizeInBytes, out uploadResource, out uploadOffset);
+                        var uploadMemory = GraphicsDevice.AllocateUploadBuffer(sizeInBytes, out var uploadResource, out var uploadOffset);
 
-                        Utilities.CopyMemory(uploadMemory, dataPointer, sizeInBytes);
+                        Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) sizeInBytes);
 
                         // Barrier
-                        var memoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong)uploadOffset, (ulong)sizeInBytes);
-                        vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 1, &memoryBarrier, 0, null);
+                        var memoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong) uploadOffset, (ulong) sizeInBytes);
+                        vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &memoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
 
                         // Copy
                         var bufferCopy = new VkBufferCopy
                         {
-                            srcOffset = (uint)uploadOffset,
+                            srcOffset = (uint) uploadOffset,
                             dstOffset = 0,
-                            size = (uint)sizeInBytes
+                            size = (uint) sizeInBytes
                         };
                         vkCmdCopyBuffer(commandBuffer, uploadResource, NativeBuffer, 1, &bufferCopy);
                     }
                 }
                 else
                 {
-                    vkCmdFillBuffer(commandBuffer, NativeBuffer, 0, (uint)bufferDescription.SizeInBytes, 0);
+                    vkCmdFillBuffer(commandBuffer, NativeBuffer, 0, (uint) bufferDescription.SizeInBytes, 0);
                 }
 
                 // Barrier
                 var bufferMemoryBarrier = new VkBufferMemoryBarrier(NativeBuffer, VkAccessFlags.TransferWrite, NativeAccessMask);
-                vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 1, &bufferMemoryBarrier, 0, null);
+                vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &bufferMemoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
 
                 // Close and submit
                 vkEndCommandBuffer(commandBuffer);
@@ -227,7 +236,7 @@ namespace Stride.Graphics
                 {
                     sType = VkStructureType.SubmitInfo,
                     commandBufferCount = 1,
-                    pCommandBuffers = &commandBuffer,
+                    pCommandBuffers = &commandBuffer
                 };
 
                 lock (GraphicsDevice.QueueLock)
@@ -237,7 +246,7 @@ namespace Stride.Graphics
                     //commandBuffer.Reset(VkCommandBufferResetFlags.None);
                 }
 
-                vkFreeCommandBuffers(GraphicsDevice.NativeDevice, GraphicsDevice.NativeCopyCommandPools.Value, 1, &commandBuffer);
+                vkFreeCommandBuffers(GraphicsDevice.NativeDevice, GraphicsDevice.NativeCopyCommandPools.Value, commandBufferCount: 1, &commandBuffer);
 
                 InitializeViews();
             }
@@ -268,11 +277,11 @@ namespace Stride.Graphics
                 sType = VkStructureType.BufferViewCreateInfo,
                 buffer = NativeBuffer,
                 format = viewFormat == PixelFormat.None ? VkFormat.Undefined : VulkanConvertExtensions.ConvertPixelFormat(viewFormat),
-                range = (ulong)SizeInBytes, // this.ElementCount
+                range = (ulong) SizeInBytes, // this.ElementCount
                 //view = (Description.BufferFlags & BufferFlags.RawBuffer) != 0 ? VkBufferViewType.Raw : VkBufferViewType.Formatted,
             };
 
-            vkCreateBufferView(GraphicsDevice.NativeDevice, &createInfo, null, out var bufferView);
+            vkCreateBufferView(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out var bufferView);
             return bufferView;
         }
 
@@ -302,5 +311,5 @@ namespace Stride.Graphics
             }
         }
     }
-} 
-#endif 
+}
+#endif

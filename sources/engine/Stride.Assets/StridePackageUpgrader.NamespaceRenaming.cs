@@ -33,7 +33,7 @@ namespace Stride.Assets
                     // Search for all source files in project directory
                     foreach (var extension in new[] { new { Extension = ".csproj", Type = XenkoToStrideRenameHelper.StrideContentType.Project }, new { Extension = ".cs", Type = XenkoToStrideRenameHelper.StrideContentType.Code } })
                     {
-                        var files = allFiles.Where(file => file.ToLower().EndsWith(extension.Extension));
+                        var files = allFiles.Where(file => file.EndsWith(extension.Extension, StringComparison.OrdinalIgnoreCase));
                         foreach (var file in files)
                         {
                             XenkoToStrideRenameHelper.RenameStrideFile(file, extension.Type);

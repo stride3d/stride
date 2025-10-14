@@ -68,7 +68,7 @@ namespace Stride.Graphics.GeometricPrimitives
         /// </summary>
         /// <param name="graphicsDevice">The graphics device.</param>
         /// <param name="geometryMesh">The geometry mesh.</param>
-        /// <exception cref="System.InvalidOperationException">Cannot generate more than 65535 indices on feature level HW <= 9.3</exception>
+        /// <exception cref="System.InvalidOperationException">Cannot generate more than 65535 indices on feature level HW &lt;&#61; 9.3</exception>
         public GeometricPrimitive(GraphicsDevice graphicsDevice, GeometricMeshData<T> geometryMesh)
         {
             GraphicsDevice = graphicsDevice;
@@ -156,7 +156,8 @@ namespace Stride.Graphics.GeometricPrimitives
     }
 
     /// <summary>
-    /// A geometric primitive. Use <see cref="Cube"/>, <see cref="Cylinder"/>, <see cref="GeoSphere"/>, <see cref="Plane"/>, <see cref="Sphere"/>, <see cref="Teapot"/>, <see cref="Torus"/>. See <see cref="Draw+vertices"/> to learn how to use it.
+    /// A geometric primitive. Use <see cref="Cube"/>, <see cref="Cylinder"/>, <see cref="GeoSphere"/>, <see cref="Plane"/>, <see cref="Sphere"/>, <see cref="Teapot"/>, <see cref="Torus"/>.
+    /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/draw-vertices.html">Draw vertices</see> to learn how to use it.
     /// </summary>
     public partial class GeometricPrimitive : GeometricPrimitive<VertexPositionNormalTexture>
     {

@@ -25,7 +25,7 @@ namespace Stride.Animations
         public TrackingCollection<AnimationKeyFrame<T>> KeyFrames { get; set; } = new TrackingCollection<AnimationKeyFrame<T>>();
 
         // TODO This list will become AnimationCurve<T>
-        private FastList<AnimationKeyFrame<T>> sortedKeys = new FastList<AnimationKeyFrame<T>>(); 
+        private List<AnimationKeyFrame<T>> sortedKeys = []; 
 
         private int framesCount = 0;
         private bool HasChanged()

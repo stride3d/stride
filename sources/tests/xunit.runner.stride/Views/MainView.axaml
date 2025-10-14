@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:xunit.runner.stride.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="xunit.runner.stride.Views.MainView"
+             x:DataType="vm:MainViewModel">
+  <DockPanel DataContext="{Binding Tests}">
+    <CheckBox DockPanel.Dock="Top" Content="Interactive Mode" IsChecked="{Binding IsInteractiveMode}"/>
+    <ProgressBar DockPanel.Dock="Top"
+                 Height="16"
+                 Minimum="0" Maximum="100" Value="{Binding TestCompletion}" />
+    <TreeView ItemsSource="{Binding TestCases}">
+      <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="{x:Type vm:TestGroupViewModel}"
+                          ItemsSource="{Binding Children}">
+          <StackPanel Orientation="Horizontal">
+            <Menu>
+              <MenuItem Header="▶" FontFamily="Segoe UI Symbol" Foreground="Green" Command="{Binding RunTest}" IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"/>
+            </Menu>
+            <TextBlock Text="✘" FontFamily="Segoe UI Symbol" IsVisible="{Binding Failed}" Foreground="Red" />
+            <TextBlock Text="✔" FontFamily="Segoe UI Symbol" IsVisible="{Binding Succeeded}" Foreground="Green" />
+            <TextBlock Text="⭮" FontFamily="Segoe UI Symbol" IsVisible="{Binding Running}" Foreground="Blue" />
+            <TextBlock Text="{Binding DisplayName}" />
+            <TextBlock Text="(Running)" IsVisible="{Binding Running}" />
+          </StackPanel>
+        </TreeDataTemplate>
+        <DataTemplate DataType="{x:Type vm:TestNodeViewModel}">
+          <StackPanel Orientation="Horizontal">
+            <Menu>
+              <MenuItem Header="▶" FontFamily="Segoe UI Symbol" Foreground="Green" Command="{Binding RunTest}" IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"/>
+            </Menu>
+            <TextBlock Text="✘" FontFamily="Segoe UI Symbol" IsVisible="{Binding Failed}" Foreground="Red" />
+            <TextBlock Text="✔" FontFamily="Segoe UI Symbol" IsVisible="{Binding Succeeded}" Foreground="Green" />
+            <TextBlock Text="⭮" FontFamily="Segoe UI Symbol" IsVisible="{Binding Running}" Foreground="Blue" />
+            <TextBlock Text="{Binding DisplayName}" />
+            <TextBlock Text="(Running)" IsVisible="{Binding Running}" />
+          </StackPanel>
+        </DataTemplate>
+      </TreeView.DataTemplates>
+      <TreeView.Styles>
+        <Style Selector="TreeViewItem">
+          <!-- Start expanded -->
+          <Setter Property="IsExpanded" Value="True" />
+        </Style>
+      </TreeView.Styles>
+    </TreeView>
+  </DockPanel>
+</UserControl>

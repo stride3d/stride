@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Graphics;
@@ -30,6 +31,8 @@ namespace Stride.Rendering
     {
         [DataMemberIgnore]
         public static readonly PropertyKey<Dictionary<RenderModel, RenderInstancing>> ModelToInstancingMap = new PropertyKey<Dictionary<RenderModel, RenderInstancing>>("InstancingRenderFeature.ModelToInstancingMap", typeof(InstancingRenderFeature));
+
+        private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("InstancingRenderFeature.PrepareEffectPermutations");
 
         private StaticObjectPropertyKey<InstancingData> renderObjectInstancingDataInfoKey;
 
@@ -97,16 +100,14 @@ namespace Stride.Rendering
             }
         }
 
-        private static unsafe void SetBufferData<TData>(CommandList commandList, Buffer buffer, TData[] fromData, int elementCount) where TData : unmanaged
+        private static void SetBufferData<TData>(CommandList commandList, Buffer buffer, TData[] fromData, int elementCount) where TData : unmanaged
         {
-            fixed (void* from = fromData) {
-                var dataPointer = new DataPointer(from, Math.Min(elementCount, fromData.Length) * Unsafe.SizeOf<TData>());
-                buffer.SetData(commandList, dataPointer);
-            }
+            buffer.SetData(commandList, (ReadOnlySpan<TData>)fromData.AsSpan(0, Math.Min(elementCount, fromData.Length)));
         }
 
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
+            using var _ = Profiler.Begin(PrepareEffectPermutationsKey);
             var renderObjectInstancingData = RootRenderFeature.RenderData.GetData(renderObjectInstancingDataInfoKey);
 
             var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);

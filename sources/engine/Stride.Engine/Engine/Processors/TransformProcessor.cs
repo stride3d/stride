@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using Stride.Core.Collections;
 using Stride.Core.Threading;
@@ -93,9 +91,9 @@ namespace Stride.Engine.Processors
             }
         }
 
-        internal void UpdateTransformations(FastCollection<TransformComponent> transformationComponents)
+        internal unsafe void UpdateTransformations(FastCollection<TransformComponent> transformationComponents)
         {
-            Dispatcher.ForEach(transformationComponents, UpdateTransformationsRecursive);
+            Dispatcher.ForBatched(transformationComponents.Count, transformationComponents, &UpdateTransformationsRecursive);
 
             // Re-update model node links to avoid one frame delay compared reference model (ideally entity should be sorted to avoid this in future).
             if (ModelNodeLinkProcessor != null)
@@ -105,17 +103,18 @@ namespace Stride.Engine.Processors
                 {
                     modelNodeLinkComponents.Add(modelNodeLink.Entity.Transform);
                 }
-                Dispatcher.ForEach(modelNodeLinkComponents, UpdateTransformationsRecursive);
+                Dispatcher.ForBatched(modelNodeLinkComponents.Count, modelNodeLinkComponents, &UpdateTransformationsRecursive);
             }
         }
 
-        private static void UpdateTransformationsRecursive(TransformComponent transform)
+        private static void UpdateTransformationsRecursive(FastCollection<TransformComponent> transforms, int from, int toExclusive)
         {
-            transform.UpdateLocalMatrix();
-            transform.UpdateWorldMatrixInternal(false);
-            foreach (var child in transform.Children)
+            for (int i = from; i < toExclusive; i++)
             {
-                UpdateTransformationsRecursive(child);
+                var transform = transforms[i];
+                transform.UpdateLocalMatrix();
+                transform.UpdateWorldMatrixInternal(false);
+                UpdateTransformationsRecursive(transform.Children, 0, transform.Children.Count);
             }
         }
 
@@ -134,20 +133,20 @@ namespace Stride.Engine.Processors
             var sceneInstance = EntityManager as SceneInstance;
             if (sceneInstance?.RootScene != null)
             {
-                UpdateTransfromationsRecursive(sceneInstance.RootScene);
+                UpdateTransformationsRecursive(sceneInstance.RootScene);
             }
 
             // Special roots are already filtered out
             UpdateTransformations(notSpecialRootComponents);
         }
 
-        private static void UpdateTransfromationsRecursive(Scene scene)
+        private static void UpdateTransformationsRecursive(Scene scene)
         {
             scene.UpdateWorldMatrixInternal(false);
 
             foreach (var childScene in scene.Children)
             {
-                UpdateTransfromationsRecursive(childScene);
+                UpdateTransformationsRecursive(childScene);
             }
         }
         

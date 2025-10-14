@@ -1,0 +1,58 @@
+name: Build Assembly Processor
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/build-assembly-processor.yml'
+      - 'build/Stride.AssemblyProcessor.sln'
+      - 'sources/core/Stride.Core/**'
+      - 'sources/core/Stride.Core.AssemblyProcessor/**'
+      - 'sources/core/Stride.Core.AssemblyProcessor.Tests/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+
+concurrency:
+  group: build-assembly-processor-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+jobs:
+  #
+  # Build Assembly Processor
+  #
+  Assembly-Processor:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build
+        run: |
+          dotnet build build\Stride.AssemblyProcessor.sln `
+            -restore -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StrideSkipUnitTests=true `
+            -p:StrideSkipAutoPack=true

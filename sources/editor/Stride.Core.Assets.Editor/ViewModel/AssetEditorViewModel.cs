@@ -5,7 +5,7 @@ using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
@@ -29,7 +29,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// </summary>
         public IUndoRedoService UndoRedoService => ServiceProvider.Get<IUndoRedoService>();
 
-        /// <inheritdoc/>
         [NotNull]
         public SessionObjectPropertiesViewModel EditorProperties => Asset.Session.AssetViewProperties;
 
@@ -39,13 +38,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         [NotNull]
         public SessionViewModel Session => Asset.Session;
 
-        /// <summary>
-        /// The asset related to this editor.
-        /// </summary>
-        protected AssetViewModel Asset { get; }
+        /// <inheritdoc/>
+        public virtual AssetViewModel Asset { get; }
 
         /// <inheritdoc/>
-        AssetViewModel IAssetEditorViewModel.Asset => Asset;
+        public virtual Task EditorInitialized => Task.CompletedTask; // FIXME might not be necessary, but implementing editor might have different initialization logic
 
         /// <inheritdoc/>
         public abstract Task<bool> Initialize();

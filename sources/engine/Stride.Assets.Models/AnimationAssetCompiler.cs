@@ -53,6 +53,7 @@ namespace Stride.Assets.Models
             sourceBuildCommand.Mode = ImportModelCommand.ExportMode.Animation;
             sourceBuildCommand.SourcePath = assetSource;
             sourceBuildCommand.Location = targetUrlInStorage;
+            sourceBuildCommand.AnimationStack = asset.AnimationStack;
             sourceBuildCommand.AnimationRepeatMode = asset.RepeatMode;
             sourceBuildCommand.AnimationRootMotion = asset.RootMotion;
             sourceBuildCommand.ImportCustomAttributes = asset.ImportCustomAttributes;
@@ -109,6 +110,7 @@ namespace Stride.Assets.Models
                 baseBuildCommand.Location = baseUrlInStorage;
                 baseBuildCommand.AnimationRepeatMode = asset.RepeatMode;
                 baseBuildCommand.AnimationRootMotion = asset.RootMotion;
+                baseBuildCommand.AnimationStack = asset.AnimationStack;
 
                 if (diffAnimationAsset.ClipDuration.Enabled)
                 {
@@ -218,7 +220,7 @@ namespace Stride.Assets.Models
 
                 var resultEvaluator = animationBlender.CreateEvaluator(resultAnimation);
 
-                var animationOperations = new FastList<AnimationOperation>();
+                var animationOperations = new List<AnimationOperation>();
 
                 // Perform animation blending for each frame and upload results in a new animation
                 // Note that it does a simple per-frame sampling, so animation discontinuities will be lost.

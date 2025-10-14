@@ -67,6 +67,7 @@ namespace Stride.Rendering.Images
             }
         }
 
+        /// <inheritdoc/>
         protected override void SetDefaultParameters()
         {
             base.SetDefaultParameters();
@@ -74,6 +75,7 @@ namespace Stride.Rendering.Images
             IsOnlyChannelRed = false;
         }
 
+        /// <inheritdoc/>
         protected override void UpdateParameters()
         {
             base.UpdateParameters();

@@ -99,7 +99,9 @@ namespace Stride.UI
         /// </summary>
         /// <userdoc>The list of the dependency properties attached to the UI element.</userdoc>
         [DataMember]
+#pragma warning disable STRDIAG009 // Invalid Dictionary Key - PropertyKey has the TypeConverter PropertyKeyNameResolver so it's valid.
         public PropertyContainerClass DependencyProperties { get; }
+#pragma warning restore STRDIAG009 // Invalid Dictionary Key
 
         /// <summary>
         /// Gets or sets the LocalMatrix of this element.
@@ -923,6 +925,10 @@ namespace Stride.UI
             if (float.IsNaN(desiredSize.Z))
                 desiredSize.Z = DefaultDepth;
 
+            // replace infinity with the parent's RenderSize
+            if (float.IsInfinity(desiredSize.X) || float.IsInfinity(desiredSize.Y) || float.IsInfinity(desiredSize.Z))
+                desiredSize = InfinityToParentRenderSize(desiredSize);
+
             // clamp the desired size between the maximum and minimum width/height of the UIElement
             desiredSize = new Vector3(
                 Math.Max(MinimumWidth, Math.Min(MaximumWidth, desiredSize.X)),
@@ -935,6 +941,24 @@ namespace Stride.UI
             // update Element state variables
             DesiredSize = desiredSize;
             DesiredSizeWithMargins = desiredSizeWithMargins;
+        }
+
+        /// <summary>
+        /// Recursively checks parents for infinity values, replacing infinity with the Parent's <see cref="RenderSize"/>.
+        /// </summary>
+        /// <param name="size">The size vector with possible infinity values to replace.</param>
+        /// <returns>The input <paramref name="size"/> value with the infinities replaced with the Parent's <see cref="RenderSize"/>.</returns>
+        internal Vector3 InfinityToParentRenderSize(Vector3 size)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (float.IsInfinity(size[i]))
+                    size[i] = Parent.RenderSize[i];
+            }
+            if (float.IsInfinity(size.X) || float.IsInfinity(size.Y) || float.IsInfinity(size.Z))
+                return Parent.InfinityToParentRenderSize(size);
+
+            return size;
         }
 
         private void ValidateChildrenMeasure()

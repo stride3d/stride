@@ -10,6 +10,7 @@ using System.Threading;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
 using Stride.Core.Storage;
 using Stride.Core.Threading;
 using Stride.Graphics;
@@ -24,7 +25,7 @@ namespace Stride.Rendering.Lights
     public class ForwardLightingRenderFeature : SubRenderFeature
     {
         /// <summary>
-        /// Property key to access the current collection of <see cref="CameraComponent"/> from <see cref="RenderContext.Tags"/>.
+        /// Property key to access the current collection of `CameraComponent` from <see cref="ComponentBase.Tags"/>.
         /// </summary>
         public static readonly PropertyKey<RenderLightCollection> CurrentLights = new PropertyKey<RenderLightCollection>("ForwardLightingRenderFeature.CurrentLights", typeof(ForwardLightingRenderFeature));
 
@@ -79,7 +80,7 @@ namespace Stride.Rendering.Lights
         // Preallocted for CollectVisibleLights
         private readonly HashSet<RenderView> processedRenderViews = new HashSet<RenderView>();
 
-        private readonly FastList<RenderView> renderViews = new FastList<RenderView>();
+        private readonly List<RenderView> renderViews = [];
 
         private readonly Dictionary<ShaderSourceCollection, ShaderSourceCollection> shaderSourcesReadonlyCache = new Dictionary<ShaderSourceCollection, ShaderSourceCollection>();
 
@@ -91,6 +92,9 @@ namespace Stride.Rendering.Lights
 
         private static readonly string[] DirectLightGroupsCompositionNames;
         private static readonly string[] EnvironmentLightGroupsCompositionNames;
+        private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("ForwardLightingRenderFeature.PrepareEffectPermutations");
+        private static readonly ProfilingKey PrepareKey = new ProfilingKey("ForwardLightingRenderFeature.Prepare");
+        private static readonly ProfilingKey DrawKey = new ProfilingKey("ForwardLightingRenderFeature.Draw");
 
         private readonly HashSet<int> ignoredEffectSlots = new HashSet<int>();
 
@@ -193,6 +197,7 @@ namespace Stride.Rendering.Lights
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
+            using var _ = Profiler.Begin(PrepareEffectPermutationsKey);
             var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
             int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
 
@@ -328,6 +333,7 @@ namespace Stride.Rendering.Lights
         /// <inheritdoc/>
         public override void Prepare(RenderDrawContext context)
         {
+            using var _ = Profiler.Begin(PrepareKey);
             foreach (var view in RenderSystem.Views)
             {
                 var viewFeature = view.Features[RootRenderFeature.Index];
@@ -454,6 +460,7 @@ namespace Stride.Rendering.Lights
 
         public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage)
         {
+            using var _ = Profiler.Begin(DrawKey);
             // Update per-view resources only when view changes
             if (currentRenderView == renderView)
                 return;
@@ -606,7 +613,7 @@ namespace Stride.Rendering.Lights
             processedRenderViews.Clear();
         }
 
-        private void PrepareLightGroups(RenderDrawContext context, FastList<RenderView> renderViews, RenderView renderView, RenderViewLightData renderViewData, IShadowMapRenderer shadowMapRenderer, RenderGroup group)
+        private void PrepareLightGroups(RenderDrawContext context, List<RenderView> renderViews, RenderView renderView, RenderViewLightData renderViewData, IShadowMapRenderer shadowMapRenderer, RenderGroup group)
         {
             var viewIndex = renderViews.IndexOf(renderView);
 
@@ -716,17 +723,6 @@ namespace Stride.Rendering.Lights
 
         public class LightShaderPermutationEntry
         {
-            public LightShaderPermutationEntry()
-            {
-                DirectLightGroups = new FastListStruct<LightShaderGroup>(8);
-                EnvironmentLights = new FastListStruct<LightShaderGroup>(8);
-
-                PermutationLightGroups = new FastListStruct<LightShaderGroup>(2);
-
-                DirectLightShaders = new ShaderSourceCollection();
-                EnvironmentLightShaders = new ShaderSourceCollection();
-            }
-
             public void Reset()
             {
                 DirectLightGroups.Clear();
@@ -738,18 +734,18 @@ namespace Stride.Rendering.Lights
                 PermutationLightGroups.Clear();
             }
 
-            public FastListStruct<LightShaderGroup> DirectLightGroups;
+            public FastListStruct<LightShaderGroup> DirectLightGroups = new(8);
 
-            public readonly ShaderSourceCollection DirectLightShaders;
+            public readonly ShaderSourceCollection DirectLightShaders = new();
 
-            public FastListStruct<LightShaderGroup> EnvironmentLights;
+            public FastListStruct<LightShaderGroup> EnvironmentLights = new(8);
 
-            public readonly ShaderSourceCollection EnvironmentLightShaders;
+            public readonly ShaderSourceCollection EnvironmentLightShaders = new();
 
             /// <summary>
             /// Light groups that have <see cref="LightShaderGroup.HasEffectPermutations"/>.
             /// </summary>
-            public FastListStruct<LightShaderGroup> PermutationLightGroups;
+            public FastListStruct<LightShaderGroup> PermutationLightGroups = new(2);
         }
 
         internal struct ActiveLightGroupRenderer

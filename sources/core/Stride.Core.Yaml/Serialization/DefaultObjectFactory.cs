@@ -99,13 +99,14 @@ namespace Stride.Core.Yaml.Serialization
             return type;
         }
 
+        /// <inheritdoc/>
         public object Create(Type type)
         {
             type = GetDefaultImplementation(type);
 
-            // We can't instantiate primitive or arrays
+            // We can't instantiate primitives or arrays
             if (PrimitiveDescriptor.IsPrimitive(type) || type.IsArray)
-                return null;
+                throw new InstanceCreationException($"Failed to create instance of type '{type}', wrong factory.");
 
             if (type.GetConstructor(EmptyTypes) != null || type.IsValueType)
             {
@@ -119,11 +120,12 @@ namespace Stride.Core.Yaml.Serialization
                 }
             }
 
-            return null;
+            throw new InstanceCreationException($"Failed to create instance of type '{type}', type does not have a parameterless constructor.");
         }
 
         public class InstanceCreationException : Exception
         {
+            public InstanceCreationException(string message) : base(message) { }
             public InstanceCreationException(string message, Exception innerException) : base(message, innerException) { }
         }
     }

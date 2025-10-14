@@ -7,7 +7,7 @@ using System.Text;
 namespace Stride.Input
 {
     /// <summary>
-    /// A combination of <see cref="IVirtualButton"/>, by default evaluated as the operator '&&' to produce a value if all buttons are pressed.
+    /// A combination <see cref="IVirtualButton"/>, by default evaluated as the operator '&amp;&amp;' to produce a value if all buttons are pressed.
     /// </summary>
     public class VirtualButtonGroup : Collection<IVirtualButton>, IVirtualButton
     {
@@ -17,7 +17,7 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this instance is determining the value as a disjunction ('||' operator between buttons), false by default ('&&' operator).
+        /// Gets or sets a value indicating whether this instance is determining the value as a disjunction ('&#124;&#124;' operator between buttons), false by default ('&amp;&amp;' operator).
         /// </summary>
         /// <value><c>true</c> if this instance is disjunction; otherwise, <c>false</c>.</value>
         public bool IsDisjunction { get; set; }

@@ -149,7 +149,8 @@ namespace Stride.Shaders.Compiler.OpenGL
 
                 using (var stream = new MemoryStream())
                 {
-                    BinarySerialization.Write(stream, shaderBytecodes);
+                    var writer = new BinarySerializationWriter(stream);
+                    writer.Write(shaderBytecodes);
                     rawData = stream.ToArray();
                 }
 
@@ -191,6 +192,9 @@ namespace Stride.Shaders.Compiler.OpenGL
                     break;
                 case ShaderStage.Domain:
                     shaderBytecodeResult.Error("Domain stage can't be converted to OpenGL. Only Vertex and Pixel shaders are supported");
+                    break;
+                case ShaderStage.Compute when shaderPlatform == GlslShaderPlatform.Vulkan:
+                    pipelineStage = PipelineStage.Compute;
                     break;
                 case ShaderStage.Compute:
                     shaderBytecodeResult.Error("Compute stage can't be converted to OpenGL. Only Vertex and Pixel shaders are supported");
@@ -270,8 +274,8 @@ namespace Stride.Shaders.Compiler.OpenGL
                         || variable.Type.Name.Text.Contains("samplerBuffer"))
                     {
                         // TODO: Make more robust
-                        var textureBindingIndex = reflection.ResourceBindings.IndexOf(x => variable.Name.ToString().StartsWith(x.RawName));
-                        var samplerBindingIndex = reflection.ResourceBindings.IndexOf(x => variable.Name.ToString().EndsWith(x.RawName));
+                        var textureBindingIndex = reflection.ResourceBindings.IndexOf(x => variable.Name.ToString().StartsWith(x.RawName, StringComparison.Ordinal));
+                        var samplerBindingIndex = reflection.ResourceBindings.IndexOf(x => variable.Name.ToString().EndsWith(x.RawName, StringComparison.Ordinal));
 
                         if (textureBindingIndex != -1)
                             MarkResourceBindingAsUsed(reflection, textureBindingIndex, stage);
@@ -291,10 +295,6 @@ namespace Stride.Shaders.Compiler.OpenGL
 
                 if (shaderPlatform == GlslShaderPlatform.Vulkan)
                 {
-                    // Register "NoSampler", required by HLSL=>GLSL translation to support HLSL such as texture.Load().
-                    var noSampler = new EffectResourceBindingDescription { KeyInfo = { KeyName = "NoSampler" }, RawName = "NoSampler", Class = EffectParameterClass.Sampler, SlotStart = -1, SlotCount = 1 };
-                    reflection.ResourceBindings.Add(noSampler);
-
                     // Defines the ordering of resource groups in Vulkan. This is mirrored in the PipelineState
                     var resourceGroups = reflection.ResourceBindings.Select(x => x.ResourceGroup ?? "Globals").Distinct().ToList();
 
@@ -328,7 +328,7 @@ namespace Stride.Shaders.Compiler.OpenGL
                     // Add layout(set, bindings) qualifier to all other uniforms
                     foreach (var variable in glslShader.Declarations.OfType<Variable>().Where(x => (x.Qualifiers.Contains(StorageQualifier.Uniform))))
                     {
-                        var layoutBindingIndex = bindings.IndexOf(x => variable.Name.Text.StartsWith(x.Key.RawName));
+                        var layoutBindingIndex = bindings.IndexOf(x => variable.Name.Text.StartsWith(x.Key.RawName, StringComparison.Ordinal));
 
                         if (layoutBindingIndex != -1)
                         {
@@ -344,6 +344,12 @@ namespace Stride.Shaders.Compiler.OpenGL
                             layoutQualifier.Layouts.Add(new LayoutKeyValue("binding", layoutBindingIndex + 1));
 
                             resourceBindings.Add(bindings[layoutBindingIndex].Key.KeyName, layoutBindingIndex + 1);
+
+                            // Buffer should not be marked with uniform, this probably should not be here but it works and does not mess anything up.
+                            if (variable.Type.Qualifiers.Contains(StorageQualifier.Buffer))
+                            {
+                                variable.Qualifiers.Values.Remove(StorageQualifier.Uniform);
+                            }
                         }
                     }
                 }
@@ -357,6 +363,13 @@ namespace Stride.Shaders.Compiler.OpenGL
             {
                 glslShaderWriter.ExtraHeaders = "#define texelFetchBufferPlaceholder";
             }
+
+            if (shaderPlatform == GlslShaderPlatform.Vulkan && pipelineStage == PipelineStage.Compute)
+            {
+                glslShaderWriter.Extensions.Add("GL_EXT_shader_image_load_formatted");
+            }
+
+            glslShaderWriter.Extensions.Add("GL_EXT_samplerless_texture_functions");
 
             // Write shader
             glslShaderWriter.Visit(glslShader);

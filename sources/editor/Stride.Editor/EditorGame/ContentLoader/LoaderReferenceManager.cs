@@ -9,37 +9,38 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
+using Stride.Core.Extensions;
 
 namespace Stride.Editor.EditorGame.ContentLoader
 {
     public class LoaderReferenceManager
     {
-        private struct ReferenceAccessor
+        private readonly record struct ReferenceAccessor
         {
-            private readonly IGraphNode contentNode;
-            private readonly NodeIndex index;
+            public readonly IGraphNode ContentNode;
+            public readonly NodeIndex Index;
 
             public ReferenceAccessor(IGraphNode contentNode, NodeIndex index)
             {
-                this.contentNode = contentNode;
-                this.index = index;
+                this.ContentNode = contentNode;
+                this.Index = index;
             }
 
             public void Update(object newValue)
             {
-                if (index == NodeIndex.Empty)
+                if (Index == NodeIndex.Empty)
                 {
-                    ((IMemberNode)contentNode).Update(newValue);
+                    ((IMemberNode)ContentNode).Update(newValue);
                 }
                 else
                 {
-                    ((IObjectNode)contentNode).Update(newValue, index);
+                    ((IObjectNode)ContentNode).Update(newValue, Index);
                 }
             }
 
             public Task Clear([NotNull] LoaderReferenceManager manager, AbsoluteId referencerId, AssetId contentId)
             {
-                return manager.ClearContentReference(referencerId, contentId, contentNode, index);
+                return manager.ClearContentReference(referencerId, contentId, ContentNode, Index);
             }
         }
 
@@ -72,10 +73,9 @@ namespace Stride.Editor.EditorGame.ContentLoader
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
             {
-                if (!references.ContainsKey(referencerId))
+                if (!references.TryGetValue(referencerId, out var referencer))
                     throw new InvalidOperationException("The given referencer is not registered.");
 
-                var referencer = references[referencerId];
                 // Properly clear all reference first
                 foreach (var content in referencer.ToDictionary(x => x.Key, x => x.Value))
                 {
@@ -94,10 +94,9 @@ namespace Stride.Editor.EditorGame.ContentLoader
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
             {
-                if (!references.ContainsKey(referencerId))
+                if (!references.TryGetValue(referencerId, out var referencer))
                     throw new InvalidOperationException("The given referencer is not registered.");
 
-                var referencer = references[referencerId];
                 List<ReferenceAccessor> accessors;
                 if (!referencer.TryGetValue(contentId, out accessors))
                 {
@@ -115,8 +114,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
 
                 accessors.Add(accessor);
 
-                object value;
-                if (contents.TryGetValue(contentId, out value))
+                if (contents.TryGetValue(contentId, out var value))
                 {
                     accessor.Update(value);
                 }
@@ -129,7 +127,14 @@ namespace Stride.Editor.EditorGame.ContentLoader
             }
         }
 
-        public async Task ClearContentReference(AbsoluteId referencerId, AssetId contentId, IGraphNode contentNode, NodeIndex index)
+        /// <summary>
+        /// This will clear all references within <see cref="contentNode"/> starting with <see cref="rootIndex"/>.
+        /// </summary>
+        /// <param name="referencerId"></param>
+        /// <param name="contentNode"></param>
+        /// <param name="rootIndex"></param>
+        /// <returns></returns>
+        public async Task ClearContentReferencesFromNodes(AbsoluteId referencerId, IReadOnlySet<IGraphNode> nodes)
         {
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
@@ -138,26 +143,53 @@ namespace Stride.Editor.EditorGame.ContentLoader
                     throw new InvalidOperationException("The given referencer is not registered.");
 
                 var referencer = references[referencerId];
-                if (!referencer.ContainsKey(contentId))
+
+                foreach (var accessors in referencer.ToList())
+                {
+                    for (int i = 0; i < accessors.Value.Count; ++i)
+                    {
+                        if (nodes.Contains(accessors.Value[i].ContentNode))
+                        {
+                            // Since accessor will be removed, we also adjust index for next iteration
+                            await RemoveAccessor(accessors.Key, referencer, accessors.Value, i--);
+                        }
+                    }
+                }
+            }
+        }
+
+        public async Task ClearContentReference(AbsoluteId referencerId, AssetId contentId, IGraphNode contentNode, NodeIndex index)
+        {
+            gameDispatcher.EnsureAccess();
+            using (await loader.LockDatabaseAsynchronously())
+            {
+                if (!references.TryGetValue(referencerId, out var referencer))
+                    throw new InvalidOperationException("The given referencer is not registered.");
+
+                if (!referencer.TryGetValue(contentId, out var accessors))
                     throw new InvalidOperationException("The given content is not registered to the given referencer.");
 
-                var accessors = referencer[contentId];
                 var accessor = new ReferenceAccessor(contentNode, index);
                 var accesorIndex = accessors.IndexOf(accessor);
                 if (accesorIndex < 0)
                     throw new InvalidOperationException("The given reference is not registered for the given content and referencer.");
 
-                accessors.RemoveAt(accesorIndex);
-                if (accessors.Count == 0)
+                await RemoveAccessor(contentId, referencer, accessors, accesorIndex);
+            }
+        }
+
+        private async Task RemoveAccessor(AssetId contentId, Dictionary<AssetId, List<ReferenceAccessor>> referencer, List<ReferenceAccessor> accessors, int accesorIndex)
+        {
+            accessors.RemoveAt(accesorIndex);
+            if (accessors.Count == 0)
+            {
+                referencer.Remove(contentId);
+                // Unload the content if nothing else is referencing it anymore
+                var unloadContent = references.Values.SelectMany(x => x.Keys).All(x => x != contentId);
+                if (unloadContent)
                 {
-                    referencer.Remove(contentId);
-                    // Unload the content if nothing else is referencing it anymore
-                    var unloadContent = references.Values.SelectMany(x => x.Keys).All(x => x != contentId);
-                    if (unloadContent)
-                    {
-                        await loader.UnloadAsset(contentId);
-                        contents.Remove(contentId);
-                    }
+                    await loader.UnloadAsset(contentId);
+                    contents.Remove(contentId);
                 }
             }
         }

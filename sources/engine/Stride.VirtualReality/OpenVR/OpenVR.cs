@@ -16,18 +16,6 @@ namespace Stride.VirtualReality
 {
     internal static class OpenVR
     {
-        /// <summary>Bypasses definite assignment rules for a given reference.
-        /// <para>A thin wrapper around <see cref="Unsafe.SkipInit{T}(out T)"/> for the sole purpose of making it usable in an expression.</para></summary>
-        /// <typeparam name="T">The type of the reference.</typeparam>
-        /// <param name="value">The reference whose initialization should be skipped.</param>
-        /// <returns>The reference to <paramref name="value"/>.</returns>
-        /// <remarks>Take care to ensure that the struct has been initialized appropriately, otherwise the struct's fields could contain uninitialized data from the stack.</remarks>
-        private static ref T SkipInit<T>(out T value)
-        {
-            Unsafe.SkipInit(out value);
-            return ref value;
-        }
-
         public class Controller
         {
             // This helper can be used in a variety of ways.  Beware that indices may change
@@ -226,7 +214,7 @@ namespace Stride.VirtualReality
 
             InitDone = true;
 
-            //this makes the camera behave like oculus rift default!
+            //set Universe to Seated by default
             Valve.VR.OpenVR.Compositor.SetTrackingSpace(ETrackingUniverseOrigin.TrackingUniverseSeated);
 
             return true;
@@ -308,8 +296,8 @@ namespace Stride.VirtualReality
                     {
                         ref var devicePose = ref DevicePoses[index];
                         Unsafe.As<Matrix, HmdMatrix34_t>(ref pose) = devicePose.mDeviceToAbsoluteTracking;
-                        Unsafe.As<Vector3, HmdVector3_t>(ref SkipInit(out velocity)) = devicePose.vVelocity;
-                        Unsafe.As<Vector3, HmdVector3_t>(ref SkipInit(out angVelocity)) = devicePose.vAngularVelocity;
+                        velocity = Unsafe.As<HmdVector3_t, Vector3>(ref devicePose.vVelocity);
+                        angVelocity = Unsafe.As<HmdVector3_t, Vector3>(ref devicePose.vAngularVelocity);
 
                         var state = DeviceState.Invalid;
                         if (devicePose.bDeviceIsConnected && devicePose.bPoseIsValid)
@@ -344,8 +332,8 @@ namespace Stride.VirtualReality
             ref var devicePose = ref DevicePoses[trackerIndex];
 
             Unsafe.As<Matrix, HmdMatrix34_t>(ref pose) = devicePose.mDeviceToAbsoluteTracking;
-            Unsafe.As<Vector3, HmdVector3_t>(ref SkipInit(out velocity)) = devicePose.vVelocity;
-            Unsafe.As<Vector3, HmdVector3_t>(ref SkipInit(out angVelocity)) = devicePose.vAngularVelocity;
+            velocity = Unsafe.As<HmdVector3_t, Vector3>(ref devicePose.vVelocity);
+            angVelocity = Unsafe.As<HmdVector3_t, Vector3>(ref devicePose.vAngularVelocity);
 
             var state = DeviceState.Invalid;
             if (devicePose.bDeviceIsConnected && devicePose.bPoseIsValid)
@@ -376,8 +364,8 @@ namespace Stride.VirtualReality
                 if (Valve.VR.OpenVR.System.GetTrackedDeviceClass(index) == ETrackedDeviceClass.HMD)
                 {
                     Unsafe.As<Matrix, HmdMatrix34_t>(ref pose) = devicePose.mDeviceToAbsoluteTracking;
-                    Unsafe.As<Vector3, HmdVector3_t>(ref SkipInit(out linearVelocity)) = devicePose.vVelocity;
-                    Unsafe.As<Vector3, HmdVector3_t>(ref SkipInit(out angularVelocity)) = devicePose.vAngularVelocity;
+                    linearVelocity = Unsafe.As<HmdVector3_t, Vector3>(ref devicePose.vVelocity);
+                    angularVelocity = Unsafe.As<HmdVector3_t, Vector3>(ref devicePose.vAngularVelocity);
 
                     var state = DeviceState.Invalid;
                     if (DevicePoses[index].bDeviceIsConnected && DevicePoses[index].bPoseIsValid)
@@ -433,6 +421,12 @@ namespace Stride.VirtualReality
             tex.InitializeFromImpl(srv);
 
             return tex;
+        }
+
+        public static void GetRecommendedRenderTargetSize(out (uint x, uint y) size)
+        {
+            size = default;
+            Valve.VR.OpenVR.System.GetRecommendedRenderTargetSize(ref size.x, ref size.y);
         }
 
         public static ulong CreateOverlay()

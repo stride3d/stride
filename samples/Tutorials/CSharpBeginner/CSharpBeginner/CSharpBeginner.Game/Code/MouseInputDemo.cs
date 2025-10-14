@@ -6,6 +6,9 @@ namespace CSharpBeginner.Code
 {
     /// <summary>
     /// This script demonstrates how to check for any mouse input.
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/mouse-input.html
+    /// </para>
     /// </summary>
     public class MouseInputDemo : SyncScript
     {

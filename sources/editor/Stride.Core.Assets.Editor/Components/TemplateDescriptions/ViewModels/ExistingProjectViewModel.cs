@@ -5,11 +5,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Media.Imaging;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Templates;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 {
@@ -29,7 +28,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 
         public string Name => Path.GetFileNameWithoutExtension();
 
-        public string Description => Path.ToWindowsPath();
+        public string Description => Path.ToOSPath();
 
         public string FullDescription => "";
 
@@ -56,7 +55,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 
         private void Explore()
         {
-            var startInfo = new ProcessStartInfo("explorer.exe", $"/select,{this.Path.ToWindowsPath()}") { UseShellExecute = true };
+            var startInfo = new ProcessStartInfo("explorer.exe", $"/select,{this.Path.ToOSPath()}") { UseShellExecute = true };
             var explorer = new Process { StartInfo = startInfo };
             explorer.Start();
         }

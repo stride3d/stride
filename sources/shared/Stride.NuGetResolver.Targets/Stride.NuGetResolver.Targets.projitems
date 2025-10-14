@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>00b72ed7-00e9-47f7-868d-8162027cd068</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Stride.NuGetResolver.Targets</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Condition="'$(StrideNuGetResolverUI)' != 'true'" Include="$(MSBuildThisFileDirectory)..\Stride.NuGetResolver\Stride.NuGetResolver.csproj" PrivateAssets="all" />
+    <ProjectReference Condition="'$(StrideNuGetResolverUI)' == 'true'" Include="$(MSBuildThisFileDirectory)..\Stride.NuGetResolver.UI\Stride.NuGetResolver.UI.csproj" PrivateAssets="all" />
+  </ItemGroup>
+  <!-- Some targets so that referencing projects include a tools folder with executables-->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>_StrideIncludeNuGetResolver;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.config;.exe</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
+  <Target Name="NuGetResolverModuleInitializerGenerate" BeforeTargets="BeforeCompile;CoreCompile" DependsOnTargets="PrepareForBuild">
+    <PropertyGroup>
+      <NuGetResolverModuleInitializerFile>$(IntermediateOutputPath)$(MSBuildProjectName).NuGetResolverEntryPoint$(DefaultLanguageSourceExtension)</NuGetResolverModuleInitializerFile>
+      <NuGetResolverTargetFramework>$(TargetFramework)</NuGetResolverTargetFramework>
+      <NuGetResolverTargetFramework Condition="'$(TargetPlatformVersion)' != '' and !$(TargetFramework.EndsWith(TargetPlatformVersion))">$(TargetFramework)$(TargetPlatformVersion)</NuGetResolverTargetFramework>
+	  <DefineConstants Condition="'$(StrideNuGetResolverUI)' == 'true'">STRIDE_NUGET_RESOLVER_UI;$(DefineConstants)</DefineConstants>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(NuGetResolverModuleInitializerFile)" Overwrite="true" Lines="$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)NuGetResolverModuleInitializer.cs').Replace('STRIDE_NUGET_RESOLVER_TARGET_FRAMEWORK','&quot;$(NuGetResolverTargetFramework)&quot;').Replace('STRIDE_NUGET_RESOLVER_PACKAGE_NAME','&quot;$(PackageId)&quot;').Replace('STRIDE_NUGET_RESOLVER_PACKAGE_VERSION','&quot;$(PackageVersion)&quot;').Replace('STRIDE_NUGET_RESOLVER_UI_AVALONIA_VERSION','&quot;$(AvaloniaVersion)&quot;'))" />
+    <ItemGroup>
+      <FileWrites Include="$(NuGetResolverModuleInitializerFile)" />
+      <Compile Include="$(NuGetResolverModuleInitializerFile)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideIncludeNuGetResolver">
+    <ItemGroup>
+      <BuildOutputInPackage Condition="Exists('$(OutputPath)$(AssemblyName).exe')" Include="$(OutputPath)$(AssemblyName).exe" />
+      <BuildOutputInPackage Include="$(OutputPath)NuGet*.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Newtonsoft.Json.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Microsoft.Extensions.FileProviders.Abstractions.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Microsoft.Extensions.FileSystemGlobbing.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Microsoft.Extensions.Primitives.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Stride.NuGetResolver*.dll" />
+    </ItemGroup>
+    <ItemGroup Condition=" '$(TargetFramework)' == '$(StrideXplatEditorTargetFramework)' ">
+      <!-- Needed by NuGet.Packaging in cross platform builds (see https://github.com/stride3d/stride/issues/2232) -->
+      <BuildOutputInPackage Include="$(OutputPath)System.Security.Cryptography.Pkcs.dll" />
+    </ItemGroup>
+  </Target>
+</Project>

@@ -30,10 +30,9 @@ using Stride.Core.Presentation.Core;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Translation;
-using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
-using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
+using Stride.Core.Presentation.ViewModels;
+using System.Collections;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
@@ -77,7 +76,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 isActive = true;
 
                 RemoveFilterCommand = new AnonymousCommand<AssetFilterViewModel>(ServiceProvider, collection.RemoveAssetFilter);
-                ToggleIsActiveCommand = new AnonymousCommand(ServiceProvider, () => IsActive = !IsActive);
+                ToggleIsActiveCommand = new AnonymousCommand(ServiceProvider, () => { IsActive = !IsActive; collection.SaveAssetFilters(); });
             }
 
             public FilterCategory Category { get; }
@@ -155,6 +154,18 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
         }
 
+        [DataContract(nameof(AssetFilterViewModelData))]
+        public sealed class AssetFilterViewModelData
+        {
+            public string DisplayName = "";
+            public string Filter = "";
+            public bool IsActive = false;
+            public FilterCategory category = FilterCategory.AssetName;
+        }
+
+        // Storing out primitive data for filters to save between instances of editor
+        private List<AssetFilterViewModelData> StoredListData = InternalSettings.ViewFilters.GetValue();
+
         public static readonly IEnumerable<FilterCategory> AllFilterCategories = Enum.GetValues(typeof(FilterCategory)).Cast<FilterCategory>();
 
         private readonly ObservableSet<AssetViewModel> assets = new ObservableSet<AssetViewModel>();
@@ -228,10 +239,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
             AddAssetFilterCommand = new AnonymousCommand<AssetFilterViewModel>(serviceProvider, AddAssetFilter);
             ClearAssetFiltersCommand = new AnonymousCommand(serviceProvider, ClearAssetFilters);
             RefreshAssetFilterCommand = new AnonymousCommand<AssetFilterViewModel>(serviceProvider, RefreshAssetFilter);
-            currentAssetFilters.CollectionChanged += (s,e) => RefreshFilters();
+            currentAssetFilters.CollectionChanged += (s, e) => RefreshFilters();
             SelectedLocations.CollectionChanged += SelectedLocationCollectionChanged;
             filteredAssets.CollectionChanged += FilteredAssetsCollectionChanged;
             selectedContent.CollectionChanged += SelectedContentCollectionChanged;
+            LoadAssetFilters();
             refreshing = false;
 
             DependentProperties.Add(nameof(DisplayAssetMode), new[] { nameof(DisplayLocationContentRecursively) });
@@ -473,7 +485,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             base.Destroy();
         }
 
-        public async Task<List<AssetViewModel>> RunAssetTemplate(ITemplateDescriptionViewModel template, IEnumerable<UFile> files, PropertyContainer? customParameters = null)
+        public async Task<List<AssetViewModel>> RunAssetTemplate(ITemplateDescriptionViewModel template, [CanBeNull] IList<UFile> files, PropertyContainer? customParameters = null)
         {
             if (template == null)
                 return new List<AssetViewModel>();
@@ -487,7 +499,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var templateDescription = template.GetTemplate() as TemplateAssetDescription;
             if (templateDescription == null)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Unable to use the selected template because it is not an asset template."), MessageBoxButton.OK, MessageBoxImage.Warning);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Unable to use the selected template because it is not an asset template."), MessageBoxButton.OK, MessageBoxImage.Warning);
                 return new List<AssetViewModel>();
             }
             var assetType = templateDescription.GetAssetType();
@@ -537,9 +549,95 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
         }
 
-        private async Task<List<AssetViewModel>> InvokeAddAssetTemplate(LoggerResult logger, string name, DirectoryBaseViewModel directory, TemplateAssetDescription templateDescription, IEnumerable<UFile> files, PropertyContainer? customParameters)
+        private async Task<string> GetAssetCopyDirectory(DirectoryBaseViewModel directory, UFile file)
+        {
+            var path = directory.Path;
+            var message = Tr._p("Message", "Do you want to place the resource in the default location ?");
+            var finalPath = Path.GetFullPath(Path.Combine(directory.Package.Package.ResourceFolders[0], path, file.GetFileName()));
+            var pathResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (pathResult == MessageBoxResult.No)
+            {
+                while (true)
+                {
+                   var filePath = await Dialogs.SaveFilePickerAsync(
+                       Path.GetFullPath(directory.Package.Package.ResourceFolders[0].FullPath),
+                       [new FilePickerFilter("") { Patterns = [file.GetFileExtension()]}],
+                       defaultFileName: file.GetFileName());
+
+                    // If the user closes the dialog, assume that they want to use the default directory
+                    if (filePath is null)
+                    {
+                        return finalPath;
+                    }
+
+                    var fullPath = Path.GetFullPath(filePath);
+
+                    bool inResource = directory.Package.Package.ResourceFolders.Any(x => fullPath.StartsWith(Path.GetFullPath(x.FullPath), StringComparison.Ordinal));
+                    if (inResource)
+                    {
+                        return fullPath;
+                    }
+
+                    message = Tr._p("Message", "The selected directory is not a subdirectory of the resources folder!");
+                    await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            return finalPath;
+        }
+
+        private async Task<List<AssetViewModel>> InvokeAddAssetTemplate(LoggerResult logger, string name, DirectoryBaseViewModel directory, TemplateAssetDescription templateDescription, [CanBeNull] IList<UFile> files, PropertyContainer? customParameters)
         {
             List<AssetViewModel> newAssets = new List<AssetViewModel>();
+            if (files is not null)
+            {
+                for (int i = 0; i < files.Count; i++)
+                {
+                    var file = files[i];
+                    bool inResourceFolder = directory.Package.Package.ResourceFolders.Any(x => file.FullPath.StartsWith(x.FullPath, StringComparison.Ordinal));
+
+                    if (inResourceFolder)
+                        continue;
+
+                    var message = Tr._p("Message", "Source file '{0}' is not inside of your project's resource folders, do you want to copy it?").ToFormat(file.FullPath);
+
+                    var copyResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                    if (copyResult != MessageBoxResult.Yes)
+                        continue;
+
+                    string finalPath = await GetAssetCopyDirectory(directory, file);
+
+                    try
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(finalPath));
+                        if (File.Exists(finalPath))
+                        {
+                            message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(finalPath);
+
+                            copyResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                            // Abort if the user says no or closes the prompt
+                            if (copyResult != MessageBoxResult.Yes)
+                            {
+                                return newAssets;
+                            }
+                            File.Copy(file.FullPath, finalPath, true);
+                        }
+                        else
+                        {
+                            File.Copy(file.FullPath, finalPath);
+                        }
+
+                        files[i] = new UFile(finalPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        message = Tr._p("Message", $"An error occurred while copying the asset to the resources folder : {ex.Message}");
+                        await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                        return newAssets;
+                    }
+                }
+            }
 
             var parameters = new AssetTemplateGeneratorParameters(directory.Path, files)
             {
@@ -561,7 +659,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var generator = TemplateManager.FindTemplateGenerator(parameters);
             if (generator == null)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
                 return newAssets;
             }
 
@@ -695,19 +793,19 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var directoryCount = directories.Count;
             if (directoryCount > 1)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Game Studio can't create assets in multiple locations. In the solution explorer, select a single directory or package to create the asset in."), MessageBoxButton.OK, MessageBoxImage.Warning);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Game Studio can't create assets in multiple locations. In the solution explorer, select a single directory or package to create the asset in."), MessageBoxButton.OK, MessageBoxImage.Warning);
                 return null;
             }
             if (directoryCount == 0)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Game Studio can't create an asset here. In the solution explorer, select a directory or package to create the asset in."), MessageBoxButton.OK, MessageBoxImage.Warning);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Game Studio can't create an asset here. In the solution explorer, select a directory or package to create the asset in."), MessageBoxButton.OK, MessageBoxImage.Warning);
                 return null;
             }
 
             var directory = directories.First();
             if (!directory.Package.IsEditable)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Game Studio can't create an asset here because the selected directory or package can't be edited. In the solution explorer, select a directory or package to create the asset in."), MessageBoxButton.OK, MessageBoxImage.Warning);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Game Studio can't create an asset here because the selected directory or package can't be edited. In the solution explorer, select a directory or package to create the asset in."), MessageBoxButton.OK, MessageBoxImage.Warning);
                 return null;
             }
             return directory;
@@ -780,7 +878,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // Ensure all directories can be cut
             if (directories?.Any(d => !d.IsEditable) == true)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Read-only folders can't be cut."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Read-only folders can't be cut."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             var assetsToWrite = await GetCopyCollection(directories, assetsToCut);
@@ -796,7 +894,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 if (!asset.CanDelete(out error))
                 {
                     error = string.Format(Tr._p("Message", "The asset {0} can't be deleted. {1}{2}"), asset.Url, Environment.NewLine, error);
-                    await Dialogs.MessageBox(error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    await Dialogs.MessageBoxAsync(error, MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
             }
@@ -826,7 +924,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                         if (!directory.CanDelete(out error))
                         {
                             error = string.Format(Tr._p("Message", "{0} can't be deleted. {1}{2}"), directory.Name, Environment.NewLine, error);
-                            await Dialogs.MessageBox(error, MessageBoxButton.OK, MessageBoxImage.Error);
+                            await Dialogs.MessageBoxAsync(error, MessageBoxButton.OK, MessageBoxImage.Error);
                             return;
                         }
                         directory.Delete();
@@ -872,7 +970,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     {
                         if (directories.Contains(parent))
                         {
-                            await Dialogs.MessageBox(Tr._p("Message", "Unable to cut or copy a selection that contains a folder and one of its subfolders."), MessageBoxButton.OK, MessageBoxImage.Information);
+                            await Dialogs.MessageBoxAsync(Tr._p("Message", "Unable to cut or copy a selection that contains a folder and one of its subfolders."), MessageBoxButton.OK, MessageBoxImage.Information);
                             return null;
                         }
                         parent = parent.Parent;
@@ -904,7 +1002,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             foreach (var asset in assets)
             {
-                if (asset.AssetItem.Location.HasDirectory && (directory.Parent == null || !asset.Url.StartsWith(directory.Parent.Path)))
+                if (asset.AssetItem.Location.HasDirectory && (directory.Parent == null || !asset.Url.StartsWith(directory.Parent.Path, StringComparison.Ordinal)))
                 {
                     throw new InvalidOperationException("One of the asset does not match the directory hierarchy.");
                 }
@@ -948,7 +1046,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var directories = GetSelectedDirectories(false);
             if (directories.Count != 1)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "Select a valid asset folder to paste the selection to."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "Select a valid asset folder to paste the selection to."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             // If the selection is already a directory, paste into it
@@ -956,7 +1054,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var package = directory.Package;
             if (!package.IsEditable)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "This package or directory can't be modified."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "This package or directory can't be modified."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -1026,6 +1124,50 @@ namespace Stride.Core.Assets.Editor.ViewModel
             UpdateCommands();
         }
 
+        /// <summary>
+        /// Load asset filters from InternalSettings
+        /// </summary>
+        private void LoadAssetFilters()
+        {
+            //flip order of filters to stay consistent
+            StoredListData.Reverse();
+            foreach (var filterDataObj in StoredListData)
+            {
+                AssetFilterViewModel NewAssetFilter = new AssetFilterViewModel(this, filterDataObj.category, filterDataObj.Filter, filterDataObj.DisplayName);
+                NewAssetFilter.IsActive = filterDataObj.IsActive;
+                currentAssetFilters.Insert(0, NewAssetFilter);
+            }
+            // save out in case editor is immediately closed
+            SaveAssetFilters();
+        }
+
+        /// <summary>
+        /// Save primitive data types out from all current filters to InternalSettings
+        /// </summary>
+        private void SaveAssetFilters()
+        {
+            // Make list of AssetFilterViewModelData of just the primitives we save between editor instances
+            List<AssetFilterViewModelData> listData = new List<AssetFilterViewModelData>();
+
+            // Run through our currentAssetFilters and store out the data
+            foreach (var filter in currentAssetFilters)
+            {
+                if (filter.IsReadOnly)
+                    continue; // Skip engine defined filters
+                
+                AssetFilterViewModelData obj = new AssetFilterViewModelData
+                {
+                    DisplayName = filter.DisplayName, 
+                    Filter = filter.Filter, 
+                    IsActive = filter.IsActive,
+                    category = filter.Category
+                };
+
+                listData.Add(obj);
+            }
+            InternalSettings.ViewFilters.SetValue(listData);
+        }
+
         public void AddAssetFilter(AssetFilterViewModel filter)
         {
             if (filter == null)
@@ -1033,11 +1175,13 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             filter.IsActive = true;
             currentAssetFilters.Insert(0, filter);
+            SaveAssetFilters();
         }
 
         public void ClearAssetFilters()
         {
             currentAssetFilters.RemoveWhere(f => !f.IsReadOnly);
+            SaveAssetFilters();
         }
 
         public void RefreshAssetFilter(AssetFilterViewModel filter)
@@ -1052,6 +1196,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
             refreshing = false;
             AddAssetFilter(filter);
+            SaveAssetFilters();
         }
 
         public void RemoveAssetFilter(AssetFilterViewModel filter)
@@ -1061,6 +1206,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             filter.IsActive = false;
             currentAssetFilters.Remove(filter);
+            SaveAssetFilters();
         }
 
         private void AddAsset(AssetViewModel asset)
@@ -1213,7 +1359,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private static string[] ComputeTokens(string pattern)
         {
-            return pattern?.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
+            return pattern?.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
         }
 
         private void UpdateAvailableAssetFilters(string filterText)
@@ -1400,15 +1546,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private async Task SelectFilesToCreateAsset()
         {
-            var dialog = Dialogs.CreateFileOpenModalDialog();
-            dialog.AllowMultiSelection = true;
-            dialog.InitialDirectory = InternalSettings.FileDialogLastImportDirectory.GetValue();
-            var result = await dialog.ShowModal();
-
-            if (result == DialogResult.Ok && dialog.FilePaths.Count > 0)
+            var files = await Dialogs.OpenMultipleFilesPickerAsync(InternalSettings.FileDialogLastImportDirectory.GetValue());
+            if (files.Count > 0)
             {
-                List<UFile> files = dialog.FilePaths.Select(x => new UFile(x)).ToList();
-                // Simulate a drop of file
                 ((IAddChildViewModel)this).AddChildren(files, AddChildModifiers.None);
             }
         }
@@ -1493,7 +1633,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // Note: this should never happen since we have raw assets, litteraly everything can be imported.
             if (templates.Count == 0)
             {
-                await Dialogs.MessageBox(Tr._p("Message", "These files aren't supported."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await Dialogs.MessageBoxAsync(Tr._p("Message", "These files aren't supported."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 

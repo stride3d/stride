@@ -9,25 +9,24 @@
     ".NETStandard,Version=v2.0/": {
       "Stride.Core.AssemblyProcessor/1.0.0": {
         "dependencies": {
-          "ILRepack": "2.0.15",
-          "Microsoft.Build.Utilities.Core": "16.11.0",
-          "Mono.Cecil": "0.11.2",
-          "Mono.Options": "5.3.0.1",
-          "NETStandard.Library": "2.0.3"
+          "Microsoft.Build.Utilities.Core": "17.0.0",
+          "Mono.Cecil": "0.11.5",
+          "Mono.Options": "6.12.0.148",
+          "NETStandard.Library": "2.0.3",
+          "PolySharp": "1.15.0"
         },
         "runtime": {
           "Stride.Core.AssemblyProcessor.dll": {}
         }
       },
-      "ILRepack/2.0.15": {},
-      "Microsoft.Build.Framework/16.11.0": {
+      "Microsoft.Build.Framework/17.0.0": {
         "dependencies": {
           "System.Security.Permissions": "4.7.0"
         }
       },
-      "Microsoft.Build.Utilities.Core/16.11.0": {
+      "Microsoft.Build.Utilities.Core/17.0.0": {
         "dependencies": {
-          "Microsoft.Build.Framework": "16.11.0",
+          "Microsoft.Build.Framework": "17.0.0",
           "Microsoft.NET.StringTools": "1.0.0",
           "Microsoft.Win32.Registry": "4.3.0",
           "System.Collections.Immutable": "5.0.0",
@@ -56,31 +55,31 @@
           "System.Runtime.InteropServices": "4.3.0"
         }
       },
-      "Mono.Cecil/0.11.2": {
+      "Mono.Cecil/0.11.5": {
         "runtime": {
           "lib/netstandard2.0/Mono.Cecil.Mdb.dll": {
-            "assemblyVersion": "0.11.2.0",
-            "fileVersion": "0.11.2.0"
+            "assemblyVersion": "0.11.5.0",
+            "fileVersion": "0.11.5.0"
           },
           "lib/netstandard2.0/Mono.Cecil.Pdb.dll": {
-            "assemblyVersion": "0.11.2.0",
-            "fileVersion": "0.11.2.0"
+            "assemblyVersion": "0.11.5.0",
+            "fileVersion": "0.11.5.0"
           },
           "lib/netstandard2.0/Mono.Cecil.Rocks.dll": {
-            "assemblyVersion": "0.11.2.0",
-            "fileVersion": "0.11.2.0"
+            "assemblyVersion": "0.11.5.0",
+            "fileVersion": "0.11.5.0"
           },
           "lib/netstandard2.0/Mono.Cecil.dll": {
-            "assemblyVersion": "0.11.2.0",
-            "fileVersion": "0.11.2.0"
+            "assemblyVersion": "0.11.5.0",
+            "fileVersion": "0.11.5.0"
           }
         }
       },
-      "Mono.Options/5.3.0.1": {
+      "Mono.Options/6.12.0.148": {
         "runtime": {
-          "lib/netstandard1.3/Mono.Options.dll": {
-            "assemblyVersion": "5.0.0.0",
-            "fileVersion": "5.3.0.0"
+          "lib/netstandard2.0/Mono.Options.dll": {
+            "assemblyVersion": "6.0.0.0",
+            "fileVersion": "6.12.0.0"
           }
         }
       },
@@ -89,6 +88,7 @@
           "Microsoft.NETCore.Platforms": "1.1.0"
         }
       },
+      "PolySharp/1.15.0": {},
       "System.Buffers/4.5.1": {},
       "System.Collections/4.3.0": {
         "dependencies": {
@@ -248,26 +248,19 @@
       "serviceable": false,
       "sha512": ""
     },
-    "ILRepack/2.0.15": {
+    "Microsoft.Build.Framework/17.0.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-byDiC5xGX5wYTE1gTt0VxiHzzJQsRheh3zCKtdYYOa1THBoasCCiQekdYx+EPG+R5NjPfX4csxUChtv3Wr0FNw==",
-      "path": "ilrepack/2.0.15",
-      "hashPath": "ilrepack.2.0.15.nupkg.sha512"
+      "sha512": "sha512-XbFA0z+6Ws2pNeRXYcDF3lKlNgRoSGMm2Q5HKzZD+EbwYMKPKrl/BJnnkMuDJHU0KravYHfhzBnLLJpPeZ3E7A==",
+      "path": "microsoft.build.framework/17.0.0",
+      "hashPath": "microsoft.build.framework.17.0.0.nupkg.sha512"
     },
-    "Microsoft.Build.Framework/16.11.0": {
+    "Microsoft.Build.Utilities.Core/17.0.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-ZBKk+0W/fstpsYg7j1nNvqUQ4vjl4xetKwRf7/CCp956lckEOKuCpNO9yj0yO/UlmUaNGU+8csF+oYWIdOZGPw==",
-      "path": "microsoft.build.framework/16.11.0",
-      "hashPath": "microsoft.build.framework.16.11.0.nupkg.sha512"
-    },
-    "Microsoft.Build.Utilities.Core/16.11.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-qJ02OPuYuCkcJRm3AeUV3GT6vQ1yGg4ChKi6wc+X7bSJqu6yuTxwVn7kSPx/4uD/kPyhJkzOPRi1ez5SLdXFeQ==",
-      "path": "microsoft.build.utilities.core/16.11.0",
-      "hashPath": "microsoft.build.utilities.core.16.11.0.nupkg.sha512"
+      "sha512": "sha512-+eqDvecetKfsZR9WqLQ96F9xhxFb3m9VOjkyzuaA/2D1cub1aW9XyegZb8+gEpBa+o7dHnIN9FskC+tRXtqLSQ==",
+      "path": "microsoft.build.utilities.core/17.0.0",
+      "hashPath": "microsoft.build.utilities.core.17.0.0.nupkg.sha512"
     },
     "Microsoft.NET.StringTools/1.0.0": {
       "type": "package",
@@ -297,19 +290,19 @@
       "path": "microsoft.win32.registry/4.3.0",
       "hashPath": "microsoft.win32.registry.4.3.0.nupkg.sha512"
     },
-    "Mono.Cecil/0.11.2": {
+    "Mono.Cecil/0.11.5": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-hZNAnXKQsOs/SZMFtT/e82/nA/iLgkeDy+sHD8xix4f0m9/3G0RNZplE1QHB+0n8QXq54jLqR/IPgVOkLapkyg==",
-      "path": "mono.cecil/0.11.2",
-      "hashPath": "mono.cecil.0.11.2.nupkg.sha512"
+      "sha512": "sha512-fxfX+0JGTZ8YQeu1MYjbBiK2CYTSzDyEeIixt+yqKKTn7FW8rv7JMY70qevup4ZJfD7Kk/VG/jDzQQTpfch87g==",
+      "path": "mono.cecil/0.11.5",
+      "hashPath": "mono.cecil.0.11.5.nupkg.sha512"
     },
-    "Mono.Options/5.3.0.1": {
+    "Mono.Options/6.12.0.148": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-irTJcHgEoQRf+otUaCqpMv8D4npzdWpsD3PcdPJoj/T0KkQJMKcSzlzaaELZlzu9IVAZl/lyuhEmaT4t43BBPA==",
-      "path": "mono.options/5.3.0.1",
-      "hashPath": "mono.options.5.3.0.1.nupkg.sha512"
+      "sha512": "sha512-kf6bdXnP4IzqIp4bJ1YKPI3/PAcOV6qm4mznChJ3c92zHQUXTWJSp0+h+Cfcii0O6m/EgW7KA+tbCiB2al0DDA==",
+      "path": "mono.options/6.12.0.148",
+      "hashPath": "mono.options.6.12.0.148.nupkg.sha512"
     },
     "NETStandard.Library/2.0.3": {
       "type": "package",
@@ -317,6 +310,13 @@
       "sha512": "sha512-st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
       "path": "netstandard.library/2.0.3",
       "hashPath": "netstandard.library.2.0.3.nupkg.sha512"
+    },
+    "PolySharp/1.15.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-FbU0El+EEjdpuIX4iDbeS7ki1uzpJPx8vbqOzEtqnl1GZeAGJfq+jCbxeJL2y0EPnUNk8dRnnqR2xnYXg9Tf+g==",
+      "path": "polysharp/1.15.0",
+      "hashPath": "polysharp.1.15.0.nupkg.sha512"
     },
     "System.Buffers/4.5.1": {
       "type": "package",

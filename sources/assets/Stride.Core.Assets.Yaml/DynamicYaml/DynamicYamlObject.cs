@@ -1,50 +1,37 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Dynamic;
 using System.Globalization;
 using Stride.Core.Yaml.Serialization;
 
-namespace Stride.Core.Yaml
+namespace Stride.Core.Yaml;
+
+public abstract class DynamicYamlObject : DynamicObject
 {
-    public abstract class DynamicYamlObject : DynamicObject
+    protected static YamlNode ConvertFromDynamic(object? obj)
     {
-        protected static YamlNode ConvertFromDynamic(object obj)
+        return obj switch
         {
-            if (obj == null)
-                return new YamlScalarNode("null");
+            null => new YamlScalarNode("null"),
+            string str => new YamlScalarNode(str),
+            YamlNode node => node,
+            DynamicYamlMapping mapping => mapping.Node,
+            DynamicYamlArray array => array.node,
+            DynamicYamlScalar scalar => scalar.node,
+            bool b => new YamlScalarNode(b ? "true" : "false"),
+            _ => new YamlScalarNode(string.Format(CultureInfo.InvariantCulture, "{0}", obj))
+        };
+    }
 
-            if (obj is string)
-            {
-                return new YamlScalarNode((string)obj);
-            }
-
-            if (obj is YamlNode)
-                return (YamlNode)obj;
-
-            if (obj is DynamicYamlMapping)
-                return ((DynamicYamlMapping)obj).Node;
-            if (obj is DynamicYamlArray)
-                return ((DynamicYamlArray)obj).node;
-            if (obj is DynamicYamlScalar)
-                return ((DynamicYamlScalar)obj).node;
-
-            if (obj is bool)
-                return new YamlScalarNode((bool)obj ? "true" : "false");
-
-            return new YamlScalarNode(string.Format(CultureInfo.InvariantCulture, "{0}", obj));
-        }
-
-        public static object ConvertToDynamic(object obj)
+    public static object ConvertToDynamic(object obj)
+    {
+        return obj switch
         {
-            if (obj is YamlScalarNode)
-                return new DynamicYamlScalar((YamlScalarNode)obj);
-            if (obj is YamlMappingNode)
-                return new DynamicYamlMapping((YamlMappingNode)obj);
-            if (obj is YamlSequenceNode)
-                return new DynamicYamlArray((YamlSequenceNode)obj);
-
-            return obj;
-
-        }
+            YamlScalarNode scalar => new DynamicYamlScalar(scalar),
+            YamlMappingNode mapping => new DynamicYamlMapping(mapping),
+            YamlSequenceNode sequence => new DynamicYamlArray(sequence),
+            _ => obj
+        };
     }
 }

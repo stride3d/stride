@@ -503,7 +503,7 @@ void main()
         /// <param name="index">The index in the list.</param>
         /// <param name="bindings">The list of bindings.</param>
         /// <returns>The new index of the data.</returns>
-        private static int GetReflexionIndex(EffectResourceBindingDescription data, int index, FastList<EffectResourceBindingDescription> bindings)
+        private static int GetReflexionIndex(EffectResourceBindingDescription data, int index, List<EffectResourceBindingDescription> bindings)
         {
             if (data.SlotCount != 0)
             {

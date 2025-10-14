@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Stride.Core.BuildEngine;
 using Stride.Core.Collections;
 using Stride.Core.Extensions;
@@ -23,6 +24,8 @@ namespace Stride.Assets.Models
         public TimeSpan EndFrame { get; set; } = AnimationAsset.LongestTimeSpan;
 
         public bool ImportCustomAttributes { get; set; }
+
+        public int AnimationStack { get; set; }
 
         private unsafe object ExportAnimation(ICommandContext commandContext, ContentManager contentManager, bool failOnEmptyAnimation)
         {
@@ -50,14 +53,17 @@ namespace Stride.Assets.Models
             if (duration > durationTimeSpan)
                 duration = durationTimeSpan;
 
+            // Incase of no mapping or only root mapping use source skeleton
             var animationClip = new AnimationClip { Duration = duration };
+            var skeleton = string.IsNullOrWhiteSpace(SkeletonUrl)?null:contentManager.Load<Skeleton>(SkeletonUrl);
+            var skeletonMapping = new SkeletonMapping(skeleton, modelSkeleton);
 
             if (animationClips.Count > 0)
             {
                 AnimationClip rootMotionAnimationClip = null;
 
                 // If root motion is explicitely enabled, or if there is no skeleton, try to find root node and apply animation directly on TransformComponent
-                if ((AnimationRootMotion || SkeletonUrl == null) && modelSkeleton.Nodes.Length >= 1)
+                if ((AnimationRootMotion || skeleton == null || skeletonMapping.MapCount < 2) && modelSkeleton.Nodes.Length >= 1)
                 {
                     // No skeleton, map root node only
                     // TODO: For now, it seems to be located on node 1 in FBX files. Need to check if always the case, and what happens with Assimp
@@ -72,14 +78,14 @@ namespace Stride.Assets.Models
 
                             // Root motion
                             var channelName = channel.Key;
-                            if (channelName.StartsWith("Transform."))
+                            if (channelName.StartsWith("Transform.", StringComparison.Ordinal))
                             {
                                 animationClip.AddCurve($"[TransformComponent.Key]." + channelName.Replace("Transform.", string.Empty), curve);
                             }
 
                             // Also apply Camera curves
                             // TODO: Add some other curves?
-                            if (channelName.StartsWith("Camera."))
+                            if (channelName.StartsWith("Camera.", StringComparison.Ordinal))
                             {
                                 animationClip.AddCurve($"[CameraComponent.Key]." + channelName.Replace("Camera.", string.Empty), curve);
                             }
@@ -89,17 +95,17 @@ namespace Stride.Assets.Models
 
                 // Load asset reference skeleton
                 if (SkeletonUrl != null)
-                {
-                    var skeleton = contentManager.Load<Skeleton>(SkeletonUrl);
-                    var skeletonMapping = new SkeletonMapping(skeleton, modelSkeleton);
-
+                {                  
                     // Process missing nodes
                     foreach (var nodeAnimationClipEntry in animationClips)
                     {
                         var nodeName = nodeAnimationClipEntry.Key;
+                        foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+                        {
+                            nodeName = nodeName.Replace(c, '_');
+                        }   
                         var nodeAnimationClip = nodeAnimationClipEntry.Value;
-                        var nodeIndex = modelSkeleton.Nodes.IndexOf(x => x.Name == nodeName);
-
+                        var nodeIndex = modelSkeleton.Nodes.IndexOf(x => x.Name == nodeName.ToString());
                         // Node doesn't exist in skeleton? skip it
                         if (nodeIndex == -1 || skeletonMapping.SourceToSource[nodeIndex] != nodeIndex)
                             continue;
@@ -120,8 +126,8 @@ namespace Stride.Assets.Models
                             {
                                 AnimationClip animationClipToMerge;
                                 AnimationClipEvaluator animationClipEvaluator = null;
-                                AnimationBlender animationBlender = null;
-                                if (animationClips.TryGetValue(modelSkeleton.Nodes[currentNodeIndex].Name, out animationClipToMerge))
+                                AnimationBlender animationBlender = null;           
+                                if(GetAnimationKeyVirtualKey(modelSkeleton.Nodes[currentNodeIndex].Name, animationClips, out animationClipToMerge))
                                 {
                                     animationBlender = new AnimationBlender();
                                     animationClipEvaluator = animationBlender.CreateEvaluator(animationClipToMerge);
@@ -140,20 +146,20 @@ namespace Stride.Assets.Models
                             foreach (var node in nodesToMerge)
                             {
                                 if (node.Item3 != null)
-                                foreach (var curve in node.Item3.Clip.Curves)
-                                {
-                                    foreach (CompressedTimeSpan time in curve.Keys)
+                                    foreach (var curve in node.Item3.Clip.Curves)
                                     {
-                                        animationKeysSet.Add(time);
+                                        foreach (CompressedTimeSpan time in curve.Keys)
+                                        {
+                                            animationKeysSet.Add(time);
+                                        }
                                     }
-                                }
                             }
 
                             // Sort key times
                             var animationKeys = animationKeysSet.ToList();
                             animationKeys.Sort();
 
-                            var animationOperations = new FastList<AnimationOperation>();
+                            var animationOperations = new List<AnimationOperation>();
 
                             var combinedAnimationClip = new AnimationClip();
 
@@ -170,7 +176,7 @@ namespace Stride.Assets.Models
                                 foreach (var node in nodesToMerge)
                                 {
                                     // Needs to be an array in order for it to be modified by the UpdateEngine, otherwise it would get passed by value
-                                    var modelNodeDefinitions = new ModelNodeDefinition[1] {node.Item1};
+                                    var modelNodeDefinitions = new ModelNodeDefinition[1] { node.Item1 };
 
                                     if (node.Item2 != null && node.Item3 != null)
                                     {
@@ -230,17 +236,18 @@ namespace Stride.Assets.Models
 
                             // TODO: Root motion
                             var channelName = channel.Key;
-                            if (channelName.StartsWith(transformStart))
+                            if (channelName.StartsWith(transformStart, StringComparison.Ordinal))
                             {
                                 if (channelName == transformPosition)
                                 {
                                     // Translate node with parent 0 using PivotPosition
                                     var keyFrames = ((AnimationCurve<Vector3>)curve).KeyFrames;
-                                    for (int i = 0; i < keyFrames.Count; ++i)
+                                    var keyFramesSpan = CollectionsMarshal.AsSpan(keyFrames);
+                                    for (int i = 0; i < keyFramesSpan.Length; ++i)
                                     {
                                         if (parentNodeIndex == 0)
-                                            keyFrames.Items[i].Value -= PivotPosition;
-                                        keyFrames.Items[i].Value *= ScaleImport;
+                                            keyFramesSpan[i].Value -= PivotPosition;
+                                        keyFramesSpan[i].Value *= ScaleImport;
                                     }
                                 }
                                 animationClip.AddCurve($"[ModelComponent.Key].Skeleton.NodeTransformations[{skeletonMapping.SourceToTarget[nodeIndex]}]." + channelName, curve);
@@ -271,7 +278,6 @@ namespace Stride.Assets.Models
             if (animationClip.Channels.Count == 0)
             {
                 var logString = $"File {SourcePath} doesn't have any animation information.";
-
                 if (failOnEmptyAnimation)
                 {
                     commandContext.Logger.Error(logString);
@@ -292,6 +298,25 @@ namespace Stride.Assets.Models
                 animationClip.Optimize();
             }
             return animationClip;
+        }
+
+        public bool GetAnimationKeyVirtualKey(string vKey, Dictionary<string, AnimationClip> animationClips, out AnimationClip clip)
+        {
+            bool isFound = false;
+            AnimationClip outClip = null;
+            animationClips.ForEach(c =>
+            {
+                string _lineItem = c.Key;
+                System.IO.Path.GetInvalidFileNameChars().ForEach(x => { _lineItem = _lineItem.Replace(x, '_'); });
+                if (_lineItem == vKey)
+                {
+                    outClip = c.Value;
+                    isFound = true;
+                    return;
+                }
+            });
+            clip = outClip;
+            return isFound;
         }
     }
 }

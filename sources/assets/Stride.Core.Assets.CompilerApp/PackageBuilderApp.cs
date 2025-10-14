@@ -13,13 +13,10 @@ using System.Text;
 using Mono.Options;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.BuildEngine;
-using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Yaml;
-using Stride.Core.VisualStudio;
 using Stride.Assets.Models;
 using Stride.Assets.SpriteFont;
-using Stride.Graphics;
 using Stride.Particles;
 using Stride.Rendering.Materials;
 using Stride.Rendering.ProceduralModels;
@@ -145,22 +142,6 @@ namespace Stride.Core.Assets.CompilerApp
                         }
                     }
                 }
-                },
-                {
-                    "reattach-debugger=", "Reattach to a Visual Studio debugger", v =>
-                    {
-                        int debuggerProcessId;
-                        if (!string.IsNullOrEmpty(v) && int.TryParse(v, out debuggerProcessId))
-                        {
-                            if (!Debugger.IsAttached)
-                            {
-                                using (var debugger = VisualStudioDebugger.GetByProcess(debuggerProcessId))
-                                {
-                                    debugger?.Attach();
-                                }
-                            }
-                        }
-                    }
                 },
             };
 

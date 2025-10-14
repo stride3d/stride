@@ -1,17 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows7.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <UseWPF>true</UseWPF>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputPath>bin\Debug\</OutputPath>
-    <Prefer32Bit>false</Prefer32Bit>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <DefineConstants>TRACE;STRIDE_LAUNCHER</DefineConstants>
   </PropertyGroup>
@@ -21,7 +22,6 @@
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE;STRIDE_LAUNCHER</DefineConstants>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Resources\Launcher.ico</ApplicationIcon>
@@ -32,6 +32,9 @@
     <_StrideLauncherNuSpecLines>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)Stride.Launcher.nuspec'))</_StrideLauncherNuSpecLines>
     <Version>$([System.Text.RegularExpressions.Regex]::Match($(_StrideLauncherNuSpecLines), `<version>(.*)</version>`).Groups[1].Value)</Version>
   </PropertyGroup>
+  <ItemGroup>
+    <Using Include="System.IO" />
+  </ItemGroup>
   <ItemGroup>
     <None Remove="Resources\list-26.png" />
   </ItemGroup>
@@ -69,11 +72,11 @@
     <Resource Include="Resources\discord.png" />
     <Resource Include="Resources\showcase.png" />
     <Resource Include="Resources\Robot.jpg" />
-    <Resource Include="Resources\twitch.png" />
+    <Resource Include="Resources\twitch_24.png" />
     <Resource Include="Resources\facebook_24.png" />
     <Resource Include="Resources\reddit_24.png" />
-    <Resource Include="Resources\twitter_bird_24.png" />
-    <Resource Include="Resources\opencollective-24.png" />
+    <Resource Include="Resources\xtwitter_24.png" />
+    <Resource Include="Resources\opencollective_24.png" />
     <Resource Include="Resources\github.png" />
     <Resource Include="Resources\issues.png" />
     <Resource Include="Resources\Launcher.ico" />
@@ -102,8 +105,8 @@
     <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.Yaml\Stride.Core.Yaml.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
-    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Dialogs\Stride.Core.Presentation.Dialogs.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
+    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Dialogs\Stride.Core.Presentation.Dialogs.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -118,6 +121,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Urls.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Urls.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <Import Project="..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />

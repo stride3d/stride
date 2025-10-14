@@ -72,7 +72,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             navigationMeshManager = new NavigationMeshManager(editor.Controller);
         }
 
-        public override async Task DisposeAsync()
+        public override async ValueTask DisposeAsync()
         {
             // Remove registered events
             editor.Session.DeletedAssetsChanged -= OnDeletedAssetsChanged;
@@ -598,8 +598,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
         private async Task UpdateNavigationMeshLink(AssetViewModel asset)
         {
-            if (!navigationMeshAssets.ContainsKey(asset.Id))
-                navigationMeshAssets.Add(asset.Id, asset);
+            navigationMeshAssets.TryAdd(asset.Id, asset);
 
             // Either add or remove the navigation mesh to the navigation mesh manager, which will then handle loading the navigation mesh whenever it gets compiler
             //  and then call NavigationMeshManagerOnChanged to update the shown navigation mesh

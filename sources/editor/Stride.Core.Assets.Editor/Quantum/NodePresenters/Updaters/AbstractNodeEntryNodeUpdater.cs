@@ -9,6 +9,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Serialization;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
 {
@@ -18,15 +19,35 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
         {
             var type = node.Descriptor.GetInnerCollectionType();
 
-            IEnumerable<AbstractNodeEntry> abstractNodeMatchingEntries = AbstractNodeType.GetInheritedInstantiableTypes(type);
+            var abstractNodeMatchingEntries = AbstractNodeType.GetInheritedInstantiableTypes(type);
+            IEnumerable<AbstractNodeEntry> abstractNodeMatchingEntries2 = [];
+            foreach (var nodeType in abstractNodeMatchingEntries)
+            {
+                AbstractNodeEntry nodeEntry = IsEntityComponent(nodeType.Type) ? new AbstractNodeValue(null, nodeType.Type.Name, 0) : nodeType;
+                abstractNodeMatchingEntries2 = abstractNodeMatchingEntries2.Append(nodeEntry);
+            }
 
-            if (abstractNodeMatchingEntries != null)
+            if (abstractNodeMatchingEntries2 != null)
             {
                 // Prepend the value that will allow to set the value to null, if this command is allowed.
                 if (IsAllowingNull(node))
-                    abstractNodeMatchingEntries = AbstractNodeValue.Null.Yield().Concat(abstractNodeMatchingEntries);
+                    abstractNodeMatchingEntries2 = AbstractNodeValue.Null.Yield().Concat(abstractNodeMatchingEntries2);
             }
-            return abstractNodeMatchingEntries;
+            return abstractNodeMatchingEntries2;
+
+            static bool IsEntityComponent(Type type)
+            {
+                for (var t = type; t != null; t = t.BaseType)
+                {
+                    // TODO: Workaround for internal engine issue when selecting a component type from the type dropdown generated, see #2719
+                    if (t.Name == "EntityComponent" && t.FullName == "Stride.Engine.EntityComponent")
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         /// <summary>
@@ -60,15 +81,18 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
         protected override void UpdateNode(IAssetNodePresenter node)
         {
             var type = node.Descriptor.GetInnerCollectionType();
-            if (type.IsAbstract && !IsReferenceType(type) && !node.IsObjectReference(node.Value) && IsInstantiable(type))
+            if (type.IsAbstract && IsInstantiable(type))
             {
                 var abstractNodeEntries = FillDefaultAbstractNodeEntry(node);
+
+                // Remove content types, the engine expects content types to be serialized as reference, not created inline
+                if (AssetRegistry.CanPropertyHandleContent(type, out var contentTypes))
+                    abstractNodeEntries = abstractNodeEntries.Where(x => x is AbstractNodeType ant == false || contentTypes.Contains(ant.Type) == false);
+
                 node.AttachedProperties.Add(AbstractNodeEntryData.Key, abstractNodeEntries);
             }
         }
 
         private static bool IsInstantiable(Type type) => TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<NonInstantiableAttribute>(type) == null;
-
-        private static bool IsReferenceType(Type type) => AssetRegistry.IsContentType(type) || typeof(AssetReference).IsAssignableFrom(type);
     }
 }

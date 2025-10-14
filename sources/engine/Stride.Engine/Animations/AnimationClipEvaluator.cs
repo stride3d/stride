@@ -114,7 +114,7 @@ namespace Stride.Animations
                     var channel = Channels.Items[index];
 
                     // For now, objects are not supported, so treat everything as a blittable struct.
-                    channel.Curve?.AddValue(newTime, (IntPtr)(structures + channel.Offset + sizeof(float)));
+                    channel.Curve?.AddValue(newTime, (structures + channel.Offset + sizeof(float)));
                 }
             }
         }

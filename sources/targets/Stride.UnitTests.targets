@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="StrideGraphicsApis">
   <!--Import Unit Tests Local Settings for the solution being loaded -->
-  <Import Project="$(SolutionDir)$(SolutionName).UnitTests.Build.targets" Condition="Exists('$(SolutionDir)$(SolutionName).UnitTests.Build.targets')" />
+  <Import Project="$(MSBuildThisFileDirectory)../../build/$(SolutionName).UnitTests.Build.targets" Condition="Exists('$(MSBuildThisFileDirectory)../../build/$(SolutionName).UnitTests.Build.targets')" />
 
   <!-- Setup GraphicsApi (we do it even if StrideGraphicsApiDependent is not set to true, so that ProjectReference works) -->
   <PropertyGroup>
@@ -10,6 +10,8 @@
     <StrideGraphicsApis Condition="'$(StrideGraphicsApisTest)' != ''">$(StrideGraphicsApisTest)</StrideGraphicsApis>
     
     <!-- Build list of Graphics API for platform that supports multiple -->
+    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Linux' And '$(StrideGraphicsApiDependentBuildAll)' == 'true'">OpenGL;Vulkan</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Linux' And '$(StrideGraphicsApis)' == ''">OpenGL</StrideGraphicsApis>
     <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
     <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
   
@@ -37,11 +39,6 @@
 
     <!-- Unit tests are executables (execute asset compiler, embed native libraries, etc... -->
     <StrideIsExecutable>true</StrideIsExecutable>
-
-    <!-- Setup Asset Compiler MSBuild SolutionDir and SolutionName to point to Stride Windows
-         Also disable BuildProjectReferences, otherwise it would try to recompile assemblies currently locked by the CompilerApp itself.
-         However, that means that Tests dependencies must be compiled properly on Windows (should be the case usually).
-    -->
     <StrideCompileAssetOptions>--compile-property:BuildProjectReferences=false</StrideCompileAssetOptions>
   </PropertyGroup>
 
@@ -54,15 +51,15 @@
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
     <StartupObject>xunit.runner.stride.Program</StartupObject>
   </PropertyGroup>
-  <ItemGroup Condition="'$(StridePlatform)' == 'Windows'">
-    <Compile Condition="'$(StrideGraphicsApiDependent)' != 'true'" Include="$(MSBuildThisFileDirectory)..\shared\tests\xunit\LauncherSimple.Windows.cs">
-      <Link>LauncherSimple.Windows.cs</Link>
+  <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
+    <Compile Condition="'$(StrideGraphicsApiDependent)' != 'true'" Include="$(MSBuildThisFileDirectory)..\shared\tests\xunit\LauncherSimple.Desktop.cs">
+      <Link>LauncherSimple.Desktop.cs</Link>
     </Compile>
-    <Compile Condition="'$(StrideGraphicsApiDependent)' == 'true'" Include="$(MSBuildThisFileDirectory)..\shared\tests\xunit\LauncherSimple.Windows.cs">
-      <Link>LauncherGame.Windows.cs</Link>
+    <Compile Condition="'$(StrideGraphicsApiDependent)' == 'true'" Include="$(MSBuildThisFileDirectory)..\shared\tests\xunit\LauncherSimple.Desktop.cs">
+      <Link>LauncherGame.Desktop.cs</Link>
     </Compile>
   </ItemGroup>
 
@@ -84,8 +81,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="TeamCity.VSTest.TestAdapter" Version="1.0.32" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="TeamCity.VSTest.TestAdapter" />
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

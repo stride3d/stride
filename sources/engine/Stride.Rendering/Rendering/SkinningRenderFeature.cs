@@ -3,6 +3,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Rendering.Materials;
@@ -19,6 +20,8 @@ namespace Stride.Rendering
         private ObjectPropertyKey<Matrix[]> renderModelObjectInfoKey;
 
         private ConstantBufferOffsetReference blendMatrices;
+
+        private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("SkinningRenderFeature.PrepareEffectPermutations");
 
         // Good number for low profiles?
         public int MaxBones { get; set; } = 56;
@@ -43,17 +46,17 @@ namespace Stride.Rendering
             blendMatrices = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationSkinningKeys.BlendMatrixArray.Name);
         }
 
-        /// <param name="context"></param>
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
+            using var _ = Profiler.Begin(PrepareEffectPermutationsKey);
             var skinningInfos = RootRenderFeature.RenderData.GetData(skinningInfoKey);
 
             var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
             int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
 
             //foreach (var objectNodeReference in RootRenderFeature.ObjectNodeReferences)
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).ObjectNodeReferences, objectNodeReference =>
+            Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, objectNodeReference =>
             {
                 var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = (RenderMesh)objectNode.RenderObject;
@@ -113,25 +116,29 @@ namespace Stride.Rendering
         {
             var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
 
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
+            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (from, toExclusive) =>
             {
-                var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
-                if (perDrawLayout == null)
-                    return;
-
-                var blendMatricesOffset = perDrawLayout.GetConstantBufferOffset(blendMatrices);
-                if (blendMatricesOffset == -1)
-                    return;
-
-                var renderModelObjectInfo = renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
-                if (renderModelObjectInfo == null)
-                    return;
-
-                var mappedCB = (byte*)renderNode.Resources.ConstantBuffer.Data + blendMatricesOffset;
-
-                fixed (Matrix* blendMatricesPtr = renderModelObjectInfo)
+                for (int i = from; i < toExclusive; i++)
                 {
-                    Unsafe.CopyBlockUnaligned(mappedCB, blendMatricesPtr, (uint)renderModelObjectInfo.Length * (uint)sizeof(Matrix));
+                    var renderNode = RootRenderFeature.RenderNodes[i];
+                    var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
+                    if (perDrawLayout == null)
+                        continue;
+
+                    var blendMatricesOffset = perDrawLayout.GetConstantBufferOffset(blendMatrices);
+                    if (blendMatricesOffset == -1)
+                        continue;
+
+                    var renderModelObjectInfo = renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
+                    if (renderModelObjectInfo == null)
+                        continue;
+
+                    var mappedCB = (byte*)renderNode.Resources.ConstantBuffer.Data + blendMatricesOffset;
+
+                    fixed (Matrix* blendMatricesPtr = renderModelObjectInfo)
+                    {
+                        Utilities.CopyWithAlignmentFallback(mappedCB, blendMatricesPtr, (uint)renderModelObjectInfo.Length * (uint)sizeof(Matrix));
+                    }
                 }
             });
         }

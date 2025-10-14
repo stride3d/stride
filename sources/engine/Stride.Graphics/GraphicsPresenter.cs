@@ -28,7 +28,7 @@ using Stride.Core.ReferenceCounting;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// This class is a frontend to <see cref="SwapChain" /> and <see cref="SwapChain1" />.
+    /// This class is a frontend to <see cref="SharpDX.DXGI.SwapChain" /> and <see cref="SharpDX.DXGI.SwapChain1" />.
     /// </summary>
     /// <remarks>
     /// In order to create a new <see cref="GraphicsPresenter"/>, a <see cref="GraphicsDevice"/> should have been initialized first.
@@ -155,6 +155,33 @@ namespace Stride.Graphics
 
             ResizeBackBuffer(width, height, format);
             ResizeDepthStencilBuffer(width, height, format);
+
+            GraphicsDevice.End();
+        }
+
+        /// <summary>
+        /// Sets the output color space of the presenter and the format for the backbuffer. Currently only supported by the DirectX backend.
+        /// Use the following combinations: <br />
+        /// Render to SDR Display with gamma 2.2: <see cref="ColorSpaceType.RgbFullG22NoneP709"/> with <see cref="PixelFormat.R8G8B8A8_UNorm"/>, <see cref="PixelFormat.R8G8B8A8_UNorm_SRgb"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>. <br />
+        /// Render to HDR Display in scRGB (standard linear), windows DWM will do the color conversion: <see cref="ColorSpaceType.RgbFullG10NoneP709"/> with <see cref="PixelFormat.R16G16B16A16_Float"/> <br />
+        /// Render to HDR Display in HDR10/BT.2100, no windows DWM conversion, rendering needs to be in the Display color space: <see cref="ColorSpaceType.RgbFullG2084NoneP2020"/> with <see cref="PixelFormat.R10G10B10A2_UNorm"/> <br />
+        /// </summary>
+        /// <param name="colorSpace"></param>
+        /// <param name="format"></param>
+        public void SetOutputColorSpace(ColorSpaceType colorSpace, PixelFormat format)
+        {
+            GraphicsDevice.Begin();
+
+            Description.BackBufferFormat = NormalizeBackBufferFormat(format);
+ 
+            // new resources
+            ResizeBackBuffer(Description.BackBufferWidth, Description.BackBufferHeight, format);
+            ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, depthStencilBuffer.ViewFormat);
+
+            // recreate swapchain
+            OnDestroyed();
+            Description.OutputColorSpace = colorSpace;
+            OnRecreated();
 
             GraphicsDevice.End();
         }

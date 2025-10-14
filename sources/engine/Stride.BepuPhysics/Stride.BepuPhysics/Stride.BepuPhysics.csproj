@@ -1,0 +1,43 @@
+<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\targets\Stride.props" />
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
+    <StridePackAssets>true</StridePackAssets>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Stride.Assets" />
+    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Reference Include="VHACDSharp">
+      <HintPath>..\..\..\..\deps\VHACD\VHACDSharp.dll</HintPath>
+    </Reference>
+    <StrideNativeLib Include="..\..\..\..\deps\VHACD\**\VHACD.*">
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+    </StrideNativeLib>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
+    <ProjectReference Include="..\..\Stride.Assets\Stride.Assets.csproj" />
+    <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepuPhysics" />
+  </ItemGroup>
+
+  <Import Project="$(StrideSdkTargets)" />
+</Project>

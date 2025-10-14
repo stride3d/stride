@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 
@@ -12,7 +13,7 @@ namespace Stride.Graphics
     public partial class CommandList : GraphicsResourceBase
     {
         private const int MaxRenderTargetCount = 8;
-        private const int MaxViewportAndScissorRectangleCount = 16;
+        internal const int MaxViewportAndScissorRectangleCount = 16;
         private bool viewportDirty = false;
 
         private int boundViewportCount;
@@ -143,7 +144,9 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Binds a single scissor rectangle to the rasterizer stage. See <see cref="Render+states"/> to learn how to use it.
+        /// Binds a single scissor rectangle to the rasterizer stage.
+        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-set-the-scissor">Set the scissor</see>
+        /// in the manual for more information.
         /// </summary>
         /// <param name="rectangle">The scissor rectangle.</param>
         public void SetScissorRectangle(Rectangle rectangle)
@@ -155,7 +158,9 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Binds a set of scissor rectangles to the rasterizer stage. See <see cref="Render+states"/> to learn how to use it.
+        /// Binds a set of scissor rectangles to the rasterizer stage.
+        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-set-the-scissor">Set the scissor</see>
+        /// in the manual for more information.
         /// </summary>
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
         public void SetScissorRectangles(Rectangle[] scissorRectangles)
@@ -164,7 +169,9 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Binds a set of scissor rectangles to the rasterizer stage. See <see cref="Render+states"/> to learn how to use it.
+        /// Binds a set of scissor rectangles to the rasterizer stage.
+        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-set-the-scissor">Set the scissor</see>
+        /// in the manual for more information.
         /// </summary>
         /// <param name="scissorCount">The number of scissor rectangles to bind.</param>
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
@@ -180,7 +187,9 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Binds a depth-stencil buffer and a single render target to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.
+        /// Binds a depth-stencil buffer and a single render target to the output-merger stage.
+        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a render target</see>
+        /// in the manual for more information.
         /// </summary>
         /// <param name="depthStencilView">A view of the depth-stencil buffer to bind.</param>
         /// <param name="renderTargetView">A view of the render target to bind.</param>
@@ -291,7 +300,7 @@ namespace Stride.Graphics
         /// <param name="renderTargetViewCount">The number of render target in <paramref name="renderTargetViews"/>.</param>
         /// <param name="renderTargetViews">A set of render target views to bind.</param>
         /// <exception cref="System.ArgumentNullException">renderTargetViews</exception>
-        public void SetRenderTargets(Texture depthStencilView, int renderTargetViewCount, Texture[] renderTargetViews)
+        public void SetRenderTargets(Texture depthStencilView, int renderTargetViewCount, Span<Texture> renderTargetViews)
         {
             depthStencilBuffer = depthStencilView;
 

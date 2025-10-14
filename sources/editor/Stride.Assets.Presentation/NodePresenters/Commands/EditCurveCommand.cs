@@ -49,7 +49,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
             if (currentValue != null)
             {
                 // TODO: we should display the path instead of the name for the title
-                session.ServiceProvider.Get<IEditorDialogService>().AssetEditorsManager.OpenCurveEditorWindow(currentValue, nodePresenter.Name);
+                session.ServiceProvider.Get<IAssetEditorsManager>().OpenCurveEditorWindow(currentValue, nodePresenter.Name);
             }
         }
 

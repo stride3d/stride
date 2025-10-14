@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Stride.Core.Shaders.Ast;
@@ -55,6 +56,8 @@ namespace Stride.Core.Shaders.Convertor
 
         public string ExtraHeaders { get; set; }
 
+        public List<string> Extensions { get; } = [];
+
         #region Public Methods
 
         /// <inheritdoc/>
@@ -69,6 +72,12 @@ namespace Stride.Core.Shaders.Convertor
                 Write(" es");
 
             WriteLine();
+
+            foreach (var extension in Extensions)
+            {
+                WriteLine($"#extension {extension} : enable");
+            }
+
             WriteLine();
 
             if (shaderPlatform == GlslShaderPlatform.OpenGLES)
@@ -244,8 +253,22 @@ namespace Stride.Core.Shaders.Convertor
         /// <inheritdoc/>
         public override void Visit(AttributeDeclaration attributeDeclaration)
         {
-
-        }
+            if (pipelineStage == PipelineStage.Compute && attributeDeclaration.Name == "numthreads") 
+            {
+                if (attributeDeclaration.Parameters.Count == 1)
+                {
+                    WriteLine($"layout(local_size_x={attributeDeclaration.Parameters[0].Value}) in;");
+                }
+                else if (attributeDeclaration.Parameters.Count == 2)
+                {
+                    WriteLine($"layout(local_size_x={attributeDeclaration.Parameters[0].Value}, local_size_y={attributeDeclaration.Parameters[1].Value}) in;");
+                }
+                else if (attributeDeclaration.Parameters.Count == 3)
+                {
+                    WriteLine($"layout(local_size_x={attributeDeclaration.Parameters[0].Value}, local_size_y={attributeDeclaration.Parameters[1].Value}, local_size_z={attributeDeclaration.Parameters[2].Value}) in;");
+                }
+            }
+        } 
 
         /// <inheritdoc/>
         public override void Visit(CastExpression castExpression)

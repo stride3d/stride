@@ -3,37 +3,28 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
-using Stride.Core.Mathematics;
-using Stride.Core.Transactions;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
-using Stride.Core.Quantum.References;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Scripts;
-using Stride.Assets.Rendering;
-using Accessibility = Stride.Assets.Scripts.Accessibility;
+using Stride.Core.Assets.Editor.Annotations;
 using RoslynAccessibility = Microsoft.CodeAnalysis.Accessibility;
 
 namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 {
-    [AssetEditorViewModel(typeof(VisualScriptAsset), typeof(VisualScriptEditorView))]
+    [AssetEditorViewModel<VisualScriptViewModel>]
     public partial class VisualScriptEditorViewModel : AssetEditorViewModel
     {
         private static readonly object NewMethodSymbol = new object();
@@ -46,7 +37,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 
         private GraphViewModel properties;
 
-        private IScriptSourceCodeResolver sourceResolver;
+        private IEntityComponentSourceCodeResolver sourceResolver;
         private SemanticModel semanticModel;
 
         private bool symbolSearchOpen;
@@ -85,7 +76,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
         /// <inheritdoc/>
         public sealed override async Task<bool> Initialize()
         {
-            sourceResolver = ServiceProvider.Get<IScriptSourceCodeResolver>();
+            sourceResolver = ServiceProvider.Get<IEntityComponentSourceCodeResolver>();
             if (sourceResolver.LatestCompilation == null)
             {
                 // Wait for initial compilation to be done before continuing initialization
@@ -175,7 +166,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 
         public BlockTemplateDescriptionCollectionViewModel BlockTemplateDescriptionCollection => blockTemplateDescriptionCollection.Value;
 
-        public new VisualScriptViewModel Asset => (VisualScriptViewModel)base.Asset;
+        public override VisualScriptViewModel Asset => (VisualScriptViewModel)base.Asset;
 
         public string BaseType { get { return baseTypeNodeBinding.Value; } set { baseTypeNodeBinding.Value = value; } }
 
@@ -400,7 +391,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
         {
             private const int MaxResults = 100;
             private readonly VisualScriptEditorViewModel viewModel;
-            private readonly IScriptSourceCodeResolver sourceResolver;
+            private readonly IEntityComponentSourceCodeResolver sourceResolver;
             private CancellationTokenSource symbolSearchCancellationToken;
 
             public SymbolSearchHelper(VisualScriptEditorViewModel viewModel)
@@ -411,7 +402,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
                 viewModel.SymbolSearchValues.Clear();
                 viewModel.SymbolSearchOpen = true;
 
-                sourceResolver = viewModel.ServiceProvider.Get<IScriptSourceCodeResolver>();
+                sourceResolver = viewModel.ServiceProvider.Get<IEntityComponentSourceCodeResolver>();
 
                 // Start initial search
                 symbolSearchCancellationToken = new CancellationTokenSource();
@@ -470,7 +461,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
                             if (assembly.Name.Contains("Stride"))
                                 return 1;
 
-                            if (assembly.Name == "mscorlib" || assembly.Name.StartsWith("System"))
+                            if (assembly.Name == "mscorlib" || assembly.Name.StartsWith("System", StringComparison.Ordinal))
                                 return 3;
 
                             return 2;

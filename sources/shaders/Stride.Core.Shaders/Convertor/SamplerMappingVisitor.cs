@@ -64,6 +64,36 @@ namespace Stride.Core.Shaders.Convertor
             }
         }
 
+        private Variable FindParameterOrGlobalVariable(Expression expression)
+        {
+            var variableRef = expression as VariableReferenceExpression;
+            if (variableRef != null)
+            {
+                // Check if present in parameter list first.
+                MethodDeclaration currentFunction = null;
+                for (var i = NodeStack.Count - 1; i >= 0; i--)
+                {
+                    if (NodeStack[i] is MethodDeclaration function)
+                    {
+                        currentFunction = function;
+                        break;
+                    }
+                }
+                if (currentFunction != null)
+                {
+                    var parameter = currentFunction.Parameters.FirstOrDefault(x => x is Stride.Core.Shaders.Ast.Parameter param && param.Name == variableRef.Name);
+                    if (parameter != null)
+                    {
+                        return parameter;
+                    }
+                }
+
+                return FindGlobalVariable(expression);
+            }
+
+            return null;
+        }
+
         private Variable FindGlobalVariable(Expression expression)
         {
             var variableRef = expression as VariableReferenceExpression;
@@ -108,14 +138,14 @@ namespace Stride.Core.Shaders.Convertor
             if (memberRef != null)
             {
                 // TODO handle Texture2D<float> 
-                var textureVariable = this.FindGlobalVariable(memberRef.Target);
+                var textureVariable = FindParameterOrGlobalVariable(memberRef.Target);
 
                 if (textureVariable != null)
                 {
                     var textureType = textureVariable.Type.ResolveType();
 
                     if (textureType is TextureType || (CultureInfo.InvariantCulture.CompareInfo.IsPrefix(textureType.Name.Text, "Texture", CompareOptions.IgnoreCase))
-                        || (textureType.IsBuiltIn && textureType.Name.Text.StartsWith("Buffer")))
+                        || (textureType.IsBuiltIn && textureType.Name.Text.StartsWith("Buffer", StringComparison.Ordinal)))
                     {
                         switch (memberRef.Member)
                         {
@@ -358,9 +388,9 @@ namespace Stride.Core.Shaders.Convertor
                 var samplerType = texture.Type.ResolveType();
                 var samplerTypeName = samplerType.Name.Text;
 
-                if (samplerTypeName.StartsWith("Texture"))
-                    samplerTypeName = "sampler" + samplerTypeName.Substring("Texture".Length);
-                else if (samplerTypeName.StartsWith("Buffer"))
+                if (samplerTypeName.StartsWith("Texture", StringComparison.Ordinal))
+                    samplerTypeName = "sampler" + samplerTypeName["Texture".Length..];
+                else if (samplerTypeName.StartsWith("Buffer", StringComparison.Ordinal))
                     samplerTypeName = "samplerBuffer";
 
                 // TODO: How do we support this on OpenGL ES 2.0? Cast to int/uint on Load()/Sample()?
@@ -394,20 +424,20 @@ namespace Stride.Core.Shaders.Convertor
         /// </returns>
         private static Tuple<int, TexFetchType> ParseTexFetch(string name)
         {
-            if (!name.StartsWith("tex"))
+            if (!name.StartsWith("tex", StringComparison.Ordinal))
                 return null;
 
-            name = name.Substring(3);
+            name = name[3..];
 
             int dimension;
 
-            if (name.StartsWith("1D"))
+            if (name.StartsWith("1D", StringComparison.Ordinal))
                 dimension = 1;
-            else if (name.StartsWith("2D"))
+            else if (name.StartsWith("2D", StringComparison.Ordinal))
                 dimension = 2;
-            else if (name.StartsWith("3D"))
+            else if (name.StartsWith("3D", StringComparison.Ordinal))
                 dimension = 3;
-            else if (name.StartsWith("CUBE"))
+            else if (name.StartsWith("CUBE", StringComparison.Ordinal))
                 dimension = 4;
             else
                 return null;

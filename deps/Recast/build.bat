@@ -1,22 +1,29 @@
 @echo OFF
 set recast_source=%~dp0..\..\externals\recast
 set output=%~dp0
+set vcvarsall="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat"
 
 REM copy project files
 copy /Y Detour.vcxproj "%recast_source%\Detour.vcxproj"
 copy /Y Recast.vcxproj "%recast_source%\Recast.vcxproj"
 
 REM build x64 projects
-call "%ProgramFiles(x86)%\Microsoft Visual Studio 14.0\vc\vcvarsall.bat" x64
+call %vcvarsall% x64
 cd "%output%"
 msbuild "%recast_source%\Detour.vcxproj" /p:Platform="x64";Configuration="Release"
 msbuild "%recast_source%\Recast.vcxproj" /p:Platform="x64";Configuration="Release"
 
 REM build x86 projects
-call "%ProgramFiles(x86)%\Microsoft Visual Studio 14.0\vc\vcvarsall.bat" x86
+call %vcvarsall% x86
 cd "%output%"
 msbuild "%recast_source%\Detour.vcxproj" /p:Platform="x86";Configuration="Release"
 msbuild "%recast_source%\Recast.vcxproj" /p:Platform="x86";Configuration="Release"
+
+REM build ARM64 projects
+call %vcvarsall% arm64
+cd "%output%"
+msbuild "%recast_source%\Detour.vcxproj" /p:Platform="ARM64";Configuration="Release"
+msbuild "%recast_source%\Recast.vcxproj" /p:Platform="ARM64";Configuration="Release"
 
 REM copy include files (some additional include files are needed for post-processing)
 rmdir /Q /S "%output%include"

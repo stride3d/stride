@@ -34,7 +34,7 @@ namespace Stride.Graphics
                 // Directly load image as RGBA instead of BGRA, because OpenGL ES devices don't support it out of the box (extension).
                 //image.Description.Format = PixelFormat.R8G8B8A8_UNorm;
                 //CopyMemoryBGRA(image.PixelBuffer[0].DataPointer, bitmapData.Scan0, image.PixelBuffer[0].BufferStride);
-                Unsafe.CopyBlockUnaligned((void*)image.PixelBuffer[0].DataPointer, (void*)bitmapData.Scan0, (uint)image.PixelBuffer[0].BufferStride);
+                Utilities.CopyWithAlignmentFallback((void*)image.PixelBuffer[0].DataPointer, (void*)bitmapData.Scan0, (uint)image.PixelBuffer[0].BufferStride);
             }
             finally
             {
@@ -97,7 +97,7 @@ namespace Stride.Graphics
                 }
                 else if (format == PixelFormat.B8G8R8A8_UNorm || format == PixelFormat.B8G8R8A8_UNorm_SRgb)
                 {
-                    Unsafe.CopyBlockUnaligned((void*)bitmapData.Scan0, (void*)pixelBuffers[0].DataPointer, (uint)pixelBuffers[0].BufferStride);
+                    Utilities.CopyWithAlignmentFallback((void*)bitmapData.Scan0, (void*)pixelBuffers[0].DataPointer, (uint)pixelBuffers[0].BufferStride);
                 }
                 else if (format == PixelFormat.R8_UNorm || format == PixelFormat.A8_UNorm)
                 {

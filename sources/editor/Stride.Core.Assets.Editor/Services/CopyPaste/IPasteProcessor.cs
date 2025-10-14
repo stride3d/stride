@@ -4,7 +4,6 @@ using System;
 using System.Threading.Tasks;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Yaml;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Reflection;
 using Stride.Core.Quantum;

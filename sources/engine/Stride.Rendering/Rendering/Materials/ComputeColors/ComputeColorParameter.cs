@@ -21,12 +21,7 @@ namespace Stride.Rendering.Materials.ComputeColors
     [DataContract("ComputeColorParameterTexture")]
     public class ComputeColorParameterTexture : ComputeColorParameter
     {
-        public ComputeColorParameterTexture()
-        {
-            Texture = new ComputeTextureColor();
-        }
-
-        public ComputeTextureColor Texture { get; private set; }
+        public ComputeTextureColor Texture { get; } = new ComputeTextureColor();
     }
 
     [DataContract]
@@ -44,6 +39,16 @@ namespace Stride.Rendering.Materials.ComputeColors
             : base()
         {
             Value = string.Empty;
+        }
+    }
+
+    [DataContract("ComputeColorParameterBool")]
+    public class ComputeColorParameterBool : ComputeColorParameterValue<bool>
+    {
+        public ComputeColorParameterBool()
+            : base()
+        {
+            Value = false;
         }
     }
 

@@ -9,7 +9,7 @@ namespace Stride.Graphics
     /// Identify which components of each pixel of a render target are writable during blending.
     /// </summary>
     /// <remarks>
-    /// These flags can be combined with a bitwise OR and is used in <see cref="BlendState"/>.
+    /// These flags can be combined with a bitwise OR and is used in <see cref="BlendStateDescription"/> and <see cref="BlendStateRenderTargetDescription"/>.
     /// </remarks>
     [Flags]
     [DataContract]

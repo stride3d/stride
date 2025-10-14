@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Serialization;
-using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
@@ -84,7 +83,7 @@ namespace Stride.Core.Assets.Editor.Quantum.ViewModels
             if (reference1 != null && reference2 != null)
             {
                 var type = reference1.GetType();
-                if (type == reference2.GetType() && AssetRegistry.IsContentType(type))
+                if (type == reference2.GetType() && AssetRegistry.IsExactContentType(type))
                 {
                     var target1 = AttachedReferenceManager.GetAttachedReference(reference1);
                     var target2 = AttachedReferenceManager.GetAttachedReference(reference2);

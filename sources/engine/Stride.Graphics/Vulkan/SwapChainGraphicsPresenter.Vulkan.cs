@@ -147,17 +147,17 @@ namespace Stride.Graphics
             };
 
             // Present
-            if (vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo) == VkResult.ErrorOutOfDateKHR)
+            while (vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo) == VkResult.ErrorOutOfDateKHR)
             {
-                // TODO VULKAN
-                return;
+                OnRecreated();
+                swapChainCopy = swapChain;
+                presentInfo.pSwapchains = &swapChainCopy;
             }
 
             // Get next image
-            if (vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), VkFence.Null, out currentBufferIndex) == VkResult.ErrorOutOfDateKHR)
+            while (vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), VkFence.Null, out currentBufferIndex) == VkResult.ErrorOutOfDateKHR)
             {
-                // TODO VULKAN
-                return;
+                OnRecreated();
             }
 
             // Flip render targets
@@ -193,8 +193,9 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         public override void OnRecreated()
         {
-            // TODO VULKAN: Violent driver crashes when recreating device and swapchain
-            throw new NotImplementedException();
+            // Don't seem to get any crashes for calling the following, looks like standard swapchain recreation code.
+            // For the time being, comment out the not implemented exception.
+            // throw new NotImplementedException();
 
             base.OnRecreated();
 
@@ -322,7 +323,7 @@ namespace Stride.Graphics
                 surface = surface,
                 imageArrayLayers = 1,
                 imageSharingMode = VkSharingMode.Exclusive,
-                imageExtent = new Vortice.Mathematics.Size(Description.BackBufferWidth, Description.BackBufferHeight),
+                imageExtent = new VkExtent2D(Description.BackBufferWidth, Description.BackBufferHeight),
                 imageFormat = backBufferFormat,
                 imageColorSpace = Description.ColorSpace == ColorSpace.Gamma ? VkColorSpaceKHR.SrgbNonLinear : 0,
                 imageUsage = VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.TransferDst | (surfaceCapabilities.supportedUsageFlags & VkImageUsageFlags.TransferSrc), // TODO VULKAN: Use off-screen buffer to emulate

@@ -1,6 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
@@ -8,6 +12,10 @@
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
@@ -36,6 +44,12 @@
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -44,6 +58,13 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
@@ -59,31 +80,47 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>$(ProjectName)</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)</OutDir>
+    <OutDir>$(MSBuildThisFileDirectory)..\..\..\..\build\$(Configuration)\$(Platform)</OutDir>
     <IntDir>$(Configuration)\$(Platform)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>$(ProjectName)</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)</OutDir>
+    <OutDir>$(MSBuildThisFileDirectory)..\..\..\..\build\$(Configuration)\$(Platform)</OutDir>
+    <IntDir>$(Configuration)\$(Platform)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <TargetName>$(ProjectName)</TargetName>
+    <OutDir>$(MSBuildThisFileDirectory)..\..\..\..\build\$(Configuration)\$(Platform)</OutDir>
     <IntDir>$(Configuration)\$(Platform)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>$(ProjectName)</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)</OutDir>
+    <OutDir>$(MSBuildThisFileDirectory)..\..\..\..\build\$(Configuration)\$(Platform)</OutDir>
     <IntDir>$(Configuration)\$(Platform)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>$(ProjectName)</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)</OutDir>
+    <OutDir>$(MSBuildThisFileDirectory)..\..\..\..\build\$(Configuration)\$(Platform)</OutDir>
+    <IntDir>$(Configuration)\$(Platform)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <TargetName>$(ProjectName)</TargetName>
+    <OutDir>$(MSBuildThisFileDirectory)..\..\..\..\build\$(Configuration)\$(Platform)</OutDir>
     <IntDir>$(Configuration)\$(Platform)</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -100,7 +137,7 @@
       <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x86\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x86\</Command>
+      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x86\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x86\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -117,7 +154,24 @@
       <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x64\</Command>
+      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x64\</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\DirectXTex</AdditionalIncludeDirectories>
+      <FloatingPointModel>Strict</FloatingPointModel>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\DirectXTex\Bin\Desktop_2017\arm64\$(Configuration);</AdditionalLibraryDirectories>
+      <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-arm64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-arm64\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -138,7 +192,7 @@
       <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x86\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x86\</Command>
+      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x86\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x86\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -159,7 +213,28 @@
       <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x64\</Command>
+      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x64\</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\DirectXTex</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FloatingPointModel>Strict</FloatingPointModel>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\DirectXTex\Bin\Desktop_2017\arm64\$(Configuration);</AdditionalLibraryDirectories>
+      <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-arm64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-arm64\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

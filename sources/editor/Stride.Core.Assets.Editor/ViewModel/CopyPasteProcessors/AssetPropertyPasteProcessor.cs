@@ -12,7 +12,6 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Visitors;
 using Stride.Core.Assets.Serializers;
 using Stride.Core.Assets.Yaml;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
@@ -560,7 +559,7 @@ namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
         }
 
         [DataContract]
-        private class FixupContainer
+        internal class FixupContainer
         {
             // ReSharper disable once UnusedAutoPropertyAccessor.Local - used by Quantum
             public object Data { get; set; }

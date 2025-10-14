@@ -1,7 +1,11 @@
 <Project InitialTargets="_StrideCheckVisualCRuntime2019" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Check if Visual C++ Runtime 2019 is properly installed -->
   <Target Name="_StrideCheckVisualCRuntime2019" Condition="'$(MSBuildRuntimeType)' == 'Full'">
-    <ItemGroup>
+    <PropertyGroup>
+      <IsWindowsARM64 Condition="$([MSBuild]::IsOsPlatform('Windows')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == ARM64">true</IsWindowsARM64>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(IsWindowsARM64)' == 'false'">
       <_StrideVisualCRuntime2019 Include="Visual C++ Redistributable for Visual Studio 2019 x86">
         <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Version', null, RegistryView.Registry32))</Version>
         <ExpectedVersion>14.22.27821</ExpectedVersion>
@@ -12,7 +16,17 @@
         <ExpectedVersion>14.22.27821</ExpectedVersion>
         <DownloadUrl>https://download.visualstudio.microsoft.com/download/pr/cc0046d4-e7b4-45a1-bd46-b1c079191224/9c4042a4c2e6d1f661f4c58cf4d129e9/vc_redist.x64.exe</DownloadUrl>
       </_StrideVisualCRuntime2019>
+    </ItemGroup>
 
+    <ItemGroup Condition="'$(IsWindowsARM64)' == 'true'">
+      <_StrideVisualCRuntime2019 Include="Visual C++ Redistributable for Visual Studio 2019 ARM64">
+        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\Runtime_arm64', 'Version', null, RegistryView.Registry64))</Version>
+        <ExpectedVersion>14.42.34433</ExpectedVersion>
+        <DownloadUrl>https://download.visualstudio.microsoft.com/download/pr/285b28c7-3cf9-47fb-9be8-01cf5323a8df/8A81A52B7FF6B194CB88E1BB48D597B6588D2B840552909359F286FB1699235C/VC_redist.arm64.exe</DownloadUrl>
+      </_StrideVisualCRuntime2019>      
+    </ItemGroup>
+
+    <ItemGroup>
       <_StrideVisualCRuntime2019NotInstalled Include="@(_StrideVisualCRuntime2019)" Condition="'%(_StrideVisualCRuntime2019.Version)' == '' Or $([System.Version]::Parse('%(Version)').CompareTo($([System.Version]::Parse('%(_StrideVisualCRuntime2019.ExpectedVersion)')))) &lt; 0" />
     </ItemGroup>
 
@@ -39,23 +53,25 @@
   Assembly Processor
   *****************************************************************************************************************************
   -->
+
+  <!-- Multi-OS Compatibility Properties -->
+  <PropertyGroup>
+    <TEMP>$([System.IO.Path]::GetTempPath())</TEMP>
+  </PropertyGroup>
+  
   <PropertyGroup>
     <!--By default, turn on assembly processor-->
     <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorFramework>netstandard2.0</StrideAssemblyProcessorFramework>
     <StrideAssemblyProcessorExt>.dll</StrideAssemblyProcessorExt>
-    <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
-    <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
-    <StrideAssemblyProcessorPath>$(StrideAssemblyProcessorBasePath)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorPath>
+    <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
+    <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
+    <StrideAssemblyProcessorPath>$(StrideAssemblyProcessorBasePath)Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorPath>
     <StrideAssemblyProcessorSerializationHashFile>$(IntermediateOutputPath)$(TargetName).sdserializationhash</StrideAssemblyProcessorSerializationHashFile>
-
-    <TempFolder>$(TEMP)</TempFolder>
-    <TempFolder Condition="'$(TempFolder)' == ''">$(TMPDIR)</TempFolder>
-    <TempFolder Condition="'$(TempFolder)' == ''">/tmp</TempFolder>
     
     <StrideAssemblyProcessorHash>$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorPath).hash'))</StrideAssemblyProcessorHash>
-    <StrideAssemblyProcessorTempBasePath>$(TempFolder)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
-    <StrideAssemblyProcessorTempPath>$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
+    <StrideAssemblyProcessorTempBasePath>$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
+    <StrideAssemblyProcessorTempPath>$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
   <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorTempPath)" Condition=" '$(StrideAssemblyProcessorTempPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
   <Target Name="StrideRunAssemblyProcessor" DependsOnTargets="ResolveAssemblyReferences">
@@ -70,15 +86,15 @@
       <StrideAddReference Include="@(ReferencePath)" Condition="'%(ReferencePath.NuGetPackageId)' == ''"/>
     </ItemGroup>
     <PropertyGroup>
-      <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--auto-notify-property --parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
       <!-- Physics, Particles and SpriteStudio assembly is actually hard coded/referenced here, remove once a better system is in place! -->
       <!-- Please keep in sync with AssemblyRecompiler.cs -->
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) @(StrideAddReference->'--add-reference=%22%(Identity)%22',' ')</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)StrideReferences.cache"</StrideAssemblyProcessorOptions>
-      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --platform=$(StridePlatform) --targetFramework=$(StrideNETFrameworkVersion) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>
-      <StrideAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(StrideAssemblyProcessorOptions) --signkeyfile="$(AssemblyOriginatorKeyFile)" --delete-on-error</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --platform=$(StridePlatform) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(StrideAssemblyProcessorOptions) --delete-output-on-error</StrideAssemblyProcessorOptions>
     </PropertyGroup>
 
     <!-- Copy task to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
@@ -134,8 +150,8 @@
   </PropertyGroup>
   <Target Name="_StrideListDepsFiles" DependsOnTargets="$(_StrideListDepsFilesDependsOn)">
     <ItemGroup>
-      <_StrideDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
-      <_StrideDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(ReferencePath.CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(ReferenceDependencyPaths.CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <_StrideDepsFile Include="@(RuntimeCopyLocalItems->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <_StrideDepsFile Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <!-- Android -->

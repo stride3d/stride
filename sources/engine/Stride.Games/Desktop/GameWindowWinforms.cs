@@ -157,6 +157,7 @@ namespace Stride.Games
                 //gameForm.AppDeactivated += OnDeactivated;
                 gameForm.UserResized += OnClientSizeChanged;
                 gameForm.FullscreenToggle += OnFullscreenToggle;
+                gameForm.DisableFullScreen += OnDisableFullScreen;
                 gameForm.FormClosing += OnClosing;
             }
             else
@@ -271,6 +272,22 @@ namespace Stride.Games
             }
         }
 
+        /// <inheritdoc />
+        public override double Opacity 
+        {
+            get
+            {
+                return form?.Opacity ?? 1.0d;
+            } 
+            set
+            {
+                if (form != null)
+                {
+                    form.Opacity = value;
+                }
+            }
+        }
+        
         public override Int2 Position
         {
             get

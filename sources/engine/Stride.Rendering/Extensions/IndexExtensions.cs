@@ -47,12 +47,12 @@ namespace Stride.Extensions
 
             fixed (byte* newVerticesStart = &newVertices[0]) // throw for null or empty
             fixed (byte* indexBufferStart = &indexBuffer.Buffer.GetDataSafe()[indexBuffer.Offset])
-            fixed (byte* vertexBufferStart = &vertexBuffer.Buffer.GetDataSafe()[indexBuffer.Offset])
+            fixed (byte* vertexBufferStart = &vertexBuffer.Buffer.GetDataSafe()[vertexBuffer.Offset])
             {
                 for (int i = 0; i < indexBuffer.Count; ++i)
                 {
                     var index = ((int*)indexBufferStart)[i];
-                    Unsafe.CopyBlockUnaligned(newVerticesStart + i * stride, vertexBufferStart + index * stride, (uint)stride);
+                    Utilities.CopyWithAlignmentFallback(newVerticesStart + i * stride, vertexBufferStart + index * stride, (uint)stride);
                 }
             }
 
@@ -85,7 +85,7 @@ namespace Stride.Extensions
                 var vertexBufferDataCurrent = vertexBufferDataStart;
                 for (int i = 0; i < vertices.Length; ++i)
                 {
-                    Unsafe.CopyBlockUnaligned(vertexBufferDataCurrent, oldVertexBufferDataStart + oldVertexStride * vertices[i], (uint)newVertexStride);
+                    Utilities.CopyWithAlignmentFallback(vertexBufferDataCurrent, oldVertexBufferDataStart + oldVertexStride * vertices[i], (uint)newVertexStride);
                     vertexBufferDataCurrent += newVertexStride;
                 }
                 meshData.VertexBuffers[0] = new VertexBufferBinding(new BufferData(BufferFlags.VertexBuffer, vertexBufferData).ToSerializableVersion(), declaration, indexMapping.Vertices.Length);
@@ -96,7 +96,7 @@ namespace Stride.Extensions
             fixed (int* indexDataStart = &indexMapping.Indices[0])
             fixed (byte* indexBufferDataStart = &indexBufferData[0])
             {
-                Unsafe.CopyBlockUnaligned(indexBufferDataStart, indexDataStart, (uint)indexBufferData.Length);
+                Utilities.CopyWithAlignmentFallback(indexBufferDataStart, indexDataStart, (uint)indexBufferData.Length);
                 meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer, indexBufferData).ToSerializableVersion(), true, indexMapping.Indices.Length);
             }
         }
@@ -286,7 +286,7 @@ namespace Stride.Extensions
             fixed (int* indexDataStart = &newIndices[0])
             fixed (byte* indexBufferDataStart = &indexBufferData[0])
             {
-                Unsafe.CopyBlockUnaligned(indexBufferDataStart, indexDataStart, (uint)indexBufferData.Length);
+                Utilities.CopyWithAlignmentFallback(indexBufferDataStart, indexDataStart, (uint)indexBufferData.Length);
             }
 
             meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer, indexBufferData).ToSerializableVersion(), true, triangleCount * 12);

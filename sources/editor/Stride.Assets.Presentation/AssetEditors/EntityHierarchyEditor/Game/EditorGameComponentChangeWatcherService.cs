@@ -30,7 +30,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         public abstract Type ComponentType { get; }
 
         /// <inheritdoc />
-        public override Task DisposeAsync()
+        public override ValueTask DisposeAsync()
         {
             EnsureNotDestroyed(nameof(EditorGameComponentChangeWatcherService));
             foreach (var component in registeredListeners.Keys.ToList())

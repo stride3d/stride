@@ -12,6 +12,7 @@ using Stride.Core.Collections;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
+using Stride.Core.Diagnostics;
 using Stride.Engine;
 using Stride.Rendering.Shadows;
 
@@ -24,6 +25,8 @@ namespace Stride.Rendering
     {
         private readonly List<RenderObject> renderObjectsWithoutFeatures = new List<RenderObject>();
         private readonly ThreadLocal<ConcurrentCollectorCache<RenderObject>> collectorCache = new ThreadLocal<ConcurrentCollectorCache<RenderObject>>(() => new ConcurrentCollectorCache<RenderObject>(32));
+
+        private static readonly ProfilingKey TryCollectKey = new ProfilingKey("VisibilityGroup.Collect");
 
         private int stageMaskMultiplier;
 
@@ -91,6 +94,7 @@ namespace Stride.Rendering
         /// <param name="view"></param>
         public void TryCollect(RenderView view)
         {
+            using var _ = Profiler.Begin(TryCollectKey);
             // Already colleted this frame?
             if (view.LastFrameCollected == RenderSystem.FrameCounter)
                 return;

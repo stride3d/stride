@@ -7,14 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Stride.Core;
 using Stride.Core.Annotations;
-using Stride.Core.IO;
 using Stride.Core.Mathematics;
-using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Extensions;
 using Stride.Graphics;
-using Stride.Graphics.Data;
 using Stride.Graphics.GeometricPrimitives;
+using Stride.Graphics.Semantics;
 using Stride.Rendering;
 
 namespace Stride.Physics
@@ -62,7 +60,7 @@ namespace Stride.Physics
             if (sharedData.Key == null)
             {
                 // Not actually shared, dispose and move on
-                sharedData.BulletMesh.Dispose();
+                sharedData.Dispose();
                 return;
             }
 
@@ -72,7 +70,7 @@ namespace Stride.Physics
                 if (sharedData.RefCount == 0)
                 {
                     MeshSharingCache.Remove(sharedData.Key);
-                    sharedData.BulletMesh.Dispose();
+                    sharedData.Dispose();
                 }
             }
         }
@@ -101,7 +99,7 @@ namespace Stride.Physics
             return new GeometricPrimitive(device, meshData).ToMeshDraw();
         }
 
-        static unsafe SharedMeshData BuildAndShareMeshes(Model model, IServiceRegistry services)
+        static SharedMeshData BuildAndShareMeshes(Model model, IServiceRegistry services)
         {
             var sharedContent = services.GetService<ContentManager>();
 
@@ -117,9 +115,6 @@ namespace Stride.Physics
                     }
                 }
             }
-            
-            var dbProvider = services.GetService<IDatabaseFileProviderService>();
-            ContentManager rawContent = null;
             
             Matrix[] nodeTransforms = null;
             if (model.Skeleton != null)
@@ -159,60 +154,30 @@ namespace Stride.Physics
                 totalIndices += meshData.Draw.IndexBuffer.Count;
             }
 
-            var combinedVerts = new List<Vector3>(totalVerts);
-            var combinedIndices = new List<int>(totalIndices);
-
+            var combinedVerts = new Vector3[totalVerts];
+            var combinedIndices = new int[totalIndices];
+            var verticesLeft = combinedVerts.AsSpan();
+            var indicesLeft = combinedIndices.AsSpan();
+            
             foreach (var meshData in model.Meshes)
             {
-                var vBuffer = meshData.Draw.VertexBuffers[0].Buffer;
-                var iBuffer = meshData.Draw.IndexBuffer.Buffer;
-                byte[] verticesBytes = TryFetchBufferContent(vBuffer, ref rawContent, sharedContent, dbProvider);
-                byte[] indicesBytes = TryFetchBufferContent(iBuffer, ref rawContent, sharedContent, dbProvider);
+                meshData.Draw.VertexBuffers[0].AsReadable(services, out var vertexHelper, out var vertexCount);
+                meshData.Draw.IndexBuffer.AsReadable(services, out var indexHelper, out var indexCount);
 
-                if((verticesBytes?.Length ?? 0) == 0 || (indicesBytes?.Length ?? 0) == 0)
+                var sliceForTheseVertices = verticesLeft[..vertexCount];
+                vertexHelper.Copy<PositionSemantic, Vector3>(sliceForTheseVertices);
+                indexHelper.CopyTo(indicesLeft[..indexCount]);
+
+                verticesLeft = verticesLeft[vertexCount..];
+                indicesLeft = indicesLeft[indexCount..];
+
+                if (nodeTransforms != null)
                 {
-                    throw new InvalidOperationException(
-                        $"Failed to find mesh buffers while attempting to build a {nameof(StaticMeshColliderShape)}. " +
-                        $"Make sure that the {nameof(model)} is either an asset on disk, or has its buffer data attached to the buffer through '{nameof(AttachedReference)}'\n" +
-                        $"You can also explicitly build a {nameof(StaticMeshColliderShape)} using the second constructor instead of this one.");
-                }
-
-                int vertMappingStart = combinedVerts.Count;
-
-                fixed (byte* bytePtr = verticesBytes)
-                {
-                    var vBindings = meshData.Draw.VertexBuffers[0];
-                    int count = vBindings.Count;
-                    int stride = vBindings.Declaration.VertexStride;
-                    for (int i = 0, vHead = vBindings.Offset; i < count; i++, vHead += stride)
+                    for (int i = 0; i < sliceForTheseVertices.Length; i++)
                     {
-                        var pos = *(Vector3*)(bytePtr + vHead);
-                        if (nodeTransforms != null)
-                        {
-                            Matrix posMatrix = Matrix.Translation(pos);
-                            Matrix.Multiply(ref posMatrix, ref nodeTransforms[meshData.NodeIndex], out var finalMatrix);
-                            pos = finalMatrix.TranslationVector;
-                        }
-
-                        combinedVerts.Add(pos);
-                    }
-                }
-
-                fixed (byte* bytePtr = indicesBytes)
-                {
-                    if (meshData.Draw.IndexBuffer.Is32Bit)
-                    {
-                        foreach (int i in new Span<int>(bytePtr + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
-                        {
-                            combinedIndices.Add(vertMappingStart + i);
-                        }
-                    }
-                    else
-                    {
-                        foreach (ushort i in new Span<ushort>(bytePtr + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
-                        {
-                            combinedIndices.Add(vertMappingStart + i);
-                        }
+                        Matrix posMatrix = Matrix.Translation(sliceForTheseVertices[i]);
+                        Matrix.Multiply(ref posMatrix, ref nodeTransforms[meshData.NodeIndex], out var finalMatrix);
+                        sliceForTheseVertices[i] = finalMatrix.TranslationVector;
                     }
                 }
             }
@@ -245,65 +210,18 @@ namespace Stride.Physics
                 return sharedData;
             }
         }
-        
-        static unsafe byte[] TryFetchBufferContent(Graphics.Buffer buffer, ref ContentManager rawContent, ContentManager sharedContent, IDatabaseFileProviderService dbProvider)
-        {
-            byte[] output;
-            var bufRef = AttachedReferenceManager.GetAttachedReference(buffer);
-            if (bufRef.Data != null && (output = ((BufferData)bufRef.Data).Content) != null)
-                return output;
-            
-            // Editor-specific workaround, we can't load assets when the file provider is null,
-            // will most likely break on non-dx11 APIs
-            if (dbProvider != null && dbProvider.FileProvider == null)
-            {
-                var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
-                var commandList = (CommandList)typeof(GraphicsDevice)
-                    .GetField("InternalMainCommandList", flags)
-                    .GetValue(buffer.GraphicsDevice);
 
-                output = new byte[buffer.SizeInBytes];
-                fixed (byte* window = output)
-                {
-                    var ptr = new DataPointer(window, output.Length);
-                    if (buffer.Description.Usage == GraphicsResourceUsage.Staging)
-                    {
-                        // Directly if this is a staging resource
-                        buffer.GetData(commandList, buffer, ptr);
-                    }
-                    else
-                    {
-                        // inefficient way to use the Copy method using dynamic staging texture
-                        using var throughStaging = buffer.ToStaging();
-                        buffer.GetData(commandList, throughStaging, ptr);
-                    }
-                }
-
-                return output;
-            }
-
-            if (sharedContent.TryGetAssetUrl(buffer, out var url))
-            {
-                rawContent ??= new ContentManager(dbProvider);
-                var data = rawContent.Load<Graphics.Buffer>(url);
-                try
-                {
-                    return data.GetSerializationData().Content;
-                }
-                finally
-                {
-                    rawContent.Unload(url);
-                }
-            }
-
-            return null;
-        }
-
-        private record SharedMeshData
+        private record SharedMeshData : IDisposable
         {
             public BulletSharp.TriangleIndexVertexArray BulletMesh;
             public int RefCount;
             public string Key;
+
+            public void Dispose()
+            {
+                BulletMesh.IndexedMeshArray.Clear();
+                BulletMesh.Dispose();
+            }
         }
         
         private class StrideToBulletWrapper : ICollection<BulletSharp.Math.Vector3>

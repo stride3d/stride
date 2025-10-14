@@ -11,20 +11,15 @@ using Stride.Core.Settings;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Services
 {
     /// <summary>
-    /// This interface represents the dialog service used for the editor. It extends <see cref="IDialogService"/> with some editor-specific dialogs.
+    /// This interface represents the dialog service used for the editor. It extends <see cref="IDialogService2"/> with some editor-specific dialogs.
     /// </summary>
-    public interface IEditorDialogService : IDialogService
+    public interface IEditorDialogService : IDialogService2
     {
-        /// <summary>
-        /// Gets or sets the <see cref="IAssetEditorsManager"/> instance used to open/close asset editor instances.
-        /// </summary>
-        IAssetEditorsManager AssetEditorsManager { get; set; }
-
         /// <summary>
         /// Shows a notification window in the lower right corner of the primary screen.
         /// </summary>

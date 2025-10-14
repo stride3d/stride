@@ -6,13 +6,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Stride.Core.Assets;
-using Stride.Core.IO;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
     using System.Drawing;
     using System.Drawing.Imaging;
-    using System.Reflection;
     using SharpDX.DirectWrite;
     using Factory = SharpDX.DirectWrite.Factory;
 
@@ -29,7 +27,9 @@ namespace Stride.Assets.SpriteFont.Compiler
 
         private string fontSource;
         private string msdfgenExe;
+#if DEBUG
         private string tempDir;
+#endif
 
         /// <summary>
         /// Generates and load a SDF font glyph using the msdfgen.exe
@@ -37,27 +37,29 @@ namespace Stride.Assets.SpriteFont.Compiler
         /// <param name="c">Character code</param>
         /// <param name="width">Width of the output glyph</param>
         /// <param name="height">Height of the output glyph</param>
-        /// <param name="offsetx">Left side offset of the glyph from the image border</param>
-        /// <param name="offsety">Bottom side offset of the glyph from the image border</param>
+        /// <param name="offsetX">Left side offset of the glyph from the image border in design unit</param>
+        /// <param name="offsetY">Bottom side offset of the glyph from the image border in design unit</param>
+        /// <param name="scaleX">Scale factor to convert from 'shape unit' to 'pixel unit' on x-axis</param>
+        /// <param name="scaleY">Scale factor to convert from 'shape unit' to 'pixel unit' on y-axis</param>
         /// <returns></returns>
-        private Bitmap LoadSDFBitmap(char c, int width, int height, int offsetx, int offsety)
+        private Bitmap LoadSDFBitmap(char c, int width, int height, float offsetX, float offsetY, float scaleX, float scaleY)
         {
             try
             {
-
-                var characterCode = "0x" + Convert.ToUInt32(c).ToString("x4");
+                var characterCodeArg = "0x" + Convert.ToUInt32(c).ToString("x4");
 #if DEBUG
-                var outputFile = $"{tempDir}{characterCode}_{Guid.NewGuid()}.bmp";
+                var outputFilePath = $"{tempDir}{characterCodeArg}_{Guid.NewGuid()}.bmp";
 #else
-                var outputFile = Path.GetTempFileName();
+                var outputFilePath = Path.GetTempFileName();
 #endif
-                var exportSize = $" -size {width} {height} ";
-                var translate = $" -translate {offsetx} {offsety} ";
+                var exportSizeArg = $"-size {width} {height}";
+                var translateArg = $"-translate {offsetX} {offsetY}";
+                var scaleArg = $"-ascale {scaleX} {scaleY}";
 
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = msdfgenExe,
-                    Arguments = $"msdf -font \"{fontSource}\" {characterCode} -o \"{outputFile}\" -format bmp {exportSize} {translate} -autoframe",
+                    Arguments = $"msdf -font \"{fontSource}\" {characterCodeArg} -o \"{outputFilePath}\" -format bmp {exportSizeArg} {translateArg} {scaleArg}",
                     CreateNoWindow = true,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     RedirectStandardError = true,
@@ -71,9 +73,9 @@ namespace Stride.Assets.SpriteFont.Compiler
 
                 msdfgenProcess.WaitForExit();
 
-                if (File.Exists(outputFile))
+                if (File.Exists(outputFilePath))
                 {
-                    var bitmap = (Bitmap)Image.FromFile(outputFile);
+                    var bitmap = (Bitmap)Image.FromFile(outputFilePath);
 
                     Normalize(bitmap);
 
@@ -129,10 +131,13 @@ namespace Stride.Assets.SpriteFont.Compiler
                 return;
 
             // Get the msdfgen.exe location
-            var msdfgen = ToolLocator.LocateTool("msdfgen.exe") ?? throw new AssetException("Failed to compile a font asset, msdfgen was not found.");
+            var msdfgen = ToolLocator.LocateTool("msdfgen") ?? throw new AssetException("Failed to compile a font asset, msdfgen was not found.");
 
             msdfgenExe = msdfgen.FullPath;
-            tempDir = $"{Environment.GetEnvironmentVariable("TEMP")}\\";
+#if DEBUG
+            tempDir = $"{Environment.GetEnvironmentVariable("TEMP")}\\StrideGlyphs\\";
+            Directory.CreateDirectory(tempDir);
+#endif
 
             var factory = new Factory();
 
@@ -147,7 +152,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
             // Remap the LineMap coming from the font with a user defined remapping
             // Note:
-            // We are remapping the lineMap to allow to shrink the LineGap and to reposition it at the top and/or bottom of the 
+            // We are remapping the lineMap to allow to shrink the LineGap and to reposition it at the top and/or bottom of the
             // font instead of using only the top
             // According to http://stackoverflow.com/questions/13939264/how-to-determine-baseline-position-using-directwrite#comment27947684_14061348
             // (The response is from a MSFT employee), the BaseLine should be = LineGap + Ascent but this is not what
@@ -157,13 +162,14 @@ namespace Stride.Assets.SpriteFont.Compiler
             //     NewLineGap = LineGap * LineGapFactor
             var lineGap = fontMetrics.LineGap * options.LineGapFactor;
 
+            float pixelPerDesignUnit = fontSize / fontMetrics.DesignUnitsPerEm;
             // Store the font height.
-            LineSpacing = (float)(lineGap + fontMetrics.Ascent + fontMetrics.Descent) / fontMetrics.DesignUnitsPerEm * fontSize;
+            LineSpacing = (lineGap + fontMetrics.Ascent + fontMetrics.Descent) * pixelPerDesignUnit;
 
-            // And then the baseline is also changed in order to allow the linegap to be distributed between the top and the 
+            // And then the baseline is also changed in order to allow the linegap to be distributed between the top and the
             // bottom of the font:
             //     BaseLine = NewLineGap * LineGapBaseLineFactor
-            BaseLine = (float)(lineGap * options.LineGapBaseLineFactor + fontMetrics.Ascent) / fontMetrics.DesignUnitsPerEm * fontSize;
+            BaseLine = (lineGap * options.LineGapBaseLineFactor + fontMetrics.Ascent) * pixelPerDesignUnit;
 
             // Generate SDF bitmaps for each character in turn.
             foreach (var character in characters)
@@ -186,24 +192,25 @@ namespace Stride.Assets.SpriteFont.Compiler
         {
             var indices = fontFace.GetGlyphIndices(new int[] { character });
 
-            var metrics = fontFace.GetDesignGlyphMetrics(indices, false);
+            var metrics = fontFace.GetDesignGlyphMetrics(indices, isSideways: false);
             var metric = metrics[0];
 
-            var width = (float)(metric.AdvanceWidth - metric.LeftSideBearing - metric.RightSideBearing) / fontMetrics.DesignUnitsPerEm * fontSize;
-            var height = (float)(metric.AdvanceHeight - metric.TopSideBearing - metric.BottomSideBearing) / fontMetrics.DesignUnitsPerEm * fontSize;
+            float pixelPerDesignUnit = fontSize / fontMetrics.DesignUnitsPerEm;
+            float fontWidthPx = (metric.AdvanceWidth - metric.LeftSideBearing - metric.RightSideBearing) * pixelPerDesignUnit;
+            float fontHeightPx = (metric.AdvanceHeight - metric.TopSideBearing - metric.BottomSideBearing) * pixelPerDesignUnit;
 
-            var xOffset = (float)metric.LeftSideBearing / fontMetrics.DesignUnitsPerEm * fontSize;
-            var yOffset = (float)(metric.TopSideBearing - metric.VerticalOriginY) / fontMetrics.DesignUnitsPerEm * fontSize;
+            float fontOffsetXPx = metric.LeftSideBearing * pixelPerDesignUnit;
+            float fontOffsetYPx = (metric.TopSideBearing - metric.VerticalOriginY) * pixelPerDesignUnit;
 
-            var advanceWidth = (float)metric.AdvanceWidth / fontMetrics.DesignUnitsPerEm * fontSize;
-            //var advanceHeight = (float)metric.AdvanceHeight / fontMetrics.DesignUnitsPerEm * fontSize;
+            float advanceWidthPx = metric.AdvanceWidth * pixelPerDesignUnit;
+            //var advanceHeight = metric.AdvanceHeight * pixelPerDesignUnit;
 
-            var pixelWidth = (int)Math.Ceiling(width + 4);
-            var pixelHeight = (int)Math.Ceiling(height + 4);
+            const int MarginPx = 2;     // Buffer zone for the sdf image to avoid clipping
+            int bitmapWidthPx = (int)Math.Ceiling(fontWidthPx) + (2 * MarginPx);
+            int bitmapHeightPx = (int)Math.Ceiling(fontHeightPx) + (2 * MarginPx);
 
-
-            var matrixM31 = -MathF.Floor(xOffset) + 1;
-            var matrixM32 = -MathF.Floor(yOffset) + 1;
+            float bitmapOffsetXPx = fontOffsetXPx - MarginPx;
+            float bitmapOffsetYPx = fontOffsetYPx - MarginPx;
 
             Bitmap bitmap;
             if (char.IsWhiteSpace(character))
@@ -212,14 +219,34 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
             else
             {
-                bitmap = LoadSDFBitmap(character, pixelWidth, pixelHeight, 1, 1);
+                // sdfPixelPerDesignUnit is hardcoded from the import in this code
+                // https://github.com/stride3d/msdfgen/blob/1af188c77822e447fe8e412420fe0fe05b782b38/ext/import-font.cpp#L126-L150
+                const float sdfPixelPerDesignUnit = 1 / 64f;      // msdf default coordinate scale
+                float boundLeft = metric.LeftSideBearing * sdfPixelPerDesignUnit;
+                //float boundRight = (metric.AdvanceWidth - metric.RightSideBearing) * sdfPixelPerDesignUnit;
+                //float boundTop = (metric.VerticalOriginY - metric.TopSideBearing) * sdfPixelPerDesignUnit;
+                float boundBottom = (metric.VerticalOriginY  - (metric.AdvanceHeight - metric.BottomSideBearing)) * sdfPixelPerDesignUnit;
+
+                float glyphWidthPx = (metric.AdvanceWidth - metric.LeftSideBearing - metric.RightSideBearing) * sdfPixelPerDesignUnit;
+                float glyphHeightPx = (metric.AdvanceHeight - metric.TopSideBearing - metric.BottomSideBearing) * sdfPixelPerDesignUnit;
+
+                // Need to scale from msdfgen's 'shape unit' into the final bitmap's space
+                float scaleX = fontWidthPx / glyphWidthPx;
+                float scaleY = fontHeightPx / glyphHeightPx;
+
+                // Note: msdfgen uses coordinates from bottom-left corner
+                // so offsetY needs to calculate the offset such that it snaps to the top side of the bitmap (+ margin space)
+                float offsetX = (MarginPx / scaleX) - boundLeft;
+                float offsetY = ((bitmapHeightPx - MarginPx) / scaleY) - glyphHeightPx - boundBottom;
+
+                bitmap = LoadSDFBitmap(character, bitmapWidthPx, bitmapHeightPx, offsetX, offsetY, scaleX, scaleY);
             }
 
             var glyph = new Glyph(character, bitmap)
             {
-                XOffset = -matrixM31,
-                XAdvance = advanceWidth,
-                YOffset = -matrixM32,
+                XOffset = bitmapOffsetXPx,
+                XAdvance = advanceWidthPx,
+                YOffset = bitmapOffsetYPx,
             };
 
             return glyph;

@@ -12,10 +12,8 @@ using System.Windows.Media.Imaging;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Quantum;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -24,11 +22,9 @@ using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Quantum;
-using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
-using Stride.Core.Quantum.References;
 using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModel
@@ -85,7 +81,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private ThumbnailData thumbnailData;
         private AssetItem assetItem;
         private IAssetEditorViewModel editor;
-        private TaskCompletionSource<int> editorInitialized = new TaskCompletionSource<int>();
         /// <summary>
         /// Initializes a new instance of the <see cref="AssetViewModel"/> class.
         /// </summary>
@@ -171,35 +166,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public virtual bool CanProvidePropertiesViewModel => !IsDeleted && IsEditable;
 
         /// <summary>
-        /// Gets the view model used in the editor of this asset. This property is null if the asset is not opened in an editor.
-        /// </summary>
-        public IAssetEditorViewModel Editor
-        {
-            get => editor;
-            internal set
-            {
-                SetValueUncancellable(ref editor, value, () =>
-                {
-                    if (value != null)
-                        editorInitialized.SetResult(1);
-                    else
-                        editorInitialized = new TaskCompletionSource<int>();
-                    Session?.UpdateSessionState();
-                });
-            }
-        }
-
-        /// <summary>
-        /// Gets whether this asset can be opened in an editor.
-        /// </summary>
-        public bool HasEditor => IsEditable && ServiceProvider.Get<IAssetsPluginService>().HasEditorView(Session, AssetType);
-
-        /// <summary>
-        /// Gets a task that completes when the editor is initialized and is reset when the editor is disposed.
-        /// </summary>
-        public Task EditorInitialized => editorInitialized.Task;
-
-        /// <summary>
         /// Gets the type of this asset.
         /// </summary>
         [NotNull]
@@ -216,7 +182,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         [NotNull]
         public Asset Asset => AssetItem.Asset;
 
-        public AssetPropertyGraph PropertyGraph { get; }
+        public AssetPropertyGraph PropertyGraph { get; private set; }
 
         /// <summary>
         /// Gets the <see cref="ThumbnailData"/> associated to this <see cref="AssetViewModel"/>.
@@ -463,7 +429,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             string error;
             if (!IsNewNameValid(newName, out error))
             {
-                ServiceProvider.Get<IDialogService>().BlockingMessageBox(error, MessageBoxButton.OK, MessageBoxImage.Information);
+                ServiceProvider.Get<IDialogService2>().BlockingMessageBox(error, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -475,6 +441,38 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 string previousName = name;
                 UpdateUrl(package, directory, newName);
                 UndoRedoService.SetName(transaction, $"Rename asset '{previousName}' to '{newName}'");
+            }
+        }
+
+        /// <summary>
+        /// Replace the internal asset with the one provided, this function expects the two assets to have the same identity 
+        /// </summary>
+        /// <exception cref="ArgumentException">The asset provided does not have the same identity as the current one</exception>
+        public void UpdateAsset(Asset newAsset, ILogger loggerResult)
+        {
+            if (newAsset.Id != AssetItem.Asset.Id)
+                throw new ArgumentException("Assets must have the same Id.");
+
+            if (newAsset.MainSource != AssetItem.Asset.MainSource)
+                throw new ArgumentException("Assets must have the same source.");
+
+            var newAssetItem = AssetItem.Clone(newAsset: newAsset);
+
+            package.Assets.Remove(AssetItem);
+            package.Assets.Add(newAssetItem);
+
+            AssetItem = newAssetItem;
+
+            PropertyGraph?.Dispose();
+            Session.GraphContainer.UnregisterGraph(assetItem.Id);
+
+            PropertyGraph = Session.GraphContainer.InitializeAsset(assetItem, loggerResult);
+            if (PropertyGraph != null)
+            {
+                PropertyGraph.BaseContentChanged += BaseContentChanged;
+                PropertyGraph.Changed += AssetPropertyChanged;
+                PropertyGraph.ItemChanged += AssetPropertyChanged;
+                PropertyGraph.Initialize();
             }
         }
 
@@ -538,7 +536,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var assetReferenceAnalysis = new PackageSessionAnalysis(package.Session, new PackageAnalysisParameters
                 {
                     // TODO: Check view model dirty flag after such an operation! Are we up-to-date?
-                    IsProcessingAssetReferences = true, SetDirtyFlagOnAssetWhenFixingUFile = true, IsLoggingAssetNotFoundAsError = true,
+                    IsProcessingAssetReferences = true,
+                    SetDirtyFlagOnAssetWhenFixingUFile = true,
+                    IsLoggingAssetNotFoundAsError = true,
                 });
                 var log = assetReferenceAnalysis.Run();
                 // TODO: what should we do with this log?

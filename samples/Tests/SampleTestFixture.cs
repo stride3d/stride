@@ -32,7 +32,7 @@ namespace Stride.Samples.Tests
         {
             var project = session.Projects.OfType<SolutionProject>().First(x => x.Platform == Core.PlatformType.Windows);
 
-            var buildResult = VSProjectHelper.CompileProjectAssemblyAsync(null, project.FullPath, logger, extraProperties: new Dictionary<string, string> { { "StrideAutoTesting", "true" } }).BuildTask.Result;
+            var buildResult = VSProjectHelper.CompileProjectAssemblyAsync(project.FullPath, logger, extraProperties: new Dictionary<string, string> { { "StrideAutoTesting", "true" } }).BuildTask.Result;
             if (logger.HasErrors)
             {
                 throw new InvalidOperationException($"Error compiling sample {sampleName}:\r\n{logger.ToText()}");
@@ -91,7 +91,7 @@ namespace Stride.Samples.Tests
             if (!generator.Run(parameters))
                 logger.Error("Run returned false for the TemplateSampleGenerator");
 
-            var updaterTemplate = strideTemplates.First(x => x.FullPath.ToString().EndsWith("UpdatePlatforms.sdtpl"));
+            var updaterTemplate = strideTemplates.First(x => x.FullPath.ToString().EndsWith("UpdatePlatforms.sdtpl", StringComparison.Ordinal));
             parameters.Description = updaterTemplate;
 
             if (logger.HasErrors)

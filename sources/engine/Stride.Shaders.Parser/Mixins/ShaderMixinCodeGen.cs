@@ -399,7 +399,7 @@ namespace Stride.Shaders.Parser.Mixins
                     }
 
                     WriteLine();
-                    WriteLine("[ModuleInitializer]");
+                    WriteLine("[System.Runtime.CompilerServices.ModuleInitializer]");
                     WriteLine("internal static void __Initialize__()");
                     {
                         OpenBrace();

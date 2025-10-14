@@ -31,7 +31,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         }
 
         /// <inheritdoc />
-        public override Task DisposeAsync()
+        public override ValueTask DisposeAsync()
         {
             EnsureNotDestroyed(nameof(EditorGameModelSelectionService));
 
@@ -131,7 +131,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     {
                         var effectName = renderObject.ActiveRenderStages[index].EffectSelector.EffectName;
                         if (effectName == "StrideForwardShadingEffect"
-                            || effectName.StartsWith("StrideForwardShadingEffect."))
+                            || effectName.StartsWith("StrideForwardShadingEffect.", StringComparison.Ordinal))
                         {
                             effectName = effectName.Replace("StrideForwardShadingEffect", "StrideEditorForwardShadingEffect");
                             renderObject.ActiveRenderStages[index].EffectSelector = new EffectSelector(effectName);

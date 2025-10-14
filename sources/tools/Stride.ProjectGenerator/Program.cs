@@ -17,15 +17,13 @@ using Stride.Core.Assets.Templates;
 using Stride.Core.Assets.Yaml;
 using Stride.Core;
 using Stride.Core.Diagnostics;
-using Stride.Core.Extensions;
 using Stride.Core.IO;
-using Stride.Core.Reflection;
-using Stride.Core.VisualStudio;
-using Stride.Core.Yaml;
 using Stride.Assets;
+using Stride.Core.Solutions;
+using Stride.Core.Extensions;
 using Stride.Graphics;
 using Stride.Core.ProjectTemplating;
-using Project = Stride.Core.VisualStudio.Project;
+using Project = Stride.Core.Solutions.Project;
 
 namespace Stride.ProjectGenerator
 {
@@ -377,7 +375,7 @@ namespace Stride.ProjectGenerator
             foreach (var solutionProject in solution.Projects.ToArray())
             {
                 // Is it really a project?
-                if (!solutionProject.FullPath.EndsWith(".csproj") && !solutionProject.FullPath.EndsWith(".vcxproj") && !solutionProject.FullPath.EndsWith(".shproj"))
+                if (!solutionProject.FullPath.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) && !solutionProject.FullPath.EndsWith(".vcxproj", StringComparison.OrdinalIgnoreCase) && !solutionProject.FullPath.EndsWith(".shproj", StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 // Load XML project
@@ -400,7 +398,7 @@ namespace Stride.ProjectGenerator
 
                 // Windows-specific project without a platform-specific equivalent are removed.
                 var fullPath = solutionProject.FullPath;
-                if (Path.GetFileNameWithoutExtension(fullPath).EndsWith(".Windows"))
+                if (Path.GetFileNameWithoutExtension(fullPath).EndsWith(".Windows", StringComparison.Ordinal))
                 {
                     // Replace .Windows with current platform
                     fullPath = fullPath.Replace(".Windows", "." + platform);
@@ -487,15 +485,15 @@ namespace Stride.ProjectGenerator
                     {
                         var includeAttribute = projectReference.Attribute(XName.Get("Include"));
                         var referencedContext =
-                            projectProcessorContexts.FirstOrDefault(x => x.Modified && includeAttribute.Value.EndsWith(Path.GetFileName(x.Project.FullPath)));
+                            projectProcessorContexts.FirstOrDefault(x => x.Modified && includeAttribute.Value.EndsWith(Path.GetFileName(x.Project.FullPath), StringComparison.Ordinal));
                         if (referencedContext != null)
                         {
                             // This project has been "modified" (new .csproj), let's update reference to it
                             var projectFileName = Path.GetFileName(referencedContext.Project.FullPath);
                             var generatedProjectFileName = projectFileName.Replace(".Windows", string.Empty);
                             var fileExtPosition = generatedProjectFileName.LastIndexOf('.');
-                            generatedProjectFileName = generatedProjectFileName.Substring(0, fileExtPosition + 1) + projectSuffix +
-                                                           generatedProjectFileName.Substring(fileExtPosition);
+                            generatedProjectFileName = generatedProjectFileName[..(fileExtPosition + 1)] + projectSuffix +
+                                                           generatedProjectFileName[fileExtPosition..];
 
                             includeAttribute.Value = includeAttribute.Value.Replace(projectFileName, generatedProjectFileName);
 
@@ -693,7 +691,7 @@ namespace Stride.ProjectGenerator
                             context.Project.PlatformProperties.Add(new PropertyItem(newName, newValue));
 
                             // Active Deploy in solution configuration
-                            if (needDeploy && !keepProjectPlatform && newName.EndsWith("Build.0"))
+                            if (needDeploy && !keepProjectPlatform && newName.EndsWith("Build.0", StringComparison.Ordinal))
                             {
                                 context.Project.PlatformProperties.Add(new PropertyItem(newName.Replace("Build.0", "Deploy.0"), newValue));
                             }

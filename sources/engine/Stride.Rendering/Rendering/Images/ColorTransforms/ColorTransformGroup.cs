@@ -116,7 +116,7 @@ namespace Stride.Rendering.Images
             }
         }
 
-        protected override void DrawCore(RenderDrawContext context1)
+        protected override void DrawCore(RenderDrawContext context)
         {
             var output = GetOutput(0);
             if (output == null)
@@ -125,14 +125,15 @@ namespace Stride.Rendering.Images
             }
 
             // Collect all transform parameters
-            CollectTransformsParameters(context1);
+            CollectTransformsParameters(context);
 
             for (int i = 0; i < transformContext.Inputs.Count; i++)
             {
                 transformGroupEffect.SetInput(i, transformContext.Inputs[i]);
+                context.CommandList.ResourceBarrierTransition(transformContext.Inputs[i], Graphics.GraphicsResourceState.PixelShaderResource);
             }
             transformGroupEffect.SetOutput(output);
-            transformGroupEffect.Draw(context1, name: Name);
+            transformGroupEffect.Draw(context, name: Name);
         }
 
         protected virtual void CollectPreTransforms()

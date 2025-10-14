@@ -591,9 +591,6 @@ namespace Stride.Games
             {
                 if (GraphicsDevice.Presenter != null)
                 {
-                    // Make sure that the Presenter is reverted to window before shuting down
-                    // otherwise the Direct3D11.Device will generate an exception on Dispose()
-                    GraphicsDevice.Presenter.IsFullScreen = false;
                     GraphicsDevice.Presenter.Dispose();
                     GraphicsDevice.Presenter = null;
                 }
@@ -843,6 +840,9 @@ namespace Stride.Games
         {
             switch (format)
             {
+                case PixelFormat.R16G16B16A16_Float:
+                    return 64;
+
                 case PixelFormat.R8G8B8A8_UNorm:
                 case PixelFormat.R8G8B8A8_UNorm_SRgb:
                 case PixelFormat.B8G8R8A8_UNorm:

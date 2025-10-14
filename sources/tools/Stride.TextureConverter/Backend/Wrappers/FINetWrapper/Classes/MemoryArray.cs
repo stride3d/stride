@@ -2,9 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Stride.Core;
 
 namespace FreeImageAPI
 {
@@ -100,7 +102,7 @@ namespace FreeImageAPI
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="MemoryArray&lt;T&gt;"/> class. 
+		/// Initializes a new instance of the <see cref="MemoryArray&lt;T&gt;"/> class.
 		/// </summary>
 		/// <param name="baseAddress">Address of the memory block.</param>
 		/// <param name="length">Length of the array.</param>
@@ -116,7 +118,7 @@ namespace FreeImageAPI
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="MemoryArray&lt;T&gt;"/> class. 
+		/// Initializes a new instance of the <see cref="MemoryArray&lt;T&gt;"/> class.
 		/// </summary>
 		/// <param name="baseAddress">Address of the memory block.</param>
 		/// <param name="length">Length of the array.</param>
@@ -147,7 +149,7 @@ namespace FreeImageAPI
 			}
 
 			this.baseAddress = (byte*)baseAddress;
-			this.length = (int)length;
+			this.length = length;
 
 			if (!isOneBit && !isFourBit)
 			{
@@ -159,9 +161,9 @@ namespace FreeImageAPI
 				// The array is pinned immediately to prevent the GC from
 				// moving it to a different position in memory.
 				this.handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-				// The array and its content have beed pinned, so that its address
+				// The array and its content have been pinned, so that its address
 				// can be safely requested and stored for the whole lifetime
-				// of the instace.
+				// of the instance.
 				this.ptr = (byte*)handle.AddrOfPinnedObject();
 			}
 		}
@@ -184,12 +186,12 @@ namespace FreeImageAPI
 		/// </returns>
 		public static bool operator ==(MemoryArray<T> left, MemoryArray<T> right)
 		{
-			if (object.ReferenceEquals(left, right))
+			if (ReferenceEquals(left, right))
 			{
 				return true;
 			}
-			if (object.ReferenceEquals(right, null) ||
-				object.ReferenceEquals(left, null) ||
+			if (ReferenceEquals(right, null) ||
+				ReferenceEquals(left, null) ||
 				(left.length != right.length))
 			{
 				return false;
@@ -240,15 +242,14 @@ namespace FreeImageAPI
 			{
 				return (T)(object)(FI1BIT)(((baseAddress[index / 8] & ((1 << (7 - (index % 8))))) == 0) ? 0 : 1);
 			}
-			else if (isFourBit)
+
+			if (isFourBit)
 			{
 				return (T)(object)(FI4BIT)(((index % 2) == 0) ? (baseAddress[index / 2] >> 4) : (baseAddress[index / 2] & 0x0F));
 			}
-			else
-			{
-				CopyMemory(ptr, baseAddress + (index * size), size);
-				return buffer[0];
-			}
+
+			Utilities.CopyWithAlignmentFallback(ptr, baseAddress + (index * size), (uint) size);
+			return buffer[0];
 		}
 
 		/// <summary>
@@ -297,7 +298,7 @@ namespace FreeImageAPI
 			else
 			{
 				buffer[0] = value;
-				CopyMemory(baseAddress + (index * size), ptr, size);
+				Utilities.CopyWithAlignmentFallback(baseAddress + (index * size), ptr, (uint) size);
 			}
 		}
 
@@ -335,10 +336,9 @@ namespace FreeImageAPI
 			}
 			else
 			{
-				GCHandle handle = GCHandle.Alloc(data, GCHandleType.Pinned);
-				byte* dst = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(data, 0);
-				CopyMemory(dst, baseAddress + (size * index), size * length);
-				handle.Free();
+				ref byte dst = ref Unsafe.As<T, byte>(ref data[0]);
+				ref byte src = ref Unsafe.AsRef<byte>(baseAddress + (size * index));
+				Utilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) (size * length));
 			}
 			return data;
 		}
@@ -380,10 +380,9 @@ namespace FreeImageAPI
 			}
 			else
 			{
-				GCHandle handle = GCHandle.Alloc(values, GCHandleType.Pinned);
-				byte* src = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(values, 0);
-				CopyMemory(baseAddress + (index * size), src, size * length);
-				handle.Free();
+				ref byte dst = ref Unsafe.AsRef<byte>(baseAddress + (index * size));
+				ref byte src = ref Unsafe.As<T, byte>(ref values[0]);
+				Utilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) (size * length));
 			}
 		}
 
@@ -415,7 +414,7 @@ namespace FreeImageAPI
 
 		/// <summary>
 		/// Copies a range of elements from the unmanaged array starting at the specified
-        /// <paramref name="sourceIndex"/> and pastes them to <paramref name="array"/>
+		/// <paramref name="sourceIndex"/> and pastes them to <paramref name="array"/>
 		/// starting at the specified <paramref name="destinationIndex"/>.
 		/// The length and the indexes are specified as 32-bit integers.
 		/// </summary>
@@ -450,16 +449,15 @@ namespace FreeImageAPI
 			}
 			else
 			{
-				GCHandle handle = GCHandle.Alloc(array, GCHandleType.Pinned);
-				byte* dst = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(array, destinationIndex);
-				CopyMemory(dst, baseAddress + (size * sourceIndex), size * length);
-				handle.Free();
+				ref byte dst = ref Unsafe.As<T, byte>(ref array[destinationIndex]);
+				ref byte src = ref Unsafe.AsRef<byte>(baseAddress + (size * sourceIndex));
+				Utilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) (size * length));
 			}
 		}
 
 		/// <summary>
 		/// Copies a range of elements from the array starting at the specified
-        /// <paramref name="sourceIndex"/> and pastes them to the unmanaged array
+		/// <paramref name="sourceIndex"/> and pastes them to the unmanaged array
 		/// starting at the specified <paramref name="destinationIndex"/>.
 		/// The length and the indexes are specified as 32-bit integers.
 		/// </summary>
@@ -494,10 +492,9 @@ namespace FreeImageAPI
 			}
 			else
 			{
-				GCHandle handle = GCHandle.Alloc(array, GCHandleType.Pinned);
-				byte* src = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(array, sourceIndex);
-				CopyMemory(baseAddress + (size * destinationIndex), src, size * length);
-				handle.Free();
+				ref byte dst = ref Unsafe.AsRef<byte>(baseAddress + (size * destinationIndex));
+				ref byte src = ref Unsafe.As<T, byte>(ref array[sourceIndex]);
+				Utilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) (size * length));
 			}
 		}
 
@@ -521,10 +518,11 @@ namespace FreeImageAPI
 			{
 				result = new byte[size * length];
 			}
-			fixed (byte* dst = result)
-			{
-				CopyMemory(dst, baseAddress, result.Length);
-			}
+
+			ref byte dst = ref result[0];
+			ref byte src = ref Unsafe.AsRef<byte>(baseAddress);
+			Utilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) result.Length);
+
 			return result;
 		}
 
@@ -562,7 +560,7 @@ namespace FreeImageAPI
 			{
 				if (value == null)
 				{
-					throw new ArgumentNullException("value");
+					throw new ArgumentNullException("value", $"{nameof(Data)} can not be null");
 				}
 				if (value.Length != length)
 				{
@@ -742,55 +740,6 @@ namespace FreeImageAPI
 		{
 			EnsureNotDisposed();
 			return (int)baseAddress ^ length;
-		}
-
-		/// <summary>
-		/// Copies a block of memory from one location to another.
-		/// </summary>
-		/// <param name="dest">Pointer to the starting address of the copy destination.</param>
-		/// <param name="src">Pointer to the starting address of the block of memory to be copied.</param>
-		/// <param name="len">Size of the block of memory to copy, in bytes.</param>
-		protected static unsafe void CopyMemory(byte* dest, byte* src, int len)
-		{
-			if (len >= 0x10)
-			{
-				do
-				{
-					*((int*)dest) = *((int*)src);
-					*((int*)(dest + 4)) = *((int*)(src + 4));
-					*((int*)(dest + 8)) = *((int*)(src + 8));
-					*((int*)(dest + 12)) = *((int*)(src + 12));
-					dest += 0x10;
-					src += 0x10;
-				}
-				while ((len -= 0x10) >= 0x10);
-			}
-			if (len > 0)
-			{
-				if ((len & 8) != 0)
-				{
-					*((int*)dest) = *((int*)src);
-					*((int*)(dest + 4)) = *((int*)(src + 4));
-					dest += 8;
-					src += 8;
-				}
-				if ((len & 4) != 0)
-				{
-					*((int*)dest) = *((int*)src);
-					dest += 4;
-					src += 4;
-				}
-				if ((len & 2) != 0)
-				{
-					*((short*)dest) = *((short*)src);
-					dest += 2;
-					src += 2;
-				}
-				if ((len & 1) != 0)
-				{
-					*dest = *src;
-				}
-			}
 		}
 	}
 }

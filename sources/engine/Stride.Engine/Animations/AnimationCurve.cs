@@ -50,7 +50,7 @@ namespace Stride.Animations
         /// </summary>
         /// <param name="newTime">The new time.</param>
         /// <param name="location">The location.</param>
-        public abstract void AddValue(CompressedTimeSpan newTime, IntPtr location);
+        public abstract unsafe void AddValue(CompressedTimeSpan newTime, byte* location);
 
         /// <summary>
         /// Meant for internal use, to call AnimationData{T}.FromAnimationChannels() without knowing the generic type.
@@ -66,7 +66,7 @@ namespace Stride.Animations
         }
 
         /// <summary>
-        /// Shifts all animation keys by the specified time, adding it to all <see cref="KeyFrameData.Time"/>
+        /// Shifts all animation keys by the specified time, adding it to all <see cref="KeyFrameData{T}.Time" />
         /// </summary>
         /// <param name="shiftTimeSpan">The time span by which the keys should be shifted</param>
         public virtual void ShiftKeys(CompressedTimeSpan shiftTimeSpan) { }
@@ -85,7 +85,7 @@ namespace Stride.Animations
         /// <value>
         /// The key frames.
         /// </value>
-        public FastList<KeyFrameData<T>> KeyFrames { get; set; }
+        public List<KeyFrameData<T>> KeyFrames { get; set; }
 
         /// <inheritdoc/>
         [DataMemberIgnore]
@@ -107,7 +107,7 @@ namespace Stride.Animations
 
         public AnimationCurve()
         {
-            KeyFrames = new FastList<KeyFrameData<T>>();
+            KeyFrames = [];
         }
 
         /// <summary>
@@ -142,9 +142,9 @@ namespace Stride.Animations
         }
 
         /// <inheritdoc/>
-        public override unsafe void AddValue(CompressedTimeSpan newTime, nint location)
+        public override unsafe void AddValue(CompressedTimeSpan newTime, byte* location)
         {
-            var value = Unsafe.ReadUnaligned<T>((void*)location);
+            var value = Unsafe.ReadUnaligned<T>(location);
             KeyFrames.Add(new(newTime, value));
         }
 
@@ -157,7 +157,7 @@ namespace Stride.Animations
         /// <inheritdoc/>
         public override void ShiftKeys(CompressedTimeSpan shiftTimeSpan)
         {
-            var shiftedKeyFrames = new FastList<KeyFrameData<T>>();
+            var shiftedKeyFrames = new List<KeyFrameData<T>>();
 
             foreach (var keyFrameData in KeyFrames)
             {

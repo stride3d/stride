@@ -30,18 +30,15 @@ namespace Stride.Physics
 
             if (is2D) size.Z = 0.001f;
 
-            var shape = new BulletSharp.BoxShape(size / 2)
-            {
-                LocalScaling = cachedScaling,
-            };
-
             if (Is2D)
             {
-                InternalShape = new BulletSharp.Convex2DShape(shape) { LocalScaling = cachedScaling };
+                // Note that encapsulating a 2D Box goes against bullet's 2D collision example.
+                // This was found through trial and error as the most stable solution, see issue #1707 and #2019
+                InternalShape = new BulletSharp.Convex2DShape(new BulletSharp.Box2DShape(size / 2) { LocalScaling = Vector3.One }) { LocalScaling = cachedScaling };
             }
             else
             {
-                InternalShape = shape;
+                InternalShape = new BulletSharp.BoxShape(size / 2) { LocalScaling = cachedScaling };
             }
 
             DebugPrimitiveMatrix = Matrix.Scaling(size * DebugScaling);

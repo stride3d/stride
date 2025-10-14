@@ -1,16 +1,13 @@
 using NuGet.Protocol.Core.Types;
-using Stride.Core.Annotations;
 
-namespace Stride.Core.Packages
+namespace Stride.Core.Packages;
+
+public class NugetServerPackage : NugetPackage
 {
-    public class NugetServerPackage : NugetPackage
+    public NugetServerPackage(IPackageSearchMetadata package, string source) : base(package)
     {
-        public NugetServerPackage([NotNull] IPackageSearchMetadata package, [NotNull] string source) : base(package)
-        {
-            Source = source;
-        }
-
-        [NotNull]
-        public string Source { get; }
+        Source = source;
     }
+
+    public string Source { get; }
 }

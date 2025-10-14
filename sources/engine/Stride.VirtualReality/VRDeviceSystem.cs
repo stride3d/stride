@@ -33,6 +33,8 @@ namespace Stride.VirtualReality
 
         public int MirrorHeight;
 
+        public bool RequestPassthrough;
+
         public bool PreviousUseCustomProjectionMatrix;
 
         public bool PreviousUseCustomViewMatrix;
@@ -83,7 +85,7 @@ namespace Stride.VirtualReality
                         case VRApi.OpenXR:
                             {
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-                                Device = new OpenXRHmd(Game.GraphicsDevice);
+                                Device = OpenXRHmd.New(RequestPassthrough);
 #endif
                                 break;
                             }
@@ -97,20 +99,6 @@ namespace Stride.VirtualReality
 #endif
                             break;
                         }
-                        //case VRApi.Fove:
-                        //{
-                        //#if STRIDE_GRAPHICS_API_DIRECT3D11
-                        //    Device = new FoveHmd();
-                        //#endif
-                        //break;
-                        //}
-                        //case VRApi.Google:
-                        //{
-                        //#if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID
-                        //    VRDevice = new GoogleVrHmd();
-                        //#endif
-                        //    break;
-                        //}
                         default:
                             throw new ArgumentOutOfRangeException();
                     }

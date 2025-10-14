@@ -21,7 +21,7 @@ namespace UIElementLink
         {
             IsRunning = true;
 
-            UIGame = (Game)Services.GetServiceAs<IGame>();
+            UIGame = (Game)Services.GetService<IGame>();
 
             AdjustVirtualResolution(this, EventArgs.Empty);
             Game.Window.ClientSizeChanged += AdjustVirtualResolution;

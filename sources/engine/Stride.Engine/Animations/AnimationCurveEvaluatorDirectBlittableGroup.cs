@@ -16,7 +16,7 @@ namespace Stride.Animations
             var keyFrames = channel.Curve.KeyFrames;
             var currentIndex = channel.CurrentIndex;
 
-            Unsafe.AsRef<T>((void*)(location + channel.Offset)) = keyFrames.Items[currentIndex].Value;
+            Unsafe.AsRef<T>((void*)(location + channel.Offset)) = keyFrames[currentIndex].Value;
         }
     }
 }

@@ -8,9 +8,9 @@ using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Quantum;
 using Stride.Rendering;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.Templates
 {
@@ -44,6 +44,7 @@ namespace Stride.Assets.Presentation.Templates
         private bool showFbxDedupeNotSupportedWarning = false;
         private bool deduplicateMaterials = true;
         private bool importTextures = true;
+        private bool importAnimations = true;
         private bool importSkeleton = true;
         private bool dontImportSkeleton;
         private bool reuseSkeleton;
@@ -61,6 +62,8 @@ namespace Stride.Assets.Presentation.Templates
         public bool DeduplicateMaterials { get { return deduplicateMaterials; } set { SetValue(ref deduplicateMaterials, value); } }
 
         public bool ImportTextures { get { return importTextures; } set { SetValue(ref importTextures, value); } }
+
+        public bool ImportAnimations { get { return importAnimations; } set { SetValue(ref importAnimations, value); } }
 
         public bool ImportSkeleton { get { return importSkeleton; } set { SetValue(ref importSkeleton, value); } }
 
