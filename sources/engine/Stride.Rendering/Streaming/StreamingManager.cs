@@ -92,9 +92,8 @@ namespace Stride.Streaming
         public StreamingManager([NotNull] IServiceRegistry services)
             : base(services)
         {
-            services.AddService(this);
-            services.AddService<IStreamingManager>(this);
-            services.AddService<ITexturesStreamingProvider>(this);
+            Services.AddService<IStreamingManager>(this);
+            Services.AddService<ITexturesStreamingProvider>(this);
 
             ContentStreaming = new ContentStreamingService();
 
