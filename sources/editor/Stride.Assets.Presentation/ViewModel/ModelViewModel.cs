@@ -53,6 +53,9 @@ namespace Stride.Assets.Presentation.ViewModel
 
         protected override void UpdateAssetFromSource(ModelAsset assetToMerge)
         {
+            if (Asset.KepMeshIndex > -1)
+                return;
+
             // Create a dictionary containing all new and old materials, favoring old ones to maintain existing references
             var dictionary = assetToMerge.Materials.ToDictionary(x => x.Name, x => x);
             Asset.Materials.ForEach(x => dictionary[x.Name] = x);
