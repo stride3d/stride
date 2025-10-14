@@ -53,6 +53,7 @@ namespace Stride.Assets.Presentation.ViewModel
 
         protected override void UpdateAssetFromSource(ModelAsset assetToMerge)
         {
+            //Keep the material assignment unchanged for sub mesh model asset
             if (Asset.KepMeshIndex > -1)
                 return;
 
