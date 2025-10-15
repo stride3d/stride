@@ -221,8 +221,8 @@ public class ShaderMethod(
                 functionInfo.Flags |= Specification.FunctionFlagsMask.Abstract;
             if (IsVirtual == true)
                 functionInfo.Flags |= Specification.FunctionFlagsMask.Virtual;
-            if (IsStatic)
-                functionInfo.Flags |= Specification.FunctionFlagsMask.Static;
+            if (IsStaged)
+                functionInfo.Flags |= Specification.FunctionFlagsMask.Stage;
 
             builder.Insert(functionInfo);
 

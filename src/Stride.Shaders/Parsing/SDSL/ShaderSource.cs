@@ -1,25 +1,25 @@
 ﻿using System.Text;
 
-namespace Stride.Shaders.Compilers.SDSL;
+namespace Stride.Shaders.Parsing.SDSL;
 
 public abstract class ShaderSource
 {
 
 }
 
-public sealed class ShaderClassSource : ShaderSource
+public sealed class ShaderClassSource(string className) : ShaderSource, IEquatable<ShaderClassSource>
 {
     /// <summary>
     /// Gets the name of the class.
     /// </summary>
     /// <value>The name of the class.</value>
-    public string ClassName { get; set; }
+    public string ClassName { get; set; } = className;
 
     /// <summary>
     /// Gets the generic parameters.
     /// </summary>
     /// <value>The generic parameters.</value>
-    public string[] GenericArguments { get; set; }
+    public string[] GenericArguments { get; set; } = [];
 
     public string ToClassName()
     {
@@ -36,6 +36,38 @@ public sealed class ShaderClassSource : ShaderSource
         }
 
         return result.ToString();
+    }
+
+    public bool Equals(ShaderClassSource shaderClassSource)
+    {
+        if (ReferenceEquals(null, shaderClassSource)) return false;
+        if (ReferenceEquals(this, shaderClassSource)) return true;
+        return
+            string.Equals(ClassName, shaderClassSource.ClassName) &&
+            GenericArguments.SequenceEqual(shaderClassSource.GenericArguments);
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((ShaderClassSource)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            int hashCode = ClassName?.GetHashCode() ?? 0;
+            if (GenericArguments != null)
+            {
+                foreach (var current in GenericArguments)
+                    hashCode = (hashCode * 397) ^ (current?.GetHashCode() ?? 0);
+            }
+
+            return hashCode;
+        }
     }
 
     public override string ToString()

@@ -174,20 +174,20 @@
           "value": "0x0000"
         },
         {
-          "enumerant": "Abstract",
+          "enumerant": "Stage",
           "value": "0x0001"
         },
         {
+          "enumerant": "Abstract",
+          "value": "0x0010"
+        },
+        {
           "enumerant": "Virtual",
-          "value": "0x0002"
+          "value": "0x0020"
         },
         {
           "enumerant": "Override",
-          "value": "0x0004"
-        },
-        {
-          "enumerant": "Static",
-          "value": "0x0010"
+          "value": "0x0040"
         }
       ]
     },

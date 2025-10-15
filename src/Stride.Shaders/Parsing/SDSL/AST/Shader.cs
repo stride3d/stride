@@ -25,11 +25,18 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
     // Note: We should make this method incremental (called many times in ShaderMixer)
     //       And possibly do the type deduplicating at the same time? (TypeDuplicateRemover)
-    public static Dictionary<int, SymbolType> ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end, out Dictionary<int, string> names, out Dictionary<int, SymbolType> types)
+
+    public static void ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end,  out Dictionary<int, string> names, out Dictionary<int, SymbolType> types)
     {
-        var memberNames = new Dictionary<(int, int), string>();
         names = [];
         types = [];
+
+        ProcessNameAndTypes(buffer, start, end, names, types);
+    }
+
+    public static void ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end, Dictionary<int, string> names, Dictionary<int, SymbolType> types)
+    {
+        var memberNames = new Dictionary<(int, int), string>();
         for (var i = start; i < end; i++)
         {
             var instruction = buffer[i];
@@ -127,8 +134,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 }
             }
         }
-
-        return types;
     }
 
     private static ShaderSymbol CreateShaderType(NewSpirvBuffer buffer, string className)
@@ -175,15 +180,15 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         table.Push();
 
-        var inheritanceList = new List<string>();
+        var inheritanceList = new List<ShaderClassSource>();
         foreach (var mixin in Mixins)
         {
-            SpirvBuilder.BuildInheritanceList(table.ShaderLoader, mixin.Name, inheritanceList);
+            SpirvBuilder.BuildInheritanceList(table.ShaderLoader, new ShaderClassSource(mixin.Name), inheritanceList);
         }
 
         foreach (var mixin in inheritanceList)
         {
-            LoadExternalShaderType(table, mixin);
+            LoadExternalShaderType(table, mixin.ClassName);
         }
 
         var symbols = new List<Symbol>();
@@ -237,7 +242,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         foreach (var mixin in inheritanceList)
         {
-            var shaderType = (ShaderSymbol)table.DeclaredTypes[mixin];
+            var shaderType = (ShaderSymbol)table.DeclaredTypes[mixin.ClassName];
 
             // Import types and variables/functions
             context.FluentAdd(new OpSDSLImportShader(context.Bound, new(shaderType.Name), ImportType.Inherit), out var shader);

@@ -85,7 +85,7 @@ public class RenderingTests
         // Check output color value against expected result
         var expectedColor = StringToRgba(parameters["ExpectedResult"]);
         var pixel = pixels[0, 0].PackedValue;
-        Assert.Equal(expectedColor, pixel);
+        Assert.Equal(expectedColor.ToString("X8"), pixel.ToString("X8"));
     }
 
     public static IEnumerable<object[]> GetTestFiles()
