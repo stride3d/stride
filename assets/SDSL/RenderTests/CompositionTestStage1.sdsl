@@ -1,0 +1,82 @@
+// PSMain(ExpectedResult=#BF407FFF)
+
+namespace Stride.Shaders.Tests;
+
+shader CompositionBase
+{
+	stage float BaseStageMethod1()
+	{
+		return 0.125;
+	}
+
+	stage float BaseStageMethod2()
+	{
+		return 0.125;
+	}
+
+	stage float BaseStageMethod3()
+	{
+		return 0.125;
+	}
+
+	stage float BaseStageMethod4()
+	{
+		return 0.25;
+	}
+};
+ 
+shader CompositionShaderA : CompositionBase
+{
+	stage override float BaseStageMethod2()
+	{
+		return base.BaseStageMethod2() + 0.125;
+	}
+
+	stage override float BaseStageMethod4()
+	{
+		return base.BaseStageMethod4() + 0.25;
+	}
+};
+ 
+shader CompositionShaderB : CompositionBase
+{
+	stage override float BaseStageMethod3()
+	{
+		return base.BaseStageMethod3() + 0.375;
+	}
+
+	stage override float BaseStageMethod4()
+	{
+		return base.BaseStageMethod4() + 0.25;
+	}
+};
+ 
+shader CompositionTest : CompositionBase
+{
+    stream float4 ColorTarget : SV_Target0;
+
+	CompositionBase Comp0;
+	CompositionBase Comp1;
+
+	stage override float BaseStageMethod1()
+	{
+		return base.BaseStageMethod1() + 0.625;
+	}
+
+	stage override float BaseStageMethod4()
+	{
+		return base.BaseStageMethod4() + 0.25;
+	}
+ 
+	void PSMain()
+	{
+		streams.ColorTarget = float4(BaseStageMethod1(), BaseStageMethod2(), BaseStageMethod3(), BaseStageMethod4());
+	}
+};
+
+effect CompositionTestStage1
+{
+	mixin CompositionTest;
+	mixin compose Comp0 = CompositionShaderA;
+	mixin compose Comp1 = CompositionShaderB;
+}

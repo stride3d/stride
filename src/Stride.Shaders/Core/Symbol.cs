@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Stride.Shaders.Spirv;
 
 namespace Stride.Shaders.Core;
 
@@ -36,7 +37,7 @@ public enum StreamIO : byte
     Output
 }
 
-public record struct SymbolID(string Name, SymbolKind Kind, Storage Storage = 0);
+public record struct SymbolID(string Name, SymbolKind Kind, Storage Storage = 0, Specification.FunctionFlagsMask FunctionFlags = Specification.FunctionFlagsMask.None);
 public record struct StreamInfo(ushort EntryPoint, StreamIO Stream);
 
 /// <summary>

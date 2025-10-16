@@ -127,7 +127,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 if (types.TryGetValue(importFunction.Shader, out var type) && type is ShaderSymbol shaderSymbol)
                 {
                     var returnType = types[importFunction.ResultType];
-                    var symbol = new Symbol(new(importFunction.FunctionName, SymbolKind.Method), returnType, importFunction.ResultId);
+                    var symbol = new Symbol(new(importFunction.FunctionName, SymbolKind.Method, FunctionFlags: importFunction.Flags), returnType, importFunction.ResultId);
                     // TODO: review if really necessary?
                     // (external functions are resolved differently)
                     shaderSymbol.Components.Add(symbol);
@@ -141,9 +141,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         ProcessNameAndTypes(buffer, 0, buffer.Count, out var names, out var types);
 
         var symbols = new List<Symbol>();
-        foreach (var instruction in buffer)
+        for (var index = 0; index < buffer.Count; index++)
         {
-            if (instruction.Op == Op.OpVariable && (OpVariable)instruction is {} variable && variable.Storageclass != Specification.StorageClass.Function)
+            var instruction = buffer[index];
+            if (instruction.Op == Op.OpVariable && (OpVariable)instruction is { } variable &&
+                variable.Storageclass != Specification.StorageClass.Function)
             {
                 if (!names.TryGetValue(variable.ResultId, out var variableName))
                     variableName = $"_{variable.ResultId}";
@@ -155,11 +157,15 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
             if (instruction.Op == Op.OpFunction)
             {
+                var functionFlags = FunctionFlagsMask.None;
+                if (buffer[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)buffer[index + 1] is { } functionInfo)
+                    functionFlags = functionInfo.Flags;
+
                 OpFunction functionInstruction = instruction;
                 var functionName = names[functionInstruction.ResultId];
                 var functionType = types[functionInstruction.FunctionType];
 
-                var sid = new SymbolID(functionName, SymbolKind.Method);
+                var sid = new SymbolID(functionName, SymbolKind.Method, FunctionFlags: functionFlags);
                 symbols.Add(new(sid, functionType, functionInstruction.ResultId));
             }
         }
@@ -264,7 +270,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var functionType = (FunctionType)c.Type;
 
                     var functionReturnTypeId = context.GetOrRegister(functionType.ReturnType);
-                    context.FluentAdd(new OpSDSLImportFunction(functionReturnTypeId, context.Bound, c.Id.Name, shader.ResultId), out var function);
+                    context.FluentAdd(new OpSDSLImportFunction(functionReturnTypeId, context.Bound, c.Id.Name, shader.ResultId, c.Id.FunctionFlags), out var function);
                     context.AddName(context.Bound, c.Id.Name);
                     context.Bound++;
                     table.CurrentFrame.Add(c.Id.Name, c with { IdRef = function.ResultId });

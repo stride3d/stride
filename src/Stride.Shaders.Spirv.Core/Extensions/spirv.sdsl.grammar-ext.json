@@ -92,6 +92,10 @@
         {
           "kind": "IdRef",
           "name": "shader"
+        },
+        {
+          "kind": "FunctionFlags",
+          "name": "flags"
         }
       ]
     },

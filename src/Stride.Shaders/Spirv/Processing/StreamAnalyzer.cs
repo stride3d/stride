@@ -198,7 +198,7 @@ namespace Stride.Shaders.Spirv.Processing
         {
             var streams = analysisResult.Streams;
 
-            ProcessMethod(buffer, entryPointId, streams);
+            ProcessMethod(buffer, [], entryPointId, streams);
 
             var stage = executionModel switch
             {
@@ -332,7 +332,7 @@ namespace Stride.Shaders.Spirv.Processing
         /// <summary>
         /// Figure out (recursively) which streams are being read from and written to.
         /// </summary>
-        private void ProcessMethod(NewSpirvBuffer buffer, int functionId, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
+        private void ProcessMethod(NewSpirvBuffer buffer, List<int> callStack, int functionId, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
         {
             var methodStart = FindMethodStart(buffer, functionId);
             for (var index = methodStart; index < buffer.Count; index++)
@@ -364,7 +364,11 @@ namespace Stride.Shaders.Spirv.Processing
                 else if (instruction.Op == Op.OpFunctionCall && (OpFunctionCall)instruction is { } call)
                 {
                     // Process call
-                    ProcessMethod(buffer, call.Function, streams);
+                    if (callStack.Contains(functionId))
+                        throw new InvalidOperationException($"Recursive call with method id {functionId}");
+                    callStack.Add(functionId);
+                    ProcessMethod(buffer, callStack, call.Function, streams);
+                    callStack.RemoveAt(callStack.Count - 1);
                 }
             }
         }

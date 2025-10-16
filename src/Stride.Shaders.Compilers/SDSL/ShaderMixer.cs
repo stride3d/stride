@@ -37,7 +37,7 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         var shaderSource2 = EvaluateInheritanceAndCompositions(shaderSource);
 
         // Root shader
-        MergeSDSLMixin(new MixinResultGlobal(), null, context, table, temp, shaderSource2);
+        MergeSDSLMixin(new MixinResultGlobal(), context, table, temp, shaderSource2);
 
         context.Insert(0, new OpCapability(Capability.Shader));
         context.Insert(1, new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
@@ -46,11 +46,15 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         {
             for (int i = 0; i < temp.Count; i++)
             {
+                // Remove Nop
                 if (temp[i].Op == Op.OpNop)
+                    temp.RemoveAt(i--);
+                // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
+                else if (temp[i].Op == Op.OpSDSLShader || temp[i].Op == Op.OpSDSLShaderEnd || temp[i].Op == Op.OpSDSLEffect || temp[i].Op == Op.OpSDSLEffectEnd)
                     temp.RemoveAt(i--);
             }
             temp.Sort();
-            Spv.Dis(temp, true);
+            Spv.Dis(temp, Spv.DisassemblerFlags.NameAndId | Spv.DisassemblerFlags.InstructionIndex);
         }
 
         new StreamAnalyzer().Process(table, temp, context);
@@ -72,7 +76,7 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
 
         //File.WriteAllBytes("test.spv", bytecode);
 
-        Spv.Dis(temp, true);
+        Spv.Dis(temp);
         //File.WriteAllText("test.spvdis", source);
     }
 
@@ -168,6 +172,8 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         public int MethodIndexInGroup;
         public ShaderInfo Shader;
         public List<(ShaderInfo Shader, int MethodId)> Methods { get; } = new();
+
+        public override string ToString() => $"{Name} (shader: {Shader}, function Id: {string.Join(", ", Methods.Select(x => $"{x.Shader.ShaderName} {x.MethodId}"))})";
     }
 
     class MixinResultGlobal
@@ -177,9 +183,12 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
     }
 
 
-    class MixinResult(MixinResult? parent)
+    class MixinResult(MixinResult? stage)
     {
-        public MixinResult? Parent { get; } = parent;
+        public MixinResult? Stage { get; } = stage;
+
+        public List<ShaderInfo> Shaders { get; } = new();
+        public Dictionary<string, ShaderInfo> ShadersByName { get; } = new();
 
         public Dictionary<string, int> MethodGroupsByName { get; } = new();
 
@@ -188,37 +197,36 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         public Dictionary<int, MixinResult> Compositions { get; } = new();
     }
 
-    private ShaderMixinSource EvaluateInheritanceAndCompositions(ShaderSource shaderSource)
+    private ShaderMixinSource EvaluateInheritanceAndCompositions(ShaderSource shaderSource, ShaderMixinSource? root = null)
     {
-        var mixinsToMerge = new List<ShaderClassSource>();
-
-        var inheritanceList = new List<ShaderClassSource>();
+        bool isRoot = root == null;
+        var mixinList = new List<ShaderClassSource>();
 
         var shaderMixinSource = shaderSource switch
         {
             ShaderMixinSource mixinSource2 => mixinSource2,
             ShaderClassSource classSource => new ShaderMixinSource { Mixins = { classSource } },
         };
-
         foreach (var mixinToMerge in shaderMixinSource.Mixins)
         {
             if (mixinToMerge.GenericArguments != null && mixinToMerge.GenericArguments.Length > 0)
                 throw new NotImplementedException();
 
             var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge.ClassName);
-            SpirvBuilder.BuildInheritanceList(ShaderLoader, buffer, inheritanceList);
-            if (!inheritanceList.Contains(mixinToMerge))
-                inheritanceList.Add(mixinToMerge);
+            SpirvBuilder.BuildInheritanceList(ShaderLoader, buffer, mixinList);
+            if (!mixinList.Contains(mixinToMerge))
+                mixinList.Add(mixinToMerge);
         }
 
         shaderMixinSource.Mixins.Clear();
-        shaderMixinSource.Mixins.AddRange(inheritanceList);
+        shaderMixinSource.Mixins.AddRange(mixinList);
 
-        foreach (var shaderName in shaderMixinSource.Mixins)
+        foreach (var shaderName in mixinList)
         {
             var shader = SpirvBuilder.GetOrLoadShader(ShaderLoader, shaderName.ClassName);
             ShaderClass.ProcessNameAndTypes(shader, 0, shader.Count, out var names, out var types);
 
+            bool hasStage = false;
             foreach (var i in shader)
             {
                 if (i.Op == Op.OpVariable && (OpVariable)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
@@ -233,19 +241,39 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
                         {
                             compositionMixin = new ShaderMixinSource { Mixins = { new ShaderClassSource(shaderSymbol.Name) } };
                         }
-                        compositionMixin = (ShaderMixinSource)EvaluateInheritanceAndCompositions(compositionMixin);
+                        compositionMixin = (ShaderMixinSource)EvaluateInheritanceAndCompositions(compositionMixin, root ?? shaderMixinSource);
                         shaderMixinSource.Compositions[variableName] = compositionMixin;
                     }
                 }
+
+                if (i.Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)i is {} functionInfo)
+                {
+                    hasStage |= (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
+                }
+            }
+
+            // If there are any stage variables, add class to root
+            if (!isRoot && hasStage)
+            {
+                var shaderNameStageOnly = new ShaderClassSource(shaderName.ClassName) { GenericArguments = shaderName.GenericArguments, ImportStageOnly = true };
+                // Make sure it's not already added yet (either standard or stage only)
+                if (!root!.Mixins.Contains(shaderName) && !root!.Mixins.Contains(shaderNameStageOnly))
+                    root!.Mixins.Add(shaderNameStageOnly);
             }
         }
 
         return shaderMixinSource;
     }
 
-    MixinResult MergeSDSLMixin(MixinResultGlobal global, MixinResult? parent, SpirvContext context, SymbolTable table, NewSpirvBuffer temp, ShaderMixinSource mixinSource)
+    MixinResult MergeSDSLMixin(MixinResultGlobal global, SpirvContext context, SymbolTable table, NewSpirvBuffer temp, ShaderMixinSource mixinSource, MixinResult? stage = null, string? currentCompositionPath = null)
     {
-        var mixinResult = new MixinResult(parent);
+        if (currentCompositionPath != null)
+            temp.Add(new OpSDSLEffect(currentCompositionPath));
+
+        var isRoot = stage == null;
+        var mixinResult = new MixinResult(stage);
+        if (isRoot)
+            stage = mixinResult;
 
         // TODO: support proper shader mixin source
         //var shaderMixin = new ShaderMixinSource { Mixins = { new ShaderClassCode(entryShaderName) } };
@@ -256,8 +284,8 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         var offset = context.Bound;
         var nextOffset = 0;
 
-        var shaders = new List<ShaderInfo>();
-        var shadersByName = new Dictionary<string, ShaderInfo>();
+        var shaders = mixinResult.Shaders;
+        var shadersByName = mixinResult.ShadersByName;
 
         var mixinStart = temp.Count;
         foreach (var shaderClass in mixinSource.Mixins)
@@ -269,9 +297,61 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
 
             var shaderStart = temp.Count;
 
+            bool skipFunction = false;
+
             // Copy instructions to single buffer
-            foreach (var i in shader)
+            for (var index = 0; index < shader.Count; index++)
             {
+                var i = shader[index];
+                // Do we need to skip variable/functions? (depending on stage/non-stage)
+
+                {
+                    var include = true;
+                    if (i.Op == Op.OpSDSLImportFunction && (OpSDSLImportFunction)i is { } importFunction)
+                    {
+                        var isStage = (importFunction.Flags & FunctionFlagsMask.Stage) != 0;
+                        /*include = isStage switch
+                        {
+                            // Import stage members only if root level
+                            true => isRoot || shaderClass.ImportStageOnly,
+                            // Import non-stage members only if import stage only is not specified
+                            false => !shaderClass.ImportStageOnly,
+                        };*/
+                    }
+                    if (i.Op == Op.OpFunction && shader[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shader[index + 1] is { } functionInfo)
+                    {
+                        var isStage = (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
+                        include = isStage switch
+                        {
+                            // Import stage members only if root level
+                            true => isRoot || shaderClass.ImportStageOnly,
+                            // Import non-stage members only if import stage only is not specified
+                            false => !shaderClass.ImportStageOnly,
+                        };
+                    }
+                    if (i.Op == Op.OpVariable)
+                    {
+                        // TODO
+                    }
+
+
+                    if (!include)
+                    {
+                        // Special case for function: skip until function end
+                        // (for other cases such as variable, skipping only current instruction is enough)
+                        if (i.Op == Op.OpFunction)
+                        {
+                            // Skip until end of function
+                            while (shader[++index].Op != Op.OpFunctionEnd)
+                            {
+                            }
+                        }
+
+                        // Go to next instruction
+                        continue;
+                    }
+                }
+
                 var i2 = new OpData(i.Data.Memory.Span);
                 temp.Add(i2);
 
@@ -282,12 +362,18 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
                     OffsetIds(i2, offset);
             }
 
-            var shaderInfo = new ShaderInfo(shaders.Count);
-            PopulateShaderInfo(temp, shaderStart, temp.Count, shaderInfo);
+            var shaderInfo = new ShaderInfo(shaders.Count, shaderClass.ClassName, shaderStart, temp.Count);
+            shaderInfo.CompositionPath = currentCompositionPath;
+            if (mixinResult.Stage != null && mixinResult.Stage.ShadersByName.TryGetValue(shaderClass.ClassName, out var stageShaderInfo))
+                shaderInfo.Stage = stageShaderInfo;
+
+            PopulateShaderInfo(temp, shaderStart, temp.Count, shaderInfo, mixinResult);
             shadersByName.Add(shaderClass.ClassName, shaderInfo);
             shaders.Add(shaderInfo);
 
-            RemapInheritedIds(temp, shaderStart, temp.Count, shaderInfo, shadersByName);
+            Spv.Dis(temp, Spv.DisassemblerFlags.NameAndId | Spv.DisassemblerFlags.InstructionIndex);
+            RemapInheritedIds(temp, shaderStart, temp.Count, shaderInfo, mixinResult);
+            Spv.Dis(temp, Spv.DisassemblerFlags.NameAndId | Spv.DisassemblerFlags.InstructionIndex);
         }
 
         var mixinEnd = temp.Count;
@@ -336,12 +422,10 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
             if (i.Data.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shaderInstruction)
             {
                 currentShader = shadersByName[shaderInstruction.ShaderName];
-                SetOpNop(i.Data.Memory.Span);
             }
             else if (i.Data.Op == Op.OpSDSLShaderEnd)
             {
                 currentShader = null;
-                SetOpNop(i.Data.Memory.Span);
             }
             else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
@@ -350,27 +434,23 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
                 {
                     var functionName = names[function.ResultId];
 
-                    // If it's a stage method, register at the root level
-                    var methodMixinResult = mixinResult;
-                    if ((functionInfo.Flags & FunctionFlagsMask.Stage) != 0)
-                    {
-                        while (methodMixinResult.Parent != null)
-                            methodMixinResult = methodMixinResult.Parent;
-                    }
+                    var methodMixinGroup = mixinResult;
+                    if (!isRoot && (functionInfo.Flags & FunctionFlagsMask.Stage) != 0)
+                        methodMixinGroup = methodMixinGroup.Stage;
 
                     // Check if it has a parent (and if yes, share the MethodGroup)
-                    if (!methodMixinResult.MethodGroups.TryGetValue(functionInfo.Parent, out var methodGroup))
+                    if (!methodMixinGroup.MethodGroups.TryGetValue(functionInfo.Parent, out var methodGroup))
                         methodGroup = new MethodGroup { Name = functionName };
 
                     methodGroup.Shader = currentShader;
                     methodGroup.MethodIndexInGroup = methodGroup.Methods.Count;
                     methodGroup.Methods.Add((Shader: currentShader, MethodId: function.ResultId));
 
-                    methodMixinResult.MethodGroups[function.ResultId] = methodGroup;
+                    methodMixinGroup.MethodGroups[function.ResultId] = methodGroup;
 
                     // Also add lookup by name
-                    if (!methodMixinResult.MethodGroupsByName.TryGetValue(functionName, out var methodGroups))
-                        methodMixinResult.MethodGroupsByName.Add(functionName, function.ResultId);
+                    if (!methodMixinGroup.MethodGroupsByName.TryGetValue(functionName, out var methodGroups))
+                        methodMixinGroup.MethodGroupsByName.Add(functionName, function.ResultId);
 
                     // If abstract, let's erase the whole function
                     if ((functionInfo.Flags & FunctionFlagsMask.Abstract) != 0)
@@ -399,7 +479,8 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
                 if (variable.Value.Type is PointerType pointer && pointer.BaseType is ShaderSymbol shaderSymbol)
                 {
                     var compositionMixin = mixinSource.Compositions[variable.Key];
-                    var compositionResult = MergeSDSLMixin(global, mixinResult, context, table, temp, compositionMixin);
+                    var compositionPath = currentCompositionPath != null ? $"{currentCompositionPath}.{variable.Key}" : variable.Key;
+                    var compositionResult = MergeSDSLMixin(global, context, table, temp, compositionMixin, stage, compositionPath);
                     
                     mixinResult.Compositions.Add(variable.Value.Id, compositionResult);
                 }
@@ -444,7 +525,7 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
                 if (!mixinResult.MethodGroups.TryGetValue(function.ResultId, out var methodGroupEntry))
                     throw new InvalidOperationException($"Can't find method group info for {names[function.ResultId]}");
 
-                currentShader = methodGroupEntry.Shader;
+                currentShader = shaders.Last(x => index >= x.StartInstruction);
             }
             else if (i.Data.Op == Op.OpFunctionCall && (OpFunctionCall)i is { } functionCall)
             {
@@ -455,16 +536,17 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
                         methodMixinResult = methodMixinResult.Parent;
                 }*/
 
-                var methodGroups = mixinResult.MethodGroups;
+                var methodMixinGroup = mixinResult;
+                var isBaseCall = temp[index - 1].Op == Op.OpSDSLCallBase;
 
                 // Process member call (composition)
                 if (temp[index - 1].Op == Op.OpSDSLCallTarget)
                 {
                     var callTarget = (OpSDSLCallTarget)temp[index - 1];
                     var composition = mixinResult.Compositions[callTarget.Target];
-                    methodGroups = composition.MethodGroups;
+                    methodMixinGroup = composition;
 
-                    Spv.Dis(temp, false);
+                    Spv.Dis(temp, Spv.DisassemblerFlags.Id);
 
                     var functionName = externalFunctions[functionCall.Function];
                     var functionId = composition.MethodGroupsByName[functionName];
@@ -474,12 +556,24 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
                     SetOpNop(temp[index - 1].Data.Memory.Span);
                 }
 
-                if (!methodGroups.TryGetValue(functionCall.Function, out var methodGroupEntry))
-                    throw new InvalidOperationException($"Can't find method group info for {names[functionCall.Function]}");
+                Spv.Dis(temp, Spv.DisassemblerFlags.NameAndId | Spv.DisassemblerFlags.InstructionIndex);
+
+                bool foundInStage = false;
+                if (!methodMixinGroup.MethodGroups.TryGetValue(functionCall.Function, out var methodGroupEntry))
+                {
+                    // Try again as a stage method (only if not a base call)
+                    if (methodMixinGroup.Stage == null || !methodMixinGroup.Stage.MethodGroups.TryGetValue(functionCall.Function, out methodGroupEntry))
+                        throw new InvalidOperationException($"Can't find method group info for {names[functionCall.Function]}");
+                    foundInStage = true;
+                }
 
                 // Process base call
-                if (temp[index - 1].Op == Op.OpSDSLCallBase)
+                if (isBaseCall)
                 {
+                    // We currently do not allow calling base stage method from a non-stage method
+                    if (foundInStage)
+                        throw new InvalidOperationException($"Method {names[functionCall.Function]} was found but a base call can't be performed on a stage method from a non-stage method");
+
                     // Is it a base call? if yes, find the direct parent
                     // Let's find the method in same group just before ours
                     bool baseMethodFound = false;
@@ -520,13 +614,15 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
             }
         }
 
+        if (currentCompositionPath != null)
+            temp.Add(new OpSDSLEffectEnd());
+
         return mixinResult;
     }
 
-    private void PopulateShaderInfo(NewSpirvBuffer temp, int shaderStart, int shaderEnd, ShaderInfo shaderInfo)
+    private void PopulateShaderInfo(NewSpirvBuffer temp, int shaderStart, int shaderEnd, ShaderInfo shaderInfo, MixinResult mixinResult)
     {
         ShaderClass.ProcessNameAndTypes(temp, shaderStart, shaderEnd, out var names, out var types);
-
         for (var index = shaderStart; index < shaderEnd; index++)
         {
             var i = temp[index];
@@ -548,7 +644,7 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
         }
     }
 
-    private void RemapInheritedIds(NewSpirvBuffer temp, int shaderStart, int shaderEnd, ShaderInfo shaderInfo, Dictionary<string, ShaderInfo> shadersByName)
+    private void RemapInheritedIds(NewSpirvBuffer temp, int shaderStart, int shaderEnd, ShaderInfo shaderInfo, MixinResult mixinResult)
     {
         var importedShaders = new Dictionary<int, ShaderInfo>();
         var idRemapping = new Dictionary<int, int>();
@@ -572,7 +668,7 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
             {
                 if (importShader.Type == ImportType.Inherit)
                 {
-                    importedShaders.Add(importShader.ResultId, shadersByName[importShader.ShaderName]);
+                    importedShaders.Add(importShader.ResultId, mixinResult.ShadersByName[importShader.ShaderName]);
 
                     SetOpNop(i.Data.Memory.Span);
                 }
@@ -592,8 +688,20 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
             {
                 if (importedShaders.TryGetValue(importFunction.Shader, out var importedShader))
                 {
-                    var importedFunction = importedShader.Functions[importFunction.FunctionName];
-                    idRemapping.Add(importFunction.ResultId, importedFunction);
+                    if (importedShader.Functions.ContainsKey(importFunction.FunctionName))
+                    {
+                        var importedFunction = importedShader.Functions[importFunction.FunctionName];
+                        idRemapping.Add(importFunction.ResultId, importedFunction);
+                    }
+                    else if (importedShader.Stage != null && importedShader.Stage.Functions.ContainsKey(importFunction.FunctionName))
+                    {
+                        var importedFunction = importedShader.Stage.Functions[importFunction.FunctionName];
+                        idRemapping.Add(importFunction.ResultId, importedFunction);
+                    }
+                    else
+                    {
+                        idRemapping.Add(importFunction.ResultId, 0);
+                    }
 
                     SetOpNop(i.Data.Memory.Span);
                 }
@@ -607,24 +715,50 @@ public class ShaderMixer(IExternalShaderLoader ShaderLoader)
                      || op.Kind == OperandKind.PairIdRefIdRef)
                     && op.Words.Length > 0
                     && idRemapping.TryGetValue(op.Words[0], out var to1))
+                {
+                    if (to1 == 0)
+                        throw new InvalidOperationException($"Tried to remap a non-existing id {op.Words[0]} at instruction {index}");
                     op.Words[0] = to1;
+                }
+
                 if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
                      || op.Kind == OperandKind.PairIdRefIdRef)
                     && idRemapping.TryGetValue(op.Words[1], out var to2))
+                {
+                    if (to2 == 0)
+                        throw new InvalidOperationException($"Tried to remap a non-existing id {op.Words[1]} at instruction {index}");
                     op.Words[1] = to2;
+                }
             }
         }
     }
 
-    class ShaderInfo(int shaderIndex)
+    class ShaderInfo(int shaderIndex, string shaderName, int startInstruction, int endInstruction)
     {
         public int ShaderIndex { get; } = shaderIndex;
+
+        public string ShaderName { get; } = shaderName;
+
+        /// <summary>
+        /// The <see cref="ShaderInfo"/> for the same shader at the top-level (for all the stage members, if any).
+        /// </summary>
+        public ShaderInfo? Stage { get; set; }
+
+        /// <summary>
+        /// Kept for debug purpose.
+        /// </summary>
+        public string? CompositionPath { get; set; }
+
+        public int StartInstruction { get; } = startInstruction;
+        public int EndInstruction { get; } = endInstruction;
 
         public Dictionary<int, string> Names { get; } = new();
 
 
         public Dictionary<string, int> Functions { get; } = new();
         public Dictionary<string, (int Id, SymbolType Type)> Variables { get; } = new();
+
+        public override string ToString() => $"{ShaderName} ({(CompositionPath != null ? $" {CompositionPath} " : "")}{StartInstruction}..{EndInstruction})";
     }
 
     static void SetOpNop(Span<int> words)

@@ -168,11 +168,11 @@ public class ShaderMethod(
         };
     public Identifier? Visibility { get; set; } = visibility;
     public Identifier? Storage { get; set; } = storage;
-    public bool? IsAbstract { get; set; } = isAbstract;
+    public bool IsAbstract { get; set; } = isAbstract;
     public bool IsStatic { get; set; } = isStatic;
-    public bool? IsVirtual { get; set; } = isVirtual;
-    public bool? IsOverride { get; set; } = isOverride;
-    public bool? IsClone { get; set; } = isClone;
+    public bool IsVirtual { get; set; } = isVirtual;
+    public bool IsOverride { get; set; } = isOverride;
+    public bool IsClone { get; set; } = isClone;
     public List<MethodParameter> Parameters { get; set; } = [];
 
     public BlockStatement? Body { get; set; }
@@ -181,9 +181,19 @@ public class ShaderMethod(
     {
         var (builder, context) = compiler;
 
-        function = builder.DeclareFunction(context, Name, (FunctionType)Type);
+        function = builder.DeclareFunction(context, Name, (FunctionType)Type, IsStaged);
 
-        var symbol = new Symbol(new(Name, SymbolKind.Method), Type, function.Id);
+        var functionFlags = Specification.FunctionFlagsMask.None;
+        if (IsAbstract)
+            functionFlags |= Specification.FunctionFlagsMask.Abstract;
+        if (IsOverride)
+            functionFlags |= Specification.FunctionFlagsMask.Override;
+        if (IsVirtual)
+            functionFlags |= Specification.FunctionFlagsMask.Virtual;
+        if (IsStaged)
+            functionFlags |= Specification.FunctionFlagsMask.Stage;
+
+        var symbol = new Symbol(new(Name, SymbolKind.Method, FunctionFlags: functionFlags), Type, function.Id);
         table.CurrentShader.Components.Add(symbol);
         table.CurrentFrame.Add(Name, symbol);
     }

@@ -10,7 +10,7 @@ Examples.TranslateHLSL();
 var shaderMixer = new ShaderMixer(new Examples.ShaderLoader());
 shaderMixer.MergeSDSL("TestBasic", out var bytecode);
 var buffer = new NewSpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));
-var source = Spv.Dis(buffer, true);
+var source = Spv.Dis(buffer);
 File.WriteAllText("test.spvdis", source);
 
 

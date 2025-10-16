@@ -161,12 +161,13 @@ public record struct MethodParser : IParser<ShaderMethod>
                 else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        else if (isClone || isOverride || isStatic)
+        else if (isClone || isOverride || isStatic || isStaged)
         {
             if (ShaderMethodParsers.Simple(ref scanner, result, out parsed, orError))
             {
                 if (hasAttributes)
                     parsed.Attributes = attributes.Attributes;
+                parsed.IsStaged = isStaged;
                 parsed.IsClone = isClone;
                 parsed.IsOverride = isOverride;
                 parsed.IsStatic = isStatic;

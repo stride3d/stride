@@ -20,7 +20,7 @@ public class SymbolFrame()
         {
             // If there is already a function symbol with same name, let's create or add to a group.
             if (existingSymbol.Type is FunctionType)
-                existingSymbol = new Symbol(new(name, SymbolKind.MethodGroup), new FunctionGroupType(), 0, GroupMembers: [existingSymbol]);
+                existingSymbol = new Symbol(new(name, SymbolKind.MethodGroup, FunctionFlags: existingSymbol.Id.FunctionFlags), new FunctionGroupType(), 0, GroupMembers: [existingSymbol]);
 
             existingSymbol.GroupMembers = existingSymbol.GroupMembers.Add(symbol);
 

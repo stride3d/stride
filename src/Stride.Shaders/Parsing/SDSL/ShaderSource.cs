@@ -15,6 +15,8 @@ public sealed class ShaderClassSource(string className) : ShaderSource, IEquatab
     /// <value>The name of the class.</value>
     public string ClassName { get; set; } = className;
 
+    public bool ImportStageOnly { get; set; } = false;
+
     /// <summary>
     /// Gets the generic parameters.
     /// </summary>
@@ -23,10 +25,12 @@ public sealed class ShaderClassSource(string className) : ShaderSource, IEquatab
 
     public string ToClassName()
     {
-        if (GenericArguments == null)
+        if ((GenericArguments == null || GenericArguments.Length == 0) && !ImportStageOnly)
             return ClassName;
 
         var result = new StringBuilder();
+        if (ImportStageOnly)
+            result.Append("stage ");
         result.Append(ClassName);
         if (GenericArguments != null && GenericArguments.Length > 0)
         {
