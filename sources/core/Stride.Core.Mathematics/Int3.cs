@@ -760,9 +760,7 @@ public struct Int3 : IEquatable<Int3>, ISpanFormattable
     /// </returns>
     public readonly bool Equals(Int3 other)
     {
-        return MathF.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.Z - Z) < MathUtil.ZeroTolerance;
+        return other.X == X && other.Y == Y && other.Z == Z;
     }
 
     /// <summary>
