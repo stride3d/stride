@@ -863,7 +863,7 @@ namespace Stride.Graphics
             if (box.RowPitch == rowStride && boxDepthStride == textureDepthStride && !isFlippedTexture)
             {
                 fixed(void* destPtr = toData)
-                    Unsafe.CopyBlockUnaligned(destPtr, (void*)box.DataPointer, (uint)mipMapSize);
+                    Utilities.CopyWithAlignmentFallback(destPtr, (void*)box.DataPointer, (uint)mipMapSize);
             }
             else
             {
@@ -884,7 +884,7 @@ namespace Stride.Graphics
                             for (int i = height - 1; i >= 0; i--)
                             {
                                 // Copy a single row
-                                Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)rowStride);
+                                Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)rowStride);
                                 sourcePtr -= box.RowPitch;
                                 destPtr += rowStride;
                             }
@@ -894,7 +894,7 @@ namespace Stride.Graphics
                             for (int i = 0; i < height; i++)
                             {
                                 // Copy a single row
-                                Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)rowStride);
+                                Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)rowStride);
                                 sourcePtr += box.RowPitch;
                                 destPtr += rowStride;
                             }
@@ -1037,7 +1037,7 @@ namespace Stride.Graphics
                     // The fast way: If same stride, we can directly copy the whole texture in one shot
                     if (box.RowPitch == rowStride && boxDepthStride == textureDepthStride)
                     {
-                        Unsafe.CopyBlockUnaligned((void*)box.DataPointer, pointer, (uint)sizeOfTextureData);
+                        Utilities.CopyWithAlignmentFallback((void*)box.DataPointer, pointer, (uint)sizeOfTextureData);
                     }
                     else
                     {
@@ -1052,7 +1052,7 @@ namespace Stride.Graphics
                             // Iterate on each line
                             for (int i = 0; i < height; i++)
                             {
-                                Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)rowStride);
+                                Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)rowStride);
                                 destPtr += box.RowPitch;
                                 sourcePtr += rowStride;
                             }

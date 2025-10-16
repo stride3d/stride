@@ -680,6 +680,42 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "laske185",
+      "name": "Peter Laske",
+      "avatar_url": "https://avatars.githubusercontent.com/u/37439758?v=4",
+      "profile": "https://github.com/laske185",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "MikhailArsentevTheSecond",
+      "name": "Mikhail Arsentev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22962265?v=4",
+      "profile": "https://github.com/MikhailArsentevTheSecond",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "hoelzl",
+      "name": "Matthias Hölzl",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35998?v=4",
+      "profile": "https://github.com/hoelzl",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "kutal10",
+      "name": "Rahul Pai ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/36085864?v=4",
+      "profile": "https://github.com/kutal10",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

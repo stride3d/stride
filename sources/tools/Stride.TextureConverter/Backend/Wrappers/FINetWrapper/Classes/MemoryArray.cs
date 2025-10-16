@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Stride.Core;
 
 namespace FreeImageAPI
 {
@@ -247,7 +248,7 @@ namespace FreeImageAPI
 				return (T)(object)(FI4BIT)(((index % 2) == 0) ? (baseAddress[index / 2] >> 4) : (baseAddress[index / 2] & 0x0F));
 			}
 
-			Unsafe.CopyBlockUnaligned(ptr, baseAddress + (index * size), (uint) size);
+			Utilities.CopyWithAlignmentFallback(ptr, baseAddress + (index * size), (uint) size);
 			return buffer[0];
 		}
 
@@ -297,7 +298,7 @@ namespace FreeImageAPI
 			else
 			{
 				buffer[0] = value;
-				Unsafe.CopyBlockUnaligned(baseAddress + (index * size), ptr, (uint) size);
+				Utilities.CopyWithAlignmentFallback(baseAddress + (index * size), ptr, (uint) size);
 			}
 		}
 
@@ -337,7 +338,7 @@ namespace FreeImageAPI
 			{
 				ref byte dst = ref Unsafe.As<T, byte>(ref data[0]);
 				ref byte src = ref Unsafe.AsRef<byte>(baseAddress + (size * index));
-				Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
+				Utilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) (size * length));
 			}
 			return data;
 		}
@@ -381,7 +382,7 @@ namespace FreeImageAPI
 			{
 				ref byte dst = ref Unsafe.AsRef<byte>(baseAddress + (index * size));
 				ref byte src = ref Unsafe.As<T, byte>(ref values[0]);
-				Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
+				Utilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) (size * length));
 			}
 		}
 
@@ -450,7 +451,7 @@ namespace FreeImageAPI
 			{
 				ref byte dst = ref Unsafe.As<T, byte>(ref array[destinationIndex]);
 				ref byte src = ref Unsafe.AsRef<byte>(baseAddress + (size * sourceIndex));
-				Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
+				Utilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) (size * length));
 			}
 		}
 
@@ -493,7 +494,7 @@ namespace FreeImageAPI
 			{
 				ref byte dst = ref Unsafe.AsRef<byte>(baseAddress + (size * destinationIndex));
 				ref byte src = ref Unsafe.As<T, byte>(ref array[sourceIndex]);
-				Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
+				Utilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) (size * length));
 			}
 		}
 
@@ -520,7 +521,7 @@ namespace FreeImageAPI
 
 			ref byte dst = ref result[0];
 			ref byte src = ref Unsafe.AsRef<byte>(baseAddress);
-			Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) result.Length);
+			Utilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) result.Length);
 
 			return result;
 		}

@@ -48,20 +48,20 @@ namespace Stride.Graphics
 
         internal HeapPool DescriptorPools;
         internal const uint MaxDescriptorSetCount = 256;
-        internal readonly uint[] MaxDescriptorTypeCounts = new uint[DescriptorSetLayout.DescriptorTypeCount]
-        {
+        internal readonly uint[] MaxDescriptorTypeCounts =
+        [
             256, // Sampler
             0, // CombinedImageSampler
             512, // SampledImage
-            0, // StorageImage
+            64, // StorageImage
             64, // UniformTexelBuffer
-            0, // StorageTexelBuffer
+            64, // StorageTexelBuffer
             512, // UniformBuffer
-            0, // StorageBuffer
+            64, // StorageBuffer
             0, // UniformBufferDynamic
             0, // StorageBufferDynamic
             0 // InputAttachment
-        };
+        ];
 
         internal Buffer EmptyTexelBufferInt, EmptyTexelBufferFloat;
         internal Texture EmptyTexture;
@@ -264,6 +264,22 @@ namespace Stride.Graphics
             ConstantBufferDataPlacementAlignment = (int)physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
             TimestampFrequency = (long)(1.0e9 / physicalDeviceProperties.limits.timestampPeriod); // Resolution in nanoseconds
 
+            // Configure descriptor type max counts
+            void SetMaxDescriptorTypeCount(VkDescriptorType type, uint limit)
+                => MaxDescriptorTypeCounts[(int)type] = Math.Min(MaxDescriptorTypeCounts[(int)type], limit);
+
+            SetMaxDescriptorTypeCount(VkDescriptorType.Sampler, physicalDeviceProperties.limits.maxDescriptorSetSamplers);
+            SetMaxDescriptorTypeCount(VkDescriptorType.CombinedImageSampler, 0); // Not defined.
+            SetMaxDescriptorTypeCount(VkDescriptorType.SampledImage, physicalDeviceProperties.limits.maxDescriptorSetSampledImages);
+            SetMaxDescriptorTypeCount(VkDescriptorType.StorageImage, physicalDeviceProperties.limits.maxDescriptorSetStorageImages);
+            SetMaxDescriptorTypeCount(VkDescriptorType.UniformTexelBuffer, physicalDeviceProperties.limits.maxDescriptorSetSampledImages); // No individual limit
+            SetMaxDescriptorTypeCount(VkDescriptorType.StorageTexelBuffer, physicalDeviceProperties.limits.maxDescriptorSetStorageImages); // No individual limit
+            SetMaxDescriptorTypeCount(VkDescriptorType.UniformBuffer, physicalDeviceProperties.limits.maxDescriptorSetUniformBuffers);
+            SetMaxDescriptorTypeCount(VkDescriptorType.StorageBuffer, physicalDeviceProperties.limits.maxDescriptorSetStorageBuffers);
+            SetMaxDescriptorTypeCount(VkDescriptorType.UniformBufferDynamic, physicalDeviceProperties.limits.maxDescriptorSetUniformBuffersDynamic);
+            SetMaxDescriptorTypeCount(VkDescriptorType.StorageBufferDynamic, physicalDeviceProperties.limits.maxDescriptorSetStorageBuffersDynamic);
+            SetMaxDescriptorTypeCount(VkDescriptorType.InputAttachment, physicalDeviceProperties.limits.maxDescriptorSetInputAttachments);
+
             RequestedProfile = graphicsProfiles.First();
 
             var queueProperties = vkGetPhysicalDeviceQueueFamilyProperties(NativePhysicalDevice);
@@ -292,11 +308,24 @@ namespace Stride.Graphics
                 depthClamp = true,
             };
 
+            vkGetPhysicalDeviceFeatures(NativePhysicalDevice, out var deviceFeatures);
+
+            if (deviceFeatures.shaderStorageImageReadWithoutFormat)
+            {
+                enabledFeature.shaderStorageImageReadWithoutFormat = true;
+            }
+
+            if (deviceFeatures.shaderStorageImageWriteWithoutFormat)
+            {
+                enabledFeature.shaderStorageImageWriteWithoutFormat = true;
+            }
+
             Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
             {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                 VK_EXT_DEBUG_MARKER_EXTENSION_NAME,
             };
+
             var availableExtensionProperties = GetAvailableExtensionProperties(supportedExtensionProperties);
             ValidateExtensionPropertiesAvailability(availableExtensionProperties);
             var desiredExtensionProperties = new HashSet<VkUtf8String>

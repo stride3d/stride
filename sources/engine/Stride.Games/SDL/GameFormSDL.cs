@@ -30,8 +30,7 @@ namespace Stride.Games
         public GameFormSDL(string text) : base(text)
         {
             Size = new Size2(800, 600);
-            ResizeBeginActions += GameForm_ResizeBeginActions;
-            ResizeEndActions += GameForm_ResizeEndActions;
+            SizeChangedActions += GameForm_SizeChangedActions;
             ActivateActions += GameForm_ActivateActions;
             DeActivateActions += GameForm_DeActivateActions;
             previousWindowState = FormWindowState.Normal;
@@ -54,19 +53,19 @@ namespace Stride.Games
         public event EventHandler<EventArgs> AppDeactivated;
 
         /// <summary>
-        /// Occurs when [pause rendering].
+        /// Occurs when the application should stop rendering.
         /// </summary>
         public event EventHandler<EventArgs> PauseRendering;
 
         /// <summary>
-        /// Occurs when [resume rendering].
+        /// Occurs when the application should resume rendering, if it is paused.
         /// </summary>
         public event EventHandler<EventArgs> ResumeRendering;
 
         /// <summary>
-        /// Occurs when [user resized].
+        /// Occurs when the size of the window has changed.
         /// </summary>
-        public event EventHandler<EventArgs> UserResized;
+        public event EventHandler<EventArgs> SizeChanged;
 
         /// <summary>
         /// Occurs when alt-enter key combination has been pressed.
@@ -77,10 +76,7 @@ namespace Stride.Games
 
         #region Implementation
         // TODO: The code below is taken from GameForm.cs of the Windows Desktop implementation. This needs reviewing
-        private Size2 cachedSize;
         private FormWindowState previousWindowState;
-        //private DisplayMonitor monitor;
-        private bool isUserResizing;
 
         private void GameForm_MinimizedActions(WindowEvent e)
         {
@@ -95,9 +91,7 @@ namespace Stride.Games
 
             previousWindowState = FormWindowState.Maximized;
 
-            UserResized?.Invoke(this, EventArgs.Empty);
-            //UpdateScreen();
-            cachedSize = Size;
+            SizeChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void GameForm_RestoredActions(WindowEvent e)
@@ -106,6 +100,7 @@ namespace Stride.Games
             {
                 ResumeRendering?.Invoke(this, EventArgs.Empty);
             }
+
             previousWindowState = FormWindowState.Normal;
         }
 
@@ -119,29 +114,15 @@ namespace Stride.Games
             AppDeactivated?.Invoke(this, EventArgs.Empty);
         }
 
-        private void GameForm_ResizeBeginActions(WindowEvent e)
+        private void GameForm_SizeChangedActions(WindowEvent e)
         {
-            isUserResizing = true;
-            cachedSize = Size;
-            PauseRendering?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void GameForm_ResizeEndActions(WindowEvent e)
-        {
-            if (isUserResizing && cachedSize.Equals(Size))
-            {
-                UserResized?.Invoke(this, EventArgs.Empty);
-                // UpdateScreen();
-            }
-
-            isUserResizing = false;
-            ResumeRendering?.Invoke(this, EventArgs.Empty);
+            SizeChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void GameFormSDL_KeyDownActions(KeyboardEvent e)
         {
-            var altReturn = ((KeyCode)e.Keysym.Sym == KeyCode.KReturn) && (((Keymod)e.Keysym.Mod & Keymod.KmodAlt) != 0);
-            var altEnter = ((KeyCode)e.Keysym.Sym == KeyCode.KKPEnter) && (((Keymod)e.Keysym.Mod & Keymod.KmodAlt) != 0);
+            var altReturn = ((KeyCode)e.Keysym.Sym == KeyCode.KReturn) && (((Keymod)e.Keysym.Mod & Keymod.Alt) != 0);
+            var altEnter = ((KeyCode)e.Keysym.Sym == KeyCode.KKPEnter) && (((Keymod)e.Keysym.Mod & Keymod.Alt) != 0);
             if (altReturn || altEnter)
             {
                 FullscreenToggle?.Invoke(this, EventArgs.Empty);

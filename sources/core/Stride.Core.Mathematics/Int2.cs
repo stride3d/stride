@@ -684,8 +684,7 @@ public struct Int2 : IEquatable<Int2>, ISpanFormattable
     /// </returns>
     public readonly bool Equals(Int2 other)
     {
-        return MathF.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance;
+        return other.X == X && other.Y == Y;
     }
 
     /// <summary>

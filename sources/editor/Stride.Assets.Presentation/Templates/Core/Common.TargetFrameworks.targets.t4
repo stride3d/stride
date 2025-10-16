@@ -1,4 +1,4 @@
 <#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 <#@ assembly name="System.Linq" #>
 <#@ import namespace="System.Linq" #>
-    <TargetFrameworks><#= string.Join(";", ((IEnumerable<Stride.Core.Assets.SolutionPlatform>)Properties.Platforms).Select(x => x.TargetFramework).Distinct()) #></TargetFrameworks>
+    <TargetFrameworks><#= string.Join(";", ((IEnumerable<Stride.Core.Assets.SolutionPlatform>)Properties.Platforms).Where(x => x.IsAvailable).Select(x => x.TargetFramework).Distinct()) #></TargetFrameworks>

@@ -221,6 +221,23 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
+    /// The translation velocity in unit per second during the previous physics tick
+    /// </summary>
+    [DataMemberIgnore]
+    public Vector3 PreviousLinearVelocity { get; internal set; }
+
+    /// <summary>
+    /// The rotation velocity in unit per second during the previous physics tick
+    /// </summary>
+    /// <remarks>
+    /// The rotation format is in axis-angle,
+    /// meaning that AngularVelocity.Normalized is the axis of rotation,
+    /// while AngularVelocity.Length is the amount of rotation around that axis in radians per second
+    /// </remarks>
+    [DataMemberIgnore]
+    public Vector3 PreviousAngularVelocity { get; internal set; }
+
+    /// <summary>
     /// The position of this body in the physics scene, setting it will teleport this object to the position provided.
     /// </summary>
     /// <remarks>
@@ -271,7 +288,7 @@ public class BodyComponent : CollidableComponent
     /// Automatically computed size of the margin around the surface of the shape in which contacts can be generated. These contacts will have negative depth and only contribute if the frame's velocities
     /// would push the shapes of a pair into overlap.
     /// <para>This is automatically set by bounding box prediction each frame, and is bound by the collidable's <see cref="Collidable.MinimumSpeculativeMargin"/> and <see cref="Collidable.MaximumSpeculativeMargin"/> values.
-    /// The effective speculative margin for a collision pair can also be modified from <see cref="INarrowPhaseCallbacks"/> callbacks.</para>
+    /// The effective speculative margin for a collision pair can also be modified from <see cref="global::BepuPhysics.CollisionDetection.INarrowPhaseCallbacks"/> callbacks.</para>
     /// <para>This should be positive to avoid jittering.</para>
     /// <para>It can also be used as a form of continuous collision detection, but excessively high values combined with fast motion may result in visible 'ghost collision' artifacts.
     /// For continuous collision detection with less chance of ghost collisions, use <see cref="ContinuousDetectionMode.Continuous"/>.</para>
@@ -437,6 +454,8 @@ public class BodyComponent : CollidableComponent
         }
         else
         {
+            LinearVelocity = AngularVelocity = default;
+
             var bHandle = Simulation.Simulation.Bodies.Add(bDescription);
             BodyReference = Simulation.Simulation.Bodies[bHandle];
             BodyReference.Value.Collidable.Continuity = ContinuousDetection;
@@ -486,14 +505,6 @@ public class BodyComponent : CollidableComponent
         Parent = null;
 
         BodyReference = null;
-    }
-
-    protected override int GetHandleValue()
-    {
-        if (BodyReference is { } bRef)
-            return bRef.Handle.Value;
-
-        throw new InvalidOperationException();
     }
 
     /// <summary>

@@ -24,17 +24,7 @@ This README is intended for users who want to build the Stride engine from sourc
 
 ## 🤝 Contributing
 
-For questions and general discussions, please join our [Discord server](https://discord.gg/f6aerfE) or participate in [GitHub Discussions](https://github.com/stride3d/stride/discussions).
-
-To report bugs or propose features, please use the [Issues](https://github.com/stride3d/stride/issues) section on GitHub.
-
-We welcome code contributions via pull requests. Issues tagged with **[`good first issue`](https://github.com/stride3d/stride/labels/good%20first%20issue)** are great starting points for code contributions.
-
-You can help us translate Stride; check out our [Localization Guide](https://doc.stride3d.net/latest/en/contributors/engine/localization.html).
-
-### Earn Money by Contributing
-
-If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on [Open Collective](https://opencollective.com/stride3d) and can pay for work on certain projects. [More information is available here](https://doc.stride3d.net/latest/en/contributors/engine/bug-bounties.html).
+Want to get involved? See our [Contributing section](.github/CONTRIBUTING.md) for how to ask questions, report bugs, submit pull requests (including good first issues), and how you can earn money by contributing via funded tasks/bug bounties.
 
 ## 🗺️ Roadmap
 
@@ -272,6 +262,12 @@ Thanks to all these wonderful people who have contributed to Stride!
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/timconner"><img src="https://avatars.githubusercontent.com/u/22841670?v=4?s=100" width="100px;" alt="Tim Conner"/><br /><sub><b>Tim Conner</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=timconner" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.caleblamcodes.dev/"><img src="https://avatars.githubusercontent.com/u/67606076?v=4?s=100" width="100px;" alt="Caleb L."/><br /><sub><b>Caleb L.</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ClamEater14" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/net2cn"><img src="https://avatars.githubusercontent.com/u/6072596?v=4?s=100" width="100px;" alt="net2cn"/><br /><sub><b>net2cn</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=net2cn" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/laske185"><img src="https://avatars.githubusercontent.com/u/37439758?v=4?s=100" width="100px;" alt="Peter Laske"/><br /><sub><b>Peter Laske</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=laske185" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MikhailArsentevTheSecond"><img src="https://avatars.githubusercontent.com/u/22962265?v=4?s=100" width="100px;" alt="Mikhail Arsentev"/><br /><sub><b>Mikhail Arsentev</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=MikhailArsentevTheSecond" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/hoelzl"><img src="https://avatars.githubusercontent.com/u/35998?v=4?s=100" width="100px;" alt="Matthias Hölzl"/><br /><sub><b>Matthias Hölzl</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=hoelzl" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/kutal10"><img src="https://avatars.githubusercontent.com/u/36085864?v=4?s=100" width="100px;" alt="Rahul Pai "/><br /><sub><b>Rahul Pai </b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=kutal10" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

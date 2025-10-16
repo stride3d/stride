@@ -50,7 +50,7 @@ namespace Stride.Animations
         /// </summary>
         /// <param name="newTime">The new time.</param>
         /// <param name="location">The location.</param>
-        public abstract void AddValue(CompressedTimeSpan newTime, IntPtr location);
+        public abstract unsafe void AddValue(CompressedTimeSpan newTime, byte* location);
 
         /// <summary>
         /// Meant for internal use, to call AnimationData{T}.FromAnimationChannels() without knowing the generic type.
@@ -142,9 +142,9 @@ namespace Stride.Animations
         }
 
         /// <inheritdoc/>
-        public override unsafe void AddValue(CompressedTimeSpan newTime, nint location)
+        public override unsafe void AddValue(CompressedTimeSpan newTime, byte* location)
         {
-            var value = Unsafe.ReadUnaligned<T>((void*)location);
+            var value = Unsafe.ReadUnaligned<T>(location);
             KeyFrames.Add(new(newTime, value));
         }
 
