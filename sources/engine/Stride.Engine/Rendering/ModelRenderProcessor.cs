@@ -141,45 +141,48 @@ namespace Stride.Rendering
 
         private void CheckMeshes(ModelComponent modelComponent, RenderModel renderModel)
         {
-            // Check if model changed
+            // Check if model changed to update our cached data
             var model = modelComponent.Model;
-            if (renderModel.Model == model)
-            {
-                // Check if any material pass count changed
-                if (model != null)
-                {
-                    // Number of meshes changed in the model?
-                    if (model.Meshes.Count != renderModel.UniqueMeshCount)
-                        goto RegenerateMeshes;
+            if (renderModel.Model != model)
+                goto RegenerateMeshes;
 
-                    if (modelComponent.Enabled)
-                    {
-                        // Check materials
-                        var modelComponentMaterials = modelComponent.Materials;
-                        for (int sourceMeshIndex = 0; sourceMeshIndex < model.Meshes.Count; sourceMeshIndex++)
-                        {
-                            ref var material = ref renderModel.Materials[sourceMeshIndex];
-                            var materialIndex = model.Meshes[sourceMeshIndex].MaterialIndex;
-
-                            var newMaterial = FindMaterial(modelComponentMaterials.SafeGet(materialIndex), model.Materials.GetItemOrNull(materialIndex));
-
-                            // If material changed or its number of pass changed, trigger a full regeneration of RenderMeshes (note: we could do partial later)
-                            if ((newMaterial?.Passes.Count ?? 1) != material.MeshCount)
-                                goto RegenerateMeshes;
-
-                            // Update materials
-                            material.Material = newMaterial;
-                            int meshIndex = material.MeshStartIndex;
-                            for (int pass = 0; pass < material.MeshCount; ++pass, ++meshIndex)
-                            {
-                                UpdateMaterial(renderModel.Meshes[meshIndex], newMaterial?.Passes[pass], model.Materials.GetItemOrNull(materialIndex), modelComponent);
-                            }
-                        }
-                    }
-                }
-
+            if (model == null)
                 return;
+
+            // Number of meshes changed in the model?
+            if (model.Meshes.Count != renderModel.UniqueMeshCount)
+                goto RegenerateMeshes;
+
+            if (!modelComponent.Enabled)
+                return;
+
+            // Account for any changes made to the individual meshes
+            for (int sourceMeshIndex = 0; sourceMeshIndex < model.Meshes.Count; sourceMeshIndex++)
+                renderModel.Meshes[sourceMeshIndex].Mesh = model.Meshes[sourceMeshIndex];
+
+            // Check materials
+            var modelComponentMaterials = modelComponent.Materials;
+            for (int sourceMeshIndex = 0; sourceMeshIndex < model.Meshes.Count; sourceMeshIndex++)
+            {
+                ref var material = ref renderModel.Materials[sourceMeshIndex];
+                var materialIndex = model.Meshes[sourceMeshIndex].MaterialIndex;
+
+                var newMaterial = FindMaterial(modelComponentMaterials.SafeGet(materialIndex), model.Materials.GetItemOrNull(materialIndex));
+
+                // If material changed or its number of pass changed, trigger a full regeneration of RenderMeshes (note: we could do partial later)
+                if ((newMaterial?.Passes.Count ?? 1) != material.MeshCount)
+                    goto RegenerateMeshes;
+
+                // Update materials
+                material.Material = newMaterial;
+                int meshIndex = material.MeshStartIndex;
+                for (int pass = 0; pass < material.MeshCount; ++pass, ++meshIndex)
+                {
+                    UpdateMaterial(renderModel.Meshes[meshIndex], newMaterial?.Passes[pass], model.Materials.GetItemOrNull(materialIndex), modelComponent);
+                }
             }
+
+            return;
 
         RegenerateMeshes:
             renderModel.Model = model;
