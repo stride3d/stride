@@ -118,7 +118,7 @@ namespace Stride.Rendering
             }
         }
 
-        private void UpdateMaterial(RenderMesh renderMesh, MaterialPass materialPass, MaterialInstance modelMaterialInstance, ModelComponent modelComponent)
+        private void UpdateMaterial(RenderMesh renderMesh, MaterialPass materialPass, MaterialInstance modelMaterialInstance, ModelComponent modelComponent, Mesh sourceMesh)
         {
             var isShadowCaster = modelComponent.IsShadowCaster;
             if (modelMaterialInstance != null)
@@ -132,6 +132,8 @@ namespace Stride.Rendering
             }
 
             renderMesh.MaterialPass = materialPass;
+            // Account for any changes made to the individual meshes
+            renderMesh.Mesh = sourceMesh;
         }
 
         private Material FindMaterial(Material materialOverride, MaterialInstance modelMaterialInstance)
@@ -156,10 +158,6 @@ namespace Stride.Rendering
             if (!modelComponent.Enabled)
                 return;
 
-            // Account for any changes made to the individual meshes
-            for (int sourceMeshIndex = 0; sourceMeshIndex < model.Meshes.Count; sourceMeshIndex++)
-                renderModel.Meshes[sourceMeshIndex].Mesh = model.Meshes[sourceMeshIndex];
-
             // Check materials
             var modelComponentMaterials = modelComponent.Materials;
             for (int sourceMeshIndex = 0; sourceMeshIndex < model.Meshes.Count; sourceMeshIndex++)
@@ -167,7 +165,8 @@ namespace Stride.Rendering
                 ref var material = ref renderModel.Materials[sourceMeshIndex];
                 var materialIndex = model.Meshes[sourceMeshIndex].MaterialIndex;
 
-                var newMaterial = FindMaterial(modelComponentMaterials.SafeGet(materialIndex), model.Materials.GetItemOrNull(materialIndex));
+                var baseMaterial = model.Materials.GetItemOrNull(materialIndex);
+                var newMaterial = FindMaterial(modelComponentMaterials.SafeGet(materialIndex), baseMaterial);
 
                 // If material changed or its number of pass changed, trigger a full regeneration of RenderMeshes (note: we could do partial later)
                 if ((newMaterial?.Passes.Count ?? 1) != material.MeshCount)
@@ -178,7 +177,7 @@ namespace Stride.Rendering
                 int meshIndex = material.MeshStartIndex;
                 for (int pass = 0; pass < material.MeshCount; ++pass, ++meshIndex)
                 {
-                    UpdateMaterial(renderModel.Meshes[meshIndex], newMaterial?.Passes[pass], model.Materials.GetItemOrNull(materialIndex), modelComponent);
+                    UpdateMaterial(renderModel.Meshes[meshIndex], newMaterial?.Passes[pass], baseMaterial, modelComponent, model.Meshes[sourceMeshIndex]);
                 }
             }
 
@@ -231,11 +230,10 @@ namespace Stride.Rendering
                     {
                         Source = modelComponent,
                         RenderModel = renderModel,
-                        Mesh = mesh,
                     };
 
                     // Update material
-                    UpdateMaterial(renderMeshes[meshIndex], material.Material?.Passes[pass], model.Materials.GetItemOrNull(materialIndex), modelComponent);
+                    UpdateMaterial(renderMeshes[meshIndex], material.Material?.Passes[pass], model.Materials.GetItemOrNull(materialIndex), modelComponent, mesh);
                 }
             }
 
