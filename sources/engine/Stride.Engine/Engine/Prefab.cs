@@ -29,8 +29,7 @@ namespace Stride.Engine
         /// <returns>A collection of entities extracted from the prefab</returns>
         public List<Entity> Instantiate()
         {
-            var newPrefab = EntityCloner.Clone(this);
-            return newPrefab.Entities;
+            return EntityCloner.Instantiate(this);
         }
     }
 }
