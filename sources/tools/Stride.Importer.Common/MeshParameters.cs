@@ -7,11 +7,11 @@ namespace Stride.Importer.Common
 {
     public class MeshParameters
     {
-        public string MaterialName;
+        public List<string> MaterialNames { get; set; } = new();
+        public List<int> MaterialIndices { get; set; } = new(); 
+
         public string MeshName;
         public string NodeName;
         public HashSet<string> BoneNodes;
-        public int OriginalMaterialIndex { get; set; }
-
     }
 }

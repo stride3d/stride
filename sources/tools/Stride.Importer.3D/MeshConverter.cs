@@ -36,8 +36,6 @@ namespace Stride.Importer.ThreeD
         private int keptMeshIndex = -1; // default to ALL unless name says otherwise
         private string keptMeshNameHint = null;
 
-        private bool IsKeptMeshIndex(int meshIndex) => keptMeshIndex < 0 || meshIndex == keptMeshIndex;
-
         static MeshConverter()
         {
             if (Platform.Type == PlatformType.Windows)
@@ -145,22 +143,20 @@ namespace Stride.Importer.ThreeD
                         if (string.IsNullOrEmpty(key))
                             continue;
 
-                        int matIndex = -1;
-                        var t = m.GetType();
-                        var prop = t.GetProperty("OriginalMaterialIndex") ?? t.GetProperty("MaterialIndex");
-                        if (prop != null)
-                            matIndex = (int)prop.GetValue(m);
-
-                        if (matIndex < 0) continue;
-
                         if (!entityInfo.NodeNameToMaterialIndices.TryGetValue(key, out var list))
                         {
                             list = new List<int>();
                             entityInfo.NodeNameToMaterialIndices[key] = list;
                         }
 
-                        if (!list.Contains(matIndex))
-                            list.Add(matIndex);
+                        if (m.MaterialIndices != null)
+                        {
+                            foreach (var idx in m.MaterialIndices)
+                            {
+                                if (idx >= 0 && !list.Contains(idx))
+                                    list.Add(idx);
+                            }
+                        }
                     }
                 }
 
@@ -231,12 +227,66 @@ namespace Stride.Importer.ThreeD
             return scene;
         }
 
+        private unsafe bool FindOwningNodeAndCollectSiblingMeshes(Node* node, uint targetMesh, HashSet<int> outSet)
+        {
+            for (uint m = 0; m < node->MNumMeshes; ++m)
+            {
+                if (node->MMeshes[m] == targetMesh)
+                {
+                    // Collect ALL meshes attached to this node
+                    for (uint k = 0; k < node->MNumMeshes; ++k)
+                        outSet.Add((int)node->MMeshes[k]);
+                    return true;
+                }
+            }
+
+            // Recurse 
+            for (uint c = 0; c < node->MNumChildren; ++c)
+                if (FindOwningNodeAndCollectSiblingMeshes(node->MChildren[c], targetMesh, outSet))
+                    return true;
+
+            return false;
+        }
+
         private unsafe Model ConvertAssimpScene(Scene* scene)
         {
             modelData = new Model();
 
             var meshNames = new Dictionary<IntPtr, string>();
             GenerateMeshNames(scene, meshNames);
+
+            HashSet<int> keptSet = null;
+            if (keptMeshIndex >= 0)
+            {
+                keptSet = new HashSet<int>();
+                FindOwningNodeAndCollectSiblingMeshes(scene->MRootNode, (uint)keptMeshIndex, keptSet);
+            }
+
+            bool IsKept(int meshIndex, out int index)
+            {
+                index = -1;
+
+                if (keptSet == null)
+                {
+                    index = 0;
+                    return true;
+                }
+
+                int i = 0;
+                foreach (var item in keptSet)
+                {
+                    if (item == meshIndex)
+                    {
+                        index = i;
+                        return true;
+                    }
+                    i++;
+                }
+
+                return false;
+            }
+
+            bool MeshFilter(int meshIndex) => IsKept(meshIndex, out _);
 
             // If output asset name equals a mesh name, or ends with "-<MeshName>", select that mesh.
             if (!string.IsNullOrEmpty(keptMeshNameHint))
@@ -263,16 +313,17 @@ namespace Stride.Importer.ThreeD
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
             var nodePointerToNodeIndex = new Dictionary<IntPtr, int>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, nodePointerToNodeIndex);
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, nodePointerToNodeIndex,null, MeshFilter);
 
             // Map the Bone pointers to their corresponding Node pointer
             var bonePointerToNodePointerMap = GenerateBoneToNodeMap(scene, nodePointerToNodeIndex, duplicateNodeNameToNodePointers);
 
             // meshes
             for (var i = 0; i < scene->MNumMeshes; ++i)
-            {
-                if (!IsKeptMeshIndex(i))
+            {              
+                if (!IsKept(i, out int matIndex))
                     continue;
+
                 if (!meshIndexToNodeIndex.TryGetValue(i, out var value))
                 {
                     continue;
@@ -291,9 +342,8 @@ namespace Stride.Importer.ThreeD
                     {
                         Draw = meshInfo.Draw,
                         Name = meshInfo.Name,
-                        //MaterialIndex = meshInfo.MaterialIndex,
-                        MaterialIndex = (keptMeshIndex >= 0 ? 0 : meshInfo.MaterialIndex),
                         NodeIndex = nodeIndex,
+                        MaterialIndex = keptMeshIndex > 0 ? matIndex : meshInfo.MaterialIndex
                     };
 
                     if (meshInfo.Bones != null)
@@ -842,7 +892,7 @@ namespace Stride.Importer.ThreeD
         private unsafe void RegisterNodes(
             Node* fromNode, int parentIndex,
             Dictionary<IntPtr, string> nodeNames, Dictionary<int, List<int>> meshIndexToNodeIndex,
-            Dictionary<IntPtr, int> nodePointerToNodeIndex = null, Dictionary<string, List<int>> duplicateNodeNameToNodeIndices = null)
+            Dictionary<IntPtr, int> nodePointerToNodeIndex = null, Dictionary<string, List<int>> duplicateNodeNameToNodeIndices = null, Func<int, bool> isKept = null)
         {
             var nodeIndex = nodes.Count;
 
@@ -850,7 +900,7 @@ namespace Stride.Importer.ThreeD
             for (uint m = 0; m < fromNode->MNumMeshes; ++m)
             {
                 var meshIndex = (int)fromNode->MMeshes[m];
-                if (!IsKeptMeshIndex(meshIndex))
+                if (isKept!=null && !isKept(meshIndex))
                     continue;
 
                 if (!meshIndexToNodeIndex.TryGetValue(meshIndex, out var nodeIndices))
@@ -916,7 +966,7 @@ namespace Stride.Importer.ThreeD
             // register the children
             for (uint child = 0; child < fromNode->MNumChildren; ++child)
             {
-                RegisterNodes(fromNode->MChildren[child], nodeIndex, nodeNames, meshIndexToNodeIndex, nodePointerToNodeIndex, duplicateNodeNameToNodeIndices);
+                RegisterNodes(fromNode->MChildren[child], nodeIndex, nodeNames, meshIndexToNodeIndex, nodePointerToNodeIndex, duplicateNodeNameToNodeIndices, isKept);
             }
         }
 
@@ -1619,24 +1669,40 @@ namespace Stride.Importer.ThreeD
         private unsafe List<MeshParameters> ExtractModels(Scene* scene, Dictionary<IntPtr, string> meshNames, Dictionary<IntPtr, string> materialNames, Dictionary<IntPtr, string> nodeNames)
         {
             GenerateMeshNames(scene, meshNames);
-            var meshList = new List<MeshParameters>();
+
+            var aggregated = new Dictionary<string, MeshParameters>(StringComparer.Ordinal);
+
             for (uint i = 0; i < scene->MNumMeshes; ++i)
             {
                 var mesh = scene->MMeshes[i];
                 var lMaterial = scene->MMaterials[mesh->MMaterialIndex];
 
-                var meshParams = new MeshParameters
-                {
-                    MeshName = meshNames[(IntPtr)mesh],
-                    MaterialName = materialNames[(IntPtr)lMaterial],
-                    NodeName = SearchMeshNode(scene->MRootNode, i, nodeNames),
-                    OriginalMaterialIndex = (int)mesh->MMaterialIndex
-                };
+                var meshName = meshNames[(IntPtr)mesh];
+                var nodeName = SearchMeshNode(scene->MRootNode, i, nodeNames); 
+                var matName = materialNames[(IntPtr)lMaterial];
+                var matIndex = (int)mesh->MMaterialIndex;
 
-                meshList.Add(meshParams);
+                var groupKey = string.IsNullOrEmpty(nodeName) ? meshName : nodeName;
+
+                if (!aggregated.TryGetValue(groupKey, out var mp))
+                {
+                    mp = new MeshParameters
+                    {
+                        MeshName = meshName,  
+                        NodeName = nodeName,
+                    };
+                    aggregated[groupKey] = mp;
+                }
+
+                if (!mp.MaterialNames.Contains(matName))
+                    mp.MaterialNames.Add(matName);
+                if (!mp.MaterialIndices.Contains(matIndex))
+                    mp.MaterialIndices.Add(matIndex);
             }
-            return meshList;
+
+            return aggregated.Values.ToList();
         }
+
 
         private unsafe string SearchMeshNode(Node* node, uint meshIndex, Dictionary<IntPtr, string> nodeNames)
         {
