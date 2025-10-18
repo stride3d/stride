@@ -35,24 +35,6 @@ public partial class AboutWindow : Window
         }
     }
 
-    // TODO xplat-editor make it an utility
-    private static void OpenLink(string url)
-    {
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = url,
-                UseShellExecute = true
-            };
-            Process.Start(psi);
-        }
-        // FIXME: catch only specific exceptions?
-        catch (Exception)
-        {
-        }
-    }
-
     private async void License_OnClick(object? sender, RoutedEventArgs e)
     {
         await MarkdownFileViewerService.ShowFileAsync("LICENSE.md", "License");
