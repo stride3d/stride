@@ -11,7 +11,7 @@
         Title="{sd:LocalizeString About Stride, Context=About}" ShowInTaskbar="False"
         CanResize="False" SizeToContent="WidthAndHeight"
         WindowStartupLocation="CenterOwner">
-  <ScrollViewer Margin="10">
+  <Grid Margin="10">
     <md:MarkdownScrollViewer x:Name="MarkdownViewer" />
-  </ScrollViewer>
+  </Grid>
 </Window>
