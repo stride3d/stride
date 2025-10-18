@@ -8,9 +8,6 @@
         Width="1024" Height="768" WindowStartupLocation="CenterScreen"
         x:Class="Stride.Launcher.Views.MainWindow"
         Icon="/Assets/Launcher.ico"
-        Title="{x:Static l:Strings.LauncherTitle}"
-        ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaTitleBarHeightHint="-1"
-        SystemDecorations="Full">
-    <vw:MainView />
+        Title="{x:Static l:Strings.LauncherTitle}">
+	<vw:MainView />
 </Window>

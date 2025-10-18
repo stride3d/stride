@@ -33,30 +33,7 @@
   <UserControl.Background>
     <DynamicResource ResourceKey="ImageBackground"/>
   </UserControl.Background>
-
   <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, *">
-	  <!-- Draggable titlebar region -->
-	  <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-			  Height="40"
-			  Background="Transparent"
-			  PointerPressed="OnTitleBarPointerPressed"
-			  IsHitTestVisible="True">
-		  <Grid ColumnDefinitions="Auto, *, Auto">
-			  <!-- Icon and Title -->
-			  <StackPanel Grid.Column="0"
-						  Orientation="Horizontal"
-						  Spacing="8"
-						  Margin="12,0"
-						  VerticalAlignment="Center"
-						  IsHitTestVisible="False">
-				  <Image Source="/Assets/Images/EditorIcon.png"
-						 Width="20" Height="20"/>
-				  <TextBlock Text="{Binding $parent[Window].Title}"
-							 VerticalAlignment="Center"
-							 FontWeight="SemiBold"/>
-			  </StackPanel>
-		  </Grid>
-	  </Border>
 	  <DockPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
       <!-- Status -->
       <Border DockPanel.Dock="Bottom"
