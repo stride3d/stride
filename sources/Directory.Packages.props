@@ -127,7 +127,6 @@
     <PackageVersion Include="Xaml.Behaviors.Avalonia" Version="$(AvaloniaBehaviorVersion)" />
     <PackageVersion Include="Xaml.Behaviors.Interactions" Version="$(AvaloniaBehaviorVersion)" />
     <PackageVersion Include="Markdown.Avalonia.Tight" Version="11.0.2" />
-    <PackageVersion Include="Markdown.Avalonia" Version="11.0.2" />
   </ItemGroup>
   <!-- Windows/WPF dependencies -->
   <ItemGroup>
