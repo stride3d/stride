@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Markdown.Avalonia;
+using Stride.GameStudio.Avalonia.Services;
 
 namespace Stride.GameStudio.Avalonia.Views;
 
@@ -34,31 +35,13 @@ public partial class AboutWindow : Window
         }
     }
 
-    // TODO xplat-editor make it an utility
-    private static void OpenLink(string url)
+    private async void License_OnClick(object? sender, RoutedEventArgs e)
     {
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = url,
-                UseShellExecute = true
-            };
-            Process.Start(psi);
-        }
-        // FIXME: catch only specific exceptions?
-        catch (Exception)
-        {
-        }
+        await MarkdownFileViewerService.ShowFileAsync("LICENSE.md", "License");
     }
 
-    private void License_OnClick(object? sender, RoutedEventArgs e)
+    private async void ThirdParty_OnClick(object? sender, RoutedEventArgs e)
     {
-        OpenLink("LICENSE.md");
-    }
-
-    private void ThirdParty_OnClick(object? sender, RoutedEventArgs e)
-    {
-        OpenLink("THIRD PARTY.md");
+        await MarkdownFileViewerService.ShowFileAsync("THIRD PARTY.md", "Third Party Licenses");
     }
 }
