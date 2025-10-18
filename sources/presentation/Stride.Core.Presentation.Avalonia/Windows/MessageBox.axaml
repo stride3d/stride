@@ -10,7 +10,6 @@
         MinHeight="120" MinWidth="320" MaxHeight="768"
         SizeToContent="WidthAndHeight" CanResize="False"
         WindowStartupLocation="CenterOwner"
-        Padding="8,0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"
         x:Class="Stride.Core.Presentation.Avalonia.Windows.MessageBox">
   <Window.Resources>
     <ResourceDictionary>
@@ -21,39 +20,41 @@
   </Window.Resources>
   <Window.ContentTemplate>
     <DataTemplate>
-      <DockPanel LastChildFill="True" Margin="8">
+      <DockPanel LastChildFill="True" Background="{DynamicResource BackgroundTileAlpha}">
         <!--  buttons -->
-        <ItemsControl DockPanel.Dock="Bottom"
-                      HorizontalAlignment="Right"
-                      ItemsSource="{Binding $parent[windows:MessageBox].ButtonsSource}">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <UniformGrid Rows="1" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="{x:Type local:DialogButtonInfo}">
-              <Button Margin="4,0" Padding="16,4" MinWidth="80"
-                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                      Command="{Binding $parent[windows:MessageBox].ButtonCommand}"
-                      CommandParameter="{Binding Result}"
-                      Content="{Binding Content}"
-                      IsCancel="{Binding IsCancel}" IsDefault="{Binding IsDefault}" />
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <Border DockPanel.Dock="Bottom"
+                Padding="11,8,11,11">
+          <ItemsControl HorizontalAlignment="Right"
+                        ItemsSource="{Binding $parent[windows:MessageBox].ButtonsSource}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="7" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="{x:Type local:DialogButtonInfo}">
+                <Button Padding="12,3" MinWidth="75"
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                        Command="{Binding $parent[windows:MessageBox].ButtonCommand}"
+                        CommandParameter="{Binding Result}"
+                        Content="{Binding Content}"
+                        IsCancel="{Binding IsCancel}" IsDefault="{Binding IsDefault}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Border>
         <!-- content -->
         <ContentPresenter Content="{Binding $parent[ContentControl].Content}">
           <ContentPresenter.ContentTemplate>
             <DataTemplate>
-              <DockPanel LastChildFill="True">
+              <DockPanel LastChildFill="True" Margin="11,11,11,0">
                 <Path DockPanel.Dock="Left"
                       HorizontalAlignment="Left" VerticalAlignment="Top"
-                      Height="32" Width="32" Margin="4"
+                      Height="32" Width="32" Margin="0,0,12,0"
                       Stretch="Uniform" Fill="{DynamicResource SystemAccentColor}"
                       Data="{Binding $parent[windows:MessageBox].Geometry}"
                       IsVisible="{Binding $parent[windows:MessageBox].Geometry, Converter={cvt:ObjectToBool}}" />
-                <md:MarkdownScrollViewer Markdown="{ReflectionBinding}" VerticalAlignment="Center" />
+                <md:MarkdownScrollViewer Markdown="{ReflectionBinding}" VerticalAlignment="Center" Margin="0,0,11,0" />
               </DockPanel>
             </DataTemplate>
           </ContentPresenter.ContentTemplate>

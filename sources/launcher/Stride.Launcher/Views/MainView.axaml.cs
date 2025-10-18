@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Stride.Core.CodeEditorSupport.VisualStudio;
 using Stride.Launcher.Services;
@@ -31,5 +32,10 @@ public partial class MainView : UserControl
         {
             button.IsVisible = false;
         }
+    }
+
+    private void OnPopupWheelChanged(object sender, PointerWheelEventArgs e)
+    {
+        e.Handled = true;
     }
 }
