@@ -53,13 +53,13 @@ public partial class AboutWindow : Window
         }
     }
 
-    private void License_OnClick(object? sender, RoutedEventArgs e)
+    private async void License_OnClick(object? sender, RoutedEventArgs e)
     {
-        MarkdownFileViewerService.ShowFile("LICENSE.md", "License");
+        await MarkdownFileViewerService.ShowFileAsync("LICENSE.md", "License");
     }
 
-    private void ThirdParty_OnClick(object? sender, RoutedEventArgs e)
+    private async void ThirdParty_OnClick(object? sender, RoutedEventArgs e)
     {
-        MarkdownFileViewerService.ShowFile("THIRD PARTY.md", "Third Party Licenses");
+        await MarkdownFileViewerService.ShowFileAsync("THIRD PARTY.md", "Third Party Licenses");
     }
 }

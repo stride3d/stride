@@ -1,47 +1,74 @@
-using System;
-using System.IO;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Media;
+using Avalonia.Threading;
 using Stride.GameStudio.Avalonia.Views;
 
-namespace Stride.GameStudio.Avalonia.Services
+namespace Stride.GameStudio.Avalonia.Services;
+
+public static class MarkdownFileViewerService
 {
-    public static class MarkdownFileViewerService
+    private static Window? MainWindow =>
+        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+
+    public static async Task ShowFileAsync(string filePath, string title = "Markdown Viewer")
     {
-        public static void ShowFile(string filePath, string title = "Markdown Viewer")
+        await Dispatcher.UIThread.InvokeAsync(async () =>
         {
             try
             {
                 if (!File.Exists(filePath))
                 {
-                    ShowError($"We are facing some technical challenges to fetch the content: {filePath}", title);
+                    await ShowErrorAsync($"We are facing some technical challenges to fetch the content: {filePath}", title);
                     return;
                 }
 
-                string markdownContent = File.ReadAllText(filePath);
+                string markdownContent = await File.ReadAllTextAsync(filePath);
+
                 var window = new MarkdownViewerWindow(markdownContent, title);
-                window.Show();
+
+                if (MainWindow != null)
+                {
+                    await window.ShowDialog(MainWindow);
+                }
+                else
+                {
+                    window.Show(); // fallback if MainWindow is unavailable
+                }
             }
             catch (Exception ex)
             {
-                ShowError($"Failed to open markdown file:\n{ex.Message}", title);
+                await ShowErrorAsync($"Failed to open markdown file:\n{ex.Message}", title);
             }
-        }
+        });
+    }
 
-        private static void ShowError(string message, string title)
+    private static async Task ShowErrorAsync(string message, string title)
+    {
+        var errorWindow = new Window
         {
-            var errorWindow = new Window
+            Title = title,
+            Width = 400,
+            Height = 200,
+            Content = new TextBlock
             {
-                Title = title,
-                Width = 400,
-                Height = 200,
-                Content = new TextBlock
-                {
-                    Text = message,
-                    Margin = new Thickness(20)
-                },
-                WindowStartupLocation = WindowStartupLocation.CenterScreen
-            };
+                Text = message,
+                Margin = new Thickness(20),
+                TextWrapping = TextWrapping.Wrap
+            },
+            WindowStartupLocation = WindowStartupLocation.CenterScreen
+        };
+
+        if (MainWindow != null)
+        {
+            await errorWindow.ShowDialog(MainWindow);
+        }
+        else
+        {
             errorWindow.Show();
         }
     }

@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Import Project="..\..\targets\Stride.props" />
   
   <PropertyGroup>
@@ -45,12 +45,6 @@
   <ItemGroup>
     <!-- TODO xplat-editor that reference shouldn't be explicit and such assembly should be loaded as external plugins -->
     <ProjectReference Include="..\Stride.Assets.Editor.Avalonia\Stride.Assets.Editor.Avalonia.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Views\MarkdownViewerWindow.axaml.cs">
-      <DependentUpon>MarkdownViewerWindow.axaml</DependentUpon>
-    </Compile>
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />

@@ -33,11 +33,6 @@ public partial class MarkdownViewerWindow : Window
             };
         }
     }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
 }
 
 
