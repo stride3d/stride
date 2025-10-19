@@ -4,7 +4,6 @@ using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Core.Parsing;
 using System.Numerics;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Text;
 using static Stride.Shaders.Spirv.Specification;
@@ -13,33 +12,25 @@ namespace Stride.Shaders.Spirv.Tools;
 
 public static partial class Spv
 {
-    public enum DisassemblerFlags
+    public static string Dis(NewSpirvBuffer buffer, bool useNames = true, bool writeToConsole = false)
     {
-        Id = 1,
-        Name = 2,
-        NameAndId = Name | Id,
-        InstructionIndex = 4,
-    }
-
-    public static string Dis(NewSpirvBuffer buffer, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = true)
-    {
-        var writer = new DisWriter(buffer, flags, writeToConsole);
+        var writer = new DisWriter(buffer, useNames, writeToConsole);
         writer.Disassemble();
         writer.ToString();
         return writer.ToString();
     }
 
-    public static string Dis(SpirvReader reader, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = true)
+    public static string Dis(SpirvReader reader, bool useNames = true, bool writeToConsole = false)
     {
         using var buffer = new NewSpirvBuffer(reader.Words);
-        var writer = new DisWriter(buffer, flags, writeToConsole);
+        var writer = new DisWriter(buffer, useNames, writeToConsole);
         writer.Disassemble();
         return writer.ToString();
     }
 
-    struct DisWriter(NewSpirvBuffer buffer, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = true)
+    struct DisWriter(NewSpirvBuffer buffer, bool useNames = true, bool writeToConsole = true)
     {
-        DisData data = new(buffer, flags, writeToConsole);
+        DisData data = new(buffer, useNames, writeToConsole);
         readonly StringBuilder builder = new();
 
         readonly DisWriter AppendLine(string text, ConsoleColor? color = null)
@@ -74,17 +65,7 @@ public static partial class Spv
         readonly DisWriter AppendIdRef(int id, bool useNames = true)
         {
             if (data.UseNames && useNames && data.NameTable.TryGetValue(id, out var name))
-            {
-                Append($"%{name}", ConsoleColor.Green);
-                if (data.UseIds)
-                {
-                    Append("[");
-                    Append($"{id}", ConsoleColor.Green);
-                    Append("]");
-                }
-                Append(" ");
-                return this;
-            }
+                return Append($"%{name} ", ConsoleColor.Green);
             else return Append($"%{id} ", ConsoleColor.Green);
         }
         readonly DisWriter AppendIdRefs(Span<int> ids)
@@ -188,13 +169,6 @@ public static partial class Spv
                     AppendRepeatChar(' ', data.IdOffset - name.Length - 1 - 3);
                     Append('%', ConsoleColor.Cyan);
                     Append(name, ConsoleColor.Cyan);
-                    if (data.UseIds)
-                    {
-                        Append("[");
-                        Append($"{id}", ConsoleColor.Cyan);
-                        Append("]");
-
-                    }
                 }
                 else
                 {
@@ -239,15 +213,8 @@ public static partial class Spv
                     data.NameTable[memberInst.Type + memberInst.Member] = memberInst.Name;
                 }
             }
-
-            int index = 0;
             foreach (var instruction in data)
             {
-                if (data.UseInstructionIndex)
-                {
-                    Append($"SPV_{index:0000}: ");
-                    index++;
-                }
                 DisInstruction(instruction, this);
             }
         }
@@ -690,13 +657,6 @@ public static partial class Spv
                             (OperandQuantifier.ZeroOrOne or OperandQuantifier.ZeroOrMore, 0) => Append(""),
                             _ => throw new NotImplementedException("Unsupported image operands quantifier " + operand.Quantifier + " with length " + operand.Words.Length)
                         },
-                        OperandKind.ImportType => (operand.Quantifier, operand.Words.Length) switch
-                        {
-                            (OperandQuantifier.One or OperandQuantifier.ZeroOrOne, 1) => Append(operand.ToEnum<ImportType>().ToString(), ConsoleColor.Yellow).Append(' '),
-                            (OperandQuantifier.ZeroOrMore, > 0) => AppendEnums<ImportType>(operand).Append(' '),
-                            (OperandQuantifier.ZeroOrOne or OperandQuantifier.ZeroOrMore, 0) => Append(""),
-                            _ => throw new NotImplementedException("Unsupported image operands quantifier " + operand.Quantifier + " with length " + operand.Words.Length)
-                        },
                         _ => throw new Exception($"Unhandled operand kind {operand.Kind} with quantifier {operand.Quantifier}"),
                     };
                     // _ = (operand.Kind, operand.Quantifier) switch
@@ -816,18 +776,14 @@ public static partial class Spv
         public HashSet<string> UsedNames { get; } = new();
         public NewSpirvBuffer Buffer { get; }
         public int IdOffset { get; private set; }
-        public DisassemblerFlags Flags { get; private set; }
+        public bool UseNames { get; private set; }
         public bool WriteToConsole { get; private set; }
 
-        public bool UseNames => (Flags & DisassemblerFlags.Name) != 0;
-        public bool UseIds => (Flags & DisassemblerFlags.Id) != 0;
-        public bool UseInstructionIndex => (Flags & DisassemblerFlags.InstructionIndex) != 0;
-
-        public DisData(NewSpirvBuffer buffer, DisassemblerFlags flags, bool writeToConsole)
+        public DisData(NewSpirvBuffer buffer, bool useNames, bool writeToConsole)
         {
             Buffer = buffer;
             NameTable = [];
-            Flags = flags;
+            UseNames = useNames;
             WriteToConsole = writeToConsole;
             ComputeIdOffset();
         }
@@ -852,7 +808,7 @@ public static partial class Spv
                 {
                     if (i.Op == Op.OpName)
                     {
-                        var nameInst = (OpName)i;
+                        var nameInst = new OpName(i);
                         maxName = maxName > nameInst.Name.Length ? maxName : nameInst.Name.Length;
                     }
                     else if (i.Op == Op.OpMemberName)
@@ -873,8 +829,4 @@ public static partial class Spv
                 key.Dispose();
         }
     }
-
-
-
-
 }

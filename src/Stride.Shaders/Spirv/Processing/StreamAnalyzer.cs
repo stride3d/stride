@@ -160,13 +160,17 @@ namespace Stride.Shaders.Spirv.Processing
                     if (instruction.Op == Op.OpDecorateString
                         && ((OpDecorateString)instruction) is
                         {
-                            Decoration: Decoration.UserSemantic,
                             Target: int t,
-                            AdditionalString: string n
+                            Decoration:
+                            {
+                                Value: Decoration.UserSemantic,
+                                Parameters: { } m
+                            }
                         }
                        )
                     {
-                        semanticTable[t] = n;
+                        using var n = new LiteralValue<string>(m.Span);
+                        semanticTable[t] = n.Value;
                     }
                 }
             }
@@ -221,7 +225,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                 if (stream.Value.Stream.Output)
                 {
-                    if (stream.Value.Stream.OutputLayoutLocation is {} outputLayoutLocation)
+                    if (stream.Value.Stream.OutputLayoutLocation is { } outputLayoutLocation)
                     {
                         outputLayoutLocationCount = Math.Max(outputLayoutLocation + 1, outputLayoutLocationCount);
                     }
@@ -245,10 +249,10 @@ namespace Stride.Shaders.Spirv.Processing
                     context.AddName(variable, $"in_{stage}_{stream.Value.Stream.Name}");
                     if (stream.Value.Stream.InputLayoutLocation == null)
                         stream.Value.Stream.InputLayoutLocation = inputLayoutLocationCount++;
-                    context.Add(new OpDecorate(variable, Decoration.Location, stream.Value.Stream.InputLayoutLocation.Value));
+                    context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.Stream.InputLayoutLocation.Value)));
 
                     if (stream.Value.Stream.Semantic != null)
-                        context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Stream.Semantic));
+                        context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Stream.Semantic)));
 
                     inputStreams.Add((stream.Value.Stream, variable.ResultId));
                 }
@@ -261,7 +265,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                     if (stream.Value.Stream.Semantic?.ToUpperInvariant() == "SV_POSITION")
                     {
-                        context.Add(new OpDecorate(variable, Decoration.BuiltIn, (int)BuiltIn.Position));
+                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.Position)));
                     }
                     else
                     {
@@ -274,9 +278,9 @@ namespace Stride.Shaders.Spirv.Processing
                                 throw new InvalidOperationException($"Can't find output layout location for variable [{stream.Value.Stream.Name}]");
                         }
 
-                        context.Add(new OpDecorate(variable, Decoration.Location, stream.Value.Stream.OutputLayoutLocation.Value));
+                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.Stream.OutputLayoutLocation.Value)));
                         if (stream.Value.Stream.Semantic != null)
-                            context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Stream.Semantic));
+                            context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Stream.Semantic)));
                     }
 
                     outputStreams.Add((stream.Value.Stream, variable.ResultId));
@@ -287,7 +291,7 @@ namespace Stride.Shaders.Spirv.Processing
 
             // Add new entry point wrapper
             context.FluentAdd(new OpTypeFunction(context.Bound++, voidType, []), out var newEntryPointFunctionType);
-            buffer.FluentAdd(new OpFunction(voidType, context.Bound++, FunctionControlMask.None, newEntryPointFunctionType) , out var newEntryPointFunction);
+                        buffer.FluentAdd(new OpFunction(voidType, context.Bound++, FunctionControlMask.None, newEntryPointFunctionType), out var newEntryPointFunction);
             buffer.Add(new OpLabel(context.Bound++));
             context.AddName(newEntryPointFunction, $"{entryPointName}_Wrapper");
 
@@ -305,7 +309,7 @@ namespace Stride.Shaders.Spirv.Processing
                 foreach (var stream in outputStreams)
                 {
                     var baseType = ((PointerType)stream.Info.Type).BaseType;
-                    buffer.FluentAdd(new OpLoad( context.Types[baseType], context.Bound++, stream.Info.VariableId, null), out var loadedValue);
+                    buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, stream.Info.VariableId, null), out var loadedValue);
                     buffer.Add(new OpStore(stream.Id, loadedValue.ResultId, null));
                 }
 
@@ -323,7 +327,7 @@ namespace Stride.Shaders.Spirv.Processing
                 foreach (var block in analysisResult.Blocks)
                     pvariables[pvariableIndex++] = block;
 
-                context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [..pvariables]));
+                context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [.. pvariables]));
             }
 
             return newEntryPointFunction;
@@ -346,7 +350,7 @@ namespace Stride.Shaders.Spirv.Processing
                     if (streams.TryGetValue(load.Pointer, out var streamInfo) && !streamInfo.Stream.Write)
                         streamInfo.Stream.Read = true;
                 }
-                else if(instruction.Op is Op.OpStore && (OpStore)instruction is { } store)
+                else if (instruction.Op is Op.OpStore && (OpStore)instruction is { } store)
                 {
                     if (streams.TryGetValue(store.Pointer, out var streamInfo))
                         streamInfo.Stream.Write = true;

@@ -109,14 +109,14 @@ public record struct ShaderSamplerStateParser : IParser<ShaderSamplerState>
             if (
                 Parsers.FollowedBy(ref scanner, Tokens.Char('{'), withSpaces: true, advance: true)
                 && Parsers.Spaces0(ref scanner, result, out _)
-                && Parsers.Repeat(ref scanner, result, SamplerStateValueAssignment, out List<SamplerStateAssign> assignments, 0, withSpaces: true)
+                && Parsers.Repeat(ref scanner, result, SamplerStateValueAssignment, out List<SamplerStateParameter> assignments, 0, withSpaces: true)
                 && Parsers.FollowedBy(ref scanner, Tokens.Char('}'), withSpaces: true, advance: true)
                 && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
             )
             {
                 parsed = new(identifier, scanner[position..scanner.Position])
                 {
-                    Members = assignments
+                    Parameters = assignments
                 };
                 return true;
             }
@@ -130,7 +130,7 @@ public record struct ShaderSamplerStateParser : IParser<ShaderSamplerState>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool SamplerStateValueAssignment<TScanner>(ref TScanner scanner, ParseResult result, out SamplerStateAssign parsed, in ParseError? orError = null)
+    public static bool SamplerStateValueAssignment<TScanner>(ref TScanner scanner, ParseResult result, out SamplerStateParameter parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -141,7 +141,7 @@ public record struct ShaderSamplerStateParser : IParser<ShaderSamplerState>
             && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
         )
         {
-            parsed = new SamplerStateAssign(identifier, expression, scanner[position..scanner.Position]);
+            parsed = new SamplerStateParameter(identifier, expression, scanner[position..scanner.Position]);
             return true;
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -163,7 +163,7 @@ public record struct ShaderSamplerComparisonStateParser : IParser<ShaderSamplerC
             if (
                 Parsers.FollowedBy(ref scanner, Tokens.Char('{'), withSpaces: true, advance: true)
                 && Parsers.Spaces0(ref scanner, result, out _)
-                && Parsers.Repeat(ref scanner, result, SamplerStateValueAssignment, out List<SamplerStateAssign> assignments, 0, withSpaces: true)
+                && Parsers.Repeat(ref scanner, result, SamplerStateValueAssignment, out List<SamplerStateParameter> assignments, 0, withSpaces: true)
                 && Parsers.FollowedBy(ref scanner, Tokens.Char('}'), withSpaces: true, advance: true)
                 && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
             )
@@ -184,7 +184,7 @@ public record struct ShaderSamplerComparisonStateParser : IParser<ShaderSamplerC
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool SamplerStateValueAssignment<TScanner>(ref TScanner scanner, ParseResult result, out SamplerStateAssign parsed, in ParseError? orError = null)
+    public static bool SamplerStateValueAssignment<TScanner>(ref TScanner scanner, ParseResult result, out SamplerStateParameter parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -195,7 +195,7 @@ public record struct ShaderSamplerComparisonStateParser : IParser<ShaderSamplerC
             && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
         )
         {
-            parsed = new SamplerStateAssign(identifier, expression, scanner[position..scanner.Position]);
+            parsed = new SamplerStateParameter(identifier, expression, scanner[position..scanner.Position]);
             return true;
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);

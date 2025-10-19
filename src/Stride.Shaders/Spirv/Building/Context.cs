@@ -175,7 +175,11 @@ public class SpirvContext
                 FunctionType f => RegisterFunctionType(f),
                 PointerType p => RegisterPointerType(p),
                 ShaderSymbol s => RegisterShaderType(s),
-                // TextureSymbol t => Buffer.AddOpTypeImage(Bound++, Register(t.BaseType), t.),
+                Texture1DType t => Buffer.Add(new OpTypeImage(Bound++, GetOrRegister(t.ReturnType), t.Dimension, t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
+                Texture2DType t => Buffer.Add(new OpTypeImage(Bound++, GetOrRegister(t.ReturnType), t.Dimension, t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
+                Texture3DType t => Buffer.Add(new OpTypeImage(Bound++, GetOrRegister(t.ReturnType), t.Dimension, t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
+                SamplerType st => Buffer.Add(new OpTypeSampler(Bound++)).IdResult,
+                SampledImage si => Buffer.Add(new OpTypeSampledImage(Bound++, GetOrRegister(si.ImageType))).IdResult,
                 // StructSymbol st => RegisterStruct(st),
                 _ => throw new NotImplementedException($"Can't add type {type}")
             };
@@ -216,7 +220,7 @@ public class SpirvContext
         {
             if (index > 0)
                 throw new NotImplementedException("Offset");
-            Buffer.Add(new OpMemberDecorate(result, index, Decoration.Offset, 0));
+            Buffer.Add(new OpMemberDecorate(result, index, ParameterizedFlags.DecorationOffset(0)));
         }
 
         return result;

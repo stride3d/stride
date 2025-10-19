@@ -104,6 +104,8 @@ public partial class SPVGenerator
                 e.TypeName = parameters.Last().Type;
                 e.Name = parameters.Last().Name;
                 e.Class = operandKinds[kind!].Category;
+                if (operandKinds[kind!].Enumerants?.AsList() is List<Enumerant> enumerants && enumerants.Any(x => x.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 }))
+                    e.IsParameterized = true;
                 operands[i] = e;
             }
         }
@@ -279,5 +281,7 @@ public partial class SPVGenerator
             (string v, _) => v
         };
     }
+    static string LowerFirst(string s)
+        => char.IsLower(s[0]) ? s : $"{char.ToLowerInvariant(s[0])}{s[1..]}";
 
 }

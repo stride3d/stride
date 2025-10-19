@@ -203,49 +203,87 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             result = Source.Compile(table, shader, compiler);
             currentValueType = Source.Type;
         }
-
-        Span<int> indexes = stackalloc int[Accessors.Count];
-        for (var i = firstIndex; i <= Accessors.Count; i++)
+        if (Source is Identifier { ValueType: TextureType or Texture2DType or Texture3DType } && Accessors is [MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 }])
         {
-            // Last accessor (or method call next)
-            if (i == Accessors.Count || Accessors[i] is MethodCall)
+            result = Source.Compile(table, shader, compiler);
+            if (Accessors is [MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } implicitSampling])
             {
-                // Do we need to issue an OpAccessChain?
-                if (i > firstIndex)
+                var samplerValue = implicitSampling.Parameters.Values[0].Compile(table, shader, compiler);
+                var texCoordValue = implicitSampling.Parameters.Values[1].Compile(table, shader, compiler);
+                var typeSampledImage = context.GetOrRegister(new SampledImage((TextureType)Source.ValueType));
+                var loadSampler = builder.Insert(new OpLoad(samplerValue.TypeId, context.Bound++, samplerValue.Id, Specification.MemoryAccessMask.None));
+                var loadCoord = builder.Insert(new OpLoad(texCoordValue.TypeId, context.Bound++, texCoordValue.Id, Specification.MemoryAccessMask.None));
+                var loadTexture = builder.Insert(new OpLoad(result.TypeId, context.Bound++, result.Id, Specification.MemoryAccessMask.None));
+                var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, loadTexture.ResultId, loadSampler.ResultId));
+                var returnType = context.GetOrRegister(((TextureType)Source.ValueType).ReturnType);
+                var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, loadCoord.ResultId, Specification.ImageOperandsMask.None));
+                Type = ((TextureType)Source.ValueType).ReturnType;
+                return new(sample.ResultId, sample.ResultType);
+            }
+            else if (Accessors is [MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 } explicitSampling])
+            {
+                var samplerValue = explicitSampling.Parameters.Values[0].Compile(table, shader, compiler);
+                var texCoordValue = explicitSampling.Parameters.Values[1].Compile(table, shader, compiler);
+                var levelValue = explicitSampling.Parameters.Values[2].Compile(table, shader, compiler);
+
+                var typeSampledImage = context.GetOrRegister(new SampledImage((TextureType)Source.ValueType));
+                var loadSampler = builder.Insert(new OpLoad(samplerValue.TypeId, context.Bound++, samplerValue.Id, Specification.MemoryAccessMask.None));
+                var loadCoord = builder.Insert(new OpLoad(texCoordValue.TypeId, context.Bound++, texCoordValue.Id, Specification.MemoryAccessMask.None));
+                var loadTexture = builder.Insert(new OpLoad(result.TypeId, context.Bound++, result.Id, Specification.MemoryAccessMask.None));
+                var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, loadTexture.ResultId, loadSampler.ResultId));
+                var returnType = context.GetOrRegister(((TextureType)Source.ValueType).ReturnType);
+                var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, loadCoord.ResultId, ParameterizedFlags.ImageOperandsLod(levelValue.Id)));
+                Type = ((TextureType)Source.ValueType).ReturnType;
+                return new(sample.ResultId, sample.ResultType);
+            }
+            else
+                throw new InvalidOperationException("Invalid Sample method call");
+        }
+        else
+        {
+            Span<int> indexes = stackalloc int[Accessors.Count];
+            for (var i = firstIndex; i <= Accessors.Count; i++)
+            {
+                // Last accessor (or method call next)
+                if (i == Accessors.Count || Accessors[i] is MethodCall)
                 {
-                    var resultType = context.GetOrRegister(Type);
-                    var accessChain = builder.Insert(new OpAccessChain(variable, resultType, result.Id, [.. indexes.Slice(firstIndex, i - firstIndex)]));
-                    result = new SpirvValue(accessChain.ResultId, resultType);
+                    // Do we need to issue an OpAccessChain?
+                    if (i > firstIndex)
+                    {
+                        var resultType = context.GetOrRegister(Type);
+                        var accessChain = builder.Insert(new OpAccessChain(variable, resultType, result.Id, [.. indexes.Slice(firstIndex, i - firstIndex)]));
+                        result = new SpirvValue(accessChain.ResultId, resultType);
+                    }
+
+                    if (i == Accessors.Count)
+                        break;
+
+                    firstIndex = i + 1;
                 }
 
-                if (i == Accessors.Count)
-                    break;
+                var accessor = Accessors[i];
+                switch (currentValueType, accessor)
+                {
+                    case (PointerType { BaseType: ShaderSymbol s }, MethodCall methodCall2):
+                        methodCall2.MemberCall = result;
+                        result = methodCall2.Compile(table, shader, compiler);
+                        break;
+                    case (PointerType { BaseType: StructType s }, Identifier field):
+                        var index = s.TryGetFieldIndex(field);
+                        if (index == -1)
+                            throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
+                        //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
+                        var indexLiteral = new IntegerLiteral(new(32, false, true), index, new());
+                        indexLiteral.Compile(table, shader, compiler);
+                        indexes[i] = context.CreateConstant(indexLiteral).Id;
+                        break;
+                    // TODO: Swizzle, etc.
+                    default:
+                        throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
+                }
 
-                firstIndex = i + 1;
+                currentValueType = accessor.Type;
             }
-
-            var accessor = Accessors[i];
-            switch (currentValueType, accessor)
-            {
-                case (PointerType { BaseType: ShaderSymbol s }, MethodCall methodCall2):
-                    methodCall2.MemberCall = result;
-                    result = methodCall2.Compile(table, shader, compiler);
-                    break;
-                case (PointerType { BaseType: StructType s }, Identifier field):
-                    var index = s.TryGetFieldIndex(field);
-                    if (index == -1)
-                        throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
-                    //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
-                    var indexLiteral = new IntegerLiteral(new(32, false, true), index, new());
-                    indexLiteral.Compile(table, shader, compiler);
-                    indexes[i] = context.CreateConstant(indexLiteral).Id;
-                    break;
-                // TODO: Swizzle, etc.
-                default:
-                    throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
-            }
-
-            currentValueType = accessor.Type;
         }
 
         Type = currentValueType;

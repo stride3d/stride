@@ -170,13 +170,13 @@ public class VectorLiteral(TypeName typeName, TextLocation info) : CompositeLite
     {
         var result = TypeName.ResolveType(table);
 
-        var tmp = (Core.VectorType)result ?? throw new NotImplementedException();
+        var tmp = (VectorType)result ?? throw new NotImplementedException();
         foreach (var v in Values)
         {
             if (
                 v.Type is ScalarType st && tmp.BaseType != st
-                || (v.Type is Core.VectorType vt && vt.BaseType != tmp.BaseType)
-                || (v.Type is Core.VectorType vt2 && vt2.Size > tmp.Size)
+                || (v.Type is VectorType vt && vt.BaseType != tmp.BaseType)
+                || (v.Type is VectorType vt2 && vt2.Size > tmp.Size)
             )
                 table.Errors.Add(new(v.Info, SDSLErrorMessages.SDSL0106));
         }
@@ -304,7 +304,18 @@ public class TypeName(string name, TextLocation info, bool isArray) : Literal(in
                 symbolType = numeric;
                 return true;
             }
-
+            else if (!IsArray && Generics.Count == 0 && SymbolType.TryGetBufferType(Name, null, out var bufferType))
+            {
+                table.DeclaredTypes.Add(bufferType.ToString(), bufferType);
+                symbolType = bufferType;
+                return true;
+            }
+            else if (Generics.Count == 1 && SymbolType.TryGetBufferType(Name, Generics[0].Name, out var genericBufferType))
+            {
+                table.DeclaredTypes.Add(genericBufferType.ToString(), genericBufferType);
+                symbolType = genericBufferType;
+                return true;
+            }
             return false;
         }
         // else if (IsArray && Generics.Count == 0)

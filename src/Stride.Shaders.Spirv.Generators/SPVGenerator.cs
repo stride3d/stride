@@ -24,15 +24,18 @@ public partial class SPVGenerator : IIncrementalGenerator
             options.Converters.Add(new EquatableListJsonConverter<Enumerant>());
         if (!options.Converters.Any(x => x is EquatableListJsonConverter<string>))
             options.Converters.Add(new EquatableListJsonConverter<string>());
-
+        if (!options.Converters.Any(x => x is EquatableListJsonConverter<EnumerantParameter>))
+            options.Converters.Add(new EquatableListJsonConverter<EnumerantParameter>());
         var grammarData =
             context
             .AdditionalTextsProvider
             .Where(IsSpirvSpecification)
             .Collect()
             .Select(PreProcessGrammar)
+            .Select(PreProcessEnumerants)
             .Select(PreProcessInstructions);
 
+        CreateParameterizedFuncs(context, grammarData);
         CreateInfo(context, grammarData);
         CreateSDSLOp(context, grammarData);
         GenerateStructs(context, grammarData);

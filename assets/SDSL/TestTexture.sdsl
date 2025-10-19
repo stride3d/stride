@@ -1,0 +1,38 @@
+namespace Stride.Shaders.Tests;
+
+shader TestBasic : TestBase
+{
+    stream float4 InputPosition : POSITION;
+    stream float4 Position : SV_POSITION;
+    stream float4 ExtraColor : COLOR;
+    stream float4 TexCoord : TEXCOORD0;
+
+    stage SamplerState Sampler;
+    stage Texture2D Texture0;
+
+    cbuffer Test123
+    {
+        float4 CBufferValue1;
+    }
+
+    void VSMain()
+    {
+        streams.Position = streams.InputPosition;
+        return;
+    }
+
+    void Test()
+    {
+        streams.ColorTarget = streams.ExtraColor;
+        SetColor(streams.ExtraColor);
+        return;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
+        streams.ColorTarget = streams.ExtraColor * CBufferValue1 * Texture0.Sample(Sampler, TexCoord);
+        //Test();
+        return;
+    }
+}

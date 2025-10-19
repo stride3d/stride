@@ -26,7 +26,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     // Note: We should make this method incremental (called many times in ShaderMixer)
     //       And possibly do the type deduplicating at the same time? (TypeDuplicateRemover)
 
-    public static void ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end,  out Dictionary<int, string> names, out Dictionary<int, SymbolType> types)
+    public static void ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end, out Dictionary<int, string> names, out Dictionary<int, SymbolType> types)
     {
         names = [];
         types = [];
@@ -79,16 +79,16 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var innerType = types[pointerInstruction.Type];
                 types.Add(pointerInstruction.ResultId, new PointerType(innerType, pointerInstruction.Storageclass));
             }
-            else if (instruction.Op == Op.OpTypeVoid && (OpTypeVoid)instruction is {} voidInstruction)
+            else if (instruction.Op == Op.OpTypeVoid && (OpTypeVoid)instruction is { } voidInstruction)
             {
                 types.Add(voidInstruction.ResultId, ScalarType.From("void"));
             }
-            else if (instruction.Op == Op.OpTypeVector && (OpTypeVector)instruction is {} vectorInstruction)
+            else if (instruction.Op == Op.OpTypeVector && (OpTypeVector)instruction is { } vectorInstruction)
             {
                 var innerType = (ScalarType)types[vectorInstruction.ComponentType];
                 types.Add(vectorInstruction.ResultId, new VectorType(innerType, vectorInstruction.ComponentCount));
             }
-            else if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is {} typeStructInstruction)
+            else if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
             {
                 var structName = names[typeStructInstruction.ResultId];
                 var fieldsData = typeStructInstruction.Values;
@@ -102,7 +102,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 }
                 types.Add(typeStructInstruction.ResultId, new StructType(structName, fields));
             }
-            else if (instruction.Op == Op.OpTypeFunction && (OpTypeFunction)instruction is {} typeFunctionInstruction)
+            else if (instruction.Op == Op.OpTypeFunction && (OpTypeFunction)instruction is { } typeFunctionInstruction)
             {
                 var returnType = types[typeFunctionInstruction.ReturnType];
                 var parameterTypes = new List<SymbolType>();
@@ -218,9 +218,9 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 if (!svar.TypeName.TryResolveType(table, out var memberType))
                 {
-                   memberType = LoadExternalShaderType(table, svar.TypeName.Name);
-                   
-                   table.DeclaredTypes.TryAdd(memberType.ToString(), memberType);
+                    memberType = LoadExternalShaderType(table, svar.TypeName.Name);
+
+                    table.DeclaredTypes.TryAdd(memberType.ToString(), memberType);
                 }
 
                 svar.Type = new PointerType(memberType, Specification.StorageClass.Private);
@@ -234,6 +234,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     //var symbol = new Symbol(new(cbMember.Name, SymbolKind.CBuffer), cbMember.Type);
                     //symbols.Add(symbol);
                 }
+            }
+            else if (member is ShaderSamplerState samplerState)
+            {
+                samplerState.Type = new SamplerType(samplerState.Name);
+                table.DeclaredTypes.Add(samplerState.Type.ToString(), samplerState.Type);
             }
         }
 
@@ -284,6 +289,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         foreach (var member in Elements.OfType<CBuffer>())
             member.Compile(table, this, compiler);
         foreach (var member in Elements.OfType<ShaderMember>())
+            member.Compile(table, this, compiler);
+        foreach (var member in Elements.OfType<ShaderSamplerState>())
             member.Compile(table, this, compiler);
 
         // In case calling a method not yet processed, we first register method types
