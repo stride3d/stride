@@ -156,7 +156,8 @@ public partial class NugetStore : INugetDownloadProgress
     public enum VsixSupportedVsVersion
     {
         VS2019,
-        VS2022
+        VS2022,
+        VS2026,
     }
 
     /// <summary>
@@ -166,10 +167,13 @@ public partial class NugetStore : INugetDownloadProgress
     public IReadOnlyDictionary<VsixSupportedVsVersion, (PackageVersion MinVersion, PackageVersion MaxVersion)> VsixVersionToStrideRelease { get; } = new Dictionary<VsixSupportedVsVersion, (PackageVersion, PackageVersion)>
     {
         // The VSIX for VS2019 is avaliable in Stride packages of version 4.0.x
-        {VsixSupportedVsVersion.VS2019, (new PackageVersion("4.0"), new PackageVersion("4.1")) },
+        { VsixSupportedVsVersion.VS2019, (new PackageVersion("4.0"), new PackageVersion("4.1")) },
 
         // The VSIX for VS2022 is available in Stride packages of version 4.1.x and later.
-        {VsixSupportedVsVersion.VS2022, (new PackageVersion("4.1"), new PackageVersion(int.MaxValue,0,0,0)) },
+        { VsixSupportedVsVersion.VS2022, (new PackageVersion("4.1"), new PackageVersion("4.3")) },
+
+        // The VSIX for VS2026 is available in Stride packages of version 4.3.x and later.
+        { VsixSupportedVsVersion.VS2026, (new PackageVersion("4.3"), new PackageVersion(int.MaxValue, 0, 0, 0)) },
     };
 
     /// <summary>
@@ -330,7 +334,7 @@ public partial class NugetStore : INugetDownloadProgress
 
                     // In case it's a package without any TFM (i.e. Visual Studio plugin), we still need to specify one
                     if (!targetFrameworks.Any())
-                        targetFrameworks = ["net8.0"];
+                        targetFrameworks = ["net10.0"];
 
                     // Old version expects to be installed in GamePackages
                     if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0) && oldRootDirectory != null)

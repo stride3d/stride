@@ -1,7 +1,7 @@
 @set SOURCES_DIR=%~dp0..
 @set MSGMERGE=%~dp0..\..\deps\gettext\msgmerge
 @set OUTPUT_DIR=%SOURCES_DIR%\localization
-@set TOOL_DIR=%SOURCES_DIR%\tools\Stride.Core.Translation.Extractor\bin\Debug\net8.0-windows
+@set TOOL_DIR=%SOURCES_DIR%\tools\Stride.Core.Translation.Extractor\bin\Debug\net10.0-windows
 
 @cd %OUTPUT_DIR%
 
