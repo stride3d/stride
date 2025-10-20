@@ -96,12 +96,12 @@ namespace Stride.Shaders.Spirv.Processing
         {
             var streams = new SortedList<int, (StreamInfo Stream, bool IsDirect)>();
 
-            HashSet<int> blockTypes = new();
-            Dictionary<int, int> blockPointerTypes = new();
-            List<int> blockIds = new();
+            HashSet<int> blockTypes = [];
+            Dictionary<int, int> blockPointerTypes = [];
+            List<int> blockIds = [];
 
             // Build name table
-            SortedList<int, NameId> nameTable = [];
+            SortedList<int, string> nameTable = [];
             SortedList<int, string> semanticTable = [];
             foreach (var instruction in buffer)
             {
@@ -137,7 +137,7 @@ namespace Stride.Shaders.Spirv.Processing
                 // %CBuffer1 = OpVariable %_ptr_Uniform_type_CBuffer1 Uniform
                 {
                     if (instruction.Op == Op.OpDecorate
-                        && ((OpDecorate)instruction) is { Decoration: Decoration.Block, Target: var bufferType })
+                        && ((OpDecorate)instruction) is { Decoration: { Value: Decoration.Block }, Target: var bufferType })
                     {
                         blockTypes.Add(bufferType);
                     }
@@ -187,7 +187,7 @@ namespace Stride.Shaders.Spirv.Processing
                    )
                 {
                     var name = nameTable.TryGetValue(variable.ResultId, out var nameId)
-                        ? nameId.Name
+                        ? nameId
                         : $"unnamed_{variable.ResultId}";
                     var type = context.ReverseTypes[variable.ResultType];
                     semanticTable.TryGetValue(variable.ResultId, out var semantic);
@@ -291,7 +291,7 @@ namespace Stride.Shaders.Spirv.Processing
 
             // Add new entry point wrapper
             context.FluentAdd(new OpTypeFunction(context.Bound++, voidType, []), out var newEntryPointFunctionType);
-                        buffer.FluentAdd(new OpFunction(voidType, context.Bound++, FunctionControlMask.None, newEntryPointFunctionType), out var newEntryPointFunction);
+            buffer.FluentAdd(new OpFunction(voidType, context.Bound++, FunctionControlMask.None, newEntryPointFunctionType), out var newEntryPointFunction);
             buffer.Add(new OpLabel(context.Bound++));
             context.AddName(newEntryPointFunction, $"{entryPointName}_Wrapper");
 

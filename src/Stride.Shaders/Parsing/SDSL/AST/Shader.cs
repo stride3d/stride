@@ -102,7 +102,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 }
                 types.Add(typeStructInstruction.ResultId, new StructType(structName, fields));
             }
-            else if (instruction.Op == Op.OpTypeFunction && (OpTypeFunction)instruction is { } typeFunctionInstruction)
+            else if (instruction.Op == Op.OpTypeFunction && new OpTypeFunction(instruction) is { } typeFunctionInstruction)
             {
                 var returnType = types[typeFunctionInstruction.ReturnType];
                 var parameterTypes = new List<SymbolType>();

@@ -57,16 +57,14 @@ public partial class SPVGenerator
                         code.Append(", ");
                 }
                 code.AppendLine(")")
-                .Append($"    => new ParameterizedFlag<{realKind}>({realKind}.{enumerant.Name}, [{
-                    string.Join(", ", (enumerant.Parameters?.AsList() ?? []).Select(x => x.CSType switch
-                    {
-                        "float" => $"BitConverter.SingleToInt32({x.Name})",
-                        "string" => $".. {x.Name}.AsDisposableLiteralValue().Words",
-                        "int" => x.Name,
-                        _ => $"(int){x.Name}",
+                .Append($"    => new ParameterizedFlag<{realKind}>({realKind}.{enumerant.Name}, [{string.Join(", ", (enumerant.Parameters?.AsList() ?? []).Select(x => x.CSType switch
+                                                                                                  {
+                                                                                                      "float" => $"BitConverter.SingleToInt32({x.Name})",
+                                                                                                      "string" => $".. {x.Name}.AsDisposableLiteralValue().Words",
+                                                                                                      "int" => x.Name,
+                                                                                                      _ => $"(int){x.Name}",
 
-                    }))
-                }]);");
+                                                                                                  }))}]);");
             }
             code.AppendLine("}");
             context.AddSource(
@@ -122,20 +120,42 @@ public partial class SPVGenerator
             static (spc, kinds) =>
             {
                 var builder = new StringBuilder();
-                builder
-                    .AppendLine("using static Stride.Shaders.Spirv.Specification;")
-                    .AppendLine("")
-                    .AppendLine("namespace Stride.Shaders.Spirv.Core;")
-                    .AppendLine("")
-                    .AppendLine("public enum OperandKind")
-                    .AppendLine("{")
-                    .AppendLine("    None,");
                 if (kinds.AsDictionary() is Dictionary<string, OpKind> dict)
+                {
+                    builder
+                        .AppendLine("using static Stride.Shaders.Spirv.Specification;")
+                        .AppendLine("")
+                        .AppendLine("namespace Stride.Shaders.Spirv.Core;")
+                        .AppendLine("")
+                        .AppendLine("public enum OperandKind")
+                        .AppendLine("{")
+                        .AppendLine("    None,");
                     foreach (var kind in dict.Values)
                         builder.AppendLine($"    {kind.Kind},");
-                builder
+                    builder
+                        .AppendLine("}");
+
+                    builder.AppendLine()
+                    .AppendLine("public static class OperandKindExtensions")
+                    .AppendLine("{")
+                    .AppendLine("public static string? ToEnumValueString(this int value, OperandKind kind)")
+                    .AppendLine("{")
+                    .AppendLine("return kind switch")
+                    .AppendLine("{");
+                    foreach (var kind in dict.Values.Where(k => k.Category.EndsWith("Enum")))
+                        builder.AppendLine($"    OperandKind.{kind.Kind} => (({kind.Kind}{(kind.Category is "BitEnum" ? "Mask" : "")})value).ToString(),");
+                    builder.AppendLine("    _ => null")
+                    .AppendLine("};")
+                    .AppendLine("}")
                     .AppendLine("}");
-                spc.AddSource("OperandKind.gen.cs", builder.ToString());
+                }
+                spc.AddSource("OperandKind.gen.cs", SourceText.From(
+                    SyntaxFactory
+                    .ParseCompilationUnit(builder.ToString())
+                    .NormalizeWhitespace()
+                    .ToFullString(),
+                    Encoding.UTF8
+                ));
             }
         );
         // var code = new StringBuilder()

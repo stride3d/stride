@@ -42,7 +42,7 @@ public partial class ShaderMixer(IExternalShaderLoader ShaderLoader)
         CleanupUnnecessaryInstructions(temp);
         temp.Sort();
 
-        Spv.Dis(temp, Spv.DisassemblerFlags.NameAndId | Spv.DisassemblerFlags.InstructionIndex);
+        Spv.Dis(temp, DisassemblerFlags.Name & DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex);
 
         new StreamAnalyzer().Process(table, temp, context);
 
@@ -364,7 +364,7 @@ public partial class ShaderMixer(IExternalShaderLoader ShaderLoader)
                     var composition = mixinNode.Compositions[callTarget.Target];
                     methodMixinGroup = composition;
 
-                    Spv.Dis(temp, Spv.DisassemblerFlags.Id);
+                    Spv.Dis(temp, DisassemblerFlags.Id);
 
                     var functionName = externalFunctions[functionCall.Function];
                     var functionId = composition.MethodGroupsByName[functionName];
@@ -374,7 +374,7 @@ public partial class ShaderMixer(IExternalShaderLoader ShaderLoader)
                     SetOpNop(temp[index - 1].Data.Memory.Span);
                 }
 
-                Spv.Dis(temp, Spv.DisassemblerFlags.NameAndId | Spv.DisassemblerFlags.InstructionIndex);
+                Spv.Dis(temp, DisassemblerFlags.Name & DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex);
 
                 bool foundInStage = false;
                 if (!methodMixinGroup.MethodGroups.TryGetValue(functionCall.Function, out var methodGroupEntry))

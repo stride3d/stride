@@ -61,7 +61,7 @@ public partial class SPVGenerator : IIncrementalGenerator
             }
         }
         spc.AddSource(
-            $"Instructions.g.cs",
+            $"Instructions.gen.cs",
             SourceText.From(
                 SyntaxFactory
                 .ParseCompilationUnit(builder.ToString())
@@ -198,6 +198,13 @@ public partial class SPVGenerator : IIncrementalGenerator
                 body3.AppendLine($"{fieldName} = {operandName};");
             }
             body2.AppendLine("}");
+
+            foreach(var operand in operands.Where(o => o.Quantifier == "*"))
+            {
+                (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
+                body2.AppendLine($"if({fieldName}.WordCount == -1)")
+                .AppendLine($"{fieldName} = new();");
+            }
 
             body3
             .AppendLine("UpdateInstructionMemory();")
