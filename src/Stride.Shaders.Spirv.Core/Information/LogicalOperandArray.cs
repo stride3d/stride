@@ -14,9 +14,7 @@ public readonly struct LogicalOperandArray(string? className, List<LogicalOperan
     List<LogicalOperand> LogicalOperands { get; } = operands ?? [];
 
     public int Count => LogicalOperands.Count;
-
-    public bool IsReadOnly => false;
-
+    
     public LogicalOperand this[int index]
     {
         get => LogicalOperands[index];

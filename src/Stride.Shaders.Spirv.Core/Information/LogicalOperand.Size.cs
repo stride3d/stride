@@ -14,7 +14,7 @@ public enum OperandWordSize
     Variable,
     Rest
 }
-public readonly partial struct LogicalOperand
+public readonly partial record struct LogicalOperand
 {
     public int GetWordSize()
     {

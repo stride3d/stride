@@ -18,7 +18,9 @@ public enum SymbolKind
     Composition,
     CBuffer,
     TBuffer,
-    RGroup
+    RGroup,
+    SamplerState,
+    SamplerComparisonState,
 }
 
 public enum Storage : ushort

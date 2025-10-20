@@ -357,16 +357,8 @@ public static class IMemoryInstructionExtensions
     public static LogicalOperandArray GetInfo<T>(this ref T op)
         where T : struct, IMemoryInstruction
     {
-        Decoration? decoration = op switch
-        {
-            OpDecorate opd => opd.Decoration,
-            OpDecorateId opd => opd.Decoration,
-            OpDecorateString opd => opd.Decoration,
-            OpMemberDecorate opd => opd.Decoration,
-            OpMemberDecorateString opd => opd.Decoration,
-            _ => null
-        };
-
-        return InstructionInfo.GetInfo((Op)(op.InstructionMemory.Span[0] & 0xFFFF), decoration);
+        if(op.DataIndex is OpDataIndex odi)
+            return InstructionInfo.GetInfo(odi.Data);
+        return InstructionInfo.GetInfo(op.InstructionMemory.Span);
     }
 }

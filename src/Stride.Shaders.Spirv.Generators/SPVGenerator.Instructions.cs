@@ -51,8 +51,8 @@ public partial class SPVGenerator : IIncrementalGenerator
 
                 if (instruction.OpName.EndsWith("Constant"))
                     WriteConstantInstructions(grammar, instruction, builder, body1, body2, body3, body4);
-                else if (instruction.OpName.Contains("Decorate"))
-                    WriteDecorateInstructions(grammar, instruction, builder, body1, body2, body3, body4);
+                // else if (instruction.OpName.Contains("Decorate"))
+                //     WriteDecorateInstructions(grammar, instruction, builder, body1, body2, body3, body4);
                 else if (instruction.OpName.StartsWith("OpCopyMemory"))
                     WriteCopyMemoryInstructions(grammar, instruction, body1, body2, body3, body4);
                 else if (instruction.OpName.Contains("GLSL"))
@@ -61,7 +61,7 @@ public partial class SPVGenerator : IIncrementalGenerator
             }
         }
         spc.AddSource(
-            $"Instructions.g.cs",
+            $"Instructions.gen.cs",
             SourceText.From(
                 SyntaxFactory
                 .ParseCompilationUnit(builder.ToString())
@@ -72,31 +72,36 @@ public partial class SPVGenerator : IIncrementalGenerator
         );
     }
 
+
     public static (string TypeName, string FieldName, string OperandName) ToTypeFieldAndOperandName(OperandData operand)
     {
-        string typename = (operand.Kind, operand.Quantifier, operand.Class) switch
+        string typename = (operand.Kind, operand.Quantifier, operand.Class, operand.IsParameterized) switch
         {
-            (string s, null or "", _) when s.StartsWith("Id") => "int",
-            ("LiteralInteger" or "LiteralExtInstInteger" or "LiteralSpecConstantOpInteger", null or "", _) => "int",
-            ("LiteralFloat", null or "", _) => "float",
-            ("LiteralString", null or "", _) => "string",
-            (string s, null or "", _) when s.StartsWith("Pair") => "(int, int)",
-            (string s, null or "", "BitEnum") when !s.StartsWith("Literal") => $"{s}Mask",
-            (string s, null or "", "ValueEnum") when !s.StartsWith("Literal") => s,
-            (string s, "?", _) when s.StartsWith("Id") => "int?",
-            ("LiteralInteger" or "LiteralExtInstInteger" or "LiteralSpecConstantOpInteger", "?", _) => "int?",
-            ("LiteralFloat", "?", _) => "float?",
-            ("LiteralString", "?", _) => "string?",
-            (string s, "?", "BitEnum") when !s.StartsWith("Literal") => $"{s}Mask?",
-            (string s, "?", "ValueEnum") when !s.StartsWith("Literal") => $"{s}?",
-            (string s, "*", _) when s.StartsWith("Id") => $"LiteralArray<int>",
-            ("LiteralInteger" or "LiteralExtInstInteger" or "LiteralSpecConstantOpInteger", "*", _) => "LiteralArray<int>",
-            ("LiteralFloat", "*", _) => "LiteralArray<float>",
+            (string s, null or "", "ValueEnum", true) => $"ParameterizedFlag<{s}>",
+            (string s, null or "", "BitEnum", true) => $"ParameterizedFlag<{s}Mask>",
+            (string s, null or "", _, false) when s.StartsWith("Id") => "int",
+            ("LiteralInteger" or "LiteralExtInstInteger" or "LiteralSpecConstantOpInteger", null or "", _, false) => "int",
+            ("LiteralFloat", null or "", _, false) => "float",
+            ("LiteralString", null or "", _, false) => "string",
+            (string s, null or "", _, false) when s.StartsWith("Pair") => "(int, int)",
+            (string s, null or "", "BitEnum", false) when !s.StartsWith("Literal") => $"{s}Mask",
+            (string s, null or "", "ValueEnum", false) when !s.StartsWith("Literal") => s,
+            (string s, "?", "ValueEnum", true) => $"ParameterizedFlag<{s}>?",
+            (string s, "?", "BitEnum", true) => $"ParameterizedFlag<{s}Mask>?",
+            (string s, "?", _, false) when s.StartsWith("Id") => "int?",
+            ("LiteralInteger" or "LiteralExtInstInteger" or "LiteralSpecConstantOpInteger", "?", _, false) => "int?",
+            ("LiteralFloat", "?", _, false) => "float?",
+            ("LiteralString", "?", _, false) => "string?",
+            (string s, "?", "BitEnum", false) when !s.StartsWith("Literal") => $"{s}Mask?",
+            (string s, "?", "ValueEnum", false) when !s.StartsWith("Literal") => $"{s}?",
+            (string s, "*", _, false) when s.StartsWith("Id") => $"LiteralArray<int>",
+            ("LiteralInteger" or "LiteralExtInstInteger" or "LiteralSpecConstantOpInteger", "*", _, false) => "LiteralArray<int>",
+            ("LiteralFloat", "*", _, false) => "LiteralArray<float>",
             // ("LiteralString", "*", _) => "LiteralArray<string>",
-            (string s, "*", _) when s.StartsWith("Pair") => $"LiteralArray<(int, int)>",
-            (string s, "*", "BitEnum") when !s.StartsWith("Literal") => $"LiteralArray<{s}Mask>",
-            (string s, "*", "ValueEnum") when !s.StartsWith("Literal") => $"LiteralArray<{s}>",
-            ("LiteralContextDependentNumber", null or "", _) => "LiteralValue<T>",
+            (string s, "*", _, false) when s.StartsWith("Pair") => $"LiteralArray<(int, int)>",
+            (string s, "*", "BitEnum", false) when !s.StartsWith("Literal") => $"LiteralArray<{s}Mask>",
+            (string s, "*", "ValueEnum", false) when !s.StartsWith("Literal") => $"LiteralArray<{s}>",
+            ("LiteralContextDependentNumber", null or "", _, false) => "LiteralValue<T>",
             _ => throw new NotImplementedException($"Could not generate C# type for '{operand.Kind}{operand.Quantifier}'")
         };
 
@@ -127,15 +132,17 @@ public partial class SPVGenerator : IIncrementalGenerator
     static string ToSpreadOperator(OperandData operand)
     {
         (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
-        return (operand.Class, operand.Quantifier) switch
+        return (operand.Class, operand.Quantifier, operand.IsParameterized) switch
         {
-            (string s, null or "") when s.Contains("Id") => $"{fieldName}",
-            (string s, "?") when s.Contains("Id") => $".. {fieldName} is null ? (Span<int>)[] : [{fieldName}.Value]",
-            (string s, null or "") when s.Contains("Enum") => $"(int){fieldName}",
-            (string s, "?") when s.Contains("Enum") => $".. {fieldName} is null ? (Span<int>)[] : [(int){fieldName}.Value]",
-            (string, "*") => $".. {fieldName}.Words",
-            (string, "?") => $".. {fieldName} is null ? (Span<int>)[] : {fieldName}.AsDisposableLiteralValue().Words",
-            (_, "?") => $".. {fieldName} is null ? (Span<int>)[] : {fieldName}.AsDisposableLiteralValue().Words",
+            (string s, null or "", false) when s.Contains("Id") => $"{fieldName}",
+            (string s, "?", false) when s.Contains("Id") => $".. ({fieldName} is null ? (Span<int>)[] : [{fieldName}.Value])",
+            (string s, null or "", false) when s.Contains("Enum") => $"(int){fieldName}",
+            (string s, null or "", true) when s.Contains("Enum") => $".. (Span<int>)[(int){fieldName}.Value, .. {fieldName}.Span]",
+            (string s, "?", false) when s.Contains("Enum") => $".. ({fieldName} is null ? (Span<int>)[] : [(int){fieldName}.Value])",
+            (string s, "?", true) when s.Contains("Enum") => $".. ({fieldName} is null ? (Span<int>)[] : [(int){fieldName}.Value.Value, .. {fieldName}.Value.Span])",
+            (string, "*", false) => $".. {fieldName}.Words",
+            (string, "?", false) => $".. ({fieldName} is null ? (Span<int>)[] : {fieldName}.AsDisposableLiteralValue().Words)",
+            (_, "?", false) => $".. ({fieldName} is null ? (Span<int>)[] : {fieldName}.AsDisposableLiteralValue().Words)",
             _ => $".. {fieldName}.AsDisposableLiteralValue().Words"
         };
     }
@@ -191,6 +198,13 @@ public partial class SPVGenerator : IIncrementalGenerator
                 body3.AppendLine($"{fieldName} = {operandName};");
             }
             body2.AppendLine("}");
+
+            foreach(var operand in operands.Where(o => o.Quantifier == "*"))
+            {
+                (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
+                body2.AppendLine($"if({fieldName}.WordCount == -1)")
+                .AppendLine($"{fieldName} = new();");
+            }
 
             body3
             .AppendLine("UpdateInstructionMemory();")

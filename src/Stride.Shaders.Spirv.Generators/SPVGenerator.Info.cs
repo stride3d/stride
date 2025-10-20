@@ -1,42 +1,86 @@
 ﻿using Microsoft.CodeAnalysis;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using System.Reflection;
-using System.Text.Json;
-using System.Security.Claims;
-using System.Runtime.InteropServices.ComTypes;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.CSharp;
+using System;
 
 namespace Stride.Shaders.Spirv.Generators;
 
 public partial class SPVGenerator
 {
 
+    public void CreateParameterizedFuncs(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<SpirvGrammar> grammarProvider)
+    {
 
+        context.RegisterImplementationSourceOutput(
+            grammarProvider,
+            GenerateParameterizedFunctions
+        );
+    }
     public void CreateInfo(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<SpirvGrammar> grammarProvider)
     {
 
         GenerateKinds(context, grammarProvider);
-
-        IncrementalValueProvider<EquatableList<InstructionData>> infoProvider =
-            grammarProvider
-            .SelectMany(static (grammar, _) => grammar.Instructions!.Value)
-            .Where(static x => x.OpName is not null && !x.OpName.Contains("GLSL"))
-            .Collect()
-            .Select(static (arr, _) => new EquatableList<InstructionData>([.. arr]));
-
         context.RegisterImplementationSourceOutput(
-            infoProvider,
+            grammarProvider,
             GenerateInstructionInformation
         );
     }
-    static void GenerateInstructionInformation(SourceProductionContext spc, EquatableList<InstructionData> instructions)
+
+    public void GenerateParameterizedFunctions(SourceProductionContext context, SpirvGrammar grammar)
+    {
+        if (grammar.OperandKinds?.AsDictionary() is Dictionary<string, OpKind> dict)
+        {
+            var code = new StringBuilder();
+            code.AppendLine(@"
+            using static Stride.Shaders.Spirv.Specification;
+            namespace Stride.Shaders.Spirv.Core;
+            
+            public static class ParameterizedFlags
+            {"
+            );
+            var selection =
+                dict.Values
+                .Where(enumeration => enumeration.Enumerants?.AsList() is List<Enumerant> { Count: > 0 } l && l.Any(e => e.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 }))
+                .SelectMany(enumeration => (enumeration.Enumerants?.AsList() ?? []).Select(e => (enumeration.Kind, e)))
+                .Where(x => x.e.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 });
+            foreach (var (kind, enumerant) in selection)
+            {
+                var realKind = kind;
+                if (dict[kind].Category is "BitEnum")
+                    realKind = $"{kind}Mask";
+                code.Append($"public static ParameterizedFlag<{realKind}> {kind}{enumerant.Name}(");
+                foreach (var param in enumerant.Parameters?.AsList() ?? [])
+                {
+                    code.Append($"{param.CSType} {param.Name}");
+                    if (param != enumerant.Parameters?.AsList()?.Last())
+                        code.Append(", ");
+                }
+                code.AppendLine(")")
+                .Append($"    => new ParameterizedFlag<{realKind}>({realKind}.{enumerant.Name}, [{string.Join(", ", (enumerant.Parameters?.AsList() ?? []).Select(x => x.CSType switch
+                                                                                                  {
+                                                                                                      "float" => $"BitConverter.SingleToInt32({x.Name})",
+                                                                                                      "string" => $".. {x.Name}.AsDisposableLiteralValue().Words",
+                                                                                                      "int" => x.Name,
+                                                                                                      _ => $"(int){x.Name}",
+
+                                                                                                  }))}]);");
+            }
+            code.AppendLine("}");
+            context.AddSource(
+                "ParameterizedFlags.gen.cs",
+                SourceText.From(
+                    SyntaxFactory
+                    .ParseCompilationUnit(code.ToString())
+                    .NormalizeWhitespace()
+                    .ToFullString(),
+                    Encoding.UTF8
+                )
+            );
+        }
+
+    }
+    static void GenerateInstructionInformation(SourceProductionContext spc, SpirvGrammar grammar)
     {
         var code = new StringBuilder();
         code
@@ -49,8 +93,10 @@ public partial class SPVGenerator
             static InstructionInfo()
             {"
         );
-        foreach (var instruction in instructions)
-            GenerateInfo(instruction, code);
+        if (grammar.Instructions?.AsList() is List<InstructionData> instructions)
+            foreach (var instruction in instructions)
+                if (!instruction.OpName.Contains("GLSL"))
+                    GenerateInfo(instruction, code, grammar);
 
         code.AppendLine("Instance.InitOrder();}}");
         spc.AddSource(
@@ -74,20 +120,42 @@ public partial class SPVGenerator
             static (spc, kinds) =>
             {
                 var builder = new StringBuilder();
-                builder
-                    .AppendLine("using static Stride.Shaders.Spirv.Specification;")
-                    .AppendLine("")
-                    .AppendLine("namespace Stride.Shaders.Spirv.Core;")
-                    .AppendLine("")
-                    .AppendLine("public enum OperandKind")
+                if (kinds.AsDictionary() is Dictionary<string, OpKind> dict)
+                {
+                    builder
+                        .AppendLine("using static Stride.Shaders.Spirv.Specification;")
+                        .AppendLine("")
+                        .AppendLine("namespace Stride.Shaders.Spirv.Core;")
+                        .AppendLine("")
+                        .AppendLine("public enum OperandKind")
+                        .AppendLine("{")
+                        .AppendLine("    None,");
+                    foreach (var kind in dict.Values)
+                        builder.AppendLine($"    {kind.Kind},");
+                    builder
+                        .AppendLine("}");
+
+                    builder.AppendLine()
+                    .AppendLine("public static class OperandKindExtensions")
                     .AppendLine("{")
-                    .AppendLine("    None,");
-                if(kinds.AsDictionary() is Dictionary<string, OpKind> dict)
-                foreach (var kind in dict.Values)
-                    builder.AppendLine($"    {kind.Kind},");
-                builder
+                    .AppendLine("public static string? ToEnumValueString(this int value, OperandKind kind)")
+                    .AppendLine("{")
+                    .AppendLine("return kind switch")
+                    .AppendLine("{");
+                    foreach (var kind in dict.Values.Where(k => k.Category.EndsWith("Enum")))
+                        builder.AppendLine($"    OperandKind.{kind.Kind} => (({kind.Kind}{(kind.Category is "BitEnum" ? "Mask" : "")})value).ToString(),");
+                    builder.AppendLine("    _ => null")
+                    .AppendLine("};")
+                    .AppendLine("}")
                     .AppendLine("}");
-                spc.AddSource("OperandKind.gen.cs", builder.ToString());
+                }
+                spc.AddSource("OperandKind.gen.cs", SourceText.From(
+                    SyntaxFactory
+                    .ParseCompilationUnit(builder.ToString())
+                    .NormalizeWhitespace()
+                    .ToFullString(),
+                    Encoding.UTF8
+                ));
             }
         );
         // var code = new StringBuilder()
@@ -110,62 +178,39 @@ public partial class SPVGenerator
 
     }
 
-    public static void GenerateInfo(InstructionData op, StringBuilder code)
+    public static void GenerateInfo(InstructionData op, StringBuilder code, SpirvGrammar grammar)
     {
 
         var opname = op.OpName;
         var spvClass = op.Class;
-        if (opname == "OpExtInst")
-        {
-            code.AppendLine("Instance.Register(Op.OpExtInst, OperandKind.IdResultType, OperandQuantifier.One, \"resultType\", \"GLSL\");");
-            code.AppendLine("Instance.Register(Op.OpExtInst, OperandKind.IdResult, OperandQuantifier.One, \"resultId\", \"GLSL\");");
-            code.AppendLine("Instance.Register(Op.OpExtInst, OperandKind.IdRef, OperandQuantifier.One, \"set\", \"GLSL\");");
-            code.AppendLine("Instance.Register(Op.OpExtInst, OperandKind.LiteralInteger, OperandQuantifier.One, \"instruction\", \"GLSL\");");
-            code.AppendLine("Instance.Register(Op.OpExtInst, OperandKind.IdRef, OperandQuantifier.ZeroOrMore, \"values\", \"GLSL\");");
-        }
-        else if (op.Operands is EquatableList<OperandData> operands)
+        if (op.Operands?.AsList() is List<OperandData> operands && grammar.OperandKinds?.AsDictionary() is Dictionary<string, OpKind> dict)
         {
             foreach (var operand in operands)
             {
-                // var hasKind = operand.Kind;
-                // var hasQuant = operand.Quantifier;
-                // var hasName = operand.Name;
 
-                if (operand.Kind is string kind)
+                code.Append($"Instance.Register(Op.{opname}, OperandKind.{operand.Kind ?? "<error>"}, OperandQuantifier.{operand.Quantifier switch { "*" => "ZeroOrMore", "?" => "ZeroOrOne", _ => "One" }}, \"{operand.Name}\", \"{spvClass ?? "Debug"}\"");
+                if (dict.TryGetValue(operand.Kind ?? throw new Exception("Operand is null in registering"), out var opkind) && opkind.Enumerants?.AsList() is List<Enumerant> enumerants && enumerants.Any(x => x.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 }))
                 {
-                    if (operand.Quantifier is string quant)
-                    {
-                        code
-                            .Append("Instance.Register(Op.")
-                            .Append(opname)
-                            .Append(", OperandKind.")
-                            .Append(kind)
-                            .Append(", OperandQuantifier.")
-                            .Append(ConvertQuantifier(quant))
-                            .Append(", ")
-                            .Append(operand.Name is null ? $"\"{ConvertNameQuantToName(kind, quant)}\"" : $"\"{ConvertNameQuantToName(operand.Name, quant)}\"")
-                            .Append($", \"{spvClass}\"")
-                            .AppendLine(");");
-                    }
-                    else
-                    {
-                        code
-                            .Append("Instance.Register(Op.")
-                            .Append(opname)
-                            .Append(", OperandKind.")
-                            .Append(kind)
-                            .Append(", OperandQuantifier.One, ")
-                            .Append(operand.Name is null ? $"\"{ConvertKindToName(kind)}\"" : $"\"{ConvertOperandName(operand.Name)}\"")
-                            .Append($", \"{spvClass}\"")
-                            .AppendLine(");");
-                    }
-
+                    // code.Append($", [{string.Join(", ", opkind.Enumerants?.Select(x => $"new({x.Name ?? "null"}, OperandKind.{x.})") ?? [])}]");
+                    code.Append(", new() {")
+                    .Append(
+                        string.Join(
+                            ", ",
+                            enumerants
+                            .Where(e => e.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 })
+                            .Select(
+                                enumerant =>
+                                    $"[new(OperandKind.{operand.Kind}, {enumerant.Value})] = [{string.Join(", ", enumerant.Parameters?.AsList().Select(param => $"new(\"{param.Name ?? ConvertKindToName(param.Kind)}\", OperandKind.{param.Kind})") ?? [])}]"
+                            )
+                        )
+                    )
+                    .Append("});");
                 }
+                else
+                    code.AppendLine(", []);");
             }
         }
         else
-        {
             code.Append("Instance.Register(Op.").Append(opname).AppendLine(", OperandKind.None, null, \"Debug\");");
-        }
     }
 }

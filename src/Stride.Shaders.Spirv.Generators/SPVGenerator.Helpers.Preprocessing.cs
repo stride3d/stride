@@ -54,7 +54,7 @@ public partial class SPVGenerator
                         {
                             grammarKinds[pk.Key].Enumerants?.AsList()?.AddRange(pk.Value.Enumerants?.AsList() ?? []);
                             if (grammarKinds[pk.Key].Category is null || grammarKinds[pk.Key].Category.Length == 0)
-                                grammarKinds[pk.Key] = grammarKinds[pk.Key] with { Category = pk.Value.Category};
+                                grammarKinds[pk.Key] = grammarKinds[pk.Key] with { Category = pk.Value.Category };
                         }
                         else
                             grammarKinds[pk.Key] = pk.Value;
@@ -66,6 +66,52 @@ public partial class SPVGenerator
         return grammar;
     }
 
+    public SpirvGrammar PreProcessEnumerants(SpirvGrammar grammar, CancellationToken _)
+    {
+        if (grammar.OperandKinds?.AsDictionary() is Dictionary<string, OpKind> dict)
+        {
+            foreach (var opkind in dict.Values)
+            {
+                if (opkind.Enumerants?.AsList() is List<Enumerant> enumerants && enumerants.Any(e => e.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 }))
+                {
+                    for (int i = 0; i < enumerants.Count; i++)
+                    {
+                        var enumerant = enumerants[i];
+                        var buffer = new List<(string, string)>(24);
+                        if (enumerant.Parameters?.AsList() is List<EnumerantParameter> parameters)
+                        {
+                            for (int j = 0; j < parameters.Count; j++)
+                            {
+                                var param = parameters[j];
+                                param.Name = param.Name switch
+                                {
+                                    string s when s.Any(char.IsPunctuation) => LowerFirst(string.Join("", s.Where(char.IsLetterOrDigit))),
+                                    null or "" => $"{KindToVariableName(param.Kind)}{j}",
+                                    _ => $"parameter{j}"
+                                };
+                                param.CSType = param.Kind switch
+                                {
+                                    "LiteralInteger" => "int",
+                                    "LiteralContextDependentNumber" => "int",
+                                    "LiteralString" => "string",
+                                    string s when s.StartsWith("Id") => "int",
+                                    string s => dict[s].Category switch
+                                    {
+                                        "BitEnum" => $"{param.Kind}Mask",
+                                        _ => param.Kind
+                                    },
+                                    _ => throw new NotImplementedException($"Type {param.Kind} not implemented for parameterized flag generation"),
+                                };
+                                parameters[j] = param;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return grammar;
+    }
+    
     public SpirvGrammar PreProcessInstructions(SpirvGrammar grammar, CancellationToken _)
     {
         var config = Configuration.Default.WithDefaultLoader();
