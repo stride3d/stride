@@ -58,7 +58,8 @@ namespace Stride.Input
         {
             var pointerInfo = e.pointerInfo;
             var point = uiControl.PointToClient(new System.Drawing.Point(pointerInfo.ptPixelLocationX, pointerInfo.ptPixelLocationY));
-            var newPosition = new Vector2((float)point.X / uiControl.ClientSize.Width, (float)point.Y / uiControl.ClientSize.Height);
+            var pixel = new Vector2(point.X, point.Y);
+            var newPosition = Normalize(pixel);
             var id = GetFingerId(pointerInfo.sourceDevice.ToInt64(), pointerInfo.pointerId, type);
 
             PointerState.PointerInputEvents.Add(new PointerDeviceState.InputEvent { Type = type, Position = newPosition, Id = id });
