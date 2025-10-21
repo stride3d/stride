@@ -51,7 +51,7 @@ public readonly struct VertexBufferHelper
     public VertexBufferHelper(VertexBufferBinding binding, byte[] dataOuter, out int count)
     {
         if (dataOuter.Length < binding.Offset + binding.Count * binding.Stride)
-            throw new ArgumentException($"{nameof(dataOuter)} does not fit the bindings provided. Make sure that the span provided contains the entirety of the vertex buffer");
+            throw new ArgumentException($"Binding describes an array larger than {nameof(dataOuter)} ({dataOuter.Length} < {binding.Offset} + {binding.Count} * {binding.Stride})");
 
         DataOuter = dataOuter;
         Binding = binding;
