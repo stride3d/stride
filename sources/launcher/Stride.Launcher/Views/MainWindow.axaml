@@ -9,5 +9,5 @@
         x:Class="Stride.Launcher.Views.MainWindow"
         Icon="/Assets/Launcher.ico"
         Title="{x:Static l:Strings.LauncherTitle}">
-	<vw:MainView />
+  <vw:MainView />
 </Window>
