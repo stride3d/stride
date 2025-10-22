@@ -48,7 +48,7 @@ namespace Stride.Engine.Design
         }
 
         /// <summary>
-        /// Instantiate the content of the prefab provided.
+        /// Instantiates the content of the prefab provided.
         /// <see cref="Prefab.Entities"/>, children <see cref="Entity"/> and their <see cref="EntityComponent"/> will be cloned.
         /// Other assets will be shared.
         /// </summary>
