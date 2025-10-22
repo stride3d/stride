@@ -131,15 +131,9 @@ namespace Stride.Engine.Design
         /// <returns>The cloned object.</returns>
         private static T Clone<T>(HashSet<object> clonedObjects, TryGetValueFunction<object, object> mappedObjects, T entity) where T : class
         {
-            if (cloneSerializerSelector == null)
-            {
-                cloneSerializerSelector = new SerializerSelector(true, false, "Default", "Clone");
-            }
+            cloneSerializerSelector ??= new SerializerSelector(true, false, "Default", "Clone");
 
-            if (entitySerializerSelector == null)
-            {
-                entitySerializerSelector = new SerializerSelector(true, false, "Default");
-            }
+            entitySerializerSelector ??= new SerializerSelector(true, false, "Default");
 
             // Initialize CloneContext
             lock (cloneContext)
