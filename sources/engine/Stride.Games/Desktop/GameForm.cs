@@ -452,8 +452,8 @@ namespace Stride.Games
                         else
                             FingerMoveActions?.Invoke(touchInfo);
 
-                        //to signal that there should not be a mouse event created
-                        m.Result = new IntPtr(1);
+                        // Per WM_POINTER documentation, return 0 to indicate the message was handled
+                        m.Result = IntPtr.Zero;
                         return;
                     }
                     break;
