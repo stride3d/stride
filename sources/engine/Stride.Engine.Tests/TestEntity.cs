@@ -176,7 +176,13 @@ namespace Stride.Engine.Tests
         {
             var externalEntity = new Entity();
             var sourceEntity = new Entity();
-            var sourceComponent = new EntityComponentWithPrefab { Prefab = new Prefab(), ExternalEntityRef = externalEntity/*, ExternalComponentRef = externalEntity.Transform*/ };
+            var sourceComponent = new EntityComponentWithPrefab
+            {
+                Prefab = new Prefab(),
+                ExternalEntityRef = externalEntity,
+                // Not yet supported, see commented out ExternalComponentRef declaration further and PR #2914
+                //ExternalComponentRef = externalEntity.Transform
+            };
             sourceComponent.Prefab.Entities.Add(sourceEntity);
             sourceEntity.Add(sourceComponent);
 
@@ -192,7 +198,7 @@ namespace Stride.Engine.Tests
             Assert.Equal(clonedComponent.ExternalEntityRef, sourceComponent.ExternalEntityRef);
 
             // References to entity component outside this one's hierarchy should not clone the component referenced, it should point to the same reference
-            // Not yet supported
+            // Not yet supported, see commented out ExternalComponentRef declaration further and PR #2914
             /*Assert.Equal(clonedComponent.ExternalComponentRef, sourceComponent.ExternalComponentRef);*/
         }
 
@@ -295,6 +301,14 @@ namespace Stride.Engine.Tests
     {
         public required Prefab Prefab { get; set; }
         public required Entity ExternalEntityRef { get; set; }
+
+        /* TODO:
+         * References to entity component outside of a prefab's hierarchy should not clone the component referenced, it should point to the same reference.
+         * More work is required on that front, particularly with EntityComponent which does not have a specific serializer,
+         * we would need one that derive from DataContentSerializerWithReuse to properly filter external references.
+         * The serializer for TransformComponent derives from a simple DataSerializer for example.
+         * See also PR #2914
+         */
         /*public required TransformComponent ExternalComponentRef { get; set; }*/
     }
 }
