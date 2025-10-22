@@ -54,7 +54,7 @@ public abstract class ConstraintComponentBase : EntityComponent
     public abstract bool Attached { get; }
 
     /// <summary>
-    /// Returns the squared sum of all impulses this constraint applied on the last tick
+    /// Returns the sum of all impulses this constraint applied on the last tick
     /// </summary>
     /// <remarks>
     /// Impulses increase depending on <see cref="BepuSimulation.FixedTimeStep"/>, as well as the amount of <see cref="BepuSimulation.SolverSubStep"/>.
@@ -63,7 +63,7 @@ public abstract class ConstraintComponentBase : EntityComponent
     public abstract float GetAccumulatedImpulseMagnitude();
 
     /// <summary>
-    /// Returns the squared sum of all forces this constraint applied on the last tick
+    /// Returns the sum of all forces this constraint applied on the last tick
     /// </summary>
     /// <remarks>
     /// This can be used to compare with a given motor constraints' MaximumForce property for example.
