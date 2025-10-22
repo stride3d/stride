@@ -48,12 +48,12 @@ namespace Stride.Engine.Design
         }
 
         /// <summary>
-        /// Clones the specified prefab.
-        /// <see cref="Entity"/>, children <see cref="Entity"/> and their <see cref="EntityComponent"/> will be cloned.
+        /// Instantiate the content of the prefab provided.
+        /// <see cref="Prefab.Entities"/>, children <see cref="Entity"/> and their <see cref="EntityComponent"/> will be cloned.
         /// Other assets will be shared.
         /// </summary>
-        /// <param name="prefab">The prefab to clone.</param>
-        /// <returns>A cloned prefab</returns>
+        /// <param name="prefab">The prefab to instantiate.</param>
+        /// <returns>A clone of this prefab's <see cref="Prefab.Entities"/></returns>
         public static List<Entity> Instantiate(Prefab prefab)
         {
             if (prefab == null) throw new ArgumentNullException(nameof(prefab));
