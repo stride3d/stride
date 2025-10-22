@@ -440,7 +440,7 @@ namespace Stride.Games
                 case TouchUtils.WM_POINTERDOWN:
                 case TouchUtils.WM_POINTERUPDATE:
                 case TouchUtils.WM_POINTERUP:
-                    var pointerId = TouchUtils.GET_POINTERID_WPARAM((ulong)m.WParam);
+                    var pointerId = TouchUtils.GET_POINTERID_WPARAM(unchecked((ulong)wparam));
                     if (TouchUtils.GetPointerType(pointerId, out var type) && type == TouchUtils.PointerInputType.PT_TOUCH)
                     {
                         TouchUtils.GetPointerTouchInfo(pointerId, out var touchInfo);
