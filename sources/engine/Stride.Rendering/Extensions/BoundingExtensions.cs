@@ -16,22 +16,22 @@ namespace Stride.Extensions
         {
             var helper = new VertexBufferHelper(vertexBufferBinding, vertexBufferBinding.Buffer.GetSerializationData().Content, out _);
 
+            var box = BoundingBox.Empty;
+            boundingSphere = BoundingSphere.Empty;
             var computeBounds = new ComputeBoundsHelper
             {
-                Box = BoundingBox.Empty, 
-                Sphere = new BoundingSphere(),
+                Box = ref box, 
+                Sphere = ref boundingSphere,
                 Matrix = matrix
             };
             helper.Read<PositionSemantic, Vector3, ComputeBoundsHelper>(default, computeBounds);
-
-            boundingSphere = computeBounds.Sphere;
-            return computeBounds.Box;
+            return box;
         }
 
-        class ComputeBoundsHelper : VertexBufferHelper.IReader<Vector3>
+        ref struct ComputeBoundsHelper : VertexBufferHelper.IReader<Vector3>
         {
-            public required BoundingBox Box;
-            public required BoundingSphere Sphere;
+            public required ref BoundingBox Box;
+            public required ref BoundingSphere Sphere;
             public required Matrix Matrix;
 
             public unsafe void Read<TConverter, TSource>(byte* startPointer, int elementCount, int stride, Span<Vector3> destination) where TConverter : IConverter<TSource, Vector3> where TSource : unmanaged

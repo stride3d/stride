@@ -241,7 +241,7 @@ public readonly struct VertexBufferHelper
         IConverter<Color, TDest>,
         ISemantic 
         where TDest : unmanaged
-        where TReader : IReader<TDest>
+        where TReader : IReader<TDest>, allows ref struct
     {
         if (Binding.Declaration.TryGetElement(TSemantic.Name, semanticIndex, out var elementData))
         {
@@ -267,7 +267,7 @@ public readonly struct VertexBufferHelper
     private unsafe void InnerRead<TConverter, TReader, TSource, TDest>(Span<TDest> destination, TReader reader, VertexElementWithOffset element) 
         where TConverter : IConverter<TSource, TDest> 
         where TSource : unmanaged
-        where TReader : IReader<TDest>
+        where TReader : IReader<TDest>, allows ref struct
     {
         if (sizeof(TSource) != element.Size)
             throw new ArgumentException($"{typeof(TSource)} does not match element size ({sizeof(TSource)} != {element.Size})");
