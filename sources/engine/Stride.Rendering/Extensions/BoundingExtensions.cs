@@ -16,19 +16,19 @@ namespace Stride.Extensions
         {
             var helper = new VertexBufferHelper(vertexBufferBinding, vertexBufferBinding.Buffer.GetSerializationData().Content, out _);
 
-            var computeBoundsStruct = new ComputeBoundsStruct
+            var computeBounds = new ComputeBoundsHelper
             {
                 Box = BoundingBox.Empty, 
                 Sphere = new BoundingSphere(),
                 Matrix = matrix
             };
-            helper.Read<PositionSemantic, Vector3, ComputeBoundsStruct>(default, computeBoundsStruct);
+            helper.Read<PositionSemantic, Vector3, ComputeBoundsHelper>(default, computeBounds);
 
-            boundingSphere = computeBoundsStruct.Sphere;
-            return computeBoundsStruct.Box;
+            boundingSphere = computeBounds.Sphere;
+            return computeBounds.Box;
         }
 
-        struct ComputeBoundsStruct : VertexBufferHelper.IReader<Vector3>
+        class ComputeBoundsHelper : VertexBufferHelper.IReader<Vector3>
         {
             public required BoundingBox Box;
             public required BoundingSphere Sphere;
