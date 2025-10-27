@@ -10,6 +10,7 @@ using Stride.Core.Collections;
 using Stride.Core.Threading;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
+using System.Runtime.InteropServices;
 
 namespace Stride.Rendering
 {
@@ -285,16 +286,7 @@ namespace Stride.Rendering
                         var renderStage = RenderStages[renderViewStage.Index];
                         var sortedRenderNodes = renderViewStage.SortedRenderNodes;
 
-                        if (sortedRenderNodes.Count < renderNodes.Count)
-                        {
-                            sortedRenderNodes.EnsureCapacity(renderNodes.Count);
-                            while (sortedRenderNodes.Count != renderNodes.Count)
-                                sortedRenderNodes.Add(default);
-                        }
-                        else if (sortedRenderNodes.Count > renderNodes.Count)
-                        {
-                            sortedRenderNodes.RemoveRange(renderNodes.Count, sortedRenderNodes.Count - renderNodes.Count);
-                        }
+                        CollectionsMarshal.SetCount(sortedRenderNodes, renderNodes.Count);
 
                         if (renderStage.SortMode != null)
                         {
