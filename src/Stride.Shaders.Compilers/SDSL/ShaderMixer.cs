@@ -18,8 +18,9 @@ using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
-public partial class ShaderMixer(IExternalShaderLoader ShaderLoader)
+public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 {
+    public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
     public void MergeSDSL(string entryShaderName, out byte[] bytecode)
     {
         var temp = new NewSpirvBuffer();
@@ -42,7 +43,7 @@ public partial class ShaderMixer(IExternalShaderLoader ShaderLoader)
         CleanupUnnecessaryInstructions(temp);
         temp.Sort();
 
-        Spv.Dis(temp, DisassemblerFlags.Name & DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex);
+        // Spv.Dis(temp, DisassemblerFlags.Name & DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex);
 
         new StreamAnalyzer().Process(table, temp, context);
 
@@ -60,21 +61,21 @@ public partial class ShaderMixer(IExternalShaderLoader ShaderLoader)
 
         bytecode = temp.ToBytecode();
 
-        //File.WriteAllBytes("test.spv", bytecode);
+        // File.WriteAllBytes("test.spv", bytecode);
 
-        Spv.Dis(temp);
+        // Spv.Dis(temp, DisassemblerFlags.Id, writeToConsole: true);
         //File.WriteAllText("test.spvdis", source);
     }
 
     class MixinGlobalContext
     {
-        public Dictionary<int, string> Names { get; } = new();
-        public Dictionary<int, SymbolType> Types { get; } = new();
+        public Dictionary<int, string> Names { get; } = [];
+        public Dictionary<int, SymbolType> Types { get; } = [];
     }
 
     class MixinNodeContext
     {
-        public MixinNode Result { get; }
+        public MixinNode? Result { get; }
     }
 
 
@@ -114,7 +115,7 @@ public partial class ShaderMixer(IExternalShaderLoader ShaderLoader)
                     var compositionMixin = mixinSource.Compositions[variable.Key];
                     var compositionPath = currentCompositionPath != null ? $"{currentCompositionPath}.{variable.Key}" : variable.Key;
                     var compositionResult = MergeMixinNode(globalContext, context, table, buffer, compositionMixin, mixinNode.IsRoot ? mixinNode : mixinNode.Stage, compositionPath);
-                    
+
                     mixinNode.Compositions.Add(variable.Value.Id, compositionResult);
                 }
             }
@@ -163,7 +164,7 @@ public partial class ShaderMixer(IExternalShaderLoader ShaderLoader)
             for (var index = 0; index < shader.Count; index++)
             {
                 var i = shader[index];
-                
+
                 // Do we need to skip variable/functions? (depending on stage/non-stage)
                 {
                     var include = true;

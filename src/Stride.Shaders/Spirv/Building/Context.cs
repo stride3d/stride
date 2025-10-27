@@ -17,7 +17,7 @@ public interface IExternalShaderLoader
 
 public abstract class ShaderLoaderBase : IExternalShaderLoader
 {
-    private Dictionary<string, NewSpirvBuffer> loadedShaders = new();
+    private Dictionary<string, NewSpirvBuffer> loadedShaders = [];
 
     public void RegisterShader(string name, NewSpirvBuffer buffer)
     {
@@ -338,6 +338,6 @@ public class SpirvContext
 
     public override string ToString()
     {
-        return Spv.Dis(Buffer);
+        return Spv.Dis(Buffer, writeToConsole: false);
     }
 }

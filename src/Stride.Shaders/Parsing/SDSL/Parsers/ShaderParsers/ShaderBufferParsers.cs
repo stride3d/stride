@@ -163,6 +163,12 @@ public record struct BufferParsers : IParser<ShaderBuffer>
     public static bool BufferName<TScanner>(ref TScanner scanner, ParseResult result, out Identifier parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
-        return LiteralsParser.Identifier(ref scanner, result, out parsed, orError);
+        parsed = null!;
+        if(Parsers.Repeat(ref scanner, result, LiteralsParser.Identifier, out List<Identifier> identifiers, 1, true, ".", orError))
+        {
+            parsed = new Identifier(string.Join(".", identifiers.Select(i => i.Name)), scanner[identifiers[0].Info.Range.Start..identifiers[^1].Info.Range.End]);
+            return true;
+        }
+        else return false;
     }
 }
