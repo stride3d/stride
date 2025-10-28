@@ -15,6 +15,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using Stride.Shaders.Parsing.SDSL;
 using static Stride.Shaders.Spirv.Specification;
+using Stride.Shaders.Spirv.PostProcessing;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
@@ -43,28 +44,24 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         CleanupUnnecessaryInstructions(temp);
         temp.Sort();
 
-        // Spv.Dis(temp, DisassemblerFlags.Name & DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex);
-
         new StreamAnalyzer().Process(table, temp, context);
 
-        foreach (var inst in context.GetBuffer())
+        foreach (var inst in context)
             temp.Add(inst.Data);
 
-        new TypeDuplicateRemover().Apply(temp);
-        for (int i = 0; i < temp.Count; i++)
-        {
-            if (temp[i].Op == Op.OpNop)
-                temp.RemoveAt(i--);
-        }
+
+        // Final processing
+        SpirvProcessor.Process(temp);
+
 
         temp.Sort();
 
         bytecode = temp.ToBytecode();
 
-        // File.WriteAllBytes("test.spv", bytecode);
-
-        // Spv.Dis(temp, DisassemblerFlags.Id, writeToConsole: true);
-        //File.WriteAllText("test.spvdis", source);
+#if DEBUG
+        File.WriteAllBytes("test.spv", bytecode);
+        File.WriteAllText("test.spvdis", Spv.Dis(temp));
+#endif
     }
 
     class MixinGlobalContext

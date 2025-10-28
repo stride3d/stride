@@ -336,6 +336,8 @@ public class SpirvContext
     [Obsolete("Use the insert method instead")]
     public NewSpirvBuffer GetBuffer() => Buffer;
 
+    public NewSpirvBuffer.Enumerator GetEnumerator() => Buffer.GetEnumerator();
+
     public override string ToString()
     {
         return Spv.Dis(Buffer, writeToConsole: false);

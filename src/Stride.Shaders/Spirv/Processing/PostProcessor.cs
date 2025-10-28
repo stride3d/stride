@@ -11,13 +11,9 @@ public static class SpirvProcessor
 {
     public static void Process(NewSpirvBuffer buffer)
     {
-        // Apply<IOVariableDecorator>(buffer);
-        // Apply<SDSLVariableReplace>(buffer);
-        // Apply<FunctionVariableOrderer>(buffer);
         Apply<TypeDuplicateRemover>(buffer);
-        // Apply<MemoryModelDuplicatesRemover>(buffer);
         // Apply<BoundReducer>(buffer);
-        // Apply<OpRemover>(buffer);
+        Apply<NOPRemover>(buffer);
     }
 
     static void Apply<T>(NewSpirvBuffer buffer)

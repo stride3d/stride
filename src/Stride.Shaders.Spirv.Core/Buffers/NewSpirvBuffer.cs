@@ -23,8 +23,24 @@ public struct OpData : IDisposable, IComparable<OpData>
     public MemoryOwner<int> Memory { get; internal set { field?.Dispose(); field = value; } }
     public readonly Op Op => (Op)(Memory.Span[0] & 0xFFFF);
 
-    public readonly int? IdResult => InstructionInfo.GetInfo(this).GetResultIndex(out var index) ? Memory.Span[index + 1] : null;
-    public readonly int? IdResultType => InstructionInfo.GetInfo(this).GetResultTypeIndex(out var index) ? Memory.Span[index + 1] : null;
+    public readonly int? IdResult
+    {
+        get => InstructionInfo.GetInfo(this).GetResultIndex(out var index) ? Memory.Span[index + 1] : null;
+        set
+        {
+            if (InstructionInfo.GetInfo(this).GetResultIndex(out var index) && value is not null)
+                Memory.Span[index + 1] = value ?? 0;
+        }
+    }
+    public readonly int? IdResultType
+    {
+        get  => InstructionInfo.GetInfo(this).GetResultTypeIndex(out var index) ? Memory.Span[index + 1] : null;
+        set
+        {
+            if (InstructionInfo.GetInfo(this).GetResultTypeIndex(out var index) && value is not null)
+                Memory.Span[index + 1] = value ?? 0;
+        }
+    }
 
     public OpData()
     {
