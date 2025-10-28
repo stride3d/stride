@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:avalonia="clr-namespace:Stride.Core.Assets.Editor.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="300"
+             xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
+             d:DataContext="{d:DesignInstance viewModels:TemplateDescriptionCollectionViewModel}"
+             x:Class="Stride.Core.Assets.Editor.Avalonia.TemplateBrowserUserControl">
+    <avalonia:ObjectBrowserUserControl HierarchyItemsSource="{Binding RootGroups}"
+                                    SelectedHierarchyItem="{Binding SelectedGroup, Mode=TwoWay}"
+                                    ObjectItemsSource="{Binding Templates}"
+                                    SelectedObjectItem="{Binding SelectedTemplate}"
+                                    ObjectItemTemplateSelector="{StaticResource DataTypeTemplateSelector}">
+        <avalonia:ObjectBrowserUserControl.HierarchyItemTemplate>
+            <TreeDataTemplate ItemsSource="{Binding SubGroups}" DataType="viewModels:TemplateDescriptionGroupViewModel">
+                <TextBlock Text="{Binding Name}"/>
+            </TreeDataTemplate>
+        </avalonia:ObjectBrowserUserControl.HierarchyItemTemplate>
+        <avalonia:ObjectBrowserUserControl.ObjectDescriptionTemplate>
+            <DataTemplate DataType="viewModels:ITemplateDescriptionViewModel">
+                <StackPanel DockPanel.Dock="Top">
+                    <TextBlock FontWeight="Bold" Text="{Binding Name}" Margin="10"/>
+                    <TextBlock Text="{Binding FullDescription}" Margin="10,20" TextWrapping="Wrap"/>
+
+                    <ItemsControl ItemsSource="{Binding Screenshots}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Image Margin="2,12" Source="{Binding}" MaxWidth="192" StretchDirection="DownOnly" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </DataTemplate>
+        </avalonia:ObjectBrowserUserControl.ObjectDescriptionTemplate>
+    </avalonia:ObjectBrowserUserControl>
+</UserControl>

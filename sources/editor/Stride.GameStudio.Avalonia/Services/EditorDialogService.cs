@@ -9,6 +9,7 @@ using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Core.Assets.Editor.Avalonia;
 
 namespace Stride.GameStudio.Avalonia.Services;
 
@@ -89,6 +90,15 @@ internal class EditorDialogService : DialogService, IEditorDialogService
         {
             workProgress.NotifyWindowClosed();
         }
+    }
+
+    public void ShowProjectSelectionWindow()
+    {
+        var project = new ProjectSelectionWindow()
+        {
+            DataContext = new NewOrOpenSessionTemplateCollectionViewModel(serviceProvider)
+        };
+        project.Show();
     }
 
     public async Task ShowSettingsWindowAsync()

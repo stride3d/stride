@@ -14,10 +14,7 @@ namespace Stride.Core.MostRecentlyUsedFiles
 {
     // TODO: this is a hack because YamlSerializer is static and there is no way to disable serialization with Id for Settings at the moment. This is temporary!
     [NonIdentifiableCollectionItems]
-    public class MRUDictionary : Dictionary<string, List<MostRecentlyUsedFile>>
-    {
-
-    }
+    public class MRUDictionary : Dictionary<string, List<MostRecentlyUsedFile>>;
 
     /// <summary>
     /// A class that handles a list of most recently used (MRU) files.

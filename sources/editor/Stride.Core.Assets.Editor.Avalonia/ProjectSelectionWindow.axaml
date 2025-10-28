@@ -1,0 +1,54 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:avalonia="clr-namespace:Stride.Core.Assets.Editor.Avalonia"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        mc:Ignorable="d"
+        Height="768" Width="1024" ShowInTaskbar="False"
+        x:Class="Stride.Core.Assets.Editor.Avalonia.ProjectSelectionWindow"
+        d:DataContext="{d:DesignInstance avalonia:NewOrOpenSessionTemplateCollectionViewModel}">
+        <DockPanel>
+            <Grid DockPanel.Dock="Bottom">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Bottom" Margin="20">
+                        <Button DockPanel.Dock="Left" Content="{sd:LocalizeString Browse for existing project, Context=Button}" Command="{Binding BrowseForExistingProjectCommand}" Padding="20,6"/>
+                        <CheckBox IsChecked="{Binding AutoReloadSession}" Content="{sd:LocalizeString Reload last session automatically at startup, Context=Button}"
+                                    VerticalAlignment="Center" Margin="8"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <UniformGrid Rows="1">
+                                <Button Content="{sd:LocalizeString Select, Context=Button}" Padding="20,6" Margin="10,0,0,0"
+                                        IsEnabled="{Binding SelectedTemplate, Converter={sd:ObjectToBool}}">
+                                </Button>
+                                <Button Content="{sd:LocalizeString Cancel, Context=Button}" Padding="20,6" Margin="10,0,0,0" IsCancel="True">
+                                </Button>
+                            </UniformGrid>
+                        </StackPanel>
+                    </DockPanel>
+                    <Grid ColumnDefinitions="Auto,2*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{sd:LocalizeString Name:}" Margin="20,0" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" Margin="2" Text="{Binding Name}"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{sd:LocalizeString Location:}" Margin="20,0" VerticalAlignment="Center"/>
+                        <DockPanel Grid.Row="1" Grid.Column="1">
+                            <Button DockPanel.Dock="Right" Command="{Binding BrowseDirectoryCommand}" CommandParameter="Location">
+                            </Button>
+                            <TextBox Margin="2" Text="{Binding Location}"/>
+                        </DockPanel>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{sd:LocalizeString Solution name:}" Margin="20,0" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="2" Watermark="{sd:LocalizeString (Auto-generate solution name)}"
+                                        Text="{Binding SolutionName}">
+                        </TextBox>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{sd:LocalizeString Solution location:}" Margin="20,0" VerticalAlignment="Center"/>
+                        <DockPanel Grid.Row="3" Grid.Column="1">
+                            <Button DockPanel.Dock="Right" Command="{Binding BrowseDirectoryCommand}" CommandParameter="SolutionLocation" />
+                            <TextBox Margin="2" Watermark="{sd:LocalizeString (Same location)}" Text="{Binding SolutionLocation}">
+                            </TextBox>
+                        </DockPanel>
+                    </Grid>
+                </DockPanel>
+            </Grid>
+            
+            <avalonia:TemplateBrowserUserControl Margin="10"/>
+        </DockPanel>
+</Window>
+
