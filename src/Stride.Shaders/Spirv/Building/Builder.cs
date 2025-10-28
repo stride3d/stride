@@ -97,6 +97,6 @@ public partial class SpirvBuilder()
 
     public override string ToString()
     {
-        return Spv.Dis(Buffer);
+        return Spv.Dis(Buffer, writeToConsole: false);
     }
 }

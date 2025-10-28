@@ -10,6 +10,7 @@ using Stride.Shaders.Spirv.Building;
 using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Spirv.Core.Buffers;
 using SourceLanguage = Silk.NET.Shaderc.SourceLanguage;
+using Silk.NET.SPIRV;
 
 namespace Stride.Shaders.Experiments;
 
@@ -218,25 +219,37 @@ public static partial class Examples
                 return false;
             }
             var text = MonoGamePreProcessor.OpenAndRun(filename);
-            var sdslc = new SDSLC();
-            sdslc.ShaderLoader = this;
+            var sdslc = new SDSLC
+            {
+                ShaderLoader = this
+            };
             return sdslc.Compile(text, out buffer);
         }
     }
 
-    public static void CompileSDSL()
+    public static void CompileSDSL(string shaderName)
     {
-        var text = MonoGamePreProcessor.OpenAndRun("./assets/SDSL/TestBasic.sdsl");
+        // if(Directory.GetCurrentDirectory().Contains("bin\\Debug"))
+        // {
+        //     var info = new DirectoryInfo(Directory.GetCurrentDirectory());
+        //     while(!info.GetDirectories().Any(d => d.Name is "assets") || !info.GetFiles().Any(d => d.Name is "SDSL.sln") )
+        //         info = info.Parent!;
+        //     Directory.SetCurrentDirectory(info.FullName);
+        // }
+        var text = MonoGamePreProcessor.OpenAndRun($"./assets/SDSL/{shaderName}.sdsl");
 
         var sdslc = new SDSLC
         {
             ShaderLoader = new ShaderLoader()
         };
-        sdslc.Compile(text, out var buffer);
+        if (sdslc.Compile(text, out var buffer) && buffer is not null)
+        {
+            Spirv.Tools.Spv.Dis(buffer, writeToConsole: true);
+            var bytecode = buffer.ToBytecode();
+            File.WriteAllBytes("TestBasic.sdspv", bytecode);
+            var code = new SpirvTranslator(bytecode.AsMemory().Cast<byte, uint>());
+        }
 
-        var bytecode = buffer.ToBytecode();
-        File.WriteAllBytes("TestBasic.sdspv", bytecode);
-        var code = new SpirvTranslator(bytecode.AsMemory().Cast<byte, uint>());
         // Console.WriteLine(code.Translate(Backend.Hlsl));
 
     }

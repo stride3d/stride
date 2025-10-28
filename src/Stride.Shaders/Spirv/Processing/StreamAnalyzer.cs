@@ -35,9 +35,7 @@ namespace Stride.Shaders.Spirv.Processing
             public override string ToString() => $"{Type} {Name} {(Read ? "R" : "")} {(Write ? "W" : "")}";
         }
 
-        record struct AnalysisResult(SortedList<int, (StreamInfo Stream, bool IsDirect)> Streams, List<int> Blocks)
-        {
-        }
+        record struct AnalysisResult(SortedList<int, (StreamInfo Stream, bool IsDirect)> Streams, List<int> Blocks);
 
         public void Process(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context)
         {

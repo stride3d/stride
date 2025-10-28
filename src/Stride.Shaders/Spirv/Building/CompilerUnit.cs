@@ -34,15 +34,15 @@ public class CompilerUnit
         Context.Sort();
         return NewSpirvBuffer.Merge(Context.GetBuffer(), Builder.GetBuffer());
     }
-    public override string ToString()
-    {
-        var builder = new StringBuilder();
-        builder
-            .AppendLine("Context : ")
-            .AppendLine(Spv.Dis(Context.GetBuffer()))
-            .AppendLine("Functions : ")
-            .AppendLine(Spv.Dis(Builder.GetBuffer()));
-        return builder.ToString();
-    }
+    // public override string ToString()
+    // {
+    //     var builder = new StringBuilder();
+    //     builder
+    //         .AppendLine("Context : ")
+    //         .AppendLine(Spv.Dis(Context.GetBuffer()))
+    //         .AppendLine("Functions : ")
+    //         .AppendLine(Spv.Dis(Builder.GetBuffer()));
+    //     return builder.ToString();
+    // }
 #pragma warning restore CS0618 // Type or member is obsolete
 }

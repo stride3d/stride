@@ -42,18 +42,18 @@ public sealed class ShaderClassSource(string className) : ShaderSource, IEquatab
         return result.ToString();
     }
 
-    public bool Equals(ShaderClassSource shaderClassSource)
+    public bool Equals(ShaderClassSource? shaderClassSource)
     {
-        if (ReferenceEquals(null, shaderClassSource)) return false;
+        if (shaderClassSource is null) return false;
         if (ReferenceEquals(this, shaderClassSource)) return true;
         return
             string.Equals(ClassName, shaderClassSource.ClassName) &&
             GenericArguments.SequenceEqual(shaderClassSource.GenericArguments);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
-        if (ReferenceEquals(null, obj)) return false;
+        if (obj is null) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != GetType()) return false;
         return Equals((ShaderClassSource)obj);
@@ -82,9 +82,9 @@ public sealed class ShaderClassSource(string className) : ShaderSource, IEquatab
 
 public sealed class ShaderMixinSource : ShaderSource
 {
-    public List<ShaderClassSource> Mixins { get; } = new();
+    public List<ShaderClassSource> Mixins { get; } = [];
 
-    public Dictionary<string, ShaderMixinSource> Compositions { get; } = new();
+    public Dictionary<string, ShaderMixinSource> Compositions { get; } = [];
 
     public override string ToString()
     {
@@ -94,7 +94,7 @@ public sealed class ShaderMixinSource : ShaderSource
 
         if (Mixins != null && Mixins.Count > 0)
         {
-            result.Append(" ");
+            result.Append(' ');
             for (int i = 0; i < Mixins.Count; i++)
             {
                 if (i > 0)

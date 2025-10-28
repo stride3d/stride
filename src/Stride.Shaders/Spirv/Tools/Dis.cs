@@ -24,7 +24,6 @@ public static partial class Spv
     {
         var writer = new DisWriter(buffer, flags, writeToConsole);
         writer.Disassemble();
-        writer.ToString();
         return writer.ToString();
     }
 
@@ -43,29 +42,35 @@ public static partial class Spv
 
         readonly DisWriter AppendLine(string text, ConsoleColor? color = null)
         {
-            if (color is not null)
+            if (writeToConsole)
             {
-                var previousColor = Console.ForegroundColor;
-                Console.ForegroundColor = color.Value;
-                Console.WriteLine(text);
-                Console.ForegroundColor = previousColor;
+                if (color is not null)
+                {
+                    var previousColor = Console.ForegroundColor;
+                    Console.ForegroundColor = color.Value;
+                    Console.WriteLine(text);
+                    Console.ForegroundColor = previousColor;
+                }
+                else
+                    Console.WriteLine(text);
             }
-            else
-                Console.WriteLine(text);
             builder.AppendLine(text);
             return this;
         }
         readonly DisWriter Append<T>(T text, ConsoleColor? color = null)
         {
-            if (color is not null)
+            if (data.WriteToConsole)
             {
-                var previousColor = Console.ForegroundColor;
-                Console.ForegroundColor = color.Value;
-                Console.Write(text);
-                Console.ForegroundColor = previousColor;
+                if (color is not null)
+                {
+                    var previousColor = Console.ForegroundColor;
+                    Console.ForegroundColor = color.Value;
+                    Console.Write(text);
+                    Console.ForegroundColor = previousColor;
+                }
+                else
+                    Console.Write(text);
             }
-            else
-                Console.Write(text);
             builder.Append(text);
             return this;
         }

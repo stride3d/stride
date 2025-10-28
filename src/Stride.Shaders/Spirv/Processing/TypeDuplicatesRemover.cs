@@ -18,7 +18,6 @@ namespace Stride.Shaders.Spirv.Processing;
 /// </summary>
 public struct TypeDuplicateRemover : INanoPass
 {
-
     public readonly void Apply(NewSpirvBuffer buffer)
     {
         for (var index = 0; index < buffer.Count; index++)

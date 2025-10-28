@@ -23,8 +23,24 @@ public struct OpData : IDisposable, IComparable<OpData>
     public MemoryOwner<int> Memory { get; internal set { field?.Dispose(); field = value; } }
     public readonly Op Op => (Op)(Memory.Span[0] & 0xFFFF);
 
-    public readonly int? IdResult => InstructionInfo.GetInfo(this).GetResultIndex(out var index) ? Memory.Span[index + 1] : null;
-    public readonly int? IdResultType => InstructionInfo.GetInfo(this).GetResultTypeIndex(out var index) ? Memory.Span[index + 1] : null;
+    public readonly int? IdResult
+    {
+        get => InstructionInfo.GetInfo(this).GetResultIndex(out var index) ? Memory.Span[index + 1] : null;
+        set
+        {
+            if (InstructionInfo.GetInfo(this).GetResultIndex(out var index) && value is not null)
+                Memory.Span[index + 1] = value ?? 0;
+        }
+    }
+    public readonly int? IdResultType
+    {
+        get  => InstructionInfo.GetInfo(this).GetResultTypeIndex(out var index) ? Memory.Span[index + 1] : null;
+        set
+        {
+            if (InstructionInfo.GetInfo(this).GetResultTypeIndex(out var index) && value is not null)
+                Memory.Span[index + 1] = value ?? 0;
+        }
+    }
 
     public OpData()
     {
@@ -162,10 +178,14 @@ public sealed class NewSpirvBuffer() : IDisposable
     }
 
 
-    public void Add(OpData data)
+    void UpdateBound(OpData data)
     {
         if (data.IdResult is int index && index >= Header.Bound)
             Header = Header with { Bound = index + 1 };
+    }
+
+    public void Add(OpData data)
+    {
         Instructions.Add(data);
     }
 
@@ -179,6 +199,7 @@ public sealed class NewSpirvBuffer() : IDisposable
                 Instructions.Add(new(instruction.InstructionMemory));
         }
         else Instructions.Add(new(instruction.InstructionMemory));
+        UpdateBound(Instructions[^1]);
         return Instructions[^1];
     }
 
@@ -193,9 +214,7 @@ public sealed class NewSpirvBuffer() : IDisposable
         }
         else Instructions.Add(new(instruction.InstructionMemory));
         instruction.DataIndex = new(Instructions.Count - 1, this);
-
-        if (instruction.GetInfo().GetResultIndex(out int rid) && instruction.InstructionMemory.Span[rid + 1] >= Header.Bound)
-            Header = Header with { Bound = instruction.InstructionMemory.Span[rid + 1] + 1 };
+        UpdateBound(Instructions[^1]);
     }
     public NewSpirvBuffer FluentAdd<T>(in T instruction) where T : struct, IMemoryInstruction
     {
@@ -208,8 +227,7 @@ public sealed class NewSpirvBuffer() : IDisposable
         }
         else Instructions.Add(new(instruction.InstructionMemory));
         var tmp = instruction;
-        if (tmp.GetInfo().GetResultIndex(out int rid) && tmp.InstructionMemory.Span[rid + 1] >= Header.Bound)
-            Header = Header with { Bound = tmp.InstructionMemory.Span[rid + 1] + 1 };
+        UpdateBound(Instructions[^1]);
         return this;
     }
     public NewSpirvBuffer FluentAdd<T>(in T instruction, out T result) where T : struct, IMemoryInstruction
@@ -223,21 +241,15 @@ public sealed class NewSpirvBuffer() : IDisposable
                 Instructions.Add(new(instruction.InstructionMemory));
         }
         else Instructions.Add(new(instruction.InstructionMemory));
-        var tmp = instruction;
-        if (tmp.GetInfo().GetResultIndex(out int rid) && instruction.InstructionMemory.Span[rid + 1] >= Header.Bound)
-            Header = Header with { Bound = instruction.InstructionMemory.Span[rid + 1] + 1 };
+        UpdateBound(Instructions[^1]);
         return this;
     }
 
-    public void Insert(int index, OpData data)
-        => Instructions.Insert(index, data);
     public T Insert<T>(int index, in T data)
         where T : struct, IMemoryInstruction
     {
         Instructions.Insert(index, new(data.InstructionMemory));
-        var tmp = data;
-        if (tmp.GetInfo().GetResultIndex(out int rid) && tmp.InstructionMemory.Span[rid + 1] >= Header.Bound)
-            Header = Header with { Bound = tmp.InstructionMemory.Span[rid + 1] + 1 };
+        UpdateBound(Instructions[^1]);
         return data;
     }
     public OpData InsertData<T>(int index, in T data)
@@ -245,6 +257,7 @@ public sealed class NewSpirvBuffer() : IDisposable
     {
         var result = new OpData(data.InstructionMemory);
         Instructions.Insert(index, result);
+        UpdateBound(result);
         return result;
     }
 
@@ -357,7 +370,7 @@ public static class IMemoryInstructionExtensions
     public static LogicalOperandArray GetInfo<T>(this ref T op)
         where T : struct, IMemoryInstruction
     {
-        if(op.DataIndex is OpDataIndex odi)
+        if (op.DataIndex is OpDataIndex odi)
             return InstructionInfo.GetInfo(odi.Data);
         return InstructionInfo.GetInfo(op.InstructionMemory.Span);
     }
