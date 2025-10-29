@@ -87,7 +87,7 @@
 			</MenuItem>
 		</Menu>
 
-		
+		<!-- Tool Bar -->
 		<StackPanel Grid.Row="1"
 					Orientation="Horizontal"
 					Margin="4,2"
