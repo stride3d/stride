@@ -4,10 +4,12 @@
 using DotRecast.Recast;
 using Stride.Core;
 
-namespace Stride.BepuPhysics.Navigation.Definitions;
-[DataContract("DotRecastBuildSettings")]
+namespace Stride.DotRecast.Definitions;
+[DataContract]
 public class BuildSettings
 {
+    public NavMeshLayer Layer = NavMeshLayer.Layer1;
+
     public float CellSize = 0.3f;
 
     public float CellHeight = 0.2f;
@@ -59,7 +61,7 @@ public class BuildSettings
 
     public float DetailSampleMaxError = 1f;
 
-    public bool Tiled;
+    public bool Tiled = true;
 
     public int TileSize = 32;
 }
