@@ -909,24 +909,49 @@ public sealed class BepuSimulation : IDisposable
         private sealed class Handler<T> : Elider where T : ISimulationUpdate // This class get specialized to a concrete type
         {
             private List<T> _abstraction = [];
-            protected override void Add(ISimulationUpdate obj) => _abstraction.Add((T)obj);
-            protected override bool Remove(ISimulationUpdate obj) => _abstraction.Remove((T)obj);
+            private int _processingIndex, _removedWhileProcessing;
+            protected override void Add(ISimulationUpdate obj)
+            {
+                _abstraction.Add((T)obj);
+            }
+
+            protected override bool Remove(ISimulationUpdate obj)
+            {
+                int idx = _abstraction.IndexOf((T)obj);
+                if (idx < 0)
+                    return false;
+
+                // If this occured as part of a SimulationUpdate,
+                // ensure execution of said update continues from the right component
+                if (idx <= _processingIndex)
+                {
+                    _removedWhileProcessing++;
+                    _processingIndex--;
+                }
+
+                _abstraction.RemoveAt(idx);
+                return true;
+            }
+
             protected override void SimulationUpdate(BepuSimulation sim, float deltaTime)
             {
-                foreach (var abstraction in _abstraction)
-                    abstraction.SimulationUpdate(sim, deltaTime);
+                _processingIndex = _removedWhileProcessing = 0;
+                for (int i = 0; i < _abstraction.Count; i += 1 - _removedWhileProcessing, _removedWhileProcessing = 0, _processingIndex = i)
+                    _abstraction[i].SimulationUpdate(sim, deltaTime);
             }
+
             protected override void AfterSimulationUpdate(BepuSimulation sim, float deltaTime)
             {
-                foreach (var abstraction in _abstraction)
-                    abstraction.AfterSimulationUpdate(sim, deltaTime);
+                _processingIndex = _removedWhileProcessing = 0;
+                for (int i = 0; i < _abstraction.Count; i += 1 - _removedWhileProcessing, _removedWhileProcessing = 0, _processingIndex = i)
+                    _abstraction[i].AfterSimulationUpdate(sim, deltaTime);
             }
         }
     }
 
     internal class AwaitRunner
     {
-        private object _addLock = new();
+        private Lock _addLock = new();
         private List<Action> _scheduled = new();
         private List<Action> _processed = new();
 
