@@ -45,7 +45,7 @@ namespace Stride.Audio
             Source = AudioLayer.SourceCreate(listener.Listener, soundStreamedBuffer.SampleRate, streamedSource.MaxNumberOfBuffers, 
                 soundStreamedBuffer.Channels == 1, spatialized, true, useHrtf, directionalFactor, environment);
 
-            if (Source.Ptr == IntPtr.Zero)
+            if (Source == null)
                 throw new Exception("Failed to create an AudioLayer Source");
 
             ResetStateToDefault();
