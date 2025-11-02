@@ -937,6 +937,7 @@ namespace Stride.Importer.ThreeD
             else
             {
                 var transform = fromNode->MTransformation.ToStrideMatrix();
+                transform = rootTransform * transform * rootTransformInverse;
                 transform.Decompose(out modelNodeDefinition.Transform.Scale, out modelNodeDefinition.Transform.Rotation, out modelNodeDefinition.Transform.Position);
             }
 
@@ -1700,7 +1701,15 @@ namespace Stride.Importer.ThreeD
                     mp.MaterialIndices.Add(matIndex);
             }
 
-            return aggregated.Values.ToList();
+            var list = aggregated.Values.ToList();
+
+            int start = 0;
+            foreach (var mp in list)
+            {
+                mp.MeshStartIndex = start;
+                start += mp.MaterialIndices.Count;
+            }
+            return list;
         }
 
 
