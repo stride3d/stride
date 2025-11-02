@@ -137,7 +137,7 @@
       </DrawingGroup>
     </DrawingImage.Drawing>
   </DrawingImage>
-  
+
   <DrawingImage x:Key="ImageRemove">
     <DrawingImage.Drawing>
       <DrawingGroup>
@@ -149,6 +149,16 @@
                            Geometry="F1M9.4141,8L13.9571,12.543 12.5431,13.957 8.0001,9.414 3.4571,13.957 2.0431,12.543 6.5861,8 2.0431,3.457 3.4571,2.043 8.0001,6.586 12.5431,2.043 13.9571,3.457z" />
         </DrawingGroup.Children>
       </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="ImageStart">
+    <DrawingImage.Drawing>
+      <GeometryDrawing Brush="#4CAF50">
+        <GeometryDrawing.Geometry>
+          <Geometry>F1 M 2,2 L 14,8 L 2,14 Z</Geometry>
+        </GeometryDrawing.Geometry>
+      </GeometryDrawing>
     </DrawingImage.Drawing>
   </DrawingImage>
 </ResourceDictionary>
