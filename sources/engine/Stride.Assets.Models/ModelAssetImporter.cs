@@ -136,14 +136,14 @@ namespace Stride.Assets.Models
                     {
                         var allCopy = AssetCloner.Clone(modelAsset);
                         allCopy.Id = AssetId.New();
-                        var allUrl = new UFile(localPath.GetFileNameWithoutExtension() + " (All)");
+                        var allUrl = new UFile(localPath.GetFileNameWithoutExtension());
                         rawAssetReferences.Add(new AssetItem(allUrl, allCopy));
                     }
                 }
                 else
                 {
                     // Only the combined "All" model (no per-mesh assets)
-                    var allUrl = new UFile(localPath.GetFileNameWithoutExtension() + " (All)");
+                    var allUrl = new UFile(localPath.GetFileNameWithoutExtension());
                     modelAsset = ImportModel(rawAssetReferences, localPath, allUrl, entityInfo, false, skeletonAsset);
                 }
             }        
