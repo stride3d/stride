@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -53,34 +54,85 @@ namespace Stride.Assets.Presentation.ViewModel
 
         protected override void UpdateAssetFromSource(ModelAsset assetToMerge)
         {
-            //Keep the material assignment unchanged for sub mesh model asset
+
             if (Asset.KepMeshIndex > -1)
-                return;
-
-            // Create a dictionary containing all new and old materials, favoring old ones to maintain existing references
-            var dictionary = assetToMerge.Materials.ToDictionary(x => x.Name, x => x);
-            Asset.Materials.ForEach(x => dictionary[x.Name] = x);
-
-            // Create a dictionary mapping existing materials to their item id, to attempt to maintain existing ids and avoid unnecessary changes.
-            var ids = CollectionItemIdHelper.GetCollectionItemIds(Asset.Materials).ToDictionary(x => Asset.Materials[(int)x.Key].Name, x => x.Value);
-
-            // Remove currently existing materials, one by one because Quantum does not provide a Clear method.
-            var materialsNode = AssetRootNode[nameof(ModelAsset.Materials)].Target;
-            while (Asset.Materials.Count > 0)
             {
-                materialsNode.Remove(Asset.Materials[0], new NodeIndex(0));
+                var importer = GetImporter() as ModelAssetImporter;
+                var importParams = new AssetImporterParameters();
+                importParams.InputParameters.Set(ModelAssetImporter.SplitHierarchyKey, true);
+                var entityInfo = importer.GetEntityInfo(Asset.MainSource, null, importParams);
+                var updatedEntityModel = entityInfo.Models.Where(c=>c.MeshStartIndex==Asset.KepMeshIndex).First();
+
+                var needed = new HashSet<int>();
+
+                if (entityInfo.NodeNameToMaterialIndices != null && entityInfo.Nodes != null)
+                {
+                    var nodeName = updatedEntityModel.NodeName;
+                    if (!string.IsNullOrEmpty(nodeName) &&
+                        entityInfo.NodeNameToMaterialIndices.TryGetValue(nodeName, out var idxList) &&
+                        idxList != null)
+                    {
+                        foreach (var idx in idxList) needed.Add(idx);
+                    }
+                }
+
+                if (needed.Count == 0 && updatedEntityModel.MaterialIndices != null)
+                {
+                    foreach (var idx in updatedEntityModel.MaterialIndices) needed.Add(idx);
+                }
+
+                if (needed.Count == 0)
+                    return;
+
+                var globalNames =
+                    (entityInfo.MaterialOrder != null && entityInfo.MaterialOrder.Count > 0)
+                        ? entityInfo.MaterialOrder.ToList()
+                        : (entityInfo.Materials != null
+                                ? entityInfo.Materials.Keys.OrderBy(k => k, StringComparer.Ordinal).ToList()
+                                : new List<string>());
+
+                var subMeshMaterialsNode = AssetRootNode[nameof(ModelAsset.Materials)].Target;
+      
+                int insert = 0;
+                foreach (var idx in needed.OrderBy(i => i))
+                {
+                    var slotName = (idx < globalNames.Count) ? globalNames[idx] : $"Material {idx + 1}";
+
+                    if (!Asset.Materials.Any(c => c.Name == slotName))
+                    {
+                        var slot = new ModelMaterial
+                        {
+                            Name = slotName,
+                            MaterialInstance = new MaterialInstance()
+                        };
+
+                        subMeshMaterialsNode.Restore(slot, new NodeIndex(insert++), ItemId.New());
+                    }
+                }
+
             }
-
-            // Repopulate the list of materials
-            for (var i = 0; i < assetToMerge.Materials.Count; ++i)
+            else
             {
-                // Retrieve or create an id for the material
-                ItemId id;
-                if (!ids.TryGetValue(assetToMerge.Materials[i].Name, out id))
-                    id = ItemId.New();
 
-                // Use Restore to allow to set manually the id.
-                materialsNode.Restore(dictionary[assetToMerge.Materials[i].Name], new NodeIndex(i), id);
+                var dictionary = assetToMerge.Materials.ToDictionary(x => x.Name, x => x);
+                Asset.Materials.ForEach(x => dictionary[x.Name] = x);
+
+                var ids = CollectionItemIdHelper.GetCollectionItemIds(Asset.Materials).ToDictionary(x => Asset.Materials[(int)x.Key].Name, x => x.Value);
+
+                var materialsNode = AssetRootNode[nameof(ModelAsset.Materials)].Target;
+                while (Asset.Materials.Count > 0)
+                {
+                    materialsNode.Remove(Asset.Materials[0], new NodeIndex(0));
+                }
+
+                for (var i = 0; i < assetToMerge.Materials.Count; ++i)
+                {
+                    ItemId id;
+                    if (!ids.TryGetValue(assetToMerge.Materials[i].Name, out id))
+                        id = ItemId.New();
+
+                    materialsNode.Restore(dictionary[assetToMerge.Materials[i].Name], new NodeIndex(i), id);
+                }
             }
         }
 
