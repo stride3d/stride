@@ -186,14 +186,22 @@ public partial class SPVGenerator : IIncrementalGenerator
 
                 // Body 2
                 body2.AppendLine($"{(tmp == 0 ? "" : "else ")}if(o.Name == \"{operandName}\")");
+                bool needCloseBrace = false;
                 // Optional operands
                 if (operand.Quantifier == "?")
+                {
+                    body2.AppendLine("{");
                     body2.AppendLine("if (o.Words.Length > 0)");
+                    needCloseBrace = true;
+                }
                 if (typename.StartsWith("LiteralArray"))
                     body2.AppendLine($"{fieldName} = o.To{typename}();");
                 else if (operand.Class is string s && s.Contains("Enum"))
                     body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
                 else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename}>();");
+
+                if (needCloseBrace)
+                    body2.AppendLine("}");
                 // Body 3
                 body3.AppendLine($"{fieldName} = {operandName};");
             }
