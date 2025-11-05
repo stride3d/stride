@@ -202,6 +202,17 @@ public partial class SPVGenerator : IIncrementalGenerator
 
                 if (needCloseBrace)
                     body2.AppendLine("}");
+
+                if (grammar.OperandKinds?.AsDictionary() is Dictionary<string, OpKind> dict
+                    && dict.TryGetValue(operand.Kind, out var opkind) && opkind.Enumerants?.AsList() is List<Enumerant> enumerants && enumerants.Any(x => x.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 }))
+                {
+                    body2.AppendLine($"else if({string.Join(" || ", enumerants
+                        .Where(e => e.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 })
+                        .SelectMany(enumerant => enumerant.Parameters?.AsList())
+                        .Select(param => $"o.Name == \"{param.Name ?? ConvertKindToName(param.Kind)}\""))})");
+                    body2.AppendLine($"{fieldName} = new({fieldName}{(typename.EndsWith("?") ? ".Value" : "")}.Value, o.Words);");
+                }
+
                 // Body 3
                 body3.AppendLine($"{fieldName} = {operandName};");
             }
