@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#7F7F7F7F)
+// PSMain(ExpectedResult=#32323232)
 
 namespace Stride.Shaders.Tests;
 
@@ -6,7 +6,7 @@ shader CompositionBase
 {
 	float4 Compute()
 	{
-		return float4(0.1, 0.1, 0.1, 0.1);
+		return float4(10.0, 10.0, 10.0, 10.0) / 255.0;
 	}
 };
  
@@ -14,7 +14,7 @@ shader CompositionShaderA : CompositionBase
 {
 	override float4 Compute()
 	{
-		return float4(0.2, 0.2, 0.2, 0.2);
+		return float4(20.0, 20.0, 20.0, 20.0) / 255.0;
 	}
 };
  
@@ -22,7 +22,7 @@ shader CompositionShaderB : CompositionBase
 {
 	override float4 Compute()
 	{
-		return base.Compute() + float4(0.1, 0.1, 0.1, 0.1);
+		return base.Compute() + float4(10.0, 10.0, 10.0, 10.0) / 255.0;
 	}
 };
  

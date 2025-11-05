@@ -1,5 +1,5 @@
-// PSMain(ExpectedResult=#FFFFFFFF, cbuffer.Test=10)
-// PSMain(ExpectedResult=#7F7F7F7F, cbuffer.Test=5)
+// PSMain(ExpectedResult=#0A0A0A0A, cbuffer.Test=10)
+// PSMain(ExpectedResult=#05050505, cbuffer.Test=5)
 // PSMain(ExpectedResult=#00000000, cbuffer.Test=0)
 
 namespace Stride.Shaders.Tests;
@@ -20,7 +20,7 @@ shader ForBreak
         {
             if (i == Test1)
                 break;
-            streams.ColorTarget += float4(0.1, 0.1, 0.1, 0.1);
+            streams.ColorTarget += float4(1.0, 1.0, 1.0, 1.0) / 255.0;
         }
     }
 }

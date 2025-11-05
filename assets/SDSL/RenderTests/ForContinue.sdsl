@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#7F7F0000)
+// PSMain(ExpectedResult=#05050000)
 
 namespace Stride.Shaders.Tests;
 
@@ -18,13 +18,13 @@ shader ForContinue
         {
             if (i % 2 == 0)
                 continue;
-            streams.ColorTarget += float4(0.1, 0.0, 0.0, 0.0);
+            streams.ColorTarget += float4(1.0, 0.0, 0.0, 0.0) / 255.0;
         }
         for (i = 0; i < 10; ++i)
         {
             if (i % 2 == 1)
                 continue;
-            streams.ColorTarget += float4(0.0, 0.1, 0.0, 0.0);
+            streams.ColorTarget += float4(0.0, 1.0, 0.0, 0.0) / 255.0;
         }
     }
 }

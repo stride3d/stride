@@ -8,6 +8,6 @@ shader ConstantFloat4Return
 
     void PSMain()
     {
-        streams.ColorTarget = float4(1.0, 0.0, 0.5, 1.0);
+        streams.ColorTarget = float4(255.0, 0.0, 127.0, 255.0) / 255.0;
     }
 }

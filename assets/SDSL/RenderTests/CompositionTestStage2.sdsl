@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#BFBFFFFF)
+// PSMain(ExpectedResult=#09090000)
 
 namespace Stride.Shaders.Tests;
 
@@ -6,17 +6,12 @@ shader CompositionBase
 {
 	stage float BaseStageMethod1()
 	{
-		return 0.25;
-	}
-
-	float ComputeBase()
-	{
-		return 0.1;
+		return 2.0;
 	}
 
 	float ComputeThis()
 	{
-		return 0.1;
+		return 2.0;
 	}
 };
  
@@ -24,7 +19,7 @@ shader CompositionShaderA : CompositionBase
 {
 	stage override float BaseStageMethod1()
 	{
-		return base.BaseStageMethod1() + 0.25;
+		return base.BaseStageMethod1() + 3.0;
 	}
 
 	override float ComputeThis()
@@ -37,7 +32,7 @@ shader CompositionShaderB : CompositionBase
 {
 	stage override float BaseStageMethod1()
 	{
-		return base.BaseStageMethod1() + 0.25;
+		return base.BaseStageMethod1() + 4.0;
 	}
 
 	override float ComputeThis()
@@ -55,7 +50,7 @@ shader CompositionTest
  
 	void PSMain()
 	{
-		streams.ColorTarget = float4(Comp0.ComputeThis(), Comp1.ComputeThis(), 1.0, 1.0);
+		streams.ColorTarget = float4(Comp0.ComputeThis(), Comp1.ComputeThis(), 0.0, 0.0) / 255.0;
 	}
 };
 

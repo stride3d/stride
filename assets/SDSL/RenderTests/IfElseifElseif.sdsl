@@ -20,8 +20,8 @@ shader IfElseifElseif
         if (Test1 == 1)
             streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
         else if (Test1 == 2)
-            streams.ColorTarget = float4(0.5, 0.5, 0.5, 0.5);
+            streams.ColorTarget = float4(127.0, 127.0, 127.0, 127.0) / 255.0;
         else if (Test1 == 3)
-            streams.ColorTarget = float4(1.0, 0.5, 0.5, 0.5);
+            streams.ColorTarget = float4(255.0, 127.0, 127.0, 127.0) / 255.0;
     }
 }

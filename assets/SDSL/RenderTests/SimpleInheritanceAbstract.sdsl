@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#7F7F7F7F)
+// PSMain(ExpectedResult=#01010101)
 
 namespace Stride.Shaders.Tests;
 
@@ -25,7 +25,7 @@ shader SimpleInheritanceBase3 : SimpleInheritanceBase2
     void Test()
     {
         streams.ColorTarget = float4(0.0, 1.0, 1.0, 0.0);
-        SetColor(float4(0.5, 0.5, 0.5, 0.5));
+        SetColor(float4(1.0, 1.0, 1.0, 1.0) / 255.0);
     }
 
     void PSMain()

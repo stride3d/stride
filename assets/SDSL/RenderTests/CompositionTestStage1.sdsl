@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#BF407FFF)
+// PSMain(ExpectedResult=#06020408)
 
 namespace Stride.Shaders.Tests;
 
@@ -6,22 +6,22 @@ shader CompositionBase
 {
 	stage float BaseStageMethod1()
 	{
-		return 0.125;
+		return 1.0;
 	}
 
 	stage float BaseStageMethod2()
 	{
-		return 0.125;
+		return 1.0;
 	}
 
 	stage float BaseStageMethod3()
 	{
-		return 0.125;
+		return 1.0;
 	}
 
 	stage float BaseStageMethod4()
 	{
-		return 0.25;
+		return 2.0;
 	}
 };
  
@@ -29,12 +29,12 @@ shader CompositionShaderA : CompositionBase
 {
 	stage override float BaseStageMethod2()
 	{
-		return base.BaseStageMethod2() + 0.125;
+		return base.BaseStageMethod2() + 1.0;
 	}
 
 	stage override float BaseStageMethod4()
 	{
-		return base.BaseStageMethod4() + 0.25;
+		return base.BaseStageMethod4() + 2.0;
 	}
 };
  
@@ -42,12 +42,12 @@ shader CompositionShaderB : CompositionBase
 {
 	stage override float BaseStageMethod3()
 	{
-		return base.BaseStageMethod3() + 0.375;
+		return base.BaseStageMethod3() + 3.0;
 	}
 
 	stage override float BaseStageMethod4()
 	{
-		return base.BaseStageMethod4() + 0.25;
+		return base.BaseStageMethod4() + 2.0;
 	}
 };
  
@@ -60,17 +60,17 @@ shader CompositionTest : CompositionBase
 
 	stage override float BaseStageMethod1()
 	{
-		return base.BaseStageMethod1() + 0.625;
+		return base.BaseStageMethod1() + 5.0;
 	}
 
 	stage override float BaseStageMethod4()
 	{
-		return base.BaseStageMethod4() + 0.25;
+		return base.BaseStageMethod4() + 2.0;
 	}
  
 	void PSMain()
 	{
-		streams.ColorTarget = float4(BaseStageMethod1(), BaseStageMethod2(), BaseStageMethod3(), BaseStageMethod4());
+		streams.ColorTarget = float4(BaseStageMethod1(), BaseStageMethod2(), BaseStageMethod3(), BaseStageMethod4()) / 255.0;
 	}
 };
 
