@@ -456,19 +456,13 @@ namespace Stride.GameStudio.ViewModels
                         case PlatformType.Linux:
                             platformName = "Linux";
                             extraProperties.Add("SolutionPlatform", "Linux");
-                            if (StrideEditorSettings.UseCoreCLR.GetValue())
-                            {
-                                configuration = "CoreCLR_" + configuration;
-                            }
+                            configuration = "CoreCLR_" + configuration;
                             break;
 
                         case PlatformType.macOS:
                             platformName = "macOS";
                             extraProperties.Add("SolutionPlatform", "macOS");
-                            if (StrideEditorSettings.UseCoreCLR.GetValue())
-                            {
-                                configuration = "CoreCLR_" + configuration;
-                            }
+                            configuration = "CoreCLR_" + configuration;
                             break;
 
                         default:
@@ -573,7 +567,7 @@ namespace Stride.GameStudio.ViewModels
                                 }
 
                                 // Launch game on remote host
-                                var launchApp = await Task.Run(() => RemoteFacilities.Launch(logger, new UFile(assemblyPath), StrideEditorSettings.UseCoreCLR.GetValue()));
+                                var launchApp = await Task.Run(() => RemoteFacilities.Launch(logger, new UFile(assemblyPath)));
                                 if (!launchApp)
                                 {
                                     logger.Error(string.Format(Tr._p("Message", "Unable to launch project {0}"), new UFile(assemblyPath).GetFileName()));
