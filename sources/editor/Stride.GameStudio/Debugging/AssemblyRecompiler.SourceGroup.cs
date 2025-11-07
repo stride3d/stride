@@ -54,15 +54,10 @@ namespace Stride.GameStudio.Debugging
 
         public class SourceGroupComparer : EqualityComparer<SourceGroup>
         {
-            private static readonly SourceGroupComparer _default = new SourceGroupComparer();
-
             /// <summary>
             /// Gets the default.
             /// </summary>
-            public static new SourceGroupComparer Default
-            {
-                get { return _default; }
-            }
+            public static new SourceGroupComparer Default { get; } = new();
 
             public override bool Equals(SourceGroup x, SourceGroup y)
             {
