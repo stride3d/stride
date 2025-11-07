@@ -49,7 +49,6 @@ namespace Stride.GameStudio.ViewModels
         private bool trackAssemblyChanges;
         private string outputTitle;
         private readonly string outputTitleBase = Tr._p("Title", "Output");
-        private bool buildInProgress;
         private ICancellableAsyncBuild currentBuild;
 
         public DebuggingViewModel(GameStudioViewModel editor, IDebugService debugService)
@@ -126,7 +125,7 @@ namespace Stride.GameStudio.ViewModels
         /// <summary>
         /// Gets whether there is a build currently in progress.
         /// </summary>
-        public bool BuildInProgress { get => buildInProgress; private set => SetValue(ref buildInProgress, value, UpdateCommands); }
+        public bool BuildInProgress { get; private set => SetValue(ref field, value, UpdateCommands); }
 
         [NotNull]
         public ICommandBase BuildProjectCommand { get; }
