@@ -3,45 +3,30 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Stride.CrashReport;
 using System.ComponentModel;
+using System.IO;
 
 namespace Stride.Editor.CrashReport
 {
     public partial class CrashReportForm : Form
     {
         public const string PrivacyPolicyUrl = "https://stride3d.net/legal/privacy-policy";
+        private const string GithubIssuesUrl = "https://github.com/stride3d/stride/issues/new?labels=bug&template=bug_report.md";
 
         private readonly CrashReportData currentData;
         private int initialHeight;
-        private bool expanded;
 
-        private readonly ICrashEmailSetting settings;
-
-        public CrashReportForm(CrashReportData crashReport, ICrashEmailSetting storeCrashEmailSetting)
+        public CrashReportForm(CrashReportData crashReport)
         {
-            settings = storeCrashEmailSetting;
             currentData = crashReport;
             InitializeComponent();
+            StartPosition = FormStartPosition.CenterScreen;
             textBoxLog.Text = crashReport.ToString();
-            if (settings == null)
-            {
-                emailCheckbox.Visible = false;
-            }
-            else
-            {
-                textBoxEmail.Text = settings == null ? "" : settings.StoreCrashEmail ? settings.Email : "";
-                if (!string.IsNullOrEmpty(textBoxEmail.Text))
-                {
-                    emailCheckbox.Checked = true;
-                }
-            }
         }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public bool Expanded { get { return expanded; } set { expanded = value; RefreshSize(); } }
+        public bool Expanded { get; set { field = value; RefreshSize(); } }
 
         private void RefreshSize()
         {
@@ -59,8 +44,6 @@ namespace Stride.Editor.CrashReport
 
         private void RefreshReport()
         {
-            currentData["UserEmail"] = textBoxEmail.Text ?? "";
-            currentData["UserMessage"] = textBoxDescription.Text ?? "";
             textBoxLog.Text = currentData.ToString();
         }
 
@@ -70,34 +53,24 @@ namespace Stride.Editor.CrashReport
             Expanded = false;
         }
 
-        private void ButtonSend_Click(object sender, EventArgs e)
+        private void ButtonOpenGithubIssues_Click(object sender, EventArgs e)
         {
-            if (emailCheckbox.Checked)
+            try
             {
-                settings.StoreCrashEmail = true;
-                settings.Email = textBoxEmail.Text;
-                settings.Save();
+                Process browser = new();
+                browser.StartInfo.FileName = GithubIssuesUrl;
+                browser.StartInfo.UseShellExecute = true;
+                browser.Start();
             }
-            else
+            catch (Exception)
             {
-                settings.StoreCrashEmail = false;
-                settings.Email = "";
-                settings.Save();
-            }
+                var error = "An error occurred while opening the browser. You can access Github Issues at the following url:"
+                            + Environment.NewLine + Environment.NewLine + GithubIssuesUrl;
 
-            RefreshReport();
-            MailReport(currentData);
+                MessageBox.Show(error, @"Stride", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
 
             DialogResult = DialogResult.Yes;
-
-            Close();
-        }
-
-        private void ButtonDontSend_Click(object sender, EventArgs e)
-        {
-            DialogResult = DialogResult.No;
-
-            Close();
         }
 
         private void ButtonViewLog_Click(object sender, EventArgs e)
@@ -105,55 +78,26 @@ namespace Stride.Editor.CrashReport
             Expanded = !Expanded;
         }
 
-        private void LinkPrivacyPolicy_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            try
-            {
-                //Open URL in user's default browser when clicked
-                Process process = new Process();
-                process.StartInfo.FileName = PrivacyPolicyUrl;
-                process.StartInfo.UseShellExecute = true;
-                process.Start();
-            }
-            // FIXME: catch only specific exceptions?
-            catch (Exception)
-            {
-                var error = "An error occurred while opening the browser. You can access the privacy policy at the following url:"
-                    + Environment.NewLine + Environment.NewLine + PrivacyPolicyUrl;
-
-                MessageBox.Show(error, @"Stride", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void TextBoxText_Changed(object sender, EventArgs e)
-        {
-            RefreshReport();
-        }
-
-        private void button1_Click(object sender, EventArgs e)
+        private void ButtonCopyReport_Click(object sender, EventArgs e)
         {
             RefreshReport();
             Clipboard.SetText(currentData.ToString());
         }
 
-        private static void MailReport(CrashReportData report)
+        private async void ButtonSaveReport_Click(object sender, EventArgs e)
         {
-            var task = Task.Run(async () =>
+            RefreshReport();
+
+            var fileDialog = new SaveFileDialog()
             {
-                try
-                {
-                    await CrashReporter.Report(report);
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            });
-            var result = task.Result;
-            if (!result)
+                FileName = "Report.txt",
+                DefaultExt = "txt",
+                Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*"
+            };
+            var result = fileDialog.ShowDialog(this);
+            if (result == DialogResult.OK)
             {
-                MessageBox.Show(@"An error occurred while sending the report. Unable to contact the server.", @"Stride", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                await File.WriteAllTextAsync(fileDialog.FileName, currentData.ToString());
             }
         }
     }
