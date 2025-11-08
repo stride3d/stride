@@ -32,7 +32,6 @@ namespace Stride.Core.Presentation.ViewModel
 
         private int updateInterval = DefaultUpdateInterval;
         private bool updatePending;
-        private bool hasNewMessages;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoggerViewModel"/> class.
@@ -114,7 +113,7 @@ namespace Stride.Core.Presentation.ViewModel
         /// <summary>
         /// Gets whether the monitored logs have new messages.
         /// </summary>
-        public bool HasNewMessages { get { return hasNewMessages; } private set { SetValue(ref hasNewMessages, value); } }
+        public bool HasNewMessages { get; private set { SetValue(ref field, value); } }
 
         /// <summary>
         /// Gets the minimum level of message that will be recorded by this view model.
