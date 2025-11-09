@@ -11,7 +11,7 @@ Defaults:
         DefaultBackBufferWidth: 1280
         DefaultBackBufferHeight: 720
         AdaptBackBufferToScreen: false
-        DefaultGraphicsProfile: Level_9_1
+        DefaultGraphicsProfile: Level_10_0
         ColorSpace: Linear
         DisplayOrientation: Default
     - !Stride.Assets.EditorSettings,Stride.Assets

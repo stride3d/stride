@@ -90,7 +90,7 @@ namespace Stride.Graphics
 
             // Default fallback
             if (graphicsProfiles.Length == 0)
-                graphicsProfiles = new[] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 };
+                graphicsProfiles = [GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0];
 
             // Initialize this instance
             InitializePlatformDevice(graphicsProfiles, deviceCreationFlags, windowHandle);

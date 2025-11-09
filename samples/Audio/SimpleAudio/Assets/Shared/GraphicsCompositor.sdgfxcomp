@@ -2,7 +2,7 @@
 Id: c73fddfe-01b7-4fe0-ab60-51f001463388
 SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
-Archetype: 9af53371-51ba-49fc-b420-ee7874892e75:DefaultGraphicsCompositorLevel9
+Archetype: 823a81bf-bac0-4552-9267-aeed499c40df:DefaultGraphicsCompositorLevel10
 Cameras:
     de2e75c3b2b23e54162686363f3f138e:
         Id: 57e08c0b-503c-44d7-9d9b-8ba93e72fea6

@@ -119,16 +119,13 @@ namespace Stride.Games
             preferredBackBufferHeight = DefaultBackBufferHeight;
             preferredRefreshRate = new Rational(60, 1);
             PreferredMultisampleCount = MultisampleCount.None;
-            PreferredGraphicsProfile = new[]
-                {
-                    GraphicsProfile.Level_11_1, 
-                    GraphicsProfile.Level_11_0, 
-                    GraphicsProfile.Level_10_1, 
-                    GraphicsProfile.Level_10_0, 
-                    GraphicsProfile.Level_9_3, 
-                    GraphicsProfile.Level_9_2, 
-                    GraphicsProfile.Level_9_1, 
-                };
+            PreferredGraphicsProfile =
+            [
+                GraphicsProfile.Level_11_1, 
+                GraphicsProfile.Level_11_0, 
+                GraphicsProfile.Level_10_1, 
+                GraphicsProfile.Level_10_0,
+            ];
 
             graphicsDeviceFactory = game.Services.GetService<IGraphicsDeviceFactory>();
             if (graphicsDeviceFactory == null)
@@ -175,9 +172,6 @@ namespace Stride.Games
         /// <see cref="GraphicsProfile.Level_11_0"/>,
         /// <see cref="GraphicsProfile.Level_10_1"/>,
         /// <see cref="GraphicsProfile.Level_10_0"/>,
-        /// <see cref="GraphicsProfile.Level_9_3"/>,
-        /// <see cref="GraphicsProfile.Level_9_2"/>,
-        /// <see cref="GraphicsProfile.Level_9_1"/>}
         /// </remarks>
         public GraphicsProfile[] PreferredGraphicsProfile { get; set; }
 
@@ -798,7 +792,7 @@ namespace Stride.Games
 
         protected virtual bool IsPreferredProfileAvailable(GraphicsProfile[] preferredProfiles, out GraphicsProfile availableProfile)
         {
-            availableProfile = GraphicsProfile.Level_9_1;
+            availableProfile = GraphicsProfile.Level_10_0;
 
             var graphicsProfiles = Enum.GetValues(typeof(GraphicsProfile));
 

@@ -65,7 +65,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel10.sdgfxcomp" />
-    <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel9.sdgfxcomp" />
     <None Include="AssetPackage\Assets\Shared\StrideClearCoatMetalFlakesNM.sdtex" />
     <None Include="AssetPackage\Assets\Shared\StrideClearCoatOrangePeelNM.sdtex" />
     <None Include="AssetPackage\Assets\Shared\StrideDebugSpriteFont.sdtex" />

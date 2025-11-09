@@ -150,18 +150,6 @@ namespace Stride.Assets.Textures
             // determine if the desired size if valid depending on the graphics profile
             switch (parameters.GraphicsProfile)
             {
-                case GraphicsProfile.Level_9_1:
-                case GraphicsProfile.Level_9_2:
-                case GraphicsProfile.Level_9_3:
-                    if (parameters.GenerateMipmaps && (!MathUtil.IsPow2(textureSize.Width) || !MathUtil.IsPow2(textureSize.Height)))
-                    {
-                        // TODO: TEMPORARY SETUP A MAX TEXTURE OF 1024. THIS SHOULD BE SPECIFIED DONE IN THE ASSET INSTEAD
-                        textureSize.Width = Math.Min(MathUtil.NextPowerOfTwo(textureSize.Width), 1024);
-                        textureSize.Height = Math.Min(MathUtil.NextPowerOfTwo(textureSize.Height), 1024);
-                        logger?.Warning("Graphic profiles 9.1/9.2/9.3 do not support mipmaps with textures that are not power of 2. Asset is automatically resized to " + textureSize);
-                    }
-                    maxTextureSize = parameters.GraphicsProfile >= GraphicsProfile.Level_9_3 ? 4096 : 2048;
-                    break;
                 case GraphicsProfile.Level_10_0:
                 case GraphicsProfile.Level_10_1:
                     maxTextureSize = 8192;
@@ -213,11 +201,6 @@ namespace Stride.Assets.Textures
                             {
                                 switch (parameters.GraphicsProfile)
                                 {
-                                    case GraphicsProfile.Level_9_1:
-                                    case GraphicsProfile.Level_9_2:
-                                    case GraphicsProfile.Level_9_3:
-                                        outputFormat = alphaMode == AlphaFormat.None && !parameters.IsSRgb ? PixelFormat.ETC1 : parameters.IsSRgb ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm;
-                                        break;
                                     case GraphicsProfile.Level_10_0:
                                     case GraphicsProfile.Level_10_1:
                                     case GraphicsProfile.Level_11_0:
@@ -294,24 +277,21 @@ namespace Stride.Assets.Textures
 
                                     // Overrides the format when profile is >= 10.0
                                     // Support some specific optimized formats based on the hint or input type
-                                    if (parameters.GraphicsProfile >= GraphicsProfile.Level_10_0)
+                                    if (parameters.GraphicsPlatform != GraphicsPlatform.OpenGL && hint == TextureHint.NormalMap)
                                     {
-                                        if (parameters.GraphicsPlatform != GraphicsPlatform.OpenGL && hint == TextureHint.NormalMap)
-                                        {
-                                            outputFormat = PixelFormat.BC5_UNorm;
-                                        }
-                                        else if (parameters.GraphicsPlatform != GraphicsPlatform.OpenGL && hint == TextureHint.Grayscale)
-                                        {
-                                            outputFormat = PixelFormat.BC4_UNorm;
-                                        }
-                                        else if (inputImageFormat.IsHDR())
-                                        {
-                                            // BC6H is too slow to compile
-                                            //outputFormat = parameters.GraphicsProfile >= GraphicsProfile.Level_11_0 && alphaMode == AlphaFormat.None ? PixelFormat.BC6H_Uf16 : inputImageFormat;
-                                            outputFormat = inputImageFormat;
-                                        }
-                                        // TODO support the BC6/BC7 but they are so slow to compile that we can't use them right now
+                                        outputFormat = PixelFormat.BC5_UNorm;
                                     }
+                                    else if (parameters.GraphicsPlatform != GraphicsPlatform.OpenGL && hint == TextureHint.Grayscale)
+                                    {
+                                        outputFormat = PixelFormat.BC4_UNorm;
+                                    }
+                                    else if (inputImageFormat.IsHDR())
+                                    {
+                                        // BC6H is too slow to compile
+                                        //outputFormat = parameters.GraphicsProfile >= GraphicsProfile.Level_11_0 && alphaMode == AlphaFormat.None ? PixelFormat.BC6H_Uf16 : inputImageFormat;
+                                        outputFormat = inputImageFormat;
+                                    }
+                                    // TODO support the BC6/BC7 but they are so slow to compile that we can't use them right now
                                     break;
                                 case GraphicsPlatform.OpenGLES: // OpenGLES on Windows
                                     if (inputImageFormat.IsHDR())
@@ -326,11 +306,6 @@ namespace Stride.Assets.Textures
                                     {
                                         switch (parameters.GraphicsProfile)
                                         {
-                                            case GraphicsProfile.Level_9_1:
-                                            case GraphicsProfile.Level_9_2:
-                                            case GraphicsProfile.Level_9_3:
-                                                outputFormat = alphaMode == AlphaFormat.None ? PixelFormat.ETC1 : PixelFormat.R8G8B8A8_UNorm;
-                                                break;
                                             case GraphicsProfile.Level_10_0:
                                             case GraphicsProfile.Level_10_1:
                                             case GraphicsProfile.Level_11_0:

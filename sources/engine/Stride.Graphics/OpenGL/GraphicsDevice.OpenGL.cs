@@ -633,7 +633,7 @@ namespace Stride.Graphics
             // set default values
             version = 100;
 
-            requestedGraphicsProfile = GraphicsProfile.Level_9_1;
+            requestedGraphicsProfile = GraphicsProfile.Level_10_0;
 
             // Find the first profile that is compatible with current GL version
             foreach (var graphicsProfile in graphicsProfiles)

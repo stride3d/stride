@@ -48,7 +48,7 @@ namespace Stride.Particles.Tests
 
         private GraphicsProfile overrideGraphicsProfile;
 
-        public GameTest(string name, GraphicsProfile profile = GraphicsProfile.Level_9_3)
+        public GameTest(string name, GraphicsProfile profile = GraphicsProfile.Level_10_0)
         {
             testName = name;
 

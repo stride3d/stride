@@ -16,12 +16,8 @@ namespace Stride.Rendering.Materials
             UpdateNormalFromTangentSpace(streams.matNormal);
             
             // Flip the normal so it is facing the right direction for back faces
-#if STRIDE_GRAPHICS_API_DIRECT3D && STRIDE_GRAPHICS_PROFILE < GRAPHICS_PROFILE_LEVEL_10_0
-            //streams.normalWS = streams.normalWS * sign(streams.IsFrontFace);// FIXME: VFACE seems to not work in a proper way
-#else
             if(!streams.IsFrontFace)
                 streams.normalWS = -streams.normalWS;
-#endif
 
             // Make sure that light stream is reset
             ResetLightStream();
