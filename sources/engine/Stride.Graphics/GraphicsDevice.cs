@@ -114,8 +114,7 @@ namespace Stride.Graphics
         ///   </para>
         ///   <para>
         ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
-        ///     <see cref="GraphicsProfile.Level_10_0"/>, <see cref="GraphicsProfile.Level_9_3"/>, <see cref="GraphicsProfile.Level_9_2"/>, and
-        ///     <see cref="GraphicsProfile.Level_9_1"/>.
+        ///     <see cref="GraphicsProfile.Level_10_0"/>.
         ///   </para>
         /// </param>
         /// <param name="creationFlags">
@@ -147,8 +146,7 @@ namespace Stride.Graphics
         ///   </para>
         ///   <para>
         ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
-        ///     <see cref="GraphicsProfile.Level_10_0"/>, <see cref="GraphicsProfile.Level_9_3"/>, <see cref="GraphicsProfile.Level_9_2"/>, and
-        ///     <see cref="GraphicsProfile.Level_9_1"/>.
+        ///     <see cref="GraphicsProfile.Level_10_0"/>.
         ///   </para>
         /// </param>
         /// <param name="creationFlags">
@@ -170,7 +168,7 @@ namespace Stride.Graphics
 
             // Default fallback
             if (graphicsProfiles.Length == 0)
-                graphicsProfiles = [ GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 ];
+                graphicsProfiles = [ GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0 ];
 
             // Initialize this instance
             InitializePlatformDevice(graphicsProfiles, creationFlags, windowHandle);
@@ -354,8 +352,7 @@ namespace Stride.Graphics
         ///   </para>
         ///   <para>
         ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
-        ///     <see cref="GraphicsProfile.Level_10_0"/>, <see cref="GraphicsProfile.Level_9_3"/>, <see cref="GraphicsProfile.Level_9_2"/>, and
-        ///     <see cref="GraphicsProfile.Level_9_1"/>.
+        ///     <see cref="GraphicsProfile.Level_10_0"/>.
         ///   </para>
         /// </param>
         /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
@@ -381,8 +378,7 @@ namespace Stride.Graphics
         ///   </para>
         ///   <para>
         ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
-        ///     <see cref="GraphicsProfile.Level_10_0"/>, <see cref="GraphicsProfile.Level_9_3"/>, <see cref="GraphicsProfile.Level_9_2"/>, and
-        ///     <see cref="GraphicsProfile.Level_9_1"/>.
+        ///     <see cref="GraphicsProfile.Level_10_0"/>.
         ///   </para>
         /// </param>
         /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
@@ -413,8 +409,7 @@ namespace Stride.Graphics
         ///   </para>
         ///   <para>
         ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
-        ///     <see cref="GraphicsProfile.Level_10_0"/>, <see cref="GraphicsProfile.Level_9_3"/>, <see cref="GraphicsProfile.Level_9_2"/>, and
-        ///     <see cref="GraphicsProfile.Level_9_1"/>.
+        ///     <see cref="GraphicsProfile.Level_10_0"/>.
         ///   </para>
         /// </param>
         /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>

@@ -91,7 +91,7 @@ namespace Stride.Rendering.Lights
             lightCount = MathUtil.NextPowerOfTwo(lightCount);
 
             // Make sure it is at least 8 to avoid unecessary permutations
-            lightCount = Math.Max(lightCount, graphicsProfile >= GraphicsProfile.Level_10_0 ? 8 : 0);
+            lightCount = Math.Max(lightCount, 8);
 
             return lightCount;
         }

@@ -24,27 +24,6 @@ namespace Stride.Graphics;
 public enum GraphicsProfile
 {
     /// <summary>
-    ///   Identifies Graphics Devices with capabilities roughly at the level of DirectX 9.0a (HLSL 3.0),
-    ///   or Vulkan 1.0.
-    /// </summary>
-    [Display("Level 9.1 ~ like Direct3D 9.0 / Vulkan 1.0")]
-    Level_9_1 = 0x9100,
-
-    /// <summary>
-    ///   Identifies Graphics Devices with capabilities roughly at the level of DirectX 9.0b (HLSL 3.0),
-    ///   or Vulkan 1.0.
-    /// </summary>
-    [Display("Level 9.2 ~ like Direct3D 9.0b / Vulkan 1.0")]
-    Level_9_2 = 0x9200,
-
-    /// <summary>
-    ///   Identifies Graphics Devices with capabilities roughly at the level of DirectX 9.0c (HLSL 3.0),
-    ///   or Vulkan 1.0.
-    /// </summary>
-    [Display("Level 9.3 ~ like Direct3D 9.0c / Vulkan 1.0")]
-    Level_9_3 = 0x9300,
-
-    /// <summary>
     ///   Identifies Graphics Devices with capabilities roughly at the level of DirectX 10
     ///   (HLSL 4.0, Geometry Shaders), or Vulkan 1.0.
     /// </summary>

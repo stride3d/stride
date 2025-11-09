@@ -142,7 +142,7 @@ namespace Stride.Graphics.Regression
         ///   services and systems.
         ///   The Graphics Device settings are set to a Back-Buffer size of 800 by 480 pixels,
         ///   a 24-bit Depth Buffer with a 8-bit Stencil Buffer, and it is configured with the
-        ///   <see cref="DeviceCreationFlags.Debug"/> flag and the <see cref="GraphicsProfile.Level_9_1"/>
+        ///   <see cref="DeviceCreationFlags.Debug"/> flag and the <see cref="GraphicsProfile.Level_10_0"/>
         ///   profile.
         /// </remarks>
         protected GameTestBase()
@@ -161,7 +161,7 @@ namespace Stride.Graphics.Regression
 #if DEBUG
                 DeviceCreationFlags = DeviceCreationFlags.Debug,
 #endif
-                PreferredGraphicsProfile = [ GraphicsProfile.Level_9_1 ]
+                PreferredGraphicsProfile = [ GraphicsProfile.Level_10_0 ]
             };
             Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
             Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);

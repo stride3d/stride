@@ -184,7 +184,7 @@ namespace Stride.Graphics.Tests
                     // Release the Texture
                     texture.Dispose();
                 },
-                GraphicsProfile.Level_9_1);
+                GraphicsProfile.Level_10_0);
         }
 
         [Fact]
@@ -498,7 +498,7 @@ namespace Stride.Graphics.Tests
 
                     Log.Info($"Test loading {fileName} GPU texture / saving to {intermediateFormat} and compare with original Memory {testMemoryAfter - testMemoryBefore} delta bytes, in {time}ms");
                 },
-                GraphicsProfile.Level_9_1);
+                GraphicsProfile.Level_10_0);
         }
 
         [SkippableTheory, MemberData(nameof(ImageFileTypes))]
@@ -530,17 +530,15 @@ namespace Stride.Graphics.Tests
                     // Texture.Load returns straight alpha; pair it with the matching blend.
                     game.GraphicsContext.DrawTexture(texture, BlendStates.NonPremultiplied);
                 },
-                GraphicsProfile.Level_9_1);
+                GraphicsProfile.Level_10_0);
         }
 
         [SkippableTheory]
-        [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Staging)]
-        [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Default)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Staging)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Default)]
         public void TestGetData(GraphicsProfile profile, GraphicsResourceUsage usage)
         {
-            var testArray = profile >= GraphicsProfile.Level_10_0;
+            var mipmaps = 3; // TODO remove this limitation when GetData is fixed on OpenGl ES for mipmap levels other than 0
 
             PerformTest(
                 game =>
@@ -548,10 +546,9 @@ namespace Stride.Graphics.Tests
                     const int width = 16;
                     const int height = width;
                     var arraySize = testArray ? 2 : 1;
-
-                    TextureFlags[] flags = usage is GraphicsResourceUsage.Default
-                        ? [ TextureFlags.ShaderResource, TextureFlags.RenderTarget, TextureFlags.RenderTarget | TextureFlags.ShaderResource ]
-                        : [ TextureFlags.None ];
+                    var flags = usage == GraphicsResourceUsage.Default?
+                        new[] { TextureFlags.ShaderResource, TextureFlags.RenderTarget, TextureFlags.RenderTarget | TextureFlags.ShaderResource }:
+                        new[] { TextureFlags.None };
 
                     var pixelFormat = PixelFormat.R8G8B8A8_UNorm;
                     var data = CreateDebugTextureData(width, height, 3, arraySize, pixelFormat, DefaultColorComputer);
@@ -566,20 +563,18 @@ namespace Stride.Graphics.Tests
         }
 
         [SkippableTheory]
-        [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Staging)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Staging)]
-        [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Default)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Default)]
         public void TestCopy(GraphicsProfile profile, GraphicsResourceUsage usageSource)
         {
-            var testArray = profile >= GraphicsProfile.Level_10_0;
+            var mipmaps = 3; // TODO remove this limitation when GetData is fixed on OpenGl ES for mipmap levels other than 0
 
             PerformTest(
                 game =>
                 {
                     const int width = 16;
                     const int height = width;
-                    var arraySize = testArray ? 2 : 1;
+                    var arraySize = 2;
 
                     PixelFormat[] pixelFormats = [ PixelFormat.R8G8B8A8_UNorm, PixelFormat.R8G8B8A8_UNorm_SRgb, PixelFormat.R8_UNorm ];
 

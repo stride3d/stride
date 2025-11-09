@@ -34,7 +34,6 @@ namespace Stride.Graphics.Tests
             GraphicsDeviceManager.PreferredGraphicsProfile = [ GraphicsProfile.Level_11_0 ];
         }
 
-
         /// <inheritdoc/>
         protected override async Task LoadContent()
         {

@@ -57,8 +57,8 @@ namespace Stride.Rendering.Compositing
                 PostEffects = postProcessingEffects,
             };
 
-            var forwardLighting = graphicsProfile >= GraphicsProfile.Level_10_0
-                ? new ForwardLightingRenderFeature
+            var forwardLighting = 
+                new ForwardLightingRenderFeature
                 {
                     LightRenderers =
                     {
@@ -90,17 +90,6 @@ namespace Stride.Rendering.Compositing
                                 ShadowCasterRenderStage = shadowCasterCubeMapRenderStage,
                             },
                         },
-                    },
-                }
-                : new ForwardLightingRenderFeature
-                {
-                    LightRenderers =
-                    {
-                        new LightAmbientRenderer(),
-                        new LightDirectionalGroupRenderer(),
-                        new LightSkyboxRenderer(),
-                        new LightPointGroupRenderer(),
-                        new LightSpotGroupRenderer(),
                     },
                 };
 

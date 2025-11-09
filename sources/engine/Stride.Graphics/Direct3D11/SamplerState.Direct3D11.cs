@@ -82,21 +82,6 @@ public unsafe partial class SamplerState
         Debug.Assert(sizeof(Color4) == (4 * sizeof(float)));
         Unsafe.AsRef<Color4>(samplerDescription.BorderColor) = Description.BorderColor;
 
-        // For 9.1, anisotropy cannot be larger than 2.
-        // Mirror once is not supported either.
-        if (GraphicsDevice.Features.CurrentProfile == GraphicsProfile.Level_9_1)
-        {
-            // TODO: Min with user-value instead?
-            samplerDescription.MaxAnisotropy = 2;
-
-            if (samplerDescription.AddressU == Silk.NET.Direct3D11.TextureAddressMode.MirrorOnce)
-                samplerDescription.AddressU = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
-            if (samplerDescription.AddressV == Silk.NET.Direct3D11.TextureAddressMode.MirrorOnce)
-                samplerDescription.AddressV = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
-            if (samplerDescription.AddressW == Silk.NET.Direct3D11.TextureAddressMode.MirrorOnce)
-                samplerDescription.AddressW = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
-        }
-
         ComPtr<ID3D11SamplerState> newSamplerState = default;
         HResult result = NativeDevice.CreateSamplerState(in samplerDescription, ref newSamplerState);
 
