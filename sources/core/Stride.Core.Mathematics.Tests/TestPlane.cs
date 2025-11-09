@@ -105,23 +105,23 @@ public class TestPlane
     [Fact]
     public void TestPlaneNegate()
     {
-        // Note: Plane.Negate actually normalizes the plane, not negates it
-        // For negation, use the unary - operator
         var plane = new Plane(2, 0, 0, 4);
 
-        // Normalize using Negate method
-        var normalized = Plane.Negate(plane);
-        Assert.Equal(1, normalized.Normal.X, 3);
-        Assert.Equal(0, normalized.Normal.Y, 3);
-        Assert.Equal(0, normalized.Normal.Z, 3);
-        Assert.Equal(2, normalized.D, 3);
-
-        // Actual negation using unary operator
-        var negated = -plane;
+        // Test static method
+        var negated = Plane.Negate(plane);
         Assert.Equal(-2, negated.Normal.X);
         Assert.Equal(0, negated.Normal.Y);
         Assert.Equal(0, negated.Normal.Z);
         Assert.Equal(-4, negated.D);
+
+        // Test unary operator
+        var negated2 = -plane;
+        Assert.Equal(negated, negated2);
+
+        // Test instance method
+        plane.Negate();
+        Assert.Equal(-2, plane.Normal.X);
+        Assert.Equal(-4, plane.D);
     }
 
     [Fact]
