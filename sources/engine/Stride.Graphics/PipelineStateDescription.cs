@@ -91,7 +91,7 @@ public sealed class PipelineStateDescription : IEquatable<PipelineStateDescripti
             RasterizerState = RasterizerState,
             DepthStencilState = DepthStencilState,
 
-            InputElements = (InputElementDescription[]) InputElements.Clone(),
+            InputElements = (InputElementDescription[]) InputElements?.Clone(),
 
             PrimitiveType = PrimitiveType,
 

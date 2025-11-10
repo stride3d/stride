@@ -370,7 +370,7 @@ namespace Stride.Graphics
 
                 HResult result = initiatDataPerSubresource.IsEmpty
                     ? NativeDevice.CreateTexture1D(in description, pInitialData: null, ref texture1D)
-                    : NativeDevice.CreateTexture1D(in description, in initiatDataPerSubresource[0], ref texture1D);
+                    : NativeDevice.CreateTexture1D(in description, in initiatDataPerSubresource.GetReference(), ref texture1D);
 
                 if (result.IsFailure)
                     result.Throw();
@@ -390,7 +390,7 @@ namespace Stride.Graphics
 
                 HResult result = initiatDataPerSubresource.IsEmpty
                     ? NativeDevice.CreateTexture2D(in description, pInitialData: null, ref texture2D)
-                    : NativeDevice.CreateTexture2D(in description, in initiatDataPerSubresource[0], ref texture2D);
+                    : NativeDevice.CreateTexture2D(in description, in initiatDataPerSubresource.GetReference(), ref texture2D);
 
                 if (result.IsFailure)
                     result.Throw();
@@ -410,7 +410,7 @@ namespace Stride.Graphics
 
                 HResult result = initiatDataPerSubresource.IsEmpty
                     ? NativeDevice.CreateTexture3D(in description, pInitialData: null, ref texture3D)
-                    : NativeDevice.CreateTexture3D(in description, in initiatDataPerSubresource[0], ref texture3D);
+                    : NativeDevice.CreateTexture3D(in description, in initiatDataPerSubresource.GetReference(), ref texture3D);
 
                 if (result.IsFailure)
                     result.Throw();

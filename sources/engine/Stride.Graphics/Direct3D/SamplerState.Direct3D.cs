@@ -71,8 +71,8 @@ public unsafe partial class SamplerState
             ComparisonFunc = (ComparisonFunc) Description.CompareFunction,
             Filter = (Filter) Description.Filter,
             MaxAnisotropy = (uint) Description.MaxAnisotropy,
-            MaxLOD = (uint) Description.MaxMipLevel,
-            MinLOD = (uint) Description.MinMipLevel,
+            MaxLOD = Description.MaxMipLevel,
+            MinLOD = Description.MinMipLevel,
             MipLODBias = Description.MipMapLevelOfDetailBias
         };
         Debug.Assert(sizeof(Color4) == (4 * sizeof(float)));

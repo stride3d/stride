@@ -376,7 +376,7 @@ namespace Stride.Graphics
 
                 Span<byte> messageBytes = stackalloc byte[(int) messageLength];
 
-                ref var message = ref Unsafe.As<byte, Message>(ref messageBytes[0]);
+                ref var message = ref Unsafe.As<byte, Message>(ref messageBytes.GetReference());
                 result = nativeInfoQueue->GetMessageA(index, ref message, ref messageLength);
 
                 if (result.IsFailure)

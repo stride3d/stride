@@ -152,9 +152,8 @@ public abstract unsafe partial class GraphicsResourceBase
         {
             GraphicsResourceUsage.Dynamic => CpuAccessFlag.Write,
             GraphicsResourceUsage.Staging => CpuAccessFlag.Read | CpuAccessFlag.Write,
-            GraphicsResourceUsage.Immutable => CpuAccessFlag.None,
 
-            _ => CpuAccessFlag.Read
+            _ => CpuAccessFlag.None
         };
     }
 

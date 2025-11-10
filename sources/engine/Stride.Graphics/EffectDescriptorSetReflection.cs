@@ -74,7 +74,7 @@ public class EffectDescriptorSetReflection
                 {
                     var matchingSamplerState = effectBytecode.Reflection.SamplerStates.FirstOrDefault(x => x.Key == resourceBinding.Key.Key);
                     if (matchingSamplerState is not null)
-                        samplerState = SamplerState.New(graphicsDevice, matchingSamplerState.Description);
+                        samplerState = SamplerState.New(graphicsDevice, in matchingSamplerState.Description);
                 }
                 hasBindings = true;
 

@@ -254,10 +254,10 @@ namespace Stride.Graphics
 
 #if DIRECTX11_1
                 Span<ModeDesc1> displayModes = stackalloc ModeDesc1[(int) displayModeCount];
-                result = output1.GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes[0]);
+                result = output1.GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes.GetReference());
 #else
                 Span<ModeDesc> displayModes = stackalloc ModeDesc[(int) displayModeCount];
-                result = dxgiOutput->GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes[0]);
+                result = dxgiOutput->GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes.GetReference());
 #endif
 
                 for (int i = 0; i < displayModeCount; i++)

@@ -59,7 +59,12 @@ public sealed class VertexDeclaration : IEquatable<VertexDeclaration>
         VertexElementValidator.Validate(this.vertexStride, elements);
 
         // Precompute hash code
-        hashCode = HashCode.Combine(instanceCount, this.vertexStride, elements);
+        HashCode hash = new();
+        hash.Add(instanceCount);
+        hash.Add(this.vertexStride);
+        foreach (var element in elements)
+            hash.Add(element);
+        hashCode = hash.ToHashCode();
     }
 
 

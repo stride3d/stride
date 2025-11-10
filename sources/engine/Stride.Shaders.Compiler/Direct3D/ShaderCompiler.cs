@@ -83,7 +83,9 @@ namespace Stride.Shaders.Compiler.Direct3D
 
             if (isDebug)
             {
-                shaderFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+                // We could also specify D3DCOMPILE_SKIP_OPTIMIZATION, but that makes shaders sometimes
+                // use more registers and ALU ops than maximum allowed on Graphics Profiles <= 9.3
+                shaderFlags = D3DCOMPILE_DEBUG;
             }
             switch (optimLevel)
             {

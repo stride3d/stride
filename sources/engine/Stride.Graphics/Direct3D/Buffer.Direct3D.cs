@@ -86,7 +86,7 @@ namespace Stride.Graphics
                 {
                     ByteWidth = (uint) bufferDescription.SizeInBytes,
                     StructureByteStride = (uint) bufferDescription.StructureByteStride,
-                    CPUAccessFlags = 0,
+                    CPUAccessFlags = (uint) GetCpuAccessFlagsFromUsage(bufferDescription.Usage),
                     BindFlags = 0,
                     Usage = (Usage) bufferDescription.Usage
                 };
@@ -381,6 +381,8 @@ namespace Stride.Graphics
 
                 if (result.IsFailure)
                     result.Throw();
+
+                NativeUnorderedAccessView = unorderedAccessView;
             }
         }
     }

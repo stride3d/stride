@@ -184,7 +184,8 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
         var hash = new HashCode();
         hash.Add(AlphaToCoverageEnable);
         hash.Add(IndependentBlendEnable);
-        hash.Add(RenderTargets);
+        for (int i = 0; i < RenderTargets.Count; i++)
+            hash.Add(RenderTargets[i]);
         return hash.ToHashCode();
     }
 }

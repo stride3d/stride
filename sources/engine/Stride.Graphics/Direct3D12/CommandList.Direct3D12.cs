@@ -283,7 +283,7 @@ namespace Stride.Graphics
             if (!viewportDirty && !scissorsDirty)
                 return;
 
-            scoped ref var viewport = ref viewports[0];
+            scoped ref var viewport = ref viewports.GetReference();
 
             if (viewportDirty)
             {
@@ -307,7 +307,7 @@ namespace Stride.Graphics
                 if (scissorsDirty)
                 {
                     // Use manual scissor
-                    scoped ref var scissor = ref scissors[0];
+                    scoped ref var scissor = ref scissors.GetReference();
                     var scissorRect = new SilkBox2I
                     {
                         Min = { X = scissor.X, Y = scissor.Y },

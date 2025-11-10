@@ -184,7 +184,7 @@ namespace Stride.Graphics
                 currentRenderTargetViews[i] = renderTargets[i].NativeRenderTargetView;
 
             nativeDeviceContext->OMSetRenderTargets(NumViews: (uint) renderTargetCount,
-                                                    ppRenderTargetViews: ref currentRenderTargetViews[0],
+                                                    ppRenderTargetViews: ref currentRenderTargetViews.GetReference(),
                                                     pDepthStencilView: depthStencilBuffer?.NativeDepthStencilView ?? NullComPtr<ID3D11DepthStencilView>());
         }
 
@@ -235,11 +235,13 @@ namespace Stride.Graphics
                     streamOutputBuffers[i] = buffers[i].NativeBuffer.Handle;
                     streamOutputOffsets[i] = 0;
                 }
-                nativeDeviceContext->SOSetTargets((uint) numBuffers, ref streamOutputBuffers[0], in streamOutputOffsets[0]);
+                nativeDeviceContext->SOSetTargets((uint) numBuffers,
+                                                  ref streamOutputBuffers[0],
+                                                  in streamOutputOffsets[0]);
             }
             else
             {
-                nativeDeviceContext->SOSetTargets(NumBuffers: 0, ppSOTargets: null, pOffsets: (uint*) null);
+                nativeDeviceContext->SOSetTargets(NumBuffers: 0, ppSOTargets: null, pOffsets: null);
             }
         }
 
@@ -446,8 +448,10 @@ namespace Stride.Graphics
 
             uavInitialCounts[slot - currentRenderTargetViewsActiveCount] = (uint) uavInitialOffset;
 
-            nativeDeviceContext->CSSetUnorderedAccessViews((uint) currentRenderTargetViewsActiveCount, NumUAVs: (uint) remainingSlots,
-                                                           ref uavs[0], uavInitialCounts);
+            nativeDeviceContext->CSSetUnorderedAccessViews((uint) currentRenderTargetViewsActiveCount,
+                                                           NumUAVs: (uint) remainingSlots,
+                                                           ref uavs.GetReference(),
+                                                           ref uavInitialCounts.GetReference());
         }
 
         /// <summary>
@@ -573,7 +577,7 @@ namespace Stride.Graphics
             SkipInit(out uint sampleMask);
 
             nativeDeviceContext->OMGetBlendState(ppBlendState: null, BlendFactor: null, ref sampleMask);
-            nativeDeviceContext->OMSetBlendState(pBlendState: null, ref blendFactorFloats[0], sampleMask);
+            nativeDeviceContext->OMSetBlendState(pBlendState: null, ref blendFactorFloats.GetReference(), sampleMask);
         }
 
         /// <summary>
@@ -899,7 +903,8 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(renderTarget);
 
-            nativeDeviceContext->ClearRenderTargetView(renderTarget.NativeRenderTargetView, (float*) &color);
+            scoped Span<float> colorFloats = color.AsSpan<Color4, float>(elementCount: 4);
+            nativeDeviceContext->ClearRenderTargetView(renderTarget.NativeRenderTargetView, ref colorFloats.GetReference());
         }
 
         /// <summary>

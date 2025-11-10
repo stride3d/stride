@@ -31,6 +31,7 @@ using Silk.NET.Direct3D12;
 using Format = Silk.NET.DXGI.Format;
 
 using Stride.Core.Mathematics;
+using Stride.Core.UnsafeExtensions;
 
 using static System.Runtime.CompilerServices.Unsafe;
 using static Stride.Graphics.ComPtrHelpers;
@@ -290,14 +291,16 @@ namespace Stride.Graphics
                         result.Throw();
 
                     var subresourceCount = initialData.Length;
-                    var placedSubresources = stackalloc PlacedSubresourceFootprint[subresourceCount];
-                    var rowCounts = stackalloc uint[subresourceCount];
-                    var rowSizeInBytes = stackalloc ulong[subresourceCount];
+                    scoped Span<PlacedSubresourceFootprint> placedSubresources = stackalloc PlacedSubresourceFootprint[subresourceCount];
+                    scoped Span<uint> rowCounts = stackalloc uint[subresourceCount];
+                    scoped Span<ulong> rowSizeInBytes = stackalloc ulong[subresourceCount];
 
                     ulong textureCopySize = 0;
 
-                    NativeDevice.GetCopyableFootprints(in nativeDescription, FirstSubresource: 0, (uint) subresourceCount,
-                                                       BaseOffset: 0, ref placedSubresources[0], ref rowCounts[0], ref rowSizeInBytes[0],
+                    NativeDevice.GetCopyableFootprints(in nativeDescription, FirstSubresource: 0, (uint) subresourceCount, BaseOffset: 0,
+                                                       ref placedSubresources.GetReference(),
+                                                       ref rowCounts.GetReference(),
+                                                       ref rowSizeInBytes.GetReference(),
                                                        ref textureCopySize);
 
                     nint uploadMemory = GraphicsDevice.AllocateUploadBuffer((int) textureCopySize, out var uploadResource, out var uploadOffset,
