@@ -167,13 +167,13 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediate = false)
         {
             SafeRelease(ref nativeQueryHeap);
             SafeRelease(ref readbackBuffer);
             SafeRelease(ref readbackFence);
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediate);
         }
 
         /// <summary>

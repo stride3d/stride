@@ -37,13 +37,13 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediate = false)
         {
 #if !STRIDE_PLATFORM_IOS
             GL.DeleteQueries((uint)QueryCount, NativeQueries);
             NativeQueries = null;
 #endif
-            base.OnDestroyed();
+            base.OnDestroyed(immediate);
         }
 
         /// <summary>

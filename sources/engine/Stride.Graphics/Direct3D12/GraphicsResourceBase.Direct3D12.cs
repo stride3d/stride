@@ -107,15 +107,25 @@ namespace Stride.Graphics
         /// <remarks>
         ///   This method releases the underlying native resources (<see cref="ID3D12Resource"/> and <see cref="ID3D12DeviceChild"/>).
         /// </remarks>
-        protected internal virtual partial void OnDestroyed()
+        protected internal virtual partial void OnDestroyed(bool immediate = false)
         {
             Destroyed?.Invoke(this, EventArgs.Empty);
 
             if (nativeDeviceChild is not null)
             {
-                // Schedule the resource for destruction (as soon as we are done with it)
-                GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, NativeResource));
-                nativeDeviceChild = null;
+                if (immediate)
+                {
+                    // We make sure all previous command lists are completed (GPU->CPU sync point)
+                    GraphicsDevice.WaitNativeCommandQueueComplete();
+                    NativeDeviceChild.Release();
+                    NativeDeviceChild = null;
+                }
+                else
+                {
+                    // Schedule the resource for destruction (as soon as we are done with it)
+                    GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, NativeResource));
+                    nativeDeviceChild = null;
+                }
             }
 
             SafeRelease(ref nativeResource);

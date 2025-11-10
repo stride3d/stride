@@ -162,7 +162,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediate = false)
         {
             // As we both track the native buffer and the native device child (they are the same),
             // no need to Release() both
@@ -171,7 +171,7 @@ namespace Stride.Graphics
 
             GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes);
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediate);
         }
 
         /// <inheritdoc/>

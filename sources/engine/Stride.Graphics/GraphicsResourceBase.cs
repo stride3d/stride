@@ -148,5 +148,5 @@ public partial class GraphicsResourceBase : ComponentBase
     ///   Called when the <see cref="GraphicsDevice"/> has been detected to be internally destroyed,
     ///   or when the <see cref="Destroy"/> methad has been called. Raises the <see cref="Destroyed"/> event.
     /// </summary>
-    protected internal virtual partial void OnDestroyed();
+    protected internal virtual partial void OnDestroyed(bool immediate = false);
 }

@@ -324,6 +324,13 @@ namespace Stride.Graphics
 
         private partial string GetRendererName() => rendererName;
 
+        internal void WaitNativeCommandQueueComplete()
+        {
+            var fenceValue = NextFenceValue++;
+            NativeCommandQueue.Signal(nativeFence, fenceValue);
+            NativeCommandQueue.Wait(nativeFence, fenceValue);
+        }
+
         /// <summary>
         ///   Initialize the platform-specific implementation of the Graphics Device.
         /// </summary>
@@ -749,7 +756,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Called when the Graphics Device is being destroyed.
         /// </summary>
-        internal void OnDestroyed()
+        internal void OnDestroyed(bool immediate = false)
         {
         }
 

@@ -95,7 +95,7 @@ void main()
             CreateShaders();
         }
 
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediate = false)
         {
             using (GraphicsDevice.UseOpenGLCreationContext())
             {
@@ -104,7 +104,7 @@ void main()
 
             ProgramId = 0;
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediate);
         }
 
         private void CreateShaders()

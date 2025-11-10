@@ -460,7 +460,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Called when the Graphics Device is being destroyed.
         /// </summary>
-        internal void OnDestroyed()
+        internal void OnDestroyed(bool immediate = false)
         {
         }
 

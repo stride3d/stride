@@ -143,7 +143,7 @@ public abstract unsafe partial class GraphicsResourceBase
     /// <remarks>
     ///   This method releases the underlying native resources (<see cref="ID3D11Resource"/> and <see cref="ID3D11DeviceChild"/>).
     /// </remarks>
-    protected internal virtual partial void OnDestroyed()
+    protected internal virtual partial void OnDestroyed(bool immediate = false)
     {
         Destroyed?.Invoke(this, EventArgs.Empty);
 

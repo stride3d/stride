@@ -698,12 +698,12 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediate = false)
         {
             SafeRelease(ref nativeRootSignature);
             SafeRelease(ref compiledPipelineState);
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediate);
         }
     }
 }

@@ -791,7 +791,7 @@ namespace Stride.Graphics
 #endif
         }
 
-        internal void OnDestroyed()
+        internal void OnDestroyed(bool immediate = false)
         {
             // Clear existing FBOs
             lock (existingFBOs)

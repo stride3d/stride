@@ -112,7 +112,7 @@ namespace Stride.Graphics
             }
         }
 
-        public void OnDestroyed()
+        public void OnDestroyed(bool immediate = false)
         {
             lock (graphicsDevice.Resources)
             {

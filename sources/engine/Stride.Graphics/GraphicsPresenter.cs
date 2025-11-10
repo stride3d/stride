@@ -362,7 +362,7 @@ public abstract class GraphicsPresenter : ComponentBase
     ///   When overriden in a derived class, this method allows to perform additional cleanup
     ///   and release of associated resources.
     /// </remarks>
-    protected internal virtual void OnDestroyed()
+    protected internal virtual void OnDestroyed(bool immediate = false)
     {
     }
 

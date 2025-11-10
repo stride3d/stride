@@ -384,7 +384,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediate = false)
         {
             // Manually update Back-Buffer Texture
             backBuffer.OnDestroyed();
@@ -392,7 +392,7 @@ namespace Stride.Graphics
 
             SafeRelease(ref swapChain);
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediate);
         }
 
         /// <inheritdoc/>
@@ -405,6 +405,7 @@ namespace Stride.Graphics
 
             // Get the newly created native Texture
             var backBufferTexture = GetBackBuffer<BackBufferResourceType>();
+            bufferSwapIndex = 0;
 
             // Put it in our Back-Buffer Texture
             // TODO: Update new size
@@ -420,7 +421,7 @@ namespace Stride.Graphics
             HResult result;
 
             // Manually update the Back-Buffer Texture
-            backBuffer.OnDestroyed();
+            backBuffer.OnDestroyed(true);
 
             // Manually update all children Textures (Views)
             var childrenTextures = DestroyChildrenTextures(backBuffer);
@@ -470,6 +471,7 @@ namespace Stride.Graphics
 
             // Get the newly created native Texture
             var backBufferTexture = GetBackBuffer<BackBufferResourceType>();
+            bufferSwapIndex = 0;
 
             // Put it in our Back-Buffer Texture
             backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
@@ -491,7 +493,7 @@ namespace Stride.Graphics
             };
 
             // Manually update the Depth-Stencil Buffer
-            DepthStencilBuffer.OnDestroyed();
+            DepthStencilBuffer.OnDestroyed(true);
 
             // Manually update all children Textures (Views)
             var childrenTextures = DestroyChildrenTextures(DepthStencilBuffer);
@@ -521,7 +523,7 @@ namespace Stride.Graphics
                 {
                     if (resource is Texture texture && texture.ParentTexture == parentTexture)
                     {
-                        texture.OnDestroyed();
+                        texture.OnDestroyed(true);
                         childrenTextures.Add(texture);
                     }
                 }

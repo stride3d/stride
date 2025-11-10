@@ -433,7 +433,7 @@ namespace Stride.Graphics
         ///     </item>
         ///   </list>
         /// </remarks>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediate = false)
         {
             // If it was a View, do not release reference, just forget it
             if (ParentTexture is not null)
@@ -448,7 +448,7 @@ namespace Stride.Graphics
             SafeRelease(ref depthStencilView);
             SafeRelease(ref renderTargetView);
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediate);
         }
 
         /// <summary>

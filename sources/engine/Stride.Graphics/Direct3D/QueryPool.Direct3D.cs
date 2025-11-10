@@ -53,7 +53,7 @@ public unsafe partial class QueryPool
     }
 
     /// <inheritdoc/>
-    protected internal override void OnDestroyed()
+    protected internal override void OnDestroyed(bool immediate = false)
     {
         for (var i = 0; i < QueryCount; i++)
         {
@@ -61,7 +61,7 @@ public unsafe partial class QueryPool
         }
         nativeQueries = null;
 
-        base.OnDestroyed();
+        base.OnDestroyed(immediate);
     }
 
     /// <summary>

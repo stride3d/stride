@@ -100,7 +100,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediate = false)
         {
             // Forget the native device context, as it will be released by the Graphics Device
             UnsetNativeDeviceChild();
@@ -109,7 +109,7 @@ namespace Stride.Graphics
             SafeRelease(ref nativeDeviceContext1);
             SafeRelease(ref nativeDeviceProfiler);
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediate);
         }
 
 

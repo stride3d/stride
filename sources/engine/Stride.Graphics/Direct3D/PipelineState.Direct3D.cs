@@ -154,7 +154,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediate = false)
         {
             var pipelineStateCache = GetPipelineStateCache();
 
@@ -181,7 +181,7 @@ namespace Stride.Graphics
             if (inputLayout is not null)
                 inputLayout->Release();
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediate);
         }
 
         /// <summary>

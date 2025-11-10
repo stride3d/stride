@@ -23,7 +23,7 @@ namespace Stride.Graphics
         /// <summary>
         /// Action called when device is destroyed.
         /// </summary>
-        internal void OnDestroyed()
+        internal void OnDestroyed(bool immediate = false)
         {
             NullHelper.ToImplement();
         }
