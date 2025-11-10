@@ -55,6 +55,8 @@ namespace Stride.Graphics
         /// </summary>
         internal CpuDescriptorHandle NativeDepthStencilView;
 
+        internal ResourceDesc NativeTextureDescription;
+
         /// <summary>
         ///   A value indicating whether the Texture is a Depth-Stencil Buffer with a stencil component.
         /// </summary>
@@ -234,6 +236,7 @@ namespace Stride.Graphics
             void InitializeStagingTexture()
             {
                 NativeResourceState = ResourceStates.CopyDest;
+                NativeTextureDescription = GetTextureDescription(Dimension);
 
                 int totalSize = ComputeBufferTotalSize();
                 ResourceDesc nativeDescription = CreateDescriptionForBuffer((ulong) totalSize);
@@ -259,7 +262,7 @@ namespace Stride.Graphics
                     ? ref clearValue
                     : ref NullRef<ClearValue>();
 
-                var nativeDescription = GetTextureDescription(Dimension);
+                var nativeDescription = NativeTextureDescription = GetTextureDescription(Dimension);
 
                 var initialResourceState = ResourceStates.GenericRead;
                 var currentResourceState = initialResourceState;

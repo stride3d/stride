@@ -1481,7 +1481,7 @@ namespace Stride.Graphics
             //
             void CopyBetweenTextures(Texture sourceTexture, Texture destinationTexture)
             {
-                if (sourceTexture.Usage == GraphicsResourceUsage.Staging ||
+                if (sourceTexture.Usage == GraphicsResourceUsage.Staging &&
                     destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
                     throw new NotImplementedException("Copy region of staging resources is not supported yet"); // TODO: Implement copy region for staging resources
@@ -1491,18 +1491,52 @@ namespace Stride.Graphics
                 ResourceBarrierTransition(destination, GraphicsResourceState.CopyDestination);
                 FlushResourceBarriers();
 
-                var destRegion = new TextureCopyLocation
+                TextureCopyLocation destRegion, srcRegion;
+                if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    PResource = destination.NativeResource,
-                    Type = TextureCopyType.SubresourceIndex,
-                    SubresourceIndex = (uint) destinationSubResourceIndex
-                };
-                var srcRegion = new TextureCopyLocation
+                    throw new NotImplementedException("Copy region from staging texture is not supported yet");
+                }
+                else
                 {
-                    PResource = source.NativeResource,
-                    Type = TextureCopyType.SubresourceIndex,
-                    SubresourceIndex = (uint) sourceSubResourceIndex
-                };
+                    srcRegion = new TextureCopyLocation
+                    {
+                        PResource = source.NativeResource,
+                        Type = TextureCopyType.SubresourceIndex,
+                        SubresourceIndex = (uint)sourceSubResourceIndex
+                    };
+                }
+
+                if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
+                {
+                    var destinationParent = destinationTexture.ParentTexture ?? destinationTexture;
+
+                    PlacedSubresourceFootprint footprint = default;
+                    uint numRows = 0;
+                    ulong rowSizeInBytes = 0;
+                    ulong totalBytes = 0;
+                    NativeDevice.GetCopyableFootprints(ref destinationTexture.NativeTextureDescription, (uint)destinationSubResourceIndex, 1, 0, ref footprint, ref numRows, ref rowSizeInBytes, ref totalBytes);
+
+                    destRegion = new TextureCopyLocation
+                    {
+                        PResource = destinationTexture.NativeResource,
+                        Type = TextureCopyType.PlacedFootprint,
+                        PlacedFootprint = footprint,
+                    };
+
+                    // Fence for host access
+                    destinationParent.StagingFenceValue = null;
+                    destinationParent.StagingBuilder = this;
+                    currentCommandList.StagingResources.Add(destinationParent);
+                }
+                else
+                {
+                    destRegion = new TextureCopyLocation
+                    {
+                        PResource = destination.NativeResource,
+                        Type = TextureCopyType.SubresourceIndex,
+                        SubresourceIndex = (uint)destinationSubResourceIndex
+                    };
+                }
 
                 if (sourceRegion is ResourceRegion srcResourceRegion)
                 {
