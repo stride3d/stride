@@ -285,77 +285,80 @@ namespace Stride.Graphics
                 if (hasInitData)
                 {
                     var commandList = GraphicsDevice.NativeCopyCommandList;
-                    scoped ref var nullPipelineState = ref NullRef<ID3D12PipelineState>();
-                    result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: ref nullPipelineState);
-
-                    if (result.IsFailure)
-                        result.Throw();
-
-                    var subresourceCount = initialData.Length;
-                    scoped Span<PlacedSubresourceFootprint> placedSubresources = stackalloc PlacedSubresourceFootprint[subresourceCount];
-                    scoped Span<uint> rowCounts = stackalloc uint[subresourceCount];
-                    scoped Span<ulong> rowSizeInBytes = stackalloc ulong[subresourceCount];
-
-                    ulong textureCopySize = 0;
-
-                    NativeDevice.GetCopyableFootprints(in nativeDescription, FirstSubresource: 0, (uint) subresourceCount, BaseOffset: 0,
-                                                       ref placedSubresources.GetReference(),
-                                                       ref rowCounts.GetReference(),
-                                                       ref rowSizeInBytes.GetReference(),
-                                                       ref textureCopySize);
-
-                    nint uploadMemory = GraphicsDevice.AllocateUploadBuffer((int) textureCopySize, out var uploadResource, out var uploadOffset,
-                                                                            D3D12.TextureDataPlacementAlignment);
-
-                    for (int i = 0; i < subresourceCount; ++i)
+                    lock (GraphicsDevice.NativeCopyCommandListLock)
                     {
-                        var databox = initialData[i];
-                        var dataPointer = databox.DataPointer;
+                        scoped ref var nullPipelineState = ref NullRef<ID3D12PipelineState>();
+                        result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: ref nullPipelineState);
 
-                        var rowCount = rowCounts[i];
-                        var sliceCount = placedSubresources[i].Footprint.Depth;
-                        var rowSize = (int) rowSizeInBytes[i];
-                        var destRowPitch = placedSubresources[i].Footprint.RowPitch;
+                        if (result.IsFailure)
+                            result.Throw();
 
-                        // Copy the init data to the upload buffer
-                        for (int z = 0; z < sliceCount; ++z)
+                        var subresourceCount = initialData.Length;
+                        scoped Span<PlacedSubresourceFootprint> placedSubresources = stackalloc PlacedSubresourceFootprint[subresourceCount];
+                        scoped Span<uint> rowCounts = stackalloc uint[subresourceCount];
+                        scoped Span<ulong> rowSizeInBytes = stackalloc ulong[subresourceCount];
+
+                        ulong textureCopySize = 0;
+
+                        NativeDevice.GetCopyableFootprints(in nativeDescription, FirstSubresource: 0, (uint) subresourceCount, BaseOffset: 0,
+                                                        ref placedSubresources.GetReference(),
+                                                        ref rowCounts.GetReference(),
+                                                        ref rowSizeInBytes.GetReference(),
+                                                        ref textureCopySize);
+
+                        nint uploadMemory = GraphicsDevice.AllocateUploadBuffer((int) textureCopySize, out var uploadResource, out var uploadOffset,
+                                                                                D3D12.TextureDataPlacementAlignment);
+
+                        for (int i = 0; i < subresourceCount; ++i)
                         {
-                            var uploadMemoryCurrent = uploadMemory + (int) placedSubresources[i].Offset + z * destRowPitch * rowCount;
-                            var dataPointerCurrent = dataPointer + z * databox.SlicePitch;
-                            for (int y = 0; y < rowCount; ++y)
+                            var databox = initialData[i];
+                            var dataPointer = databox.DataPointer;
+
+                            var rowCount = rowCounts[i];
+                            var sliceCount = placedSubresources[i].Footprint.Depth;
+                            var rowSize = (int)rowSizeInBytes[i];
+                            var destRowPitch = placedSubresources[i].Footprint.RowPitch;
+
+                            // Copy the init data to the upload buffer
+                            for (int z = 0; z < sliceCount; ++z)
                             {
-                                MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemoryCurrent, (void*) dataPointerCurrent, (uint) rowSize);
-                                uploadMemoryCurrent += destRowPitch;
-                                dataPointerCurrent += databox.RowPitch;
+                                var uploadMemoryCurrent = uploadMemory + (int) placedSubresources[i].Offset + z * destRowPitch * rowCount;
+                                var dataPointerCurrent = dataPointer + z * databox.SlicePitch;
+                                for (int y = 0; y < rowCount; ++y)
+                                {
+                                    MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemoryCurrent, (void*) dataPointerCurrent, (uint) rowSize);
+                                    uploadMemoryCurrent += destRowPitch;
+                                    dataPointerCurrent += databox.RowPitch;
+                                }
                             }
+
+                            // Adjust upload offset (circular dependency between GetCopyableFootprints and AllocateUploadBuffer)
+                            placedSubresources[i].Offset += (ulong) uploadOffset;
+
+                            var dest = new TextureCopyLocation { Type = TextureCopyType.SubresourceIndex, PResource = NativeResource, SubresourceIndex = (uint) i };
+                            var src = new TextureCopyLocation { Type = TextureCopyType.PlacedFootprint, PResource = uploadResource, PlacedFootprint = placedSubresources[i] };
+
+                            commandList.CopyTextureRegion(in dest, DstX: 0, DstY: 0, DstZ: 0, in src, pSrcBox: in NullRef<Box>());
                         }
 
-                        // Adjust upload offset (circular dependency between GetCopyableFootprints and AllocateUploadBuffer)
-                        placedSubresources[i].Offset += (ulong) uploadOffset;
+                        const uint D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES = 0xFFFFFFFF;
 
-                        var dest = new TextureCopyLocation { Type = TextureCopyType.SubresourceIndex, PResource = NativeResource, SubresourceIndex = (uint) i };
-                        var src = new TextureCopyLocation { Type = TextureCopyType.PlacedFootprint, PResource = uploadResource, PlacedFootprint = placedSubresources[i] };
+                        // Once initialized, transition the Texture (and its subresources) to its final state
+                        var resourceBarrier = new ResourceBarrier { Type = ResourceBarrierType.Transition };
+                        resourceBarrier.Transition.PResource = NativeResource;
+                        resourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+                        resourceBarrier.Transition.StateBefore = ResourceStates.CopyDest;
+                        resourceBarrier.Transition.StateAfter = initialResourceState;
 
-                        commandList.CopyTextureRegion(in dest, DstX: 0, DstY: 0, DstZ: 0, in src, pSrcBox: in NullRef<Box>());
+                        commandList.ResourceBarrier(1, in resourceBarrier);
+
+                        result = commandList.Close();
+
+                        if (result.IsFailure)
+                            result.Throw();
+
+                        GraphicsDevice.WaitCopyQueue();
                     }
-
-                    const uint D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES = 0xFFFFFFFF;
-
-                    // Once initialized, transition the Texture (and its subresources) to its final state
-                    var resourceBarrier = new ResourceBarrier { Type = ResourceBarrierType.Transition };
-                    resourceBarrier.Transition.PResource = NativeResource;
-                    resourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-                    resourceBarrier.Transition.StateBefore = ResourceStates.CopyDest;
-                    resourceBarrier.Transition.StateAfter = initialResourceState;
-
-                    commandList.ResourceBarrier(1, in resourceBarrier);
-
-                    result = commandList.Close();
-
-                    if (result.IsFailure)
-                        result.Throw();
-
-                    GraphicsDevice.WaitCopyQueue();
                 }
 
                 NativeResourceState = initialResourceState;

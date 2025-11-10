@@ -229,32 +229,34 @@ namespace Stride.Graphics
 
 					MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
 
-                    // TODO: D3D12: Lock NativeCopyCommandList usages
-                    scoped ref var nullPipelineState = ref NullRef<ID3D12PipelineState>();
                     var commandList = GraphicsDevice.NativeCopyCommandList;
-                    result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: ref nullPipelineState);
+                    lock (GraphicsDevice.NativeCopyCommandListLock)
+                    {
+                        scoped ref var nullPipelineState = ref NullRef<ID3D12PipelineState>();
+                        result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: ref nullPipelineState);
 
-                    if (result.IsFailure)
-                        result.Throw();
+                        if (result.IsFailure)
+                            result.Throw();
 
-                    // Copy from upload heap to actual resource
-                    commandList.CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong) uploadOffset, (ulong) SizeInBytes);
+                            // Copy from upload heap to actual resource
+                            commandList.CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong) uploadOffset, (ulong) SizeInBytes);
 
-                    // Once initialized, transition the buffer to its final state
-                    var resourceBarrier = new ResourceBarrier { Type = ResourceBarrierType.Transition };
-                    resourceBarrier.Transition.PResource = NativeResource;
-                    resourceBarrier.Transition.Subresource = 0;
-                    resourceBarrier.Transition.StateBefore = initialResourceState;
-                    resourceBarrier.Transition.StateAfter = NativeResourceState;
+                        // Once initialized, transition the buffer to its final state
+                        var resourceBarrier = new ResourceBarrier { Type = ResourceBarrierType.Transition };
+                        resourceBarrier.Transition.PResource = NativeResource;
+                        resourceBarrier.Transition.Subresource = 0;
+                        resourceBarrier.Transition.StateBefore = initialResourceState;
+                        resourceBarrier.Transition.StateAfter = NativeResourceState;
 
-                    commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
+                        commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
 
-                    result = commandList.Close();
+                        result = commandList.Close();
 
-                    if (result.IsFailure)
-                        result.Throw();
+                        if (result.IsFailure)
+                            result.Throw();
 
-                    GraphicsDevice.WaitCopyQueue();
+                        GraphicsDevice.WaitCopyQueue();
+                    }
                 }
             }
 

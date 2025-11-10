@@ -76,29 +76,31 @@ namespace Stride.Graphics
 
             // Otherwise, queue readback
             var commandList = GraphicsDevice.NativeCopyCommandList;
+            lock (GraphicsDevice.NativeCopyCommandListLock)
+            {
+                ref var nullPipelineState = ref Unsafe.NullRef<ID3D12PipelineState>();
+                result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: ref nullPipelineState);
 
-            ref var nullPipelineState = ref Unsafe.NullRef<ID3D12PipelineState>();
-            result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: ref nullPipelineState);
+                if (result.IsFailure)
+                    result.Throw();
 
-            if (result.IsFailure)
-                result.Throw();
+                commandList.ResolveQueryData(nativeQueryHeap, Silk.NET.Direct3D12.QueryType.Timestamp,
+                                            StartIndex: 0, (uint) QueryCount, readbackBuffer, AlignedDestinationBufferOffset: 0);
 
-            commandList.ResolveQueryData(nativeQueryHeap, Silk.NET.Direct3D12.QueryType.Timestamp,
-                                         StartIndex: 0, (uint) QueryCount, readbackBuffer, AlignedDestinationBufferOffset: 0);
+                result = commandList.Close();
 
-            result = commandList.Close();
+                if (result.IsFailure)
+                    result.Throw();
 
-            if (result.IsFailure)
-                result.Throw();
+                var copyCommandList = commandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
+                var commandQueue = GraphicsDevice.NativeCommandQueue;
+                commandQueue.ExecuteCommandLists(NumCommandLists: 1, ref copyCommandList);
 
-            var copyCommandList = commandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
-            var commandQueue = GraphicsDevice.NativeCommandQueue;
-            commandQueue.ExecuteCommandLists(NumCommandLists: 1, ref copyCommandList);
+                result = commandQueue.Signal(readbackFence, PendingValue);
 
-            result = commandQueue.Signal(readbackFence, PendingValue);
-
-            if (result.IsFailure)
-                result.Throw();
+                if (result.IsFailure)
+                    result.Throw();
+            }
 
             return false;
         }

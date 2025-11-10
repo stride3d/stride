@@ -103,6 +103,7 @@ namespace Stride.Graphics
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<ID3D12GraphicsCommandList> NativeCopyCommandList => ToComPtr(nativeCopyCommandList);
+        internal object NativeCopyCommandListLock = new object();
 
         // Fence used to synchronize the Copy Command Queue
         private ID3D12Fence* nativeCopyFence;
