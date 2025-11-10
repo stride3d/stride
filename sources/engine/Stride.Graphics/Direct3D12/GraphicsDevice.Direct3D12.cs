@@ -22,6 +22,9 @@ namespace Stride.Graphics
 {
     public unsafe partial class GraphicsDevice
     {
+        private static object debugLayerLock = new object();
+        private static bool debugLayerLoaded = false;
+
         internal readonly int ConstantBufferDataPlacementAlignment = D3D12.ConstantBufferDataPlacementAlignment;
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Direct3D12;
@@ -348,7 +351,16 @@ namespace Stride.Graphics
 
             // The Debug Layer must be initialized before creating the device
             if (IsDebugMode)
-                EnableDebugLayer();
+            {
+                lock (debugLayerLock)
+                {
+                    if (!debugLayerLoaded)
+                    {
+                        debugLayerLoaded = true;
+                        EnableDebugLayer();
+                    }
+                }
+            }
 
             HResult result = default;
 
@@ -438,6 +450,7 @@ namespace Stride.Graphics
                         // Disable irrelevant debug layer warnings
                         Silk.NET.Direct3D12.InfoQueueFilter filter = new()
                         {
+                            AllowList = new Silk.NET.Direct3D12.InfoQueueFilterDesc(),
                             DenyList = new Silk.NET.Direct3D12.InfoQueueFilterDesc
                             {
                                 NumIDs = 5,

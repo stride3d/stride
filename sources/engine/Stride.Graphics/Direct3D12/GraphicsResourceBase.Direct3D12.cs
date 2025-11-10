@@ -17,6 +17,8 @@ namespace Stride.Graphics
         private ID3D12DeviceChild* nativeDeviceChild;
         private ID3D12Resource* nativeResource;
 
+        protected bool IsDebugMode => GraphicsDevice != null && GraphicsDevice.IsDebugMode;
+
         /// <summary>
         ///   Gets the internal Direct3D 11 Resource.
         /// </summary>
@@ -61,8 +63,17 @@ namespace Stride.Graphics
                     nativeResource = d3d12Resource.Handle;
                 }
 
-                NativeDeviceChild.SetDebugName(Name);
+                SetDebugName(Name);
             }
+        }
+
+        /// <summary>
+        /// Associates the private data to the device child, useful to get the name in PIX debugger.
+        /// </summary>
+        internal void SetDebugName(string name)
+        {
+            if (GraphicsDevice.IsDebugMode && NativeDeviceChild.IsNotNull())
+                NativeDeviceChild.SetDebugName($"{name} ({(nint)NativeDeviceChild.Handle:X16})");
         }
 
         /// <summary>
