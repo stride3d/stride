@@ -76,6 +76,7 @@ namespace Stride.Graphics
         /// <param name="device">The Graphics Device.</param>
         internal CommandList(GraphicsDevice device) : base(device)
         {
+            // We just take ownership of the native device context. No need to call AddRef() on it
             nativeDeviceContext = device.NativeDeviceContext.Handle;
             SetNativeDeviceChild(NativeDeviceContext.AsDeviceChild());
 

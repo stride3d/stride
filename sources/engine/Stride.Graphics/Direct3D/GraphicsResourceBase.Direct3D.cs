@@ -81,7 +81,8 @@ public abstract unsafe partial class GraphicsResourceBase
         nativeDeviceChild = deviceChild.Handle;
 
         // The device child can be something that is not a Direct3D resource actually,
-        // like a Sampler State, for example
+        // like a Sampler State, for example.
+        // If it is a resource, however, its reference count is incremented.
         nativeResource = TryGetResource();
 
         SetDebugName();
@@ -96,10 +97,15 @@ public abstract unsafe partial class GraphicsResourceBase
     /// </returns>
     private ComPtr<ID3D11Resource> TryGetResource()
     {
+        // NOTE: This increments the reference count of the resource, if it is a valid one
         HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D11Resource> d3dResource);
         return result.IsSuccess ? d3dResource : default;
     }
 
+    /// <summary>
+    ///   Sets the debug name for the Graphics Resource to <see cref="Core.ComponentBase.Name"/>
+    ///   if <see cref="IsDebugMode"/> is <see langword="true"/>.
+    /// </summary>
     private void SetDebugName()
     {
         if (IsDebugMode && nativeDeviceChild is not null)
@@ -118,6 +124,12 @@ public abstract unsafe partial class GraphicsResourceBase
     /// </remarks>
     protected ComPtr<ID3D11Device> NativeDevice => GraphicsDevice?.NativeDevice ?? default;
 
+    /// <summary>
+    ///   Gets a value indicating whether the Graphics Resource is in "Debug mode".
+    /// </summary>
+    /// <value>
+    ///   <see langword="true"/> if the Graphics Resource is initialized in "Debug mode"; otherwise, <see langword="false"/>.
+    /// </value>
     protected bool IsDebugMode => GraphicsDevice?.IsDebugMode == true;
 
 

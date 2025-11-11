@@ -29,7 +29,7 @@ namespace Stride.Rendering.Materials
 
         // Material instantiated
         private readonly Dictionary<MaterialPass, MaterialInfo> allMaterialInfos = new Dictionary<MaterialPass, MaterialInfo>();
-        
+
         private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("MaterialRenderFeature.PrepareEffectPermutations");
 
         public class MaterialInfoBase

@@ -56,6 +56,8 @@ public readonly partial struct MappedResource
     /// </summary>
     public readonly DataBox DataBox;
 
+    // TODO: These two fields are not used for now. Client code uses DataBox directly. Remove them?
+
     /// <summary>
     ///   The offset of the mapped resource since the beginning of the buffer, in bytes.
     /// </summary>

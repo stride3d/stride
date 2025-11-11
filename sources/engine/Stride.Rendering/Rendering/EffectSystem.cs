@@ -174,10 +174,9 @@ namespace Stride.Rendering
 
         private static void CheckResult(LoggerResult compilerResult)
         {
-            // Check errors
             if (compilerResult.HasErrors)
             {
-                throw new InvalidOperationException("Could not compile shader. See error messages." + compilerResult.ToText());
+                throw new InvalidOperationException("Could not compile shader. See error messages: " + compilerResult.ToText());
             }
         }
 
@@ -191,9 +190,9 @@ namespace Stride.Rendering
 
                 if (effectBytecodeCompilerResult.CompilationLog.HasErrors)
                 {
-                    // Unregister result (or should we keep it so that failure never change?)
-                    List<CompilerResults> effectCompilerResults;
-                    if (earlyCompilerCache.TryGetValue(effectName, out effectCompilerResults))
+                    // Unregister result
+                    // TODO: Should we keep it so that failure never change?
+                    if (earlyCompilerCache.TryGetValue(effectName, out List<CompilerResults> effectCompilerResults))
                     {
                         effectCompilerResults.Remove(compilerResult);
                     }
@@ -201,9 +200,8 @@ namespace Stride.Rendering
 
                 CheckResult(effectBytecodeCompilerResult.CompilationLog);
 
-                var bytecode = effectBytecodeCompilerResult.Bytecode;
-                if (bytecode == null)
-                    throw new InvalidOperationException("EffectCompiler returned no shader and no compilation error.");
+                var bytecode = effectBytecodeCompilerResult.ByteCode
+                    ?? throw new InvalidOperationException("EffectCompiler returned no shader and no compilation error.");
 
                 if (!cachedEffects.TryGetValue(bytecode, out effect))
                 {
@@ -239,14 +237,14 @@ namespace Stride.Rendering
         private CompilerResults GetCompilerResults(string effectName, CompilerParameters compilerParameters)
         {
             // Compile shader
-            var isXkfx = ShaderMixinManager.Contains(effectName);
+            var isSdfx = ShaderMixinManager.Contains(effectName);
 
             // getting the effect from the used parameters only makes sense when the source files are the same
             // TODO: improve this by updating earlyCompilerCache - cache can still be relevant
 
             CompilerResults compilerResult = null;
 
-            if (isXkfx)
+            if (isSdfx)
             {
                 // perform an early test only based on the parameters
                 compilerResult = GetShaderFromParameters(effectName, compilerParameters);
@@ -254,12 +252,15 @@ namespace Stride.Rendering
 
             if (compilerResult == null)
             {
-                var source = isXkfx ? new ShaderMixinGeneratorSource(effectName) : (ShaderSource)new ShaderClassSource(effectName);
+                var source = isSdfx
+                    ? new ShaderMixinGeneratorSource(effectName)
+                    : (ShaderSource) new ShaderClassSource(effectName);
+
                 compilerResult = compiler.Compile(source, compilerParameters);
 
                 EffectUsed?.Invoke(new EffectCompileRequest(effectName, new CompilerParameters(compilerParameters)), compilerResult);
 
-                if (!compilerResult.HasErrors && isXkfx)
+                if (!compilerResult.HasErrors && isSdfx)
                 {
                     lock (earlyCompilerCache)
                     {

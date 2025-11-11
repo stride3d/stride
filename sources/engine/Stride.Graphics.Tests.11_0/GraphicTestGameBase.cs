@@ -7,8 +7,16 @@ using Stride.Input;
 
 namespace Stride.Graphics.Tests;
 
+/// <summary>
+///   Provides a base class for graphics-based game tests on <see cref="GraphicsProfile.Level_11_0"/>,
+///   configuring default graphics settings and handling common game loop functionality.
+/// </summary>
+/// <seealso cref="GameTestBase"/>
 public class GraphicTestGameBase : GameTestBase
 {
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="GraphicTestGameBase"/> class.
+    /// </summary>
     public GraphicTestGameBase()
     {
         GraphicsDeviceManager.PreferredBackBufferWidth = 800;
@@ -23,6 +31,7 @@ public class GraphicTestGameBase : GameTestBase
     }
 
 
+    /// <inheritdoc/>
     protected override void Update(GameTime gameTime)
     {
         base.Update(gameTime);

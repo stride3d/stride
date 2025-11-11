@@ -64,6 +64,7 @@ namespace Stride.Graphics
             if (result.IsFailure)
                 result.Throw();
 
+            // Store the Buffer as a native device child, taking ownership of it. No need to call AddRef()
             nativeBuffer = buffer.Handle;
             SetNativeDeviceChild(buffer.AsDeviceChild());
 
@@ -163,6 +164,8 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
+            // As we both track the native buffer and the native device child (they are the same),
+            // no need to Release() both
             SafeRelease(ref nativeBuffer);
             UnsetNativeDeviceChild();
 
@@ -186,6 +189,7 @@ namespace Stride.Graphics
             if (result.IsFailure)
                 result.Throw();
 
+            // Store the Buffer as a native device child, taking ownership of it. No need to call AddRef()
             nativeBuffer = buffer.Handle;
             SetNativeDeviceChild(buffer.AsDeviceChild());
 
@@ -216,6 +220,7 @@ namespace Stride.Graphics
             if (result.IsFailure)
                 result.Throw();
 
+            // Store the Buffer as a native device child, taking ownership of it. No need to call AddRef()
             nativeBuffer = buffer.Handle;
             SetNativeDeviceChild(buffer.AsDeviceChild());
 

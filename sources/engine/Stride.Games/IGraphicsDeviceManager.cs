@@ -57,7 +57,7 @@ public interface IGraphicsDeviceManager
     ///   Could not present the Back-Buffer after drawing.
     /// </exception>
     /// <exception cref="GraphicsDeviceException">
-    ///   The Game Device is not in a valid state to end drawing, or it is not available.
+    ///   The Graphics Device is not in a valid state to end drawing, or it is not available.
     /// </exception>
     void EndDraw(bool present);
 }

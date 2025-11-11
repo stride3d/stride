@@ -60,10 +60,15 @@ public abstract unsafe partial class GraphicsResource
 
             var previousShaderResourceView = shaderResourceView;
 
+            // We assume the COM pointer we receive has been called AddRef(), so we
+            // just take ownership without calling it again
             shaderResourceView = value.Handle;
 
             if (shaderResourceView != previousShaderResourceView)
             {
+                // Following the logic of the comment above, when we are no longer the owners
+                // of the COM pointer, we Release() it.
+                // It us up to users to call AddRef() on it if they plan to use it further
                 if (previousShaderResourceView is not null)
                     previousShaderResourceView->Release();
             }
@@ -93,10 +98,15 @@ public abstract unsafe partial class GraphicsResource
 
             var previousUnorderedAccessView = unorderedAccessView;
 
+            // We assume the COM pointer we receive has been called AddRef(), so we
+            // just take ownership without calling it again
             unorderedAccessView = value.Handle;
 
             if (unorderedAccessView != previousUnorderedAccessView)
             {
+                // Following the logic of the comment above, when we are no longer the owners
+                // of the COM pointer, we Release() it.
+                // It us up to users to call AddRef() on it if they plan to use it further
                 if (previousUnorderedAccessView is not null)
                     previousUnorderedAccessView->Release();
             }

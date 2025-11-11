@@ -97,9 +97,6 @@ namespace Stride.Games
 
             lockDeviceCreation = new object();
 
-            // Defines all default values
-            PreferredGraphicsProfile = [ Level_11_1, Level_11_0, Level_10_1, Level_10_0, Level_9_3, Level_9_2, Level_9_1 ];
-
             graphicsDeviceFactory = game.Services.GetService<IGraphicsDeviceFactory>()
                 ?? throw new InvalidOperationException("IGraphicsDeviceFactory is not registered as a service");
 
@@ -687,7 +684,7 @@ namespace Stride.Games
         /// <param name="foundDevices">A list of possible device configurations to be ranked and reordered.</param>
         protected virtual void RankDevices(List<GraphicsDeviceInformation> foundDevices)
         {
-            // Don't sort if there is a single device (mostly for XAML/WP8)
+            // Don't sort if there is a single device (mostly for XAML/UWP)
             if (foundDevices.Count == 1)
                 return;
 

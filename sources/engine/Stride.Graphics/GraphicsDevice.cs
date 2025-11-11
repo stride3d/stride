@@ -14,7 +14,15 @@ namespace Stride.Graphics
     /// </summary>
     public partial class GraphicsDevice : ComponentBase
     {
+        /// <summary>
+        ///   Cache of Pipeline States, keyed by their descriptions.
+        ///   It optimizes performance by avoiding redundant state creation.
+        /// </summary>
         internal readonly Dictionary<PipelineStateDescriptionWithHash, PipelineState> CachedPipelineStates = [];
+        /// <summary>
+        ///   Cache of Sampler States, keyed by their descriptions.
+        ///   It helps optimize performance by avoiding redundant creation of identical Sampler States.
+        /// </summary>
         internal readonly Dictionary<SamplerStateDescription, SamplerState> CachedSamplerStates = [];
 
         /// <summary>
@@ -32,8 +40,10 @@ namespace Stride.Graphics
         /// </summary>
         internal Effect CurrentEffect;
 
+        // A dictionary of shared data created for this Graphics Device which can be shared between multiple components.
+        // For example, the shared 2x2 White Texture, or the Full-screen Triangle primitive.
+        private readonly Dictionary<object, IDisposable> sharedDataPerDevice = [];
         private readonly List<IDisposable> sharedDataToDispose = [];
-        private readonly Dictionary<object, IDisposable> sharedDataPerDevice;
 
         private GraphicsPresenter presenter;
 
@@ -120,9 +130,6 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentNullException"><paramref name="graphicsProfiles"/> is <see langword="null"/>.</exception>
         protected GraphicsDevice(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags creationFlags, WindowHandle windowHandle)
         {
-            // Create shared data
-            sharedDataPerDevice = [];
-
             Recreate(adapter, graphicsProfiles, creationFlags, windowHandle);
 
             // Helpers
@@ -302,7 +309,6 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets or sets the default color space of the Graphics Device.
         /// </summary>
-        /// <value>The default color space.</value>
         public ColorSpace ColorSpace
         {
             get => Features.HasSRgb ? colorSpace : ColorSpace.Gamma;
@@ -312,7 +318,6 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets or sets the current presenter used to display frames with the Graphics Device.
         /// </summary>
-        /// <value>The current Graphics Presenter.</value>
         public virtual GraphicsPresenter Presenter
         {
             get => presenter;
@@ -327,7 +332,6 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets the graphics profile the Graphics Device is using, which determines the available features.
         /// </summary>
-        /// <value>The graphics profile.</value>
         internal GraphicsProfile? ShaderProfile { get; set; }
 
 
