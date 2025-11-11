@@ -178,6 +178,20 @@ public abstract unsafe partial class GraphicsResourceBase
         };
     }
 
+    /// <summary>
+    ///   Swaps the Graphics Resource's internal data with another Graphics Resource.
+    /// </summary>
+    /// <param name="other">The other Graphics Resource.</param>
+    internal virtual void SwapInternal(GraphicsResourceBase other)
+    {
+        var deviceChild = nativeDeviceChild;
+        nativeDeviceChild = other.nativeDeviceChild;
+        other.nativeDeviceChild = deviceChild;
+
+        var resource = nativeResource;
+        nativeResource = other.nativeResource;
+        other.nativeResource = resource;
+    }
 }
 
 #endif

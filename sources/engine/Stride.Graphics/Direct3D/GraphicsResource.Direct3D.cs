@@ -130,6 +130,26 @@ public abstract unsafe partial class GraphicsResource
 
         base.OnDestroyed();
     }
+
+    /// <summary>
+    ///   Swaps the Graphics Resource's internal data with another Graphics Resource.
+    /// </summary>
+    /// <param name="other">The other Graphics Resource.</param>
+    internal override void SwapInternal(GraphicsResourceBase other)
+    {
+        base.SwapInternal(other);
+
+        if (other is not GraphicsResource otherResource)
+            return;
+
+        var uav = unorderedAccessView;
+        unorderedAccessView = otherResource.unorderedAccessView;
+        otherResource.unorderedAccessView = uav;
+
+        var srv = shaderResourceView;
+        shaderResourceView = otherResource.shaderResourceView;
+        otherResource.shaderResourceView = srv;
+    }
 }
 
 #endif

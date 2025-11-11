@@ -229,21 +229,22 @@ namespace Stride.Graphics
         ///   Swaps the Texture's internal data with another Texture.
         /// </summary>
         /// <param name="other">The other Texture.</param>
-        internal partial void SwapInternal(Texture other)
+        internal override void SwapInternal(GraphicsResourceBase other)
         {
-            (other.NativeDeviceChild, NativeDeviceChild) = (NativeDeviceChild, other.NativeDeviceChild);
-            (other.NativeShaderResourceView, NativeShaderResourceView) = (NativeShaderResourceView, other.NativeShaderResourceView);
-            (other.NativeUnorderedAccessView, NativeUnorderedAccessView) = (NativeUnorderedAccessView, other.NativeUnorderedAccessView);
+            base.SwapInternal(other);
+
+            if (other is not Texture otherTexture)
+                return;
 
             var rtv = renderTargetView;
-            renderTargetView = other.renderTargetView;
-            other.renderTargetView = rtv;
+            renderTargetView = otherTexture.renderTargetView;
+            otherTexture.renderTargetView = rtv;
 
             var dsv = depthStencilView;
-            depthStencilView = other.depthStencilView;
-            other.depthStencilView = dsv;
+            depthStencilView = otherTexture.depthStencilView;
+            otherTexture.depthStencilView = dsv;
 
-            (HasStencil, other.HasStencil) = (other.HasStencil, HasStencil);
+            (HasStencil, otherTexture.HasStencil) = (otherTexture.HasStencil, HasStencil);
         }
 
         /// <summary>

@@ -1826,12 +1826,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Swaps the Texture's internal data with another Texture.
-        /// </summary>
-        /// <param name="other">The other Texture.</param>
-        internal partial void SwapInternal(Texture other);
-
-        /// <summary>
         ///   Computes the bounds of a Texture View based on the View type, which determines what sub-Resources
         ///   the Texture View can access.
         /// </summary>
