@@ -29,7 +29,7 @@ public class ValidModifiersOnImmutableMemberTests
             foreach (var type in Types)
             {
                 string sourceCode = PublicFormat(combination, type);
-                await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
+                await TestHelper.ExpectNoDiagnosticsAsync(sourceCode);
             }
         }
     }
@@ -52,7 +52,7 @@ public class ValidModifiersOnImmutableMemberTests
             foreach (var type in Types)
             {
                 string sourceCode = PublicFormatWithDataMember(combination, type);
-                await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
+                await TestHelper.ExpectNoDiagnosticsAsync(sourceCode);
             }
         }
     }
@@ -73,7 +73,7 @@ public class ValidModifiersOnImmutableMemberTests
             foreach (var type in Types)
             {
                 string sourceCode = InternalFormat(combination, type);
-                await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
+                await TestHelper.ExpectNoDiagnosticsAsync(sourceCode);
             }
         }
     }
@@ -95,7 +95,7 @@ public class ValidModifiersOnImmutableMemberTests
             foreach (var type in Types)
             {
                 string sourceCode = string.Format(ClassTemplates.AccessorTemplate, combination, type);
-                await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
+                await TestHelper.ExpectNoDiagnosticsAsync(sourceCode);
             }
         }
     }

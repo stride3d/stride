@@ -9,13 +9,13 @@ public class STRDIAG007_Test
     public async Task Error_On_DataMembered_Delegate_Field()
     {
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMember] public Action Value;");
-        await TestHelper.ExpectDiagnosticsErrorAsync(sourceCode, STRDIAG007DataMemberOnDelegate.DiagnosticId);
+        await TestHelper.ExpectDiagnosticAsync(sourceCode, STRDIAG007DataMemberOnDelegate.DiagnosticId);
     }
 
     [Fact]
     public async Task Error_On_DataMembered_Delegate_Property()
     {
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMember] public Action Value { get; set; }");
-        await TestHelper.ExpectDiagnosticsErrorAsync(sourceCode, STRDIAG007DataMemberOnDelegate.DiagnosticId);
+        await TestHelper.ExpectDiagnosticAsync(sourceCode, STRDIAG007DataMemberOnDelegate.DiagnosticId);
     }
 }

@@ -489,8 +489,7 @@ public struct Plane : IEquatable<Plane>, ISpanFormattable, IIntersectableWithRay
     /// <returns>The flipped plane.</returns>
     public static Plane Negate(Plane plane)
     {
-        float magnitude = 1.0f / MathF.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z));
-        return new Plane(plane.Normal.X * magnitude, plane.Normal.Y * magnitude, plane.Normal.Z * magnitude, plane.D * magnitude);
+        return new Plane(-plane.Normal.X, -plane.Normal.Y, -plane.Normal.Z, -plane.D);
     }
 
     /// <summary>
