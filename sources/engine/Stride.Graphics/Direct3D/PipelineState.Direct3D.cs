@@ -201,15 +201,19 @@ namespace Stride.Graphics
             if (inputElements is null)
                 return;
 
-            var nativeInputElements = stackalloc InputElementDesc[inputElements.Length];
+            var numInputElements = inputElements.Length;
+            var nativeInputElements = stackalloc InputElementDesc[numInputElements];
+
+            // Per the Microsoft documentation:
+            //  > There is no explicit maximum length defined by the API, but the HLSL compiler and driver implementations
+            //  > typically support up to 32 characters.
+            scoped Span<byte> semanticNamesBytes = stackalloc byte[32 * numInputElements];
 
             for (int index = 0; index < inputElements.Length; index++)
             {
                 ref var inputElement = ref inputElements[index];
 
-                var nameLength = Encoding.ASCII.GetByteCount(inputElement.SemanticName);
-                var semanticName = stackalloc byte[nameLength];
-                Encoding.ASCII.GetBytes(inputElement.SemanticName, new Span<byte>(semanticName, nameLength));
+                byte* semanticName = EncodeSemanticName(inputElement.SemanticName, ref semanticNamesBytes);
 
                 nativeInputElements[index] = new()
                 {
@@ -269,49 +273,9 @@ namespace Stride.Graphics
                         break;
 
                     case ShaderStage.Geometry:
-                        if (reflection.ShaderStreamOutputDeclarations?.Count > 0)
-                        {
-                            // Stream-out elements
-                            var streamOutElementCount = reflection.ShaderStreamOutputDeclarations.Count;
-                            var streamOutElements = stackalloc SODeclarationEntry[streamOutElementCount];
-
-                            int index = 0;
-                            foreach (var streamOutputElement in reflection.ShaderStreamOutputDeclarations)
-                            {
-                                var nameLength = Encoding.ASCII.GetByteCount(streamOutputElement.SemanticName);
-                                var semanticName = stackalloc byte[nameLength];
-                                Encoding.ASCII.GetBytes(streamOutputElement.SemanticName, new Span<byte>(semanticName, nameLength));
-
-                                streamOutElements[index++] = new SODeclarationEntry
-                                {
-                                    Stream = (uint) streamOutputElement.Stream,
-                                    SemanticIndex = (uint) streamOutputElement.SemanticIndex,
-                                    SemanticName = semanticName,
-                                    StartComponent = streamOutputElement.StartComponent,
-                                    ComponentCount = streamOutputElement.ComponentCount,
-                                    OutputSlot = streamOutputElement.OutputSlot
-                                };
-                            }
-                            // TODO: GRAPHICS REFACTOR: better cache
-                            ID3D11GeometryShader* tempGeometryShader;
-                            var bufferStrides = reflection.StreamOutputStrides.AsSpan<int, uint>();
-
-                            HResult result = NativeDevice.CreateGeometryShaderWithStreamOutput(
-                                in shaderBytecode.Data[0], (uint) shaderBytecode.Data.Length,
-                                streamOutElements, (uint) streamOutElementCount,
-                                in bufferStrides[0], (uint) bufferStrides.Length,
-                                (uint) reflection.StreamOutputRasterizedStream, pClassLinkage: null,
-                                &tempGeometryShader);
-
-                            if (result.IsFailure)
-                                result.Throw();
-
-                            geometryShader = tempGeometryShader;
-                        }
-                        else
-                        {
-                            geometryShader = pipelineStateCache.GeometryShaderCache.Instantiate(shaderBytecode);
-                        }
+                        geometryShader = reflection.ShaderStreamOutputDeclarations?.Count > 0
+                            ? CreateGeometryShaderWithStreamOutput(reflection, shaderBytecode)
+                            : pipelineStateCache.GeometryShaderCache.Instantiate(shaderBytecode);
                         break;
 
                     case ShaderStage.Pixel:
@@ -323,6 +287,81 @@ namespace Stride.Graphics
                         break;
                 }
             }
+
+            //
+            // Creates a Direct3D 11 Geometry Shader with Stream Output when shader reflection determines
+            // the Shader is using stream output declarations.
+            //
+            ComPtr<ID3D11GeometryShader> CreateGeometryShaderWithStreamOutput(EffectReflection reflection, ShaderBytecode shaderBytecode)
+            {
+                // Stream-out elements
+                var streamOutElementCount = reflection.ShaderStreamOutputDeclarations.Count;
+                Span<SODeclarationEntry> streamOutElements = stackalloc SODeclarationEntry[streamOutElementCount];
+                int index = 0;
+
+                // Per the Microsoft documentation:
+                //  > There is no explicit maximum length defined by the API, but the HLSL compiler and driver implementations
+                //  > typically support up to 32 characters.
+                scoped Span<byte> semanticNamesBytes = stackalloc byte[32 * streamOutElementCount];
+
+                foreach (var streamOutputElement in reflection.ShaderStreamOutputDeclarations)
+                {
+                    byte* semanticName = EncodeSemanticName(streamOutputElement.SemanticName, ref semanticNamesBytes);
+
+                    streamOutElements[index++] = new SODeclarationEntry
+                    {
+                        Stream = (uint) streamOutputElement.Stream,
+                        SemanticIndex = (uint) streamOutputElement.SemanticIndex,
+                        SemanticName = semanticName,
+                        StartComponent = streamOutputElement.StartComponent,
+                        ComponentCount = streamOutputElement.ComponentCount,
+                        OutputSlot = streamOutputElement.OutputSlot
+                    };
+                }
+                // TODO: GRAPHICS REFACTOR: better cache
+                ComPtr<ID3D11GeometryShader> tempGeometryShader = default;
+                var bufferStrides = reflection.StreamOutputStrides.AsSpan<int, uint>();
+
+                HResult result = NativeDevice.CreateGeometryShaderWithStreamOutput(
+                    in shaderBytecode.Data[0], (nuint) shaderBytecode.Data.Length,
+                    in streamOutElements[0], (uint) streamOutElementCount,
+                    in bufferStrides[0], (uint) bufferStrides.Length,
+                    (uint) reflection.StreamOutputRasterizedStream, ref NullRef<ID3D11ClassLinkage>(),
+                    ref tempGeometryShader);
+
+                if (result.IsFailure)
+                    result.Throw();
+
+                return tempGeometryShader;
+            }
+        }
+
+        /// <summary>
+        ///   Encodes a semantic name into a null-terminated ASCII byte sequence.
+        ///   The <paramref name="semanticNameBytes"/> span is updated to exclude the bytes used for the encoded name.
+        /// </summary>
+        /// <param name="semanticName">The semantic name to encode. Must be a non-null string.</param>
+        /// <param name="semanticNameBytes">
+        ///   A reference to a <see cref="Span{T}"/> of bytes where the encoded semantic name will be stored.
+        ///   The span must have sufficient length to accommodate the encoded name and a null terminator.
+        /// </param>
+        /// <returns>A pointer to the start of the encoded semantic name within the provided byte span.</returns>
+        /// <exception cref="ArgumentException">
+        ///   The length of the encoded semantic name exceeds the length of <paramref name="semanticNameBytes"/>.
+        /// </exception>
+        private static byte* EncodeSemanticName(string semanticName, ref Span<byte> semanticNameBytes)
+        {
+            int nameLength = Encoding.ASCII.GetByteCount(semanticName) + 1;  // Ensure to include the null terminator
+            if (nameLength > semanticNameBytes.Length)
+                throw new ArgumentException("Semantic name is too long.", nameof(semanticName));
+
+            // Encode and null-terminate the string
+            Encoding.ASCII.GetBytes(semanticName, semanticNameBytes);
+            semanticNameBytes[nameLength - 1] = 0;
+
+            byte* ptrSemanticName = semanticNameBytes.GetPointer();
+            semanticNameBytes = semanticNameBytes[nameLength..];
+            return ptrSemanticName;
         }
 
         /// <summary>
