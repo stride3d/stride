@@ -32,10 +32,18 @@ using Silk.NET.DXGI;
 using Stride.Core;
 using Stride.Core.UnsafeExtensions;
 
+#if STRIDE_PLATFORM_UWP || DIRECTX11_1
+using DxgiFactoryType = Silk.NET.DXGI.IDXGIFactory2;
+#else
+using DxgiFactoryType = Silk.NET.DXGI.IDXGIFactory1;
+#endif
+
+
 namespace Stride.Graphics
 {
     public sealed unsafe partial class GraphicsAdapter
     {
+        private IDXGIFactory1* dxgiFactory;
         private IDXGIAdapter1* dxgiAdapter;
 
         private readonly uint adapterOrdinal;
@@ -54,6 +62,15 @@ namespace Stride.Graphics
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<IDXGIAdapter1> NativeAdapter => ComPtrHelpers.ToComPtr(dxgiAdapter);
+
+        /// <summary>
+        ///   Gets the native DXGI factory.
+        /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
+        internal ComPtr<DxgiFactoryType> NativeFactory => ComPtrHelpers.ToComPtr(dxgiFactory);
 
         /// <summary>
         ///   Gets the description of this adapter.
@@ -78,9 +95,10 @@ namespace Stride.Graphics
         ///   A COM pointer to the native <see cref="IDXGIAdapter"/> interface. The ownership is transferred to this instance, so the reference count is not incremented.
         /// </param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
-        internal GraphicsAdapter(ComPtr<IDXGIAdapter1> adapter, uint adapterOrdinal)
+        internal GraphicsAdapter(ComPtr<DxgiFactoryType> factory, ComPtr<IDXGIAdapter1> adapter, uint adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
+            dxgiFactory = factory.Handle;
             dxgiAdapter = adapter.Handle;
 
             Unsafe.SkipInit(out AdapterDesc1 dxgiAdapterDesc);

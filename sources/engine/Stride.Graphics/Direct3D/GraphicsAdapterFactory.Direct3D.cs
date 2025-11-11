@@ -80,7 +80,7 @@ namespace Stride.Graphics
                 if (!foundValidAdapter)
                     break;
 
-                var adapter = new GraphicsAdapter(dxgiAdapter, adapterIndex);
+                var adapter = new GraphicsAdapter(ComPtrHelpers.ToComPtr(dxgiFactory), dxgiAdapter, adapterIndex);
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
 

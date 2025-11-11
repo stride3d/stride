@@ -69,9 +69,7 @@ namespace Stride.Graphics
 
         private int bufferCount;
 
-#if STRIDE_GRAPHICS_API_DIRECT3D12
         private uint bufferSwapIndex;
-#endif
 
         /// <summary>
         ///   Initializes a new instance of the <see cref="SwapChainGraphicsPresenter"/> class.
