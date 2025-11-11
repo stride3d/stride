@@ -56,6 +56,10 @@ public unsafe partial class SamplerState
     /// <inheritdoc/>
     protected internal override void OnDestroyed()
     {
+        // As we set the Sampler State as the internal ID3D11DeviceChild,
+        // it would be released when the GraphicsDevice disposes the GraphicsResourceBase.
+        // We unset it here to avoid double-release.
+        UnsetNativeDeviceChild();
         ComPtrHelpers.SafeRelease(ref samplerState);
 
         base.OnDestroyed();
@@ -93,14 +97,16 @@ public unsafe partial class SamplerState
                 samplerDescription.AddressW = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
         }
 
-        ID3D11SamplerState* samplerState;
-        HResult result = NativeDevice.CreateSamplerState(in samplerDescription, &samplerState);
+        ComPtr<ID3D11SamplerState> newSamplerState = default;
+        HResult result = NativeDevice.CreateSamplerState(in samplerDescription, ref newSamplerState);
 
         if (result.IsFailure)
             result.Throw();
 
-        this.samplerState = samplerState;
-        NativeDeviceChild = NativeSamplerState.AsDeviceChild();
+        // As we are setting the Sampler State as the internal ID3D11DeviceChild,
+        // it would be released when the GraphicsDevice disposes the GraphicsResourceBase
+        samplerState = newSamplerState;
+        SetNativeDeviceChild(newSamplerState.AsDeviceChild());
     }
 }
 

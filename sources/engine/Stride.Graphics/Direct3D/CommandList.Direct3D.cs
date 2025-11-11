@@ -80,10 +80,12 @@ namespace Stride.Graphics
             nativeDeviceContext = device.NativeDeviceContext.Handle;
             SetNativeDeviceChild(NativeDeviceContext.AsDeviceChild());
 
-            HResult result = nativeDeviceContext->QueryInterface(out ComPtr<ID3D11DeviceContext1> _);
+            HResult result = nativeDeviceContext->QueryInterface(out ComPtr<ID3D11DeviceContext1> deviceContext1);
 
             if (result.IsFailure)
                 result.Throw();
+
+            nativeDeviceContext1 = deviceContext1;
 
             ComPtr<ID3DUserDefinedAnnotation> deviceProfiler = default;
             if (device.IsDebugMode)
@@ -100,6 +102,9 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
+            // Forget the native device context, as it will be released by the Graphics Device
+            UnsetNativeDeviceChild();
+
             SafeRelease(ref nativeDeviceContext);
             SafeRelease(ref nativeDeviceContext1);
             SafeRelease(ref nativeDeviceProfiler);
@@ -433,7 +438,7 @@ namespace Stride.Graphics
 
             int remainingSlots = currentUARenderTargetViews.Length - currentRenderTargetViewsActiveCount;
 
-            var uavs = stackalloc ComPtr<ID3D11UnorderedAccessView>[remainingSlots];
+            Span<ComPtr<ID3D11UnorderedAccessView>> uavs = stackalloc ComPtr<ID3D11UnorderedAccessView>[remainingSlots];
 
             for (int fromIndex = currentRenderTargetViewsActiveCount, toIndex = 0;
                  toIndex < remainingSlots;
@@ -442,7 +447,7 @@ namespace Stride.Graphics
                 uavs[toIndex] = currentUARenderTargetViews[fromIndex];
             }
 
-            var uavInitialCounts = stackalloc uint[remainingSlots];
+            Span<uint> uavInitialCounts = stackalloc uint[remainingSlots];
 
             for (int i = 0; i < remainingSlots; i++)
                 uavInitialCounts[i] = unchecked((uint) -1);
@@ -855,7 +860,7 @@ namespace Stride.Graphics
         {
             // TODO: We only initialize `nativeDeviceProfiler` in debug mode. Should BeginProfile() check this?
             if (IsDebugMode)
-            nativeDeviceProfiler->BeginEvent(name);
+                nativeDeviceProfiler->BeginEvent(name);
         }
 
         /// <summary>
@@ -866,7 +871,7 @@ namespace Stride.Graphics
         {
             // TODO: We only initialize `nativeDeviceProfiler` in debug mode. Should BeginProfile() check this?
             if (IsDebugMode)
-            nativeDeviceProfiler->EndEvent();
+                nativeDeviceProfiler->EndEvent();
         }
 
         /// <summary>

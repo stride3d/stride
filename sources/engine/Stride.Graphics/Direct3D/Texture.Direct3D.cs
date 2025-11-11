@@ -155,7 +155,7 @@ namespace Stride.Graphics
         internal Texture InitializeFromImpl(ID3D11Texture2D* texture, bool treatAsSrgb)
         {
             var ptrTexture = ToComPtr(texture);
-            NativeDeviceChild = ptrTexture.AsDeviceChild();
+            NativeDeviceChild = ptrTexture.AsDeviceChild();  // Calls AddRef()
 
             SkipInit(out Texture2DDesc textureDesc);
             ptrTexture.GetDesc(ref textureDesc);
@@ -191,7 +191,8 @@ namespace Stride.Graphics
 
             if (srvDescription.ViewDimension == D3DSrvDimension.D3D101SrvDimensionTexture2D)
             {
-                NativeShaderResourceView = srv; // Implicit conversion to ComPtr calls AddRef()
+                NativeShaderResourceView = ToComPtr(srv);
+                NativeShaderResourceView.AddRef();
 
                 ComPtr<ID3D11Resource> resource = default;
                 srv->GetResource(ref resource);
