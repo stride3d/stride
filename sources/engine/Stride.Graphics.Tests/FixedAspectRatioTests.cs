@@ -1,33 +1,54 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+
 using System.Threading.Tasks;
+
 using Xunit;
+
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
-using Stride.Core.Serialization.Contents;
 using Stride.Engine;
 using Stride.Graphics.Regression;
-using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
 namespace Stride.Graphics.Tests
 {
     public class FixedAspectRatioTests : GameTestBase
     {
-        protected Scene Scene;
+        private Scene Scene;
+
 
         public FixedAspectRatioTests()
         {
         }
 
+
+        /// <inheritdoc/>
+        protected override void RegisterTests()
+        {
+            base.RegisterTests();
+
+            // Take screenshot first frame
+            FrameGameSystem.TakeScreenshot();
+        }
+
+        /// <inheritdoc/>
         protected override async Task LoadContent()
         {
             await base.LoadContent();
 
             // Force aspect ratio
-            SceneSystem.GraphicsCompositor = GraphicsCompositorHelper.CreateDefault(false, clearColor: Color.Green, graphicsProfile: GraphicsProfile.Level_9_1);
-            SceneSystem.GraphicsCompositor.Game = new ForceAspectRatioSceneRenderer { Child = SceneSystem.GraphicsCompositor.Game, FixedAspectRatio = 3.0f, ForceAspectRatio = true };
+            SceneSystem.GraphicsCompositor = GraphicsCompositorHelper.CreateDefault(
+                enablePostEffects: false,
+                clearColor: Color.Green,
+                graphicsProfile: GraphicsProfile.Level_9_1);
+
+            SceneSystem.GraphicsCompositor.Game = new ForceAspectRatioSceneRenderer
+            {
+                Child = SceneSystem.GraphicsCompositor.Game,
+                FixedAspectRatio = 3.0f,
+                ForceAspectRatio = true
+            };
 
             Scene = new Scene();
 
@@ -48,22 +69,6 @@ namespace Stride.Graphics.Tests
         public void TestFixedRatio()
         {
             RunGameTest(new FixedAspectRatioTests());
-        }
-
-        internal static void Main(string[] args)
-        {
-            using (Game game = new FixedAspectRatioTests())
-            {
-                game.Run();
-            }
-        }
-
-        protected override void RegisterTests()
-        {
-            base.RegisterTests();
-
-            // Take screenshot first frame
-            FrameGameSystem.TakeScreenshot();
         }
     }
 }

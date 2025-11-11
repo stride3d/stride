@@ -10,14 +10,11 @@ namespace Stride.Graphics.Tests
     /// </summary>
     public class TestPrecompiledSpriteFont : TestSpriteFont
     {
-        public TestPrecompiledSpriteFont()
-            : base("PrecompiledFonts/", "pre")
+        public TestPrecompiledSpriteFont() : base(assetPrefix: "PrecompiledFonts/", saveImageSuffix: "pre")
         {
         }
 
-        /// <summary>
-        /// Run the test
-        /// </summary>
+
         [Fact]
         public void RunTestPrecompiledSpriteFont()
         {
