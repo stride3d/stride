@@ -4,23 +4,15 @@
 namespace Stride.Graphics;
 
 /// <summary>
-///   Defines a set of built-in <see cref="DepthStencilStateDescription"/>s for common depth and stencil testing configurations.
+///   Defines a set of built-in <see cref="DepthStencilStateDescription"/>s for common Depth and Stencil testing configurations.
 /// </summary>
 public static class DepthStencilStates
 {
-    static DepthStencilStates()
-    {
-        var defaultDescription = new DepthStencilStateDescription();
-        defaultDescription.SetDefaults();
-        Default = defaultDescription;
-    }
-
-
     /// <summary>
     ///   A built-in Depth-Stencil State object with default settings.
     /// </summary>
-    /// <inheritdoc cref="DepthStencilStateDescription.SetDefaults" path="/remarks"/>
-    public static readonly DepthStencilStateDescription Default;
+    /// <inheritdoc cref="DepthStencilStateDescription.Default" path="/remarks"/>
+    public static readonly DepthStencilStateDescription Default = DepthStencilStateDescription.Default;
 
     /// <summary>
     ///   A built-in Depth-Stencil State object with default settings using <see cref="CompareFunction.GreaterEqual"/>

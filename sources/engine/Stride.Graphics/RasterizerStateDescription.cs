@@ -19,13 +19,68 @@ namespace Stride.Graphics;
 [StructLayout(LayoutKind.Sequential)]
 public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription>
 {
+    #region Default values
+
     /// <summary>
-    ///   Initializes a new instance of the <see cref="RasterizerStateDescription"/> structure.
+    ///   The default value for <see cref="FillMode"/>.
+    /// </summary>
+    public const FillMode DefaultFillMode = FillMode.Solid;
+    /// <summary>
+    ///   The default value for <see cref="CullMode"/>.
+    /// </summary>
+    public const CullMode DefaultCullMode = CullMode.Back;
+    /// <summary>
+    ///   The default value for <see cref="FrontFaceCounterClockwise"/>.
+    /// </summary>
+    public const bool DefaultFrontFaceCounterClockwise = false;
+    /// <summary>
+    ///   The default value for <see cref="DepthClipEnable"/>.
+    /// </summary>
+    public const bool DefaultDepthClipEnable = true;
+    /// <summary>
+    ///   The default value for <see cref="ScissorTestEnable"/>.
+    /// </summary>
+    public const bool DefaultScissorTestEnable = false;
+    /// <summary>
+    ///   The default value for <see cref="MultisampleCount"/>.
+    /// </summary>
+    public const MultisampleCount DefaultMultisampleCount = MultisampleCount.None;
+    /// <summary>
+    ///   The default value for <see cref="MultisampleAntiAliasLine"/>.
+    /// </summary>
+    public const bool DefaultMultisampleAntiAliasLine = false;
+    /// <summary>
+    ///   The default value for <see cref="DepthBias"/>.
+    /// </summary>
+    public const int DefaultDepthBias = 0;
+    /// <summary>
+    ///   The default value for <see cref="DepthBiasClamp"/>.
+    /// </summary>
+    public const float DefaultDepthBiasClamp = 0;
+    /// <summary>
+    ///   The default value for <see cref="SlopeScaleDepthBias"/>.
+    /// </summary>
+    public const float DefaultSlopeScaleDepthBias = 0;
+
+    #endregion
+
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="RasterizerStateDescription"/> structure
+    ///   with default values.
+    /// </summary>
+    /// <remarks><inheritdoc cref="Default" path="/remarks"/></remarks>
+    public RasterizerStateDescription()
+    {
+    }
+
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="RasterizerStateDescription"/> structure
+    ///   with default values, and with the specified culling mode.
     /// </summary>
     /// <param name="cullMode">The cull mode.</param>
+    /// <remarks><inheritdoc cref="Default" path="/remarks"/></remarks>
     public RasterizerStateDescription(CullMode cullMode) : this()
     {
-        SetDefaults();
         CullMode = cullMode;
     }
 
@@ -37,7 +92,7 @@ public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription
     ///   Common values include <see cref="FillMode.Solid"/> for standard rendering and <see cref="FillMode.Wireframe"/> for debugging geometry.
     ///   Wireframe mode is especially useful for visualizing mesh topology or detecting overdraw.
     /// </remarks>
-    public FillMode FillMode;
+    public FillMode FillMode = DefaultFillMode;
 
     /// <summary>
     ///   Specifies which triangle facing direction <strong>should be culled (not rendered)</strong> during rasterization.
@@ -49,7 +104,7 @@ public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription
     ///   For example, if <c>FrontFaceCounterClockwise</c> is <see langword="false"/> (clockwise is front-facing),
     ///   and <c>CullMode</c> is set to <see cref="CullMode.Back"/>, then counter-clockwise triangles will be culled.
     /// </remarks>
-    public CullMode CullMode;
+    public CullMode CullMode = DefaultCullMode;
 
     /// <summary>
     ///   Determines the winding order used to identify front-facing triangles.
@@ -65,7 +120,7 @@ public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription
     ///   For example, if <c>FrontFaceCounterClockwise</c> is <see langword="false"/> (the default in Direct3D),
     ///   and <c>CullMode</c> is set to <see cref="CullMode.Front"/>, then triangles with clockwise winding will be culled.
     /// </remarks>
-    public bool FrontFaceCounterClockwise;
+    public bool FrontFaceCounterClockwise = DefaultFrontFaceCounterClockwise;
 
     /// <summary>
     ///   Constant depth bias added to each pixel's depth value.
@@ -75,7 +130,7 @@ public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription
     ///   such as when rendering decals or wireframe overlays on top of solid geometry.
     ///   The actual depth offset depends on the Depth Buffer format and the slope of the primitive.
     /// </remarks>
-    public int DepthBias;
+    public int DepthBias = DefaultDepthBias;
 
     /// <summary>
     ///   Maximum depth bias that can be applied to a pixel.
@@ -84,7 +139,7 @@ public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription
     ///   Clamps the total depth bias applied to a pixel, after combining <see cref="DepthBias"/> and <see cref="SlopeScaleDepthBias"/>.
     ///   This is useful to prevent excessive biasing on steep slopes or when using large bias values.
     /// </remarks>
-    public float DepthBiasClamp;
+    public float DepthBiasClamp = DefaultDepthBiasClamp;
 
     /// <summary>
     ///   Scalar applied to a primitive's slope to compute a variable depth bias.
@@ -95,7 +150,7 @@ public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription
     ///   It helps reduce Z-fighting on surfaces that are nearly parallel to the view direction.
     ///   Often used in conjunction with <see cref="DepthBias"/> for shadow mapping or coplanar geometry.
     /// </remarks>
-    public float SlopeScaleDepthBias;
+    public float SlopeScaleDepthBias = DefaultSlopeScaleDepthBias;
 
     /// <summary>
     ///   Enables or disables clipping of geometry based on the depth (Z) value.
@@ -106,7 +161,7 @@ public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription
     ///   Disabling this can be useful for special effects like infinite projection or stencil shadows,
     ///   but may lead to incorrect depth ordering if not handled carefully.
     /// </remarks>
-    public bool DepthClipEnable;
+    public bool DepthClipEnable = DefaultDepthClipEnable;
 
     // TODO: D3D12: In Direct3D 12, Scissor rectangles are set through the Command List dynamically, not through immutable Render States
 
@@ -117,7 +172,7 @@ public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription
     ///   When enabled, only pixels inside the active scissor rectangle are rendered.
     ///   This is commonly used for UI rendering, partial redraws, or performance optimization.
     /// </remarks>
-    public bool ScissorTestEnable;
+    public bool ScissorTestEnable = DefaultScissorTestEnable;
 
     /// <summary>
     ///   Specifies the number of samples used for multisample anti-aliasing (MSAA).
@@ -125,7 +180,7 @@ public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription
     /// <remarks>
     ///   Higher sample counts improve edge smoothness but increase memory and processing cost.
     /// </remarks>
-    public MultisampleCount MultisampleCount;
+    public MultisampleCount MultisampleCount = DefaultMultisampleCount;
 
     /// <summary>
     ///   Enables antialiasing for lines when MSAA is disabled. Only affects line rendering.
@@ -133,11 +188,11 @@ public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription
     /// <remarks>
     ///   This only affects line primitives, and has no effect when <see cref="MultisampleCount"/> is greater than 1.
     /// </remarks>
-    public bool MultisampleAntiAliasLine;
+    public bool MultisampleAntiAliasLine = DefaultMultisampleAntiAliasLine;
 
 
     /// <summary>
-    ///   Sets default values for this Rasterizer State description.
+    ///   A Rasterizer State description with default values.
     /// </summary>
     /// <remarks>
     ///   The default values are:
@@ -151,19 +206,7 @@ public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription
     ///     <item>No <see cref="DepthBias"/>, <see cref="DepthBiasClamp"/>, or <see cref="SlopeScaleDepthBias"/>.</item>
     ///   </list>
     /// </remarks>
-    public void SetDefaults()
-    {
-        FillMode = FillMode.Solid;
-        CullMode = CullMode.Back;
-        FrontFaceCounterClockwise = false;
-        DepthClipEnable = true;
-        ScissorTestEnable = false;
-        MultisampleCount = MultisampleCount.None;
-        MultisampleAntiAliasLine = false;
-        DepthBias = 0;
-        DepthBiasClamp = 0f;
-        SlopeScaleDepthBias = 0f;
-    }
+    public static readonly RasterizerStateDescription Default = new();
 
 
     /// <inheritdoc/>

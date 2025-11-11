@@ -18,28 +18,68 @@ namespace Stride.Graphics;
 [DataContract]
 public struct BlendStateRenderTargetDescription : IEquatable<BlendStateRenderTargetDescription>
 {
+    #region Default values
+
+    /// <summary>
+    ///   Default value for <see cref="BlendEnable"/>.
+    /// </summary>
+    public const bool DefaultBlendEnable = false;
+
+    /// <summary>
+    ///   Default value for <see cref="ColorSourceBlend"/>.
+    /// </summary>
+    public const Blend DefaultColorSourceBlend = Blend.One;
+    /// <summary>
+    ///   Default value for <see cref="ColorDestinationBlend"/>.
+    /// </summary>
+    public const Blend DefaultColorDestinationBlend = Blend.Zero;
+    /// <summary>
+    ///   Default value for <see cref="ColorBlendFunction"/>.
+    /// </summary>
+    public const BlendFunction DefaultColorBlendFunction = BlendFunction.Add;
+
+    /// <summary>
+    ///   Default value for <see cref="AlphaSourceBlend"/>.
+    /// </summary>
+    public const Blend DefaultAlphaSourceBlend = Blend.One;
+    /// <summary>
+    ///   Default value for <see cref="AlphaDestinationBlend"/>.
+    /// </summary>
+    public const Blend DefaultAlphaDestinationBlend = Blend.Zero;
+    /// <summary>
+    ///   Default value for <see cref="AlphaBlendFunction"/>.
+    /// </summary>
+    public const BlendFunction DefaultAlphaBlendFunction = BlendFunction.Add;
+
+    /// <summary>
+    ///   Default value for <see cref="ColorWriteChannels"/>.
+    /// </summary>
+    public const ColorWriteChannels DefaultColorWriteChannels = ColorWriteChannels.All;
+
+    #endregion
+
     /// <summary>
     ///   A value indicating whether to enable or disable blending.
     /// </summary>
-    public bool BlendEnable;
+    public bool BlendEnable = DefaultBlendEnable;
 
     /// <summary>
     ///   Specifies the first color (RGB) data source and includes an optional pre-blend operation.
     /// </summary>
     /// <seealso cref="Blend"/>
-    public Blend ColorSourceBlend;
+    public Blend ColorSourceBlend = DefaultColorSourceBlend;
 
     /// <summary>
     ///   Specifies the second color (RGB) data source and includes an optional pre-blend operation.
     /// </summary>
     /// <seealso cref="Blend"/>
-    public Blend ColorDestinationBlend;
+    public Blend ColorDestinationBlend = DefaultColorDestinationBlend;
 
     /// <summary>
     ///   Defines the function used to combine the color (RGB) data sources.
     /// </summary>
     /// <seealso cref="BlendFunction"/>
-    public BlendFunction ColorBlendFunction;
+    public BlendFunction ColorBlendFunction = DefaultColorBlendFunction;
 
     /// <summary>
     ///   Specifies the first alpha data source and includes an optional pre-blend operation.
@@ -48,7 +88,7 @@ public struct BlendStateRenderTargetDescription : IEquatable<BlendStateRenderTar
     /// <remarks>
     ///   <see cref="Blend"/> options that end in <c>Color</c> are not allowed.
     /// </remarks>
-    public Blend AlphaSourceBlend;
+    public Blend AlphaSourceBlend = DefaultAlphaSourceBlend;
 
     /// <summary>
     ///   Specifies the second alpha data source and includes an optional pre-blend operation.
@@ -57,18 +97,57 @@ public struct BlendStateRenderTargetDescription : IEquatable<BlendStateRenderTar
     /// <remarks>
     ///   <see cref="Blend"/> options that end in <c>Color</c> are not allowed.
     /// </remarks>
-    public Blend AlphaDestinationBlend;
+    public Blend AlphaDestinationBlend = DefaultAlphaDestinationBlend;
 
     /// <summary>
     ///   Defines the function used to combine the alpha data sources.
     /// </summary>
     /// <seealso cref="BlendFunction"/>
-    public BlendFunction AlphaBlendFunction;
+    public BlendFunction AlphaBlendFunction = DefaultAlphaBlendFunction;
 
     /// <summary>
     ///   A combination of flags that specify which color channels (Red, Green, Blue, Alpha) can be written to the Render Target when blending.
     /// </summary>
-    public ColorWriteChannels ColorWriteChannels;
+    public ColorWriteChannels ColorWriteChannels = DefaultColorWriteChannels;
+
+
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="BlendStateRenderTargetDescription"/> structure
+    ///   with default values.
+    /// </summary>
+    /// <remarks><inheritdoc cref="Default" path="/remarks"/></remarks>
+    public BlendStateRenderTargetDescription()
+    {
+    }
+
+    /// <summary>
+    ///   A <see cref="BlendStateRenderTargetDescription"/> structure with default values.
+    /// </summary>
+    /// <remarks>
+    ///   The default values are:
+    ///   <list type="bullet">
+    ///     <item>The blending is disabled.</item>
+    ///     <item>
+    ///       For both Color and Alpha:
+    ///       <list type="bullet">
+    ///         <item>
+    ///           <term>Source</term>
+    ///           <description><see cref="Blend.One"/></description>
+    ///         </item>
+    ///         <item>
+    ///           <term>Destination</term>
+    ///           <description><see cref="Blend.Zero"/></description>
+    ///         </item>
+    ///         <item>
+    ///           <term>Compare Function</term>
+    ///           <description><see cref="BlendFunction.Add"/> (additive)</description>
+    ///         </item>
+    ///       </list>
+    ///     </item>
+    ///     <item>All color channels can be written (<see cref="ColorWriteChannels.All"/>).</item>
+    ///   </list>
+    /// </remarks>
+    public static readonly BlendStateRenderTargetDescription Default = new();
 
 
     /// <inheritdoc/>

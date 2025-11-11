@@ -8,19 +8,11 @@ namespace Stride.Graphics;
 /// </summary>
 public static class RasterizerStates
 {
-    static RasterizerStates()
-    {
-        var defaultState = new RasterizerStateDescription();
-        defaultState.SetDefaults();
-        Default = defaultState;
-    }
-
-
     /// <summary>
     ///   A built-in Rasterizer State object with default settings.
     /// </summary>
-    /// <inheritdoc cref="RasterizerStateDescription.SetDefaults" path="/remarks"/>
-    public static readonly RasterizerStateDescription Default;
+    /// <inheritdoc cref="RasterizerStateDescription.Default" path="/remarks"/>
+    public static readonly RasterizerStateDescription Default = RasterizerStateDescription.Default;
 
     /// <summary>
     ///   A built-in Rasterizer State object with settings for culling primitives with clockwise winding order.

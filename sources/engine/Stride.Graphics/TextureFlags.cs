@@ -34,7 +34,8 @@ public enum TextureFlags
     DepthStencil = 8,
 
     /// <summary>
-    ///   The Texture can be used as a read-only Depth-Stencil buffer.
+    ///   The Texture can be used as a read-only Depth-Stencil buffer. This allows reading from it in a shader stage
+    ///   even at the same time as it is bound as a Depth-Stencil Buffer in the output-merger stage.
     /// </summary>
     DepthStencilReadOnly = DepthStencil | Texture.DepthStencilReadOnlyFlags
 }

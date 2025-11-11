@@ -20,6 +20,27 @@ namespace Stride.Graphics;
 [StructLayout(LayoutKind.Sequential)]
 public struct DepthStencilStencilOpDescription : IEquatable<DepthStencilStencilOpDescription>
 {
+    #region Default values
+
+    /// <summary>
+    ///   Default value for <see cref="StencilFunction"/>.
+    /// </summary>
+    public const CompareFunction DefaultStencilFunction = CompareFunction.Always;
+    /// <summary>
+    ///   Default value for <see cref="StencilPass"/>.
+    /// </summary>
+    public const StencilOperation DefaultStencilPass = StencilOperation.Keep;
+    /// <summary>
+    ///   Default value for <see cref="StencilFail"/>.
+    /// </summary>
+    public const StencilOperation DefaultStencilFail = StencilOperation.Keep;
+    /// <summary>
+    ///   Default value for <see cref="StencilDepthBufferFail"/>.
+    /// </summary>
+    public const StencilOperation DefaultStencilDepthBufferFail = StencilOperation.Keep;
+
+    #endregion
+
     /// <summary>
     ///   Specifies the stencil operation to perform <strong>when the stencil test fails</strong>.
     /// </summary>
@@ -28,7 +49,7 @@ public struct DepthStencilStencilOpDescription : IEquatable<DepthStencilStencilO
     ///   Common values include <see cref="StencilOperation.Keep"/> (no change) and <see cref="StencilOperation.Increment"/>/<see cref="StencilOperation.Decrement"/>
     ///   for masking or outlining effects.
     /// </remarks>
-    public StencilOperation StencilFail;
+    public StencilOperation StencilFail = DefaultStencilFail;
 
     /// <summary>
     ///   Specifies the stencil operation to perform <strong>when the stencil test passes but the depth test fails</strong>.
@@ -36,7 +57,7 @@ public struct DepthStencilStencilOpDescription : IEquatable<DepthStencilStencilO
     /// <remarks>
     ///   This is useful for effects like shadow volumes, where depth failure indicates occlusion.
     /// </remarks>
-    public StencilOperation StencilDepthBufferFail;
+    public StencilOperation StencilDepthBufferFail = DefaultStencilDepthBufferFail;
 
     /// <summary>
     ///   Specifies the stencil operation to perform <strong>when both the stencil and depth tests pass</strong>.
@@ -45,7 +66,7 @@ public struct DepthStencilStencilOpDescription : IEquatable<DepthStencilStencilO
     ///   This is the most common path for visible pixels.
     ///   The operation typically updates the stencil buffer to mark the pixel as processed.
     /// </remarks>
-    public StencilOperation StencilPass;
+    public StencilOperation StencilPass = DefaultStencilPass;
 
     /// <summary>
     ///   Specifies the comparison function used to evaluate the stencil test.
@@ -54,7 +75,32 @@ public struct DepthStencilStencilOpDescription : IEquatable<DepthStencilStencilO
     ///   The test compares the stencil buffer value with a reference value using this function.
     ///   For example, <see cref="CompareFunction.Equal"/> passes only if the values match.
     /// </remarks>
-    public CompareFunction StencilFunction;
+    public CompareFunction StencilFunction = DefaultStencilFunction;
+
+
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="DepthStencilStencilOpDescription"/> structure
+    ///   with default values.
+    /// </summary>
+    /// <remarks><inheritdoc cref="Default" path="/remarks"/></remarks>
+    public DepthStencilStencilOpDescription()
+    {
+    }
+
+    /// <summary>
+    ///   A Depth-Stencil Operation description with default values.
+    /// </summary>
+    /// <remarks>
+    ///   The default values are:
+    ///   <list type="bullet">
+    ///     <item>
+    ///       Always keep the current value (<see cref="StencilOperation.Keep"/>) in all cases
+    ///       (i.e., <see cref="StencilFail"/>, <see cref="StencilDepthBufferFail"/>, and <see cref="StencilPass"/>).
+    ///     </item>
+    ///     <item>A comparison function that always passes (<see cref="CompareFunction.Always"/>).</item>
+    ///   </list>
+    /// </remarks>
+    public static readonly DepthStencilStencilOpDescription Default = new();
 
 
     /// <inheritdoc/>

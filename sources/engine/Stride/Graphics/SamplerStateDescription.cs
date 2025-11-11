@@ -2,8 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
 using Stride.Core;
 using Stride.Core.Mathematics;
 
@@ -17,15 +17,72 @@ namespace Stride.Graphics;
 [StructLayout(LayoutKind.Sequential)]
 public struct SamplerStateDescription : IEquatable<SamplerStateDescription>
 {
+    #region Default values
+
     /// <summary>
-    ///   Initializes a new instance of the <see cref="SamplerStateDescription"/> structure.
+    ///   Default value for <see cref="Filter"/>.
+    /// </summary>
+    public const TextureFilter DefaultFilter = TextureFilter.Linear;
+    /// <summary>
+    ///   Default value for <see cref="AddressU"/>.
+    /// </summary>
+    public const TextureAddressMode DefaultAddressU = TextureAddressMode.Clamp;
+    /// <summary>
+    ///   Default value for <see cref="AddressV"/>.
+    /// </summary>
+    public const TextureAddressMode DefaultAddressV = TextureAddressMode.Clamp;
+    /// <summary>
+    ///   Default value for <see cref="AddressW"/>.
+    /// </summary>
+    public const TextureAddressMode DefaultAddressW = TextureAddressMode.Clamp;
+
+    /// <summary>
+    ///   Default value for <see cref="BorderColor"/> (black).
+    /// </summary>
+    public static readonly Color4 DefaultBorderColor = default; // Black (0,0,0,0)
+
+    /// <summary>
+    ///   Default value for <see cref="MaxAnisotropy"/>.
+    /// </summary>
+    public const int DefaultMaxAnisotropy = 16;
+    /// <summary>
+    ///   Default value for <see cref="MinMipLevel"/>.
+    /// </summary>
+    public const float DefaultMinMipLevel = -float.MaxValue;
+    /// <summary>
+    ///   Default value for <see cref="MaxMipLevel"/>.
+    /// </summary>
+    public const float DefaultMaxMipLevel = float.MaxValue;
+    /// <summary>
+    ///   Default value for <see cref="MipMapLevelOfDetailBias"/>.
+    /// </summary>
+    public const float DefaultMipMapLevelOfDetailBias = 0.0f;
+
+    /// <summary>
+    ///   Default value for <see cref="CompareFunction"/>.
+    /// </summary>
+    public const CompareFunction DefaultCompareFunction = CompareFunction.Never;
+
+    #endregion
+
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="SamplerStateDescription"/> structure
+    ///   with default values.
+    /// </summary>
+    /// <remarks><inheritdoc cref="Default" path="/remarks"/></remarks>
+    public SamplerStateDescription()
+    {
+    }
+
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="SamplerStateDescription"/> structure
+    ///   with default values, and a specific Texture filtering and addressing mode.
     /// </summary>
     /// <param name="filter">The Texture filtering mode.</param>
     /// <param name="addressMode">The Texture addressing mode for U, V, and W coordinates.</param>
+    /// <remarks><inheritdoc cref="Default" path="/remarks"/></remarks>
     public SamplerStateDescription(TextureFilter filter, TextureAddressMode addressMode) : this()
     {
-        SetDefaults();
-
         Filter = filter;
         AddressU = AddressV = AddressW = addressMode;
     }
@@ -34,22 +91,22 @@ public struct SamplerStateDescription : IEquatable<SamplerStateDescription>
     /// <summary>
     ///   The filtering method to use when sampling a Texture.
     /// </summary>
-    public TextureFilter Filter;
+    public TextureFilter Filter = DefaultFilter;
 
     /// <summary>
     ///   The method to use for resolving a U texture coordinate that is outside the [0, 1] range.
     /// </summary>
-    public TextureAddressMode AddressU;
+    public TextureAddressMode AddressU = DefaultAddressU;
 
     /// <summary>
     ///   The method to use for resolving a V texture coordinate that is outside the [0, 1] range.
     /// </summary>
-    public TextureAddressMode AddressV;
+    public TextureAddressMode AddressV = DefaultAddressV;
 
     /// <summary>
     ///   The method to use for resolving a W texture coordinate that is outside the [0, 1] range.
     /// </summary>
-    public TextureAddressMode AddressW;
+    public TextureAddressMode AddressW = DefaultAddressW;
 
     /// <summary>
     ///   The offset to apply from the calculated mipmap level.
@@ -58,13 +115,13 @@ public struct SamplerStateDescription : IEquatable<SamplerStateDescription>
     ///   For example, if a Texture should be sampled at mipmap level 3 and <see cref="MipMapLevelOfDetailBias"/>
     ///   is 2, then the Texture will be sampled at mipmap level 5.
     /// </remarks>
-    public float MipMapLevelOfDetailBias;
+    public float MipMapLevelOfDetailBias = DefaultMipMapLevelOfDetailBias;
 
     /// <summary>
     ///   The clamping value used if <see cref="TextureFilter.Anisotropic"/> or <see cref="TextureFilter.ComparisonAnisotropic"/>
     ///   is specified in <see cref="Filter"/>. Valid values are between 1 and 16.
     /// </summary>
-    public int MaxAnisotropy;
+    public int MaxAnisotropy = DefaultMaxAnisotropy;
 
     /// <summary>
     ///   A function that compares sampled data against existing sampled data.
@@ -73,19 +130,19 @@ public struct SamplerStateDescription : IEquatable<SamplerStateDescription>
     ///   This function will be used when specifying one of the comparison filtering modes in
     ///   <see cref="Filter"/>.
     /// </remarks>
-    public CompareFunction CompareFunction;
+    public CompareFunction CompareFunction = DefaultCompareFunction;
 
     /// <summary>
     ///   The border color to use if <see cref="TextureAddressMode.Border"/> is specified for
     ///   <see cref="AddressU"/>, <see cref="AddressV"/>, or <see cref="AddressW"/>.
     /// </summary>
-    public Color4 BorderColor;
+    public Color4 BorderColor = DefaultBorderColor;
 
     /// <summary>
     ///   The lower end of the mipmap range to clamp access to, where 0 is the largest and most detailed mipmap
     ///   level and any level higher than that is less detailed.
     /// </summary>
-    public float MinMipLevel;
+    public float MinMipLevel = DefaultMinMipLevel;
 
     /// <summary>
     ///   The upper end of the mipmap range to clamp access to, where 0 is the largest and most detailed mipmap
@@ -95,21 +152,28 @@ public struct SamplerStateDescription : IEquatable<SamplerStateDescription>
     ///   This value must be greater than or equal to <see cref="MinMipLevel"/>.
     ///   To have no upper limit set this to a large value such as <see cref="float.MaxValue"/>.
     /// </remarks>
-    public float MaxMipLevel;
+    public float MaxMipLevel = DefaultMaxMipLevel;
 
 
     /// <summary>
     ///   Returns a <see cref="SamplerStateDescription"/> with default values.
     /// </summary>
-    public static SamplerStateDescription Default
-    {
-        get
-        {
-            Unsafe.SkipInit(out SamplerStateDescription desc);
-            desc.SetDefaults();
-            return desc;
-        }
-    }
+    /// <remarks>
+    ///   The default values are:
+    ///   <list type="bullet">
+    ///     <item>Linear filtering (<see cref="TextureFilter.Linear"/>).</item>
+    ///     <item><see cref="TextureAddressMode.Clamp"/> for <c>U</c>, <c>V</c>, and <c>W</c> Texture coordinates.</item>
+    ///     <item>No Mip LOD bias (<c>0.0</c>).</item>
+    ///     <item>A default maximum anisotropy of <c>16x</c>.</item>
+    ///     <item>A comparison function that never passes (<see cref="CompareFunction.Never"/>).</item>
+    ///     <item>A border color of black (<c>(0,0,0,0)</c>).</item>
+    ///     <item>
+    ///       No clamping on Mip-levels (<see cref="MinMipLevel"/> is <c>-<see cref="float.MaxValue"/></c> and
+    ///       <see cref="MaxMipLevel"/> is <c><see cref="float.MaxValue"/></c>).
+    ///     </item>
+    ///   </list>
+    /// </remarks>
+    public static SamplerStateDescription Default => new();
 
 
     public static bool operator ==(SamplerStateDescription left, SamplerStateDescription right)
@@ -123,7 +187,7 @@ public struct SamplerStateDescription : IEquatable<SamplerStateDescription>
     }
 
     /// <inheritdoc/>
-    public bool Equals(SamplerStateDescription other)
+    public readonly bool Equals(SamplerStateDescription other)
     {
         return Filter == other.Filter
             && AddressU == other.AddressU
@@ -138,7 +202,7 @@ public struct SamplerStateDescription : IEquatable<SamplerStateDescription>
     }
 
     /// <inheritdoc/>
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         return obj is SamplerStateDescription description && Equals(description);
     }
@@ -160,20 +224,9 @@ public struct SamplerStateDescription : IEquatable<SamplerStateDescription>
         return hash.ToHashCode();
     }
 
-    /// <summary>
-    ///   Sets the default values for this instance.
-    /// </summary>
-    private void SetDefaults()
+    /// <inheritdoc/>
+    public override readonly string ToString()
     {
-        Filter = TextureFilter.Linear;
-        AddressU = TextureAddressMode.Clamp;
-        AddressV = TextureAddressMode.Clamp;
-        AddressW = TextureAddressMode.Clamp;
-        BorderColor = new Color4();
-        MaxAnisotropy = 16;
-        MinMipLevel = -float.MaxValue;
-        MaxMipLevel = float.MaxValue;
-        MipMapLevelOfDetailBias = 0.0f;
-        CompareFunction = CompareFunction.Never;
+        return $"Sampler State {{Filter: {Filter}, Address UVW: {AddressU}, {AddressV}, {AddressW}, Mip LOD Bias: {MipMapLevelOfDetailBias}, Max Anisotropy: {MaxAnisotropy}, Compare Function: {CompareFunction}, Border Color: {BorderColor}, Min/Max MipLevel: {MinMipLevel} / {MaxMipLevel}}}";
     }
 }

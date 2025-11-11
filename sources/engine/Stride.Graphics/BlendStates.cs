@@ -10,12 +10,7 @@ public static class BlendStates
 {
     static BlendStates()
     {
-        var blendDescription = new BlendStateDescription(Blend.One, Blend.Zero);
-        blendDescription.SetDefaults();
-        Default = blendDescription;
-
-        var colorDisabledDescription = new BlendStateDescription();
-        colorDisabledDescription.SetDefaults();
+        var colorDisabledDescription = BlendStateDescription.Default;
         colorDisabledDescription.RenderTargets[0].ColorWriteChannels = ColorWriteChannels.None;
         ColorDisabled = colorDisabledDescription;
     }
@@ -24,8 +19,8 @@ public static class BlendStates
     /// <summary>
     ///   A built-in Blend State description with default settings, that is <strong>no blend at all</strong>.
     /// </summary>
-    /// <inheritdoc cref="BlendStateDescription.SetDefaults" path="/remarks" />
-    public static readonly BlendStateDescription Default;
+    /// <inheritdoc cref="BlendStateDescription.Default" path="/remarks" />
+    public static readonly BlendStateDescription Default = BlendStateDescription.Default;
 
     /// <summary>
     ///   A built-in Blend State description with settings for <strong>additive blending</strong>,
@@ -115,7 +110,7 @@ public static class BlendStates
     ///     </item>
     ///   </list>
     /// </remarks>
-    public static readonly BlendStateDescription NonPremultiplied = new(sourceBlend : Blend.SourceAlpha, destinationBlend : Blend.InverseSourceAlpha);
+    public static readonly BlendStateDescription NonPremultiplied = new(sourceBlend: Blend.SourceAlpha, destinationBlend: Blend.InverseSourceAlpha);
 
     /// <summary>
     ///   A built-in Blend State description with settings for <strong>opaque blending</strong>,
@@ -145,7 +140,7 @@ public static class BlendStates
     ///     </item>
     ///   </list>
     /// </remarks>
-    public static readonly BlendStateDescription Opaque = new(sourceBlend : Blend.One, destinationBlend : Blend.Zero);
+    public static readonly BlendStateDescription Opaque = new(sourceBlend: Blend.One, destinationBlend: Blend.Zero);
 
     /// <summary>
     ///   A built-in Blend State description with settings for <strong>disabling color rendering</strong> on the first Render Target (target 0),

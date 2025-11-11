@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#nullable enable
+
 using System;
 using Stride.Shaders;
 
@@ -19,14 +21,14 @@ public sealed class PipelineStateDescription : IEquatable<PipelineStateDescripti
     ///   A definition of the Shader resources and their bindings, including Constant Buffers, Textures, and Samplers
     ///   that will be accessed by the Shader programs.
     /// </summary>
-    public RootSignature RootSignature;
+    public RootSignature? RootSignature;
 
     // Effect / Shader
 
     /// <summary>
     ///   Compiled Shader programs (vertex, pixel, geometry, etc.) that define the programmable stages of the graphics pipeline.
     /// </summary>
-    public EffectBytecode EffectBytecode;
+    public EffectBytecode? EffectBytecode;
 
     // Rendering States
 
@@ -60,7 +62,7 @@ public sealed class PipelineStateDescription : IEquatable<PipelineStateDescripti
     ///   The array describes per-vertex attributes such as position, normal, texture coordinates,
     ///   and their respective formats.
     /// </summary>
-    public InputElementDescription[] InputElements;
+    public InputElementDescription[]? InputElements;
 
     /// <summary>
     ///   Specifies how vertices should be interpreted to form primitives (points, lines, triangles, etc.)
@@ -80,7 +82,7 @@ public sealed class PipelineStateDescription : IEquatable<PipelineStateDescripti
     ///   Creates a new object that is a copy of the current instance.
     /// </summary>
     /// <returns>A new object that is a copy of this instance.</returns>
-    public unsafe PipelineStateDescription Clone()
+    public PipelineStateDescription Clone()
     {
         return new PipelineStateDescription
         {
@@ -91,7 +93,7 @@ public sealed class PipelineStateDescription : IEquatable<PipelineStateDescripti
             RasterizerState = RasterizerState,
             DepthStencilState = DepthStencilState,
 
-            InputElements = (InputElementDescription[]) InputElements?.Clone(),
+            InputElements = (InputElementDescription[]?) InputElements?.Clone(),
 
             PrimitiveType = PrimitiveType,
 
@@ -104,19 +106,19 @@ public sealed class PipelineStateDescription : IEquatable<PipelineStateDescripti
     /// </summary>
     /// <remarks>
     ///   For more information about the default values, see the individual state descriptions:
-    ///   <see cref="BlendStateDescription.SetDefaults"/>, <see cref="RasterizerStateDescription.SetDefaults"/>, and
-    ///   <see cref="DepthStencilStateDescription.SetDefaults"/>.
+    ///   <see cref="BlendStateDescription.Default"/>, <see cref="RasterizerStateDescription.Default"/>, and
+    ///   <see cref="DepthStencilStateDescription.Default"/>.
     /// </remarks>
     public void SetDefaults()
     {
-        BlendState.SetDefaults();
-        RasterizerState.SetDefaults();
-        DepthStencilState.SetDefaults();
+        BlendState = BlendStateDescription.Default;
+        RasterizerState = RasterizerStateDescription.Default;
+        DepthStencilState = DepthStencilStateDescription.Default;
     }
 
 
     /// <inheritdoc/>
-    public bool Equals(PipelineStateDescription other)
+    public bool Equals(PipelineStateDescription? other)
     {
         if (other is null)
             return false;
@@ -139,7 +141,7 @@ public sealed class PipelineStateDescription : IEquatable<PipelineStateDescripti
 
         if (InputElements is not null)
         {
-            if (InputElements.Length != other.InputElements.Length)
+            if (InputElements.Length != other.InputElements!.Length)
                 return false;
 
             for (int i = 0; i < InputElements.Length; ++i)
@@ -153,7 +155,7 @@ public sealed class PipelineStateDescription : IEquatable<PipelineStateDescripti
     }
 
     /// <inheritdoc/>
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is PipelineStateDescription pipelineStateDescription && Equals(pipelineStateDescription);
     }

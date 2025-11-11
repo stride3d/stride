@@ -23,11 +23,36 @@ namespace Stride.Graphics;
 [StructLayout(LayoutKind.Sequential)]
 public struct BlendStateDescription : IEquatable<BlendStateDescription>
 {
+    #region Default values
+
     /// <summary>
-    ///   Initializes a new instance of the <see cref="BlendStateDescription"/> structure.
+    ///   Default value for <see cref="AlphaToCoverageEnable"/>.
+    /// </summary>
+    public const bool DefaultAlphaToCoverageEnable = false;
+    /// <summary>
+    ///   Default value for <see cref="IndependentBlendEnable"/>.
+    /// </summary>
+    public const bool DefaultIndependentBlendEnable = false;
+
+    #endregion
+
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="BlendStateDescription"/> structure
+    ///   with default values.
+    /// </summary>
+    /// <remarks><inheritdoc cref="Default" path="/remarks"/></remarks>
+    public BlendStateDescription()
+    {
+        SetDefaults();
+    }
+
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="BlendStateDescription"/> structure
+    ///   with default values, and the specified blending for the first Render Target.
     /// </summary>
     /// <param name="sourceBlend">The source blend.</param>
     /// <param name="destinationBlend">The destination blend.</param>
+    /// <remarks><inheritdoc cref="Default" path="/remarks"/></remarks>
     public BlendStateDescription(Blend sourceBlend, Blend destinationBlend) : this()
     {
         SetDefaults();
@@ -39,7 +64,7 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
     }
 
     /// <summary>
-    ///   Sets default values for this Blend State Description.
+    ///   A Blend State description with default values.
     /// </summary>
     /// <remarks>
     ///   The default values are:
@@ -55,25 +80,18 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
     ///     <item>Disable blending for all the Render Targets.</item>
     ///   </list>
     /// </remarks>
-    public void SetDefaults()
+    public static readonly BlendStateDescription Default = new();
+
+    /// <summary>
+    ///   Sets default values for this Blend State Description.
+    /// </summary>
+    private void SetDefaults()
     {
-        AlphaToCoverageEnable = false;
-        IndependentBlendEnable = false;
+        var defaultRenderTargetDesc = BlendStateRenderTargetDescription.Default;
 
         for (int i = 0; i < RenderTargets.Count; i++)
         {
-            ref var renderTarget = ref RenderTargets[i];
-
-            renderTarget.BlendEnable = false;
-            renderTarget.ColorSourceBlend = Blend.One;
-            renderTarget.ColorDestinationBlend = Blend.Zero;
-            renderTarget.ColorBlendFunction = BlendFunction.Add;
-
-            renderTarget.AlphaSourceBlend = Blend.One;
-            renderTarget.AlphaDestinationBlend = Blend.Zero;
-            renderTarget.AlphaBlendFunction = BlendFunction.Add;
-
-            renderTarget.ColorWriteChannels = ColorWriteChannels.All;
+            RenderTargets[i] = defaultRenderTargetDesc;
         }
     }
 
@@ -87,7 +105,7 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
     ///   in a multi-sampled anti-aliasing (MSAA) scenario.
     ///   This can help achieve smoother edges in transparent textures by blending the coverage of the pixel based on its alpha value.
     /// </remarks>
-    public bool AlphaToCoverageEnable;
+    public bool AlphaToCoverageEnable = DefaultAlphaToCoverageEnable;
 
     /// <summary>
     ///   A value indicating whether to enable <strong>independent blending</strong> in simultaneous Render Targets,
@@ -102,7 +120,7 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
     ///     The others (<see cref="RenderTarget1"/> to <see cref="RenderTarget7"/>) are ignored.
     ///   </para>
     /// </remarks>
-    public bool IndependentBlendEnable;
+    public bool IndependentBlendEnable = DefaultIndependentBlendEnable;
 
     /// <summary>
     ///   An array of Render Target blend descriptions (see <see cref="BlendStateRenderTargetDescription"/>);

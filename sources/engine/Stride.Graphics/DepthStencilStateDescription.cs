@@ -24,12 +24,59 @@ namespace Stride.Graphics;
 [StructLayout(LayoutKind.Sequential)]
 public struct DepthStencilStateDescription : IEquatable<DepthStencilStateDescription>
 {
+    #region Default values
+
     /// <summary>
-    ///   Initializes a new instance of the <see cref="DepthStencilStateDescription"/> structure.
+    ///   The default value for <see cref="DepthBufferEnable"/>.
     /// </summary>
+    public const bool DefaultDepthBufferEnable = true;
+    /// <summary>
+    ///   The default value for <see cref="DepthBufferWriteEnable"/>.
+    /// </summary>
+    public const bool DefaultDepthBufferWriteEnable = true;
+    /// <summary>
+    ///   The default value for <see cref="DepthBufferFunction"/>.
+    /// </summary>
+    public const CompareFunction DefaultDepthBufferFunction = CompareFunction.LessEqual;
+    /// <summary>
+    ///   The default value for <see cref="StencilEnable"/>.
+    /// </summary>
+    public const bool DefaultStencilEnable = false;
+
+    /// <summary>
+    ///   The default value for both <see cref="FrontFace"/> and <see cref="BackFace"/>.
+    /// </summary>
+    public static readonly DepthStencilStencilOpDescription DefaultDepthStencilOp = DepthStencilStencilOpDescription.Default;
+
+    /// <summary>
+    ///   The default value for <see cref="StencilMask"/>.
+    /// </summary>
+    public const byte DefaultStencilMask = byte.MaxValue;
+    /// <summary>
+    ///   The default value for <see cref="StencilWriteMask"/>.
+    /// </summary>
+    public const byte DefaultStencilWriteMask = byte.MaxValue;
+
+    #endregion
+
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="DepthStencilStateDescription"/> structure
+    ///   with default values.
+    /// </summary>
+    /// <remarks><inheritdoc cref="Default" path="/remarks"/></remarks>
+    public DepthStencilStateDescription()
+    {
+    }
+
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="DepthStencilStateDescription"/> structure
+    ///   with default values.
+    /// </summary>
+    /// <param name="depthEnable">A value indicating whether to enable Depth testing.</param>
+    /// <param name="depthWriteEnable">A value indicating whether to enable writing to the Depth-Stencil Buffer.</param>
+    /// <remarks><inheritdoc cref="Default" path="/remarks"/></remarks>
     public DepthStencilStateDescription(bool depthEnable, bool depthWriteEnable) : this()
     {
-        SetDefaults();
         DepthBufferEnable = depthEnable;
         DepthBufferWriteEnable = depthWriteEnable;
     }
@@ -44,7 +91,7 @@ public struct DepthStencilStateDescription : IEquatable<DepthStencilStateDescrip
     ///   <br/>
     ///   If disabled, all pixels pass the depth test.
     /// </remarks>
-    public bool DepthBufferEnable;
+    public bool DepthBufferEnable = DefaultDepthBufferEnable;
 
     /// <summary>
     ///   Specifies the comparison function used in the depth test.
@@ -54,7 +101,7 @@ public struct DepthStencilStateDescription : IEquatable<DepthStencilStateDescrip
     ///   For example, <c>CompareFunction.LessEqual</c> allows a pixel to pass if its depth is less than or equal to
     ///   the current Depth-Stencil Buffer value.
     /// </remarks>
-    public CompareFunction DepthBufferFunction;
+    public CompareFunction DepthBufferFunction = DefaultDepthBufferFunction;
 
     /// <summary>
     ///   Enables or disables writing to the depth buffer.
@@ -63,7 +110,7 @@ public struct DepthStencilStateDescription : IEquatable<DepthStencilStateDescrip
     ///   Disabling depth writes can be useful for rendering transparent objects or overlays that should not affect
     ///   depth testing of subsequent geometry.
     /// </remarks>
-    public bool DepthBufferWriteEnable;
+    public bool DepthBufferWriteEnable = DefaultDepthBufferWriteEnable;
 
     /// <summary>
     ///   Enables or disables stencil testing.
@@ -72,7 +119,7 @@ public struct DepthStencilStateDescription : IEquatable<DepthStencilStateDescrip
     ///   When enabled, the stencil test is performed for each pixel using the configured stencil operations and masks.
     ///   This allows for advanced rendering techniques such as masking, outlining, and shadow volumes.
     /// </remarks>
-    public bool StencilEnable;
+    public bool StencilEnable = DefaultStencilEnable;
 
     /// <summary>
     ///   Bitmask applied to both the reference value and stencil buffer entry during stencil testing.
@@ -82,7 +129,7 @@ public struct DepthStencilStateDescription : IEquatable<DepthStencilStateDescrip
     ///   This mask controls which bits are considered significant in the stencil comparison.
     ///   For example, a mask of <c>0x0F</c> limits the test to the lower 4 bits of the stencil value.
     /// </remarks>
-    public byte StencilMask;
+    public byte StencilMask = DefaultStencilMask;
 
     /// <summary>
     ///   Bitmask applied to values written into the stencil buffer.
@@ -92,7 +139,7 @@ public struct DepthStencilStateDescription : IEquatable<DepthStencilStateDescrip
     ///   This mask determines which bits can be modified during stencil write operations.
     ///   It allows selective updating of stencil buffer bits.
     /// </remarks>
-    public byte StencilWriteMask;
+    public byte StencilWriteMask = DefaultStencilWriteMask;
 
     /// <summary>
     ///   Describes stencil operations and comparison function for front-facing polygons.
@@ -101,7 +148,7 @@ public struct DepthStencilStateDescription : IEquatable<DepthStencilStateDescrip
     ///   This includes the operations to perform when the stencil test fails, when the depth test fails,
     ///   and when both pass. It also defines the comparison function used for the stencil test.
     /// </remarks>
-    public DepthStencilStencilOpDescription FrontFace;
+    public DepthStencilStencilOpDescription FrontFace = DefaultDepthStencilOp;
 
     /// <summary>
     ///   Describes stencil operations and comparison function for back-facing polygons.
@@ -110,11 +157,11 @@ public struct DepthStencilStateDescription : IEquatable<DepthStencilStateDescrip
     ///   Typically used in conjunction with <see cref="FrontFace"/> to implement two-sided stencil operations,
     ///   such as shadow volume rendering or complex masking.
     /// </remarks>
-    public DepthStencilStencilOpDescription BackFace;
+    public DepthStencilStencilOpDescription BackFace = DefaultDepthStencilOp;
 
 
     /// <summary>
-    ///   Sets default values for this Depth-Stencil State description.
+    ///   A Depth-Stencil State description with default values.
     /// </summary>
     /// <remarks>
     ///   The default values are:
@@ -129,26 +176,7 @@ public struct DepthStencilStateDescription : IEquatable<DepthStencilStateDescrip
     ///       (the value in the stencil buffer is not modified).</item>
     ///   </list>
     /// </remarks>
-    public void SetDefaults()
-    {
-        DepthBufferEnable = true;
-        DepthBufferWriteEnable = true;
-        DepthBufferFunction = CompareFunction.LessEqual;
-        StencilEnable = false;
-
-        FrontFace.StencilFunction = CompareFunction.Always;
-        FrontFace.StencilPass = StencilOperation.Keep;
-        FrontFace.StencilFail = StencilOperation.Keep;
-        FrontFace.StencilDepthBufferFail = StencilOperation.Keep;
-
-        BackFace.StencilFunction = CompareFunction.Always;
-        BackFace.StencilPass = StencilOperation.Keep;
-        BackFace.StencilFail = StencilOperation.Keep;
-        BackFace.StencilDepthBufferFail = StencilOperation.Keep;
-
-        StencilMask = byte.MaxValue;
-        StencilWriteMask = byte.MaxValue;
-    }
+    public static readonly DepthStencilStateDescription Default = new();
 
 
     /// <summary>
