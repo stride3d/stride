@@ -181,8 +181,8 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestTexture2DUnorderedAccess()
         {
-            IgnoreGraphicPlatform(GraphicsPlatform.OpenGL);
-            IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);
+            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGL);
+            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGLES);
 
             PerformTest(
                 game =>
@@ -284,7 +284,7 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestDepthStencilBuffer()
         {
-            IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);
+            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGLES);
 
             PerformTest(
                 game =>
@@ -324,7 +324,7 @@ namespace Stride.Graphics.Tests
         [SkippableFact(Skip = "Clear on a ReadOnly depth buffer should be undefined or throw exception; should rewrite this test to do actual rendering with ReadOnly depth stencil bound?")]
         public void TestDepthStencilBufferWithNativeReadonly()
         {
-            IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);
+            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGLES);
 
             PerformTest(
                 game =>

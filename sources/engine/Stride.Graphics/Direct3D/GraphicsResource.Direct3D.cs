@@ -20,13 +20,6 @@ public abstract unsafe partial class GraphicsResource
     /// </summary>
     internal bool DiscardNextMap;
 
-    /// <summary>
-    ///   Gets a value indicating whether the Graphics Resource is in "Debug mode".
-    /// </summary>
-    /// <value>
-    ///   <see langword="true"/> if the Graphics Resource is initialized in "Debug mode"; otherwise, <see langword="false"/>.
-    /// </value>
-    protected bool IsDebugMode => GraphicsDevice?.IsDebugMode == true;
 
     /// <inheritdoc/>
     protected override void OnNameChanged()
@@ -37,13 +30,11 @@ public abstract unsafe partial class GraphicsResource
         {
             if (shaderResourceView is not null)
             {
-                var srv = ToComPtr(shaderResourceView).AsDeviceChild();
-                srv.SetDebugName(Name is null ? null : $"{Name} SRV");
+                NativeShaderResourceView.SetDebugName(Name is null ? null : $"{Name} SRV");
             }
             if (unorderedAccessView is not null)
             {
-                var uav = ToComPtr(unorderedAccessView).AsDeviceChild();
-                uav.SetDebugName(Name is null ? null : $"{Name} UAV");
+                NativeUnorderedAccessView.SetDebugName(Name is null ? null : $"{Name} UAV");
             }
         }
     }
@@ -79,8 +70,7 @@ public abstract unsafe partial class GraphicsResource
 
             if (IsDebugMode && shaderResourceView is not null)
             {
-                var srv = ToComPtr(shaderResourceView).AsDeviceChild();
-                srv.SetDebugName(Name is null ? null : $"{Name} SRV");
+                NativeShaderResourceView.SetDebugName(Name is null ? null : $"{Name} SRV");
             }
         }
     }
@@ -113,8 +103,7 @@ public abstract unsafe partial class GraphicsResource
 
             if (IsDebugMode && unorderedAccessView is not null)
             {
-                var uav = ToComPtr(unorderedAccessView).AsDeviceChild();
-                uav.SetDebugName(Name is null ? null : $"{Name} UAV");
+                NativeUnorderedAccessView.SetDebugName(Name is null ? null : $"{Name} UAV");
             }
         }
     }

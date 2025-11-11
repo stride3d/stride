@@ -852,6 +852,8 @@ namespace Stride.Graphics
         /// </remarks>
         public void BeginProfile(Color4 profileColor, string name)
         {
+            // TODO: We only initialize `nativeDeviceProfiler` in debug mode. Should BeginProfile() check this?
+            if (IsDebugMode)
             nativeDeviceProfiler->BeginEvent(name);
         }
 
@@ -861,6 +863,8 @@ namespace Stride.Graphics
         /// <inheritdoc cref="BeginProfile(Color4, string)" path="/remarks"/>
         public void EndProfile()
         {
+            // TODO: We only initialize `nativeDeviceProfiler` in debug mode. Should BeginProfile() check this?
+            if (IsDebugMode)
             nativeDeviceProfiler->EndEvent();
         }
 

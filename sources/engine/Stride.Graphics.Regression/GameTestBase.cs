@@ -45,9 +45,14 @@ namespace Stride.Graphics.Regression
         private List<string> comparisonFailedMessages = new List<string>();
 
         private BackBufferSizeMode backBufferSizeMode;
+
 #if STRIDE_PLATFORM_DESKTOP
-        // Note: it might cause OOM on 32-bit processes
-        public static bool CaptureRenderDocOnError = string.Compare(Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR"), "true", StringComparison.OrdinalIgnoreCase) == 0;
+        public static bool CaptureRenderDocOnError =
+  #if STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR
+            true;
+  #else
+            string.Equals(Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR"), "true", StringComparison.OrdinalIgnoreCase);
+  #endif
 
         private RenderDocManager renderDocManager;
 #endif
@@ -63,8 +68,10 @@ namespace Stride.Graphics.Regression
                 PreferredBackBufferWidth = 800,
                 PreferredBackBufferHeight = 480,
                 PreferredDepthStencilFormat = PixelFormat.D24_UNorm_S8_UInt,
+#if DEBUG
                 DeviceCreationFlags = DeviceCreationFlags.Debug,
-                PreferredGraphicsProfile = new[] { GraphicsProfile.Level_9_1 }
+#endif
+                PreferredGraphicsProfile = [ GraphicsProfile.Level_9_1 ]
             };
             Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
             Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);
@@ -227,11 +234,15 @@ namespace Stride.Graphics.Regression
 
 #if STRIDE_PLATFORM_DESKTOP
             // Setup RenderDoc capture
-            if (renderDocManager != null)
+            if (renderDocManager is not null)
             {
-                var renderdocCaptureFile = GenerateTestArtifactFileName(Path.Combine(FindStrideRootFolder(), @"tests\local"), null, GetPlatformSpecificFolder(), ".rdc");
+                var localTestsDir = Path.Combine(FindStrideSolutionRootDirectory(), @"tests\local");
+                var renderdocCaptureFile = GenerateTestArtifactFileName(testArtifactPath: localTestsDir,
+                                                                        frameName: null,
+                                                                        platformSpecificDir: GetPlatformSpecificDirectory(),
+                                                                        extension: ".rdc");
                 renderDocManager.Initialize(renderdocCaptureFile);
-                renderDocManager.StartFrameCapture(GraphicsDevice, IntPtr.Zero);
+                renderDocManager.StartFrameCapture(GraphicsDevice, hwndPtr: IntPtr.Zero);
             }
 #endif
 
@@ -245,32 +256,32 @@ namespace Stride.Graphics.Regression
 #endif
 
             Script.AddTask(RegisterTestsInternal);
+
+            Task RegisterTestsInternal()
+            {
+                if (!FrameGameSystem.IsUnitTestFeeding)
+                    RegisterTests();
+
+                return Task.CompletedTask;
+            }
         }
 
         protected override void Destroy()
         {
-#if STRIDE_PLATFORM_DESKTOP
-            if (renderDocManager != null)
-            {
-                // Note: if no comparison error, let's discard the capture
-                if (comparisonFailedMessages.Count == 0 && comparisonMissingMessages.Count == 0)
-                    renderDocManager.DiscardFrameCapture(GraphicsDevice, IntPtr.Zero);
-                else
-                    renderDocManager.EndFrameCapture(GraphicsDevice, IntPtr.Zero);
-                // Note: we don't remove hooks in case another unit test need them later
-                //renderDocManager.RemoveHooks();
-            }
-#endif
+            // NOTE: We don't remove RenderDoc hooks in case another unit test needs them later
+            //renderDocManager.RemoveHooks();
 
             base.Destroy();
         }
 
-        private Task RegisterTestsInternal()
+        private void EndFrameCapture()
         {
-            if (!FrameGameSystem.IsUnitTestFeeding)
-                RegisterTests();
+            renderDocManager?.EndFrameCapture(GraphicsDevice, IntPtr.Zero);
+        }
 
-            return Task.FromResult(true);
+        private void DiscardFrameCapture()
+        {
+            renderDocManager?.DiscardFrameCapture(GraphicsDevice, IntPtr.Zero);
         }
 
         protected override void Update(GameTime gameTime)
@@ -366,12 +377,56 @@ namespace Stride.Graphics.Regression
 
             game.ScreenShotAutomationEnabled = !ForceInteractiveMode;
 
-            GameTester.RunGameTest(game);
+            Exception exceptionOrFailedAssert = null;
 
+            try
+            {
+                GameTester.RunGameTest(game);
+            }
+            catch (Exception ex)
+            {
+                // This catches both errors in the test execution and assertion failures
+                exceptionOrFailedAssert = ex;
+            }
+
+#if STRIDE_PLATFORM_DESKTOP
+            if (CaptureRenderDocOnError)
+            {
+                // If no comparison errors, and no test errors, discard the capture
+                if (game.comparisonFailedMessages.Count == 0 &&
+                    game.comparisonMissingMessages.Count == 0 &&
+                    exceptionOrFailedAssert is null)
+                {
+                    game.DiscardFrameCapture();
+                }
+                else game.EndFrameCapture();
+            }
+#endif
+            // If there was an exception, rethrow it now
+            if (exceptionOrFailedAssert is not null)
+                throw exceptionOrFailedAssert;
+
+            // If there were comparison failures, assert them now
             if (game.ScreenShotAutomationEnabled)
             {
-                Assert.True(game.comparisonFailedMessages.Count == 0, "Some image comparison failed:" + Environment.NewLine + string.Join(Environment.NewLine, game.comparisonFailedMessages));
-                Assert.True(game.comparisonMissingMessages.Count == 0, "Some reference images are missing, please copy them manually:" + Environment.NewLine + string.Join(Environment.NewLine, game.comparisonMissingMessages));
+                if (game.comparisonFailedMessages.Count > 0)
+                    AssertImageComparisonFailed();
+                if (game.comparisonMissingMessages.Count > 0)
+                    AssertMissingComparisonImages();
+
+                [DoesNotReturn]
+                void AssertImageComparisonFailed()
+                {
+                    var failedImages = string.Join(Environment.NewLine, game.comparisonFailedMessages);
+                    Assert.Fail("Some image comparison failed:" + Environment.NewLine + failedImages);
+                }
+
+                [DoesNotReturn]
+                void AssertMissingComparisonImages()
+                {
+                    var missingImages = string.Join(Environment.NewLine, game.comparisonMissingMessages);
+                    Assert.Fail("Some reference images are missing, please copy them manually:" + Environment.NewLine + missingImages);
+                }
             }
         }
 
@@ -386,7 +441,7 @@ namespace Stride.Graphics.Regression
                 folder = Path.GetDirectoryName(folder);
             }
 
-            throw new InvalidOperationException("Could not locate Stride folder");
+            throw new InvalidOperationException("Could not locate the Stride solution root directory");
         }
 
         /// <summary>
@@ -514,9 +569,9 @@ namespace Stride.Graphics.Regression
         /// <summary>
         /// Ignore the test on the given platform
         /// </summary>
-        public static void IgnorePlatform(PlatformType platform)
+        public static void SkipTestForPlatform(PlatformType platform)
         {
-            Skip.If(Platform.Type == platform, $"This test is not valid for the '{platform}' platform. It has been ignored");
+            Skip.If(Platform.Type == platform, $"This test is not valid for the '{platform}' platform. It has been skipped");
         }
 
         /// <summary>
@@ -524,15 +579,15 @@ namespace Stride.Graphics.Regression
         /// </summary>
         public static void RequirePlatform(PlatformType platform)
         {
-            Skip.If(Platform.Type != platform, $"This test requires the '{platform}' platform. It has been ignored");
+            Skip.IfNot(Platform.Type == platform, $"This test requires the '{platform}' platform. It has been skipped");
         }
 
         /// <summary>
         /// Ignore the test on the given graphic platform
         /// </summary>
-        public static void IgnoreGraphicPlatform(GraphicsPlatform platform)
+        public static void SkipTestForGraphicPlatform(GraphicsPlatform platform)
         {
-            Skip.If(GraphicsDevice.Platform == platform, $"This test is not valid for the '{platform}' graphic platform. It has been ignored");
+            Skip.If(GraphicsDevice.Platform == platform, $"This test is not valid for the '{platform}' graphic platform. It has been skipped");
         }
 
         /// <summary>
@@ -540,7 +595,7 @@ namespace Stride.Graphics.Regression
         /// </summary>
         public static void RequireGraphicPlatform(GraphicsPlatform platform)
         {
-            Skip.If(GraphicsDevice.Platform != platform, $"This test requires the '{platform}' platform. It has been ignored");
+            Skip.IfNot(GraphicsDevice.Platform == platform, $"This test requires the '{platform}' graphics platform. It has been skipped");
         }
     }
 }

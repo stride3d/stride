@@ -266,12 +266,6 @@ namespace Stride.Graphics
                         featureLevel = D3DFeatureLevel.Level100;
                 }
 
-                if (Core.Platform.Type == PlatformType.Windows && GetModuleHandle("renderdoc.dll") != IntPtr.Zero)
-                {
-                    if (featureLevel < D3DFeatureLevel.Level110)
-                        featureLevel = D3DFeatureLevel.Level110;
-                }
-
                 var adapter = Adapter.NativeAdapter.AsComPtr<IDXGIAdapter1, IDXGIAdapter>();
                 ComPtr<ID3D11Device> device = default;
                 ComPtr<ID3D11DeviceContext> deviceContext = default;

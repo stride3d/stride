@@ -324,12 +324,6 @@ namespace Stride.Graphics
         /// </summary>
         public SamplerStateFactory SamplerStates { get; private set; }
 
-        // TODO: Unused?
-        /// <summary>
-        ///   Gets the index of the thread.
-        /// </summary>
-        public int ThreadIndex { get; internal set; }
-
         /// <summary>
         ///   Gets the graphics profile the Graphics Device is using, which determines the available features.
         /// </summary>

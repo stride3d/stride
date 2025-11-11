@@ -100,7 +100,7 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
                     var inputLevel = MathUtil.Log2(input.Width / output.Width);
                     if (mipLevel == 0 && DoNotFilterHighestLevel)
                     {
-                        if (input.Width >= output.Width && inputLevel < input.MipLevelCount && input.Format == output.Format)
+                        if (input.Width >= output.Width && inputLevel < input.MipLevelCount && input.Format == output.Format) // TODO: This comparison excludes sRGB to/from non-sRGB, which are indistinguishable in memory
                         {
                             // Optimization: make a simple copy of the texture when possible
                             var inputSubresource = inputLevel + faceIndex * input.MipLevelCount;

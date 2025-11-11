@@ -120,11 +120,12 @@ namespace Stride.Graphics.Tests
             }
         }
 
+
         [SkippableFact]
         public void RunTestPass2()
         {
-            IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);
-            IgnoreGraphicPlatform(GraphicsPlatform.Vulkan);
+            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGLES);
+            SkipTestForGraphicPlatform(GraphicsPlatform.Vulkan);
 
             RunGameTest(new TestLambertPrefilteringSHPass2());
         }

@@ -91,5 +91,17 @@ public class DescriptorSetLayoutBuilder
         EffectParameterType ElementType,
         int ArraySize,
         SamplerState? ImmutableSampler
-    );
+    )
+    {
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            string logicalGroup = string.IsNullOrEmpty(LogicalGroup) ? string.Empty : $"LogicalGroup = {LogicalGroup}, ";
+            string elementType = ElementType == EffectParameterType.Void ? string.Empty : ", ElementType = " + ElementType;
+            string arraySize = ArraySize == 1 ? string.Empty : ", ArraySize = " + ArraySize;
+            string sampler = ImmutableSampler is null ? string.Empty : ", ImmutableSampler = " + ImmutableSampler;
+
+            return $"{Key} ({logicalGroup}Class = {Class}, Type = {Type}{elementType}{arraySize}{sampler})";
+        }
+    }
 }

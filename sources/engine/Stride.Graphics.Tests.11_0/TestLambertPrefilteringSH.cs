@@ -164,10 +164,11 @@ namespace Stride.Graphics.Tests
             base.Draw(gameTime);
         }
 
+
         [SkippableFact]
         public void RunTestPass2()
         {
-            IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);
+            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGLES);
 
             RunGameTest(new TestLambertPrefilteringSH());
         }

@@ -41,22 +41,25 @@ public abstract unsafe partial class GraphicsResourceBase
             if (nativeDeviceChild == value.Handle)
                 return;
 
-            var oldDeviceChild = nativeDeviceChild;
-            if (oldDeviceChild is not null)
-                oldDeviceChild->Release();
+            var previousDeviceChild = nativeDeviceChild;
 
             nativeDeviceChild = value.Handle;
 
-            if (nativeDeviceChild is null)
-                return;
+            if (nativeDeviceChild is not null)
+            {
+                nativeDeviceChild->AddRef();
+            }
+            if (nativeDeviceChild != previousDeviceChild)
+            {
+                if (previousDeviceChild is not null)
+                    previousDeviceChild->Release();
+            }
 
-            nativeDeviceChild->AddRef();
+            SetDebugName();
 
             // The device child can be something that is not a Direct3D resource actually,
             // like a Sampler State, for example
             nativeResource = TryGetResource();
-
-            NativeDeviceChild.SetDebugName(Name);
         }
     }
 
@@ -81,7 +84,7 @@ public abstract unsafe partial class GraphicsResourceBase
         // like a Sampler State, for example
         nativeResource = TryGetResource();
 
-        NativeDeviceChild.SetDebugName(Name);
+        SetDebugName();
     }
 
     /// <summary>
@@ -94,11 +97,15 @@ public abstract unsafe partial class GraphicsResourceBase
     private ComPtr<ID3D11Resource> TryGetResource()
     {
         HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D11Resource> d3dResource);
-        if (result.IsSuccess)
+        return result.IsSuccess ? d3dResource : default;
+    }
+
+    private void SetDebugName()
+    {
+        if (IsDebugMode && nativeDeviceChild is not null)
         {
-            return d3dResource;
+            NativeDeviceChild.SetDebugName(Name);
         }
-        return default;
     }
 
     /// <summary>
@@ -110,6 +117,8 @@ public abstract unsafe partial class GraphicsResourceBase
     ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
     /// </remarks>
     protected ComPtr<ID3D11Device> NativeDevice => GraphicsDevice?.NativeDevice ?? default;
+
+    protected bool IsDebugMode => GraphicsDevice?.IsDebugMode == true;
 
 
     // No Direct3D-specific initialization
