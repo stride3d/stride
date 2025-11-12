@@ -913,7 +913,8 @@ namespace Stride.Graphics
         /// </remarks>
         public void BeginProfile(Color4 profileColor, string name)
         {
-            //currentCommandList.NativeCommandList.BeginEvent();  // TODO: Implement profiling
+            if (IsDebugMode)
+                WinPixNative.PIXBeginEventOnCommandList((nint)currentCommandList.NativeCommandList.Handle, (uint)profileColor.ToBgra(), name);
         }
 
         /// <summary>
@@ -922,7 +923,8 @@ namespace Stride.Graphics
         /// <inheritdoc cref="BeginProfile(Color4, string)" path="/remarks"/>
         public void EndProfile()
         {
-            //currentCommandList.NativeCommandList.EndEvent();  // TODO: Implement profiling
+            if (IsDebugMode)
+                WinPixNative.PIXEndEventOnCommandList((nint)currentCommandList.NativeCommandList.Handle);
         }
 
         // TODO: Unused, remove?
