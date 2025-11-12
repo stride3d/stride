@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
+using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Constraints;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
@@ -395,6 +396,103 @@ namespace Stride.BepuPhysics.Tests
 
                 return hits.Span.Length;
             }
+        }
+
+        [Fact]
+        public static void OnSimulationUpdateRemovalTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var listOfUpdate = new List<int>();
+                var c2 = new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+
+                var allEntities = game.SceneSystem.SceneInstance.RootScene.Entities;
+
+                Entity a, b, c, d, e;
+                allEntities.AddRange(new[]
+                {
+                    a = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(0); } } },
+                    b = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(1); } } },
+                    c = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(2); } } },
+                    d = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(3); } } },
+                    new Entity { c2 },
+                });
+
+                var simulation = allEntities[0].GetSimulation();
+
+
+                // First test, check if every component received its update
+                {
+                    await simulation.AfterUpdate();
+
+                    Assert.Equal([0, 1, 2, 3], listOfUpdate);
+                }
+
+
+                // Second test, check if removing works appropriately
+                {
+                    listOfUpdate.Clear();
+                    allEntities.Remove(b);
+                    allEntities.Remove(c);
+
+                    await simulation.AfterUpdate();
+
+                    // We've removed the second and third before running sim,
+                    // so only the first and fourth should report as having received the update
+                    Assert.Equal([0, 3], listOfUpdate);
+                }
+
+
+                // Clearing multiple listeners while running a listener
+                {
+                    listOfUpdate.Clear();
+                    allEntities.Remove(a);
+                    allEntities.Remove(d);
+
+                    var toRemove = new List<Entity>();
+                    allEntities.AddRange(new[]
+                    {
+                        a = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(0); } } },
+                        b = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(1); } } },
+                        c = new Entity
+                        {
+                            new SimUpdateListener
+                            {
+                                SimUpdate = () =>
+                                {
+                                    listOfUpdate.Add(2);
+                                    foreach (var entity in toRemove)
+                                        allEntities.Remove(entity);
+                                }
+                            }
+                        },
+                        d = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(3); } } },
+                        e = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(4); } } }
+                    });
+
+                    toRemove.AddRange([a, b, c, e]);
+
+                    await simulation.AfterUpdate();
+
+                    // We've removed a, b and c right after running them, e before it could run and haven't removed d
+                    Assert.Equal([0, 1, 2, 3], listOfUpdate);
+                }
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        private class SimUpdateListener : ScriptComponent, ISimulationUpdate
+        {
+            public Action? SimUpdate, AfterSimUpdate;
+
+            public void SimulationUpdate(BepuSimulation simulation, float simTimeStep) => SimUpdate?.Invoke();
+
+            public void AfterSimulationUpdate(BepuSimulation simulation, float simTimeStep) => AfterSimUpdate?.Invoke();
         }
 
         private class ContactEvents : IContactHandler
