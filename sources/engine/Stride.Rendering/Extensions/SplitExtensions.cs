@@ -11,12 +11,12 @@ namespace Stride.Extensions
 {
     public static class SplitExtensions
     {
-        public static List<Mesh> SplitMeshes(List<Mesh> meshes, bool can32bitIndex)
+        public static List<Mesh> SplitMeshes(List<Mesh> meshes)
         {
             var finalList = new List<Mesh>();
             foreach (var mesh in meshes)
             {
-                var drawDatas = SplitMesh(mesh.Draw, can32bitIndex);
+                var drawDatas = SplitMesh(mesh.Draw);
                 if (drawDatas.Count <= 1)
                 {
                     finalList.Add(mesh);
@@ -44,9 +44,8 @@ namespace Stride.Extensions
         /// Split the mesh if it has strictly more than 65535 vertices (max index = 65534) on a plaftorm that does not support 32 bits indices.
         /// </summary>
         /// <param name="meshDrawData">The mesh to analyze.</param>
-        /// <param name="can32bitIndex">A flag stating if 32 bit indices are allowed.</param>
         /// <returns>A list of meshes.</returns>
-        public static unsafe List<MeshDraw> SplitMesh(MeshDraw meshDrawData, bool can32bitIndex)
+        public static unsafe List<MeshDraw> SplitMesh(MeshDraw meshDrawData)
         {
             if (meshDrawData.IndexBuffer == null)
                 return new List<MeshDraw> { meshDrawData };
@@ -63,7 +62,7 @@ namespace Stride.Extensions
 
             // now, we only have a 32 bits buffer that is justified because of a large vertex buffer
 
-            if (can32bitIndex) // do nothing
+            if (true) // do nothing
                 return new List<MeshDraw> { meshDrawData };
 
             // TODO: handle primitives other than triangle list
