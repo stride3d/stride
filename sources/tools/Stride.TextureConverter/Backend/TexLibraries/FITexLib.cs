@@ -115,7 +115,7 @@ namespace Stride.TextureConverter.TexLibraries
                     image.SubImageArray[i].RowPitch = rowPitch;
                     image.SubImageArray[i].SlicePitch = slicePitch;
 
-                    Utilities.CopyWithAlignmentFallback((void*)image.SubImageArray[i].Data, (void*)FreeImage.GetBits(libraryData.Bitmaps[i]), (uint)size);
+                    MemoryUtilities.CopyWithAlignmentFallback((void*)image.SubImageArray[i].Data, (void*)FreeImage.GetBits(libraryData.Bitmaps[i]), (uint)size);
                     offset += size;
                 }
             }

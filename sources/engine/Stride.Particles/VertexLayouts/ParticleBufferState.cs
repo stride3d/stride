@@ -63,7 +63,7 @@ namespace Stride.Particles.VertexLayouts
         /// <param name="ptrRef">Pointer to the source data</param>
         public unsafe void SetAttribute(AttributeAccessor accessor, nint ptrRef)
         {
-            Utilities.CopyWithAlignmentFallback((byte*)VertexBuffer + accessor.Offset, (void*)ptrRef, (uint)accessor.Size);
+            MemoryUtilities.CopyWithAlignmentFallback((byte*)VertexBuffer + accessor.Offset, (void*)ptrRef, (uint)accessor.Size);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Stride.Particles.VertexLayouts
         {
             for (var i = 0; i < vertexBuilder.VerticesPerParticle; i++)
             {
-                Utilities.CopyWithAlignmentFallback((byte*)VertexBuffer + accessor.Offset + i * VertexStride, (void*)ptrRef, (uint)accessor.Size);
+                MemoryUtilities.CopyWithAlignmentFallback((byte*)VertexBuffer + accessor.Offset + i * VertexStride, (void*)ptrRef, (uint)accessor.Size);
             }
         }
 
@@ -88,7 +88,7 @@ namespace Stride.Particles.VertexLayouts
         {
             for (var i = 0; i < VerticesPerSegCurrent; i++)
             {
-                Utilities.CopyWithAlignmentFallback((byte*)VertexBuffer + accessor.Offset + i * VertexStride, (void*)ptrRef, (uint)accessor.Size);
+                MemoryUtilities.CopyWithAlignmentFallback((byte*)VertexBuffer + accessor.Offset + i * VertexStride, (void*)ptrRef, (uint)accessor.Size);
             }
         }
 

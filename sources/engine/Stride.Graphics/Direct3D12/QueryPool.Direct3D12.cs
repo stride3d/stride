@@ -70,7 +70,7 @@ namespace Stride.Graphics
                 ref var srcData = ref Unsafe.AsRef<byte>(mappedData);
 
                 //Unsafe.CopyBlockUnaligned(ref destData, ref srcData, byteCount: (uint) QueryCount * sizeof(long));
-                Core.Utilities.CopyWithAlignmentFallback(dataPointer, mappedData, (uint) QueryCount * sizeof(long));
+                MemoryUtilities.CopyWithAlignmentFallback(ref destData, ref srcData, (uint) QueryCount * sizeof(long));
 
                 readbackBuffer->Unmap(Subresource: 0, pWrittenRange: in range);
                 return true;

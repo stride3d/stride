@@ -1252,7 +1252,7 @@ namespace Stride.Graphics
                 if (result.IsFailure)
                     result.Throw();
 
-                Core.Utilities.CopyWithAlignmentFallback(destinationMapped, sourceMapped, (uint) size);
+                MemoryUtilities.CopyWithAlignmentFallback(destinationMapped, sourceMapped, (uint) size);
 
                 sourceTexture.NativeResource.Unmap(Subresource: 0, ref fullRange);
                 destinationTexture.NativeResource.Unmap(Subresource: 0, ref fullRange);
@@ -1799,7 +1799,7 @@ namespace Stride.Graphics
                 var uploadSize = region.Right - region.Left;
                 var uploadMemory = GraphicsDevice.AllocateUploadBuffer(uploadSize, out var uploadResource, out var uploadOffset);
 
-                Core.Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) sourceData.DataPointer, (uint) uploadSize);
+                MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) sourceData.DataPointer, (uint) uploadSize);
 
                 ResourceBarrierTransition(resource, GraphicsResourceState.CopyDestination);
                 FlushResourceBarriers();

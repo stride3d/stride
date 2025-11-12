@@ -203,8 +203,8 @@ namespace Stride.Graphics
             SizeInternal = new Vector2(pixelSize.X / pixelsPerUnit.X, pixelSize.Y / pixelsPerUnit.Y);
             if (orientation == ImageOrientation.Rotated90)
             {
-                Utilities.Swap(ref pixelSize.X, ref pixelSize.Y);
-                Utilities.Swap(ref SizeInternal.X, ref SizeInternal.Y);
+                MemoryUtilities.Swap(ref pixelSize.X, ref pixelSize.Y);
+                MemoryUtilities.Swap(ref SizeInternal.X, ref SizeInternal.Y);
             }
 
             SizeInPixels = pixelSize;

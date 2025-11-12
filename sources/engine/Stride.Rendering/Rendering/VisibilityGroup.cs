@@ -242,13 +242,13 @@ namespace Stride.Rendering
             var farCorner = boundingBox.Maximum;
 
             if (plane.Normal.X < 0)
-                Utilities.Swap(ref nearCorner.X, ref farCorner.X);
+                MemoryUtilities.Swap(ref nearCorner.X, ref farCorner.X);
 
             if (plane.Normal.Y < 0)
-                Utilities.Swap(ref nearCorner.Y, ref farCorner.Y);
+                MemoryUtilities.Swap(ref nearCorner.Y, ref farCorner.Y);
 
             if (plane.Normal.Z < 0)
-                Utilities.Swap(ref nearCorner.Z, ref farCorner.Z);
+                MemoryUtilities.Swap(ref nearCorner.Z, ref farCorner.Z);
 
             float oldDistance;
 

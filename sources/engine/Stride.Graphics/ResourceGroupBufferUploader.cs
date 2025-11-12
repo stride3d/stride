@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Stride.Core;
 using Stride.Shaders;
 
 namespace Stride.Graphics
@@ -130,9 +131,9 @@ namespace Stride.Graphics
                         {
                             var mappedConstantBuffer = commandList.MapSubResource(preAllocatedBuffer, subResourceIndex: 0, MapMode.WriteDiscard);
 
-                            Utilities.CopyWithAlignmentFallback((void*) mappedConstantBuffer.DataBox.DataPointer,
-                                                                (void*) resourceGroup.ConstantBuffer.Data,
-                                                                (uint) resourceGroup.ConstantBuffer.Size);
+                            MemoryUtilities.CopyWithAlignmentFallback((void*) mappedConstantBuffer.DataBox.DataPointer,
+                                                                      (void*) resourceGroup.ConstantBuffer.Data,
+                                                                      (uint) resourceGroup.ConstantBuffer.Size);
 
                             commandList.UnmapSubResource(mappedConstantBuffer);
                         }

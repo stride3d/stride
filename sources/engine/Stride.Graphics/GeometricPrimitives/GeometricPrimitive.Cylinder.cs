@@ -181,7 +181,7 @@ namespace Stride.Graphics.GeometricPrimitives
 
                         if (isTop)
                         {
-                            Utilities.Swap(ref i1, ref i2);
+                            MemoryUtilities.Swap(ref i1, ref i2);
                         }
 
                         var vbase = verticesIndexer;

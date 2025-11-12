@@ -344,7 +344,7 @@ namespace Stride.Graphics
                     uploadMemory += alignment;
                     uploadOffset += alignment;
 
-                    Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) (dataBoxes[i].DataPointer), (uint) slicePitch);
+                    MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) (dataBoxes[i].DataPointer), (uint) slicePitch);
 
                     if (Usage == GraphicsResourceUsage.Staging)
                     {

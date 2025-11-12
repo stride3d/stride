@@ -196,7 +196,7 @@ namespace Stride.Graphics
                     {
                         void* uploadMemory;
                         vkMapMemory(GraphicsDevice.NativeDevice, NativeMemory, 0, (ulong) SizeInBytes, VkMemoryMapFlags.None, &uploadMemory);
-                        Utilities.CopyWithAlignmentFallback(uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
+                        MemoryUtilities.CopyWithAlignmentFallback(uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
                         vkUnmapMemory(GraphicsDevice.NativeDevice, NativeMemory);
                     }
                     else
@@ -204,7 +204,7 @@ namespace Stride.Graphics
                         var sizeInBytes = bufferDescription.SizeInBytes;
                         var uploadMemory = GraphicsDevice.AllocateUploadBuffer(sizeInBytes, out var uploadResource, out var uploadOffset);
 
-                        Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) sizeInBytes);
+                        MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) sizeInBytes);
 
                         // Barrier
                         var memoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong) uploadOffset, (ulong) sizeInBytes);

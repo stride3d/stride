@@ -1160,7 +1160,7 @@ namespace Stride.Importer.ThreeD
             fixed (byte* bufferPointer = buffer)
             {
                 var sourcePointer = (byte*)texture->PcData;
-                Core.Utilities.CopyWithAlignmentFallback(bufferPointer, sourcePointer, arraySize);
+                MemoryUtilities.CopyWithAlignmentFallback(bufferPointer, sourcePointer, arraySize);
             }
             System.IO.File.WriteAllBytes(path, buffer);
         }

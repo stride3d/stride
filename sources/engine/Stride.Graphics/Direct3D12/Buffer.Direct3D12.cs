@@ -220,7 +220,7 @@ namespace Stride.Graphics
                     if (result.IsFailure)
                         result.Throw();
 
-					Core.Utilities.CopyWithAlignmentFallback(uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
+                    MemoryUtilities.CopyWithAlignmentFallback(uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
 
                     NativeResource.Unmap(Subresource: 0, pWrittenRange: ref NullRef<D3D12Range>());
                 }
@@ -230,7 +230,7 @@ namespace Stride.Graphics
                     // TODO: D3D12: Move that to a shared upload heap
                     var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out var uploadResource, out var uploadOffset);
 
-					Core.Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
+					MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
 
                     // TODO: D3D12: Lock NativeCopyCommandList usages
                     scoped ref var nullPipelineState = ref NullRef<ID3D12PipelineState>();

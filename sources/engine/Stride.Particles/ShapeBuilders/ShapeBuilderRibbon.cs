@@ -197,17 +197,17 @@ namespace Stride.Particles.ShapeBuilders
 
                 int positionDataSize = Unsafe.SizeOf<Vector3>() * particleCapacity;
                 positionDataSize = (positionDataSize % 4 == 0) ? positionDataSize : (positionDataSize + 4 - (positionDataSize % 4));
-                positionData = Utilities.AllocateMemory(positionDataSize);
+                positionData = MemoryUtilities.Allocate(positionDataSize);
 
                 int sizeDataSize = sizeof(float) * particleCapacity;
                 sizeDataSize = (sizeDataSize % 4 == 0) ? sizeDataSize : (sizeDataSize + 4 - (sizeDataSize % 4));
-                sizeData = Utilities.AllocateMemory(sizeDataSize);
+                sizeData = MemoryUtilities.Allocate(sizeDataSize);
             }
 
             public void Free()
             {
-                Utilities.FreeMemory(positionData);
-                Utilities.FreeMemory(sizeData);
+                MemoryUtilities.Free(positionData);
+                MemoryUtilities.Free(sizeData);
             }
 
             public TextureCoordinatePolicy TextureCoordinatePolicy => parentRibbon.TextureCoordinatePolicy;

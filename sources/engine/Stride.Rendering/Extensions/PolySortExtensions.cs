@@ -73,7 +73,7 @@ namespace Stride.Extensions
 
                 foreach (var index in sortedIndices)
                 {
-                    Utilities.CopyWithAlignmentFallback(
+                    MemoryUtilities.CopyWithAlignmentFallback(
                         destination: newIndexBufferPointer,
                         source: oldIndexDataStart + index * polyIndicesSize,
                         byteCount: polyIndicesSize);

@@ -210,7 +210,7 @@ namespace Stride.TextureConverter.TexLibraries
 
                 for (int j = 0; j < h; ++j)
                 {
-                    Utilities.CopyWithAlignmentFallback(
+                    MemoryUtilities.CopyWithAlignmentFallback(
                         destination: (byte*)atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset,
                         source: subImageData + j * request.Texture.SubImageArray[i].RowPitch,
                         byteCount: (uint)request.Texture.SubImageArray[i].RowPitch);
@@ -291,7 +291,7 @@ namespace Stride.TextureConverter.TexLibraries
                 {
                     srcPtr = atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset;
                     destPtr = textureData + j * rowPitch;
-                    Utilities.CopyWithAlignmentFallback((void*)destPtr, (void*)srcPtr, (uint)rowPitch);
+                    MemoryUtilities.CopyWithAlignmentFallback((void*)destPtr, (void*)srcPtr, (uint)rowPitch);
                 }
 
                 offset += slicePitch;
@@ -554,7 +554,7 @@ namespace Stride.TextureConverter.TexLibraries
                     {
                         var destPtr = atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset;
                         var srcPtr = textureData + j * node.Texture.SubImageArray[i].RowPitch;
-                        Utilities.CopyWithAlignmentFallback(destPtr, srcPtr, (uint)node.Texture.SubImageArray[i].RowPitch);
+                        MemoryUtilities.CopyWithAlignmentFallback(destPtr, srcPtr, (uint)node.Texture.SubImageArray[i].RowPitch);
                     }
 
                     x = x <= 1 ? 0 : x >>= 1;

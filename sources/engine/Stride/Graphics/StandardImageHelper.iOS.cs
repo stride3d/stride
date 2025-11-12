@@ -31,7 +31,7 @@ namespace Stride.Graphics
                     if (handle != null)
                         handle.Value.Free();
                     else if (!makeACopy)
-                        Utilities.FreeMemory(pSource);
+                        MemoryUtilities.Free(pSource);
 
                     return image;  
                 }

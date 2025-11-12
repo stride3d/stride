@@ -3,6 +3,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.IO;
+using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
 using Stride.TextureConverter.PvrttWrapper;
@@ -134,7 +135,7 @@ namespace Stride.TextureConverter.TexLibraries
                     {
                         for (uint k = 0; k < image.MipmapCount; ++k)
                         {
-                            Core.Utilities.CopyWithAlignmentFallback(
+                            MemoryUtilities.CopyWithAlignmentFallback(
                                 (void*)libraryData.Texture.GetDataPtr(k, j, i),
                                 (void*)image.SubImageArray[imageCount].Data,
                                 (uint)(image.SubImageArray[imageCount].DataSize * depth));
@@ -405,7 +406,7 @@ namespace Stride.TextureConverter.TexLibraries
                         {
                             for (uint k = 0; k < newMipMapCount; ++k)
                             {
-                                Core.Utilities.CopyWithAlignmentFallback(
+                                MemoryUtilities.CopyWithAlignmentFallback(
                                     destination: (void*)texture.GetDataPtr(k, j, i),
                                     source: (void*)libraryData.Texture.GetDataPtr(k, j, i),
                                     byteCount: libraryData.Header.GetDataSize((int)k, false, false));
@@ -556,14 +557,14 @@ namespace Stride.TextureConverter.TexLibraries
                     var source = (byte*)image.Data + sourceOffset;
                     var dest = temporaryBuffer + destOffset;
 
-                    Core.Utilities.CopyWithAlignmentFallback(dest, source, slice);
+                    MemoryUtilities.CopyWithAlignmentFallback(dest, source, slice);
                 }
 
                 sourceRowOffset += checked((int)(slice * (uint)image.FaceCount));
             }
 
             // Copy data back to the library
-            Core.Utilities.CopyWithAlignmentFallback(
+            MemoryUtilities.CopyWithAlignmentFallback(
                 destination: (void*)libraryData.Texture.GetDataPtr(),
                 source: temporaryBuffer,
                 byteCount: (uint)image.DataSize);

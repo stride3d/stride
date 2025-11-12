@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
+using Stride.Core;
 
 namespace Stride.TextureConverter.DxtWrapper
 {
@@ -935,7 +936,7 @@ namespace Stride.TextureConverter.DxtWrapper
                 fixed (byte* ptr = buffer)
                 {
                     DDSHeaderDX9* headerPtr = &header;
-                    Stride.Core.Utilities.CopyWithAlignmentFallback(headerPtr, ptr, (uint)headerSize);
+                    MemoryUtilities.CopyWithAlignmentFallback(headerPtr, ptr, (uint)headerSize);
                 }
                 if (header.dwMagic != 0x20534444 || header.dwPfSize != 32)
                     return -1;

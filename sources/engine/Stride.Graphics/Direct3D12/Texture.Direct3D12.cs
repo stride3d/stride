@@ -35,6 +35,7 @@ using Stride.Core.UnsafeExtensions;
 
 using static System.Runtime.CompilerServices.Unsafe;
 using static Stride.Graphics.ComPtrHelpers;
+using Stride.Core;
 
 namespace Stride.Graphics
 {
@@ -323,7 +324,7 @@ namespace Stride.Graphics
                             var dataPointerCurrent = dataPointer + z * databox.SlicePitch;
                             for (int y = 0; y < rowCount; ++y)
                             {
-                                Utilities.CopyWithAlignmentFallback((void*) uploadMemoryCurrent, (void*) dataPointerCurrent, (uint) rowSize);
+                                MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemoryCurrent, (void*) dataPointerCurrent, (uint) rowSize);
                                 uploadMemoryCurrent += destRowPitch;
                                 dataPointerCurrent += databox.RowPitch;
                             }

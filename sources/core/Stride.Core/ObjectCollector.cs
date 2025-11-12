@@ -8,7 +8,7 @@ namespace Stride.Core;
 
 /// <summary>
 ///   A struct to collect objects implementing the <see cref="IDisposable"/>, or <see cref="IReferencable"/> interfaces, or
-///   pointers to memory allocated with <see cref="Utilities.AllocateMemory"/>, so they can be disposed in bulk at a later time.
+///   pointers to memory allocated with <see cref="MemoryUtilities.Allocate"/>, so they can be disposed in bulk at a later time.
 /// </summary>
 [DebuggerDisplay("Instances: {Count}")]
 public struct ObjectCollector : IDisposable
@@ -47,14 +47,14 @@ public struct ObjectCollector : IDisposable
 
     /// <summary>
     ///   Adds an object implementing the <see cref="IDisposable"/> or <see cref="IReferencable"/> interfaces,
-    ///   or a <see cref="IntPtr"/> to an object allocated using <see cref="Utilities.AllocateMemory"/>
+    ///   or a <see cref="IntPtr"/> to an object allocated using <see cref="MemoryUtilities.Allocate"/>
     ///   to the list of the objects to dispose.
     /// </summary>
     /// <typeparam name="T">The type of the object to add.</typeparam>
     /// <param name="objectToDispose">The object to add to the collector to be disposed at a later time.</param>
     /// <exception cref="ArgumentException">
     ///   <paramref name="objectToDispose"/> does not implement the interface <see cref="IDisposable"/>, <see cref="IReferencable"/>,
-    ///   and is not a valid memory pointer allocated by <see cref="Utilities.AllocateMemory"/>.
+    ///   and is not a valid memory pointer allocated by <see cref="MemoryUtilities.Allocate"/>.
     /// </exception>
     public T Add<T>(T objectToDispose) where T : notnull
     {
@@ -62,8 +62,8 @@ public struct ObjectCollector : IDisposable
             throw new ArgumentException("The object must be IDisposable, IReferenceable, or IntPtr", nameof(objectToDispose));
 
         // Check memory alignment
-        if (objectToDispose is IntPtr memoryPtr && !Utilities.IsMemoryAligned(memoryPtr))
-            throw new ArgumentException("The memory pointer is invalid. Memory must have been allocated with Utilties.AllocateMemory", nameof(objectToDispose));
+        if (objectToDispose is IntPtr memoryPtr && !MemoryUtilities.IsAligned(memoryPtr))
+            throw new ArgumentException("The memory pointer is invalid. Memory must have been allocated with MemoryUtilities.Allocate", nameof(objectToDispose));
 
         EnsureValid();
 
@@ -118,7 +118,7 @@ public struct ObjectCollector : IDisposable
 
             default:
                 var dataPointer = (nint) objectToDispose;
-                Utilities.FreeMemory(dataPointer);
+                MemoryUtilities.Free(dataPointer);
                 break;
         }
     }

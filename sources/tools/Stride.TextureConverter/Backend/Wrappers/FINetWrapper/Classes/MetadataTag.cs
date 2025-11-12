@@ -413,7 +413,7 @@ namespace FreeImageAPI.Metadata
 
 					ref byte dst = ref MemoryMarshal.GetArrayDataReference(array);
 					ref byte src = ref Unsafe.AsRef<byte>((void*) FreeImage.GetTagValue(tag));
-					Utilities.CopyWithAlignmentFallback(ref dst, ref src, Length);
+					MemoryUtilities.CopyWithAlignmentFallback(ref dst, ref src, Length);
 
 					return array;
 				}
@@ -533,7 +533,7 @@ namespace FreeImageAPI.Metadata
 
 				ref byte dst = ref data[0];
 				ref byte src = ref MemoryMarshal.GetArrayDataReference(array);
-				Utilities.CopyWithAlignmentFallback(ref dst, ref src, Length);
+				MemoryUtilities.CopyWithAlignmentFallback(ref dst, ref src, Length);
 			}
 
 			return FreeImage.SetTagValue(tag, data);
@@ -628,7 +628,7 @@ namespace FreeImageAPI.Metadata
 
 			ref byte dst = ref item.Value[0];
 			ref byte src = ref Unsafe.AsRef<byte>((void*) FreeImage.GetTagValue(tag));
-			Utilities.CopyWithAlignmentFallback(ref dst, ref src, Length);
+			MemoryUtilities.CopyWithAlignmentFallback(ref dst, ref src, Length);
 
 			return item;
 		}

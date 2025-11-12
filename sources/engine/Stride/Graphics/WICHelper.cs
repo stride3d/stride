@@ -564,7 +564,7 @@ namespace Stride.Graphics
                 }
                 else
                 {
-                    Utilities.FreeMemory(pSource);
+                    MemoryUtilities.Free(pSource);
                 }
             }
             return image;
@@ -602,7 +602,7 @@ namespace Stride.Graphics
                             int rowPitch = (image.Width * bpp + 7) / 8;
                             int slicePitch = rowPitch * image.Height;
 
-                            var temp = Utilities.AllocateMemory(slicePitch);
+                            var temp = MemoryUtilities.Allocate(slicePitch);
                             try
                             {
                                 converter.CopyPixels(rowPitch, temp, slicePitch);
@@ -611,7 +611,7 @@ namespace Stride.Graphics
                             }
                             finally
                             {
-                                Utilities.FreeMemory(temp);
+                                MemoryUtilities.Free(temp);
                             }
                         }
                     }

@@ -74,7 +74,7 @@ namespace Stride.Rendering
                 if (parameters.DataValues != null && resourceGroup.ConstantBuffer.Size > 0)
                 {
                     fixed (byte* dataValues = parameters.DataValues)
-                        Utilities.CopyWithAlignmentFallback(
+                        MemoryUtilities.CopyWithAlignmentFallback(
                             destination: (void*)resourceGroup.ConstantBuffer.Data,
                             source: dataValues + bufferStartOffset,
                             byteCount: (uint)resourceGroup.ConstantBuffer.Size);

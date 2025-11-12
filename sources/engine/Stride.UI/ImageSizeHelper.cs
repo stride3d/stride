@@ -92,7 +92,7 @@ namespace Stride.UI
             // consider sprite borders
             var borderSum = new Vector2(sprite.BordersInternal.X + sprite.BordersInternal.Z, sprite.BordersInternal.Y + sprite.BordersInternal.W);
             if (sprite.Orientation == ImageOrientation.Rotated90)
-                Utilities.Swap(ref borderSum.X, ref borderSum.Y);
+                MemoryUtilities.Swap(ref borderSum.X, ref borderSum.Y);
 
             return new Vector3(Math.Max(desiredSize.X, borderSum.X), Math.Max(desiredSize.Y, borderSum.Y), desiredSize.Z);
         }

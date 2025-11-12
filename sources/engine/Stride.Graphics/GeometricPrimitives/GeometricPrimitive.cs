@@ -145,7 +145,7 @@ namespace Stride.Graphics.GeometricPrimitives
         {
             for (int i = 0; i < indices.Length; i += 3)
             {
-                Utilities.Swap(ref indices[i], ref indices[i + 2]);
+                MemoryUtilities.Swap(ref indices[i], ref indices[i + 2]);
             }
 
             for (int i = 0; i < vertices.Length; i++)

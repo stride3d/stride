@@ -325,13 +325,13 @@ namespace Stride.Graphics.GeometricPrimitives
                                     }
                                     else if (*triIndex1 == i)
                                     {
-                                        Utilities.Swap(ref *triIndex0, ref *triIndex1);
-                                        Utilities.Swap(ref *triIndex1, ref *triIndex2);
+                                        MemoryUtilities.Swap(ref *triIndex0, ref *triIndex1);
+                                        MemoryUtilities.Swap(ref *triIndex1, ref *triIndex2);
                                     }
                                     else if (*triIndex2 == i)
                                     {
-                                        Utilities.Swap(ref *triIndex0, ref *triIndex2);
-                                        Utilities.Swap(ref *triIndex2, ref *triIndex1);
+                                        MemoryUtilities.Swap(ref *triIndex0, ref *triIndex2);
+                                        MemoryUtilities.Swap(ref *triIndex2, ref *triIndex1);
                                     }
                                     else
                                     {

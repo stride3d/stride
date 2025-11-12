@@ -137,7 +137,7 @@ namespace Stride.Rendering
 
                     fixed (Matrix* blendMatricesPtr = renderModelObjectInfo)
                     {
-                        Utilities.CopyWithAlignmentFallback(mappedCB, blendMatricesPtr, (uint)renderModelObjectInfo.Length * (uint)sizeof(Matrix));
+                        MemoryUtilities.CopyWithAlignmentFallback(mappedCB, blendMatricesPtr, (uint)renderModelObjectInfo.Length * (uint)sizeof(Matrix));
                     }
                 }
             });

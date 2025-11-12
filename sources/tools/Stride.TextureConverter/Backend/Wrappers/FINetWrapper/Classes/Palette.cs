@@ -398,7 +398,7 @@ namespace FreeImageAPI
 
 				ref byte dst = ref Unsafe.AsRef<byte>(baseAddress);
 				ref byte src = ref data[0];
-				Utilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) data.Length);
+				MemoryUtilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) data.Length);
 			}
 		}
 

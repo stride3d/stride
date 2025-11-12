@@ -27,6 +27,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
+using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.ReferenceCounting;
@@ -1252,7 +1253,7 @@ namespace Stride.Graphics
             if (box.RowPitch == rowStride && boxDepthStride == textureDepthStride && !isFlippedTexture)
             {
                 fixed (void* destPtr = toData)
-                    Utilities.CopyWithAlignmentFallback(destPtr, (void*) box.DataPointer, (uint) mipMapSize);
+                    MemoryUtilities.CopyWithAlignmentFallback(destPtr, (void*) box.DataPointer, (uint) mipMapSize);
             }
             else
             {
@@ -1274,7 +1275,7 @@ namespace Stride.Graphics
                             for (int i = height - 1; i >= 0; i--)
                             {
                                 // Copy a single row
-                                Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint) rowStride);
+                                MemoryUtilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint) rowStride);
                                 sourcePtr -= box.RowPitch;
                                 destPtr += rowStride;
                             }
@@ -1284,7 +1285,7 @@ namespace Stride.Graphics
                             for (int i = 0; i < height; i++)
                             {
                                 // Copy a single row
-                                Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint) rowStride);
+                                MemoryUtilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint) rowStride);
                                 sourcePtr += box.RowPitch;
                                 destPtr += rowStride;
                             }
@@ -1495,7 +1496,7 @@ namespace Stride.Graphics
                     // The fast way: If same stride, we can directly copy the whole texture in one shot
                     if (box.RowPitch == rowStride && boxDepthStride == textureDepthStride)
                     {
-                        Utilities.CopyWithAlignmentFallback((void*) box.DataPointer, ptrFromData, (uint) sizeOfTextureData);
+                        MemoryUtilities.CopyWithAlignmentFallback((void*) box.DataPointer, ptrFromData, (uint) sizeOfTextureData);
                     }
                     else
                     {
@@ -1511,7 +1512,7 @@ namespace Stride.Graphics
                             // Iterate on each line
                             for (int y = 0; y < height; y++)
                             {
-                                Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint) rowStride);
+                                MemoryUtilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint) rowStride);
                                 destPtr += box.RowPitch;
                                 sourcePtr += rowStride;
                             }

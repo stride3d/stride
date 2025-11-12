@@ -280,7 +280,8 @@ namespace Stride.TextureConverter
                 Disposed = this.Disposed,
             };
 
-            if (CopyMemory) Utilities.CopyWithAlignmentFallback((void*)newTex.Data, (void*)Data, (uint)DataSize);
+            if (CopyMemory)
+                MemoryUtilities.CopyWithAlignmentFallback((void*)newTex.Data, (void*)Data, (uint)DataSize);
 
             int offset = 0;
             for (int i = 0; i < this.SubImageArray.Length; ++i)

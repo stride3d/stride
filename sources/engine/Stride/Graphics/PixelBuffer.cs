@@ -150,7 +150,7 @@ namespace Stride.Graphics
             // If buffers have same size, than we can copy it directly
             if (this.BufferStride == pixelBuffer.BufferStride)
             {
-                Utilities.CopyWithAlignmentFallback((void*)pixelBuffer.DataPointer, source: (void*)DataPointer, (uint)BufferStride);
+                MemoryUtilities.CopyWithAlignmentFallback((void*)pixelBuffer.DataPointer, source: (void*)DataPointer, (uint)BufferStride);
             }
             else
             {
@@ -161,7 +161,7 @@ namespace Stride.Graphics
                 // Copy per scanline
                 for (int i = 0; i < Height; i++)
                 {
-                    Utilities.CopyWithAlignmentFallback(dstPointer, srcPointer, (uint)rowStride);
+                    MemoryUtilities.CopyWithAlignmentFallback(dstPointer, srcPointer, (uint)rowStride);
                     srcPointer += this.RowStride;
                     dstPointer += pixelBuffer.RowStride;
                 }

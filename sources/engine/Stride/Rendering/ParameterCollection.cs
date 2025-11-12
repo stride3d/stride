@@ -87,7 +87,7 @@ namespace Stride.Rendering
                     fixed (byte* dataValuesSources = parameterCollection.DataValues)
                     fixed (byte* dataValuesDest = DataValues)
                     {
-                        Utilities.CopyWithAlignmentFallback(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
+                        MemoryUtilities.CopyWithAlignmentFallback(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
                     }
                 }
             }
@@ -364,7 +364,7 @@ namespace Stride.Rendering
             fixed (byte* sourceDataValues = DataValues)
             fixed (byte* destDataValues = destination.DataValues)
             {
-                Utilities.CopyWithAlignmentFallback(
+                MemoryUtilities.CopyWithAlignmentFallback(
                     destination: destDataValues + destParameter.Offset,
                     source: sourceDataValues + sourceParameter.Offset,
                     (uint)sizeInBytes);
@@ -822,7 +822,7 @@ namespace Stride.Rendering
                         {
                             fixed (byte* destDataValues = destination.DataValues)
                             fixed (byte* sourceDataValues = source.DataValues)
-                                Utilities.CopyWithAlignmentFallback(
+                                MemoryUtilities.CopyWithAlignmentFallback(
                                     destination: destDataValues + range.DestStart,
                                     source: sourceDataValues + range.SourceStart,
                                     byteCount: (uint)range.Size);
@@ -835,7 +835,7 @@ namespace Stride.Rendering
             {
                 fixed (byte* destPtr = destination.DataValues)
                 fixed (byte* sourcePtr = source.DataValues)
-                    Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)destinationLayout.BufferSize);
+                    MemoryUtilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)destinationLayout.BufferSize);
 
                 var resourceCount = destinationLayout.ResourceCount;
                 for (int i = 0; i < resourceCount; ++i)

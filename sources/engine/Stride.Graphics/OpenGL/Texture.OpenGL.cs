@@ -617,7 +617,7 @@ namespace Stride.Graphics
 
                         if (data != IntPtr.Zero)
                         {
-                            Utilities.CopyWithAlignmentFallback((void*) (bufferData + offset), (void*) data, (uint) (width * height * depth * TexturePixelSize));
+                            MemoryUtilities.CopyWithAlignmentFallback((void*) (bufferData + offset), (void*) data, (uint) (width * height * depth * TexturePixelSize));
                         }
 
                         offset += width*height*TexturePixelSize;

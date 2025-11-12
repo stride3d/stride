@@ -125,7 +125,7 @@ namespace Stride.Extensions
                         {
                             //copy vertex buffer
                             foreach (var index in splitInfo.UsedIndices)
-                                Utilities.CopyWithAlignmentFallback(
+                                MemoryUtilities.CopyWithAlignmentFallback(
                                     destination: newVertexBufferPtr + stride * splitInfo.IndexRemapping[index],
                                     source: vertexBufferPtr + stride * index,
                                     byteCount: (uint)stride);

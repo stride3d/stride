@@ -73,7 +73,7 @@ namespace Stride.Assets.Textures.Packing
                         sourceStartOffsets.Y = oldSourceStartOffsetX;
                     }
 
-                    Core.Utilities.Swap(ref sourceRegionSize.X, ref sourceRegionSize.Y);
+                    MemoryUtilities.Swap(ref sourceRegionSize.X, ref sourceRegionSize.Y);
                 }
 
                 {
