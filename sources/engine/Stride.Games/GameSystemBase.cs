@@ -22,7 +22,7 @@
 // THE SOFTWARE.
 
 using System;
-
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core;
 using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
@@ -71,8 +71,7 @@ namespace Stride.Games
         /// </summary>
         /// <value>The game.</value>
         /// <remarks>This value can be null</remarks>
-        [CanBeNull]
-        public GameBase Game { get; }
+        public GameBase? Game { get; }
 
         /// <summary>
         /// Gets the services registry.
@@ -85,8 +84,7 @@ namespace Stride.Games
         /// Gets the content manager. This value can be null in a mock environment.
         /// </summary>
         /// <value>The content.</value>
-        [CanBeNull]
-        protected IContentManager Content { get; private set; }
+        protected IContentManager? Content { get; private set; }
 
         /// <summary>
         ///   Gets the Graphics Device.

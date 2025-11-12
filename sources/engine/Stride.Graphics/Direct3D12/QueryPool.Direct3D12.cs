@@ -5,13 +5,11 @@
 
 using System;
 using System.Runtime.CompilerServices;
-
 using Silk.NET.Core.Native;
-using Silk.NET.DXGI;
 using Silk.NET.Direct3D12;
-
+using Silk.NET.DXGI;
+using Stride.Core;
 using Stride.Core.UnsafeExtensions;
-
 using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics

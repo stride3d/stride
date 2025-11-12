@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Stride.Core;
+using Stride.Core.UnsafeExtensions;
 
 namespace FreeImageAPI
 {
@@ -336,7 +337,7 @@ namespace FreeImageAPI
 			}
 			else
 			{
-				ref byte dst = ref Unsafe.As<T, byte>(ref data[0]);
+				ref byte dst = ref Unsafe.As<T, byte>(ref data.GetReference());
 				ref byte src = ref Unsafe.AsRef<byte>(baseAddress + (size * index));
 				MemoryUtilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) (size * length));
 			}
@@ -381,7 +382,7 @@ namespace FreeImageAPI
 			else
 			{
 				ref byte dst = ref Unsafe.AsRef<byte>(baseAddress + (index * size));
-				ref byte src = ref Unsafe.As<T, byte>(ref values[0]);
+				ref byte src = ref Unsafe.As<T, byte>(ref values.GetReference());
 				MemoryUtilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) (size * length));
 			}
 		}
@@ -519,7 +520,7 @@ namespace FreeImageAPI
 				result = new byte[size * length];
 			}
 
-			ref byte dst = ref result[0];
+			ref byte dst = ref result.GetReference();
 			ref byte src = ref Unsafe.AsRef<byte>(baseAddress);
 			MemoryUtilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) result.Length);
 

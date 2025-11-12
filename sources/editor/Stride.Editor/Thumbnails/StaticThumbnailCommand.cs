@@ -10,7 +10,6 @@ using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
-using Stride.Core.Serialization.Contents;
 using Stride.TextureConverter;
 using Stride.Graphics;
 

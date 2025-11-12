@@ -228,7 +228,7 @@ namespace Stride.Streaming
 
             // register the change of memory usage
             Manager.RegisterMemoryUsage(-Texture.SizeInBytes);
-            
+
             if (textureToSync != null)
             {
                 textureToSync.Dispose();

@@ -40,6 +40,7 @@ using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Stride.Core;
+using Stride.Core.UnsafeExtensions;
 
 namespace FreeImageAPI.Metadata
 {
@@ -531,7 +532,7 @@ namespace FreeImageAPI.Metadata
 
 				data = new byte[Length];
 
-				ref byte dst = ref data[0];
+				ref byte dst = ref data.GetReference();
 				ref byte src = ref MemoryMarshal.GetArrayDataReference(array);
 				MemoryUtilities.CopyWithAlignmentFallback(ref dst, ref src, Length);
 			}

@@ -4,16 +4,13 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 
 using System;
-
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 using Silk.NET.DXGI;
-
-using D3D12Range = Silk.NET.Direct3D12.Range;
-
+using Stride.Core;
 using Stride.Core.Mathematics;
-
 using static System.Runtime.CompilerServices.Unsafe;
+using D3D12Range = Silk.NET.Direct3D12.Range;
 
 namespace Stride.Graphics
 {

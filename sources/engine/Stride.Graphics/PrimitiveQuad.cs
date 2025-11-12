@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
+
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
@@ -190,6 +192,14 @@ namespace Stride.Graphics
             /// <param name="device">The Graphics Device.</param>
             public SharedData(GraphicsDevice device) : base(name: SharedDataKey)
             {
+                ReadOnlySpan<VertexPositionNormalTexture> triangleVertices =
+                [
+                    //                              Position                Normal                Texture Coordinates
+                    new VertexPositionNormalTexture(new Vector3(-1,  1, 0), new Vector3(0, 0, 1), new Vector2(0, 0)),
+                    new VertexPositionNormalTexture(new Vector3(+3,  1, 0), new Vector3(0, 0, 1), new Vector2(2, 0)),
+                    new VertexPositionNormalTexture(new Vector3(-1, -3, 0), new Vector3(0, 0, 1), new Vector2(0, 2)),
+                ];
+
                 var vertexBuffer = Buffer.Vertex.New(device, TriangleVertices).DisposeBy(this);
                 vertexBuffer.Name = device.IsDebugMode
                     ? $"{SharedDataKey} ({vertexBuffer.Name})"

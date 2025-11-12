@@ -85,7 +85,7 @@ namespace Stride.Shaders.Tests
 
             Assert.False(byteCodeTask.Result.CompilationLog.HasErrors);
 
-            var byteCode = byteCodeTask.Result.Bytecode;
+            var byteCode = byteCodeTask.Result.ByteCode;
             var members = byteCode.Reflection.ConstantBuffers[0].Members;
             foreach (var v in variables)
             {
@@ -148,7 +148,7 @@ namespace Stride.Shaders.Tests
 
             // First register the key as it would've been done by the generator
             var initialKey = ParameterKeys.NewValue(1f, $"{shaderClassName}.{variableName}");
-            ParameterKeys.Merge(initialKey, null, initialKey.Name);
+            ParameterKeys.Merge(initialKey, ownerType: null, initialKey.Name);
 
             GenerateAndCheck("1", 1f);
 
@@ -171,7 +171,7 @@ namespace Stride.Shaders.Tests
 
                 Assert.False(byteCodeTask.Result.CompilationLog.HasErrors);
 
-                var byteCode = byteCodeTask.Result.Bytecode;
+                var byteCode = byteCodeTask.Result.ByteCode;
                 using (var graphicsDevice = GraphicsDevice.New())
                 {
                     // The effect constructor updates the effect reflection
@@ -235,7 +235,7 @@ namespace Stride.Shaders.Tests
 
             Assert.False(byteCodeTask.Result.CompilationLog.HasErrors);
 
-            var byteCode = byteCodeTask.Result.Bytecode;
+            var byteCode = byteCodeTask.Result.ByteCode;
             var members = byteCode.Reflection.ConstantBuffers[0].Members;
             foreach (var v in variables)
             {
@@ -301,7 +301,7 @@ namespace Stride.Shaders.Tests
 
             Assert.False(byteCodeTask.Result.CompilationLog.HasErrors);
 
-            var byteCode = byteCodeTask.Result.Bytecode;
+            var byteCode = byteCodeTask.Result.ByteCode;
             var member = byteCode.Reflection.ConstantBuffers[0].Members[0];
             Assert.Null(member.DefaultValue);
         }

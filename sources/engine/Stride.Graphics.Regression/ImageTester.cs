@@ -2,12 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
-using Stride.Engine.Network;
-using Sockets.Plugin;
-using Stride.Core;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics.Regression

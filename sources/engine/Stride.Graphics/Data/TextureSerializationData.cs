@@ -21,7 +21,7 @@ namespace Stride.Graphics.Data
         /// Also, those levels will be load during initial load, only lower levels will be streamed.
         /// </summary>
         internal const int InitialNonStreamedMipCount = 6;
-        
+
         /// <summary>
         /// The texture image.
         /// </summary>

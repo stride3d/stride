@@ -1,15 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Runtime.InteropServices;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
 using Stride.TextureConverter.PvrttWrapper;
 using Stride.TextureConverter.Requests;
-using System.Runtime.CompilerServices;
-using System.Diagnostics;
 
 namespace Stride.TextureConverter.TexLibraries
 {
@@ -62,7 +62,7 @@ namespace Stride.TextureConverter.TexLibraries
             }
         }
 
-        
+
         public bool SupportBGRAOrder()
         {
             return false;
@@ -174,7 +174,7 @@ namespace Stride.TextureConverter.TexLibraries
             // If the data contains more than one face and mipmaps, swap them
             if (image.Dimension == TexImage.TextureDimension.TextureCube &&  image.FaceCount > 1 && image.MipmapCount > 1)
                 TransposeFaceData(image, libraryData);
-            
+
             /*
              * in a 3D texture, the number of sub images will be different than for 2D : with 2D texture, you just have to multiply the mipmap levels with the array size.
              * For 3D, when generating mip map, you generate mip maps for each slice of your texture, but the depth is decreasing by half (like the width and height) at
@@ -309,7 +309,7 @@ namespace Stride.TextureConverter.TexLibraries
             image.Width = (int)libraryData.Header.GetWidth();
             image.Height = (int)libraryData.Header.GetHeight();
             image.Depth = (int)libraryData.Header.GetDepth();
-            
+
             var format = RetrieveFormatFromNativeData(libraryData.Header);
             image.Format = request.LoadAsSRgb? format.ToSRgb(): format.ToNonSRgb();
             image.OriginalAlphaDepth = libraryData.Header.GetAlphaDepth();
@@ -596,7 +596,7 @@ namespace Stride.TextureConverter.TexLibraries
             Tools.ComputePitch(image.Format, image.Width, image.Height, out pitch, out slice);
             image.RowPitch = pitch;
             image.SlicePitch = slice;
- 
+
             UpdateImage(image, libraryData);
         }
 
@@ -610,7 +610,7 @@ namespace Stride.TextureConverter.TexLibraries
         private void GenerateMipMaps(TexImage image, PvrTextureLibraryData libraryData, MipMapsGenerationRequest request)
         {
             Log.Verbose("Generating Mipmaps ... ");
-            
+
             var filter = request.Filter switch
             {
                 Filter.MipMapGeneration.Linear => EResizeMode.Linear,
@@ -707,7 +707,7 @@ namespace Stride.TextureConverter.TexLibraries
                 throw new TextureToolsException("Failed to premultiply the alpha.");
             }
         }
-        
+
 
         /// <summary>
         /// Updates the image basic information with the native data.

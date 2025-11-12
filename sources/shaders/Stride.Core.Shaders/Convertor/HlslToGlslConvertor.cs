@@ -1,10 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+
 using Stride.Core.Shaders.Analysis;
 using Stride.Core.Shaders.Analysis.Hlsl;
 using Stride.Core.Shaders.Ast;
@@ -14,9 +16,12 @@ using Stride.Core.Shaders.Parser;
 using Stride.Core.Shaders.Utility;
 using Stride.Core.Shaders.Visitor;
 using Stride.Core.Shaders.Writer.Hlsl;
+
 using LayoutQualifier = Stride.Core.Shaders.Ast.Glsl.LayoutQualifier;
 using ParameterQualifier = Stride.Core.Shaders.Ast.ParameterQualifier;
 using StorageQualifier = Stride.Core.Shaders.Ast.StorageQualifier;
+using HlslStorageQualifier = Stride.Core.Shaders.Ast.Hlsl.StorageQualifier;
+using GlslStorageQualifier = Stride.Core.Shaders.Ast.Glsl.StorageQualifier;
 
 namespace Stride.Core.Shaders.Convertor
 {
@@ -243,7 +248,7 @@ namespace Stride.Core.Shaders.Convertor
                 { "atan2", "atan" },
                 { "saturate", "clamp" },
                 { "GroupMemoryBarrier", "groupMemoryBarrier" },
-                //{ "D3DCOLORtoUBYTE4", "ivec4" }, 
+                //{ "D3DCOLORtoUBYTE4", "ivec4" },
             };
         }
 
@@ -374,7 +379,7 @@ namespace Stride.Core.Shaders.Convertor
         public bool TextureFunctionsCompatibilityProfile { get; set; }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public bool KeepConstantBuffer { get; set; }
 
@@ -473,7 +478,7 @@ namespace Stride.Core.Shaders.Convertor
             TransformGlobalMultipleVariableToSingleVariable();
 
             // Gather all samplers and create new samplers
-            // Strips unused code 
+            // Strips unused code
             GenerateSamplerMappingAndStrip();
 
             // Look for global uniforms used as global temp variable
@@ -538,16 +543,16 @@ namespace Stride.Core.Shaders.Convertor
 
             var isInMethod = !shader.Declarations.Contains(variable);
 
-            // Static variable are allowed inside HLSL functions 
+            // Static variable are allowed inside HLSL functions
             // but only at global scope for glsl
             // TODO check if removing the static modifier is enough or we need to move the variable at the toplevel scope (a bit more harder to implement)
-            if (CurrentFunction != null && variable.Qualifiers.Contains(Ast.Hlsl.StorageQualifier.Static))
-                variable.Qualifiers.Values.Remove(Ast.Hlsl.StorageQualifier.Static);
+            if (CurrentFunction != null && variable.Qualifiers.Contains(HlslStorageQualifier.Static))
+                variable.Qualifiers.Values.Remove(HlslStorageQualifier.Static);
 
             // Because const qualifier in HLSL is way too permissive, we need to remove it for GLSL
             // Remove only const qualifiers inside methods
-            if (isInMethod && variable.Qualifiers.Contains(Ast.StorageQualifier.Const))
-                variable.Qualifiers.Values.Remove(Ast.StorageQualifier.Const);
+            if (isInMethod && variable.Qualifiers.Contains(StorageQualifier.Const))
+                variable.Qualifiers.Values.Remove(StorageQualifier.Const);
 
             base.Visit(variable);
 
@@ -612,11 +617,11 @@ namespace Stride.Core.Shaders.Convertor
             // Convert HLSL "in out" qualifier to "inout" qualifier
             foreach (var arg in function.Parameters)
             {
-                if (arg.Qualifiers.Contains(Ast.ParameterQualifier.Out) && arg.Qualifiers.Contains(Ast.ParameterQualifier.In))
+                if (arg.Qualifiers.Contains(ParameterQualifier.Out) && arg.Qualifiers.Contains(ParameterQualifier.In))
                 {
-                    arg.Qualifiers.Values.Remove(Ast.ParameterQualifier.Out);
-                    arg.Qualifiers.Values.Remove(Ast.ParameterQualifier.In);
-                    arg.Qualifiers.Values.Add(Ast.ParameterQualifier.InOut);
+                    arg.Qualifiers.Values.Remove(ParameterQualifier.Out);
+                    arg.Qualifiers.Values.Remove(ParameterQualifier.In);
+                    arg.Qualifiers.Values.Add(ParameterQualifier.InOut);
                 }
             }
 
@@ -634,8 +639,8 @@ namespace Stride.Core.Shaders.Convertor
                 PostVisitEntryPoint(function);
 
             // Remove uniform parameters
-            foreach (var modifier in function.Parameters.Select(variable => variable.Qualifiers).Where(modifier => modifier.Contains(Ast.StorageQualifier.Uniform)))
-                modifier.Values.Remove(Ast.StorageQualifier.Uniform);
+            foreach (var modifier in function.Parameters.Select(variable => variable.Qualifiers).Where(modifier => modifier.Contains(GlslStorageQualifier.Uniform)))
+                modifier.Values.Remove(GlslStorageQualifier.Uniform);
 
             // For GeometryShader, remove StreamType parameters
             RemoveStreamTypeFromMethodDefinition(function);
@@ -659,7 +664,7 @@ namespace Stride.Core.Shaders.Convertor
             // var savedDeclarationContext = function.Declarations.ToList();
             foreach (var arg in function.Parameters)
             {
-                if (arg.Qualifiers.Contains(Ast.ParameterQualifier.Out) || arg.Qualifiers.Contains(Ast.ParameterQualifier.InOut))
+                if (arg.Qualifiers.Contains(ParameterQualifier.Out) || arg.Qualifiers.Contains(ParameterQualifier.InOut))
                 {
                     outputs.Add(arg);
                 }
@@ -698,11 +703,11 @@ namespace Stride.Core.Shaders.Convertor
             }
 
 
-            // ------------------------------------------------ 
+            // ------------------------------------------------
             // Check the type of the output for pixel shaders
             // If glFragData has multiple types, than we need to output a
             // new output type for glFragData.
-            // ------------------------------------------------ 
+            // ------------------------------------------------
 
             if (pipelineStage == PipelineStage.Pixel)
             {
@@ -860,7 +865,7 @@ namespace Stride.Core.Shaders.Convertor
             {
                 foreach (var variable in shader.Declarations.OfType<Variable>())
                 {
-                    if (variable.Qualifiers.Contains(Ast.ParameterQualifier.Out))
+                    if (variable.Qualifiers.Contains(ParameterQualifier.Out))
                     {
                         BindLocation(variable.Semantic(), variable.Type.ResolveType(), false, variable.Name, ref outputSemanticLocation, variable.Span);
                     }
@@ -879,7 +884,7 @@ namespace Stride.Core.Shaders.Convertor
             {
                 var variable = function.Parameters[i];
                 var modifier = variable.Qualifiers;
-                if (modifier.Contains(Ast.StorageQualifier.Uniform))
+                if (modifier.Contains(GlslStorageQualifier.Uniform))
                 {
                     function.Parameters.RemoveAt(i--);
                     ScopeStack.Peek().RemoveDeclaration(variable);
@@ -904,7 +909,7 @@ namespace Stride.Core.Shaders.Convertor
             // The problem is that ConvertReferenceToSemantics is working only if a variable is modified
             // first and then used, but if a variable is used, and then modified, ConvertReferenceToSemantics
             // will not modify the previous 'local' variable.
-            // This code is a workaround. A refactoring of the whole process would be more adequate but requires 
+            // This code is a workaround. A refactoring of the whole process would be more adequate but requires
             // more changes to the overall logic that we can't really afford now.
             SearchVisitor.Run(
                 function,
@@ -1816,7 +1821,7 @@ namespace Stride.Core.Shaders.Convertor
         }
 
         /// <summary>
-        /// Get the Variable used 
+        /// Get the Variable used
         /// </summary>
         /// <param name="forStatement">the for statement</param>
         /// <param name="startValue">the start value of the loop, to fill</param>
@@ -2311,7 +2316,7 @@ namespace Stride.Core.Shaders.Convertor
                 {
                     var exprStmt = (ExpressionStatement)stmt;
 
-                    // Handle tuple cast. Only support default scalars 
+                    // Handle tuple cast. Only support default scalars
                     if (exprStmt.Expression is AssignmentExpression)
                     {
                         var assignExpression = exprStmt.Expression as AssignmentExpression;
@@ -2565,7 +2570,7 @@ namespace Stride.Core.Shaders.Convertor
             };
             samplerMappingVisitor.Run(entryPoint);
 
-            // Use the strip visitor in order to remove unused functions/declaration 
+            // Use the strip visitor in order to remove unused functions/declaration
             // from the entrypoint
             var stripVisitor = new StripVisitor(entryPointName);
             stripVisitor.KeepConstantBuffers = KeepConstantBuffer;
@@ -2620,7 +2625,7 @@ namespace Stride.Core.Shaders.Convertor
                 {
                     if (isUniform)
                     {
-                        variable.Qualifiers |= Ast.StorageQualifier.Uniform;
+                        variable.Qualifiers |= GlslStorageQualifier.Uniform;
 
                         // For arrays, remove initializers if configured
                         var variableArrayType = variable.Type.ResolveType() as ArrayType;
@@ -2640,17 +2645,17 @@ namespace Stride.Core.Shaders.Convertor
 
                 // Remove HLSL Register
                 variable.Qualifiers.Values.RemoveAll(qualifierType => qualifierType is RegisterLocation);
-                variable.Qualifiers.Values.Remove(Ast.Hlsl.StorageQualifier.Static);
-                variable.Qualifiers.Values.Remove(Ast.Hlsl.StorageQualifier.Shared);
+                variable.Qualifiers.Values.Remove(HlslStorageQualifier.Static);
+                variable.Qualifiers.Values.Remove(StorageQualifier.Shared);
 
                 if (pipelineStage != PipelineStage.Compute)
                 {
-                    variable.Qualifiers.Values.Remove(Ast.Hlsl.StorageQualifier.Shared);
+                    variable.Qualifiers.Values.Remove(StorageQualifier.Shared);
                 }
                 // groupshared -> shared
-                else if (variable.Qualifiers.Values.Remove(Ast.Hlsl.StorageQualifier.Groupshared))
+                else if (variable.Qualifiers.Values.Remove(StorageQualifier.GroupShared))
                 {
-                    variable.Qualifiers.Values.Add(Ast.Hlsl.StorageQualifier.Shared);
+                    variable.Qualifiers.Values.Add(StorageQualifier.Shared);
                 }
 
                 // If variable is an object type, remove any initial values
@@ -2664,7 +2669,7 @@ namespace Stride.Core.Shaders.Convertor
             {
                 foreach (var variable in shader.Declarations.OfType<Variable>())
                 {
-                    if (variable.Qualifiers.Contains(Ast.StorageQualifier.Uniform))
+                    if (variable.Qualifiers.Contains(GlslStorageQualifier.Uniform))
                     {
                         // GLSL doesn't support initial values for uniforms, so we are removing them
                         // Errata: A third party GLSL compiler is supporting initial values, so we don't need to remove them
@@ -2763,9 +2768,9 @@ namespace Stride.Core.Shaders.Convertor
             if (!UseInterfaceForInOut && pipelineStage != PipelineStage.Geometry)
                 return;
 
-            var interfaceIn = new Ast.Glsl.InterfaceType(VertexIOInterfaceName) { Qualifiers = Ast.ParameterQualifier.In };
+            var interfaceIn = new Ast.Glsl.InterfaceType(VertexIOInterfaceName) { Qualifiers = ParameterQualifier.In };
 
-            var interfaceOut = new Ast.Glsl.InterfaceType(VertexIOInterfaceName) { Qualifiers = Ast.ParameterQualifier.Out };
+            var interfaceOut = new Ast.Glsl.InterfaceType(VertexIOInterfaceName) { Qualifiers = ParameterQualifier.Out };
 
             var isInAllowed = pipelineStage != PipelineStage.Vertex && pipelineStage != PipelineStage.Geometry;
             var isOutAllowed = pipelineStage != PipelineStage.Pixel;
@@ -2776,15 +2781,15 @@ namespace Stride.Core.Shaders.Convertor
                 if (variable == null || variable.Type is Ast.Glsl.InterfaceType)
                     continue;
 
-                if (isInAllowed && variable.Qualifiers.Contains(Ast.ParameterQualifier.In))
+                if (isInAllowed && variable.Qualifiers.Contains(ParameterQualifier.In))
                 {
-                    variable.Qualifiers.Values.Remove(Ast.ParameterQualifier.In);
+                    variable.Qualifiers.Values.Remove(ParameterQualifier.In);
                     interfaceIn.Fields.Insert(0, variable);
                     shader.Declarations.RemoveAt(i);
                 }
-                else if (isOutAllowed && variable.Qualifiers.Contains(Ast.ParameterQualifier.Out))
+                else if (isOutAllowed && variable.Qualifiers.Contains(ParameterQualifier.Out))
                 {
-                    variable.Qualifiers.Values.Remove(Ast.ParameterQualifier.Out);
+                    variable.Qualifiers.Values.Remove(ParameterQualifier.Out);
                     interfaceOut.Fields.Insert(0, variable);
                     shader.Declarations.RemoveAt(i);
                 }
@@ -2892,7 +2897,7 @@ namespace Stride.Core.Shaders.Convertor
                     }
                 }
 
-                var globalInterfaceType = new Variable(new ArrayType(interfaceType, new EmptyExpression()), GSInputName) { Qualifiers = Ast.ParameterQualifier.In };
+                var globalInterfaceType = new Variable(new ArrayType(interfaceType, new EmptyExpression()), GSInputName) { Qualifiers = ParameterQualifier.In };
 
                 AddGlobalDeclaration(globalInterfaceType);
             }
@@ -3080,9 +3085,13 @@ namespace Stride.Core.Shaders.Convertor
         /// </returns>
         private static bool IsUniformLike(Variable variable)
         {
-            return !variable.Qualifiers.Contains(Ast.ParameterQualifier.InOut) && !variable.Qualifiers.Contains(Ast.ParameterQualifier.In) && !variable.Qualifiers.Contains(Ast.ParameterQualifier.Out)
-                   && !variable.Qualifiers.Contains(Ast.Hlsl.StorageQualifier.Static) && !variable.Qualifiers.Contains(Ast.StorageQualifier.Const)
-                   && !variable.Qualifiers.Contains(Ast.StorageQualifier.Shared) && !variable.Qualifiers.Contains(Ast.StorageQualifier.GroupShared);
+            return !variable.Qualifiers.Contains(ParameterQualifier.InOut)
+                && !variable.Qualifiers.Contains(ParameterQualifier.In)
+                && !variable.Qualifiers.Contains(ParameterQualifier.Out)
+                && !variable.Qualifiers.Contains(HlslStorageQualifier.Static)
+                && !variable.Qualifiers.Contains(StorageQualifier.Const)
+                && !variable.Qualifiers.Contains(StorageQualifier.Shared)
+                && !variable.Qualifiers.Contains(StorageQualifier.GroupShared);
         }
 
         /// <summary>
@@ -3223,7 +3232,7 @@ namespace Stride.Core.Shaders.Convertor
         /// </param>
         private void AddGlobalDeclaration<T>(T declaration, bool forceToAdd = false) where T : Node, IDeclaration
         {
-            // Don't add glsl variable 
+            // Don't add glsl variable
             if (!declaration.Name.Text.StartsWith("gl_", StringComparison.Ordinal) || forceToAdd)
             {
                 var index = shader.Declarations.IndexOf(entryPoint);
@@ -3917,7 +3926,7 @@ namespace Stride.Core.Shaders.Convertor
                     variable.Type = type;
                     if (isInput)
                     {
-                        variable.Qualifiers |= Ast.ParameterQualifier.In;
+                        variable.Qualifiers |= ParameterQualifier.In;
                     }
                     else
                     {
@@ -3927,7 +3936,7 @@ namespace Stride.Core.Shaders.Convertor
                             variable.Qualifiers |= new LayoutQualifier { Layouts = { new LayoutKeyValue("location", semanticIndex) } };
                         }
 
-                        variable.Qualifiers |= Ast.ParameterQualifier.Out;
+                        variable.Qualifiers |= ParameterQualifier.Out;
                     }
                 }
 
@@ -3991,7 +4000,7 @@ namespace Stride.Core.Shaders.Convertor
                             }
 
                             // Use output or input name
-                            layoutTag.Name = variable.Qualifiers.Contains(Ast.ParameterQualifier.Out) ? variableLayoutRule.NameOutput : variableLayoutRule.Name;
+                            layoutTag.Name = variable.Qualifiers.Contains(ParameterQualifier.Out) ? variableLayoutRule.NameOutput : variableLayoutRule.Name;
                         }
                     }
                     else if (constantBuffer != null)
@@ -4224,11 +4233,11 @@ namespace Stride.Core.Shaders.Convertor
                         // Note: not sure why, but it seems scalar are not properly resolved?
                         if (baseType.Name == ScalarType.Int.Name || baseType.Name == ScalarType.UInt.Name)
                         {
-                            variable.Qualifiers |= Ast.ParameterQualifier.Flat;
+                            variable.Qualifiers |= ParameterQualifier.Flat;
                         }
                     }
 
-                    variable.Qualifiers |= isInput ? Ast.ParameterQualifier.In : Ast.ParameterQualifier.Out;
+                    variable.Qualifiers |= isInput ? ParameterQualifier.In : ParameterQualifier.Out;
 
                     // Setup Variable Tag for LayoutQualifiers
                     //GetTagLayout(variable, semanticName, isInput && pipelineStage == PipelineStage.Vertex);
@@ -4340,7 +4349,7 @@ namespace Stride.Core.Shaders.Convertor
         {
             var targetTypeName = targetType.Name.Text;
 
-            if ((targetTypeName.Equals("StructuredBuffer", StringComparison.Ordinal) || targetTypeName.Equals("RWStructuredBuffer", StringComparison.Ordinal)) 
+            if ((targetTypeName.Equals("StructuredBuffer", StringComparison.Ordinal) || targetTypeName.Equals("RWStructuredBuffer", StringComparison.Ordinal))
                 && targetType is IGenerics structuredBufferGenericType)
             {
                 // Convert to "readonly buffer Name { GenericType Buffer; };
@@ -4355,10 +4364,10 @@ namespace Stride.Core.Shaders.Convertor
 
                 if (targetTypeName.Equals("StructuredBuffer", StringComparison.Ordinal))
                 {
-                    bufferType.Qualifiers |= StorageQualifier.ReadOnly;
+                    bufferType.Qualifiers |= GlslStorageQualifier.ReadOnly;
                 }
 
-                bufferType.Qualifiers |= StorageQualifier.Buffer;
+                bufferType.Qualifiers |= GlslStorageQualifier.Buffer;
 
                 return bufferType;
             }
@@ -4440,9 +4449,9 @@ namespace Stride.Core.Shaders.Convertor
         }
 
         /// <summary>
-        /// Converts an HLSL array initializer to a GLSL array initializer. 
-        /// Example: 
-        /// HLSL float[4] test = {1,2,3,4}; 
+        /// Converts an HLSL array initializer to a GLSL array initializer.
+        /// Example:
+        /// HLSL float[4] test = {1,2,3,4};
         /// GLSL float[4] test = float[](1,2,3,4);
         /// </summary>
         /// <param name="arrayType">Type of the array.</param>
@@ -4512,7 +4521,7 @@ namespace Stride.Core.Shaders.Convertor
 
             // Initializers could be
             // 1) matrix test = matrix( float4(row1), float4(row2), float4(row3), float4(row4) );
-            // or 
+            // or
             // 2) matrix test = matrix( 1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16);
             if (rowCount == initializers.Count)
             {
@@ -4673,7 +4682,7 @@ namespace Stride.Core.Shaders.Convertor
                 layoutQualifier.Layouts.Add(new LayoutKeyValue("std140"));
             }
 
-            foreach (var variable in shader.Declarations.OfType<Variable>().Where(x => x.Type.Qualifiers.Contains(StorageQualifier.Buffer)))
+            foreach (var variable in shader.Declarations.OfType<Variable>().Where(x => x.Type.Qualifiers.Contains(GlslStorageQualifier.Buffer)))
             {
                 var layoutQualifier = variable.Qualifiers.OfType<LayoutQualifier>().FirstOrDefault();
                 if (layoutQualifier == null)

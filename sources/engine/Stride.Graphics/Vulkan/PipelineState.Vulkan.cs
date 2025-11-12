@@ -10,7 +10,6 @@ using static Vortice.Vulkan.Vulkan;
 using Stride.Shaders;
 using Stride.Core.Serialization;
 using Encoding = System.Text.Encoding;
-using System.IO.IsolatedStorage;
 
 namespace Stride.Graphics
 {
@@ -151,23 +150,24 @@ namespace Stride.Graphics
                 var renderTargetCount = Description.Output.RenderTargetCount;
                 var colorBlendAttachments = new VkPipelineColorBlendAttachmentState[renderTargetCount];
 
-                var renderTargetBlendState = &description.RenderTarget0;
-                for (int i = 0; i < renderTargetCount; i++)
+                for (int i = 0, j = 0; i < renderTargetCount; i++)
                 {
+                    scoped ref readonly var renderTargetBlendState = ref description.RenderTargets[j];
+
                     colorBlendAttachments[i] = new VkPipelineColorBlendAttachmentState
                     {
-                        blendEnable = renderTargetBlendState->BlendEnable,
-                        alphaBlendOp = VulkanConvertExtensions.ConvertBlendFunction(renderTargetBlendState->AlphaBlendFunction),
-                        colorBlendOp = VulkanConvertExtensions.ConvertBlendFunction(renderTargetBlendState->ColorBlendFunction),
-                        dstAlphaBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->AlphaDestinationBlend),
-                        dstColorBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->ColorDestinationBlend),
-                        srcAlphaBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->AlphaSourceBlend),
-                        srcColorBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->ColorSourceBlend),
-                        colorWriteMask = VulkanConvertExtensions.ConvertColorWriteChannels(renderTargetBlendState->ColorWriteChannels)
+                        blendEnable = renderTargetBlendState.BlendEnable,
+                        alphaBlendOp = VulkanConvertExtensions.ConvertBlendFunction(renderTargetBlendState.AlphaBlendFunction),
+                        colorBlendOp = VulkanConvertExtensions.ConvertBlendFunction(renderTargetBlendState.ColorBlendFunction),
+                        dstAlphaBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState.AlphaDestinationBlend),
+                        dstColorBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState.ColorDestinationBlend),
+                        srcAlphaBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState.AlphaSourceBlend),
+                        srcColorBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState.ColorSourceBlend),
+                        colorWriteMask = VulkanConvertExtensions.ConvertColorWriteChannels(renderTargetBlendState.ColorWriteChannels)
                     };
 
                     if (description.IndependentBlendEnable)
-                        renderTargetBlendState++;
+                        j++;
                 }
 
                 var viewportState = new VkPipelineViewportStateCreateInfo

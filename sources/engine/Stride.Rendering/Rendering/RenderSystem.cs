@@ -190,7 +190,7 @@ namespace Stride.Rendering
                             renderViewStage.RenderNodes.Add(new RenderNodeFeatureReference(renderFeature, renderNode, renderObject), batch.ViewStageRenderNodeCache);
                         }
                     }
-                }, batch => batch.Flush());            
+                }, batch => batch.Flush());
                 // Finish collectin of view feature nodes
                 foreach (var viewFeature in view.Features)
                 {
@@ -205,7 +205,7 @@ namespace Stride.Rendering
                     using (Profiler.Begin(SortRenderNodesKey))
                     {
                         Dispatcher.Sort(renderViewStage.RenderNodes, RenderNodeFeatureReferenceComparer.Default);
-                    }                    
+                    }
                 }
             });
 

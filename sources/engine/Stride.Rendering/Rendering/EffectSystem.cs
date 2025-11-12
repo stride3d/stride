@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -98,7 +97,7 @@ namespace Stride.Rendering
             }
 
 #if STRIDE_PLATFORM_DESKTOP
-            if (directoryWatcher != null)
+            if (directoryWatcher is not null)
             {
                 directoryWatcher.Modified -= FileModifiedEvent;
                 directoryWatcher.Dispose();
@@ -137,8 +136,8 @@ namespace Stride.Rendering
         /// <exception cref="System.InvalidOperationException">Could not compile shader. Need fallback.</exception>
         public TaskOrResult<Effect> LoadEffect(string effectName, CompilerParameters compilerParameters)
         {
-            if (effectName == null) throw new ArgumentNullException("effectName");
-            if (compilerParameters == null) throw new ArgumentNullException("compilerParameters");
+            ArgumentNullException.ThrowIfNull(effectName);
+            ArgumentNullException.ThrowIfNull(compilerParameters);
 
             // Setup compilation parameters
             // GraphicsDevice might have been not valid until this point, which is why we compute platform and profile only at this point
@@ -155,7 +154,7 @@ namespace Stride.Rendering
             // Only take the sub-effect
             var bytecode = compilerResult.Bytecode;
 
-            if (bytecode.Task != null && !bytecode.Task.IsCompleted)
+            if (bytecode.Task?.IsCompleted is false)
             {
                 // Ensure the continuation is scheduled on the thread pool or we might end up in a dead lock when then calling thread
                 // is already waiting on the result
@@ -218,14 +217,13 @@ namespace Stride.Rendering
                             var pathUrl = storagePath + "/path";
                             if (FileProvider.FileExists(pathUrl))
                             {
-                                using (var pathStream = FileProvider.OpenStream(pathUrl, VirtualFileMode.Open, VirtualFileAccess.Read))
-                                using (var reader = new StreamReader(pathStream))
-                                {
-                                    filePath = reader.ReadToEnd();
-                                }
+                                using var pathStream = FileProvider.OpenStream(pathUrl, VirtualFileMode.Open, VirtualFileAccess.Read);
+                                using var reader = new StreamReader(pathStream);
+
+                                filePath = reader.ReadToEnd();
                             }
                         }
-                        if (filePath != null)
+                        if (filePath is not null)
                             directoryWatcher.Track(filePath);
                     }
 #endif
@@ -250,7 +248,7 @@ namespace Stride.Rendering
                 compilerResult = GetShaderFromParameters(effectName, compilerParameters);
             }
 
-            if (compilerResult == null)
+            if (compilerResult is null)
             {
                 var source = isSdfx
                     ? new ShaderMixinGeneratorSource(effectName)
@@ -264,10 +262,9 @@ namespace Stride.Rendering
                 {
                     lock (earlyCompilerCache)
                     {
-                        List<CompilerResults> effectCompilerResults;
-                        if (!earlyCompilerCache.TryGetValue(effectName, out effectCompilerResults))
+                        if (!earlyCompilerCache.TryGetValue(effectName, out List<CompilerResults> effectCompilerResults))
                         {
-                            effectCompilerResults = new List<CompilerResults>();
+                            effectCompilerResults = [];
                             earlyCompilerCache.Add(effectName, effectCompilerResults);
                         }
 
@@ -330,7 +327,7 @@ namespace Stride.Rendering
                     {
                         foreach (var bytecode in bytecodeRemoved)
                         {
-                            effectCompilerResults.RemoveAll(results => results.Bytecode.GetCurrentResult().Bytecode == bytecode);
+                            effectCompilerResults.RemoveAll(results => results.Bytecode.GetCurrentResult().ByteCode == bytecode);
                         }
                     }
                 }
@@ -394,9 +391,9 @@ namespace Stride.Rendering
                         {
                             var object1 = parameters.ObjectValues[parameterKeyInfo.BindingSlot + i];
                             var object2 = compiledParameters.ObjectValues[compiledParameterKeyInfo.BindingSlot + i];
-                            if (object1 == null && object2 == null)
+                            if (object1 is null && object2 is null)
                                 continue;
-                            if ((object1 == null && object2 != null) || (object2 == null && object1 != null))
+                            if ((object1 is null && object2 is not null) || (object2 is null && object1 is not null))
                                 goto different;
                             if (!object1.Equals(object2))
                                 goto different;

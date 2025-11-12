@@ -107,7 +107,7 @@ namespace Stride.TextureConverter.TexLibraries
             // Ordering textures in decreasing order : best heuristic with this algorithm.
             if (atlasSizeIncrement == 0) OrderTexture(request);
 
-            // Finding the best layout for the textures in the atlas 
+            // Finding the best layout for the textures in the atlas
             Node tree = PositionTextures(atlas, request);
 
             // One of many textures couldn't be positioned which means the atlas is too small
@@ -354,7 +354,7 @@ namespace Stride.TextureConverter.TexLibraries
                 List<TexImage.SubImage> subImages = new List<TexImage.SubImage>();
 
                 w = atlas.Width;
-                h = atlas.Height;  
+                h = atlas.Height;
 
                 while (w != 1 || h != 1)
                 {
@@ -546,7 +546,7 @@ namespace Stride.TextureConverter.TexLibraries
 
                     /*if (node.Texture.SubImageArray[i].Width == 3)
                     {
-                        //xOffset += 4; 
+                        //xOffset += 4;
                         //node.Texture.SubImageArray[i].RowPitch += 4;
                         Console.WriteLine(node.Texture.SubImageArray[i].RowPitch); ///////////////----------------------------------------------------------------------------------------
                     }*/

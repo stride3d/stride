@@ -85,7 +85,7 @@ namespace Stride.UI
 
             // update the desired size based on the desired scales
             desiredSize = new Vector3(idealSize.X * desiredScale.X, idealSize.Y * desiredScale.Y, 0f);
-            
+
             if (!isMeasuring || !sprite.HasBorders)
                 return desiredSize;
 

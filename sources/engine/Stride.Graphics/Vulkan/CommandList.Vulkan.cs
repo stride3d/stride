@@ -3,13 +3,10 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
-using Stride.Core.UnsafeExtensions;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 

@@ -33,7 +33,7 @@ namespace Stride.Graphics
                     else if (!makeACopy)
                         MemoryUtilities.Free(pSource);
 
-                    return image;  
+                    return image;
                 }
             }
         }

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Stride.Core;
-using static Stride.Rendering.ParameterCollection;
 
 namespace Stride.Particles
 {

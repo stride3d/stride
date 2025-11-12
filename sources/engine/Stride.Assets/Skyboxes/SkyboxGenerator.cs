@@ -91,7 +91,7 @@ namespace Stride.Assets.Skyboxes
             var parameters = context.Parameters;
             var skybox = result.Skybox;
             skybox.Parameters = parameters;
-            
+
             var cubemap = asset.CubeMap;
             if (cubemap == null)
             {

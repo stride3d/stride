@@ -31,9 +31,9 @@ namespace Stride.Graphics
 
             // Initialize outputs
             var numOutputs = SDL.GetNumVideoDisplays();
-            outputs = new GraphicsOutput[numOutputs];
-            for (int outputIndex = 0; outputIndex < outputs.Length; outputIndex++)
-                outputs[outputIndex] = new GraphicsOutput(this, outputIndex);
+            graphicsOutputs = new GraphicsOutput[numOutputs];
+            for (int outputIndex = 0; outputIndex < graphicsOutputs.Length; outputIndex++)
+                graphicsOutputs[outputIndex] = new GraphicsOutput(this, outputIndex);
 
             // Some platforms (i.e. Android) can only have a single window
             var sdlWindow = DefaultWindow;

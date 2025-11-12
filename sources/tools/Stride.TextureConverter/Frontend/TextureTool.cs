@@ -10,7 +10,6 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.TextureConverter.Requests;
 using Stride.TextureConverter.TexLibraries;
-using System.Runtime.CompilerServices;
 using Stride.TextureConverter.Backend.Requests;
 using System.Runtime.InteropServices;
 

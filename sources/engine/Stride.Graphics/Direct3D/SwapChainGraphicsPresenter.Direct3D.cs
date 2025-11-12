@@ -512,7 +512,7 @@ namespace Stride.Graphics
         {
             var childrenTextures = new List<Texture>();
             var resources = GraphicsDevice.Resources;
-            
+
             lock (resources)
             {
                 foreach (var resource in resources)

@@ -15,7 +15,7 @@ internal class ShaderBytecodeResult : LoggerResult
     ///   Gets or sets the compiled Shader byte-code if the compilation is succesful.
     /// </summary>
     /// <value>The compiled Shader byte-code, or <see langword="null"/> if the compilation failed.</value>
-    public ShaderBytecode? Bytecode { get; set; }
+    public ShaderBytecode? ByteCode { get; set; }
 
     /// <summary>
     ///   Gets or sets the decompiled Shader HLSL code from the compiled Shader byte-code if the compilation is succesful,

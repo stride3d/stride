@@ -1019,13 +1019,10 @@ namespace Stride.Graphics
                     {
                         // Check that stride is ok
                         if (rowStride < rowPitch)
-                            throw new InvalidOperationException(string.Format("Invalid stride [{0}]. Value can't be lower than actual stride [{1}]", rowStride, rowPitch));
+                            throw new InvalidOperationException($"Invalid stride [{rowStride}]. Value can't be lower than actual stride [{rowPitch}]");
 
                         if (widthPacked != w || heightPacked != h)
                             throw new InvalidOperationException("Custom strides is not supported with packed PixelFormats");
-
-                        // Override row pitch
-                        rowPitch = rowStride;
 
                         // Recalculate slice pitch
                         slicePitch = rowStride * h;

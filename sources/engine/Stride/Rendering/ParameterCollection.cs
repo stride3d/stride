@@ -156,10 +156,10 @@ namespace Stride.Rendering
             return new ValueParameter<T>(accessor.Offset, accessor.Count);
         }
 
-        private unsafe Accessor GetValueAccessorHelper(ParameterKey parameterKey, int elementCount = 1)
+        private unsafe ParameterAccessor GetValueAccessorHelper(ParameterKey parameterKey, int elementCount = 1)
         {
             var parameterKeyInfosSpan = CollectionsMarshal.AsSpan(parameterKeyInfos);
-            
+
             // Find existing first
             for (int i = 0; i < parameterKeyInfosSpan.Length; ++i)
             {
@@ -201,7 +201,7 @@ namespace Stride.Rendering
                     parameterKey.DefaultValueMetadata.WriteBuffer((IntPtr)dataValues + memberOffset, Alignment);
             }
 
-            return new Accessor(memberOffset, elementCount);
+            return new ParameterAccessor(memberOffset, elementCount);
         }
 
         /// <summary>
@@ -707,7 +707,7 @@ namespace Stride.Rendering
             ObjectValues = newResourceValues;
         }
 
-        protected Accessor GetObjectParameterHelper(ParameterKey parameterKey, bool createIfNew = true)
+        protected ParameterAccessor GetObjectParameterHelper(ParameterKey parameterKey, bool createIfNew = true)
         {
             var parameterKeyInfosSpan = CollectionsMarshal.AsSpan(parameterKeyInfos);
             // Find existing first
@@ -720,7 +720,7 @@ namespace Stride.Rendering
             }
 
             if (!createIfNew)
-                return new Accessor(-1, 0);
+                return new ParameterAccessor(-1, 0);
 
             if (parameterKey.Type == ParameterKeyType.Permutation)
                 PermutationCounter++;
@@ -751,7 +751,7 @@ namespace Stride.Rendering
                 ObjectValues[resourceValuesSize] = parameterKey.DefaultValueMetadata.GetDefaultValue();
             }
 
-            return new Accessor(resourceValuesSize, 1);
+            return new ParameterAccessor(resourceValuesSize, 1);
         }
 
         public class Serializer : ClassDataSerializer<ParameterCollection>
@@ -1030,18 +1030,6 @@ namespace Stride.Rendering
             public int SourceStart;
             public int DestStart;
             public int Size;
-        }
-
-        public struct Accessor
-        {
-            public int Offset;
-            public int Count;
-
-            internal Accessor(int offset, int count)
-            {
-                Offset = offset;
-                Count = count;
-            }
         }
 
         private class DebugView

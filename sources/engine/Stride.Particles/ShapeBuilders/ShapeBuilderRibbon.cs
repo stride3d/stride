@@ -138,7 +138,7 @@ namespace Stride.Particles.ShapeBuilders
                 {
                     var orderValue = (*((uint*)particle[orderField]));
 
-                    if ((orderValue >> SpawnOrderConst.GroupBitOffset) != (oldOrderValue >> SpawnOrderConst.GroupBitOffset)) 
+                    if ((orderValue >> SpawnOrderConst.GroupBitOffset) != (oldOrderValue >> SpawnOrderConst.GroupBitOffset))
                     {
                         ribbonizer.Ribbonize(ref bufferState, invViewX, invViewY, QuadsPerParticle, ref viewProj);
                         ribbonizer.RibbonSplit();
@@ -157,7 +157,7 @@ namespace Stride.Particles.ShapeBuilders
                     centralPos = centralPos * spaceScale + spaceTranslation;
                     particleSize *= spaceScale;
                 }
-                
+
                 ribbonizer.AddParticle(ref centralPos, particleSize);
                 renderedParticles++;
             }
@@ -503,7 +503,7 @@ namespace Stride.Particles.ShapeBuilders
                     // Move the position to the next particle in the ribbon
                     particlePos += centralPos - oldPoint;
                     particlePos += unitX - oldUnitX;
-                    vCoordOld = (TextureCoordinatePolicy == TextureCoordinatePolicy.Stretched) ? 
+                    vCoordOld = (TextureCoordinatePolicy == TextureCoordinatePolicy.Stretched) ?
                         ((i + 1)/(float)(lastParticle) * TexCoordsFactor) : ((centralPos - oldPoint).Length() * TexCoordsFactor) + vCoordOld;
 
 

@@ -66,17 +66,14 @@ namespace Stride.Shaders.Compiler
             }
 
             // Compile the whole mixin tree
-            var compilerResults = new CompilerResults { Module = string.Format("EffectCompile [{0}]", mixinToCompile.Name) };
-            var bytecode = Compile(mixinToCompile, compilerParameters.EffectParameters, compilerParameters);
+            var compilerResults = new CompilerResults { Module = $"EffectCompile [{mixinToCompile.Name}]" };
+            var byteCode = Compile(mixinToCompile, compilerParameters.EffectParameters, compilerParameters);
 
-            // Since bytecode.Result is a struct, we check if any of its member has been set to know if it's valid
-            if (bytecode.Result.CompilationLog != null || bytecode.Task != null)
-            {
-                if (bytecode.Result.CompilationLog != null)
+            // Since byteCode.Result is a struct, we check if any of its member has been set to know if it's valid
+            if (byteCode.Result.CompilationLog is not null || byteCode.Task is not null)
                 {
-                    bytecode.Result.CompilationLog.CopyTo(compilerResults);
-                }
-                compilerResults.Bytecode = bytecode;
+                byteCode.Result.CompilationLog?.CopyTo(compilerResults);
+                compilerResults.Bytecode = byteCode;
                 compilerResults.SourceParameters = new CompilerParameters(compilerParameters);
             }
             return compilerResults;

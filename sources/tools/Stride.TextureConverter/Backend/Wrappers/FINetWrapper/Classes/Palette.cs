@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using FreeImageAPI.Metadata;
 using Stride.Core;
+using Stride.Core.UnsafeExtensions;
 
 namespace FreeImageAPI
 {
@@ -397,7 +398,7 @@ namespace FreeImageAPI
 				byte[] data = reader.ReadBytes(size);
 
 				ref byte dst = ref Unsafe.AsRef<byte>(baseAddress);
-				ref byte src = ref data[0];
+				ref byte src = ref data.GetReference();
 				MemoryUtilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) data.Length);
 			}
 		}

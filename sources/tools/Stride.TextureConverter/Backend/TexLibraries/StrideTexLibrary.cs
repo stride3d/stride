@@ -420,7 +420,7 @@ namespace Stride.TextureConverter.TexLibraries
             var bufferStepFactor = request.KeepMipMap ? 1 : inputImage.Description.MipLevels;
             int imageCount = inputImage.PixelBuffer.Count / bufferStepFactor;
             image.SubImageArray = new TexImage.SubImage[imageCount];
-            
+
             for (int i = 0; i < imageCount; ++i)
             {
                 image.SubImageArray[i] = new TexImage.SubImage();
