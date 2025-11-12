@@ -30,7 +30,7 @@ using Stride.Graphics;
 namespace Stride.Games
 {
     /// <summary>
-    /// Contains context used to render the game (Control for WinForm, a DrawingSurface for WP8...etc.).
+    /// Contains context for the game and its core modules.
     /// </summary>
     public abstract class GameContext
     {
@@ -55,6 +55,14 @@ namespace Stride.Games
         /// </summary>
         /// <value>The run loop.</value>
         public Action ExitCallback { get; internal set; }
+
+        public GameBase CurrentGame { get; set; }
+
+        public GamePlatform GamePlatform { get; set; }
+
+        public GameWindow GameWindow { get; set; }
+
+        public IServiceRegistry Services { get; set; }
 
         // TODO: remove these requested values.
 
