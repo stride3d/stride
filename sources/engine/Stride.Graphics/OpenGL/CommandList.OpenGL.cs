@@ -1216,21 +1216,24 @@ namespace Stride.Graphics
             }
         }
 
-        private void SetRenderTargetsImpl(Texture depthStencilBuffer, int renderTargetCount, params Texture[] renderTargets)
+        private partial void SetRenderTargetsImpl(Texture depthStencilView, ReadOnlySpan<Texture> renderTargetViews)
         {
-            if (renderTargetCount > 0)
+            int numRenderTargets = renderTargetViews.Length;
+
+            if (numRenderTargets > 0)
             {
-                // ensure size is coherent
-                var expectedWidth = renderTargets[0].Width;
-                var expectedHeight = renderTargets[0].Height;
-                if (depthStencilBuffer != null)
+                // Ensure size is coherent
+                var expectedWidth = renderTargetViews[0].Width;
+                var expectedHeight = renderTargetViews[0].Height;
+
+                if (depthStencilBuffer is not null)
                 {
                     if (expectedWidth != depthStencilBuffer.Width || expectedHeight != depthStencilBuffer.Height)
                         throw new Exception("Depth buffer is not the same size as the render target");
                 }
-                for (int i = 1; i < renderTargetCount; ++i)
+                for (int i = 1; i < numRenderTargets; ++i)
                 {
-                    if (renderTargets[i] != null && (expectedWidth != renderTargets[i].Width || expectedHeight != renderTargets[i].Height))
+                    if (renderTargetViews[i] != null && (expectedWidth != renderTargetViews[i].Width || expectedHeight != renderTargetViews[i].Height))
                         throw new Exception("Render targets do not have the same size");
                 }
             }
@@ -1238,9 +1241,9 @@ namespace Stride.Graphics
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
 #endif
-            boundRenderTargetCount = renderTargetCount;
-            for (int i = 0; i < renderTargetCount; ++i)
-                boundRenderTargets[i] = renderTargets[i];
+            boundRenderTargetCount = numRenderTargets;
+            for (int i = 0; i < numRenderTargets; ++i)
+                boundRenderTargets[i] = renderTargetViews[i];
 
             boundDepthStencilBuffer = depthStencilBuffer;
 
@@ -1269,7 +1272,7 @@ namespace Stride.Graphics
             samplerStates[slot] = samplerState;
         }
 
-        private unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle)
+        private unsafe partial void SetScissorRectangleImpl(ref readonly Rectangle scissorRectangle)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -1277,7 +1280,7 @@ namespace Stride.Graphics
             GL.Scissor(scissorRectangle.Left, scissorRectangle.Top, (uint)scissorRectangle.Width, (uint)scissorRectangle.Height);
         }
 
-        private unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles)
+        private unsafe partial void SetScissorRectanglesImpl(ReadOnlySpan<Rectangle> scissorRectangles)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -1286,15 +1289,18 @@ namespace Stride.Graphics
 #if STRIDE_GRAPHICS_API_OPENGLES
             throw new NotSupportedException();
 #else
+            uint scissorCount = (uint) scissorRectangles.Length;
+
             for (int i = 0; i < scissorCount; ++i)
             {
-                nativeScissorRectangles[4 * i] = scissorRectangles[i].X;
-                nativeScissorRectangles[4 * i + 1] = scissorRectangles[i].Y;
-                nativeScissorRectangles[4 * i + 2] = scissorRectangles[i].Width;
-                nativeScissorRectangles[4 * i + 3] = scissorRectangles[i].Height;
+                scoped ref readonly Rectangle scissorRect = ref scissorRectangles[i];
+                nativeScissorRectangles[4 * i] = scissorRect.X;
+                nativeScissorRectangles[4 * i + 1] = scissorRect.Y;
+                nativeScissorRectangles[4 * i + 2] = scissorRect.Width;
+                nativeScissorRectangles[4 * i + 3] = scissorRect.Height;
             }
 
-            GL.ScissorArray(0, (uint)scissorCount, nativeScissorRectangles);
+            GL.ScissorArray(first: 0, scissorCount, nativeScissorRectangles);
 #endif
         }
 
@@ -1473,7 +1479,7 @@ namespace Stride.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-            SetRenderTargets(null, null);
+            SetRenderTargets([]);
         }
 
         /// <summary>

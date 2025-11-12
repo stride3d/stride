@@ -20,6 +20,7 @@ using D3D12Viewport = Silk.NET.Direct3D12.Viewport;
 using SilkBox2I = Silk.NET.Maths.Box2D<int>;
 
 using static System.Runtime.CompilerServices.Unsafe;
+using Stride.Core;
 
 namespace Stride.Graphics
 {
@@ -223,7 +224,7 @@ namespace Stride.Graphics
                 SetPipelineState(boundPipelineState);
 
             currentCommandList.NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
-            SetRenderTargetsImpl(depthStencilBuffer, renderTargetCount, renderTargets);
+            SetRenderTargetsImpl(depthStencilBuffer, RenderTargets);
         }
 
         /// <summary>
@@ -240,21 +241,20 @@ namespace Stride.Graphics
         ///   Binds a Depth-Stencil Buffer and a set of Render Targets to the output-merger stage.
         /// </summary>
         /// <param name="depthStencilBuffer">The Depth-Stencil Buffer to bind.</param>
-        /// <param name="renderTargetCount">The number of Render Targets to bind.</param>
-        /// <param name="renderTargets">The Render Targets to bind.</param>
-        private void SetRenderTargetsImpl(Texture depthStencilBuffer, int renderTargetCount, Texture[] renderTargets)
+        /// <param name="renderTargetViews">The Render Targets to bind.</param>
+        private partial void SetRenderTargetsImpl(Texture depthStencilBuffer, ReadOnlySpan<Texture> renderTargetViews)
         {
-            bool hasRenderTargetsToSet = renderTargetCount > 0 && renderTargets is { Length: > 0 };
+            int renderTargetCount = renderTargetViews.Length;
 
             var renderTargetHandles = stackalloc CpuDescriptorHandle[renderTargetCount];
 
             for (int i = 0; i < renderTargetCount; ++i)
             {
-                renderTargetHandles[i] = renderTargets[i].NativeRenderTargetView;
+                renderTargetHandles[i] = renderTargetViews[i].NativeRenderTargetView;
             }
 
             bool hasDepthStencilTargetToSet = depthStencilBuffer is not null;
-            scoped ref var depthStencilView = ref hasDepthStencilTargetToSet
+            scoped ref var depthStencilView = ref (boundViewportCount > 0)
                 ? ref depthStencilBuffer.NativeDepthStencilView
                 : ref NullRef<CpuDescriptorHandle>();
 
@@ -335,7 +335,7 @@ namespace Stride.Graphics
         ///   Direct3D 12 implementation that sets a scissor rectangle to the rasterizer stage.
         /// </summary>
         /// <param name="scissorRectangle">The scissor rectangle to set.</param>
-        private unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle)
+        private unsafe partial void SetScissorRectangleImpl(ref readonly Rectangle scissorRectangle)
         {
             // Do nothing. Direct3D 12 already sets the scissor rectangle as part of PrepareDraw()
         }
@@ -343,9 +343,8 @@ namespace Stride.Graphics
         /// <summary>
         ///   Direct3D 12 implementation that sets one or more scissor rectangles to the rasterizer stage.
         /// </summary>
-        /// <param name="scissorCount">The number of scissor rectangles to bind.</param>
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
-        private unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles)
+        private unsafe partial void SetScissorRectanglesImpl(ReadOnlySpan<Rectangle> scissorRectangles)
         {
             // Do nothing. Direct3D 12 already sets the scissor rectangles as part of PrepareDraw()
         }

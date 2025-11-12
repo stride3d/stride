@@ -646,7 +646,8 @@ namespace Stride.Rendering.Compositing
                         var vrFullFrameSize = VRSettings.VRDevice.ActualRenderFrameSize;
                         var desiredRenderTargetSize = !hasPostEffects ? vrFullFrameSize : new Size2(vrFullFrameSize.Width / 2, vrFullFrameSize.Height);
                         if (hasPostEffects || desiredRenderTargetSize.Width != currentRenderTarget.Width || desiredRenderTargetSize.Height != currentRenderTarget.Height)
-                            drawContext.CommandList.SetRenderTargets(null, null); // force to create and bind a new render target
+                            // Force to create and bind a new render target
+                            drawContext.CommandList.SetRenderTargets([]);
 
                         PrepareRenderTargets(drawContext, desiredRenderTargetSize);
 
@@ -687,7 +688,7 @@ namespace Stride.Rendering.Compositing
                                     }
                                 }
 
-                                drawContext.CommandList.SetRenderTargets(currentDepthStencil, currentRenderTargets.Count, CollectionsMarshal.AsSpan(currentRenderTargets));
+                                drawContext.CommandList.SetRenderTargets(currentDepthStencil, CollectionsMarshal.AsSpan(currentRenderTargets));
 
                                 if (!hasPostEffects && !isWindowsMixedReality) // need to change the viewport between each eye
                                 {
@@ -746,7 +747,7 @@ namespace Stride.Rendering.Compositing
 
                     using (drawContext.PushRenderTargetsAndRestore())
                     {
-                        drawContext.CommandList.SetRenderTargets(currentDepthStencil, currentRenderTargets.Count, CollectionsMarshal.AsSpan(currentRenderTargets));
+                        drawContext.CommandList.SetRenderTargets(currentDepthStencil, CollectionsMarshal.AsSpan(currentRenderTargets));
 
                         // Clear render target and depth stencil
                         Clear?.Draw(drawContext);
@@ -782,8 +783,10 @@ namespace Stride.Rendering.Compositing
             if (!BindDepthAsResourceDuringTransparentRendering)
                 return null;
 
-            var depthStencil = context.CommandList.DepthStencilBuffer;
-            var depthStencilSRV = context.Resolver.ResolveDepthStencil(context.CommandList.DepthStencilBuffer);
+            var commandList = context.CommandList;
+
+            var depthStencil = commandList.DepthStencilBuffer;
+            var depthStencilSRV = context.Resolver.ResolveDepthStencil(commandList.DepthStencilBuffer);
 
             var renderView = context.RenderContext.RenderView;
 
@@ -795,8 +798,7 @@ namespace Stride.Rendering.Compositing
                 }
             }
 
-            context.CommandList.SetRenderTargets(depthStencilView: null,
-                                                 context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
+            commandList.SetRenderTargets(depthStencilView: null, commandList.RenderTargets);
 
             var depthStencilROCached = context.Resolver.GetDepthStencilAsRenderTarget(depthStencil, this.depthStencilROCached);
             if (depthStencilROCached != this.depthStencilROCached)
@@ -805,7 +807,7 @@ namespace Stride.Rendering.Compositing
                 this.depthStencilROCached?.Dispose();
                 this.depthStencilROCached = depthStencilROCached;
             }
-            context.CommandList.SetRenderTargets(depthStencilROCached, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
+            commandList.SetRenderTargets(depthStencilROCached, commandList.RenderTargets);
 
             return depthStencilSRV;
         }

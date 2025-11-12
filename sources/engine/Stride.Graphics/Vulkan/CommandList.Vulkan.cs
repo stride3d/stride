@@ -142,7 +142,7 @@ namespace Stride.Graphics
                 var descriptorSetCopy = descriptorSet;
                 vkCmdBindDescriptorSets(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativeLayout, firstSet: 0, descriptorSetCount: 1, &descriptorSetCopy, dynamicOffsetCount: 0, dynamicOffsets: null);
             }
-            SetRenderTargetsImpl(depthStencilBuffer, renderTargetCount, renderTargets);
+            SetRenderTargetsImpl(depthStencilBuffer, RenderTargets);
         }
 
         /// <summary>
@@ -165,12 +165,12 @@ namespace Stride.Graphics
         /// <param name="depthStencilBuffer">The depth stencil buffer.</param>
         /// <param name="renderTargets">The render targets.</param>
         /// <exception cref="ArgumentNullException">renderTargetViews</exception>
-        private void SetRenderTargetsImpl(Texture depthStencilBuffer, int renderTargetCount, Texture[] renderTargets)
+        private partial void SetRenderTargetsImpl(Texture depthStencilBuffer, ReadOnlySpan<Texture> renderTargets)
         {
             var oldFramebufferAttachmentCount = framebufferAttachmentCount;
-            framebufferAttachmentCount = renderTargetCount;
+            framebufferAttachmentCount = renderTargets.Length;
 
-            for (int i = 0; i < renderTargetCount; i++)
+            for (int i = 0; i < renderTargets.Length; i++)
             {
                 if (renderTargets[i].NativeColorAttachmentView != framebufferAttachments[i])
                     framebufferDirty = true;
@@ -180,10 +180,10 @@ namespace Stride.Graphics
 
             if (depthStencilBuffer != null)
             {
-                if (depthStencilBuffer.NativeDepthStencilView != framebufferAttachments[renderTargetCount])
+                if (depthStencilBuffer.NativeDepthStencilView != framebufferAttachments[renderTargets.Length])
                     framebufferDirty = true;
 
-                framebufferAttachments[renderTargetCount] = depthStencilBuffer.NativeDepthStencilView;
+                framebufferAttachments[renderTargets.Length] = depthStencilBuffer.NativeDepthStencilView;
                 framebufferAttachmentCount++;
             }
 
@@ -248,7 +248,7 @@ namespace Stride.Graphics
         ///   Vulkan implementation that sets a scissor rectangle to the rasterizer stage.
         /// </summary>
         /// <param name="scissorRectangle">The scissor rectangle to set.</param>
-        private unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle)
+        private unsafe partial void SetScissorRectangleImpl(ref readonly Rectangle scissorRectangle)
         {
             // Do nothing. Vulkan already sets the scissor rectangle as part of PrepareDraw()
         }
@@ -258,7 +258,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="scissorCount">The number of scissor rectangles to bind.</param>
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
-        private unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles)
+        private unsafe partial void SetScissorRectanglesImpl(ReadOnlySpan<Rectangle> scissorRectangles)
         {
             // Do nothing. Vulkan already sets the scissor rectangles as part of PrepareDraw()
         }

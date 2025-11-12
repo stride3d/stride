@@ -173,34 +173,42 @@ namespace Stride.Graphics
             Array.Clear(currentUARenderTargetViews);
 
             // Reset all targets
-            nativeDeviceContext->OMSetRenderTargets(NumViews: 0, ppRenderTargetViews: null, pDepthStencilView: (ID3D11DepthStencilView*) null);
+            nativeDeviceContext->OMSetRenderTargets(NumViews: 0, ppRenderTargetViews: null, pDepthStencilView: null);
         }
 
         /// <summary>
         ///   Binds a Depth-Stencil Buffer and a set of Render Targets to the output-merger stage.
         /// </summary>
-        /// <param name="depthStencilBuffer">The Depth-Stencil Buffer to bind.</param>
-        /// <param name="renderTargetCount">The number of Render Targets to bind.</param>
-        /// <param name="renderTargets">The Render Targets to bind.</param>
-        private void SetRenderTargetsImpl(Texture depthStencilBuffer, int renderTargetCount, Texture[] renderTargets)
+        /// <param name="depthStencilView">
+        ///   A view of the Depth-Stencil Buffer to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound Depth-Stencil Buffer.
+        /// </param>
+        /// <param name="renderTargetViews">
+        ///   The set of Render Targets to bind.
+        ///   Specify an empty collection to unbind the currently bound Render Targets.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="renderTargetViews"/> contains too many Render Targets to set.
+        /// </exception>
+        private partial void SetRenderTargetsImpl(Texture depthStencilView, ReadOnlySpan<Texture> renderTargetViews)
         {
-            currentRenderTargetViewsActiveCount = renderTargetCount;
+            currentRenderTargetViewsActiveCount = renderTargetViews.Length;
 
-            for (int i = 0; i < renderTargetCount; i++)
-                currentRenderTargetViews[i] = renderTargets[i].NativeRenderTargetView;
+            for (int i = 0; i < renderTargetViews.Length; i++)
+                currentRenderTargetViews[i] = renderTargetViews[i].NativeRenderTargetView;
 
-            nativeDeviceContext->OMSetRenderTargets(NumViews: (uint) renderTargetCount,
+            nativeDeviceContext->OMSetRenderTargets(NumViews: (uint) currentRenderTargetViewsActiveCount,
                                                     ppRenderTargetViews: ref currentRenderTargetViews.GetReference(),
-                                                    pDepthStencilView: depthStencilBuffer?.NativeDepthStencilView ?? NullComPtr<ID3D11DepthStencilView>());
+                                                    pDepthStencilView: depthStencilView?.NativeDepthStencilView ?? NullComPtr<ID3D11DepthStencilView>());
         }
 
         /// <summary>
         ///   Direct3D 11 implementation that sets a scissor rectangle to the rasterizer stage.
         /// </summary>
         /// <param name="scissorRectangle">The scissor rectangle to set.</param>
-        private unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle)
+        private unsafe partial void SetScissorRectangleImpl(ref readonly Rectangle scissorRectangle)
         {
-            ref var scissorBox = ref scissorRectangle.As<Rectangle, SilkBox2I>();
+            ref var scissorBox = ref AsRef(in scissorRectangle).As<Rectangle, SilkBox2I>();
 
             nativeDeviceContext->RSSetScissorRects(NumRects: 1, in scissorBox);
         }
@@ -208,16 +216,12 @@ namespace Stride.Graphics
         /// <summary>
         ///   Direct3D 11 implementation that sets one or more scissor rectangles to the rasterizer stage.
         /// </summary>
-        /// <param name="scissorCount">The number of scissor rectangles to bind.</param>
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
-        private unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles)
+        private unsafe partial void SetScissorRectanglesImpl(ReadOnlySpan<Rectangle> scissorRectangles)
         {
-            Debug.Assert(scissorRectangles is not null);
-            Debug.Assert(scissorRectangles.Length >= scissorCount);
+            var scissorBoxes = scissorRectangles.As<Rectangle, SilkBox2I>();
 
-            var scissorBoxes = scissorRectangles.AsSpan<Rectangle, SilkBox2I>();
-
-            nativeDeviceContext->RSSetScissorRects((uint) scissorCount, in scissorBoxes[0]);
+            nativeDeviceContext->RSSetScissorRects((uint) scissorBoxes.Length, in scissorBoxes[0]);
         }
 
         /// <summary>
@@ -227,14 +231,14 @@ namespace Stride.Graphics
         ///   The Buffers to set for stream output.
         ///   Specify <see langword="null"/> or an empty array to unset any bound output Buffer.
         /// </param>
-        public void SetStreamTargets(params Buffer[] buffers)
+        public void SetStreamTargets(params ReadOnlySpan<Buffer> buffers)
         {
-            var numBuffers = buffers?.Length ?? 0;
+            var numBuffers = buffers.Length;
 
             if (numBuffers > 0)
             {
-                Span<ComPtr<ID3D11Buffer>> streamOutputBuffers = stackalloc ComPtr<ID3D11Buffer>[numBuffers];
-                Span<uint> streamOutputOffsets = stackalloc uint[numBuffers];
+                scoped Span<ComPtr<ID3D11Buffer>> streamOutputBuffers = stackalloc ComPtr<ID3D11Buffer>[numBuffers];
+                scoped Span<uint> streamOutputOffsets = stackalloc uint[numBuffers];
 
                 for (int i = 0; i < numBuffers; ++i)
                 {
@@ -242,8 +246,8 @@ namespace Stride.Graphics
                     streamOutputOffsets[i] = 0;
                 }
                 nativeDeviceContext->SOSetTargets((uint) numBuffers,
-                                                  ref streamOutputBuffers[0],
-                                                  in streamOutputOffsets[0]);
+                                                  ref streamOutputBuffers.GetReference(),
+                                                  in streamOutputOffsets.GetReference());
             }
             else
             {
@@ -272,10 +276,7 @@ namespace Stride.Graphics
         /// </summary>
         public void UnsetRenderTargets()
         {
-            var noRenderTargets = NullComPtr<ID3D11RenderTargetView>();
-            var noDepthBuffer = NullComPtr<ID3D11DepthStencilView>();
-
-            nativeDeviceContext->OMSetRenderTargets(NumViews: 0, ppRenderTargetViews: ref noRenderTargets, noDepthBuffer);
+            nativeDeviceContext->OMSetRenderTargets(NumViews: 0, ppRenderTargetViews: null, pDepthStencilView: null);
         }
 
         /// <summary>
