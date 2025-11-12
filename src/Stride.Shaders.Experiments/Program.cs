@@ -3,6 +3,9 @@ using Stride.Shaders.Experiments;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System.Runtime.InteropServices;
 using Stride.Shaders.Spirv.Tools;
+using Stride.Shaders.Compilers.Direct3D;
+
+Console.WriteLine(Spv2DXIL.spirv_to_dxil_get_version());
 
 // Examples.CompileSDSL("RenderTests/If");
 
