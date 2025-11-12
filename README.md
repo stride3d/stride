@@ -48,7 +48,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
    - *Optional* (to build the VSIX package): **Visual Studio extension development**
 
 > [!NOTE]
-> The installation of Visual Studio with the required components may require up to **14 GB of disk space**, depending on your system and selected components.
+> The installation of Visual Studio with the required components may require up to **19 GB of disk space**, depending on your system and selected components.
 
 > [!WARNING]
 > If this is your first time installing the .NET SDK, you might need to restart your system after the installation so that the system can recognize the new environment variables.
