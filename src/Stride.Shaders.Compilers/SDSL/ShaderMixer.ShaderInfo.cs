@@ -40,6 +40,7 @@ public partial class ShaderMixer
     private void PopulateShaderInfo(NewSpirvBuffer temp, int shaderStart, int shaderEnd, ShaderInfo shaderInfo, MixinNode mixinNode)
     {
         ShaderClass.ProcessNameAndTypes(temp, shaderStart, shaderEnd, out var names, out var types);
+        var removedIds = new HashSet<int>();
         for (var index = shaderStart; index < shaderEnd; index++)
         {
             var i = temp[index];
@@ -56,7 +57,37 @@ public partial class ShaderMixer
             else if (i.Data.Op == Op.OpVariable && (OpVariable)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
             {
                 var variableName = shaderInfo.Names[variable.ResultId];
-                shaderInfo!.Variables.Add(variableName, (variable.ResultId, types[variable.ResultType]));
+                var variableType = types[variable.ResultType];
+                shaderInfo!.Variables.Add(variableName, (variable.ResultId, variableType));
+
+                // Remove SPIR-V variables to other shaders (already stored in ShaderInfo and not valid SPIR-V)
+                if (variableType is PointerType pointer && pointer.BaseType is ShaderSymbol shaderSymbol)
+                {
+                    SetOpNop(i.Data.Memory.Span);
+                    removedIds.Add(variable.ResultId);
+                }
+            }
+            else if (i.Data.Op == Op.OpTypePointer && (OpTypePointer)i is { } typePointer)
+            {
+                // Remove SPIR-V about pointer types to other shaders (variable and types themselves are removed as well)
+                var pointedType = types[typePointer.Type];
+                if (pointedType is ShaderSymbol)
+                {
+                    SetOpNop(i.Data.Memory.Span);
+                    removedIds.Add(typePointer.ResultId);
+                }
+            }
+        }
+
+        // Second pass to remove OpName
+        for (var index = shaderStart; index < shaderEnd; index++)
+        {
+            var i = temp[index];
+
+            if (i.Data.Op == Op.OpName && (OpName)i is { } nameInstruction)
+            {
+                if (removedIds.Contains(nameInstruction.Target))
+                    SetOpNop(i.Data.Memory.Span);
             }
         }
     }
