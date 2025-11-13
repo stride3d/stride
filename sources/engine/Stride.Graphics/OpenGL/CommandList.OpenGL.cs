@@ -508,7 +508,7 @@ namespace Stride.Graphics
             // TODO find a better way to detect if sRGB conversion is needed (need to detect if main frame buffer is sRGB or not at init time)
 #if STRIDE_GRAPHICS_API_OPENGLES
             // If we are copying from an SRgb texture to a non SRgb texture, we use a special SRGb copy shader
-            bool needSRgbConversion = sourceTexture.Description.Format.IsSRgb() && destTexture == GraphicsDevice.WindowProvidedRenderTexture;
+            bool needSRgbConversion = sourceTexture.Description.Format.IsSRgb && destTexture == GraphicsDevice.WindowProvidedRenderTexture;
 #else
             bool needSRgbConversion = false;
 #endif

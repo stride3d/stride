@@ -71,7 +71,7 @@ namespace Stride.Graphics
             this.rowStride = rowStride;
             this.bufferStride = bufferStride;
             this.dataPointer = dataPointer;
-            this.pixelSize = format.SizeInBytes();
+            this.pixelSize = format.SizeInBytes;
             this.isStrictRowStride = (pixelSize * width) == rowStride;
         }
 

@@ -140,7 +140,7 @@ namespace Stride.Streaming
             var result = Math.Max(1, (int)(TotalMipLevels * quality));
 
             // Compressed formats have aligment restrictions on the dimensions of the texture (minimum size must be 4)
-            if (Format.IsCompressed() && TotalMipLevels >= 3)
+            if (Format.IsCompressed && TotalMipLevels >= 3)
                 result = MathUtil.Clamp(result, 3, TotalMipLevels);
 
             return result;

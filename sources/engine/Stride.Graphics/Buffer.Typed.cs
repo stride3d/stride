@@ -57,7 +57,7 @@ namespace Stride.Graphics
             /// <returns>A new instance of <see cref="Buffer"/>.</returns>
             public static Buffer New(GraphicsDevice device, int elementCount, PixelFormat elementFormat, bool unorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device, bufferSize: elementCount * elementFormat.SizeInBytes(), BufferFlags.ShaderResource | (unorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), elementFormat, usage);
+                return Buffer.New(device, bufferSize: elementCount * elementFormat.SizeInBytes, BufferFlags.ShaderResource | (unorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), elementFormat, usage);
             }
 
             /// <summary>

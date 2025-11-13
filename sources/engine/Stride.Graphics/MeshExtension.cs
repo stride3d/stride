@@ -58,7 +58,7 @@ public static class MeshExtension
             if (currentElementOffset != VertexElement.AppendAligned)
                 offset = currentElementOffset;
 
-            var elementSize = element.Format.SizeInBytes();
+            var elementSize = element.Format.SizeInBytes;
             if (vertexElementUsage == element.SemanticName && semanticIndex == element.SemanticIndex)
             {
                 result = new VertexElementWithOffset(element, offset, elementSize);

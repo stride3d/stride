@@ -42,7 +42,7 @@ namespace Stride.Graphics
         private const int TextureRowPitchAlignment = 1;
         private const int TextureSubresourceAlignment = 1;
 
-        private int TexturePixelSize => Format.SizeInBytes();
+        private int TexturePixelSize => Format.SizeInBytes;
 
         private ID3D11RenderTargetView* renderTargetView;
         private ID3D11DepthStencilView* depthStencilView;
@@ -1101,7 +1101,7 @@ namespace Stride.Graphics
         private static TextureDescription CheckMipLevels(GraphicsDevice device, ref TextureDescription description)
         {
             if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 &&
-                description.Flags.HasFlag(TextureFlags.DepthStencil) && description.Format.IsCompressed())
+                description.Flags.HasFlag(TextureFlags.DepthStencil) && description.Format.IsCompressed)
             {
                 description.MipLevelCount = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevelCount);
             }

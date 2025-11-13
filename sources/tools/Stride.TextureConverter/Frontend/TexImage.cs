@@ -373,7 +373,7 @@ namespace Stride.TextureConverter
         public int GetAlphaDepth()
         {
             // TODO: Improve this function so that it checks that actual data (will probably need to add the region to check as parameter)
-            int alphaDepth = Format.AlphaSizeInBits();
+            int alphaDepth = Format.AlphaSizeInBits;
             if (OriginalAlphaDepth == -1)
                 return alphaDepth;
 

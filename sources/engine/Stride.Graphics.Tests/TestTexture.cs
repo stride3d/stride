@@ -553,7 +553,7 @@ namespace Stride.Graphics.Tests
                     {
                         foreach (var pixelFormat in pixelFormats)
                         {
-                            ColorComputer colorComputer = pixelFormat.SizeInBytes() == 1
+                            ColorComputer colorComputer = pixelFormat.SizeInBytes == 1
                                 ? ColorComputerR8
                                 : DefaultColorComputer;
 
@@ -592,7 +592,7 @@ namespace Stride.Graphics.Tests
         /// <returns>A byte array containing the generated Texture data.</returns>
         private static byte[] CreateDebugTextureData(int width, int height, int mipmaps, int arraySize, PixelFormat format, ColorComputer dataComputer)
         {
-            var formatSize = format.SizeInBytes();
+            var formatSize = format.SizeInBytes;
 
             var mipmapSize = 0;
             for (int i = 0; i < mipmaps; i++)
@@ -650,7 +650,7 @@ namespace Stride.Graphics.Tests
         /// </returns>
         private unsafe Texture CreateDebugTexture(GraphicsDevice device, byte[] data, int width, int height, int mipmaps, int arraySize, PixelFormat format, TextureFlags flags, GraphicsResourceUsage usage)
         {
-            var sizeInBytes = format.SizeInBytes();
+            var sizeInBytes = format.SizeInBytes;
 
             var offset = 0;
             var dataBoxes = new DataBox[arraySize * mipmaps];
@@ -701,7 +701,7 @@ namespace Stride.Graphics.Tests
             int width, int height, int mipmaps, int arraySize,
             PixelFormat format, TextureFlags flags, GraphicsResourceUsage usage, ColorComputer dataComputer)
         {
-            var pixelSize = format.SizeInBytes();
+            var pixelSize = format.SizeInBytes;
 
             for (int arraySlice = 0; arraySlice < arraySize; arraySlice++)
             for (int mipLevel = 0; mipLevel < mipmaps; mipLevel++)

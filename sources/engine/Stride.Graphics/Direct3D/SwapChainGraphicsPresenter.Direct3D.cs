@@ -103,7 +103,7 @@ namespace Stride.Graphics
                 ? new Texture(device, "SwapChain Back-Buffer")
                 : new Texture(device);
 
-            backBuffer.InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb());
+            backBuffer.InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb);
 
             // Reload should get Back-Buffer from Swap-Chain as well
             // TODO: Stale statement/comment?
@@ -368,7 +368,7 @@ namespace Stride.Graphics
             bufferSwapIndex = (uint)((++bufferSwapIndex) % bufferCount);
             var nextBackBuffer = GetBackBuffer<BackBufferResourceType>(bufferSwapIndex);
 
-            backBuffer.InitializeFromImpl(nextBackBuffer, Description.BackBufferFormat.IsSRgb());
+            backBuffer.InitializeFromImpl(nextBackBuffer, Description.BackBufferFormat.IsSRgb);
 #endif
         }
 
@@ -409,7 +409,7 @@ namespace Stride.Graphics
             // Put it in our Back-Buffer Texture
             // TODO: Update new size
             // TODO: Size is already updated in InitializeFromImpl with the new TextureDescription, isn't it?
-            backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb());
+            backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
             backBuffer.LifetimeState = GraphicsResourceLifetimeState.Active;
         }
 
@@ -471,7 +471,7 @@ namespace Stride.Graphics
             var backBufferTexture = GetBackBuffer<BackBufferResourceType>();
 
             // Put it in our Back-Buffer Texture
-            backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb());
+            backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
 
             foreach (var childTexture in childrenTextures)
             {

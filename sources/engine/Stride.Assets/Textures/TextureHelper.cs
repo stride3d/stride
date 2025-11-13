@@ -205,7 +205,7 @@ namespace Stride.Assets.Textures
                     {
                         case PlatformType.Android:
                         case PlatformType.iOS:
-                            if (inputImageFormat.IsHDR())
+                            if (inputImageFormat.IsHDR)
                             {
                                 outputFormat = inputImageFormat;
                             }
@@ -304,7 +304,7 @@ namespace Stride.Assets.Textures
                                         {
                                             outputFormat = PixelFormat.BC4_UNorm;
                                         }
-                                        else if (inputImageFormat.IsHDR())
+                                        else if (inputImageFormat.IsHDR)
                                         {
                                             // BC6H is too slow to compile
                                             //outputFormat = parameters.GraphicsProfile >= GraphicsProfile.Level_11_0 && alphaMode == AlphaFormat.None ? PixelFormat.BC6H_Uf16 : inputImageFormat;
@@ -314,7 +314,7 @@ namespace Stride.Assets.Textures
                                     }
                                     break;
                                 case GraphicsPlatform.OpenGLES: // OpenGLES on Windows
-                                    if (inputImageFormat.IsHDR())
+                                    if (inputImageFormat.IsHDR)
                                     {
                                         outputFormat = inputImageFormat;
                                     }
@@ -451,8 +451,8 @@ namespace Stride.Assets.Textures
             if (cancellationToken.IsCancellationRequested) // abort the process if cancellation is demanded
                 return ResultStatus.Cancelled;
 
-            // Pre-multiply alpha only for relevant formats 
-            if (parameters.PremultiplyAlpha && texImage.Format.HasAlpha32Bits())
+            // Pre-multiply alpha only for relevant formats
+            if (parameters.PremultiplyAlpha && texImage.Format.Is32bppWithAlpha)
                 textureTool.PreMultiplyAlpha(texImage);
 
             if (cancellationToken.IsCancellationRequested) // abort the process if cancellation is demanded
@@ -462,7 +462,7 @@ namespace Stride.Assets.Textures
             // Generate mipmaps
             if (parameters.GenerateMipmaps)
             {
-                var boxFilteringIsSupported = !texImage.Format.IsSRgb() || (MathUtil.IsPow2(targetSize.Width) && MathUtil.IsPow2(targetSize.Height));
+                var boxFilteringIsSupported = !texImage.Format.IsSRgb || (MathUtil.IsPow2(targetSize.Width) && MathUtil.IsPow2(targetSize.Height));
                 textureTool.GenerateMipMaps(texImage, boxFilteringIsSupported? Filter.MipMapGeneration.Box: Filter.MipMapGeneration.Linear);
             }
 

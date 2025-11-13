@@ -100,7 +100,7 @@ public sealed class VertexDeclaration : IEquatable<VertexDeclaration>
             if (currentElementOffset != VertexElement.AppendAligned)
                 offset = currentElementOffset;
 
-            var elementSize = element.Format.SizeInBytes();
+            var elementSize = element.Format.SizeInBytes;
             yield return new VertexElementWithOffset(element, offset, elementSize);
 
             // Compute next offset (if automatic)
@@ -123,7 +123,7 @@ public sealed class VertexDeclaration : IEquatable<VertexDeclaration>
             if (currentElementOffset != VertexElement.AppendAligned)
                 offset = currentElementOffset;
 
-            var elementSize = element.Format.SizeInBytes();
+            var elementSize = element.Format.SizeInBytes;
 
             // Compute next offset (if automatic)
             offset += elementSize;
