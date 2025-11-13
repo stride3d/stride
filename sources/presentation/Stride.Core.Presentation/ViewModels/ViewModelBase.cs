@@ -13,10 +13,6 @@ namespace Stride.Core.Presentation.ViewModels;
 /// </summary>
 public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyChanged, IDestroyable
 {
-#if DEBUG
-    private readonly List<string> changingProperties = [];
-#endif
-
     /// <summary>
     /// A collection of property names that are dependent. For each entry of this collection, if the key property name is notified
     /// as being changed, then the property names in the value will also be notified as being changed.
@@ -239,13 +235,6 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
 
         foreach (var propertyName in propertyNames)
         {
-#if DEBUG
-            if (changingProperties.Contains(propertyName))
-                throw new InvalidOperationException($"OnPropertyChanging called twice for property '{propertyName}' without invoking OnPropertyChanged between calls.");
-
-            changingProperties.Add(propertyName);
-#endif
-
             propertyChanging?.Invoke(this, new PropertyChangingEventArgs(propertyName));
 
             if (DependentProperties.TryGetValue(propertyName, out var dependentProperties))
@@ -274,13 +263,6 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
                 OnPropertyChanged(reverseList);
             }
             propertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-#if DEBUG
-            if (!changingProperties.Contains(propertyName))
-                throw new InvalidOperationException($"OnPropertyChanged called for property '{propertyName}' but OnPropertyChanging was not invoked before.");
-
-            changingProperties.Remove(propertyName);
-#endif
         }
     }
 
