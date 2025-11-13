@@ -283,7 +283,7 @@ public static partial class Examples
 
         var bytes = File.ReadAllBytes(path);
 
-        var buffer = new NewSpirvBuffer(MemoryMarshal.Cast<byte, int>(bytes));
+        var buffer = new NewSpirvBuffer(MemoryMarshal.Cast<byte, int>(bytes.AsSpan()));
         var extInst = (OpExtInstImport)buffer[1] ;
         Console.WriteLine(extInst.Name);
     }

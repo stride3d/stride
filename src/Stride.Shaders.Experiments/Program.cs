@@ -11,7 +11,7 @@ var loader = new Examples.ShaderLoader();
 loader.LoadExternalFile("Test", out var testBuffer);
 var shaderMixer = new ShaderMixer(loader);
 shaderMixer.MergeSDSL("If", out var bytecode);
-var buffer = new NewSpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));
+var buffer = new NewSpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode.AsSpan()));
 var source = Spv.Dis(buffer);
 File.WriteAllText("test.spvdis", source);
 
