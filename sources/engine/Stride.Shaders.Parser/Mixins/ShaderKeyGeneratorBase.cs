@@ -1,17 +1,17 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
 
 using Stride.Core.Shaders.Ast.Stride;
 using Stride.Core.Shaders.Ast;
 using Stride.Core.Shaders.Ast.Hlsl;
-using Stride.Core.Shaders.Visitor;
 using Stride.Core.Shaders.Writer;
 
 using StorageQualifier = Stride.Core.Shaders.Ast.StorageQualifier;
+using HlslStorageQualifier = Stride.Core.Shaders.Ast.Hlsl.StorageQualifier;
 
 namespace Stride.Shaders.Parser.Mixins
 {
@@ -37,7 +37,7 @@ namespace Stride.Shaders.Parser.Mixins
         /// </summary>
         protected bool VariableAsParameterKey = true;
 
-        protected bool IsXkfx = false;
+        protected bool IsSdfx = false;
 
         /// <summary>
         /// Runs the code generation. Results is accessible from <see cref="ShaderWriter.Text"/> property.
@@ -56,7 +56,7 @@ namespace Stride.Shaders.Parser.Mixins
             }
             else
             {
-                if (IsXkfx)
+                if (IsSdfx)
                 {
                     base.Visit(variable);
                 }
@@ -87,12 +87,12 @@ namespace Stride.Shaders.Parser.Mixins
         internal bool IsParameterKey(Variable variable)
         {
             // Don't generate a parameter key for variable stored storage qualifier: extern, const, compose, stream
-            if (variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern)
-                || variable.Qualifiers.Contains(StorageQualifier.Const)
-                || variable.Qualifiers.Contains(StrideStorageQualifier.Compose)
-                || variable.Qualifiers.Contains(StrideStorageQualifier.PatchStream)
-                || variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Groupshared)
-                || variable.Qualifiers.Contains(StrideStorageQualifier.Stream))
+            if (variable.Qualifiers.Contains(HlslStorageQualifier.Extern) ||
+                variable.Qualifiers.Contains(StorageQualifier.Const) ||
+                variable.Qualifiers.Contains(StrideStorageQualifier.Compose) ||
+                variable.Qualifiers.Contains(StrideStorageQualifier.PatchStream) ||
+                variable.Qualifiers.Contains(StorageQualifier.GroupShared) ||
+                variable.Qualifiers.Contains(StrideStorageQualifier.Stream))
                 return false;
 
             // Don't generate a parameter key for [Link] or [RenameLink]
@@ -120,7 +120,7 @@ namespace Stride.Shaders.Parser.Mixins
             var parameterType = variable.Type;
 
             string parameterKeyType;
-            if (IsXkfx)
+            if (IsSdfx)
             {
                 parameterKeyType = "Permutation";
             }
@@ -169,10 +169,12 @@ namespace Stride.Shaders.Parser.Mixins
                         }
 
                         // Rename float2/3/4 to Vector2/3/4
-                        if (initialValueString.StartsWith("float2", StringComparison.Ordinal)
-                            || initialValueString.StartsWith("float3", StringComparison.Ordinal)
-                            || initialValueString.StartsWith("float4", StringComparison.Ordinal))
+                        if (initialValueString.StartsWith("float2", StringComparison.Ordinal) ||
+                            initialValueString.StartsWith("float3", StringComparison.Ordinal) ||
+                            initialValueString.StartsWith("float4", StringComparison.Ordinal))
+                        {
                             initialValueString = initialValueString.Replace("float", "new Vector");
+                        }
                         else if (IsArrayStatus)
                         {
                             initialValueString = "new " + initialValueString;
@@ -306,7 +308,7 @@ namespace Stride.Shaders.Parser.Mixins
             if (typeBase != null)
             {
                 // Unhandled types only
-                if (!(typeBase is TypeName || typeBase is ScalarType || typeBase is MatrixType || typeBase is TextureType || typeBase.IsStateType() || typeBase is ArrayType || typeBase is VarType))
+                if (!(typeBase is TypeName or ScalarType or MatrixType or TextureType or ArrayType or VarType || typeBase.IsStateType()))
                 {
                     Write(typeBase.Name);
                     ProcessInitialValueStatus = true;

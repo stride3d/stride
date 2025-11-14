@@ -82,7 +82,7 @@ namespace Stride.Engine.Tests
         {
             base.RegisterTests();
 
-            // Initial frame (no anim
+            // Initial frame (no anim)
             FrameGameSystem.Draw(() => { }).TakeScreenshot();
 
             FrameGameSystem.Draw(() =>

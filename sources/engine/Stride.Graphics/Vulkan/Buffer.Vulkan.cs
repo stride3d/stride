@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
-using System.Runtime.CompilerServices;
 using Stride.Core;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
@@ -22,7 +21,7 @@ namespace Stride.Graphics
         /// <param name="viewFlags">Type of the buffer.</param>
         /// <param name="viewFormat">The view format.</param>
         /// <param name="dataPointer">The data pointer.</param>
-        protected Buffer InitializeFromImpl(BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
+        protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
             bufferDescription = description;
             //nativeDescription = ConvertToNativeDescription(Description);
@@ -196,7 +195,7 @@ namespace Stride.Graphics
                     {
                         void* uploadMemory;
                         vkMapMemory(GraphicsDevice.NativeDevice, NativeMemory, 0, (ulong) SizeInBytes, VkMemoryMapFlags.None, &uploadMemory);
-                        Utilities.CopyWithAlignmentFallback(uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
+                        MemoryUtilities.CopyWithAlignmentFallback(uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
                         vkUnmapMemory(GraphicsDevice.NativeDevice, NativeMemory);
                     }
                     else
@@ -204,7 +203,7 @@ namespace Stride.Graphics
                         var sizeInBytes = bufferDescription.SizeInBytes;
                         var uploadMemory = GraphicsDevice.AllocateUploadBuffer(sizeInBytes, out var uploadResource, out var uploadOffset);
 
-                        Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) sizeInBytes);
+                        MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) sizeInBytes);
 
                         // Barrier
                         var memoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong) uploadOffset, (ulong) sizeInBytes);
@@ -296,7 +295,7 @@ namespace Stride.Graphics
                 }
                 else if ((ViewFlags & BufferFlags.ShaderResource) != 0)
                 {
-                    count = Description.SizeInBytes / viewFormat.SizeInBytes();
+                    count = Description.SizeInBytes / viewFormat.SizeInBytes;
                 }
                 else
                 {

@@ -245,12 +245,12 @@ namespace Stride.TextureConverter.Tests
         public void SwitchChannelTest(string file)
         {
             var image = texTool.Load(Module.PathToInputImages + file);
-            var isInBgraOrder = image.Format.IsBGRAOrder();
+            var isInBgraOrder = image.Format.IsBgraOrder;
 
             texTool.SwitchChannel(image);
             image.Update();
 
-            Assert.True(isInBgraOrder != image.Format.IsBGRAOrder());
+            Assert.True(isInBgraOrder != image.Format.IsBgraOrder);
 
             Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_SwitchChannel_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_SwitchChannel_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
@@ -784,7 +784,7 @@ namespace Stride.TextureConverter.Tests
 
                 // last pixel test
                 new AlphaLevelTest(new Rectangle(52, 54, 12, 10), new Color(255, 81, 237, 255), AlphaLevels.MaskAlpha),
-                
+
                 // region out of bound tests
                 new AlphaLevelTest(new Rectangle(120, 12, 18, 18), new Color(255, 81, 237, 255), AlphaLevels.NoAlpha),
                 new AlphaLevelTest(new Rectangle(12, 120, 18, 18), new Color(255, 81, 237, 255), AlphaLevels.NoAlpha),

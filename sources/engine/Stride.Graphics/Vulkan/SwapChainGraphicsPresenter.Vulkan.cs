@@ -2,11 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
-using Stride.Core;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
@@ -122,7 +118,7 @@ namespace Stride.Graphics
 //                    Resize(backBuffer.ViewWidth, backBuffer.ViewHeight, backBuffer.ViewFormat);
 //                }
 
-//                // If going to window mode: 
+//                // If going to window mode:
 //                if (!switchToFullScreen)
 //                {
 //                    // call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
@@ -399,7 +395,7 @@ namespace Stride.Graphics
                 Depth = 1,
                 Flags = TextureFlags.RenderTarget,
                 Format = Description.BackBufferFormat,
-                MipLevels = 1,
+                MipLevelCount = 1,
                 MultisampleCount = MultisampleCount.None,
                 Usage = GraphicsResourceUsage.Default
             };
@@ -474,7 +470,7 @@ namespace Stride.Graphics
 
             // Get next image
             vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), VkFence.Null, out currentBufferIndex);
-            
+
             // Apply the first swap chain image to the texture
             backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
         }

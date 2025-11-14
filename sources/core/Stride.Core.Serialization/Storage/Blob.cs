@@ -24,7 +24,7 @@ public class Blob : ReferenceBase
         Debug.Assert(size >= 0);
         this.Size = size;
         this.Content = Marshal.AllocHGlobal(size);
-        Utilities.CopyWithAlignmentFallback((void*)this.Content, (void*)content, (uint)size);
+        MemoryUtilities.CopyWithAlignmentFallback((void*)this.Content, (void*)content, (uint)size);
     }
 
     internal unsafe Blob(ObjectDatabase objectDatabase, ObjectId objectId, Stream stream)

@@ -85,7 +85,7 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
             var roughness = 0f;
             var faceCount = output.ArraySize;
             var levelSize = new Int2(output.Width, output.Height);
-            var mipCount = MipmapGenerationCount == 0 ? output.MipLevels : MipmapGenerationCount;
+            var mipCount = MipmapGenerationCount == 0 ? output.MipLevelCount : MipmapGenerationCount;
 
             for (int l = 0; l < mipCount; l++)
             {
@@ -94,8 +94,8 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
                     var inputLevel = MathUtil.Log2(input.Width / output.Width);
                     for (int f = 0; f < 6; f++)
                     {
-                        var inputSubresource = inputLevel + f * input.MipLevels;
-                        var outputSubresource = 0 + f * output.MipLevels;
+                        var inputSubresource = inputLevel + f * input.MipLevelCount;
+                        var outputSubresource = 0 + f * output.MipLevelCount;
                         context.CommandList.CopyRegion(input, inputSubresource, null, output, outputSubresource);
                     }
                 }
@@ -106,7 +106,7 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
                     computeShader.ThreadGroupCounts = new Int3(levelSize.X, levelSize.Y, faceCount);
                     computeShader.ThreadNumbers = new Int3(SamplingsCount, 1, 1);
                     computeShader.Parameters.Set(RadiancePrefilteringGGXShaderKeys.Roughness, roughness);
-                    computeShader.Parameters.Set(RadiancePrefilteringGGXShaderKeys.MipmapCount, input.MipLevels - 1);
+                    computeShader.Parameters.Set(RadiancePrefilteringGGXShaderKeys.MipmapCount, input.MipLevelCount - 1);
                     computeShader.Parameters.Set(RadiancePrefilteringGGXShaderKeys.RadianceMap, input);
                     computeShader.Parameters.Set(RadiancePrefilteringGGXShaderKeys.RadianceMapSize, input.Width);
                     computeShader.Parameters.Set(RadiancePrefilteringGGXShaderKeys.FilteredRadiance, outputView);

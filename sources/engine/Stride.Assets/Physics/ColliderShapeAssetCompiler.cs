@@ -335,7 +335,7 @@ namespace Stride.Assets.Physics
 
                             for (var t = 0; t < indices.Length; t += 3)
                             {
-                                Core.Utilities.Swap(ref indices[t], ref indices[t + 2]);
+                                MemoryUtilities.Swap(ref indices[t], ref indices[t + 2]);
                             }
 
                             var indexList = new List<uint>(indices);

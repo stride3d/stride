@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,51 +25,51 @@
 // -----------------------------------------------------------------------------
 // Microsoft Public License (Ms-PL)
 //
-// This license governs use of the accompanying software. If you use the 
+// This license governs use of the accompanying software. If you use the
 // software, you accept this license. If you do not accept the license, do not
 // use the software.
 //
 // 1. Definitions
-// The terms "reproduce," "reproduction," "derivative works," and 
+// The terms "reproduce," "reproduction," "derivative works," and
 // "distribution" have the same meaning here as under U.S. copyright law.
-// A "contribution" is the original software, or any additions or changes to 
+// A "contribution" is the original software, or any additions or changes to
 // the software.
-// A "contributor" is any person that distributes its contribution under this 
+// A "contributor" is any person that distributes its contribution under this
 // license.
-// "Licensed patents" are a contributor's patent claims that read directly on 
+// "Licensed patents" are a contributor's patent claims that read directly on
 // its contribution.
 //
 // 2. Grant of Rights
-// (A) Copyright Grant- Subject to the terms of this license, including the 
-// license conditions and limitations in section 3, each contributor grants 
+// (A) Copyright Grant- Subject to the terms of this license, including the
+// license conditions and limitations in section 3, each contributor grants
 // you a non-exclusive, worldwide, royalty-free copyright license to reproduce
-// its contribution, prepare derivative works of its contribution, and 
+// its contribution, prepare derivative works of its contribution, and
 // distribute its contribution or any derivative works that you create.
 // (B) Patent Grant- Subject to the terms of this license, including the license
-// conditions and limitations in section 3, each contributor grants you a 
+// conditions and limitations in section 3, each contributor grants you a
 // non-exclusive, worldwide, royalty-free license under its licensed patents to
 // make, have made, use, sell, offer for sale, import, and/or otherwise dispose
-// of its contribution in the software or derivative works of the contribution 
+// of its contribution in the software or derivative works of the contribution
 // in the software.
 //
 // 3. Conditions and Limitations
-// (A) No Trademark License- This license does not grant you rights to use any 
+// (A) No Trademark License- This license does not grant you rights to use any
 // contributors' name, logo, or trademarks.
-// (B) If you bring a patent claim against any contributor over patents that 
-// you claim are infringed by the software, your patent license from such 
+// (B) If you bring a patent claim against any contributor over patents that
+// you claim are infringed by the software, your patent license from such
 // contributor to the software ends automatically.
-// (C) If you distribute any portion of the software, you must retain all 
+// (C) If you distribute any portion of the software, you must retain all
 // copyright, patent, trademark, and attribution notices that are present in the
 // software.
-// (D) If you distribute any portion of the software in source code form, you 
-// may do so only under this license by including a complete copy of this 
+// (D) If you distribute any portion of the software in source code form, you
+// may do so only under this license by including a complete copy of this
 // license with your distribution. If you distribute any portion of the software
-// in compiled or object code form, you may only do so under a license that 
+// in compiled or object code form, you may only do so under a license that
 // complies with this license.
 // (E) The software is licensed "as-is." You bear the risk of using it. The
 // contributors give no express warranties, guarantees or conditions. You may
-// have additional consumer rights under your local laws which this license 
-// cannot change. To the extent permitted under your local laws, the 
+// have additional consumer rights under your local laws which this license
+// cannot change. To the extent permitted under your local laws, the
 // contributors exclude the implied warranties of merchantability, fitness for a
 // particular purpose and non-infringement.
 
@@ -159,24 +159,24 @@ namespace Stride.Graphics
                 // Directly support the formats listed in XnaTexUtil::g_WICFormats, so no conversion required
                 // Note target Guid in this conversion table must be one of those directly supported formats.
 
-                new WICConvert(WIC.PixelFormat.Format1bppIndexed, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm 
-                new WICConvert(WIC.PixelFormat.Format2bppIndexed, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm 
-                new WICConvert(WIC.PixelFormat.Format4bppIndexed, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm 
-                new WICConvert(WIC.PixelFormat.Format8bppIndexed, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm 
+                new WICConvert(WIC.PixelFormat.Format1bppIndexed, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm
+                new WICConvert(WIC.PixelFormat.Format2bppIndexed, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm
+                new WICConvert(WIC.PixelFormat.Format4bppIndexed, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm
+                new WICConvert(WIC.PixelFormat.Format8bppIndexed, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm
 
-                new WICConvert(WIC.PixelFormat.Format2bppGray, WIC.PixelFormat.Format8bppGray), // Format.R8_UNorm 
-                new WICConvert(WIC.PixelFormat.Format4bppGray, WIC.PixelFormat.Format8bppGray), // Format.R8_UNorm 
+                new WICConvert(WIC.PixelFormat.Format2bppGray, WIC.PixelFormat.Format8bppGray), // Format.R8_UNorm
+                new WICConvert(WIC.PixelFormat.Format4bppGray, WIC.PixelFormat.Format8bppGray), // Format.R8_UNorm
 
-                new WICConvert(WIC.PixelFormat.Format16bppGrayFixedPoint, WIC.PixelFormat.Format16bppGrayHalf), // Format.R16_FLOAT 
-                new WICConvert(WIC.PixelFormat.Format32bppGrayFixedPoint, WIC.PixelFormat.Format32bppGrayFloat), // Format.R32_FLOAT 
+                new WICConvert(WIC.PixelFormat.Format16bppGrayFixedPoint, WIC.PixelFormat.Format16bppGrayHalf), // Format.R16_FLOAT
+                new WICConvert(WIC.PixelFormat.Format32bppGrayFixedPoint, WIC.PixelFormat.Format32bppGrayFloat), // Format.R32_FLOAT
 
-                new WICConvert(WIC.PixelFormat.Format16bppBGR555, WIC.PixelFormat.Format16bppBGRA5551), // Format.B5G5R5A1_UNorm 
+                new WICConvert(WIC.PixelFormat.Format16bppBGR555, WIC.PixelFormat.Format16bppBGRA5551), // Format.B5G5R5A1_UNorm
                 new WICConvert(WIC.PixelFormat.Format32bppBGR101010, WIC.PixelFormat.Format32bppRGBA1010102), // Format.R10G10B10A2_UNorm
 
-                new WICConvert(WIC.PixelFormat.Format24bppBGR, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm 
-                new WICConvert(WIC.PixelFormat.Format24bppRGB, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm 
-                new WICConvert(WIC.PixelFormat.Format32bppPBGRA, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm 
-                new WICConvert(WIC.PixelFormat.Format32bppPRGBA, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm 
+                new WICConvert(WIC.PixelFormat.Format24bppBGR, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm
+                new WICConvert(WIC.PixelFormat.Format24bppRGB, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm
+                new WICConvert(WIC.PixelFormat.Format32bppPBGRA, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm
+                new WICConvert(WIC.PixelFormat.Format32bppPRGBA, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm
 
                 new WICConvert(WIC.PixelFormat.Format48bppRGB, WIC.PixelFormat.Format64bppRGBA), // Format.R16G16B16A16_UNorm
                 new WICConvert(WIC.PixelFormat.Format48bppBGR, WIC.PixelFormat.Format64bppRGBA), // Format.R16G16B16A16_UNorm
@@ -184,20 +184,20 @@ namespace Stride.Graphics
                 new WICConvert(WIC.PixelFormat.Format64bppPRGBA, WIC.PixelFormat.Format64bppRGBA), // Format.R16G16B16A16_UNorm
                 new WICConvert(WIC.PixelFormat.Format64bppPBGRA, WIC.PixelFormat.Format64bppRGBA), // Format.R16G16B16A16_UNorm
 
-                new WICConvert(WIC.PixelFormat.Format48bppRGBFixedPoint, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT 
-                new WICConvert(WIC.PixelFormat.Format48bppBGRFixedPoint, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT 
-                new WICConvert(WIC.PixelFormat.Format64bppRGBAFixedPoint, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT 
-                new WICConvert(WIC.PixelFormat.Format64bppBGRAFixedPoint, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT 
-                new WICConvert(WIC.PixelFormat.Format64bppRGBFixedPoint, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT 
-                new WICConvert(WIC.PixelFormat.Format64bppRGBHalf, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT 
-                new WICConvert(WIC.PixelFormat.Format48bppRGBHalf, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT 
+                new WICConvert(WIC.PixelFormat.Format48bppRGBFixedPoint, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT
+                new WICConvert(WIC.PixelFormat.Format48bppBGRFixedPoint, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT
+                new WICConvert(WIC.PixelFormat.Format64bppRGBAFixedPoint, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT
+                new WICConvert(WIC.PixelFormat.Format64bppBGRAFixedPoint, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT
+                new WICConvert(WIC.PixelFormat.Format64bppRGBFixedPoint, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT
+                new WICConvert(WIC.PixelFormat.Format64bppRGBHalf, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT
+                new WICConvert(WIC.PixelFormat.Format48bppRGBHalf, WIC.PixelFormat.Format64bppRGBAHalf), // Format.R16G16B16A16_FLOAT
 
-                new WICConvert(WIC.PixelFormat.Format128bppPRGBAFloat, WIC.PixelFormat.Format128bppRGBAFloat), // Format.R32G32B32A32_FLOAT 
-                new WICConvert(WIC.PixelFormat.Format128bppRGBFloat, WIC.PixelFormat.Format128bppRGBAFloat), // Format.R32G32B32A32_FLOAT 
-                new WICConvert(WIC.PixelFormat.Format128bppRGBAFixedPoint, WIC.PixelFormat.Format128bppRGBAFloat), // Format.R32G32B32A32_FLOAT 
-                new WICConvert(WIC.PixelFormat.Format128bppRGBFixedPoint, WIC.PixelFormat.Format128bppRGBAFloat), // Format.R32G32B32A32_FLOAT 
+                new WICConvert(WIC.PixelFormat.Format128bppPRGBAFloat, WIC.PixelFormat.Format128bppRGBAFloat), // Format.R32G32B32A32_FLOAT
+                new WICConvert(WIC.PixelFormat.Format128bppRGBFloat, WIC.PixelFormat.Format128bppRGBAFloat), // Format.R32G32B32A32_FLOAT
+                new WICConvert(WIC.PixelFormat.Format128bppRGBAFixedPoint, WIC.PixelFormat.Format128bppRGBAFloat), // Format.R32G32B32A32_FLOAT
+                new WICConvert(WIC.PixelFormat.Format128bppRGBFixedPoint, WIC.PixelFormat.Format128bppRGBAFloat), // Format.R32G32B32A32_FLOAT
 
-                new WICConvert(WIC.PixelFormat.Format32bppCMYK, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm 
+                new WICConvert(WIC.PixelFormat.Format32bppCMYK, WIC.PixelFormat.Format32bppRGBA), // Format.R8G8B8A8_UNorm
                 new WICConvert(WIC.PixelFormat.Format64bppCMYK, WIC.PixelFormat.Format64bppRGBA), // Format.R16G16B16A16_UNorm
                 new WICConvert(WIC.PixelFormat.Format40bppCMYKAlpha, WIC.PixelFormat.Format64bppRGBA), // Format.R16G16B16A16_UNorm
                 new WICConvert(WIC.PixelFormat.Format80bppCMYKAlpha, WIC.PixelFormat.Format64bppRGBA), // Format.R16G16B16A16_UNorm
@@ -205,10 +205,10 @@ namespace Stride.Graphics
 #if DIRECTX11_1
                 new WICConvert( WIC.PixelFormat.Format32bppRGB,              WIC.PixelFormat.Format32bppRGBA ), // Format.R8G8B8A8_UNorm
                 new WICConvert( WIC.PixelFormat.Format64bppRGB,              WIC.PixelFormat.Format64bppRGBA ), // Format.R16G16B16A16_UNorm
-                new WICConvert( WIC.PixelFormat.Format64bppPRGBAHalf,        WIC.PixelFormat.Format64bppRGBAHalf ), // Format.R16G16B16A16_FLOAT 
-                new WICConvert( WIC.PixelFormat.Format96bppRGBFixedPoint,    WIC.PixelFormat.Format96bppRGBFloat ), // Format.R32G32B32_FLOAT 
+                new WICConvert( WIC.PixelFormat.Format64bppPRGBAHalf,        WIC.PixelFormat.Format64bppRGBAHalf ), // Format.R16G16B16A16_FLOAT
+                new WICConvert( WIC.PixelFormat.Format96bppRGBFixedPoint,    WIC.PixelFormat.Format96bppRGBFloat ), // Format.R32G32B32_FLOAT
 #else
-                new WICConvert(WIC.PixelFormat.Format96bppRGBFixedPoint, WIC.PixelFormat.Format128bppRGBAFloat), // Format.R32G32B32A32_FLOAT 
+                new WICConvert(WIC.PixelFormat.Format96bppRGBFixedPoint, WIC.PixelFormat.Format128bppRGBAFloat), // Format.R32G32B32A32_FLOAT
 #endif
 
                 // We don't support n-channel formats
@@ -564,7 +564,7 @@ namespace Stride.Graphics
                 }
                 else
                 {
-                    Utilities.FreeMemory(pSource);
+                    MemoryUtilities.Free(pSource);
                 }
             }
             return image;
@@ -602,7 +602,7 @@ namespace Stride.Graphics
                             int rowPitch = (image.Width * bpp + 7) / 8;
                             int slicePitch = rowPitch * image.Height;
 
-                            var temp = Utilities.AllocateMemory(slicePitch);
+                            var temp = MemoryUtilities.Allocate(slicePitch);
                             try
                             {
                                 converter.CopyPixels(rowPitch, temp, slicePitch);
@@ -611,7 +611,7 @@ namespace Stride.Graphics
                             }
                             finally
                             {
-                                Utilities.FreeMemory(temp);
+                                MemoryUtilities.Free(temp);
                             }
                         }
                     }

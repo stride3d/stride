@@ -106,7 +106,7 @@ namespace Stride.Core.Shaders.Visitor
                 AddReference((Node)container, variable);
             }
         }
-        
+
         public override void Visit(Shader shader)
         {
             indirectReferences = new Dictionary<Node, HashSet<Node>>();
@@ -162,7 +162,7 @@ namespace Stride.Core.Shaders.Visitor
             if (declaration is Variable)
             {
                 var variableDeclaration = (Variable)declaration;
-                if ((!stripUniforms && variableDeclaration.Qualifiers.Contains(Ast.StorageQualifier.Uniform)))
+                if ((!stripUniforms && variableDeclaration.Qualifiers.Contains(Ast.Glsl.StorageQualifier.Uniform)))
                     return false;
 
                 if (variableDeclaration.IsGroup)

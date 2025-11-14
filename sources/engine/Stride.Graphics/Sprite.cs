@@ -22,7 +22,7 @@ namespace Stride.Graphics
         private ImageOrientation orientation;
         private Vector2 sizeInPixels;
         private Vector2 pixelsPerUnit;
-        
+
         internal RectangleF RegionInternal;
         internal Vector4 BordersInternal;
         internal Vector2 SizeInternal;
@@ -68,7 +68,7 @@ namespace Stride.Graphics
             Name = fragmentName;
             PixelsPerUnit = new Vector2(DefaultPixelsPerUnit);
             IsTransparent = true;
-            
+
             Texture = texture;
             if (texture != null)
             {
@@ -126,7 +126,7 @@ namespace Stride.Graphics
                 UpdateSizes();
             }
         }
-        
+
         /// <summary>
         /// Gets or sets size of the unstretchable borders of source sprite in pixels.
         /// </summary>
@@ -161,7 +161,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Gets the size of the sprite in pixels. 
+        /// Gets the size of the sprite in pixels.
         /// Note that the orientation of the image is taken into account in this calculation.
         /// </summary>
         public Vector2 SizeInPixels
@@ -203,8 +203,8 @@ namespace Stride.Graphics
             SizeInternal = new Vector2(pixelSize.X / pixelsPerUnit.X, pixelSize.Y / pixelsPerUnit.Y);
             if (orientation == ImageOrientation.Rotated90)
             {
-                Utilities.Swap(ref pixelSize.X, ref pixelSize.Y);
-                Utilities.Swap(ref SizeInternal.X, ref SizeInternal.Y);
+                MemoryUtilities.Swap(ref pixelSize.X, ref pixelSize.Y);
+                MemoryUtilities.Swap(ref SizeInternal.X, ref SizeInternal.Y);
             }
 
             SizeInPixels = pixelSize;

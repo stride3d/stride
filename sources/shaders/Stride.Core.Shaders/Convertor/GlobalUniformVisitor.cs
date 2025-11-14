@@ -1,9 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
+
 using Stride.Core.Shaders.Ast;
-using Stride.Core.Shaders.Visitor;
+
+using HlslStorageQualifiers = Stride.Core.Shaders.Ast.Hlsl.StorageQualifier;
 
 namespace Stride.Core.Shaders.Convertor
 {
@@ -101,12 +104,13 @@ namespace Stride.Core.Shaders.Convertor
                 var variable = variableRef.TypeInference.Declaration as Variable;
 
                 // If the variable is a global uniform, non static/const and is not already in the list used then
-                return (variable != null && shader.Declarations.Contains(variable) && !variable.Qualifiers.Contains(Ast.Hlsl.StorageQualifier.Static)
-                        && !variable.Qualifiers.Contains(Ast.StorageQualifier.Const)
-                        && !variable.Qualifiers.Contains(Ast.StorageQualifier.Shared)
-                        && !variable.Qualifiers.Contains(Ast.StorageQualifier.GroupShared))
-                           ? variable
-                           : null;
+                return (variable != null && shader.Declarations.Contains(variable)
+                    && !variable.Qualifiers.Contains(HlslStorageQualifiers.Static)
+                    && !variable.Qualifiers.Contains(StorageQualifier.Const)
+                    && !variable.Qualifiers.Contains(StorageQualifier.Shared)
+                    && !variable.Qualifiers.Contains(StorageQualifier.GroupShared))
+                        ? variable
+                        : null;
             }
             return null;
         }
@@ -124,7 +128,7 @@ namespace Stride.Core.Shaders.Convertor
         {
 
             // Handle the case where a parameter can be out
-            // If this is the case, we need to check that 
+            // If this is the case, we need to check that
             for (int i = 0; i < invoke.Arguments.Count; i++)
             {
                 var arg = invoke.Arguments[i];

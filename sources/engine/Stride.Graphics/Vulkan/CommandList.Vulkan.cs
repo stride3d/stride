@@ -4,12 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
-using System.Runtime.CompilerServices;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -57,7 +56,10 @@ namespace Stride.Graphics
             Reset();
         }
 
-        public unsafe void Reset()
+        /// <summary>
+        ///   Resets a Command List back to its initial state as if a new Command List was just created.
+        /// </summary>
+        public unsafe partial void Reset()
         {
             if (currentCommandList.Builder != null)
                 return;
@@ -84,10 +86,13 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Closes the command list for recording and returns an executable token.
+        ///   Indicates that recording to the Command List has finished.
         /// </summary>
-        /// <returns>The executable command list.</returns>
-        public CompiledCommandList Close()
+        /// <returns>
+        ///   A <see cref="CompiledCommandList"/> representing the frozen list of recorded commands
+        ///   that can be executed at a later time.
+        /// </returns>
+        public partial CompiledCommandList Close()
         {
             // End active render pass
             CleanupRenderPass();
@@ -109,9 +114,9 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Closes and executes the command list.
+        ///   Closes and executes the Command List.
         /// </summary>
-        public void Flush()
+        public partial void Flush()
         {
             GraphicsDevice.ExecuteCommandList(Close());
         }
@@ -134,10 +139,13 @@ namespace Stride.Graphics
                 var descriptorSetCopy = descriptorSet;
                 vkCmdBindDescriptorSets(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativeLayout, firstSet: 0, descriptorSetCount: 1, &descriptorSetCopy, dynamicOffsetCount: 0, dynamicOffsets: null);
             }
-            SetRenderTargetsImpl(depthStencilBuffer, renderTargetCount, renderTargets);
+            SetRenderTargetsImpl(depthStencilBuffer, RenderTargets);
         }
 
-        private void ClearStateImpl()
+        /// <summary>
+        ///   Vulkan-specific implementation that clears and restores the state of the Graphics Device.
+        /// </summary>
+        private partial void ClearStateImpl()
         {
         }
 
@@ -154,12 +162,12 @@ namespace Stride.Graphics
         /// <param name="depthStencilBuffer">The depth stencil buffer.</param>
         /// <param name="renderTargets">The render targets.</param>
         /// <exception cref="ArgumentNullException">renderTargetViews</exception>
-        private void SetRenderTargetsImpl(Texture depthStencilBuffer, int renderTargetCount, Texture[] renderTargets)
+        private partial void SetRenderTargetsImpl(Texture depthStencilBuffer, ReadOnlySpan<Texture> renderTargets)
         {
             var oldFramebufferAttachmentCount = framebufferAttachmentCount;
-            framebufferAttachmentCount = renderTargetCount;
+            framebufferAttachmentCount = renderTargets.Length;
 
-            for (int i = 0; i < renderTargetCount; i++)
+            for (int i = 0; i < renderTargets.Length; i++)
             {
                 if (renderTargets[i].NativeColorAttachmentView != framebufferAttachments[i])
                     framebufferDirty = true;
@@ -169,10 +177,10 @@ namespace Stride.Graphics
 
             if (depthStencilBuffer != null)
             {
-                if (depthStencilBuffer.NativeDepthStencilView != framebufferAttachments[renderTargetCount])
+                if (depthStencilBuffer.NativeDepthStencilView != framebufferAttachments[renderTargets.Length])
                     framebufferDirty = true;
 
-                framebufferAttachments[renderTargetCount] = depthStencilBuffer.NativeDepthStencilView;
+                framebufferAttachments[renderTargets.Length] = depthStencilBuffer.NativeDepthStencilView;
                 framebufferAttachmentCount++;
             }
 
@@ -231,6 +239,25 @@ namespace Stride.Graphics
         /// </summary>
         public void UnsetRenderTargets()
         {
+        }
+
+        /// <summary>
+        ///   Vulkan implementation that sets a scissor rectangle to the rasterizer stage.
+        /// </summary>
+        /// <param name="scissorRectangle">The scissor rectangle to set.</param>
+        private unsafe partial void SetScissorRectangleImpl(ref readonly Rectangle scissorRectangle)
+        {
+            // Do nothing. Vulkan already sets the scissor rectangle as part of PrepareDraw()
+        }
+
+        /// <summary>
+        ///   Vulkan implementation that sets one or more scissor rectangles to the rasterizer stage.
+        /// </summary>
+        /// <param name="scissorCount">The number of scissor rectangles to bind.</param>
+        /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
+        private unsafe partial void SetScissorRectanglesImpl(ReadOnlySpan<Rectangle> scissorRectangles)
+        {
+            // Do nothing. Vulkan already sets the scissor rectangles as part of PrepareDraw()
         }
 
         /// <summary>
@@ -849,7 +876,7 @@ namespace Stride.Graphics
                     sourceTexture.Height != destinationTexture.Height ||
                     sourceTexture.Depth != destinationTexture.Depth ||
                     sourceTexture.ArraySize != destinationTexture.ArraySize ||
-                    sourceTexture.MipLevels != destinationTexture.MipLevels)
+                    sourceTexture.MipLevelCount != destinationTexture.MipLevelCount)
                     throw new InvalidOperationException($"{nameof(source)} and {nameof(destination)} textures don't match");
 
                 CleanupRenderPass();
@@ -884,14 +911,14 @@ namespace Stride.Graphics
 
                 vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
 
-                for (var subresource = 0; subresource < sourceTexture.MipLevels * sourceTexture.ArraySize; ++subresource)
+                for (var subresource = 0; subresource < sourceTexture.MipLevelCount * sourceTexture.ArraySize; ++subresource)
                 {
-                    var arraySlice = subresource / sourceTexture.MipLevels;
-                    var mipLevel = subresource % sourceTexture.MipLevels;
+                    var arraySlice = subresource / sourceTexture.MipLevelCount;
+                    var mipLevel = subresource % sourceTexture.MipLevelCount;
 
                     var sourceOffset = sourceTexture.ComputeBufferOffset(subresource, depthSlice: 0);
                     var destinationOffset = destinationTexture.ComputeBufferOffset(subresource, depthSlice: 0);
-                    var size = sourceTexture.ComputeSubresourceSize(subresource);
+                    var size = sourceTexture.ComputeSubResourceSize(subresource);
 
                     var width = Texture.CalculateMipSize(sourceTexture.Width, mipLevel);
                     var height = Texture.CalculateMipSize(sourceTexture.Height, mipLevel);
@@ -1027,7 +1054,7 @@ namespace Stride.Graphics
             {
                 CleanupRenderPass();
 
-                var mipmapDescription = sourceTexture.GetMipMapDescription(sourceSubresource % sourceTexture.MipLevels);
+                var mipmapDescription = sourceTexture.GetMipMapDescription(sourceSubresource % sourceTexture.MipLevelCount);
 
                 var region = sourceRegion ?? new ResourceRegion(left: 0, top: 0, front: 0, mipmapDescription.Width, mipmapDescription.Height, mipmapDescription.Depth);
 
@@ -1173,23 +1200,61 @@ namespace Stride.Graphics
             throw new NotImplementedException();
         }
 
-        internal void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox)
+        /// <summary>
+        ///   Copies data from memory to a sub-resource created in non-mappable memory.
+        /// </summary>
+        /// <param name="resource">The destination Graphics Resource to copy data to.</param>
+        /// <param name="subResourceIndex">The sub-resource index of <paramref name="resource"/> to copy data to.</param>
+        /// <param name="sourceData">The source data in CPU memory to copy.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="resource"/> is <see langword="null"/>.</exception>
+        /// <remarks>
+        ///   <para>
+        ///     If <paramref name="resource"/> is a Constant Buffer, it must be updated in full.
+        ///     It is not possible to use this method to partially update a Constant Buffer.
+        ///   </para>
+        ///   <para>
+        ///     A Graphics Resource cannot be used as a destination if:
+        ///     <list type="bullet">
+        ///       <item>The resource was created with <see cref="GraphicsResourceUsage.Immutable"/> or <see cref="GraphicsResourceUsage.Dynamic"/>.</item>
+        ///       <item>The resource was created as a Depth-Stencil Buffer.</item>
+        ///       <item>The resource is a Texture created with multi-sampling capability (see <see cref="TextureDescription.MultisampleCount"/>).</item>
+        ///     </list>
+        ///   </para>
+        ///   <para>
+        ///     When <see cref="UpdateSubResource"/> returns, the application is free to change or even free the data pointed to by
+        ///     <paramref name="sourceData"/> because the method has already copied/snapped away the original contents.
+        ///   </para>
+        /// </remarks>
+        internal unsafe void UpdateSubResource(GraphicsResource resource, int subResourceIndex, ReadOnlySpan<byte> sourceData)
+        {
+            ArgumentNullException.ThrowIfNull(resource);
+
+            if (sourceData.IsEmpty)
+                return;
+
+            fixed (byte* sourceDataPtr = sourceData)
+            {
+                UpdateSubResource(resource, subResourceIndex, new DataBox((nint) sourceDataPtr, sourceData.Length, 0));
+            }
+        }
+
+        internal void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox databox)
         {
             if (resource is Texture texture)
             {
-                var mipLevel = subResourceIndex % texture.MipLevels;
+                var mipLevel = subResourceIndex % texture.MipLevelCount;
 
                 var width = Texture.CalculateMipSize(texture.Width, mipLevel);
                 var height = Texture.CalculateMipSize(texture.Height, mipLevel);
                 var depth = Texture.CalculateMipSize(texture.Depth, mipLevel);
 
-                UpdateSubresource(resource, subResourceIndex, databox, new ResourceRegion(left: 0, top: 0, front: 0, width, height, depth));
+                UpdateSubResource(resource, subResourceIndex, databox, new ResourceRegion(left: 0, top: 0, front: 0, width, height, depth));
             }
             else
             {
                 if (resource is Buffer buffer)
                 {
-                    UpdateSubresource(resource, subResourceIndex, databox, new ResourceRegion(left: 0, top: 0, front: 0, buffer.SizeInBytes, bottom: 1, back: 1));
+                    UpdateSubResource(resource, subResourceIndex, databox, new ResourceRegion(left: 0, top: 0, front: 0, buffer.SizeInBytes, bottom: 1, back: 1));
                 }
                 else
                 {
@@ -1198,7 +1263,40 @@ namespace Stride.Graphics
             }
         }
 
-        internal unsafe void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox, ResourceRegion region)
+        /// <summary>
+        ///   Copies data from memory to a sub-resource created in non-mappable memory.
+        /// </summary>
+        /// <param name="resource">The destination Graphics Resource to copy data to.</param>
+        /// <param name="subResourceIndex">The sub-resource index of <paramref name="resource"/> to copy data to.</param>
+        /// <param name="sourceData">The source data in CPU memory to copy.</param>
+        /// <param name="region">
+        ///   <para>
+        ///     A <see cref="ResourceRegion"/> that defines the portion of the destination sub-resource to copy the resource data into.
+        ///     Coordinates are in bytes for Buffers and in texels for Textures.
+        ///     The dimensions of the source must fit the destination.
+        ///   </para>
+        ///   <para>
+        ///     An empty region makes this method to not perform a copy operation.
+        ///     It is considered empty if the top value is greater than or equal to the bottom value,
+        ///     or the left value is greater than or equal to the right value, or the front value is greater than or equal to the back value.
+        ///   </para>
+        /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="resource"/> is <see langword="null"/>.</exception>
+        /// <inheritdoc cref="UpdateSubResource(GraphicsResource, int, ReadOnlySpan{byte})" path="/remarks" />
+        internal unsafe void UpdateSubResource(GraphicsResource resource, int subResourceIndex, ReadOnlySpan<byte> sourceData, ResourceRegion region)
+        {
+            ArgumentNullException.ThrowIfNull(resource);
+
+            if (sourceData.IsEmpty)
+                return;
+
+            fixed (byte* sourceDataPtr = sourceData)
+            {
+                UpdateSubResource(resource, subResourceIndex, new DataBox((nint)sourceDataPtr, sourceData.Length, 0), region);
+            }
+        }
+
+        internal unsafe partial void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox databox, ResourceRegion region)
         {
             // Barriers need to be global to command buffer
             CleanupRenderPass();
@@ -1210,7 +1308,7 @@ namespace Stride.Graphics
             if (texture != null)
             {
                 lengthInBytes = databox.SlicePitch * (region.Back - region.Front);
-                blockSize = texture.Format.BlockSize();
+                blockSize = texture.Format.BlockSize;
             }
             else
             {
@@ -1224,14 +1322,14 @@ namespace Stride.Graphics
             var uploadMemory = GraphicsDevice.AllocateUploadBuffer(lengthInBytes + alignmentMask, out var uploadResource, out var uploadOffset);
             var alignment = ((uploadOffset + alignmentMask) & ~alignmentMask) - uploadOffset;
 
-            Utilities.CopyWithAlignmentFallback((void*) (uploadMemory + alignment), (void*) databox.DataPointer, (uint) lengthInBytes);
+            MemoryUtilities.CopyWithAlignmentFallback((void*) (uploadMemory + alignment), (void*) databox.DataPointer, (uint) lengthInBytes);
 
             var uploadBufferMemoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong) (uploadOffset + alignment), (ulong) lengthInBytes);
 
             if (texture != null)
             {
-                var mipSlice = subResourceIndex % texture.MipLevels;
-                var arraySlice = subResourceIndex / texture.MipLevels;
+                var mipSlice = subResourceIndex % texture.MipLevelCount;
+                var arraySlice = subResourceIndex / texture.MipLevelCount;
                 var subresourceRange = new VkImageSubresourceRange(VkImageAspectFlags.Color, (uint) mipSlice, levelCount: 1, (uint) arraySlice, 1);
 
                 var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, subresourceRange, texture.NativeAccessMask, VkAccessFlags.TransferWrite, texture.NativeLayout, VkImageLayout.TransferDstOptimal);
@@ -1243,8 +1341,8 @@ namespace Stride.Graphics
                 {
                     bufferOffset = (ulong) (uploadOffset + alignment),
                     imageSubresource = new VkImageSubresourceLayers { aspectMask = VkImageAspectFlags.Color, baseArrayLayer = (uint) arraySlice, layerCount = 1, mipLevel = (uint) mipSlice },
-                    bufferRowLength = (uint) (databox.RowPitch * texture.Format.BlockWidth() / texture.Format.BlockSize()),
-                    bufferImageHeight = (uint) (databox.SlicePitch * texture.Format.BlockHeight() / databox.RowPitch),
+                    bufferRowLength = (uint) (databox.RowPitch * texture.Format.BlockWidth / texture.Format.BlockSize),
+                    bufferImageHeight = (uint) (databox.SlicePitch * texture.Format.BlockHeight / databox.RowPitch),
                     imageOffset = new VkOffset3D(region.Left, region.Top, region.Front),
                     imageExtent = new VkExtent3D(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front)
                 };
@@ -1294,7 +1392,7 @@ namespace Stride.Graphics
         /// <param name="offsetInBytes">The offset information in bytes.</param>
         /// <param name="lengthInBytes">The length information in bytes.</param>
         /// <returns>Pointer to the sub resource to map.</returns>
-        public unsafe MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        public unsafe partial MappedResource MapSubResource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
         {
             if (resource == null) throw new ArgumentNullException("resource");
 
@@ -1305,8 +1403,8 @@ namespace Stride.Graphics
             {
                 usage = texture.Usage;
                 if (lengthInBytes == 0)
-                    lengthInBytes = texture.ComputeSubresourceSize(subResourceIndex);
-                rowPitch = texture.ComputeRowPitch(subResourceIndex % texture.MipLevels);
+                    lengthInBytes = texture.ComputeSubResourceSize(subResourceIndex);
+                rowPitch = texture.ComputeRowPitch(subResourceIndex % texture.MipLevelCount);
 
                 offsetInBytes += texture.ComputeBufferOffset(subResourceIndex, depthSlice: 0);
             }
@@ -1358,7 +1456,7 @@ namespace Stride.Graphics
         }
 
         // TODO GRAPHICS REFACTOR what should we do with this?
-        public void UnmapSubresource(MappedResource unmapped)
+        public unsafe partial void UnmapSubResource(MappedResource unmapped)
         {
             vkUnmapMemory(GraphicsDevice.NativeDevice, unmapped.Resource.NativeMemory);
         }

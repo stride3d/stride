@@ -2,12 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
-using Stride.Engine.Network;
-using Sockets.Plugin;
-using Stride.Core;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics.Regression
@@ -70,7 +65,7 @@ namespace Stride.Graphics.Regression
                         || buffer.RowStride != referenceBuffer.RowStride)
                         return false;
 
-                    var swapBGR = buffer.Format.IsBGRAOrder() != referenceBuffer.Format.IsBGRAOrder();
+                    var swapBGR = buffer.Format.IsBgraOrder != referenceBuffer.Format.IsBgraOrder;
                     // For now, we handle only those specific cases
                     if ((buffer.Format != PixelFormat.R8G8B8A8_UNorm_SRgb && buffer.Format != PixelFormat.B8G8R8A8_UNorm_SRgb)
                         || referenceBuffer.Format != PixelFormat.B8G8R8A8_UNorm)
@@ -79,7 +74,7 @@ namespace Stride.Graphics.Regression
                         return false;
                     }
 
-                    bool checkAlpha = buffer.Format.AlphaSizeInBits() > 0;
+                    bool checkAlpha = buffer.Format.AlphaSizeInBits > 0;
 
                     // Compare remaining bytes.
                     int allowedDiff = 2;

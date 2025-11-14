@@ -211,17 +211,17 @@ namespace Stride.Particles.ShapeBuilders
 
                 int positionDataSize = Unsafe.SizeOf<Vector3>() * particleCapacity;
                 positionDataSize = (positionDataSize % 4 == 0) ? positionDataSize : (positionDataSize + 4 - (positionDataSize % 4));
-                positionData = Utilities.AllocateMemory(positionDataSize);
+                positionData = MemoryUtilities.Allocate(positionDataSize);
 
                 int directionDataSize = Unsafe.SizeOf<Vector3>() * particleCapacity;
                 directionDataSize = (directionDataSize % 4 == 0) ? directionDataSize : (directionDataSize + 4 - (directionDataSize % 4));
-                directionData = Utilities.AllocateMemory(directionDataSize);
+                directionData = MemoryUtilities.Allocate(directionDataSize);
             }
 
             public void Free()
             {
-                Utilities.FreeMemory(positionData);
-                Utilities.FreeMemory(directionData);
+                MemoryUtilities.Free(positionData);
+                MemoryUtilities.Free(directionData);
             }
 
             EdgePolicy EdgePolicy => parentTrail.EdgePolicy;

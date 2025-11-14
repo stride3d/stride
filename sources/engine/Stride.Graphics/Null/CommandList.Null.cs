@@ -1,8 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if STRIDE_GRAPHICS_API_NULL 
+#if STRIDE_GRAPHICS_API_NULL
 
+using System;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
@@ -30,35 +31,38 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Reset command List.
+        ///   Resets a Command List back to its initial state as if a new Command List was just created.
         /// </summary>
-        public void Reset()
+        public unsafe partial void Reset()
         {
             NullHelper.ToImplement();
         }
 
         /// <summary>
-        /// Closes the command list for recording and returns an executable token.
+        ///   Indicates that recording to the Command List has finished.
         /// </summary>
-        /// <returns>The executable command list.</returns>
-        public CompiledCommandList Close()
+        /// <returns>
+        ///   A <see cref="CompiledCommandList"/> representing the frozen list of recorded commands
+        ///   that can be executed at a later time.
+        /// </returns>
+        public partial CompiledCommandList Close()
         {
             NullHelper.ToImplement();
-            return default(CompiledCommandList);
+            return default;
         }
 
         /// <summary>
-        /// Closes and executes the command list.
+        ///   Closes and executes the Command List.
         /// </summary>
-        public void Flush()
+        public partial void Flush()
         {
             NullHelper.ToImplement();
         }
 
         /// <summary>
-        /// Clear internal state of the command list.
+        ///   Platform-specific implementation that clears and restores the state of the Graphics Device.
         /// </summary>
-        private void ClearStateImpl()
+        private partial void ClearStateImpl()
         {
             NullHelper.ToImplement();
         }
@@ -82,15 +86,25 @@ namespace Stride.Graphics
             NullHelper.ToImplement();
         }
 
-        unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle)
+        /// <summary>
+        ///   Platform-specific implementation that sets a scissor rectangle to the rasterizer stage.
+        /// </summary>
+        /// <param name="scissorRectangle">The scissor rectangle to set.</param>
+        private unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle)
         {
             NullHelper.ToImplement();
         }
 
-        unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles)
+        /// <summary>
+        ///   Platform-specific implementation that sets one or more scissor rectangles to the rasterizer stage.
+        /// </summary>
+        /// <param name="scissorCount">The number of scissor rectangles to bind.</param>
+        /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
+        private unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles)
         {
             NullHelper.ToImplement();
         }
+
         /// <summary>
         /// Sets the stream targets.
         /// </summary>
@@ -369,37 +383,111 @@ namespace Stride.Graphics
             NullHelper.ToImplement();
         }
 
-        internal void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox)
-        {
-            NullHelper.ToImplement();
-        }
-
-        internal void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox, ResourceRegion region)
+        /// <summary>
+        ///   Copies data from memory to a sub-resource created in non-mappable memory.
+        /// </summary>
+        /// <param name="resource">The destination Graphics Resource to copy data to.</param>
+        /// <param name="subResourceIndex">The sub-resource index of <paramref name="resource"/> to copy data to.</param>
+        /// <param name="sourceData">The source data in CPU memory to copy.</param>
+        internal void UpdateSubResource(GraphicsResource resource, int subResourceIndex, ReadOnlySpan<byte> sourceData)
         {
             NullHelper.ToImplement();
         }
 
         /// <summary>
-        /// Maps a subresource.
+        ///   Copies data from memory to a sub-resource created in non-mappable memory.
         /// </summary>
-        /// <param name="resource">The resource.</param>
-        /// <param name="subResourceIndex">Index of the sub resource.</param>
-        /// <param name="mapMode">The map mode.</param>
-        /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
-        /// <param name="offsetInBytes">The offset information in bytes.</param>
-        /// <param name="lengthInBytes">The length information in bytes.</param>
-        /// <returns>Pointer to the sub resource to map.</returns>
-        public MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        /// <param name="resource">The destination Graphics Resource to copy data to.</param>
+        /// <param name="subResourceIndex">The sub-resource index of <paramref name="resource"/> to copy data to.</param>
+        /// <param name="sourceData">The source data in CPU memory to copy.</param>
+        internal void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox sourceData)
         {
             NullHelper.ToImplement();
-            return default(MappedResource);
         }
 
+        // TODO GRAPHICS REFACTOR what should we do with this?
         /// <summary>
-        /// Unmap <param name="mapped"/> resource.
+        ///   Copies data from memory to a sub-resource created in non-mappable memory.
         /// </summary>
-        /// <param name="mapped">The mapped resource.</param>
-        public void UnmapSubresource(MappedResource mapped)
+        /// <param name="resource">The destination Graphics Resource to copy data to.</param>
+        /// <param name="subResourceIndex">The sub-resource index of <paramref name="resource"/> to copy data to.</param>
+        /// <param name="sourceData">The source data in CPU memory to copy.</param>
+        /// <param name="region">
+        ///   <para>
+        ///     A <see cref="ResourceRegion"/> that defines the portion of the destination sub-resource to copy the resource data into.
+        ///     Coordinates are in bytes for Buffers and in texels for Textures.
+        ///     The dimensions of the source must fit the destination.
+        ///   </para>
+        ///   <para>
+        ///     An empty region makes this method to not perform a copy operation.
+        ///     It is considered empty if the top value is greater than or equal to the bottom value,
+        ///     or the left value is greater than or equal to the right value, or the front value is greater than or equal to the back value.
+        ///   </para>
+        /// </param>
+        internal void UpdateSubResource(GraphicsResource resource, int subResourceIndex, ReadOnlySpan<byte> sourceData, ResourceRegion region)
+        {
+            NullHelper.ToImplement();
+        }
+
+        // TODO GRAPHICS REFACTOR what should we do with this?
+        /// <summary>
+        ///   Copies data from memory to a sub-resource created in non-mappable memory.
+        /// </summary>
+        /// <param name="resource">The destination Graphics Resource to copy data to.</param>
+        /// <param name="subResourceIndex">The sub-resource index of <paramref name="resource"/> to copy data to.</param>
+        /// <param name="sourceData">The source data in CPU memory to copy.</param>
+        /// <param name="region">
+        ///   <para>
+        ///     A <see cref="ResourceRegion"/> that defines the portion of the destination sub-resource to copy the resource data into.
+        ///     Coordinates are in bytes for Buffers and in texels for Textures.
+        ///     The dimensions of the source must fit the destination.
+        ///   </para>
+        ///   <para>
+        ///     An empty region makes this method to not perform a copy operation.
+        ///     It is considered empty if the top value is greater than or equal to the bottom value,
+        ///     or the left value is greater than or equal to the right value, or the front value is greater than or equal to the back value.
+        ///   </para>
+        /// </param>
+        internal unsafe partial void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox sourceData, ResourceRegion region)
+        {
+            NullHelper.ToImplement();
+        }
+
+        // TODO GRAPHICS REFACTOR what should we do with this?
+        /// <summary>
+        ///   Maps a sub-resource of a Graphics Resource to be accessible from CPU memory, and in the process denies the GPU access to that sub-resource.
+        /// </summary>
+        /// <param name="resource">The Graphics Resource to map to CPU memory.</param>
+        /// <param name="subResourceIndex">The index of the sub-resource to get access to.</param>
+        /// <param name="mapMode">A value of <see cref="MapMode"/> indicating the way the Graphics Resource should be mapped to CPU memory.</param>
+        /// <param name="doNotWait">
+        ///   A value indicating if this method will return immediately if the Graphics Resource is still being used by the GPU for writing
+        ///   <see langword="true"/>. The default value is <see langword="false"/>, which means the method will wait until the GPU is done.
+        /// </param>
+        /// <param name="offsetInBytes">
+        ///   The offset in bytes from the beginning of the mapped memory of the sub-resource.
+        ///   Defaults to 0, which means it is mapped from the beginning.
+        /// </param>
+        /// <param name="lengthInBytes">
+        ///   The length in bytes of the memory to map from the sub-resource.
+        ///   Defaults to 0, which means the entire sub-resource is mapped.
+        /// </param>
+        /// <returns>A <see cref="MappedResource"/> structure pointing to the GPU resource mapped for CPU access.</returns>
+        public unsafe partial MappedResource MapSubResource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        {
+            NullHelper.ToImplement();
+            return default;
+        }
+
+        // TODO GRAPHICS REFACTOR what should we do with this?
+        /// <summary>
+        ///   Unmaps a sub-resource of a Graphics Resource, which was previously mapped to CPU memory with <see cref="MapSubResource"/>,
+        ///   and in the process re-enables the GPU access to that sub-resource.
+        /// </summary>
+        /// <param name="mappedResource">
+        ///   A <see cref="MappedResource"/> structure identifying the sub-resource to unmap.
+        /// </param>
+        public unsafe partial void UnmapSubResource(MappedResource mappedResource)
         {
             NullHelper.ToImplement();
         }

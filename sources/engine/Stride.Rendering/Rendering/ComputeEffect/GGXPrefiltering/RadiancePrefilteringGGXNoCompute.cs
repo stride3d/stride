@@ -90,7 +90,7 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
             var roughness = 0f;
             var faceCount = output.ArraySize;
             var levelSize = new Int2(output.Width, output.Height);
-            var mipCount = MipmapGenerationCount == 0 ? output.MipLevels : MipmapGenerationCount;
+            var mipCount = MipmapGenerationCount == 0 ? output.MipLevelCount : MipmapGenerationCount;
 
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
@@ -100,16 +100,16 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
                     var inputLevel = MathUtil.Log2(input.Width / output.Width);
                     if (mipLevel == 0 && DoNotFilterHighestLevel)
                     {
-                        if (input.Width >= output.Width && inputLevel < input.MipLevels && input.Format == output.Format)
+                        if (input.Width >= output.Width && inputLevel < input.MipLevelCount && input.Format == output.Format) // TODO: This comparison excludes sRGB to/from non-sRGB, which are indistinguishable in memory
                         {
                             // Optimization: make a simple copy of the texture when possible
-                            var inputSubresource = inputLevel + faceIndex * input.MipLevels;
-                            var outputSubresource = 0 + faceIndex * output.MipLevels;
+                            var inputSubresource = inputLevel + faceIndex * input.MipLevelCount;
+                            var outputSubresource = 0 + faceIndex * output.MipLevelCount;
                             context.CommandList.CopyRegion(input, inputSubresource, null, output, outputSubresource);
                         }
                         else // otherwise rescale the closest mipmap
                         {
-                            var inputMipmapLevel = Math.Min(inputLevel, input.MipLevels - 1);
+                            var inputMipmapLevel = Math.Min(inputLevel, input.MipLevelCount - 1);
                             using var inputView = input.ToTextureView(ViewType.Single, faceIndex, inputMipmapLevel);
                             scaler.SetInput(inputView);
                             scaler.SetOutput(outputView);
@@ -120,7 +120,7 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
                     {
                         shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.Face, faceIndex);
                         shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.Roughness, roughness);
-                        shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.MipmapCount, input.MipLevels - 1);
+                        shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.MipmapCount, input.MipLevelCount - 1);
                         shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.RadianceMap, input);
                         shader.Parameters.Set(RadiancePrefilteringGGXNoComputeShaderKeys.RadianceMapSize, input.Width);
                         shader.Parameters.Set(RadiancePrefilteringGGXNoComputeParams.NbOfSamplings, SamplingsCount);

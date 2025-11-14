@@ -2,24 +2,30 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
+
 using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using SharpDX.MediaFoundation;
+using Silk.NET.Core.Native;
+using Silk.NET.DXGI;
+using Silk.NET.Direct3D11;
 using Stride.Core;
-using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Graphics;
 using Stride.Media;
 
 namespace Stride.Video
 {
-    partial class VideoInstance
+    unsafe partial class VideoInstance
     {
         private MediaEngine mediaEngine;
+
         private Texture videoOutputTexture;
-        private SharpDX.DXGI.Surface videoOutputSurface;
+        private IDXGISurface* videoOutputSurface;
+        private SharpDX.ComObject videoOutputSurfaceSharpDX;    // TODO: Remove when Silk includes Media Foundation
+
         private Stream videoFileStream;
         private ByteStream videoDataStream;
 
@@ -28,7 +34,7 @@ namespace Stride.Video
 
         private bool reachedEOF;
 
-        private static MediaEngineClassFactory mediaEngineFactory = new MediaEngineClassFactory();
+        private static MediaEngineClassFactory mediaEngineFactory = new();
 
         partial void ReleaseMediaImpl()
         {
@@ -37,16 +43,21 @@ namespace Stride.Video
             mediaEngine = null;
 
             // Randomly crashes in sharpDX and the native code when disabling this
-            // The stream is problably accessed after disposal due to communication latency 
+            // The stream is problably accessed after disposal due to communication latency
             // Unfortunately we don't receive any events after the call to Shutdown where we could dispose those
 
             //videoDataStream?.Dispose();
             //videoDataStream = null;
             //videoFileStream?.Dispose();
             //videoFileStream = null;
-            
-            videoOutputSurface?.Dispose();
-            videoOutputSurface = null; 
+
+            if (videoOutputSurface != null)
+                videoOutputSurface->Release();
+
+            videoOutputSurface = null;
+            videoOutputSurfaceSharpDX = null;   // TODO: Remove when Silk includes Media Foundation
+                                                // NOTE: Do not Dispose() it. It just wraps around the IDXGISurface
+
             videoOutputTexture?.Dispose();
             videoOutputTexture = null;
         }
@@ -97,7 +108,7 @@ namespace Stride.Video
             if (videoOutputSurface == null || PlayState == PlayState.Stopped)
                 return;
 
-            //Transfer frame if a new one is available
+            // Transfer frame if a new one is available
             if (mediaEngine.OnVideoStreamTick(out var presentationTimeTicks))
             {
                 CurrentTime = TimeSpan.FromTicks(presentationTimeTicks);
@@ -106,7 +117,7 @@ namespace Stride.Video
                 var endOfMedia = reachedEOF;
                 if (!endOfMedia)
                 {
-                    //check the video loop and play range
+                    // Check the video loop and play range
                     if (PlayRange.IsValid() && CurrentTime > PlayRange.End)
                     {
                         endOfMedia = true;
@@ -121,12 +132,12 @@ namespace Stride.Video
                 {
                     if (IsLooping)
                     {
-                        //Restart the video at LoopRangeStart
+                        // Restart the video at LoopRangeStart
                         Seek(LoopRange.Start);
                     }
                     else
                     {
-                        //stop the video
+                        // Stop the video
                         Stop();
                         return;
                     }
@@ -136,10 +147,10 @@ namespace Stride.Video
                 {
                     videoTexture.SetTargetContentToVideoStream(videoComponent.Target);
 
-                    // Now update the video texture with data of the new video frame:
+                    // Now update the video texture with data of the new video frame
                     var graphicsContext = services.GetSafeServiceAs<GraphicsContext>();
 
-                    mediaEngine.TransferVideoFrame(videoOutputSurface, null, new SharpDX.Mathematics.Interop.RawRectangle(0, 0, videoWidth, videoHeight), null);
+                    mediaEngine.TransferVideoFrame(videoOutputSurfaceSharpDX, srcRef: null, new SharpDX.Mathematics.Interop.RawRectangle(0, 0, videoWidth, videoHeight), borderClrRef: null);
                     videoTexture.CopyDecoderOutputToTopLevelMipmap(graphicsContext, videoOutputTexture);
 
                     videoTexture.GenerateMipMaps(graphicsContext);
@@ -166,8 +177,8 @@ namespace Stride.Video
                 //Assign our dxgi manager, and set format to bgra
                 var attr = new MediaEngineAttributes
                 {
-                    VideoOutputFormat = (int)SharpDX.DXGI.Format.B8G8R8A8_UNorm,
-                    DxgiManager = videoSystem.DxgiDeviceManager,
+                    VideoOutputFormat = (int) Format.FormatB8G8R8A8Unorm,
+                    DxgiManager = videoSystem.DxgiDeviceManager
                 };
 
                 mediaEngine = new MediaEngine(mediaEngineFactory, attr);
@@ -175,9 +186,9 @@ namespace Stride.Video
                 // Register our PlayBackEvent
                 mediaEngine.PlaybackEvent += OnPlaybackCallback;
 
-                // set the video source 
-                var mediaEngineEx = mediaEngine.QueryInterface<MediaEngineEx>();
-                
+                // set the video source
+                using var mediaEngineEx = mediaEngine.QueryInterface<MediaEngineEx>();
+
                 videoFileStream = new VirtualFileStream(File.OpenRead(url), startPosition, startPosition + length);
                 videoDataStream = new ByteStream(videoFileStream);
 
@@ -194,7 +205,7 @@ namespace Stride.Video
             }
         }
 
-        private void CompleteMediaInitialization()
+        private unsafe void CompleteMediaInitialization()
         {
             //Get our video size
             mediaEngine.GetNativeVideoSize(out videoWidth, out videoHeight);
@@ -202,7 +213,14 @@ namespace Stride.Video
 
             //Get DXGI surface to be used by our media engine
             videoOutputTexture = Texture.New2D(GraphicsDevice, videoWidth, videoHeight, 1, PixelFormat.B8G8R8A8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
-            videoOutputSurface = videoOutputTexture.NativeResource.QueryInterface<SharpDX.DXGI.Surface>();
+
+            HResult result = videoOutputTexture.NativeResource.QueryInterface(out ComPtr<IDXGISurface> outputSurface);
+
+            if (result.IsFailure)
+                result.Throw();
+
+            videoOutputSurface = outputSurface;
+            videoOutputSurfaceSharpDX = new SharpDX.ComObject((IntPtr) videoOutputSurface);
 
             AllocateVideoTexture(videoWidth, videoHeight);
 
@@ -276,4 +294,5 @@ namespace Stride.Video
         }
     }
 }
+
 #endif

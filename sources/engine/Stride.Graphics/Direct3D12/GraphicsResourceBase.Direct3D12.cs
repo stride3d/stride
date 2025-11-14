@@ -1,93 +1,126 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_GRAPHICS_API_DIRECT3D12
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 
-using SharpDX;
+#if STRIDE_GRAPHICS_API_DIRECT3D12
+
+using System;
+
+using Silk.NET.Core.Native;
+using Silk.NET.Direct3D12;
+
+using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
 {
-    /// <summary>
-    /// GraphicsResource class
-    /// </summary>
-    public abstract partial class GraphicsResourceBase
+    public abstract unsafe partial class GraphicsResourceBase
     {
-        private SharpDX.Direct3D12.DeviceChild nativeDeviceChild;
-
-        protected internal SharpDX.Direct3D12.Resource NativeResource { get; private set; }
-
-        private void Initialize()
-        {
-        }
+        private ID3D12DeviceChild* nativeDeviceChild;
+        private ID3D12Resource* nativeResource;
 
         /// <summary>
-        /// Gets or sets the device child.
+        ///   Gets the internal Direct3D 11 Resource.
         /// </summary>
-        /// <value>The device child.</value>
-        protected internal SharpDX.Direct3D12.DeviceChild NativeDeviceChild
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
+        protected internal ComPtr<ID3D12Resource> NativeResource => ToComPtr(nativeResource);
+
+        /// <summary>
+        ///   Gets the internal Direct3D 12 Device Child.
+        /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
+        protected internal ComPtr<ID3D12DeviceChild> NativeDeviceChild
         {
-            get
-            {
-                return nativeDeviceChild;
-            }
+            get => ToComPtr(nativeDeviceChild);
             set
             {
-                nativeDeviceChild = value;
-                NativeResource = nativeDeviceChild as SharpDX.Direct3D12.Resource;
-                // Associate PrivateData to this DeviceResource
-                SetDebugName(GraphicsDevice, nativeDeviceChild, Name);
+                if (nativeDeviceChild == value.Handle)
+                    return;
+
+                var oldDeviceChild = nativeDeviceChild;
+                if (oldDeviceChild is not null)
+                    oldDeviceChild->Release();
+
+                nativeDeviceChild = value.Handle;
+
+                if (nativeDeviceChild is null)
+                    return;
+
+                nativeDeviceChild->AddRef();
+
+                HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D12Resource> d3d12Resource);
+
+                // The device child can be something that is not a Direct3D resource actually,
+                // like a Sampler State, for example
+                if (result.IsSuccess)
+                {
+                    nativeResource = d3d12Resource.Handle;
+                }
+
+                NativeDeviceChild.SetDebugName(Name);
             }
         }
 
         /// <summary>
-        /// Associates the private data to the device child, useful to get the name in PIX debugger.
+        ///   Sets the internal Direct3D 12 Device Child to <see langword="null"/> without releasing it.
+        ///   This is used when the Graphics Device is being destroyed, but the resource is a View.
         /// </summary>
-        internal static void SetDebugName(GraphicsDevice graphicsDevice, SharpDX.Direct3D12.DeviceChild deviceChild, string name)
+        protected internal void ForgetNativeChildWithoutReleasing()
         {
+            nativeDeviceChild = null;
+            nativeResource = null;
         }
 
         /// <summary>
-        /// Called when graphics device has been detected to be internally destroyed.
+        ///   Gets the internal Direct3D 11 device (<see cref="ID3D11Device"/>) if the resource is attached to
+        ///   a <see cref="Graphics.GraphicsDevice"/>, or <see langword="null"/> if not.
         /// </summary>
-        protected internal virtual void OnDestroyed()
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
+        protected ComPtr<ID3D12Device> NativeDevice => GraphicsDevice?.NativeDevice ?? default;
+
+
+        // No Direct3D-specific initialization
+        private partial void Initialize() { }
+
+        /// <summary>
+        ///   Called when the <see cref="GraphicsDevice"/> has been detected to be internally destroyed,
+        ///   or when the <see cref="Destroy"/> methad has been called. Raises the <see cref="Destroyed"/> event.
+        /// </summary>
+        /// <remarks>
+        ///   This method releases the underlying native resources (<see cref="ID3D12Resource"/> and <see cref="ID3D12DeviceChild"/>).
+        /// </remarks>
+        protected internal virtual partial void OnDestroyed()
         {
             Destroyed?.Invoke(this, EventArgs.Empty);
 
-            if (nativeDeviceChild != null)
+            if (nativeDeviceChild is not null)
             {
                 // Schedule the resource for destruction (as soon as we are done with it)
-                GraphicsDevice.TemporaryResources.Enqueue(new KeyValuePair<long, object>(GraphicsDevice.NextFenceValue, nativeDeviceChild));
+                GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, NativeResource));
                 nativeDeviceChild = null;
             }
-            NativeResource = null;
+
+            SafeRelease(ref nativeResource);
         }
 
         /// <summary>
-        /// Called when graphics device has been recreated.
+        ///   Called when the <see cref="GraphicsDevice"/> has been recreated.
         /// </summary>
-        /// <returns>True if item transitioned to a <see cref="GraphicsResourceLifetimeState.Active"/> state.</returns>
+        /// <returns>
+        ///   <see langword="true"/> if resource has transitioned to the <see cref="GraphicsResourceLifetimeState.Active"/> state.
+        /// </returns>
         protected internal virtual bool OnRecreate()
         {
             return false;
         }
-
-        protected SharpDX.Direct3D12.Device NativeDevice
-        {
-            get
-            {
-                return GraphicsDevice != null ? GraphicsDevice.NativeDevice : null;
-            }
-        }
-        
-        internal static void ReleaseComObject<T>(ref T comObject) where T : class, IUnknown
-        {
-            // We can't put IUnknown as a constraint on the generic as it would break compilation (trying to import SharpDX in projects with InternalVisibleTo)
-            var refCountResult = comObject.Release();
-            comObject = null;
-        }
     }
 }
- 
+
 #endif

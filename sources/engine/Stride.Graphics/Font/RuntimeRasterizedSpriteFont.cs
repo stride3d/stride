@@ -71,7 +71,7 @@ namespace Stride.Graphics.Font
                     return;
 
                 base.FontSystem = value;
-                
+
                 // retrieve needed info from the font
                 float relativeLineSpacing;
                 float relativeBaseOffsetY;
