@@ -13,8 +13,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CrashReportForm.Designer.cs">
       <DependentUpon>CrashReportForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)CrashReportUtils.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ICrashEmailSetting.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CrashReportData.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CrashReportForm.resx">
