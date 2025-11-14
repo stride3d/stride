@@ -16,6 +16,9 @@ namespace Stride.Input.RawInput
 
         [DllImport("user32.dll")]
         public static extern void ClipCursor(IntPtr rect);
+
+        [DllImport("user32.dll")] 
+        public static extern IntPtr GetForegroundWindow();
     }
 }
 #endif
