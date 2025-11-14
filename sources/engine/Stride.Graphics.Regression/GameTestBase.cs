@@ -6,8 +6,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 using Xunit;
 
@@ -575,7 +576,7 @@ namespace Stride.Graphics.Regression
 
             game.ScreenShotAutomationEnabled = !ForceInteractiveMode;
 
-            Exception exceptionOrFailedAssert = null;
+            ExceptionDispatchInfo exceptionOrFailedAssert = null;
 
             try
             {
@@ -584,7 +585,7 @@ namespace Stride.Graphics.Regression
             catch (Exception ex)
             {
                 // This catches both errors in the test execution and assertion failures
-                exceptionOrFailedAssert = ex;
+                exceptionOrFailedAssert = ExceptionDispatchInfo.Capture(ex);
             }
 
 #if STRIDE_PLATFORM_DESKTOP
@@ -601,8 +602,7 @@ namespace Stride.Graphics.Regression
             }
 #endif
             // If there was an exception, rethrow it now
-            if (exceptionOrFailedAssert is not null)
-                throw exceptionOrFailedAssert;
+            exceptionOrFailedAssert?.Throw();
 
             // If there were comparison failures, assert them now
             if (game.ScreenShotAutomationEnabled)
