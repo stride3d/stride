@@ -63,7 +63,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
             }
         }
 
-        private void Editor_ProcessDiagnostics(object sender, DiagnosticsUpdatedArgs e)
+        private void Editor_ProcessDiagnostics(object sender, DiagnosticsChangedArgs e)
         {
             CodeEditor.ProcessDiagnostics(e);
         }
