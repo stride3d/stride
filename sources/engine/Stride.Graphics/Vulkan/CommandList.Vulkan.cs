@@ -1091,34 +1091,40 @@ namespace Stride.Graphics
                 // Copy
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    throw new NotImplementedException();
-                    //if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
-                    //{
-                    //    var copy = new VkBufferCopy
-                    //    {
-                    //        SourceOffset = 0,
-                    //        DestinationOffset = 0,
-                    //        Size = (uint) (sourceParent.ViewWidth * sourceParent.ViewHeight * sourceParent.ViewDepth * sourceParent.ViewFormat.SizeInBytes())
-                    //    };
-                    //    vkCmdCopyBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeBuffer, destinationParent.NativeBuffer, 1, &copy);
-                    //}
-                    //else
-                    //{
-                    //    var copy = new VkBufferImageCopy
-                    //    {
-                    //        ImageSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint) sourceTexture.ArraySlice, (uint) sourceTexture.ArraySize, (uint) sourceTexture.MipLevel),
-                    //        ImageExtent = new Vortice.Mathematics.Size3((uint) destinationTexture.Width, (uint) destinationTexture.Height, (uint) destinationTexture.Depth)
-                    //    };
-                    //    vkCmdCopyImageToBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeBuffer, 1, &copy);
-                    //}
+                    if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
+                    {
+                        throw new NotImplementedException();
+                        //var copy = new VkBufferCopy
+                        //{
+                        //    sourceOffset = 0,
+                        //    destinationOffset = 0,
+                        //    size = (uint) (sourceParent.ViewWidth * sourceParent.ViewHeight * sourceParent.ViewDepth * sourceParent.ViewFormat.SizeInBytes())
+                        //};
+                        //vkCmdCopyBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeBuffer, destinationParent.NativeBuffer, 1, &copy);
+                    }
+                    else
+                    {
+                        var copy = new VkBufferImageCopy
+                        {
+                            bufferOffset = (ulong)destinationTexture.ComputeBufferOffset(destinationSubResource, 0),
+                            bufferImageHeight = (uint)destinationTexture.Height,
+                            bufferRowLength = (uint)destinationTexture.Width,
+                            // Review: Method parameter is ignored, D3D12 doesn't do that and ignore texture view details
+                            imageSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)sourceTexture.MipLevel, (uint)sourceTexture.ArraySlice, (uint)sourceTexture.ArraySize),
+                            imageOffset = new VkOffset3D(region.Left, region.Top, region.Front),
+                            imageExtent = new VkExtent3D((uint)(region.Right - region.Left), (uint)(region.Bottom - region.Top), (uint)(region.Back - region.Front))
+                        };
+                        vkCmdCopyImageToBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeBuffer, 1, &copy);
+                    }
 
                     //// VkFence for host access
-                    //destinationParent.StagingFenceValue = null;
-                    //destinationParent.StagingBuilder = this;
-                    //currentCommandList.StagingResources.Add(destinationParent);
+                    destinationParent.StagingFenceValue = null;
+                    destinationParent.StagingBuilder = this;
+                    currentCommandList.StagingResources.Add(destinationParent);
                 }
                 else
                 {
+                    // Review: Method parameter is ignored, D3D12 doesn't do that and ignore texture view details
                     var destinationSubresource = new VkImageSubresourceLayers(destinationParent.NativeImageAspect, (uint) destinationTexture.MipLevel, (uint) destinationTexture.ArraySlice, (uint) destinationTexture.ArraySize);
 
                     if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
