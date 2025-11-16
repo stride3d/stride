@@ -5,8 +5,16 @@ using Stride.Core.Serialization;
 
 namespace Stride.Rendering;
 
+/// <summary>
+///   Provides functionality to serialize and deserialize <see cref="PermutationParameterKey{T}"/> objects.
+/// </summary>
 public class PermutationParameterKeySerializer<T> : DataSerializer<PermutationParameterKey<T>>
 {
+    /// <summary>
+    ///   Serializes or deserializes a <see cref="PermutationParameterKey{T}"/> object.
+    /// </summary>
+    /// <param name="permutationParameterKey">The object to serialize or deserialize.</param>
+    /// <inheritdoc/>
     public override void Serialize(ref PermutationParameterKey<T> permutationParameterKey, ArchiveMode mode, SerializationStream stream)
     {
         if (mode == ArchiveMode.Serialize)

@@ -11,15 +11,43 @@ namespace Stride.Rendering;
 
 public partial class ParameterCollection
 {
+    /// <summary>
+    ///   Represents a specialized copier that provides an efficient mechanism to copy a logical composition
+    ///   of parameters from a source to a destination parameter collection, based on a shared key root.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     Unlike <see cref="Copier"/>, which copies all parameters between collections (optimizing for layout compatibility),
+    ///     <b><see cref="CompositionCopier"/></b> is specialized for copying only those parameters
+    ///     whose keys match a given suffix (the <c>keyRoot</c>).
+    ///     This is useful for scenarios where only a subset of parameters —such as those belonging to a material, light,
+    ///     or effect group— need to be transferred.
+    ///   </para>
+    ///   <para>
+    ///     The copier analyzes the destination layout and compiles contiguous copy ranges for matching parameters,
+    ///     assuming the destination layout is sequential. It then copies data and resources efficiently using these ranges.
+    ///   </para>
+    /// </remarks>
     public struct CompositionCopier
     {
+        // A compiled copy range that contains information about how to copy elements (data or resources).
+        // It is null if the layouts match and a fast copy can be performed.
         private List<CopyRange> ranges;
 
+        /// <summary>
+        ///   Gets a value indicating whether the current composition copier is in a valid state,
+        ///   i.e., whether it has been successfully compiled with a valid destination layout.
+        /// </summary>
         public readonly bool IsValid => ranges is not null;
 
         private ParameterCollection destination;
 
 
+        /// <summary>
+        ///   Copies data and object values from a source parameter collection to the destination parameter collection
+        ///   whose layout and copy ranges have been compiled previously by the <see cref="CompileCopyRanges"/>.
+        /// </summary>
+        /// <param name="source">The source <see cref="ParameterCollection"/> from which data and resources will be copied.</param>
         public readonly void Copy(ParameterCollection source)
         {
             scoped ReadOnlySpan<CopyRange> copyRanges = CollectionsMarshal.AsSpan(ranges);
@@ -50,6 +78,25 @@ public partial class ParameterCollection
             }
         }
 
+        /// <summary>
+        ///   Analyzes the source and destination parameter collection layouts to determine
+        ///   how to copy elements and compiles a list of copy ranges.
+        /// </summary>
+        /// <param name="destination">The destination <see cref="ParameterCollection"/> whose layout will be used for the copy operation.
+        /// </param>
+        /// <param name="source"></param>
+        /// <param name="keyRoot"></param>
+        /// <remarks>
+        ///   <para>
+        ///     This method updates the source layout if it is not already set and matches elements
+        ///     between the source and destination layouts.
+        ///     It creates a list of copy ranges based on the matched elements.
+        ///   </para>
+        ///   <para>
+        ///     This method <strong>assumes that the destination layout is sequential</strong>,
+        ///     i.e., that the destination parameters are laid out in a contiguous manner.
+        ///   </para>
+        /// </remarks>
         public void CompileCopyRanges(ParameterCollection destination, ParameterCollection source, string keyRoot)
         {
             ranges = [];
@@ -128,6 +175,14 @@ public partial class ParameterCollection
             source.UpdateLayout(sourceLayout);
         }
 
+        /// <summary>
+        ///   Adds the specified range to the list of ranges to copy if it contains data,
+        ///   and resets the range to be reused.
+        /// </summary>
+        /// <param name="currentRange">
+        ///   The range to be evaluated and potentially added to the collection.
+        ///   The range is reset if added.
+        /// </param>
         private readonly void FlushRangeIfNecessary(scoped ref CopyRange currentRange)
         {
             if (currentRange.Size > 0)

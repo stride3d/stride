@@ -10,6 +10,17 @@ namespace Stride.Rendering;
 
 public partial class ParameterCollection
 {
+    /// <summary>
+    ///   Represents a copier designed to efficiently copy data and resources from a source
+    ///   to a destination parameter collection, optimizing for layout compatibility and efficiency.
+    /// </summary>
+    /// <param name="destination">
+    ///   The destination <see cref="ParameterCollection"/> where data and resources will be copied to.
+    /// </param>
+    /// <param name="source">
+    ///   The source <see cref="ParameterCollection"/> from which data and resources will be copied.
+    /// </param>
+    /// <param name="subKey">An optional subkey used to match specific elements between the source and destination.</param>
     public struct Copier(ParameterCollection destination, ParameterCollection source, string subKey = null)
     {
         // A compiled copy range that contains information about how to copy elements (data or resources).
@@ -19,6 +30,15 @@ public partial class ParameterCollection
         private int sourceLayoutCounter = 0;
 
 
+        /// <summary>
+        ///   Copies data from the source to the destination parameter collections, optimizing for layout compatibility.
+        /// </summary>
+        /// <exception cref="NotImplementedException">Thrown if the destination layout is not defined.</exception>
+        /// <remarks>
+        ///   This method attempts to perform a fast copy if the source and destination layouts are identical.
+        ///   If the layouts differ, it compiles the necessary ranges for copying and retries the fast copy.
+        ///   If a fast copy is not possible, it falls back to a slower element-by-element copy.
+        /// </remarks>
         public void Copy()
         {
             // TODO: We should provide a slow version for first copy during Extract (layout isn't known yet)
@@ -46,12 +66,23 @@ public partial class ParameterCollection
             PerformRangesCopy();
         }
 
+        /// <summary>
+        ///   Copies data and object values from the source to the destination directly
+        ///   when it is known the layouts match.
+        /// </summary>
+        /// <param name="destinationLayout">
+        ///   The layout of the destination buffer, specifying the data size and resource count for the copy operation.
+        /// </param>
         private readonly void PerformFastCopy(ParameterCollectionLayout destinationLayout)
         {
             source.DataValues[..destinationLayout.BufferSize].CopyTo(destination.DataValues.AsSpan());
             source.ObjectValues[..destinationLayout.ResourceCount].CopyTo(destination.ObjectValues.AsSpan());
         }
 
+        /// <summary>
+        ///   Copies data and object values from the source to the destination based on the ranges
+        ///   compiled by the <see cref="CompileCopyRanges"/> method.
+        /// </summary>
         private readonly void PerformRangesCopy()
         {
             for (int i = 0; i < ranges.Length; i++)
@@ -80,6 +111,15 @@ public partial class ParameterCollection
             }
         }
 
+        /// <summary>
+        ///   Analyzes the source and destination layouts to determine how to copy elements
+        ///   and compiles a list of copy ranges.
+        /// </summary>
+        /// <remarks>
+        ///   This method updates the source layout if it is not already set and matches elements
+        ///   between the source and destination layouts.
+        ///   It creates a list of copy ranges based on the matched elements.
+        /// </remarks>
         private void CompileCopyRanges()
         {
             // If we are first, let's apply our layout!

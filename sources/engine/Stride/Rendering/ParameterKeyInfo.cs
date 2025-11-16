@@ -7,34 +7,80 @@ using Stride.Core;
 
 namespace Stride.Rendering;
 
+/// <summary>
+///   Represents information about a <see cref="ParameterKey"/>, including the key that identifies it,
+///   and details specific to value or resource parameters such as offset, count, or binding slot.
+/// </summary>
+/// <remarks>
+///   This structure is used to describe both value parameters and resource parameters.
+///   <list type="bullet">
+///     <item>For value parameters, it includes an <see cref="Offset"/> and a <see cref="Count"/> of elements.</item>
+///     <item>For resource parameters, it includes a <see cref="BindingSlot"/>.</item>
+///   </list>
+///   Fields that are not applicable for the type of parameter being described
+///   will be set to the <see cref="Invalid"/> constant.
+/// </remarks>
 [DataContract]
 public struct ParameterKeyInfo : IEquatable<ParameterKeyInfo>
 {
+    /// <summary>
+    ///   A constant value representing an invalid field in a parameter key info.
+    /// </summary>
     public const int Invalid = -1;
 
 
     // Common to both value and resource parameters
 
+    /// <summary>
+    ///   The key that identifies the parameter.
+    /// </summary>
     public ParameterKey Key;
 
     // For Value parameters
 
+    /// <summary>
+    ///   If the parameter is a value, this is the offset where the value can be accessed in its containing layout.
+    ///   Otherwise, this is <see cref="Invalid"/>.
+    /// </summary>
     public int Offset;
+    /// <summary>
+    ///   If the parameter is a value, this is the number of elements the value is composed of.
+    ///   Otherwise, this is <see cref="Invalid"/>.
+    /// </summary>
     public int Count;
 
     // For Resources (Object) parameters
 
+    /// <summary>
+    ///   If the parameter is a resource (like a <c>Texture</c>, a <c>SamplerState</c>, etc.),
+    ///   this is the binding slot where that resource is bound.
+    ///   Otherwise, this is <see cref="Invalid"/>.
+    /// </summary>
     public int BindingSlot;
 
     #region Convenience properties
 
+    /// <summary>
+    ///   Gets a value indicating whether the parameter is a value parameter.
+    /// </summary>
     public readonly bool IsValueParameter => Offset != Invalid;
 
+    /// <summary>
+    ///   Gets a value indicating whether the parameter is an object (like a <c>Texture</c> or <c>SamplerState</c>)
+    ///   parameter, or a permutation parameter.
+    /// </summary>
     public readonly bool IsResourceParameter => BindingSlot != Invalid;
 
     #endregion
 
 
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="ParameterKeyInfo"/> structure
+    ///   describing a value parameter with its offset, and number of elements.
+    /// </summary>
+    /// <param name="key">The parameter key that identifies the value parameter.</param>
+    /// <param name="offset">The offset where the value can be accessed in its containing layout.</param>
+    /// <param name="count">The number of elements the value parameter is composed of.</param>
     public ParameterKeyInfo(ParameterKey key, int offset, int count)
     {
         Key = key;
@@ -43,6 +89,12 @@ public struct ParameterKeyInfo : IEquatable<ParameterKeyInfo>
         BindingSlot = Invalid;
     }
 
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="ParameterKeyInfo"/> structure
+    ///   describing a resource parameter with its binding slot.
+    /// </summary>
+    /// <param name="key">The parameter key that identifies the value parameter.</param>
+    /// <param name="bindingSlot">The binding slot where the resource can be found.</param>
     public ParameterKeyInfo(ParameterKey key, int bindingSlot)
     {
         Key = key;
@@ -52,11 +104,19 @@ public struct ParameterKeyInfo : IEquatable<ParameterKeyInfo>
     }
 
 
+    /// <summary>
+    ///   Returns an accessor for accessing the parameter as a resource.
+    /// </summary>
+    /// <returns>A <see cref="ParameterAccessor"/> for accessing the resource.</returns>
     internal readonly ParameterAccessor GetObjectAccessor()
     {
         return new ParameterAccessor(BindingSlot, Count);
     }
 
+    /// <summary>
+    ///   Returns an accessor for accessing the parameter as a value.
+    /// </summary>
+    /// <returns>A <see cref="ParameterAccessor"/> for accessing the value.</returns>
     internal readonly ParameterAccessor GetValueAccessor()
     {
         return new ParameterAccessor(Offset, Count);
