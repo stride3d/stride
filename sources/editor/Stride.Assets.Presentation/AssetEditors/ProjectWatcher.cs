@@ -14,6 +14,7 @@ using System.Threading.Tasks.Dataflow;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
+using NuGet.Common;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -92,7 +93,7 @@ namespace Stride.Assets.Presentation.AssetEditors
             this.session = session;
             this.logger = logger;
 
-            roslynHost = new Lazy<Task<RoslynHost>>(() => Task.Factory.StartNew(() => CreateRoslynHost()));
+            roslynHost = AsyncLazy.New(CreateRoslynHost);
 
             session.LocalPackages.CollectionChanged += LocalPackagesChanged;
 
