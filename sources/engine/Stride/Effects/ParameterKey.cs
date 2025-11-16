@@ -1,12 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #pragma warning disable SA1402 // File may only contain a single type
+
 using System;
-using System.Reflection;
 using System.Runtime.CompilerServices;
+
 using Stride.Core;
 using Stride.Core.Serialization;
 using Stride.Core.Storage;
+using Stride.Core.UnsafeExtensions;
 
 namespace Stride.Rendering
 {
@@ -15,6 +18,7 @@ namespace Stride.Rendering
     /// </summary>
     public abstract class ParameterKey : PropertyKey
     {
+        // Cached hashcode for faster lookup (string is immutable)
         public ulong HashCode;
 
         /// <summary>
@@ -24,15 +28,6 @@ namespace Stride.Rendering
         /// <param name="name">The name.</param>
         /// <param name="length">The length.</param>
         /// <param name="metadatas">The metadatas.</param>
-        protected ParameterKey(Type propertyType, string name, int length, params PropertyKeyMetadata[] metadatas)
-            : base(name, propertyType, null, metadatas)
-        {
-            Length = length;
-            // Cache hashCode for faster lookup (string is immutable)
-            // TODO: Make it unique (global dictionary?)
-            UpdateName();
-        }
-
         [DataMemberIgnore]
         public new ParameterKeyValueMetadata DefaultValueMetadata { get; private set; }
 
@@ -45,18 +40,16 @@ namespace Stride.Rendering
 
         public abstract int Size { get; }
 
-        internal void SetName(string nameParam)
+        protected ParameterKey(Type propertyType, string name, int length, params PropertyKeyMetadata[]? metadatas)
+            : base(name, propertyType, ownerType: null, metadatas)
         {
-            if (nameParam == null) throw new ArgumentNullException(nameof(nameParam));
+            Length = length;
 
-            name = string.Intern(nameParam);
+            // Cache hashCode for faster lookup (string is immutable)
+            // TODO: Make it unique (global dictionary?)
             UpdateName();
         }
 
-        internal void SetOwnerType(Type ownerType)
-        {
-            OwnerType = ownerType;
-        }
 
         /// <summary>
         /// Determines whether the specified <see cref="object"/> is equal to this instance.
@@ -65,15 +58,9 @@ namespace Stride.Rendering
         /// <returns>
         ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        internal void SetName(string name)
         {
-            //return ReferenceEquals(this, obj);
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            var against = obj as ParameterKey;
-            if (against == null) return false;
-            return (Equals(against.Name, Name));
-        }
+            ArgumentNullException.ThrowIfNull(name);
 
         /// <summary>
         /// Returns a hash code for this instance.
@@ -81,9 +68,8 @@ namespace Stride.Rendering
         /// <returns>
         /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
         /// </returns>
-        public override int GetHashCode()
-        {
-            return (int)HashCode;
+            base.name = string.Intern(name);
+            UpdateName();
         }
 
         /// <summary>
@@ -94,9 +80,14 @@ namespace Stride.Rendering
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        public static bool operator ==(ParameterKey left, ParameterKey right)
+        private void UpdateName()
         {
-            return Equals(left, right);
+            var objectIdBuilder = new ObjectIdBuilder();
+            objectIdBuilder.Write(Name);
+            var objectId = objectIdBuilder.ComputeHash();
+
+            scoped ReadOnlySpan<ulong> objectIdData = objectId.AsReadOnlySpan<ObjectId, ulong>();
+            HashCode = objectIdData[0] ^ objectIdData[1];
         }
 
         /// <summary>
@@ -107,25 +98,13 @@ namespace Stride.Rendering
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        public static bool operator !=(ParameterKey left, ParameterKey right)
+        internal void SetOwnerType(Type? ownerType)
         {
-            return !Equals(left, right);
+            OwnerType = ownerType;
         }
 
         //public abstract ParameterKey AppendKeyOverride(object obj);
 
-        private unsafe void UpdateName()
-        {
-            fixed (char* bufferStart = Name)
-            {
-                var objectIdBuilder = new ObjectIdBuilder();
-                objectIdBuilder.Write((byte*)bufferStart, sizeof(char) * Name.Length);
-
-                var objId = objectIdBuilder.ComputeHash();
-                var objIdData = (ulong*)&objId;
-                HashCode = objIdData[0] ^ objIdData[1];
-            }
-        }
 
         /// <summary>
         /// Converts the value passed by parameter to the expecting value of this parameter key (for example, if value is
@@ -136,12 +115,12 @@ namespace Stride.Rendering
         public object ConvertValue(object value)
         {
             // If not a value type, return the value as-is
-            if (!PropertyType.GetTypeInfo().IsValueType)
+            if (!PropertyType.IsValueType)
             {
                 return value;
             }
 
-            if (value != null)
+            if (value is not null)
             {
                 // If target type is same type, then return the value directly
                 if (PropertyType == value.GetType())
@@ -149,7 +128,7 @@ namespace Stride.Rendering
                     return value;
                 }
 
-                if (PropertyType.GetTypeInfo().IsEnum)
+                if (PropertyType.IsEnum)
                 {
                     value = Enum.Parse(PropertyType, value.ToString());
                 }
@@ -162,14 +141,11 @@ namespace Stride.Rendering
 
         protected override void SetupMetadata(PropertyKeyMetadata metadata)
         {
-            if (metadata is ParameterKeyValueMetadata)
+            if (metadata is ParameterKeyValueMetadata defaultValueMetadata)
             {
-                DefaultValueMetadata = (ParameterKeyValueMetadata)metadata;
+                DefaultValueMetadata = defaultValueMetadata;
             }
-            else
-            {
-                base.SetupMetadata(metadata);
-            }
+            else base.SetupMetadata(metadata);
         }
 
         internal virtual object ReadValue(IntPtr data)
@@ -177,30 +153,10 @@ namespace Stride.Rendering
             throw new NotSupportedException("Only implemented for ValueParameterKey");
         }
 
-        internal abstract void SerializeHash(SerializationStream stream, object value);
-    }
-
-    public enum ParameterKeyType
-    {
-        Value,
-        Object,
-        Permutation,
-    }
-
     /// <summary>
     /// Key of an gereric effect parameter.
     /// </summary>
     /// <typeparam name="T">Type of the parameter key.</typeparam>
-    public abstract class ParameterKey<T> : ParameterKey
-    {
-        private static DataSerializer<T> dataSerializer;
-        private static bool isValueType = typeof(T).GetTypeInfo().IsValueType;
-
-        public override bool IsValueType
-        {
-            get { return isValueType; }
-        }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ParameterKey{T}"/> class.
         /// </summary>
@@ -208,9 +164,9 @@ namespace Stride.Rendering
         /// <param name="name">The name.</param>
         /// <param name="length">The length.</param>
         /// <param name="metadata">The metadata.</param>
-        protected ParameterKey(ParameterKeyType type, string name, int length, PropertyKeyMetadata metadata)
-            : this(type, name, length, new[] { metadata })
+        internal virtual object ReadValue(scoped ref readonly byte data)
         {
+            throw new NotSupportedException("Only implemented for ValueParameterKey");
         }
 
         /// <summary>
@@ -220,46 +176,34 @@ namespace Stride.Rendering
         /// <param name="name">The name.</param>
         /// <param name="length">The length.</param>
         /// <param name="metadatas">The metadatas.</param>
-        protected ParameterKey(ParameterKeyType type, string name, int length = 1, params PropertyKeyMetadata[] metadatas)
-            : base(typeof(T), name, length, metadatas.Length > 0 ? metadatas : new PropertyKeyMetadata[] { new ParameterKeyValueMetadata<T>() })
+        internal virtual object ReadValue(scoped ReadOnlySpan<byte> data)
         {
-            Type = type;
+            throw new NotSupportedException("Only implemented for ValueParameterKey");
         }
 
-        [DataMemberIgnore]
-        public ParameterKeyValueMetadata<T> DefaultValueMetadataT { get; private set; }
+        internal abstract void Serialize(SerializationStream stream, object value);
 
-        public override int Size => Unsafe.SizeOf<T>();
 
-        public override string ToString()
+        public override bool Equals(object obj)
         {
-            return string.Format("{0}", Name);
+            if (obj is null)
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            return obj is ParameterKey parameterKey && Equals(parameterKey.Name, Name);
         }
 
-        internal override void SerializeHash(SerializationStream stream, object value)
-        {
-            var currentDataSerializer = dataSerializer;
-            if (currentDataSerializer == null)
-            {
-                dataSerializer = currentDataSerializer = MemberSerializer<T>.Create(stream.Context.SerializerSelector);
-            }
+        public override int GetHashCode() => (int) HashCode;
 
-            currentDataSerializer.Serialize(ref value, ArchiveMode.Serialize, stream);
+        public static bool operator ==(ParameterKey left, ParameterKey right)
+        {
+            return Equals(left, right);
         }
 
-        protected override void SetupMetadata(PropertyKeyMetadata metadata)
+        public static bool operator !=(ParameterKey left, ParameterKey right)
         {
-            if (metadata is ParameterKeyValueMetadata<T>)
-            {
-                DefaultValueMetadataT = (ParameterKeyValueMetadata<T>)metadata;
-            }
-            // Run the always base as ParameterKeyValueMetadata<T> is also ParameterKeyValueMetadata used by the base
-            base.SetupMetadata(metadata);
-        }
-
-        internal override PropertyContainer.ValueHolder CreateValueHolder(object value)
-        {
-            throw new NotImplementedException();
+            return !Equals(left, right);
         }
     }
 
@@ -267,50 +211,80 @@ namespace Stride.Rendering
     /// A blittable value effect key, usually for use by shaders (.sdsl).
     /// </summary>
     /// <typeparam name="T">Type of the parameter key.</typeparam>
-    [DataSerializer(typeof(ValueParameterKeySerializer<>), Mode = DataSerializerGenericMode.GenericArguments)]
-    public sealed class ValueParameterKey<T> : ParameterKey<T> where T : struct
+    public abstract class ParameterKey<T> : ParameterKey
     {
-        public ValueParameterKey(string name, int length, PropertyKeyMetadata metadata) : base(ParameterKeyType.Value, name, length, metadata)
+        // Serializer for the parameter type T
+        private static DataSerializer<T> dataSerializer;
+
+        /// <summary>
+        ///   Gets a value indicating whether the type of the parameter <typeparamref name="T"/> is a value type.
+        /// </summary>
+        public override bool IsValueType => typeof(T).IsValueType; // Guaranteed to be a runtime intrinsic
+
+        /// <summary>
+        ///   Gets an optional metadata that can be used to store a default value for the parameter
+        ///   identified by the parameter key.
+        /// </summary>
+        [DataMemberIgnore]
+        public ParameterKeyValueMetadata<T> DefaultValueMetadataT { get; private set; }
+
+        /// <inheritdoc/>
+        public override int Size => Unsafe.SizeOf<T>();
+
+
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="ParameterKey{T}"/> class.
+        /// </summary>
+        /// <param name="type">The type of parameter key.</param>
+        /// <param name="name">The name with which to identify the parameter key.</param>
+        /// <param name="length">The number of elements the parameter is composed of.</param>
+        /// <param name="metadata">
+        ///   Optional metadata object providing additional information about the parameter or its type.
+        /// </param>
+        protected ParameterKey(ParameterKeyType type, string name, int length, PropertyKeyMetadata metadata)
+            : this(type, name, length, [ metadata ])
         {
         }
 
-        public ValueParameterKey(string name, int length = 1, params PropertyKeyMetadata[] metadatas) : base(ParameterKeyType.Value, name, length, metadatas)
+        protected ParameterKey(ParameterKeyType type, string name, int length = 1, params PropertyKeyMetadata[]? metadatas)
+            : base(typeof(T), name, length, metadatas?.Length > 0 ? metadatas : [ new ParameterKeyValueMetadata<T>() ])
         {
+            Type = type;
         }
 
-        internal override unsafe object ReadValue(nint data)
-            => Unsafe.ReadUnaligned<T>((void*)data);
-    }
 
     /// <summary>
     /// An object (or boxed value) effect key, usually for use by shaders (.sdsl).
     /// </summary>
     /// <typeparam name="T">Type of the parameter key.</typeparam>
-    [DataSerializer(typeof(ObjectParameterKeySerializer<>), Mode = DataSerializerGenericMode.GenericArguments)]
-    public sealed class ObjectParameterKey<T> : ParameterKey<T>
-    {
-        public ObjectParameterKey(string name, int length, PropertyKeyMetadata metadata) : base(ParameterKeyType.Object, name, length, metadata)
-        {
-        }
+        public override string ToString() => Name;
 
-        public ObjectParameterKey(string name, int length = 1, params PropertyKeyMetadata[] metadatas) : base(ParameterKeyType.Object, name, length, metadatas)
+        /// <inheritdoc/>
+        internal override void Serialize(SerializationStream stream, object value)
         {
+            var currentDataSerializer = dataSerializer ??= MemberSerializer<T>.Create(stream.Context.SerializerSelector);
+
+            currentDataSerializer.Serialize(ref value, ArchiveMode.Serialize, stream);
         }
-    }
 
     /// <summary>
     /// An effect permutation key, usually for use by effects (.sdfx).
     /// </summary>
     /// <typeparam name="T">Type of the parameter key.</typeparam>
-    [DataSerializer(typeof(PermutationParameterKeySerializer<>), Mode = DataSerializerGenericMode.GenericArguments)]
-    public sealed class PermutationParameterKey<T> : ParameterKey<T>
-    {
-        public PermutationParameterKey(string name, int length, PropertyKeyMetadata metadata) : base(ParameterKeyType.Permutation, name, length, metadata)
+        protected override void SetupMetadata(PropertyKeyMetadata metadata)
         {
+            if (metadata is ParameterKeyValueMetadata<T> defaultValueMetadataT)
+            {
+                DefaultValueMetadataT = defaultValueMetadataT;
+            }
+
+            // Run the base always as ParameterKeyValueMetadata<T> is also ParameterKeyValueMetadata used by the base
+            base.SetupMetadata(metadata);
         }
 
-        public PermutationParameterKey(string name, int length = 1, params PropertyKeyMetadata[] metadatas) : base(ParameterKeyType.Permutation, name, length, metadatas)
+        internal override PropertyContainer.ValueHolder CreateValueHolder(object value)
         {
+            throw new NotImplementedException();
         }
     }
 }

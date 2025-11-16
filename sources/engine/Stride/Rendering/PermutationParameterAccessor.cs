@@ -1,15 +1,17 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Collections;
-
 namespace Stride.Rendering;
 
-public class ParameterCollectionLayout
+public readonly struct PermutationParameterAccessor<T>
 {
-    public FastListStruct<ParameterKeyInfo> LayoutParameterKeyInfos = [];
+    internal readonly int BindingSlot;
+    internal readonly int Count;
 
-    public int ResourceCount;
 
-    public int BufferSize;
+    internal PermutationParameterAccessor(int bindingSlot, int count)
+    {
+        BindingSlot = bindingSlot;
+        Count = count;
+    }
 }

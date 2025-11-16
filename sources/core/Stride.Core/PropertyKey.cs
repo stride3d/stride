@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #pragma warning disable SA1402 // File may only contain a single class
 
 using System.Diagnostics;
@@ -27,25 +28,31 @@ public abstract class PropertyKey : IComparable
     /// <param name="propertyType">Type of the property.</param>
     /// <param name="ownerType">Type of the owner.</param>
     /// <param name="metadatas">The metadatas.</param>
-    protected PropertyKey(string name, Type propertyType, Type ownerType, params PropertyKeyMetadata[] metadatas)
+    protected PropertyKey(string name, Type propertyType, Type? ownerType, params PropertyKeyMetadata[]? metadatas)
     {
 #if NET7_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(name);
 #else
-        if (name is null) throw new ArgumentNullException(nameof(name));
+        if (name is null)
+            throw new ArgumentNullException(nameof(name));
 #endif // NET7_0_OR_GREATER
 
         Name = name;
         PropertyType = propertyType;
         OwnerType = ownerType;
         Metadatas = metadatas;
+
         SetupMetadatas();
     }
 
     /// <summary>
     /// Gets the name of this key.
     /// </summary>
-    public string Name { get => name; init => name = value; }
+    public string Name
+    {
+        get => name;
+        init => name = value;
+    }
 
     /// <summary>
     /// Gets the default value metadata.
@@ -100,7 +107,7 @@ public abstract class PropertyKey : IComparable
     /// The type of the owner.
     /// </value>
     [DataMemberIgnore]
-    public Type OwnerType { get; protected set; }
+    public Type? OwnerType { get; protected set; }
 
     /// <summary>
     /// Gets the type of the property.
@@ -138,9 +145,9 @@ public abstract class PropertyKey : IComparable
 
     protected virtual void SetupMetadata(PropertyKeyMetadata metadata)
     {
-        if (metadata is DefaultValueMetadata defaultValueMetadata2)
+        if (metadata is DefaultValueMetadata defaultValueMetadata)
         {
-            DefaultValueMetadata = defaultValueMetadata2;
+            DefaultValueMetadata = defaultValueMetadata;
         }
         if (metadata is AccessorMetadata accessorMetadata)
         {

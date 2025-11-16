@@ -1,95 +1,85 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Extensions;
 using Stride.Core.Serialization;
+using Stride.Core.UnsafeExtensions;
 
 namespace Stride.Rendering
 {
     /// <summary>
     /// Manage several effect parameters (resources and data). A specific data and resource layout can be forced (usually by the consuming effect).
     /// </summary>
-    [DataSerializer(typeof(ParameterCollection.Serializer))]
-    [DataSerializerGlobal(null, typeof(List<ParameterKeyInfo>))]
-    [DebuggerTypeProxy(typeof(ParameterCollection.DebugView))]
-    public class ParameterCollection
+    [DataSerializer(typeof(Serializer))]
+    [DataSerializerGlobal(null, typeof(FastList<ParameterKeyInfo>))]
+    [DebuggerTypeProxy(typeof(DebugView))]
+    public partial class ParameterCollection
     {
         // Important! Alignment must be a power of 2
         private const int Alignment = 16;
         private const int AlignmentMask = Alignment - 1;
 
-        private ParameterCollectionLayout layout;
-
         // TODO: Switch to FastListStruct (for serialization)
         private List<ParameterKeyInfo> parameterKeyInfos = new(4);
 
         // Constants and resources
-        [DataMemberIgnore]
-        public byte[] DataValues = [];
-        [DataMemberIgnore]
-        public object[] ObjectValues;
 
         [DataMemberIgnore]
-        public int PermutationCounter = 1;
+        public ReadOnlySpan<byte> DataValues => dataValues;
+        private byte[] dataValues = [];
 
         [DataMemberIgnore]
-        public int LayoutCounter = 1;
+        public ReadOnlySpan<object> ObjectValues => objectValues;
+        private object[] objectValues;
 
         [DataMemberIgnore]
-        public List<ParameterKeyInfo> ParameterKeyInfos => parameterKeyInfos;
+        public int PermutationCounter { get; private set; } = 1; // TODO: Shoud be named PermutationVersion, as it is to know when the permutation has changed
 
         [DataMemberIgnore]
-        public ParameterCollectionLayout Layout => layout;
+        public int LayoutCounter { get; private set; } = 1;  // TODO: Shoud be named LayoutVersion, as it is to know when the layout has changed
 
         [DataMemberIgnore]
-        public bool HasLayout => layout != null;
+        public FastList<ParameterKeyInfo> ParameterKeyInfos => parameterKeyInfos;
 
-        public ParameterCollection()
-        {
-        }
+        [DataMemberIgnore]
+        public ParameterCollectionLayout? Layout { get; private set; }
 
-        public unsafe ParameterCollection(ParameterCollection parameterCollection)
+        [DataMemberIgnore]
+        public bool HasLayout => Layout is not null;
+
+
+        public ParameterCollection() { }
+
+        public ParameterCollection(ParameterCollection parameterCollection)
         {
             // Copy layout
-            if (parameterCollection.layout != null)
+            if (parameterCollection.HasLayout)
             {
-                layout = parameterCollection.layout;
+                Layout = parameterCollection.Layout;
             }
 
             // Copy parameter keys
-            parameterKeyInfos.AddRange(parameterCollection.parameterKeyInfos);
+            parameterKeyInfos = [.. parameterCollection.parameterKeyInfos];
 
             // Copy objects
-            if (parameterCollection.ObjectValues != null)
+            if (!parameterCollection.ObjectValues.IsEmpty)
             {
-                ObjectValues = new object[parameterCollection.ObjectValues.Length];
-                for (int i = 0; i < ObjectValues.Length; ++i)
-                    ObjectValues[i] = parameterCollection.ObjectValues[i];
+                objectValues = [.. parameterCollection.objectValues];
             }
 
             // Copy data
-            if (parameterCollection.DataValues != null)
+            if (!parameterCollection.DataValues.IsEmpty)
             {
-                if (parameterCollection.DataValues.Length == 0)
-                {
-                    DataValues = [];
-                }
-                else
-                {
-                    DataValues = new byte[parameterCollection.DataValues.Length];
-                    fixed (byte* dataValuesSources = parameterCollection.DataValues)
-                    fixed (byte* dataValuesDest = DataValues)
-                    {
-                        MemoryUtilities.CopyWithAlignmentFallback(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
-                    }
-                }
+                dataValues = [.. parameterCollection.dataValues];
             }
         }
 
@@ -97,7 +87,6 @@ namespace Stride.Rendering
         /// if it is not already a multiple.
         /// <para>It is blindly assumed <see cref="Alignment"/> is a power of 2.</para></summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int Align(int value) => (value + AlignmentMask) & ~AlignmentMask;
         /// <summary>Computes the buffer size required for a single parameter value
         /// or an array of parameters of the same type.
         /// <para>This is an incremental size for buffers that contain
@@ -105,19 +94,34 @@ namespace Stride.Rendering
         /// <returns>The size of a buffer required to store <paramref name="elementCount"/>
         /// elements of size <paramref name="elementSize"/>, including padding to
         /// <see cref="Alignment"/> for all but the last element.</returns>
+        private static int Align(int value)
+        {
+            Debug.Assert(int.IsPow2(Alignment), "Alignment must be a power of 2");
+
+            return (value + AlignmentMask) & ~AlignmentMask;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int ComputeAlignedSizeMinusTrailingPadding(int elementSize, int elementCount)
         {
             var result = elementSize;
-            if (--elementCount != 0) result += Align(elementSize) * elementCount;
+
+            if (--elementCount != 0)
+                result += Align(elementSize) * elementCount;
+
             return result;
         }
 
         public override string ToString()
         {
-            var parameterKeysByType = ParameterKeyInfos.GroupBy(x => x.Key.Type);
-            return $"ParameterCollection: {string.Join(", ", parameterKeysByType.Select(x => $"{x.Count()} {x.Key}(s)"))}";
+            var parameterKeysByType = ParameterKeyInfos
+                .GroupBy(x => x.Key.Type)
+                .Select(x => $"{x.Count()} {x.Key}(s)");
+
+            return $"ParameterCollection: {string.Join(", ", parameterKeysByType)}";
         }
+
+        #region Accessors
 
         /// <summary>
         /// Gets an accessor to get and set objects more quickly.
@@ -137,11 +141,11 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameterKey"></param>
         /// <returns></returns>
-        public PermutationParameter<T> GetAccessor<T>(PermutationParameterKey<T> parameterKey, bool createIfNew = true)
+        public PermutationParameterAccessor<T> GetAccessor<T>(PermutationParameterKey<T> parameterKey, bool createIfNew = true)
         {
             // Remap it as PermutationParameter
             var accessor = GetObjectParameterHelper(parameterKey, createIfNew);
-            return new PermutationParameter<T>(accessor.Offset, accessor.Count);
+            return new PermutationParameterAccessor<T>(accessor.Offset, accessor.Count);
         }
 
         /// <summary>
@@ -150,31 +154,79 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameterKey"></param>
         /// <returns></returns>
-        public ValueParameter<T> GetAccessor<T>(ValueParameterKey<T> parameterKey, int elementCount = 1) where T : struct
+        public ValueParameterAccessor<T> GetAccessor<T>(ValueParameterKey<T> parameterKey, int elementCount = 1) where T : unmanaged
         {
             var accessor = GetValueAccessorHelper(parameterKey, elementCount);
-            return new ValueParameter<T>(accessor.Offset, accessor.Count);
+            return new ValueParameterAccessor<T>(accessor.Offset, accessor.Count);
+        }
+
+        protected ParameterAccessor GetObjectParameterHelper(ParameterKey parameterKey, bool createIfNew = true)
+        {
+            ArgumentNullException.ThrowIfNull(parameterKey);
+
+            // Find existing first
+            for (int i = 0; i < parameterKeyInfos.Count; ++i)
+            {
+                if (parameterKeyInfos.Items[i].Key == parameterKey)
+                {
+                    return parameterKeyInfos.Items[i].GetObjectAccessor();
+                }
+            }
+
+            if (!createIfNew)
+                return ParameterAccessor.Invalid;
+
+            if (parameterKey.Type == ParameterKeyType.Permutation)
+                PermutationCounter++;
+
+            LayoutCounter++;
+
+            // Check layout if it exists
+            if (Layout is not null)
+            {
+                foreach (var layoutParameterKeyInfo in Layout.LayoutParameterKeyInfos)
+                {
+                    if (layoutParameterKeyInfo.Key == parameterKey)
+                    {
+                        parameterKeyInfos.Add(layoutParameterKeyInfo);
+                        return layoutParameterKeyInfo.GetObjectAccessor();
+                    }
+                }
+            }
+
+            // Create info entry
+            var resourceValuesSize = objectValues?.Length ?? 0;
+            Array.Resize(ref objectValues, resourceValuesSize + 1);
+            parameterKeyInfos.Add(new ParameterKeyInfo(parameterKey, resourceValuesSize));
+
+            // Initialize default value
+            if (parameterKey.DefaultValueMetadata is not null)
+            {
+                objectValues[resourceValuesSize] = parameterKey.DefaultValueMetadata.GetDefaultValue();
+            }
+
+            return new ParameterAccessor(resourceValuesSize, 1);
         }
 
         private unsafe ParameterAccessor GetValueAccessorHelper(ParameterKey parameterKey, int elementCount = 1)
         {
-            var parameterKeyInfosSpan = CollectionsMarshal.AsSpan(parameterKeyInfos);
+            ArgumentNullException.ThrowIfNull(parameterKey);
 
-            // Find existing first
-            for (int i = 0; i < parameterKeyInfosSpan.Length; ++i)
+            // Try to find an existing parameter key first and return its accessor
+            for (int i = 0; i < parameterKeyInfos.Count; ++i)
             {
-                if (parameterKeyInfosSpan[i].Key == parameterKey)
+                if (parameterKeyInfos.Items[i].Key == parameterKey)
                 {
-                    return parameterKeyInfosSpan[i].GetValueAccessor();
+                    return parameterKeyInfos.Items[i].GetValueAccessor();
                 }
             }
 
             LayoutCounter++;
 
             // Check layout if it exists
-            if (layout != null)
+            if (Layout is not null)
             {
-                foreach (var layoutParameterKeyInfo in layout.LayoutParameterKeyInfos)
+                foreach (var layoutParameterKeyInfo in Layout.LayoutParameterKeyInfos)
                 {
                     if (layoutParameterKeyInfo.Key == parameterKey)
                     {
@@ -188,21 +240,23 @@ namespace Stride.Rendering
             var additionalSize = ComputeAlignedSizeMinusTrailingPadding(parameterKey.Size, elementCount);
 
             // Create offset entry
-            var memberOffset = DataValues.Length;
+            var memberOffset = dataValues.Length;
             parameterKeyInfos.Add(new ParameterKeyInfo(parameterKey, memberOffset, elementCount));
 
             // We append at the end; resize array to accomodate new data
-            Array.Resize(ref DataValues, DataValues.Length + additionalSize);
+            Array.Resize(ref dataValues, dataValues.Length + additionalSize);
 
             // Initialize default value
-            if (parameterKey.DefaultValueMetadata != null)
+            if (parameterKey.DefaultValueMetadata is not null)
             {
-                fixed (byte* dataValues = DataValues)
-                    parameterKey.DefaultValueMetadata.WriteBuffer((IntPtr)dataValues + memberOffset, Alignment);
+                fixed (byte* dataValuesPtr = dataValues)
+                    parameterKey.DefaultValueMetadata.WriteValue((IntPtr) dataValuesPtr + memberOffset, Alignment);
             }
 
             return new ParameterAccessor(memberOffset, elementCount);
         }
+
+        #endregion
 
         /// <summary>
         /// Sets an object.
@@ -210,9 +264,9 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <param name="value"></param>
-        public void Set<T>(ObjectParameterKey<T> parameter, T value)
+        public void Set<T>(ObjectParameterKey<T> parameterKey, T value)
         {
-            Set(GetAccessor(parameter), value);
+            Set(GetAccessor(parameterKey), value);
         }
 
         /// <summary>
@@ -221,11 +275,11 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public T Get<T>(ObjectParameterKey<T> parameter, bool createIfNew = false)
+        public T Get<T>(ObjectParameterKey<T> parameterKey, bool createIfNew = false)
         {
-            var accessor = GetAccessor(parameter, createIfNew);
-            if (accessor.BindingSlot == -1)
-                return parameter.DefaultValueMetadataT.DefaultValue;
+            var accessor = GetAccessor(parameterKey, createIfNew);
+            if (accessor.BindingSlot == ParameterKeyInfo.Invalid)
+                return parameterKey.DefaultValueMetadataT.DefaultValue;
 
             return Get(accessor);
         }
@@ -236,9 +290,9 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <param name="value"></param>
-        public void Set<T>(PermutationParameterKey<T> parameter, T value)
+        public void Set<T>(PermutationParameterKey<T> parameterKey, T value)
         {
-            Set(GetAccessor(parameter), value);
+            Set(GetAccessor(parameterKey), value);
         }
 
         /// <summary>
@@ -247,11 +301,11 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public T Get<T>(PermutationParameterKey<T> parameter, bool createIfNew = false)
+        public T Get<T>(PermutationParameterKey<T> parameterKey, bool createIfNew = false)
         {
-            var accessor = GetAccessor(parameter, createIfNew);
-            if (accessor.BindingSlot == -1)
-                return parameter.DefaultValueMetadataT.DefaultValue;
+            var accessor = GetAccessor(parameterKey, createIfNew);
+            if (accessor.BindingSlot == ParameterKeyInfo.Invalid)
+                return parameterKey.DefaultValueMetadataT.DefaultValue;
 
             return Get(accessor);
         }
@@ -262,9 +316,14 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <param name="value"></param>
-        public void Set<T>(ValueParameterKey<T> parameter, T value) where T : struct
+        public void Set<T>(ValueParameterKey<T> parameterKey, T value) where T : unmanaged
         {
-            Set(GetAccessor(parameter), value);
+            Set(GetAccessor(parameterKey), value);
+        }
+
+        public void Set<T>(ValueParameterKey<T> parameterKey, ref readonly T value) where T : unmanaged
+        {
+            Set(GetAccessor(parameterKey), in value);
         }
 
         /// <summary>
@@ -273,9 +332,9 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <param name="value"></param>
-        public void Set<T>(ValueParameterKey<T> parameter, ref T value) where T : struct
+        public void Set<T>(ValueParameterKey<T> parameterKey, ReadOnlySpan<T> values) where T : unmanaged
         {
-            Set(GetAccessor(parameter), ref value);
+            Set(GetAccessor(parameterKey, values.Length), values.Length, in values[0]);
         }
 
         /// <summary>
@@ -284,9 +343,9 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <param name="values"></param>
-        public void Set<T>(ValueParameterKey<T> parameter, T[] values) where T : struct
+        public void Set<T>(ValueParameterKey<T> parameterKey, T[] values) where T : unmanaged
         {
-            Set(GetAccessor(parameter, values.Length), values.Length, ref values[0]);
+            Set(GetAccessor(parameterKey, values.Length), values.Length, ref values.GetReference());
         }
 
         /// <summary>
@@ -295,9 +354,9 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <param name="values"></param>
-        public void Set<T>(ValueParameterKey<T> parameter, int count, ref T firstValue) where T : struct
+        public void Set<T>(ValueParameterKey<T> parameterKey, int count, ref readonly T firstValue) where T : unmanaged
         {
-            Set(GetAccessor(parameter, count), count, ref firstValue);
+            Set(GetAccessor(parameterKey, count), count, in firstValue);
         }
 
         /// <summary>
@@ -306,9 +365,9 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public T Get<T>(ValueParameterKey<T> parameter) where T : struct
+        public T Get<T>(ValueParameterKey<T> parameterKey) where T : unmanaged
         {
-            return Get(GetAccessor(parameter));
+            return Get(GetAccessor(parameterKey));
         }
 
         /// <summary>
@@ -317,58 +376,80 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <returns></returns>
-        public unsafe T[] GetValues<T>(ValueParameterKey<T> key) where T : struct
+        private unsafe void GetValues<T>(ValueParameterAccessor<T> parameter, Span<T> valuesSpan) where T : unmanaged
         {
-            var parameter = GetAccessor(key);
+            if (valuesSpan.Length < parameter.Count)
+            {
+                throw new ArgumentException($"The provided span is not large enough to hold {parameter.Count} values of type {typeof(T).Name}.", nameof(valuesSpan));
+            }
+
+            scoped ref byte dataRef = ref MemoryMarshal.GetArrayDataReference(dataValues);
+            dataRef = ref Unsafe.Add(ref dataRef, parameter.Offset);
+
+            scoped ReadOnlySpan<byte> dataSpan = MemoryMarshal.CreateReadOnlySpan(ref dataRef, parameter.Count);
 
             // Align to float4
-            var stride = Align(Unsafe.SizeOf<T>());
-            var values = new T[parameter.Count];
+            var stride = Align(sizeof(T));
 
-            fixed (byte* dataValues = DataValues)
+            for (int i = 0; i < valuesSpan.Length; ++i)
             {
-                var dataPtr = dataValues + parameter.Offset;
-
-                for (int i = 0; i < values.Length; ++i)
-                {
-                    values[i] = Unsafe.Read<T>(dataPtr);
-                    dataPtr += stride;
-                }
-
-                return values;
+                valuesSpan[i] = Unsafe.ReadUnaligned<T>(ref dataRef);
+                dataRef = ref Unsafe.Add(ref dataRef, stride);
             }
+        }
+
+        public unsafe void GetValues<T>(ValueParameterKey<T> parameterKey, Span<T> valuesSpan) where T : unmanaged
+        {
+            var parameter = GetAccessor(parameterKey);
+
+            GetValues(parameter, valuesSpan);
         }
 
         /// <summary>
         /// Copies all blittable values of a given key to the specified <see cref="ParameterCollection"/>.
+        public unsafe T[] GetValues<T>(ValueParameterKey<T> parameterKey) where T : unmanaged
+        {
+            var parameter = GetAccessor(parameterKey);
+
+            var values = new T[parameter.Count];
+            GetValues(parameter, values);
+
+            return values;
+        }
+
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key">The key for the values to copy.</param>
         /// <param name="destination">The collection to copy the values to.</param>
         /// <param name="destinationKey">The key for the values of the destination collection.</param>
-        public unsafe void CopyTo<T>(ValueParameterKey<T> key, ParameterCollection destination, ValueParameterKey<T> destinationKey) where T : struct
+        public unsafe void CopyTo<T>(ValueParameterKey<T> sourceParameterKey,
+                                     ParameterCollection destination, ValueParameterKey<T> destinationParameterKey)
+            where T : unmanaged
         {
-            var sourceParameter = GetAccessor(key);
-            var destParameter = destination.GetAccessor(destinationKey, sourceParameter.Count);
+            ArgumentNullException.ThrowIfNull(destination);
+
+            var sourceParameter = GetAccessor(sourceParameterKey);
+            var destParameter = destination.GetAccessor(destinationParameterKey, sourceParameter.Count);
+
             if (sourceParameter.Count > destParameter.Count)
             {
-                throw new IndexOutOfRangeException();
+                throw new ArgumentException(
+                    $"The source parameter '{sourceParameterKey}' has {sourceParameter.Count} elements, " +
+                    $"but the destination parameter '{destinationParameterKey}' can only hold {destParameter.Count} elements.",
+                    nameof(destinationParameterKey));
             }
 
             // Align to float4
-            var sizeInBytes = ComputeAlignedSizeMinusTrailingPadding(Unsafe.SizeOf<T>(), sourceParameter.Count);
+            var sizeInBytes = ComputeAlignedSizeMinusTrailingPadding(sizeof(T), sourceParameter.Count);
             Debug.Assert(
                 (destParameter.Offset | sourceParameter.Offset | sizeInBytes) >= 0 &&
-                (uint)sourceParameter.Offset + (uint)sizeInBytes <= (uint)(DataValues?.Length ?? 0) &&
-                (uint)destParameter.Offset + (uint)sizeInBytes <= (uint)(destination.DataValues?.Length ?? 0));
-            fixed (byte* sourceDataValues = DataValues)
-            fixed (byte* destDataValues = destination.DataValues)
-            {
-                MemoryUtilities.CopyWithAlignmentFallback(
-                    destination: destDataValues + destParameter.Offset,
-                    source: sourceDataValues + sourceParameter.Offset,
-                    (uint)sizeInBytes);
-            }
+                (uint) sourceParameter.Offset + (uint) sizeInBytes <= (uint) (dataValues?.Length ?? 0) &&
+                (uint) destParameter.Offset + (uint) sizeInBytes <= (uint) (destination.dataValues?.Length ?? 0));
+
+            scoped ReadOnlySpan<byte> sourceDataValues = dataValues.AsSpan(start: sourceParameter.Offset);
+            scoped Span<byte> destDataValues = destination.dataValues.AsSpan(start: destParameter.Offset);
+
+            sourceDataValues.CopyTo(destDataValues);
         }
 
         /// <summary>
@@ -377,10 +458,11 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <param name="value"></param>
-        public unsafe void Set<T>(ValueParameter<T> parameter, T value) where T : struct
+        public unsafe void Set<T>(ValueParameterAccessor<T> parameter, T value) where T : unmanaged
         {
-            fixed (void* ptr = &DataValues[parameter.Offset])
-                Unsafe.Write(ptr, value);
+            Debug.Assert(parameter.Offset <= dataValues.Length - sizeof(T));
+
+            Unsafe.WriteUnaligned(ref dataValues[parameter.Offset], value);
         }
 
         /// <summary>
@@ -389,10 +471,11 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <param name="value"></param>
-        public unsafe void Set<T>(ValueParameter<T> parameter, ref T value) where T : struct
+        public unsafe void Set<T>(ValueParameterAccessor<T> parameter, ref readonly T value) where T : unmanaged
         {
-            fixed (void* ptr = &DataValues[parameter.Offset])
-                Unsafe.Write(ptr, value);
+            Debug.Assert(parameter.Offset <= dataValues.Length - sizeof(T));
+
+            Unsafe.WriteUnaligned(ref dataValues[parameter.Offset], value);
         }
 
         /// <summary>
@@ -402,25 +485,28 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <param name="count"></param>
         /// <param name="firstValue"></param>
-        public unsafe void Set<T>(ValueParameter<T> parameter, int count, ref T firstValue) where T : struct
+        public unsafe void Set<T>(ValueParameterAccessor<T> parameter, int count, ref readonly T firstValue) where T : unmanaged
         {
+            Debug.Assert(parameter.Offset <= dataValues.Length - sizeof(T));
+
             // Align to float4
-            var stride = Align(Unsafe.SizeOf<T>());
+            var stride = Align(sizeof(T));
             var elementCount = parameter.Count;
+
             if (count > elementCount)
             {
-                throw new IndexOutOfRangeException();
+                throw new ArgumentException($"The count {count} exceeds the maximum allowed count {elementCount} for the parameter.", nameof(count));
             }
 
-            fixed (byte* dataValues = DataValues)
-            {
-                var dataPtr = dataValues + parameter.Offset;
+            scoped ref var dataRef = ref dataValues[parameter.Offset];
+            scoped ref var firstValueRef = ref Unsafe.AsRef(in firstValue);
 
-                for (int i = 0; i < count; ++i)
-                {
-                    Unsafe.Write(dataPtr, Unsafe.Add(ref firstValue, i));
-                    dataPtr += stride;
-                }
+            for (var i = 0; i < count; i++)
+            {
+                Unsafe.WriteUnaligned(ref dataRef, firstValueRef);
+
+                dataRef = ref Unsafe.Add(ref dataRef, stride);
+                firstValueRef = ref Unsafe.Add(ref firstValueRef, 1);
             }
         }
 
@@ -430,9 +516,11 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <param name="value"></param>
-        public void Set<T>(PermutationParameter<T> parameter, T value)
+        public void Set<T>(PermutationParameterAccessor<T> parameter, T value)
         {
-            bool isSame = EqualityComparer<T>.Default.Equals((T)ObjectValues[parameter.BindingSlot], value);
+            Debug.Assert(parameter.BindingSlot < objectValues.Length);
+
+            bool isSame = EqualityComparer<T>.Default.Equals((T) objectValues[parameter.BindingSlot], value);
             if (!isSame)
             {
                 PermutationCounter++;
@@ -441,7 +529,7 @@ namespace Stride.Rendering
             // For value types, we don't assign again because this causes boxing.
             if (!typeof(T).IsValueType || !isSame)
             {
-                ObjectValues[parameter.BindingSlot] = value;
+                objectValues[parameter.BindingSlot] = value;
             }
         }
 
@@ -451,9 +539,11 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameterAccessor"></param>
         /// <param name="value"></param>
-        public void Set<T>(ObjectParameterAccessor<T> parameterAccessor, T value)
+        public void Set<T>(ObjectParameterAccessor<T> parameter, T value)
         {
-            ObjectValues[parameterAccessor.BindingSlot] = value;
+            Debug.Assert(parameter.BindingSlot < objectValues.Length);
+
+            objectValues[parameter.BindingSlot] = value;
         }
 
         /// <summary>
@@ -462,10 +552,11 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public unsafe T Get<T>(ValueParameter<T> parameter) where T : struct
+        public unsafe T Get<T>(ValueParameterAccessor<T> parameter) where T : unmanaged
         {
-            fixed (void* ptr = &DataValues[parameter.Offset])
-                return Unsafe.Read<T>(ptr);
+            Debug.Assert(parameter.Offset <= dataValues.Length - sizeof(T));
+
+            return Unsafe.ReadUnaligned<T>(ref dataValues[parameter.Offset]);
         }
 
         /// <summary>
@@ -474,9 +565,11 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public T Get<T>(PermutationParameter<T> parameter)
+        public T Get<T>(PermutationParameterAccessor<T> parameter)
         {
-            return (T)ObjectValues[parameter.BindingSlot];
+            Debug.Assert(parameter.BindingSlot < objectValues.Length);
+
+            return (T) objectValues[parameter.BindingSlot];
         }
 
         /// <summary>
@@ -485,45 +578,53 @@ namespace Stride.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="parameterAccessor"></param>
         /// <returns></returns>
-        public T Get<T>(ObjectParameterAccessor<T> parameterAccessor)
+        public T Get<T>(ObjectParameterAccessor<T> parameter)
         {
-            return (T)ObjectValues[parameterAccessor.BindingSlot];
+            Debug.Assert(parameter.BindingSlot < objectValues.Length);
+
+            return (T) objectValues[parameter.BindingSlot];
         }
 
-        public void SetObject(ParameterKey key, object value)
+        public void SetObject(ParameterKey parameterKey, object? value)
         {
-            if (key.Type != ParameterKeyType.Permutation && key.Type != ParameterKeyType.Object)
-                throw new InvalidOperationException("SetObject can only be used for Permutation or Object keys");
+            ArgumentNullException.ThrowIfNull(parameterKey);
 
-            var accessor = GetObjectParameterHelper(key);
+            if (parameterKey.Type is not ParameterKeyType.Permutation and not ParameterKeyType.Object)
+                throw new ArgumentException("The parameter key must be of type Permutation or Object", nameof(parameterKey));
 
-            if (key.Type == ParameterKeyType.Permutation)
+            var accessor = GetObjectParameterHelper(parameterKey);
+
+            if (parameterKey.Type == ParameterKeyType.Permutation)
             {
-                var oldValue = ObjectValues[accessor.Offset];
-                if ((oldValue != null && (value == null || !oldValue.Equals(value))) // oldValue non null => check equality
-                    || (oldValue == null && value != null)) // oldValue null => check if value too
+                var oldValue = objectValues[accessor.Offset];
+                if ((oldValue is not null && (value is null || !oldValue.Equals(value))) // oldValue non-null => Check equality
+                    || (oldValue is null && value is not null))                          // oldValue null => Check if value too
                         PermutationCounter++;
             }
-            ObjectValues[accessor.Offset] = value;
+            objectValues[accessor.Offset] = value;
         }
 
-        public object GetObject(ParameterKey key)
+        public object? GetObject(ParameterKey parameterKey) //------------------------ Return null if not found
         {
-            if (key.Type != ParameterKeyType.Permutation && key.Type != ParameterKeyType.Object)
-                throw new InvalidOperationException("GetObject can only be used for Permutation or Object keys");
+            ArgumentNullException.ThrowIfNull(parameterKey);
 
-            var accessor = GetObjectParameterHelper(key, false);
-            if (accessor.Offset == -1)
+            if (parameterKey.Type is not ParameterKeyType.Permutation and not ParameterKeyType.Object)
+                throw new ArgumentException("The parameter key must be of type Permutation or Object", nameof(parameterKey));
+
+            var accessor = GetObjectParameterHelper(parameterKey, createIfNew: false);
+            if (accessor.Offset == ParameterKeyInfo.Invalid)
                 return null;
 
-            return ObjectValues[accessor.Offset];
+            return objectValues[accessor.Offset];
         }
 
-        public bool Remove(ParameterKey key)
+        public bool Remove(ParameterKey parameterKey)
         {
+            ArgumentNullException.ThrowIfNull(parameterKey);
+
             for (int i = 0; i < parameterKeyInfos.Count; ++i)
             {
-                if (parameterKeyInfos[i].Key == key)
+                if (parameterKeyInfos[i].Key == parameterKey)
                 {
                     parameterKeyInfos.SwapRemoveAt(i);
                     LayoutCounter++;
@@ -539,9 +640,9 @@ namespace Stride.Rendering
         /// </summary>
         public void Clear()
         {
-            DataValues = Array.Empty<byte>();
-            ObjectValues = null;
-            layout = null;
+            dataValues = [];
+            objectValues = null;
+            Layout = null;
             parameterKeyInfos.Clear();
         }
 
@@ -550,11 +651,13 @@ namespace Stride.Rendering
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public bool ContainsKey(ParameterKey key)
+        public bool ContainsKey(ParameterKey parameterKey)
         {
+            ArgumentNullException.ThrowIfNull(parameterKey);
+
             for (int i = 0; i < parameterKeyInfos.Count; ++i)
             {
-                if (parameterKeyInfos[i].Key == key)
+                if (parameterKeyInfos[i].Key == parameterKey)
                 {
                     return true;
                 }
@@ -569,19 +672,18 @@ namespace Stride.Rendering
         /// <param name="collectionLayout"></param>
         public unsafe void UpdateLayout(ParameterCollectionLayout collectionLayout)
         {
-            var oldLayout = this.layout;
-            this.layout = collectionLayout;
+            var oldLayout = Layout;
+            Layout = collectionLayout;
 
             // Same layout, or removed layout
-            if (oldLayout == collectionLayout || collectionLayout == null)
+            if (oldLayout == collectionLayout || collectionLayout is null)
                 return;
 
             var layoutParameterKeyInfos = collectionLayout.LayoutParameterKeyInfos;
 
-            // Do a first pass to measure constant buffer size
-            var newParameterKeyInfos = new List<ParameterKeyInfo>(Math.Max(1, parameterKeyInfos.Count));
+            // Do a first pass to measure Constant Buffer size
+            var newParameterKeyInfos = new FastList<ParameterKeyInfo>(capacity: Math.Max(1, parameterKeyInfos.Count));
             newParameterKeyInfos.AddRange(parameterKeyInfos);
-            var newParameterKeyInfosSpan = CollectionsMarshal.AsSpan(newParameterKeyInfos);
             var processedParameters = new bool[parameterKeyInfos.Count];
 
             var bufferSize = collectionLayout.BufferSize;
@@ -589,14 +691,14 @@ namespace Stride.Rendering
 
             foreach (var layoutParameterKeyInfo in layoutParameterKeyInfos)
             {
-                // Find the same parameter in old collection
+                // Find the same parameter in the old collection
                 // Is this parameter already added?
                 for (int i = 0; i < parameterKeyInfos.Count; ++i)
                 {
                     if (parameterKeyInfos[i].Key == layoutParameterKeyInfo.Key)
                     {
                         processedParameters[i] = true;
-                        newParameterKeyInfosSpan[i] = layoutParameterKeyInfo;
+                        newParameterKeyInfos.Items[i] = layoutParameterKeyInfo;
                         break;
                     }
                 }
@@ -611,20 +713,19 @@ namespace Stride.Rendering
 
                 var parameterKeyInfo = newParameterKeyInfos[i];
 
-                if (parameterKeyInfo.Offset != -1)
+                if (parameterKeyInfo.IsValueParameter)
                 {
-                    // It's data
-                    newParameterKeyInfosSpan[i].Offset = bufferSize;
+                    newParameterKeyInfos.Items[i].Offset = bufferSize;
 
                     var additionalSize = ComputeAlignedSizeMinusTrailingPadding(
-                        elementSize: newParameterKeyInfosSpan[i].Key.Size,
-                        newParameterKeyInfosSpan[i].Count);
+                        elementSize: newParameterKeyInfos.Items[i].Key.Size,
+                        newParameterKeyInfos.Items[i].Count);
+
                     bufferSize += additionalSize;
                 }
-                else if (parameterKeyInfo.BindingSlot != -1)
+                else if (parameterKeyInfo.IsResourceParameter)
                 {
-                    // It's a resource
-                    newParameterKeyInfosSpan[i].BindingSlot = resourceCount++;
+                    newParameterKeyInfos.Items[i].BindingSlot = resourceCount++;
                 }
             }
 
@@ -632,302 +733,123 @@ namespace Stride.Rendering
             var newResourceValues = new object[resourceCount];
 
             // Update default values
-            fixed (byte* newDataValuesPtr = newDataValues) {
-                foreach (var layoutParameterKeyInfo in layoutParameterKeyInfos)
+            scoped ref byte newDataValuesRef = ref MemoryMarshal.GetArrayDataReference(newDataValues);
+
+            foreach (var layoutParameterKeyInfo in layoutParameterKeyInfos)
+            {
+                if (layoutParameterKeyInfo.IsValueParameter)
                 {
-                    if (layoutParameterKeyInfo.Offset != -1)
+                    // TODO: Set default value
+                    // TODO: Is it not what this is doing?
+                    var defaultValueMetadata = layoutParameterKeyInfo.Key?.DefaultValueMetadata;
+                    if (defaultValueMetadata is not null)
                     {
-                        // It's data
-                        // TODO: Set default value
-                        var defaultValueMetadata = layoutParameterKeyInfo.Key?.DefaultValueMetadata;
-                        if (defaultValueMetadata != null)
-                        {
-                            Debug.Assert((uint)layoutParameterKeyInfo.Offset <= (uint)newDataValues.Length);
-                            defaultValueMetadata.WriteBuffer((nint)newDataValuesPtr + layoutParameterKeyInfo.Offset, Alignment);
-                        }
+                        Debug.Assert((uint) layoutParameterKeyInfo.Offset <= (uint) newDataValues.Length);
+
+                        scoped ref byte destRef = ref Unsafe.Add(ref newDataValuesRef, layoutParameterKeyInfo.Offset);
+                        defaultValueMetadata.WriteValue(ref destRef, Alignment);
                     }
                 }
             }
 
-            // Second pass to copy existing data at new offsets/slots
+            // Second pass to copy existing data at new offsets / slots
             for (int i = 0; i < parameterKeyInfos.Count; ++i)
             {
                 var oldParameterKeyInfo = parameterKeyInfos[i];
                 var newParameterKeyInfo = newParameterKeyInfos[i];
 
-                if (newParameterKeyInfo.Offset != -1)
+                if (newParameterKeyInfo.IsValueParameter)
                 {
                     var newTotalSize = ComputeAlignedSizeMinusTrailingPadding(
                         elementSize: newParameterKeyInfo.Key.Size,
                         elementCount: newParameterKeyInfo.Count);
+
                     var oldTotalSize = ComputeAlignedSizeMinusTrailingPadding(
                         elementSize: oldParameterKeyInfo.Key.Size,
                         elementCount: oldParameterKeyInfo.Count);
-                    var oldSpan = DataValues.AsSpan(oldParameterKeyInfo.Offset, oldTotalSize);
-                    var newSpan = newDataValues.AsSpan(newParameterKeyInfo.Offset, newTotalSize);
+
+                    scoped var oldSpan = dataValues.AsSpan(oldParameterKeyInfo.Offset, oldTotalSize);
+                    scoped var newSpan = newDataValues.AsSpan(newParameterKeyInfo.Offset, newTotalSize);
 
                     if (oldParameterKeyInfo.Key.Size == newParameterKeyInfo.Key.Size)
                     {
                         var minTotalSize = Math.Min(oldTotalSize, newTotalSize);
                         oldSpan[..minTotalSize].CopyTo(newSpan);
-                        if (newTotalSize > oldTotalSize) newSpan[minTotalSize..].Fill(0);
+
+                        if (newTotalSize > oldTotalSize)
+                            newSpan[minTotalSize..].Clear();
                     }
-                    else
+                    else // Different size
                     {
+                        // TODO: What to do about this?
                         #warning Partially copying parameter values and leaving remaining bytes zero may cause undesired side effects such as e.g. Color4.Alpha becoming zero.
+
+                        var oldElementSize = oldParameterKeyInfo.Key.Size;
+                        var newElementSize = newParameterKeyInfo.Key.Size;
+                        var oldElementSizeAligned = Align(oldElementSize);
+                        var newElementSizeAligned = Align(newElementSize);
+                        var minElementSize = Math.Min(oldElementSize, newElementSize);
+
                         var minCount = Math.Min(oldParameterKeyInfo.Count, newParameterKeyInfo.Count);
-                        var oldSize = oldParameterKeyInfo.Key.Size;
-                        var newSize = newParameterKeyInfo.Key.Size;
-                        var minElementSize = Math.Min(oldSize, newSize);
-                        var oldAlign = Align(oldSize);
-                        var newAlign = Align(newSize);
-                        for (var e = 0; e < minCount; e++)
+
+                        for (var elementIndex = 0; elementIndex < minCount; elementIndex++)
                         {
                             oldSpan[..minElementSize].CopyTo(newSpan);
-                            // don't slice for the last element, since there is no alignment padding after it
-                            var f = e + 1;
-                            if (f < minCount)
-                                oldSpan = oldSpan[oldAlign..];
-                            if (f < newParameterKeyInfo.Count)
-                                newSpan = newSpan[newAlign..];
+
+                            // Don't slice for the last element, since there is no alignment padding after it
+                            var nextElementIndex = elementIndex + 1;
+
+                            if (nextElementIndex < minCount)
+                                oldSpan = oldSpan[oldElementSizeAligned..];
+                            if (nextElementIndex < newParameterKeyInfo.Count)
+                                newSpan = newSpan[newElementSizeAligned..];
                         }
                     }
                 }
-                else if (newParameterKeyInfo.BindingSlot != -1)
+                else if (newParameterKeyInfo.IsResourceParameter)
                 {
-                    // It's a resource
-                    newResourceValues[newParameterKeyInfo.BindingSlot] = ObjectValues[oldParameterKeyInfo.BindingSlot];
+                    Debug.Assert(newParameterKeyInfo.BindingSlot < newResourceValues.Length);
+                    Debug.Assert(newResourceValues[newParameterKeyInfo.BindingSlot] is null, $"Overwritten resource in binding slot {newParameterKeyInfo.BindingSlot}");
+
+                    newResourceValues[newParameterKeyInfo.BindingSlot] = objectValues[oldParameterKeyInfo.BindingSlot];
                 }
             }
 
             // Update new content
             parameterKeyInfos = newParameterKeyInfos;
 
-            DataValues = newDataValues;
-            ObjectValues = newResourceValues;
+            dataValues = newDataValues;
+            objectValues = newResourceValues;
         }
 
-        protected ParameterAccessor GetObjectParameterHelper(ParameterKey parameterKey, bool createIfNew = true)
+        public void NotifyPermutationChange()
         {
-            var parameterKeyInfosSpan = CollectionsMarshal.AsSpan(parameterKeyInfos);
-            // Find existing first
-            for (int i = 0; i < parameterKeyInfosSpan.Length; ++i)
-            {
-                if (parameterKeyInfosSpan[i].Key == parameterKey)
-                {
-                    return parameterKeyInfosSpan[i].GetObjectAccessor();
-                }
-            }
-
-            if (!createIfNew)
-                return new ParameterAccessor(-1, 0);
-
-            if (parameterKey.Type == ParameterKeyType.Permutation)
-                PermutationCounter++;
-
-            LayoutCounter++;
-
-            // Check layout if it exists
-            if (layout != null)
-            {
-                foreach (var layoutParameterKeyInfo in layout.LayoutParameterKeyInfos)
-                {
-                    if (layoutParameterKeyInfo.Key == parameterKey)
-                    {
-                        parameterKeyInfos.Add(layoutParameterKeyInfo);
-                        return layoutParameterKeyInfo.GetObjectAccessor();
-                    }
-                }
-            }
-
-            // Create info entry
-            var resourceValuesSize = ObjectValues?.Length ?? 0;
-            Array.Resize(ref ObjectValues, resourceValuesSize + 1);
-            parameterKeyInfos.Add(new ParameterKeyInfo(parameterKey, resourceValuesSize));
-
-            // Initialize default value
-            if (parameterKey.DefaultValueMetadata != null)
-            {
-                ObjectValues[resourceValuesSize] = parameterKey.DefaultValueMetadata.GetDefaultValue();
-            }
-
-            return new ParameterAccessor(resourceValuesSize, 1);
+            PermutationCounter++;
         }
+
+        #region Serializer
 
         public class Serializer : ClassDataSerializer<ParameterCollection>
         {
             public override void Serialize(ref ParameterCollection parameterCollection, ArchiveMode mode, SerializationStream stream)
             {
                 stream.Serialize(ref parameterCollection.parameterKeyInfos, mode);
-                stream.SerializeExtended(ref parameterCollection.ObjectValues, mode);
-                stream.Serialize(ref parameterCollection.DataValues, mode);
+                stream.SerializeExtended(ref parameterCollection.objectValues, mode);
+                stream.Serialize(ref parameterCollection.dataValues, mode);
             }
         }
 
-        public struct Copier
+        #endregion
+
+        #region DebugView
+
+        private class DebugView(ParameterCollection collection)
         {
-            private CopyRange[] ranges;
-            private readonly ParameterCollection destination;
-            private readonly ParameterCollection source;
-            private int sourceLayoutCounter;
-            private readonly string subKey;
-
-            public Copier(ParameterCollection destination, ParameterCollection source, string subKey = null)
-            {
-                ranges = null;
-                sourceLayoutCounter = 0;
-                this.destination = destination;
-                this.source = source;
-                this.subKey = subKey;
-            }
-
-            public unsafe void Copy()
-            {
-                var destinationLayout = destination.Layout;
-
-                // Note: we should provide a slow version for first copy during Extract (layout isn't known yet)
-                if (destinationLayout == null)
-                    throw new NotImplementedException();
-
-                if (destinationLayout == source.Layout)
-                {
-                    // Easy, let's do a full copy!
-                    PerformFastCopy(destinationLayout);
-                }
-                else
-                {
-                    if (ranges == null || sourceLayoutCounter != source.LayoutCounter)
-                    {
-                        Compile();
-
-                        // Try again in case fast copy is possible
-                        if (destinationLayout == source.Layout)
-                        {
-                            PerformFastCopy(destinationLayout);
-                            return;
-                        }
-                    }
-
-                    // Slower path: copy element by element
-                    foreach (var range in ranges)
-                    {
-                        if (range.IsResource)
-                        {
-                            for (int i = 0; i < range.Size; ++i)
-                            {
-                                destination.ObjectValues[range.DestStart + i] = source.ObjectValues[range.SourceStart + i];
-                            }
-                        }
-                        else if (range.IsData)
-                        {
-                            fixed (byte* destDataValues = destination.DataValues)
-                            fixed (byte* sourceDataValues = source.DataValues)
-                                MemoryUtilities.CopyWithAlignmentFallback(
-                                    destination: destDataValues + range.DestStart,
-                                    source: sourceDataValues + range.SourceStart,
-                                    byteCount: (uint)range.Size);
-                        }
-                    }
-                }
-            }
-
-            private unsafe void PerformFastCopy(ParameterCollectionLayout destinationLayout)
-            {
-                fixed (byte* destPtr = destination.DataValues)
-                fixed (byte* sourcePtr = source.DataValues)
-                    MemoryUtilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)destinationLayout.BufferSize);
-
-                var resourceCount = destinationLayout.ResourceCount;
-                for (int i = 0; i < resourceCount; ++i)
-                    destination.ObjectValues[i] = source.ObjectValues[i];
-            }
-
-            private void Compile()
-            {
-                // If we are first, let's apply our layout!
-                if (source.Layout == null && subKey == null)
-                {
-                    source.UpdateLayout(destination.Layout);
-                    return;
-                }
-                else
-                {
-                    // TODO GRAPHICS REFACTOR optim: check if layout are the same
-                    //if (source.Layout.LayoutParameterKeyInfos == destination.Layout.LayoutParameterKeyInfos)
-                }
-
-                var rangesList = new List<CopyRange>();
-
-                // Try to match elements (both source and destination should have a layout by now)
-                foreach (var parameterKeyInfo in destination.Layout.LayoutParameterKeyInfos)
-                {
-                    var sourceKey = parameterKeyInfo.Key;
-                    if (subKey != null && sourceKey.Name.EndsWith(subKey, StringComparison.Ordinal))
-                    {
-                        // That's a match
-                        var subkeyName = parameterKeyInfo.Key.Name.Substring(0, parameterKeyInfo.Key.Name.Length - subKey.Length);
-                        sourceKey = ParameterKeys.FindByName(subkeyName);
-                    }
-
-                    if (parameterKeyInfo.Key.Type == ParameterKeyType.Value)
-                    {
-                        var sourceAccessor = source.GetValueAccessorHelper(sourceKey, parameterKeyInfo.Count);
-                        var destAccessor = destination.GetValueAccessorHelper(parameterKeyInfo.Key, parameterKeyInfo.Count);
-                        var size = ComputeAlignedSizeMinusTrailingPadding(
-                            elementSize: parameterKeyInfo.Key.Size,
-                            elementCount: Math.Min(sourceAccessor.Count, destAccessor.Count));
-                        rangesList.Add(new CopyRange { IsData = true, SourceStart = sourceAccessor.Offset, DestStart = destAccessor.Offset, Size = size });
-                    }
-                    else
-                    {
-                        var sourceAccessor = source.GetObjectParameterHelper(sourceKey);
-                        var destAccessor = destination.GetObjectParameterHelper(parameterKeyInfo.Key);
-                        var elementCount = Math.Min(sourceAccessor.Count, destAccessor.Count);
-                        rangesList.Add(new CopyRange { IsResource = true, SourceStart = sourceAccessor.Offset, DestStart = destAccessor.Offset, Size = elementCount });
-                    }
-                }
-
-                ranges = rangesList.ToArray();
-                sourceLayoutCounter = source.LayoutCounter;
-            }
-        }
-
-        public struct CompositionCopier
-        {
-            private List<CopyRange> ranges;
-            private ParameterCollection destination;
-
-            public bool IsValid => ranges != null;
-
             /// <summary>
             /// Copies data from source to destination according to previously compiled layout.
             /// </summary>
             /// <param name="source"></param>
-            public unsafe void Copy(ParameterCollection source)
-            {
-                foreach (var range in ranges)
-                {
-                    if (range.IsResource)
-                    {
-                        for (int i = 0; i < range.Size; ++i)
-                        {
-                            destination.ObjectValues[range.DestStart + i] = source.ObjectValues[range.SourceStart + i];
-                        }
-                    }
-                    else if (range.IsData)
-                    {
-                        fixed (byte* destDataValues = destination.DataValues)
-                        fixed (byte* sourceDataValues = source.DataValues)
-                        {
-                            uint* destPtr = (uint*)(destDataValues + range.DestStart);
-                            uint* sourcePtr = (uint*)(sourceDataValues + range.SourceStart);
-                            var count = range.Size / 4;
-                            for (int i = 0; i < count; ++i)
-                                *destPtr++ = *sourcePtr++;
-                        }
-                    }
-                }
-            }
+            public ParameterCollectionLayout Layout => collection.Layout;
 
             /// <summary>
             /// Compute copy operations. Assumes destination layout is sequential.
@@ -935,173 +857,65 @@ namespace Stride.Rendering
             /// <param name="dest"></param>
             /// <param name="source"></param>
             /// <param name="keyRoot"></param>
-            public void Compile(ParameterCollection dest, ParameterCollection source, string keyRoot)
-            {
-                ranges = new List<CopyRange>();
-                destination = dest;
-                var sourceLayout = new ParameterCollectionLayout();
-
-                // Helper structures to try to keep range contiguous and have as few copy operations as possible (note: there can be some padding)
-                var currentDataRange = new CopyRange { IsData = true, DestStart = -1 };
-                var currentResourceRange = new CopyRange { IsResource = true, DestStart = -1 };
-
-                // Iterate over each variable in dest, and if they match keyRoot, create the equivalent layout in source
-                foreach (var parameterKeyInfo in dest.Layout.LayoutParameterKeyInfos)
-                {
-                    bool isResource = parameterKeyInfo.BindingSlot != -1;
-                    bool isData = parameterKeyInfo.Offset != -1;
-
-                    if (parameterKeyInfo.Key.Name.EndsWith(keyRoot, StringComparison.Ordinal))
-                    {
-                        // That's a match
-                        var subkeyName = parameterKeyInfo.Key.Name[..^keyRoot.Length];
-                        var subkey = ParameterKeys.FindByName(subkeyName);
-
-                        if (isData)
-                        {
-                            // First time since range reset, let's setup destination offset
-                            if (currentDataRange.DestStart == -1)
-                                currentDataRange.DestStart = parameterKeyInfo.Offset;
-
-                            // Might be some empty space (padding)
-                            currentDataRange.Size = parameterKeyInfo.Offset - currentDataRange.DestStart;
-
-                            var offset = currentDataRange.SourceStart + currentDataRange.Size;
-                            var pki = new ParameterKeyInfo(subkey, offset, parameterKeyInfo.Count);
-                            sourceLayout.LayoutParameterKeyInfos.Add(pki);
-
-                            var size = ComputeAlignedSizeMinusTrailingPadding(
-                                elementSize: parameterKeyInfo.Key.Size,
-                                elementCount: parameterKeyInfo.Count);
-
-                            currentDataRange.Size += size;
-                        }
-                        else if (isResource)
-                        {
-                            // First time since range reset, let's setup destination offset
-                            if (currentResourceRange.DestStart == -1)
-                                currentResourceRange.DestStart = parameterKeyInfo.BindingSlot;
-
-                            // Might be some empty space (padding) (probably unlikely for resources...)
-                            currentResourceRange.Size = parameterKeyInfo.BindingSlot - currentResourceRange.DestStart;
-
-                            sourceLayout.LayoutParameterKeyInfos.Add(new ParameterKeyInfo(subkey, currentResourceRange.SourceStart + currentResourceRange.Size));
-
-                            currentResourceRange.Size += parameterKeyInfo.Count;
-                        }
-                    }
-                    else
-                    {
-                        // Found one item not part of the range, let's finish it
-                        if (isData)
-                            FlushRangeIfNecessary(ref currentDataRange);
-                        else if (isResource)
-                            FlushRangeIfNecessary(ref currentResourceRange);
-                    }
-                }
-
-                // Finish ranges
-                FlushRangeIfNecessary(ref currentDataRange);
-                FlushRangeIfNecessary(ref currentResourceRange);
-
-                // Update sizes
-                sourceLayout.BufferSize = currentDataRange.SourceStart;
-                sourceLayout.ResourceCount = currentResourceRange.SourceStart;
-
-                source.UpdateLayout(sourceLayout);
-            }
-
-            private void FlushRangeIfNecessary(ref CopyRange currentRange)
-            {
-                if (currentRange.Size > 0)
-                {
-                    ranges.Add(currentRange);
-                    currentRange.SourceStart += currentRange.Size;
-                    currentRange.DestStart = -1;
-                    currentRange.Size = 0;
-                }
-            }
-        }
-
-        private struct CopyRange
-        {
-            public bool IsResource;
-            public bool IsData;
-            public int SourceStart;
-            public int DestStart;
-            public int Size;
-        }
-
-        private class DebugView
-        {
-            private readonly ParameterCollection collection;
-
-            public DebugView(ParameterCollection collection)
-            {
-                this.collection = collection;
-            }
-
-            public ParameterCollectionLayout Layout => collection.Layout;
-
             public int PermutationCounter => collection.PermutationCounter;
 
-            // Note: this should be named "Parameters", but since its name is hidden and we want to to appear after PermutationCounter, we prepend ZZ
+            // NOTE: This should be named "Parameters", but since its name is hidden and we want it
+            //       to appear after PermutationCounter, we prepend ZZ
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
             public unsafe object[] ZZParameters
-            {
-                get
-                {
-                    return collection.ParameterKeyInfos
-                        .OrderBy(x => x.Key.Type == ParameterKeyType.Value ? 0x10000 + x.Offset : x.BindingSlot) // sort by offsets or binding slot (note: values will go after objects)
-                        .SelectMany(x =>
+                => [.. collection.ParameterKeyInfos
+                    // Sort by offsets or binding slot (values will go after objects)
+                    .OrderBy(pki => pki.Key.Type == ParameterKeyType.Value ? 0x10000 + pki.Offset : pki.BindingSlot)
+                    .SelectMany(pki =>
+                    {
+                        if (pki.Key.Type == ParameterKeyType.Value)
                         {
-                            if (x.Key.Type == ParameterKeyType.Value)
-                            {
-                                // Values
-                                var stride = Align(x.Key.Size);
-                                var values = new object[x.Count];
-                                fixed (byte* dataValuesStart = collection.DataValues)
-                                {
-                                    var offset = x.Offset;
-                                    for (int i = 0; i < x.Count; ++i, offset += stride)
-                                    {
-                                        // Safety check: Check if we read outside of array
-                                        var outOfBound = offset + x.Key.Size > collection.DataValues.Length;
+                            // Values
+                            var stride = Align(pki.Key.Size);
+                            var values = new object[pki.Count];
 
-                                        // Create debug object for this parameter
-                                        values[i] = new ValueParameter
-                                        {
-                                            Key = x.Key,
-                                            Index = x.Count > 1 ? i : -1,
-                                            Offset = offset,
-                                            Value = outOfBound ? "Error (out of bound)" : x.Key.ReadValue((IntPtr)dataValuesStart + offset),
-                                        };
-                                    }
-                                }
-                                return values;
-                            }
-                            else
+                            var offset = pki.Offset;
+
+                            for (int i = 0; i < pki.Count; ++i, offset += stride)
                             {
-                                // Objects and permutations
-                                var objects = new object[x.Count];
-                                var slot = x.BindingSlot;
-                                for (int i = 0; i < x.Count; ++i, ++slot)
+                                // Safety check: Check if we read outside of array
+                                var outOfBound = offset + pki.Key.Size > collection.DataValues.Length;
+
+                                scoped ref readonly byte paramValueRef = ref collection.DataValues[offset..][0];
+
+                                // Create debug object for this parameter
+                                values[i] = new ValueParameter
                                 {
-                                    // Create debug object for this parameter
-                                    objects[i] = new ObjectParameter
-                                    {
-                                        Key = x.Key,
-                                        Index = x.Count > 1 ? i : -1,
-                                        BindingSlot = slot,
-                                        Value = collection.ObjectValues[slot],
-                                    };
-                                }
-                                return objects;
+                                    Key = pki.Key,
+                                    Index = pki.Count > 1 ? i : -1,
+                                    Offset = offset,
+                                    Value = outOfBound ? "Error (out of bound)" : pki.Key.ReadValue(in paramValueRef)
+                                };
                             }
-                        })
-                        .ToArray();
-                }
-            }
+
+                            return values;
+                        }
+                        else
+                        {
+                            // Objects and permutations
+                            var objects = new object[pki.Count];
+                            var slot = pki.BindingSlot;
+
+                            for (int i = 0; i < pki.Count; ++i, ++slot)
+                            {
+                                // Create debug object for this parameter
+                                objects[i] = new ObjectParameter
+                                {
+                                    Key = pki.Key,
+                                    Index = pki.Count > 1 ? i : -1,
+                                    BindingSlot = slot,
+                                    Value = collection.objectValues[slot]
+                                };
+                            }
+
+                            return objects;
+                        }
+                    })];
 
             // Represents a value
             private class ValueParameter
@@ -1113,7 +927,8 @@ namespace Stride.Rendering
 
                 public override string ToString()
                 {
-                    return $"{Key.Type} @ Offset {Offset:X4}: {Key}{(Index != -1 ? "[" + Index + "]" : string.Empty)} => {Value ?? "null"}";
+                    var index = Index != -1 ? $"[{Index}]" : string.Empty;
+                    return $"{Key.Type} at Offset 0x{Offset:X4}: {Key}{index} = {Value ?? "null"}";
                 }
             }
 
@@ -1127,9 +942,12 @@ namespace Stride.Rendering
 
                 public override string ToString()
                 {
-                    return $"{Key.Type} @ Slot {BindingSlot:D2}: {Key}{(Index != -1 ? "[" + Index + "]" : string.Empty)} => {Value ?? "null"}";
+                    var index = Index != -1 ? $"[{Index}]" : string.Empty;
+                    return $"{Key.Type} at Slot {BindingSlot}: {Key}{index} = {Value ?? "null"}";
                 }
             }
         }
+
+        #endregion
     }
 }
