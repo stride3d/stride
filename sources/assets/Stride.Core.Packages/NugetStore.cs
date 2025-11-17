@@ -156,8 +156,7 @@ public partial class NugetStore : INugetDownloadProgress
     public enum VsixSupportedVsVersion
     {
         VS2019,
-        VS2022,
-        VS2026,
+        VS2022AndNext,
     }
 
     /// <summary>
@@ -170,10 +169,7 @@ public partial class NugetStore : INugetDownloadProgress
         { VsixSupportedVsVersion.VS2019, (new PackageVersion("4.0"), new PackageVersion("4.1")) },
 
         // The VSIX for VS2022 is available in Stride packages of version 4.1.x and later.
-        { VsixSupportedVsVersion.VS2022, (new PackageVersion("4.1"), new PackageVersion("4.3")) },
-
-        // The VSIX for VS2026 is available in Stride packages of version 4.3.x and later.
-        { VsixSupportedVsVersion.VS2026, (new PackageVersion("4.3"), new PackageVersion(int.MaxValue, 0, 0, 0)) },
+        { VsixSupportedVsVersion.VS2022AndNext, (new PackageVersion("4.1"), new PackageVersion(int.MaxValue, 0, 0, 0)) },
     };
 
     /// <summary>
@@ -347,13 +343,6 @@ public partial class NugetStore : INugetDownloadProgress
                     {
                         Name = Path.GetFileNameWithoutExtension(projectPath), // make sure this package never collides with a dependency
                         FilePath = projectPath,
-                        Dependencies =
-                        [
-                            new()
-                            {
-                                LibraryRange = new LibraryRange(packageId, new VersionRange(version.ToNuGetVersion()), LibraryDependencyTarget.Package),
-                            }
-                        ],
                         RestoreMetadata = new ProjectRestoreMetadata
                         {
                             ProjectPath = projectPath,
@@ -370,7 +359,17 @@ public partial class NugetStore : INugetDownloadProgress
                     };
                     foreach (var targetFramework in targetFrameworks)
                     {
-                        spec.TargetFrameworks.Add(new TargetFrameworkInformation { FrameworkName = NuGetFramework.Parse(targetFramework) });
+                        spec.TargetFrameworks.Add(new TargetFrameworkInformation
+                        {
+                            FrameworkName = NuGetFramework.Parse(targetFramework),
+                            Dependencies =
+                                [
+                                    new()
+                                    {
+                                        LibraryRange = new LibraryRange(packageId, new VersionRange(version.ToNuGetVersion()), LibraryDependencyTarget.Package),
+                                    }
+                                ],
+                        });
                     }
 
                     using (var context = new SourceCacheContext { MaxAge = DateTimeOffset.UtcNow })

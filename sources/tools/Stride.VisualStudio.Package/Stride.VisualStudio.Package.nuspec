@@ -15,7 +15,7 @@
   </metadata>
   <files>
     <file src="bin\Stride.vsix" target="tools" />
-    <file src="..\Stride.VisualStudio.PackageInstall\bin\Release\packageinstall.exe" target="tools" />
+    <file src="..\Stride.VisualStudio.PackageInstall\bin\Release\packageinstall.*" target="tools" />
     <file src="..\Stride.VisualStudio.PackageInstall\bin\Release\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="tools" />
   </files>
 </package>
