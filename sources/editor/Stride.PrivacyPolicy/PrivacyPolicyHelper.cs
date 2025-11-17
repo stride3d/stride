@@ -11,24 +11,21 @@ namespace Stride.PrivacyPolicy
     /// </summary>
     internal static class PrivacyPolicyHelper
     {
-        internal const string PrivacyPolicyNotLoaded = "Unable to load the End User License Agreement file.";
         private const string Stride40Name = "Stride-4.0";
 
         static PrivacyPolicyHelper()
         {
             var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
-            using (var subkey = localMachine32.OpenSubKey(@"SOFTWARE\Stride\Agreements\"))
+            using var subkey = localMachine32.OpenSubKey(@"SOFTWARE\Stride\Agreements\");
+            if (subkey != null)
             {
-                if (subkey != null)
-                {
-                    var value = (string)subkey.GetValue(Stride40Name);
-                    Stride40Accepted = value != null && value.ToLowerInvariant() == "true";
-                }
+                var value = (string)subkey.GetValue(Stride40Name);
+                Stride40Accepted = value != null && value.ToLowerInvariant() == "true";
             }
         }
 
         /// <summary>
-        /// Gets whether the Privacy Policy for Stride 3.0 has been accepted.
+        /// Gets whether the Privacy Policy for Stride 4.0 has been accepted.
         /// </summary>
         internal static bool Stride40Accepted { get; private set; }
 
@@ -61,7 +58,7 @@ namespace Stride.PrivacyPolicy
         }
 
         /// <summary>
-        /// Notifies that the Privacy Policy for Stride 3.0 has been accepted.
+        /// Notifies that the Privacy Policy for Stride 4.0 has been accepted.
         /// </summary>
         /// <returns><c>True</c> if the acceptance could be properly saved, <c>false</c> otherwise.</returns>
         internal static bool AcceptStride40()
@@ -69,15 +66,13 @@ namespace Stride.PrivacyPolicy
             try
             {
                 var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
-                using (var subkey = localMachine32.CreateSubKey(@"SOFTWARE\Stride\Agreements\"))
-                {
-                    if (subkey == null)
-                        return false;
+                using var subkey = localMachine32.CreateSubKey(@"SOFTWARE\Stride\Agreements\");
+                if (subkey == null)
+                    return false;
 
-                    subkey.SetValue(Stride40Name, "True");
-                    Stride40Accepted = true;
-                    return true;
-                }
+                subkey.SetValue(Stride40Name, "True");
+                Stride40Accepted = true;
+                return true;
             }
             catch (Exception)
             {
@@ -90,17 +85,15 @@ namespace Stride.PrivacyPolicy
             try
             {
                 var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
-                using (var subkey = localMachine32.CreateSubKey(@"SOFTWARE\Stride\Agreements\"))
-                {
-                    if (subkey == null)
-                        return false;
+                using var subkey = localMachine32.CreateSubKey(@"SOFTWARE\Stride\Agreements\");
+                if (subkey == null)
+                    return false;
 
-                    foreach (var valueName in subkey.GetValueNames())
-                    {
-                        subkey.DeleteValue(valueName);
-                    }
-                    return true;
+                foreach (var valueName in subkey.GetValueNames())
+                {
+                    subkey.DeleteValue(valueName);
                 }
+                return true;
             }
             catch (Exception)
             {

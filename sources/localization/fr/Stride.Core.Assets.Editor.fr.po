@@ -122,12 +122,6 @@ msgctxt "Settings"
 msgid "Ask before saving new scripts"
 msgstr "Demander avant d'enregistrer les nouveaux scripts"
 
-#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:72
-#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:73
-msgctxt "Settings"
-msgid "Crash report e-mail"
-msgstr "Rapport de plantage par e-mail"
-
 #: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:77
 msgctxt "Settings"
 msgid "Language"
