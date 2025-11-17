@@ -914,21 +914,29 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
         var cancelToken = loadParameters.CancelToken;
 
-        // Note: list can grow as dependencies get loaded
-        for (int i = 0; i < Projects.Count; ++i)
+        try
         {
-            var project = Projects[i];
-
-            // Output the session only if there is no cancellation
-            if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+            // Note: list can grow as dependencies get loaded
+            for (int i = 0; i < Projects.Count; ++i)
             {
-                return;
-            }
+                var project = Projects[i];
 
-            if (project is SolutionProject solutionProject)
-                PreLoadPackageDependencies(log, solutionProject, loadParameters).Wait();
-            else if (project.Package.State < PackageState.DependenciesReady) // not handling standalone packages yet
-                project.Package.State = PackageState.DependenciesReady;
+                // Output the session only if there is no cancellation
+                if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                if (project is SolutionProject solutionProject)
+                    PreLoadPackageDependencies(log, solutionProject, loadParameters).Wait();
+                else if (project.Package.State < PackageState.DependenciesReady) // not handling standalone packages yet
+                    project.Package.State = PackageState.DependenciesReady;
+            }
+        }
+        finally
+        {
+            // Clean up all cached MSBuild projects
+            ClearAllCachedProjects();
         }
     }
 
