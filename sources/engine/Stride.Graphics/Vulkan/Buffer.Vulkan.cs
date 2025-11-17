@@ -231,21 +231,7 @@ namespace Stride.Graphics
                 // Close and submit
                 vkEndCommandBuffer(commandBuffer);
 
-                var submitInfo = new VkSubmitInfo
-                {
-                    sType = VkStructureType.SubmitInfo,
-                    commandBufferCount = 1,
-                    pCommandBuffers = &commandBuffer
-                };
-
-                lock (GraphicsDevice.QueueLock)
-                {
-                    vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null);
-                    vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue);
-                    //commandBuffer.Reset(VkCommandBufferResetFlags.None);
-                }
-
-                vkFreeCommandBuffers(GraphicsDevice.NativeDevice, GraphicsDevice.NativeCopyCommandPools.Value, commandBufferCount: 1, &commandBuffer);
+                GraphicsDevice.ExecuteAndWaitCopyQueueGPU(commandBuffer);
 
                 InitializeViews();
             }

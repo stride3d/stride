@@ -4,13 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
-
 using Stride.Core;
 using Stride.Core.Threading;
-using System.Text;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -42,10 +41,9 @@ namespace Stride.Graphics
         private int nativeUploadBufferOffset;
         private object nativeUploadBufferLock = new();
 
-        // TODO: review that and align it with D3D12 (and possibly move it in common API once D3D12/Vulkan only)
-        private Queue<KeyValuePair<long, VkFence>> nativeFences = new Queue<KeyValuePair<long, VkFence>>();
-        private long lastCompletedFence;
-        internal long NextFenceValue = 1;
+        internal FenceHelper FrameFence;
+        internal FenceHelper CommandListFence;
+        internal FenceHelper CopyFence;
 
         internal HeapPool DescriptorPools;
         internal const uint MaxDescriptorSetCount = 256;
@@ -172,6 +170,11 @@ namespace Stride.Graphics
         /// </summary>
         public void End()
         {
+            lock (QueueLock)
+            {
+                FrameFence.Signal(NativeCommandQueue, FrameFence.NextFenceValue);
+                FrameFence.NextFenceValue++;
+            }
         }
 
         /// <summary>
@@ -193,40 +196,35 @@ namespace Stride.Graphics
             if (commandLists == null) throw new ArgumentNullException(nameof(commandLists));
             if (count > commandLists.Length) throw new ArgumentOutOfRangeException(nameof(count));
 
-            var fenceValue = NextFenceValue++;
-
-            // Create a fence
-            var fenceCreateInfo = new VkFenceCreateInfo { sType = VkStructureType.FenceCreateInfo };
-            vkCreateFence(nativeDevice, &fenceCreateInfo, null, out var fence);
-            nativeFences.Enqueue(new KeyValuePair<long, VkFence>(fenceValue, fence));
+            var commandListFenceValue = CommandListFence.NextFenceValue++;
 
             // Collect resources
             var commandBuffers = stackalloc VkCommandBuffer[count];
             for (int i = 0; i < count; i++)
             {
                 commandBuffers[i] = commandLists[i].NativeCommandBuffer;
-                RecycleCommandListResources(commandLists[i], fenceValue);
+                RecycleCommandListResources(commandLists[i], commandListFenceValue);
             }
 
             // Submit commands
             var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
-            var presentSemaphoreCopy = presentSemaphore;
             var submitInfo = new VkSubmitInfo
             {
                 sType = VkStructureType.SubmitInfo,
                 commandBufferCount = (uint)count,
                 pCommandBuffers = commandBuffers,
-                waitSemaphoreCount = presentSemaphore != VkSemaphore.Null ? 1U : 0U,
-                pWaitSemaphores = &presentSemaphoreCopy,
-                pWaitDstStageMask = &pipelineStageFlags,
             };
 
             lock (QueueLock)
             {
-                vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, fence);
+                vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null);
+
+                // Wait on GPU side to complete so that next command list (i.e. for a draw) can access the newly copied resources
+                // TODO: move that to user side for more control? (once we have D3D12/Vulkan only)
+                CommandListFence.Signal(NativeCommandQueue, commandListFenceValue);
+                CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
             }
 
-            presentSemaphore = VkSemaphore.Null;
             nativeResourceCollector.Release();
             graphicsResourceLinkCollector.Release();
         }
@@ -340,10 +338,15 @@ namespace Stride.Graphics
                 IsProfilingSupported = true;
             }
 
+            var timelineSemaphoreFeatures = new VkPhysicalDeviceTimelineSemaphoreFeatures();
+            timelineSemaphoreFeatures.sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures;
+            timelineSemaphoreFeatures.timelineSemaphore = VkBool32.True;
+
             using VkStringArray ppEnabledExtensionNames = new(desiredExtensionProperties);
             var deviceCreateInfo = new VkDeviceCreateInfo
             {
                 sType = VkStructureType.DeviceCreateInfo,
+                pNext = &timelineSemaphoreFeatures,
                 queueCreateInfoCount = 1,
                 pQueueCreateInfos = &queueCreateInfo,
                 enabledExtensionCount = ppEnabledExtensionNames.Length,
@@ -372,6 +375,11 @@ namespace Stride.Graphics
             }, true);
 
             DescriptorPools = new HeapPool(this);
+
+            // Fence for next frame and resource cleaning
+            FrameFence = new(NativeDevice);
+            CopyFence = new(NativeDevice);
+            CommandListFence = new(NativeDevice);
 
             nativeResourceCollector = new NativeResourceCollector(this);
             graphicsResourceLinkCollector = new GraphicsResourceLinkCollector(this);
@@ -451,6 +459,27 @@ namespace Stride.Graphics
             }
         }
 
+        internal unsafe void ExecuteAndWaitCopyQueueGPU(VkCommandBuffer commandBuffer)
+        {
+            var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+            var submitInfo = new VkSubmitInfo
+            {
+                sType = VkStructureType.SubmitInfo,
+                commandBufferCount = 1,
+                pCommandBuffers = &commandBuffer,
+            };
+
+            lock (QueueLock)
+            {
+                vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null);
+
+                CopyFence.Signal(NativeCommandQueue, CopyFence.NextFenceValue);
+                // Wait on GPU side to complete so that next command list (i.e. for a draw) can access the newly copied resources
+                CopyFence.Wait(NativeCommandQueue, CopyFence.NextFenceValue);
+                CopyFence.NextFenceValue++;
+            }
+        }
+
         protected unsafe void AllocateMemory(VkMemoryPropertyFlags memoryProperties)
         {
             vkGetBufferMemoryRequirements(nativeDevice, nativeUploadBuffer, out var memoryRequirements);
@@ -514,15 +543,12 @@ namespace Stride.Graphics
             // Wait for all queues to be idle
             vkDeviceWaitIdle(nativeDevice);
 
-            // Destroy all remaining fences
-            GetCompletedValue();
-
             // Mark upload buffer for destruction
             if (nativeUploadBuffer != VkBuffer.Null)
             {
                 vkUnmapMemory(NativeDevice, nativeUploadBufferMemory);
-                nativeResourceCollector.Add(lastCompletedFence, nativeUploadBuffer);
-                nativeResourceCollector.Add(lastCompletedFence, nativeUploadBufferMemory);
+                nativeResourceCollector.Add(FrameFence.LastCompletedFence, nativeUploadBuffer);
+                nativeResourceCollector.Add(FrameFence.LastCompletedFence, nativeUploadBufferMemory);
 
                 nativeUploadBuffer = VkBuffer.Null;
                 nativeUploadBufferMemory = VkDeviceMemory.Null;
@@ -531,6 +557,10 @@ namespace Stride.Graphics
             // Release fenced resources
             nativeResourceCollector.Dispose();
             DescriptorPools.Dispose();
+
+            FrameFence.Dispose();
+            CopyFence.Dispose();
+            CommandListFence.Dispose();
 
             foreach (var nativeCopyCommandPool in NativeCopyCommandPools.Values)
                 vkDestroyCommandPool(nativeDevice, nativeCopyCommandPool, null);
@@ -543,7 +573,7 @@ namespace Stride.Graphics
         {
         }
 
-        internal unsafe long ExecuteCommandListInternal(CompiledCommandList commandList)
+        internal unsafe ulong ExecuteCommandListInternal(CompiledCommandList commandList)
         {
             //if (nativeUploadBuffer != VkBuffer.Null)
             //{
@@ -554,49 +584,40 @@ namespace Stride.Graphics
             //    nativeUploadBufferMemory = VkDeviceMemory.Null;
             //}
 
-            var fenceValue = NextFenceValue++;
-
-            // Create new fence
-            var fenceCreateInfo = new VkFenceCreateInfo { sType = VkStructureType.FenceCreateInfo };
-            vkCreateFence(nativeDevice, &fenceCreateInfo, null, out var fence);
-            nativeFences.Enqueue(new KeyValuePair<long, VkFence>(fenceValue, fence));
-
-            // Collect resources
-            RecycleCommandListResources(commandList, fenceValue);
+            var commandListFenceValue = CommandListFence.NextFenceValue++;
 
             // Submit commands
             var nativeCommandBufferCopy = commandList.NativeCommandBuffer;
-            var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
 
-            var presentSemaphoreCopy = presentSemaphore;
             var submitInfo = new VkSubmitInfo
             {
                 sType = VkStructureType.SubmitInfo,
                 commandBufferCount = 1,
                 pCommandBuffers = &nativeCommandBufferCopy,
-                waitSemaphoreCount = presentSemaphore != VkSemaphore.Null ? 1U : 0U,
-                pWaitSemaphores = &presentSemaphoreCopy,
-                pWaitDstStageMask = &pipelineStageFlags,
             };
 
             lock (QueueLock)
             {
-                vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, fence);
+                vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null);
+
+                // Wait on GPU side to complete so that next command list (i.e. for a draw) can access the newly copied resources
+                // TODO: move that to user side for more control? (once we have D3D12/Vulkan only)
+                CommandListFence.Signal(NativeCommandQueue, commandListFenceValue);
+                CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
             }
 
-            presentSemaphore = VkSemaphore.Null;
-            nativeResourceCollector.Release();
-            graphicsResourceLinkCollector.Release();
+            // Collect resources
+            RecycleCommandListResources(commandList, commandListFenceValue);
 
-            return fenceValue;
+            return commandListFenceValue;
         }
 
-        private void RecycleCommandListResources(CompiledCommandList commandList, long fenceValue)
+        private void RecycleCommandListResources(CompiledCommandList commandList, ulong commandListFenceValue)
         {
             // Set fence on staging textures
             foreach (var stagingResource in commandList.StagingResources)
             {
-                stagingResource.StagingFenceValue = fenceValue;
+                stagingResource.StagingFenceValue = commandListFenceValue;
             }
 
             StagingResourceLists.Release(commandList.StagingResources);
@@ -605,83 +626,17 @@ namespace Stride.Graphics
             // Recycle all resources
             foreach (var descriptorPool in commandList.DescriptorPools)
             {
-                DescriptorPools.RecycleObject(fenceValue, descriptorPool);
+                DescriptorPools.RecycleObject(commandListFenceValue, descriptorPool);
             }
             DescriptorPoolLists.Release(commandList.DescriptorPools);
             commandList.DescriptorPools.Clear();
 
-            commandList.Builder.CommandBufferPool.RecycleObject(fenceValue, commandList.NativeCommandBuffer);
-        }
-
-        internal bool IsFenceCompleteInternal(long fenceValue)
-        {
-            // Try to avoid checking the fence if possible
-            if (fenceValue > lastCompletedFence)
-            {
-                GetCompletedValue();
-            }
-
-            return fenceValue <= lastCompletedFence;
-        }
-
-        private SpinLock spinLock = new SpinLock();
-
-        internal unsafe long GetCompletedValue()
-        {
-            bool lockTaken = false;
-            try
-            {
-                spinLock.Enter(ref lockTaken);
-
-                while (nativeFences.Count > 0 && vkGetFenceStatus(NativeDevice, nativeFences.Peek().Value) == VkResult.Success)
-                {
-                    var fence = nativeFences.Dequeue();
-                    vkDestroyFence(NativeDevice, fence.Value, null);
-                    lastCompletedFence = Math.Max(lastCompletedFence, fence.Key);
-                }
-
-                return lastCompletedFence;
-            }
-            finally
-            {
-                if (lockTaken)
-                    spinLock.Exit(false);
-            }
-        }
-
-        internal unsafe void WaitForFenceInternal(long fenceValue)
-        {
-            if (IsFenceCompleteInternal(fenceValue))
-                return;
-
-            // TODO D3D12 in case of concurrency, this lock could end up blocking too long a second thread with lower fenceValue then first one
-            lock (nativeFences)
-            {
-                while (nativeFences.Count > 0 && nativeFences.Peek().Key <= fenceValue)
-                {
-                    var fence = nativeFences.Dequeue();
-                    var fenceCopy = fence.Value;
-
-                    vkWaitForFences(NativeDevice, 1, &fenceCopy, true, ulong.MaxValue);
-                    vkDestroyFence(NativeDevice, fence.Value, null);
-                    lastCompletedFence = fenceValue;
-                }
-            }
-        }
-
-        private VkSemaphore presentSemaphore;
-
-        public unsafe VkSemaphore GetNextPresentSemaphore()
-        {
-            var createInfo = new VkSemaphoreCreateInfo { sType = VkStructureType.SemaphoreCreateInfo };
-            vkCreateSemaphore(NativeDevice, &createInfo, null, out presentSemaphore);
-            Collect(presentSemaphore);
-            return presentSemaphore;
+            commandList.Builder.CommandBufferPool.RecycleObject(commandListFenceValue, commandList.NativeCommandBuffer);
         }
 
         internal void Collect(NativeResource nativeResource)
         {
-            nativeResourceCollector.Add(NextFenceValue, nativeResource);
+            nativeResourceCollector.Add(FrameFence.NextFenceValue, nativeResource);
         }
 
         /// <summary>
@@ -700,7 +655,7 @@ namespace Stride.Graphics
                     {
                         // Increase the reference count until GPU is done with the resource
                         resourceLink.ReferenceCount++;
-                        graphicsResourceLinkCollector.Add(NextFenceValue, resourceLink);
+                        graphicsResourceLinkCollector.Add(FrameFence.NextFenceValue, resourceLink);
                     }
                     break;
 
@@ -709,14 +664,123 @@ namespace Stride.Graphics
                     {
                         // Increase the reference count until GPU is done with the resource
                         resourceLink.ReferenceCount++;
-                        graphicsResourceLinkCollector.Add(NextFenceValue, resourceLink);
+                        graphicsResourceLinkCollector.Add(FrameFence.NextFenceValue, resourceLink);
                     }
                     break;
 
                 case QueryPool _:
                     resourceLink.ReferenceCount++;
-                    graphicsResourceLinkCollector.Add(NextFenceValue, resourceLink);
+                    graphicsResourceLinkCollector.Add(FrameFence.NextFenceValue, resourceLink);
                     break;
+            }
+        }
+
+        internal unsafe struct FenceHelper : IDisposable
+        {
+            private VkDevice nativeDevice;
+            public VkSemaphore Semaphore;
+            public ulong NextFenceValue = 1;
+            public ulong LastCompletedFence;
+
+            public FenceHelper(VkDevice device)
+            {
+                this.nativeDevice = device;
+                var timelineInfo = new VkSemaphoreTypeCreateInfo { sType = VkStructureType.SemaphoreTypeCreateInfo, semaphoreType = VkSemaphoreType.Timeline };
+                var createInfo = new VkSemaphoreCreateInfo { sType = VkStructureType.SemaphoreCreateInfo, pNext = &timelineInfo };
+                vkCreateSemaphore(nativeDevice, &createInfo, null, out Semaphore);
+            }
+
+            internal ulong GetCompletedValue()
+            {
+                ulong result = 0;
+                vkGetSemaphoreCounterValue(nativeDevice, Semaphore, &result);
+                return result;
+            }
+
+            internal bool IsFenceCompleteInternal(ulong fenceValue)
+            {
+                // Try to avoid checking the fence if possible
+                if (fenceValue > LastCompletedFence)
+                    LastCompletedFence = Math.Max(LastCompletedFence, GetCompletedValue()); // Protect against race conditions
+
+                return fenceValue <= LastCompletedFence;
+            }
+
+            internal void WaitForFenceCPUInternal(ulong fenceValue)
+            {
+                if (IsFenceCompleteInternal(fenceValue))
+                    return;
+
+                // TODO D3D12 in case of concurrency, this lock could end up blocking too long a second thread with lower fenceValue then first one
+                //lock (Fence)
+                {
+                    fixed (VkSemaphore* semaphore = &Semaphore)
+                    {
+                        var waitInfo = new VkSemaphoreWaitInfo
+                        {
+                            sType = VkStructureType.SemaphoreWaitInfo,
+                            semaphoreCount = 1,
+                            pSemaphores = semaphore,
+                            pValues = &fenceValue,
+                        };
+                        vkWaitSemaphores(nativeDevice, &waitInfo, ulong.MaxValue);
+                        LastCompletedFence = fenceValue;
+                    }
+                }
+            }
+
+            public void Signal(VkQueue commandQueue, ulong fenceValue)
+            {
+                fixed (VkSemaphore* semaphore = &Semaphore)
+                {
+                    var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                    {
+                        sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                        signalSemaphoreValueCount = 1,
+                        pSignalSemaphoreValues = &fenceValue,
+                    };
+                    var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+                    var submitInfo = new VkSubmitInfo
+                    {
+                        sType = VkStructureType.SubmitInfo,
+                        pNext = &timelineInfo,
+                        signalSemaphoreCount = 1,
+                        pSignalSemaphores = semaphore,
+
+                    };
+
+                    vkQueueSubmit(commandQueue, 1, &submitInfo, VkFence.Null);
+                }
+            }
+
+            public void Wait(VkQueue commandQueue, ulong fenceValue)
+            {
+                fixed (VkSemaphore* semaphore = &Semaphore)
+                {
+                    var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                    {
+                        sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                        waitSemaphoreValueCount = 1,
+                        pWaitSemaphoreValues = &fenceValue,
+                    };
+                    var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+                    var submitInfo = new VkSubmitInfo
+                    {
+                        sType = VkStructureType.SubmitInfo,
+                        pNext = &timelineInfo,
+                        waitSemaphoreCount = 1,
+                        pWaitSemaphores = semaphore,
+                        pWaitDstStageMask = &pipelineStageFlags,
+
+                    };
+
+                    vkQueueSubmit(commandQueue, 1, &submitInfo, VkFence.Null);
+                }
+            }
+
+            public void Dispose()
+            {
+                vkDestroySemaphore(nativeDevice, Semaphore);
             }
         }
     }
@@ -724,7 +788,7 @@ namespace Stride.Graphics
     internal abstract class ResourcePool<T> : ComponentBase
     {
         protected readonly GraphicsDevice GraphicsDevice;
-        private readonly Queue<KeyValuePair<long, T>> liveObjects = new Queue<KeyValuePair<long, T>>();
+        private readonly Queue<KeyValuePair<ulong, T>> liveObjects = new();
 
         protected ResourcePool(GraphicsDevice graphicsDevice)
         {
@@ -739,7 +803,7 @@ namespace Stride.Graphics
                 if (liveObjects.Count > 0)
                 {
                     var firstAllocator = liveObjects.Peek();
-                    if (firstAllocator.Key <= GraphicsDevice.GetCompletedValue())
+                    if (firstAllocator.Key <= GraphicsDevice.CommandListFence.GetCompletedValue())
                     {
                         liveObjects.Dequeue();
                         ResetObject(firstAllocator.Value);
@@ -751,11 +815,11 @@ namespace Stride.Graphics
             }
         }
 
-        public void RecycleObject(long fenceValue, T obj)
+        public void RecycleObject(ulong fenceValue, T obj)
         {
             lock (liveObjects)
             {
-                liveObjects.Enqueue(new KeyValuePair<long, T>(fenceValue, obj));
+                liveObjects.Enqueue(new KeyValuePair<ulong, T>(fenceValue, obj));
             }
         }
 
@@ -993,18 +1057,18 @@ namespace Stride.Graphics
     internal abstract class TemporaryResourceCollector<T> : IDisposable
     {
         protected readonly GraphicsDevice GraphicsDevice;
-        private readonly Queue<KeyValuePair<long, T>> items = new();
+        private readonly Queue<KeyValuePair<ulong, T>> items = new();
 
         protected TemporaryResourceCollector(GraphicsDevice graphicsDevice)
         {
             GraphicsDevice = graphicsDevice;
         }
 
-        public void Add(long fenceValue, T item)
+        public void Add(ulong frameFenceValue, T item)
         {
             lock (items)
             {
-                items.Enqueue(new KeyValuePair<long, T>(fenceValue, item));
+                items.Enqueue(new KeyValuePair<ulong, T>(frameFenceValue, item));
             }
         }
 
@@ -1012,7 +1076,7 @@ namespace Stride.Graphics
         {
             lock (items)
             {
-                while (items.Count > 0 && GraphicsDevice.IsFenceCompleteInternal(items.Peek().Key))
+                while (items.Count > 0 && GraphicsDevice.FrameFence.IsFenceCompleteInternal(items.Peek().Key))
                 {
                     ReleaseObject(items.Dequeue().Value);
                 }

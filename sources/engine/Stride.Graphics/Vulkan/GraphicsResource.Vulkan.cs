@@ -12,7 +12,7 @@ namespace Stride.Graphics
     public abstract partial class GraphicsResource
     {
         internal VkDeviceMemory NativeMemory;
-        internal long? StagingFenceValue;
+        internal ulong? StagingFenceValue;
         internal CommandList StagingBuilder;
         internal VkPipelineStageFlags NativePipelineStageMask;
 

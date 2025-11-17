@@ -19,8 +19,16 @@ namespace Stride.Graphics
         private VkSurfaceKHR surface;
 
         private Texture backBuffer;
+
+        // As many as swapchain backbuffer
+        private VkSemaphore[] submitSemaphores;
         private SwapChainImageInfo[] swapchainImages;
         private uint currentBufferIndex;
+
+        private const int kNumberOfFramesInFlight = 2;
+        private int currentFrameIndex = 0;
+        private VkSemaphore[] acquireSemaphores;
+        private VkFence[] frameFences;
 
         private struct SwapChainImageInfo
         {
@@ -28,7 +36,7 @@ namespace Stride.Graphics
             public VkImageView NativeColorAttachmentView;
         }
 
-        public SwapChainGraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters)
+        public unsafe SwapChainGraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters)
             : base(device, presentationParameters)
         {
             PresentInterval = presentationParameters.PresentationInterval;
@@ -134,26 +142,52 @@ namespace Stride.Graphics
 
         public override unsafe void Present()
         {
-            var swapChainCopy = swapChain;
+            // Code is inspired from https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html (good code example)
+            // except we start the loop from vkQueueSubmit+vkQueuePresent and then proceed with preparing next frame resources
+
+            // Signal semaphore (that we will wait on during present for GPU=>GPU sync, to make sure all previous command buffers have been executed)
             var currentBufferIndexCopy = currentBufferIndex;
+            var acquireSemaphore = acquireSemaphores[currentFrameIndex];
+            var submitSemaphore = submitSemaphores[currentBufferIndexCopy];
+            var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+            var submitInfo = new VkSubmitInfo
+            {
+                sType = VkStructureType.SubmitInfo,
+                waitSemaphoreCount = 1,
+                pWaitSemaphores = &acquireSemaphore,
+                pWaitDstStageMask = &pipelineStageFlags,
+                signalSemaphoreCount = 1,
+                pSignalSemaphores = &submitSemaphore,
+            };
+
+            vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, frameFences[currentFrameIndex]);
+
+            var swapChainCopy = swapChain;
             var presentInfo = new VkPresentInfoKHR
             {
                 sType = VkStructureType.PresentInfoKHR,
                 swapchainCount = 1,
                 pSwapchains = &swapChainCopy,
                 pImageIndices = &currentBufferIndexCopy,
+                waitSemaphoreCount = 1,
+                pWaitSemaphores = &submitSemaphore,
             };
 
             // Present
-            while (vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo) == VkResult.ErrorOutOfDateKHR)
+            if (vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo) == VkResult.ErrorOutOfDateKHR)
             {
                 OnRecreated();
-                swapChainCopy = swapChain;
-                presentInfo.pSwapchains = &swapChainCopy;
+                return;
             }
 
+            currentFrameIndex = (currentFrameIndex + 1) % kNumberOfFramesInFlight;
+
+            // Wait for frame fence to be available
+            vkWaitForFences(GraphicsDevice.NativeDevice, frameFences[currentFrameIndex], VkBool32.True, ulong.MaxValue);
+            vkResetFences(GraphicsDevice.NativeDevice, frameFences[currentFrameIndex]);
+
             // Get next image
-            while (vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), VkFence.Null, out currentBufferIndex) == VkResult.ErrorOutOfDateKHR)
+            if (vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, acquireSemaphores[currentFrameIndex], VkFence.Null, out currentBufferIndex) == VkResult.ErrorOutOfDateKHR)
             {
                 OnRecreated();
             }
@@ -253,11 +287,25 @@ namespace Stride.Graphics
 
             backBuffer.OnDestroyed(true);
 
+            foreach (var semaphore in submitSemaphores)
+            {
+                vkDestroySemaphore(GraphicsDevice.NativeDevice, semaphore);
+            }
+            submitSemaphores = null;
+
             foreach (var swapchainImage in swapchainImages)
             {
                 vkDestroyImageView(GraphicsDevice.NativeDevice, swapchainImage.NativeColorAttachmentView, null);
             }
             swapchainImages = null;
+
+            for (int i = 0; i < kNumberOfFramesInFlight; i++)
+            {
+                vkDestroySemaphore(GraphicsDevice.NativeDevice, acquireSemaphores[i]);
+                vkDestroyFence(GraphicsDevice.NativeDevice, frameFences[i]);
+            }
+            acquireSemaphores = null;
+            frameFences = null;
 
             vkDestroySwapchainKHR(GraphicsDevice.NativeDevice, swapChain, null);
             swapChain = VkSwapchainKHR.Null;
@@ -484,6 +532,23 @@ namespace Stride.Graphics
                 vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.AllCommands, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 0, null, 1, &imageMemoryBarrier);
             }
 
+            // Create submit semaphores
+            submitSemaphores = new VkSemaphore[buffers.Length];
+            var semaphoreCreateInfo = new VkSemaphoreCreateInfo { sType = VkStructureType.SemaphoreCreateInfo };
+            for (int i = 0; i < submitSemaphores.Length; ++i)
+                vkCreateSemaphore(GraphicsDevice.NativeDevice, &semaphoreCreateInfo, null, out submitSemaphores[i]);
+
+            frameFences = new VkFence[kNumberOfFramesInFlight];
+            acquireSemaphores = new VkSemaphore[kNumberOfFramesInFlight];
+            var fenceCreateInfo = new VkFenceCreateInfo { sType = VkStructureType.FenceCreateInfo };
+            for (int i = 0; i < kNumberOfFramesInFlight; i++)
+            {
+                vkCreateSemaphore(GraphicsDevice.NativeDevice, &semaphoreCreateInfo, null, out acquireSemaphores[i]);
+                // Make all fence except 0 as signaled (so that next Present()=>vkWaitForFences is not blocked when fetching secondary buffers for first time)
+                fenceCreateInfo.flags = i == 0 ? VkFenceCreateFlags.None : VkFenceCreateFlags.Signaled;
+                vkCreateFence(GraphicsDevice.NativeDevice, &fenceCreateInfo, null, out frameFences[i]);
+            }
+
             // Close and submit
             vkEndCommandBuffer(commandBuffer);
 
@@ -503,8 +568,9 @@ namespace Stride.Graphics
             vkFreeCommandBuffers(GraphicsDevice.NativeDevice, GraphicsDevice.NativeCopyCommandPools.Value, 1, &commandBuffer);
 
             // Get next image
-            vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), VkFence.Null, out currentBufferIndex);
-
+            currentFrameIndex = 0;
+            vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, acquireSemaphores[currentFrameIndex], VkFence.Null, out currentBufferIndex);
+            
             // Apply the first swap chain image to the texture
             backBuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
         }

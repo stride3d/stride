@@ -123,10 +123,10 @@ namespace Stride.Graphics
 
         private unsafe void FlushInternal(bool wait)
         {
-            var fenceValue = GraphicsDevice.ExecuteCommandListInternal(Close());
+            var commandListFenceValue = GraphicsDevice.ExecuteCommandListInternal(Close());
 
             if (wait)
-                GraphicsDevice.WaitForFenceInternal(fenceValue);
+                GraphicsDevice.CommandListFence.WaitForFenceCPUInternal(commandListFenceValue);
 
             Reset();
 
@@ -1434,7 +1434,7 @@ namespace Stride.Graphics
             if (mapMode != MapMode.WriteNoOverwrite && mapMode != MapMode.Write)
             {
                 // Need to wait?
-                if (!resource.StagingFenceValue.HasValue || !GraphicsDevice.IsFenceCompleteInternal(resource.StagingFenceValue.Value))
+                if (!resource.StagingFenceValue.HasValue || !GraphicsDevice.CommandListFence.IsFenceCompleteInternal(resource.StagingFenceValue.Value))
                 {
                     if (doNotWait)
                     {
@@ -1451,7 +1451,7 @@ namespace Stride.Graphics
                         if (!resource.StagingFenceValue.HasValue)
                             throw new InvalidOperationException("CommandList updating the staging resource has not been submitted");
 
-                        GraphicsDevice.WaitForFenceInternal(resource.StagingFenceValue.Value);
+                        GraphicsDevice.CommandListFence.WaitForFenceCPUInternal(resource.StagingFenceValue.Value);
                     }
                 }
             }
@@ -1481,7 +1481,7 @@ namespace Stride.Graphics
 
             if (descriptorPool != VkDescriptorPool.Null)
             {
-                GraphicsDevice.DescriptorPools.RecycleObject(GraphicsDevice.NextFenceValue - 1, descriptorPool);
+                GraphicsDevice.DescriptorPools.RecycleObject(GraphicsDevice.CommandListFence.NextFenceValue - 1, descriptorPool);
                 descriptorPool = VkDescriptorPool.Null;
             }
 
