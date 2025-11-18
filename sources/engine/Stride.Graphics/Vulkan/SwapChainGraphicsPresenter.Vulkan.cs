@@ -160,28 +160,31 @@ namespace Stride.Graphics
                 pSignalSemaphores = &submitSemaphore,
             };
 
-            GraphicsDevice.CheckResult(vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, frameFences[currentFrameIndex]));
-
-            var swapChainCopy = swapChain;
-            var presentInfo = new VkPresentInfoKHR
+            lock (GraphicsDevice.QueueLock)
             {
-                sType = VkStructureType.PresentInfoKHR,
-                swapchainCount = 1,
-                pSwapchains = &swapChainCopy,
-                pImageIndices = &currentBufferIndexCopy,
-                waitSemaphoreCount = 1,
-                pWaitSemaphores = &submitSemaphore,
-            };
+                GraphicsDevice.CheckResult(vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, frameFences[currentFrameIndex]));
 
-            // Present
-            var presentResult = vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo);
-            if (presentResult == VkResult.ErrorOutOfDateKHR)
-            {
-                OnRecreated();
-                return;
+                var swapChainCopy = swapChain;
+                var presentInfo = new VkPresentInfoKHR
+                {
+                    sType = VkStructureType.PresentInfoKHR,
+                    swapchainCount = 1,
+                    pSwapchains = &swapChainCopy,
+                    pImageIndices = &currentBufferIndexCopy,
+                    waitSemaphoreCount = 1,
+                    pWaitSemaphores = &submitSemaphore,
+                };
+
+                // Present
+                var presentResult = vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo);
+                if (presentResult == VkResult.ErrorOutOfDateKHR)
+                {
+                    OnRecreated();
+                    return;
+                }
+
+                GraphicsDevice.CheckResult(presentResult);
             }
-
-            GraphicsDevice.CheckResult(presentResult);
 
             currentFrameIndex = (currentFrameIndex + 1) % kNumberOfFramesInFlight;
 
