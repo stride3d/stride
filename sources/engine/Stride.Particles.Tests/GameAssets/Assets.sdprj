@@ -11,17 +11,17 @@ BuildConfiguration:
         Windows_OGL: !StrideProjectBuildProfile
             Platform: Windows
             GraphicsPlatform: OpenGLCore
-            GraphicsProfile: Level_9_1
+            GraphicsProfile: Level_10_0
             OutputDirectory: ../../../../Bin/Windows-AnyCPU-OpenGL/data/Stride.Input.Tests
         Android: !StrideProjectBuildProfile
             Platform: Android
             GraphicsPlatform: OpenGLES20
-            GraphicsProfile: Level_9_1
+            GraphicsProfile: Level_10_0
             OutputDirectory: ../obj/Android-AnyCPU-OpenGLES/assets/data
         iOS: !StrideProjectBuildProfile
             Platform: iOS
             GraphicsPlatform: OpenGLES20
-            GraphicsProfile: Level_9_1
+            GraphicsProfile: Level_10_0
             OutputDirectory: ../../../../Bin/iOS-AnyCPU-OpenGLES/data/Stride.Input.Tests
 ExplicitFolders: []
 PluginReferences: []

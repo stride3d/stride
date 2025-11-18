@@ -32,7 +32,6 @@ TemplateFolders:
         - !file Templates/Assets/Media/MusicSound.sdtpl
         - !file Templates/Assets/Misc/DefaultGameSettings.sdtpl
         - !file Templates/Assets/Misc/DefaultGraphicsCompositorLevel10.sdtpl
-        - !file Templates/Assets/Misc/DefaultGraphicsCompositorLevel9.sdtpl
         - !file Templates/Assets/Misc/DefaultGraphicsCompositorVoxels.sdtpl
         - !file Templates/Assets/Misc/DefaultRawAsset.sdtpl
         - !file Templates/Assets/Misc/DefaultSkybox.sdtpl

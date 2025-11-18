@@ -645,21 +645,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Check and modify if necessary the mipmap levels of the image (Troubles with DXT images whose resolution in less than 4x4 in DX9.x).
-        /// </summary>
-        /// <param name="device">The graphics device.</param>
-        /// <param name="description">The texture description.</param>
-        /// <returns>The updated texture description.</returns>
-        private static TextureDescription CheckMipLevels(GraphicsDevice device, ref TextureDescription description)
-        {
-            if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 && (description.Flags & TextureFlags.DepthStencil) == 0 && description.Format.IsCompressed())
-            {
-                description.MipLevels = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevels);
-            }
-            return description;
-        }
-
-        /// <summary>
         /// Calculates the mip level from a specified size.
         /// </summary>
         /// <param name="size">The size.</param>

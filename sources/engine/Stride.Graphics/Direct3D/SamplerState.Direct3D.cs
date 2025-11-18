@@ -49,21 +49,6 @@ namespace Stride.Graphics
             nativeDescription.MinimumLod = Description.MinMipLevel;
             nativeDescription.MipLodBias = Description.MipMapLevelOfDetailBias;
 
-            // For 9.1, anisotropy cannot be larger then 2
-            // mirror once is not supported either
-            if (GraphicsDevice.Features.CurrentProfile == GraphicsProfile.Level_9_1)
-            {
-                // TODO: Min with user-value instead?
-                nativeDescription.MaximumAnisotropy = 2;
-
-                if (nativeDescription.AddressU == SharpDX.Direct3D11.TextureAddressMode.MirrorOnce)
-                    nativeDescription.AddressU = SharpDX.Direct3D11.TextureAddressMode.Mirror;
-                if (nativeDescription.AddressV == SharpDX.Direct3D11.TextureAddressMode.MirrorOnce)
-                    nativeDescription.AddressV = SharpDX.Direct3D11.TextureAddressMode.Mirror;
-                if (nativeDescription.AddressW == SharpDX.Direct3D11.TextureAddressMode.MirrorOnce)
-                    nativeDescription.AddressW = SharpDX.Direct3D11.TextureAddressMode.Mirror;
-            }
-
             NativeDeviceChild = new SharpDX.Direct3D11.SamplerState(NativeDevice, nativeDescription);
         }
     }
