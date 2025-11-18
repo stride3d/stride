@@ -3,6 +3,7 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -30,7 +31,7 @@ namespace Stride.Graphics
         internal VkQueue NativeCommandQueue;
         internal object QueueLock = new object();
 
-        internal ThreadLocal<VkCommandPool> NativeCopyCommandPools;
+        internal ThreadLocal<CommandBufferPool> NativeCopyCommandPools;
         private NativeResourceCollector nativeResourceCollector;
         private GraphicsResourceLinkCollector graphicsResourceLinkCollector;
 
@@ -366,21 +367,9 @@ namespace Stride.Graphics
 
             vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 
-            NativeCopyCommandPools = new ThreadLocal<VkCommandPool>(() =>
-            {
-                //// Prepare copy command list (start it closed, so that every new use start with a Reset)
-                var commandPoolCreateInfo = new VkCommandPoolCreateInfo
-                {
-                    sType = VkStructureType.CommandPoolCreateInfo,
-                    queueFamilyIndex = 0, //device.NativeCommandQueue.FamilyIndex
-                    flags = VkCommandPoolCreateFlags.ResetCommandBuffer
-                };
+            NativeCopyCommandPools = new(() => new CommandBufferPool(this, false), true);
 
-                CheckResult(vkCreateCommandPool(NativeDevice, &commandPoolCreateInfo, null, out var result));
-                return result;
-            }, true);
-
-            DescriptorPools = new HeapPool(this);
+            DescriptorPools = new HeapPool(this, true);
 
             // Fence for next frame and resource cleaning
             FrameFence = new(this);
@@ -569,7 +558,7 @@ namespace Stride.Graphics
             CommandListFence.Dispose();
 
             foreach (var nativeCopyCommandPool in NativeCopyCommandPools.Values)
-                vkDestroyCommandPool(nativeDevice, nativeCopyCommandPool, null);
+                nativeCopyCommandPool.Dispose();
             NativeCopyCommandPools.Dispose();
             NativeCopyCommandPools = null;
             vkDestroyDevice(nativeDevice, null);
@@ -795,21 +784,23 @@ namespace Stride.Graphics
     {
         protected readonly GraphicsDevice GraphicsDevice;
         private readonly Queue<KeyValuePair<ulong, T>> liveObjects = new();
+        private readonly bool threadsafe;
 
-        protected ResourcePool(GraphicsDevice graphicsDevice)
+        protected ResourcePool(GraphicsDevice graphicsDevice, bool threadsafe)
         {
             GraphicsDevice = graphicsDevice;
+            this.threadsafe = threadsafe;
         }
 
-        public T GetObject()
+        public T GetObject(ulong completedFenceValue)
         {
-            lock (liveObjects)
+            using (OptionalLock.Lock(liveObjects, threadsafe))
             {
                 // Check if first allocator is ready for reuse
                 if (liveObjects.Count > 0)
                 {
                     var firstAllocator = liveObjects.Peek();
-                    if (firstAllocator.Key <= GraphicsDevice.CommandListFence.GetCompletedValue())
+                    if (firstAllocator.Key <= completedFenceValue)
                     {
                         liveObjects.Dequeue();
                         ResetObject(firstAllocator.Value);
@@ -823,7 +814,7 @@ namespace Stride.Graphics
 
         public void RecycleObject(ulong fenceValue, T obj)
         {
-            lock (liveObjects)
+            using (OptionalLock.Lock(liveObjects, threadsafe))
             {
                 liveObjects.Enqueue(new KeyValuePair<ulong, T>(fenceValue, obj));
             }
@@ -839,8 +830,8 @@ namespace Stride.Graphics
 
         protected override void Destroy()
         {
-            lock (liveObjects)
-            {
+            using (OptionalLock.Lock(liveObjects, threadsafe))
+            { 
                 foreach (var item in liveObjects)
                 {
                     DestroyObject(item.Value);
@@ -849,13 +840,47 @@ namespace Stride.Graphics
 
             base.Destroy();
         }
+
+        // TODO: do we want to use spinlock instead? (need to measure impact, not good if too long wait)
+        private struct OptionalLock : IDisposable
+        {
+            private readonly object lockObject;
+            private readonly bool locked;
+
+            // Use a private constructor to force usage through the static factory methods
+            private OptionalLock(object lockObject, bool locked)
+            {
+                this.lockObject = lockObject;
+                this.locked = locked;
+            }
+
+            public void Dispose()
+            {
+                if (locked)
+                {
+                    Monitor.Exit(lockObject);
+                }
+            }
+
+            // Factory method for a locked scope
+            public static OptionalLock Lock(object lockObject, bool useLock)
+            {
+                // TODO: do we want to use spinlock instead?
+                if (useLock)
+                {
+                    useLock = false;
+                    Monitor.Enter(lockObject, ref useLock);
+                }
+                return new OptionalLock(lockObject, useLock);
+            }
+        }
     }
 
     internal class CommandBufferPool : ResourcePool<VkCommandBuffer>
     {
         private readonly VkCommandPool commandPool;
 
-        public unsafe CommandBufferPool(GraphicsDevice graphicsDevice) : base(graphicsDevice)
+        public unsafe CommandBufferPool(GraphicsDevice graphicsDevice, bool threadsafe) : base(graphicsDevice, threadsafe)
         {
             var commandPoolCreateInfo = new VkCommandPoolCreateInfo
             {
@@ -898,7 +923,7 @@ namespace Stride.Graphics
 
     internal class HeapPool : ResourcePool<VkDescriptorPool>
     {
-        public HeapPool(GraphicsDevice graphicsDevice) : base(graphicsDevice)
+        public HeapPool(GraphicsDevice graphicsDevice, bool threadsafe) : base(graphicsDevice, threadsafe)
         {
         }
 
@@ -1039,7 +1064,7 @@ namespace Stride.Graphics
     internal class GraphicsResourceLinkCollector : TemporaryResourceCollector<GraphicsResourceLink>
     {
         public GraphicsResourceLinkCollector(GraphicsDevice graphicsDevice) : base(graphicsDevice)
-        {
+    {
         }
 
         protected override void ReleaseObject(GraphicsResourceLink item)
@@ -1051,7 +1076,7 @@ namespace Stride.Graphics
     internal class NativeResourceCollector : TemporaryResourceCollector<NativeResource>
     {
         public NativeResourceCollector(GraphicsDevice graphicsDevice) : base(graphicsDevice)
-        {
+    {
         }
 
         protected override void ReleaseObject(NativeResource item)

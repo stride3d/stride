@@ -47,9 +47,9 @@ namespace Stride.Graphics
 
         private void Recreate()
         {
-            CommandBufferPool = new CommandBufferPool(GraphicsDevice);
+            CommandBufferPool = new CommandBufferPool(GraphicsDevice, false);
 
-            descriptorPool = GraphicsDevice.DescriptorPools.GetObject();
+            descriptorPool = GraphicsDevice.DescriptorPools.GetObject(GraphicsDevice.CommandListFence.GetCompletedValue());
             allocatedTypeCounts = new uint[DescriptorSetLayout.DescriptorTypeCount];
             allocatedSetCount = 0;
 
@@ -71,7 +71,7 @@ namespace Stride.Graphics
             framebufferDirty = true;
 
             currentCommandList.Builder = this;
-            currentCommandList.NativeCommandBuffer = CommandBufferPool.GetObject();
+            currentCommandList.NativeCommandBuffer = CommandBufferPool.GetObject(GraphicsDevice.CommandListFence.GetCompletedValue());
             currentCommandList.DescriptorPools = GraphicsDevice.DescriptorPoolLists.Acquire();
             currentCommandList.StagingResources = GraphicsDevice.StagingResourceLists.Acquire();
 
@@ -297,7 +297,7 @@ namespace Stride.Graphics
             {
                 // Retrieve a new pool
                 currentCommandList.DescriptorPools.Add(descriptorPool);
-                descriptorPool = GraphicsDevice.DescriptorPools.GetObject();
+                descriptorPool = GraphicsDevice.DescriptorPools.GetObject(GraphicsDevice.CommandListFence.GetCompletedValue());
 
                 allocatedSetCount = 1;
                 for (int i = 0; i < DescriptorSetLayout.DescriptorTypeCount; i++)

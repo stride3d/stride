@@ -511,15 +511,7 @@ namespace Stride.Graphics
                 dstAccessMask = VkAccessFlags.MemoryRead
             };
 
-            var commandBufferAllocationInfo = new VkCommandBufferAllocateInfo
-            {
-                sType = VkStructureType.CommandBufferAllocateInfo,
-                level = VkCommandBufferLevel.Primary,
-                commandPool = GraphicsDevice.NativeCopyCommandPools.Value,
-                commandBufferCount = 1
-            };
-            VkCommandBuffer commandBuffer;
-            vkAllocateCommandBuffers(GraphicsDevice.NativeDevice, &commandBufferAllocationInfo, &commandBuffer);
+            var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CopyFence.GetCompletedValue());
 
             var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo };
             vkBeginCommandBuffer(commandBuffer, &beginInfo);
@@ -538,23 +530,6 @@ namespace Stride.Graphics
                 vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.AllCommands, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 0, null, 1, &imageMemoryBarrier);
             }
 
-            // Create submit semaphores
-            submitSemaphores = new VkSemaphore[buffers.Length];
-            var semaphoreCreateInfo = new VkSemaphoreCreateInfo { sType = VkStructureType.SemaphoreCreateInfo };
-            for (int i = 0; i < submitSemaphores.Length; ++i)
-                GraphicsDevice.CheckResult(vkCreateSemaphore(GraphicsDevice.NativeDevice, &semaphoreCreateInfo, null, out submitSemaphores[i]));
-
-            frameFences = new VkFence[kNumberOfFramesInFlight];
-            acquireSemaphores = new VkSemaphore[kNumberOfFramesInFlight];
-            var fenceCreateInfo = new VkFenceCreateInfo { sType = VkStructureType.FenceCreateInfo };
-            for (int i = 0; i < kNumberOfFramesInFlight; i++)
-            {
-                GraphicsDevice.CheckResult(vkCreateSemaphore(GraphicsDevice.NativeDevice, &semaphoreCreateInfo, null, out acquireSemaphores[i]));
-                // Make all fence except 0 as signaled (so that next Present()=>vkWaitForFences is not blocked when fetching secondary buffers for first time)
-                fenceCreateInfo.flags = i == 0 ? VkFenceCreateFlags.None : VkFenceCreateFlags.Signaled;
-                GraphicsDevice.CheckResult(vkCreateFence(GraphicsDevice.NativeDevice, &fenceCreateInfo, null, out frameFences[i]));
-            }
-
             // Close and submit
             GraphicsDevice.CheckResult(vkEndCommandBuffer(commandBuffer));
 
@@ -571,7 +546,24 @@ namespace Stride.Graphics
                 GraphicsDevice.CheckResult(vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue));
             }
 
-            vkFreeCommandBuffers(GraphicsDevice.NativeDevice, GraphicsDevice.NativeCopyCommandPools.Value, 1, &commandBuffer);
+            GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CopyFence.LastCompletedFence, commandBuffer);
+
+            // Create submit semaphores
+            submitSemaphores = new VkSemaphore[buffers.Length];
+            var semaphoreCreateInfo = new VkSemaphoreCreateInfo { sType = VkStructureType.SemaphoreCreateInfo };
+            for (int i = 0; i < submitSemaphores.Length; ++i)
+                GraphicsDevice.CheckResult(vkCreateSemaphore(GraphicsDevice.NativeDevice, &semaphoreCreateInfo, null, out submitSemaphores[i]));
+
+            frameFences = new VkFence[kNumberOfFramesInFlight];
+            acquireSemaphores = new VkSemaphore[kNumberOfFramesInFlight];
+            var fenceCreateInfo = new VkFenceCreateInfo { sType = VkStructureType.FenceCreateInfo };
+            for (int i = 0; i < kNumberOfFramesInFlight; i++)
+            {
+                GraphicsDevice.CheckResult(vkCreateSemaphore(GraphicsDevice.NativeDevice, &semaphoreCreateInfo, null, out acquireSemaphores[i]));
+                // Make all fence except 0 as signaled (so that next Present()=>vkWaitForFences is not blocked when fetching secondary buffers for first time)
+                fenceCreateInfo.flags = i == 0 ? VkFenceCreateFlags.None : VkFenceCreateFlags.Signaled;
+                GraphicsDevice.CheckResult(vkCreateFence(GraphicsDevice.NativeDevice, &fenceCreateInfo, null, out frameFences[i]));
+            }
 
             // Get next image
             currentFrameIndex = 0;
