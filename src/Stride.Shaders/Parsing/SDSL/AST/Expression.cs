@@ -90,7 +90,6 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 
         return builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
     }
-
     public override string ToString()
     {
         return $"{Name}({string.Join(", ", Parameters)})";
