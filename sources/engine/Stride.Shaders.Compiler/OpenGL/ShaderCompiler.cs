@@ -2,10 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using Stride.Core;
 using Stride.Core.Extensions;
@@ -14,9 +12,7 @@ using Stride.Core.Storage;
 using Stride.Graphics;
 using Stride.Core.Shaders.Ast;
 using Stride.Core.Shaders.Ast.Glsl;
-using Stride.Core.Shaders.Ast.Hlsl;
 using Stride.Core.Shaders.Convertor;
-using Stride.Core.Shaders.Writer.Hlsl;
 using ConstantBuffer = Stride.Core.Shaders.Ast.Hlsl.ConstantBuffer;
 using StorageQualifier = Stride.Core.Shaders.Ast.StorageQualifier;
 
@@ -80,7 +76,7 @@ namespace Stride.Shaders.Compiler.OpenGL
                 return shaderBytecodeResult;
 
             if (effectParameters.Platform == GraphicsPlatform.OpenGLES)      // TODO: Add check to run on android only. The current version breaks OpenGL ES on windows.
-            { 
+            {
                 //TODO: Remove this ugly hack!
                 if (shaderSource.Contains($"Texture2D StrideInternal_TextureExt0") && shader.Contains("uniform sampler2D"))
                 {
@@ -111,6 +107,20 @@ namespace Stride.Shaders.Compiler.OpenGL
                 var inputFileName = Path.ChangeExtension(Path.GetTempFileName(), inputFileExtension);
                 var outputFileName = Path.ChangeExtension(inputFileName, ".spv");
 
+                var args = $"-V";  // Generate SPIR-V binary
+
+                // Add debug info if needed
+                if (effectParameters.Debug)
+                {
+                    args += " -g";  // Generate debug information
+
+                    if (effectParameters.Profile >= GraphicsProfile.Level_10_0)
+                    {
+                        args += " -Od"; // Disable optimizations
+                    }
+                }
+                args += $" -o {outputFileName} {inputFileName}";
+
                 // Write shader source to disk
                 File.WriteAllBytes(inputFileName, Encoding.ASCII.GetBytes(shader));
 
@@ -131,7 +141,7 @@ namespace Stride.Shaders.Compiler.OpenGL
                     default:
                         throw new PlatformNotSupportedException();
                 }
-                ShellHelper.RunProcessAndRedirectToLogger(filename, $"-V -o {outputFileName} {inputFileName}", null, shaderBytecodeResult);
+                ShellHelper.RunProcessAndRedirectToLogger(filename, args, workingDirectory: null, shaderBytecodeResult);
 
                 if (!File.Exists(outputFileName))
                 {
@@ -163,13 +173,13 @@ namespace Stride.Shaders.Compiler.OpenGL
                 // store string on OpenGL platforms
                 rawData = Encoding.UTF8.GetBytes(shader);
             }
-            
+
             var bytecodeId = ObjectId.FromBytes(rawData);
             var bytecode = new ShaderBytecode(bytecodeId, rawData);
             bytecode.Stage = stage;
 
             shaderBytecodeResult.Bytecode = bytecode;
-            
+
             return shaderBytecodeResult;
         }
 
@@ -262,7 +272,7 @@ namespace Stride.Shaders.Compiler.OpenGL
                         MarkResourceBindingAsUsed(reflection, resourceBindingIndex, stage);
                     }
                 }
-                
+
                 foreach (var variable in glslShader.Declarations.OfType<Variable>().Where(x => (x.Qualifiers.Contains(StorageQualifier.Uniform))))
                 {
                     // Check if we have a variable that starts or ends with this name (in case of samplers)

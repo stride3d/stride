@@ -8,10 +8,7 @@ using SharpDX;
 using SharpDX.D3DCompiler;
 using Stride.Core.Diagnostics;
 using Stride.Core.Storage;
-using Stride.Rendering;
 using Stride.Graphics;
-using ConstantBufferType = Stride.Shaders.ConstantBufferType;
-using ShaderBytecode = Stride.Shaders.ShaderBytecode;
 using ShaderVariableType = SharpDX.D3DCompiler.ShaderVariableType;
 
 namespace Stride.Shaders.Compiler.Direct3D
@@ -23,13 +20,21 @@ namespace Stride.Shaders.Compiler.Direct3D
             var isDebug = effectParameters.Debug;
             var optimLevel = effectParameters.OptimizationLevel;
             var profile = effectParameters.Profile;
-            
+
             var shaderModel = ShaderStageToString(stage) + "_" + ShaderProfileFromGraphicsProfile(profile);
 
             var shaderFlags = ShaderFlags.None;
             if (isDebug)
             {
                 shaderFlags = ShaderFlags.Debug;
+
+                // Disable optimizations when debugging, except for Graphics Profiles 9.3 and below
+                // where optimizations are required to have valid shaders (otherwise compilation fails
+                // indicating too many instruction slots used)
+                if (profile >= GraphicsProfile.Level_10_0)
+                {
+                    shaderFlags |= ShaderFlags.SkipOptimization;
+                }
             }
             switch (optimLevel)
             {
