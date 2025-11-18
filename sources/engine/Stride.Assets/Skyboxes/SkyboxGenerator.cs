@@ -33,7 +33,7 @@ namespace Stride.Assets.Skyboxes
             Services.AddService<IContentManager>(Content);
             Services.AddService(Content);
 
-            GraphicsDevice = GraphicsDevice.New();
+            GraphicsDevice = GraphicsDevice.New(StrideConfig.GraphicsDebugMode ? DeviceCreationFlags.Debug : DeviceCreationFlags.None);
             GraphicsDeviceService = new GraphicsDeviceServiceLocal(Services, GraphicsDevice);
             Services.AddService(GraphicsDeviceService);
 

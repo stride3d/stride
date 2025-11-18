@@ -102,7 +102,7 @@ namespace Stride.Editor.Thumbnails
             Services.AddService<IContentManager>(ContentManager);
             Services.AddService(ContentManager);
 
-            GraphicsDevice = GraphicsDevice.New(Engine.EmbeddedGame.DebugMode ? DeviceCreationFlags.Debug : DeviceCreationFlags.None);
+            GraphicsDevice = GraphicsDevice.New(StrideConfig.GraphicsDebugMode ? DeviceCreationFlags.Debug : DeviceCreationFlags.None);
             GraphicsContext = new GraphicsContext(GraphicsDevice);
             GraphicsCommandList = GraphicsContext.CommandList;
             Services.AddService(GraphicsContext);

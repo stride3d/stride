@@ -300,7 +300,7 @@ namespace Stride.Assets.Models
             {
                 var contentManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
 
-                var device = GraphicsDevice.New();
+                var device = GraphicsDevice.New(StrideConfig.GraphicsDebugMode ? DeviceCreationFlags.Debug : DeviceCreationFlags.None);
 
                 var fallbackMaterial = Material.New(device, new MaterialDescriptor
                 {
