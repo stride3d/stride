@@ -1,6 +1,7 @@
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core;
 
 namespace Stride.Shaders.Parsing.SDSL;
 
@@ -9,168 +10,288 @@ public class RoundCall(ShaderExpressionList parameters, TextLocation info) : Met
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRound(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class RoundEvenCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("roundeven", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class TruncCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("trunc", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLTrunc(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class FAbsCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fabs", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class SAbsCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("sabs", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class FSignCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fsign", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class SSignCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("ssign", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class FloorCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("floor", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class CeilCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("ceil", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class FractCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fract", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class RadiansCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("radians", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class DegreesCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("degrees", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class SinCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("sin", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class CosCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("cos", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class TanCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("tan", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class AsinCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("asin", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class AcosCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("acos", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class AtanCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("atan", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class SinhCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("sinh", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class CoshCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("cosh", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class TanhCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("tanh", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class AsinhCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("asinh", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class AcoshCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("acosh", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class AtanhCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("atanh", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        if(context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new GLSLRoundEven(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class Atan2Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("atan2", info), parameters, info)
