@@ -1091,7 +1091,7 @@ namespace Stride.Graphics
         ///    </item>
         ///   </list>
         /// </remarks>
-        public void CopyMultiSampled(Texture sourceMultiSampledTexture, int sourceSubResourceIndex,
+        public void CopyMultisample(Texture sourceMultiSampledTexture, int sourceSubResourceIndex,
                                      Texture destinationTexture, int destinationSubResourceIndex,
                                      PixelFormat format = PixelFormat.None)
         {

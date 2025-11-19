@@ -32,6 +32,7 @@ using Stride.Assets.Presentation.AssetEditors;
 using Stride.GameStudio.Services;
 using Stride.GameStudio.Remote;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Assets.Presentation.ViewModel;
 
 namespace Stride.GameStudio.ViewModels
 {
@@ -60,6 +61,9 @@ namespace Stride.GameStudio.ViewModels
             outputTitle = outputTitleBase;
 
             BuildLog = new BuildLogViewModel(ServiceProvider);
+            ProjectLog = new LoggerViewModel(ServiceProvider);
+            var logger = StrideAssetsViewModel.Instance.Code.Logger;
+            ProjectLog.AddLoggerWithPast(logger);
             LiveScriptingLog = new LoggerViewModel(ServiceProvider);
             LiveScriptingLog.AddLogger(assemblyReloadLogger);
             BuildProjectCommand = new AnonymousTaskCommand(ServiceProvider, () => BuildProject(false));
@@ -99,6 +103,13 @@ namespace Stride.GameStudio.ViewModels
         /// </summary>
         [NotNull]
         public BuildLogViewModel BuildLog { get; }
+
+        /// <summary>
+        /// Gets the project log.
+        /// </summary>
+        [NotNull]
+        public LoggerViewModel ProjectLog { get; }
+
 
         /// <summary>
         /// Gets the live-scripting log.
@@ -257,7 +268,8 @@ namespace Stride.GameStudio.ViewModels
                         assembliesToReload.Add(assemblyToReload);
 
                         var userDocumentationService = Session.ServiceProvider.Get<UserDocumentationService>();
-                        userDocumentationService.ClearCachedAssemblyDocumentation(assemblyToReload.LoadedAssembly.Assembly);
+                        if (assemblyToReload.LoadedAssembly.Assembly != null)
+                            userDocumentationService.ClearCachedAssemblyDocumentation(assemblyToReload.LoadedAssembly.Assembly);
                     }
                     else
                     {

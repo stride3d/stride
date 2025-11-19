@@ -18,5 +18,5 @@ Hierarchy:
                         Children: {}
                     45622cc758f41101f5e1fa63ecc9a77f: !ModelComponent
                         Id: f266e591-fa6d-4c3a-818f-992a59ab8a0b
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials: {}

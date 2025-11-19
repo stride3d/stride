@@ -74,6 +74,8 @@ public static class VSProjectHelper
                     var asyncBuild = new CancellableAsyncBuild(project, assemblyPath);
                     asyncBuild.Build(project, targets, flags, new LoggerRedirect(logger, onlyErrors));
                     var buildResult = asyncBuild.BuildTask.Result;
+                    if (buildResult.Exception != null)
+                        logger.Error("Build failed", buildResult.Exception);
                 }
             }
         }

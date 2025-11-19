@@ -13,9 +13,6 @@
     <Compile Remove="Frontend\TexArray.cs" />
   </ItemGroup>
   <ItemGroup>
-    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FreeImage\Release\**\*.dll">
-      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
-    </StrideNativeLib>
     <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.dll;$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.so">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
@@ -25,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
+    <ProjectReference Include="..\Stride.FreeImage\Stride.FreeImage.csproj" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

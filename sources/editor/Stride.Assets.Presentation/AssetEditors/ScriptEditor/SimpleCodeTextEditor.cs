@@ -1,12 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using RoslynPad.Editor;
+using RoslynPad.Roslyn;
 using RoslynPad.Roslyn.BraceMatching;
 using RoslynPad.Roslyn.Diagnostics;
 using RoslynPad.Roslyn.QuickInfo;
@@ -46,7 +50,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 
         public ImageSource ContextActionsIcon
         {
-            get => this.GetValue(ContextActionsIconProperty);
+            get => this.GetValue<ImageSource>(ContextActionsIconProperty);
             set => this.SetValue(ContextActionsIconProperty, value);
         }
 
@@ -84,6 +88,8 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
             CompletionProvider = new RoslynCodeEditorCompletionProvider(documentId, workspace.Host);
             // TODO: Warmup() is internal
 
+            workspace.Host.GetWorkspaceService<IDiagnosticsUpdater>(documentId).DiagnosticsChanged += ProcessDiagnostics;
+
             // Quick info
             quickInfoProvider = workspace.Host.GetService<IQuickInfoProvider>();
 
@@ -120,6 +126,8 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
             // Completion provider
             CompletionProvider = null;
 
+            workspace.Host.GetWorkspaceService<IDiagnosticsUpdater>(documentId).DiagnosticsChanged -= ProcessDiagnostics;
+
             // No need to update caret position anymore
             sourceTextContainer.Editor = null;
 
@@ -128,8 +136,11 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
             documentId = null;
         }
 
-        public void ProcessDiagnostics(DiagnosticsUpdatedArgs args)
+        public void ProcessDiagnostics(DiagnosticsChangedArgs args)
         {
+            if (args.DocumentId != documentId)
+                return;
+
             if (this.Dispatcher.CheckAccess())
             {
                 ProcessDiagnosticsOnUiThread(args);
@@ -139,31 +150,28 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
             this.Dispatcher.InvokeAsync(() => ProcessDiagnosticsOnUiThread(args));
         }
 
-        private void ProcessDiagnosticsOnUiThread(DiagnosticsUpdatedArgs args)
+        private void ProcessDiagnosticsOnUiThread(DiagnosticsChangedArgs args)
         {
-            textMarkerService.RemoveAll(marker => Equals(args.Id, marker.Tag));
+            var removedDiagnosticIds = new HashSet<string>(args.RemovedDiagnostics.Select(x => x.Id));
+            textMarkerService.RemoveAll(d => d.Tag is DiagnosticData diagnosticData && args.RemovedDiagnostics.Contains(diagnosticData));
 
-            if (args.Kind != DiagnosticsUpdatedKind.DiagnosticsCreated)
-            {
-                return;
-            }
-
-            foreach (var diagnosticData in args.Diagnostics)
+            foreach (var diagnosticData in args.AddedDiagnostics)
             {
                 if (diagnosticData.Severity == DiagnosticSeverity.Hidden || diagnosticData.IsSuppressed)
                 {
                     continue;
                 }
 
-                if (diagnosticData.GetTextSpan() is Microsoft.CodeAnalysis.Text.TextSpan diag == false)
+                var span = diagnosticData.GetTextSpan(sourceTextContainer.CurrentText);
+                if (span == null)
                 {
                     continue;
                 }
 
-                var marker = textMarkerService.TryCreate(diag.Start, diag.Length);
+                var marker = textMarkerService.TryCreate(span.Value.Start, span.Value.Length);
                 if (marker != null)
                 {
-                    marker.Tag = args.Id;
+                    marker.Tag = diagnosticData;
                     marker.MarkerColor = GetDiagnosticsColor(diagnosticData);
                     marker.ToolTip = diagnosticData.Message;
                 }

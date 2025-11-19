@@ -21,6 +21,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using RoslynPad.Editor;
 using RoslynPad.Roslyn;
@@ -37,8 +39,6 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         private readonly CompositionHost compositionContext;
         private readonly MefHostServices hostServices;
 
-        private readonly ConcurrentDictionary<DocumentId, Action<DiagnosticsUpdatedArgs>> diagnosticsUpdatedNotifiers = new ConcurrentDictionary<DocumentId, Action<DiagnosticsUpdatedArgs>>();
-
         public RoslynHost()
         {
             compositionContext = CreateCompositionContext();
@@ -48,12 +48,17 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 
             // Create default workspace
             workspace = new RoslynWorkspace(this);
-            workspace.EnableDiagnostics(DiagnosticOptions.Semantic | DiagnosticOptions.Syntax);
+            var diagnosticsUpdater = workspace.Services.GetRequiredService<IDiagnosticsUpdater>();
 
-            GetService<IDiagnosticService>().DiagnosticsUpdated += OnDiagnosticsUpdated;
+            workspace.SetCurrentSolution(workspace.CurrentSolution.AddAnalyzerReferences(GetSolutionAnalyzerReferences()));
 
             ParseOptions = CreateDefaultParseOptions();
         }
+
+        private static IEnumerable<Type> GetDiagnosticCompositionTypes() => MetadataUtil.LoadTypesByNamespaces(
+            Assembly.Load("Microsoft.CodeAnalysis.LanguageServer.Protocol"),
+            "Microsoft.CodeAnalysis.Diagnostics",
+            "Microsoft.CodeAnalysis.CodeFixes");
 
         private static CompositionHost CreateCompositionContext()
         {
@@ -71,11 +76,21 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 
             var partTypes = assemblies
                 .SelectMany(x => x.DefinedTypes)
-                .Select(x => x.AsType());
+                .Select(x => x.AsType())
+                .Concat(GetDiagnosticCompositionTypes());
 
             return new ContainerConfiguration()
                 .WithParts(partTypes)
                 .CreateContainer();
+        }
+
+        protected virtual IEnumerable<AnalyzerReference> GetSolutionAnalyzerReferences()
+        {
+            var loader = GetService<IAnalyzerAssemblyLoader>();
+            yield return new AnalyzerFileReference(MetadataUtil.GetAssemblyPath(typeof(Compilation).Assembly), loader);
+            yield return new AnalyzerFileReference(MetadataUtil.GetAssemblyPath(Assembly.Load("Microsoft.CodeAnalysis.CSharp")), loader);
+            yield return new AnalyzerFileReference(MetadataUtil.GetAssemblyPath(Assembly.Load("Microsoft.CodeAnalysis.Features")), loader);
+            yield return new AnalyzerFileReference(MetadataUtil.GetAssemblyPath(Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features")), loader);
         }
 
         internal static readonly ImmutableArray<string> PreprocessorSymbols =
@@ -109,18 +124,6 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
             return compositionContext.GetExport<TService>();
         }
 
-        private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs diagnosticsUpdatedArgs)
-        {
-            var documentId = diagnosticsUpdatedArgs?.DocumentId;
-            if (documentId == null) return;
-
-            Action<DiagnosticsUpdatedArgs> notifier;
-            if (diagnosticsUpdatedNotifiers.TryGetValue(documentId, out notifier))
-            {
-                notifier(diagnosticsUpdatedArgs);
-            }
-        }
-
         public DocumentId AddDocument(DocumentCreationArgs args)
         {
             throw new NotImplementedException();
@@ -139,6 +142,11 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         public MetadataReference CreateMetadataReference(string location)
         {
             throw new NotImplementedException();
+        }
+
+        public TService GetWorkspaceService<TService>(DocumentId documentId) where TService : IWorkspaceService
+        {
+            return workspace.Services.GetRequiredService<TService>();
         }
     }
 }
