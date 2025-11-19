@@ -79,7 +79,7 @@ namespace Stride.Graphics
             // TODO: Note that it won't be available right away because CommandAllocators is currently not using a PriorityQueue but a simple Queue
             if (currentCommandList.NativeCommandAllocator.IsNotNull())
             {
-                GraphicsDevice.CommandAllocators.RecycleObject(GraphicsDevice.NextFenceValue - 1, currentCommandList.NativeCommandAllocator);
+                GraphicsDevice.CommandAllocators.RecycleObject(GraphicsDevice.CommandListFence.NextFenceValue - 1, currentCommandList.NativeCommandAllocator);
                 currentCommandList.NativeCommandAllocator = null;
             }
 
@@ -213,10 +213,10 @@ namespace Stride.Graphics
         private void FlushInternal(bool wait)
         {
             var commandList = Close();
-            var fenceValue = GraphicsDevice.ExecuteCommandListInternal(commandList);
+            var commandListFenceValue = GraphicsDevice.ExecuteCommandListInternal(commandList);
 
             if (wait)
-                GraphicsDevice.WaitForFenceInternal(fenceValue);
+                GraphicsDevice.CommandListFence.WaitForFenceCPUInternal(commandListFenceValue);
 
             Reset();
 
@@ -1813,7 +1813,8 @@ namespace Stride.Graphics
                 if (result.IsFailure)
                     result.Throw();
 
-                GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, nativeUploadTexture));
+                lock (GraphicsDevice.TemporaryResources)
+                    GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.FrameFence.NextFenceValue, nativeUploadTexture));
 
                 scoped ref var fullBox = ref NullRef<D3D12Box>();
 
@@ -2016,17 +2017,18 @@ namespace Stride.Graphics
                 // Create new resource
                 resource.OnRecreate();
             }
+            // Write/Read/ReadWrite
             else if (mapMode != MapMode.WriteNoOverwrite)
             {
                 // Need to wait?
-                if (resource.StagingFenceValue is null || !GraphicsDevice.IsFenceCompleteInternal(resource.StagingFenceValue.Value))
+                if (resource.StagingFenceValue is null || !GraphicsDevice.CommandListFence.IsFenceCompleteInternal(resource.StagingFenceValue.Value))
                 {
                     if (doNotWait)
                     {
                         return new MappedResource(resource, subResourceIndex, dataBox: default);
                     }
 
-                    // Need to flush? (i.e. part of)
+                    // Need to flush? (check if part of current command list)
                     if (resource.StagingBuilder == this)
                         FlushInternal(wait: false);
 
@@ -2034,7 +2036,7 @@ namespace Stride.Graphics
                     if (resource.StagingFenceValue is null)
                         throw new InvalidOperationException("CommandList updating the staging resource has not been submitted");
 
-                    GraphicsDevice.WaitForFenceInternal(resource.StagingFenceValue.Value);
+                    GraphicsDevice.CommandListFence.WaitForFenceCPUInternal(resource.StagingFenceValue.Value);
                 }
             }
 

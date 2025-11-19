@@ -99,17 +99,22 @@ namespace Stride.Graphics
         /// <param name="other">The other Texture.</param>
         internal void SwapInternal(Texture other)
         {
-            (NativeDeviceChild, other.NativeDeviceChild) = (other.NativeDeviceChild, NativeDeviceChild);
+            // GraphicsResourceBase
+            (NativeDeviceChild, other.NativeDeviceChild)                 = (other.NativeDeviceChild, NativeDeviceChild);
 
-            (other.NativeShaderResourceView, NativeShaderResourceView)   = (NativeShaderResourceView, other.NativeShaderResourceView);
-            (other.NativeUnorderedAccessView, NativeUnorderedAccessView) = (NativeUnorderedAccessView, other.NativeUnorderedAccessView);
+            // GraphicsResource
+            (ParentResource, other.ParentResource)                       = (other.ParentResource, ParentResource);
+            (StagingFenceValue, other.StagingFenceValue)                 = (other.StagingFenceValue, StagingFenceValue);
+            (StagingBuilder, other.StagingBuilder)                       = (other.StagingBuilder, StagingBuilder);
+            (NativeShaderResourceView, other.NativeShaderResourceView)   = (other.NativeShaderResourceView, NativeShaderResourceView);
+            (NativeUnorderedAccessView, other.NativeUnorderedAccessView) = (other.NativeUnorderedAccessView, NativeUnorderedAccessView);
+            (NativeResourceState, other.NativeResourceState)             = (other.NativeResourceState, NativeResourceState);
 
-            (StagingFenceValue, other.StagingFenceValue)           = (other.StagingFenceValue, StagingFenceValue);
-            (StagingBuilder, other.StagingBuilder)                 = (other.StagingBuilder, StagingBuilder);
-            (NativeResourceState, other.NativeResourceState)       = (other.NativeResourceState, NativeResourceState);
-            (NativeRenderTargetView, other.NativeRenderTargetView) = (other.NativeRenderTargetView, NativeRenderTargetView);
-            (NativeDepthStencilView, other.NativeDepthStencilView) = (other.NativeDepthStencilView, NativeDepthStencilView);
-            (HasStencil, other.HasStencil)                         = (other.HasStencil, HasStencil);
+            // Texture
+            (NativeRenderTargetView, other.NativeRenderTargetView)       = (other.NativeRenderTargetView, NativeRenderTargetView);
+            (NativeDepthStencilView, other.NativeDepthStencilView)       = (other.NativeDepthStencilView, NativeDepthStencilView);
+            (NativeTextureDescription, other.NativeTextureDescription)   = (other.NativeTextureDescription, NativeTextureDescription);
+            (HasStencil, other.HasStencil)                               = (other.HasStencil, HasStencil);
         }
 
         /// <summary>
@@ -363,7 +368,7 @@ namespace Stride.Graphics
                         if (result.IsFailure)
                             result.Throw();
 
-                        GraphicsDevice.WaitCopyQueue();
+                        GraphicsDevice.ExecuteAndWaitCopyQueueGPU();
                     }
                 }
 

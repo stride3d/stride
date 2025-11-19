@@ -116,14 +116,20 @@ namespace Stride.Graphics
                 if (immediate)
                 {
                     // We make sure all previous command lists are completed (GPU->CPU sync point)
-                    GraphicsDevice.WaitNativeCommandQueueComplete();
+                    // Note: this is a huge perf-hit in realtime, so it should be only used in rare cases (i.e. backbuffer resize or application exit).
+                    //       also, we currently do that one by one but we might want to batch them if it proves too slow.
+                    var commandListFenceValue = GraphicsDevice.CommandListFence.NextFenceValue++;
+                    GraphicsDevice.CommandListFence.Signal(GraphicsDevice.NativeCommandQueue, commandListFenceValue);
+                    GraphicsDevice.CommandListFence.WaitForFenceCPUInternal(commandListFenceValue);
+
                     NativeDeviceChild.Release();
                     NativeDeviceChild = null;
                 }
                 else
                 {
                     // Schedule the resource for destruction (as soon as we are done with it)
-                    GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, NativeResource));
+                    lock (GraphicsDevice.TemporaryResources)
+                        GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.FrameFence.NextFenceValue, NativeResource));
                     nativeDeviceChild = null;
                 }
             }

@@ -42,6 +42,7 @@ namespace Stride.Graphics
         private int nativeUploadBufferOffset;
         private object nativeUploadBufferLock = new();
 
+        // TODO: review that and align it with D3D12 (and possibly move it in common API once D3D12/Vulkan only)
         private Queue<KeyValuePair<long, VkFence>> nativeFences = new Queue<KeyValuePair<long, VkFence>>();
         private long lastCompletedFence;
         internal long NextFenceValue = 1;

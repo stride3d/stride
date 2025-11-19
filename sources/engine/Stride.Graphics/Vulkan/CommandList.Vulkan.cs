@@ -1438,7 +1438,7 @@ namespace Stride.Graphics
                     // This will be set only if need to flush (due to a previous Copy)
                     if (resource.StagingBuilder != null)
                     {
-                        // Need to flush; check if part of current command list
+                        // Need to flush? (check if part of current command list)
                         if (resource.StagingBuilder == this)
                             FlushInternal(false);
 

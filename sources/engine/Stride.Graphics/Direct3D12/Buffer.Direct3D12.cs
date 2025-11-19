@@ -270,7 +270,7 @@ namespace Stride.Graphics
                     if (result.IsFailure)
                         result.Throw();
 
-                    GraphicsDevice.WaitCopyQueue();
+                    GraphicsDevice.ExecuteAndWaitCopyQueueGPU();
                 }
             }
 
