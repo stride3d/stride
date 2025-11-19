@@ -255,7 +255,7 @@ namespace Stride.Graphics
             }
 
             bool hasDepthStencilTargetToSet = depthStencilBuffer is not null;
-            scoped ref var depthStencilView = ref (boundViewportCount > 0)
+            scoped ref var depthStencilView = ref hasDepthStencilTargetToSet
                 ? ref depthStencilBuffer.NativeDepthStencilView
                 : ref NullRef<CpuDescriptorHandle>();
 
