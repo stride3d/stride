@@ -162,6 +162,7 @@ namespace Stride.Graphics
         /// </summary>
         public partial void Flush()
         {
+            FlushResourceBarriers();
             var commandList = Close();
             GraphicsDevice.ExecuteCommandList(commandList);
         }
@@ -540,6 +541,21 @@ namespace Stride.Graphics
             resourceBarriers.Clear();
 
             currentCommandList.NativeCommandList.ResourceBarrier(NumBarriers: (uint) count, barriers);
+        }
+
+        private struct ResourceBarrierTransitionRestore(CommandList commandList, GraphicsResource Resource, GraphicsResourceState OldState) : IDisposable
+        {
+            public void Dispose()
+            {
+                commandList.ResourceBarrierTransition(Resource, OldState);
+            }
+        }
+
+        private ResourceBarrierTransitionRestore ResourceBarrierTransitionAndRestore(GraphicsResource resource, GraphicsResourceState newState)
+        {
+            var currentState = resource.NativeResourceState;
+            ResourceBarrierTransition(resource, newState);
+            return new(this, resource, (GraphicsResourceState)currentState);
         }
 
         /// <summary>
@@ -947,7 +963,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(depthStencilBuffer);
 
-            ResourceBarrierTransition(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsResourceState.DepthWrite);
+            using var _ = ResourceBarrierTransitionAndRestore(depthStencilBuffer, GraphicsResourceState.DepthWrite);
             FlushResourceBarriers();
 
             // Check that the Depth-Stencil Buffer has a Stencil if Clear Stencil is requested
@@ -974,7 +990,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(renderTarget);
 
-            ResourceBarrierTransition(renderTarget, GraphicsResourceState.RenderTarget);
+            using var _ = ResourceBarrierTransitionAndRestore(renderTarget, GraphicsResourceState.RenderTarget);
             FlushResourceBarriers();
 
             scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
@@ -1264,8 +1280,8 @@ namespace Stride.Graphics
             //
             void CopyTextureToStagingTexture(Texture sourceTexture, Texture sourceParent, Texture destinationTexture)
             {
-                ResourceBarrierTransition(sourceTexture, GraphicsResourceState.CopySource);
-                ResourceBarrierTransition(destinationTexture, GraphicsResourceState.CopyDestination);
+                using var _1 = ResourceBarrierTransitionAndRestore(sourceTexture, GraphicsResourceState.CopySource);
+                using var _2 = ResourceBarrierTransitionAndRestore(destinationTexture, GraphicsResourceState.CopyDestination);
                 FlushResourceBarriers();
 
                 int copyOffset = 0;
@@ -1310,8 +1326,8 @@ namespace Stride.Graphics
             //
             void CopyTextureToTexture(Texture sourceTexture, Texture destinationTexture)
             {
-                ResourceBarrierTransition(sourceTexture, GraphicsResourceState.CopySource);
-                ResourceBarrierTransition(destinationTexture, GraphicsResourceState.CopyDestination);
+                using var _1 = ResourceBarrierTransitionAndRestore(sourceTexture, GraphicsResourceState.CopySource);
+                using var _2 = ResourceBarrierTransitionAndRestore(destinationTexture, GraphicsResourceState.CopyDestination);
                 FlushResourceBarriers();
 
                 currentCommandList.NativeCommandList.CopyResource(destinationTexture.NativeResource, sourceTexture.NativeResource);
@@ -1322,8 +1338,8 @@ namespace Stride.Graphics
             //
             void CopyBetweenBuffers(Buffer sourceBuffer, Buffer destinationBuffer)
             {
-                ResourceBarrierTransition(sourceBuffer, GraphicsResourceState.CopySource);
-                ResourceBarrierTransition(destinationBuffer, GraphicsResourceState.CopyDestination);
+                using var _1 = ResourceBarrierTransitionAndRestore(sourceBuffer, GraphicsResourceState.CopySource);
+                using var _2 = ResourceBarrierTransitionAndRestore(destinationBuffer, GraphicsResourceState.CopyDestination);
                 FlushResourceBarriers();
 
                 currentCommandList.NativeCommandList.CopyResource(destinationBuffer.NativeResource, sourceBuffer.NativeResource);
@@ -1489,8 +1505,8 @@ namespace Stride.Graphics
                     throw new NotImplementedException("Copy region of staging resources is not supported yet"); // TODO: Implement copy region for staging resources
                 }
 
-                ResourceBarrierTransition(source, GraphicsResourceState.CopySource);
-                ResourceBarrierTransition(destination, GraphicsResourceState.CopyDestination);
+                using var _1 = ResourceBarrierTransitionAndRestore(source, GraphicsResourceState.CopySource);
+                using var _2 = ResourceBarrierTransitionAndRestore(destination, GraphicsResourceState.CopyDestination);
                 FlushResourceBarriers();
 
                 TextureCopyLocation destRegion, srcRegion;
@@ -1561,8 +1577,8 @@ namespace Stride.Graphics
             //
             void CopyBetweenBuffers(Buffer sourceBuffer, Buffer destinationBuffer)
             {
-                ResourceBarrierTransition(source, GraphicsResourceState.CopySource);
-                ResourceBarrierTransition(destination, GraphicsResourceState.CopyDestination);
+                using var _1 = ResourceBarrierTransitionAndRestore(source, GraphicsResourceState.CopySource);
+                using var _2 = ResourceBarrierTransitionAndRestore(destination, GraphicsResourceState.CopyDestination);
                 FlushResourceBarriers();
 
                 currentCommandList.NativeCommandList.CopyBufferRegion(destinationBuffer.NativeResource, (ulong)dstX,
@@ -1807,7 +1823,7 @@ namespace Stride.Graphics
                     result.Throw();
 
                 // Trigger copy
-                ResourceBarrierTransition(resource, GraphicsResourceState.CopyDestination);
+                using var _ = ResourceBarrierTransitionAndRestore(resource, GraphicsResourceState.CopyDestination);
                 FlushResourceBarriers();
 
                 var destRegion = new TextureCopyLocation
@@ -1836,7 +1852,7 @@ namespace Stride.Graphics
 
                 MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) sourceData.DataPointer, (uint) uploadSize);
 
-                ResourceBarrierTransition(resource, GraphicsResourceState.CopyDestination);
+                using var _ = ResourceBarrierTransitionAndRestore(resource, GraphicsResourceState.CopyDestination);
                 FlushResourceBarriers();
 
                 currentCommandList.NativeCommandList.CopyBufferRegion(pDstBuffer: resource.NativeResource, DstOffset: (ulong)region.Left,

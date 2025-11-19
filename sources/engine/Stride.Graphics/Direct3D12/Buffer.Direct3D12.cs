@@ -148,7 +148,6 @@ namespace Stride.Graphics
 
             // TODO: D3D12: Where should that go longer term? Should it be precomputed for future use? (cost would likely be additional check on SetDescriptorSets/Draw)
             NativeResourceState = ResourceStates.Common;
-            var initialResourceState = NativeResourceState;
             var bufferFlags = bufferDescription.BufferFlags;
 
             if (bufferFlags.HasFlag(BufferFlags.ConstantBuffer))
@@ -191,6 +190,8 @@ namespace Stride.Graphics
             // TODO: D3D12: Move to a global allocator in bigger committed resources
             var heap = new HeapProperties { Type = heapType };
 
+            var initialResourceState = heapType != HeapType.Default ? NativeResourceState : ResourceStates.Common;
+
             // If the resource must be initialized with data, it is initially in the state
             // CopyDest so we can copy from an upload buffer
             //if (hasInitData)
@@ -205,9 +206,9 @@ namespace Stride.Graphics
             NativeDeviceChild = buffer.AsDeviceChild();
             GPUVirtualAddress = NativeResource.GetGPUVirtualAddress();
 
-            if (hasInitData)
+            if (heapType == HeapType.Upload)
             {
-                if (heapType == HeapType.Upload)
+                if (hasInitData)
                 {
                     // An upload (dynamic) Buffer: We map and write the initial data, but leave the
                     // buffer in the same state so it can be mapped again anytime
@@ -217,46 +218,59 @@ namespace Stride.Graphics
                     if (result.IsFailure)
                         result.Throw();
 
-                    MemoryUtilities.CopyWithAlignmentFallback(uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
+                    MemoryUtilities.CopyWithAlignmentFallback(uploadMemory, (void*)dataPointer, (uint)SizeInBytes);
 
                     NativeResource.Unmap(Subresource: 0, pWrittenRange: ref NullRef<D3D12Range>());
                 }
-                else
+            }
+            else if (heapType == HeapType.Default)
+            {
+                ComPtr<ID3D12Resource> uploadResource = default;
+                int uploadOffset = default;
+                if (hasInitData)
                 {
                     // Copy data in upload heap for later copy
                     // TODO: D3D12: Move that to a shared upload heap
-                    var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out var uploadResource, out var uploadOffset);
+                    var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out uploadResource, out uploadOffset);
+                    MemoryUtilities.CopyWithAlignmentFallback((void*)uploadMemory, (void*)dataPointer, (uint)SizeInBytes);
+                }
 
-					MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
+                var commandList = GraphicsDevice.NativeCopyCommandList;
+                lock (GraphicsDevice.NativeCopyCommandListLock)
+                {
+                    scoped ref var nullPipelineState = ref NullRef<ID3D12PipelineState>();
+                    result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: ref nullPipelineState);
 
-                    var commandList = GraphicsDevice.NativeCopyCommandList;
-                    lock (GraphicsDevice.NativeCopyCommandListLock)
+                    if (result.IsFailure)
+                        result.Throw();
+
+                    var resourceBarrier = new ResourceBarrier { Type = ResourceBarrierType.Transition };
+                    resourceBarrier.Transition.PResource = NativeResource;
+                    resourceBarrier.Transition.Subresource = 0;
+
+                    if (hasInitData)
                     {
-                        scoped ref var nullPipelineState = ref NullRef<ID3D12PipelineState>();
-                        result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: ref nullPipelineState);
-
-                        if (result.IsFailure)
-                            result.Throw();
-
-                            // Copy from upload heap to actual resource
-                            commandList.CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong) uploadOffset, (ulong) SizeInBytes);
-
-                        // Once initialized, transition the buffer to its final state
-                        var resourceBarrier = new ResourceBarrier { Type = ResourceBarrierType.Transition };
-                        resourceBarrier.Transition.PResource = NativeResource;
-                        resourceBarrier.Transition.Subresource = 0;
+                        // Switch resource to copy state
                         resourceBarrier.Transition.StateBefore = initialResourceState;
-                        resourceBarrier.Transition.StateAfter = NativeResourceState;
-
+                        resourceBarrier.Transition.StateAfter = ResourceStates.CopyDest;
                         commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
 
-                        result = commandList.Close();
-
-                        if (result.IsFailure)
-                            result.Throw();
-
-                        GraphicsDevice.WaitCopyQueue();
+                        // Copy from upload heap to actual resource
+                        commandList.CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong)uploadOffset, (ulong)SizeInBytes);
                     }
+
+                    // Once initialized, transition the buffer to its final state
+                    resourceBarrier.Transition.StateBefore = hasInitData ? ResourceStates.CopyDest : initialResourceState;
+                    resourceBarrier.Transition.StateAfter = NativeResourceState;
+
+                    commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
+
+                    result = commandList.Close();
+
+                    if (result.IsFailure)
+                        result.Throw();
+
+                    GraphicsDevice.WaitCopyQueue();
                 }
             }
 

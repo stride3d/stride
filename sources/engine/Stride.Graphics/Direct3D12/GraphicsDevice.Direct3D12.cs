@@ -488,14 +488,14 @@ namespace Stride.Graphics
             RenderTargetViewAllocator = new DescriptorAllocator(this, DescriptorHeapType.Rtv);
 
             // Prepare copy command list (start it closed, so that every new use start with a Reset)
-            result = nativeDevice->CreateCommandAllocator(CommandListType.Copy, out ComPtr<ID3D12CommandAllocator> commandAllocator);
+            result = nativeDevice->CreateCommandAllocator(CommandListType.Direct, out ComPtr<ID3D12CommandAllocator> commandAllocator);
 
             if (result.IsFailure)
                 result.Throw();
 
             nativeCopyCommandAllocator = commandAllocator.DisposeBy(this);
 
-            result = nativeDevice->CreateCommandList(nodeMask: 0, CommandListType.Copy, commandAllocator, pInitialState: ref NullRef<ID3D12PipelineState>(),
+            result = nativeDevice->CreateCommandList(nodeMask: 0, CommandListType.Direct, commandAllocator, pInitialState: ref NullRef<ID3D12PipelineState>(),
                                                      out ComPtr<ID3D12GraphicsCommandList> commandList);
             if (result.IsFailure)
                 result.Throw();
@@ -629,8 +629,12 @@ namespace Stride.Graphics
         /// </remarks>
         internal void WaitCopyQueue()
         {
+            // For now, we execute everything on the non-copy command queue otherwise ResourceBarrier won't work
+            // Improvement: on Copy queue: we'll need to make sure to use only Common/Copy (and go back to Common before transfer); then a Signal
+            //              on Graphics queue: Wait for signal and then ResourceBarrier
+            //              https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
             var commandList = (ID3D12CommandList*) nativeCopyCommandList;
-            nativeCopyCommandQueue->ExecuteCommandLists(NumCommandLists: 1, in commandList);
+            nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, in commandList);
 
             nativeCopyCommandQueue->Signal(nativeCopyFence, nextCopyFenceValue);
 
