@@ -208,7 +208,7 @@ namespace Stride.Graphics
         /// <param name="scissorRectangle">The scissor rectangle to set.</param>
         private unsafe partial void SetScissorRectangleImpl(ref readonly Rectangle scissorRectangle)
         {
-            ref var scissorBox = ref AsRef(in scissorRectangle).As<Rectangle, SilkBox2I>();
+            var scissorBox = new SilkBox2I(scissorRectangle.Left, scissorRectangle.Top, scissorRectangle.Right, scissorRectangle.Bottom);
 
             nativeDeviceContext->RSSetScissorRects(NumRects: 1, in scissorBox);
         }
@@ -219,9 +219,11 @@ namespace Stride.Graphics
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
         private unsafe partial void SetScissorRectanglesImpl(ReadOnlySpan<Rectangle> scissorRectangles)
         {
-            var scissorBoxes = scissorRectangles.As<Rectangle, SilkBox2I>();
+            var scissorBoxes = stackalloc SilkBox2I[scissorRectangles.Length];
+            for (int i = 0; i <  scissorRectangles.Length; i++)
+                scissorBoxes[i] = new SilkBox2I(scissorRectangles[i].Left, scissorRectangles[i].Top, scissorRectangles[i].Right, scissorRectangles[i].Bottom);
 
-            nativeDeviceContext->RSSetScissorRects((uint) scissorBoxes.Length, in scissorBoxes[0]);
+            nativeDeviceContext->RSSetScissorRects((uint)scissorRectangles.Length, in scissorBoxes[0]);
         }
 
         /// <summary>
