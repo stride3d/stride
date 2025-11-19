@@ -677,7 +677,7 @@ namespace Stride.Graphics
             // Instantiated objects
             private readonly Dictionary<TKey, ComPtr<TValue>> storage = [];
             // Reverse lookup for quick removal
-            private readonly Dictionary<ComPtr<TValue>, TKey> reverse = new(comparer: ComPtrEqualityComparer<TValue>.Default);
+            private readonly Dictionary<ComPtr<TValue>, List<TKey>> reverse = new(comparer: ComPtrEqualityComparer<TValue>.Default);
 
             // Reference count for each cached object
             private readonly Dictionary<ComPtr<TValue>, int> referenceCount = new(comparer: ComPtrEqualityComparer<TValue>.Default);
@@ -712,7 +712,10 @@ namespace Stride.Graphics
                         value = computeValue(source);
 
                         storage.Add(key, value);
-                        reverse.Add(value, key);
+                        // Note: multiple separate could end up creating the same value
+                        if (!reverse.TryGetValue(value, out var keys))
+                            reverse.Add(value, keys = new());
+                        keys.Add(key);
                         referenceCount.Add(value, 1);
                     }
                     else
@@ -754,10 +757,14 @@ namespace Stride.Graphics
                     if (--refCount == 0)
                     {
                         referenceCount.Remove(value);
-                        if (reverse.TryGetValue(value, out TKey key))
+                        ref var keys = ref CollectionsMarshal.GetValueRefOrNullRef(reverse, value);
+                        if (!Unsafe.IsNullRef(ref keys))
                         {
-                            storage.Remove(key);
+                            // We can safely remove all the keys that created this value
+                            foreach (var key in keys)
+                                storage.Remove(key);
                         }
+
                         reverse.Remove(value);
 
                         releaseValue?.Invoke(value);
