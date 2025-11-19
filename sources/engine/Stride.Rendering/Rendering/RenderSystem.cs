@@ -399,7 +399,7 @@ namespace Stride.Rendering
                 var scissor = commandList.Scissor;
 
                 // Collect one command list per batch and the main one up to this point
-                if (commandLists?.Length < batchCount + 1)
+                if (commandLists == null || (commandLists.Length < batchCount + 1))
                 {
                     Array.Resize(ref commandLists, batchCount + 1);
                 }
