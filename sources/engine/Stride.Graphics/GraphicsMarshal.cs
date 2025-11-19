@@ -94,12 +94,13 @@ public static unsafe class GraphicsMarshal
     {
         var texture = new Texture(device);
 
+        texture.InitializeFromImpl(dxTexture2D, isSRgb);
+
+        // InitializeFromImpl will already call AddRef(); release it if we're taking ownership (same as doing nothing to ref count)
         if (takeOwnership)
         {
-            dxTexture2D->AddRef();
+            dxTexture2D->Release();
         }
-
-        texture.InitializeFromImpl(dxTexture2D, isSRgb);
 
         return texture;
     }

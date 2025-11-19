@@ -36,6 +36,7 @@ namespace Stride.VirtualReality
 
                 textures[i] = new Texture(device);
                 textures[i].InitializeFromImpl((ID3D11Texture2D*) ptr, treatAsSrgb: false);
+                textures[i].NativeDeviceChild.Release(); // do not take ownership
             }
         }
 

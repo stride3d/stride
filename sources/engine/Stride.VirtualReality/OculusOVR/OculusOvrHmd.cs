@@ -66,6 +66,7 @@ namespace Stride.VirtualReality
                 var mirrorTex = OculusOvr.GetMirrorTexture(ovrSession, Dx11Texture2DGuid);
                 MirrorTexture = new Texture(device);
                 MirrorTexture.InitializeFromImpl((ID3D11Texture2D*) mirrorTex, false);
+                MirrorTexture.NativeDeviceChild.Release(); // do not take ownership
             }
 
             textures = new Texture[texturesCount];
@@ -79,6 +80,7 @@ namespace Stride.VirtualReality
 
                 textures[i] = new Texture(device);
                 textures[i].InitializeFromImpl((ID3D11Texture2D*) ptr, treatAsSrgb: false);
+                textures[i].NativeDeviceChild.Release(); // do not take ownership
             }
 
             ActualRenderFrameSize = new Size2(textures[0].Width, textures[0].Height);
