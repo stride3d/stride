@@ -39,6 +39,8 @@ namespace Stride.Games
     /// </summary>
     public class GraphicsDeviceManager : ComponentBase, IGraphicsDeviceManager, IGraphicsDeviceService
     {
+        private bool delayWindowEvents = true;
+
         /// <summary>
         ///   Default width for the Back-Buffer.
         /// </summary>
@@ -68,6 +70,10 @@ namespace Stride.Games
         private bool               synchronizeWithVerticalRetrace  = true;
         private int                preferredFullScreenOutputIndex; // Populated when ranking devices
         private DisplayOrientation supportedOrientations;          // Populated when ranking devices
+
+        private bool windowClientSizeChanged;
+        private bool windowOrientationChanged;
+        private bool windowFullscreenChanged;
 
         private bool isChangingDevice;
 
@@ -133,6 +139,9 @@ namespace Stride.Games
         /// </summary>
         private void GameOnWindowCreated(object sender, EventArgs eventArgs)
         {
+            // Place ourselves first (in case drawing/present is after, we better rebuild device before that if necessary)
+            if (delayWindowEvents)
+                game.Window.RunCallback = Window_ProcessEventsDelayed + game.Window.RunCallback;
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
             game.Window.OrientationChanged += Window_OrientationChanged;
             game.Window.FullscreenChanged += Window_FullscreenChanged;
@@ -916,6 +925,35 @@ namespace Stride.Games
             PreparingDeviceSettings?.Invoke(sender, args);
         }
 
+        /// <summary>
+        /// Process windows events that require a device recreation.
+        /// </summary>
+        private void Window_ProcessEventsDelayed()
+        {
+            // If embedding a forms/game in editor, various events such as WM_SIZE might be forwarded by InputSourceWinforms.
+            // Since this is done using CallWindowProc, those events might be raised outside of the usual Translate/Peek message loop and happen during an unfortunate wait or I/O call during rendering (i.e. shader compiling wait).
+            // This is a big no no if we try to resize a swap chain in the middle of rendering!
+            // So we delay their process during Run() callback (which is before/after swap chain Present).
+            bool needApplyChanges = false;
+            if (windowClientSizeChanged)
+            {
+                windowClientSizeChanged = false;
+                needApplyChanges |= ProcessClientSizeChanged();
+            }
+            if (windowOrientationChanged)
+            {
+                windowOrientationChanged = false;
+                needApplyChanges |= ProcessOrientationChanged();
+            }
+            if (windowFullscreenChanged)
+            {
+                windowFullscreenChanged = false;
+                needApplyChanges |= ProcessOrientationChanged();
+            }
+
+            if (needApplyChanges)
+                ApplyChanges();
+        }
 
         /// <summary>
         ///   Method called when the Window's client size changes, which may require a device reinitialization
@@ -930,17 +968,28 @@ namespace Stride.Games
             if (isChangingDevice)
                 return;
 
+            if (delayWindowEvents)
+                windowClientSizeChanged = true;
+            else if (ProcessClientSizeChanged())
+                ApplyChanges();
+        }
+
+        private bool ProcessClientSizeChanged()
+        {
             if (game.Window.ClientBounds.Height != 0 || game.Window.ClientBounds.Width != 0)
             {
                 resizedBackBufferWidth = game.Window.ClientBounds.Width;
                 resizedBackBufferHeight = game.Window.ClientBounds.Height;
                 isBackBufferToResize = true;
+                deviceSettingsChanged = true;
 
                 if (GraphicsDevice is not null)
                 {
-                    ChangeOrCreateDevice(forceCreate: false);
+                    return true;
                 }
             }
+
+            return false;
         }
 
         /// <summary>
@@ -953,6 +1002,14 @@ namespace Stride.Games
             if (isChangingDevice)
                 return;
 
+            if (delayWindowEvents)
+                windowOrientationChanged = true;
+            else if (ProcessOrientationChanged())
+                ApplyChanges();
+        }
+
+        private bool ProcessOrientationChanged()
+        {
             if ((game.Window.ClientBounds.Height != 0 || game.Window.ClientBounds.Width != 0) &&
                 game.Window.CurrentOrientation != currentWindowOrientation)
             {
@@ -963,9 +1020,11 @@ namespace Stride.Games
                     // In this case all we care is if orientation changed, if so we swap width and height
                     (PreferredBackBufferHeight, PreferredBackBufferWidth) = (PreferredBackBufferWidth, PreferredBackBufferHeight);
 
-                    ApplyChanges();
+                    return true;
                 }
             }
+
+            return false;
         }
 
         /// <summary>
@@ -975,21 +1034,30 @@ namespace Stride.Games
         {
             if (sender is GameWindow window)
             {
-                // The new state is the Window's fullscreen state
-                IsFullScreen = window.IsFullscreen;
-
-                if (IsFullScreen)
-                {
-                    PreferredBackBufferWidth = window.PreferredFullscreenSize.X;
-                    PreferredBackBufferHeight = window.PreferredFullscreenSize.Y;
-                }
+                if (delayWindowEvents)
+                    windowFullscreenChanged = true;
                 else
                 {
-                    PreferredBackBufferWidth = window.PreferredWindowedSize.X;
-                    PreferredBackBufferHeight = window.PreferredWindowedSize.Y;
+                    ProcessFullscreenChanged(window);
+                    ApplyChanges();
                 }
+            }
+        }
 
-                ApplyChanges();
+        private void ProcessFullscreenChanged(GameWindow window)
+        {
+            // The new state is the Window's fullscreen state
+            IsFullScreen = window.IsFullscreen;
+
+            if (IsFullScreen)
+            {
+                PreferredBackBufferWidth = window.PreferredFullscreenSize.X;
+                PreferredBackBufferHeight = window.PreferredFullscreenSize.Y;
+            }
+            else
+            {
+                PreferredBackBufferWidth = window.PreferredWindowedSize.X;
+                PreferredBackBufferHeight = window.PreferredWindowedSize.Y;
             }
         }
 
