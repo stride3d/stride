@@ -100,7 +100,7 @@ namespace Stride.Graphics
         internal void SwapInternal(Texture other)
         {
             // GraphicsResourceBase
-            (NativeDeviceChild, other.NativeDeviceChild)                 = (other.NativeDeviceChild, NativeDeviceChild);
+            base.SwapInternal(other);
 
             // GraphicsResource
             (ParentResource, other.ParentResource)                       = (other.ParentResource, ParentResource);
@@ -203,8 +203,7 @@ namespace Stride.Graphics
             // If this is a view, get the underlying resource to copy data to
             if (ParentTexture is not null)
             {
-                ParentResource = ParentTexture;
-                NativeDeviceChild = ParentTexture.NativeDeviceChild;
+                SetNativeDeviceChild(ParentTexture.NativeDeviceChild);
             }
 
             // If no underlying resource, we must create it and copy the init data to it if needed
@@ -253,7 +252,7 @@ namespace Stride.Graphics
                 if (result.IsFailure)
                     result.Throw();
 
-                NativeDeviceChild = stagingTextureResource.AsDeviceChild();
+                SetNativeDeviceChild(stagingTextureResource.AsDeviceChild());
             }
 
             //
@@ -287,7 +286,7 @@ namespace Stride.Graphics
                 if (result.IsFailure)
                     result.Throw();
 
-                NativeDeviceChild = textureResource.AsDeviceChild();
+                SetNativeDeviceChild(textureResource.AsDeviceChild());
                 GraphicsDevice.RegisterTextureMemoryUsage(SizeInBytes);
 
                 if (hasInitData || currentResourceState != desiredResourceState)

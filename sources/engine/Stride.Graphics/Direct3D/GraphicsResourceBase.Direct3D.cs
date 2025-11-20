@@ -42,18 +42,15 @@ public abstract unsafe partial class GraphicsResourceBase
                 return;
 
             var previousDeviceChild = nativeDeviceChild;
+            if (previousDeviceChild is not null)
+                previousDeviceChild->Release();
 
             nativeDeviceChild = value.Handle;
 
-            if (nativeDeviceChild is not null)
-            {
-                nativeDeviceChild->AddRef();
-            }
-            if (nativeDeviceChild != previousDeviceChild)
-            {
-                if (previousDeviceChild is not null)
-                    previousDeviceChild->Release();
-            }
+            if (nativeDeviceChild is null)
+                return;
+
+            nativeDeviceChild->AddRef();
 
             SetDebugName();
 

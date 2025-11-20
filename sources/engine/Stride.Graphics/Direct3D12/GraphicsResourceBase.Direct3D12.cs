@@ -43,9 +43,9 @@ namespace Stride.Graphics
                 if (nativeDeviceChild == value.Handle)
                     return;
 
-                var oldDeviceChild = nativeDeviceChild;
-                if (oldDeviceChild is not null)
-                    oldDeviceChild->Release();
+                var previousDeviceChild = nativeDeviceChild;
+                if (previousDeviceChild is not null)
+                    previousDeviceChild->Release();
 
                 nativeDeviceChild = value.Handle;
 
@@ -54,26 +54,60 @@ namespace Stride.Graphics
 
                 nativeDeviceChild->AddRef();
 
-                HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D12Resource> d3d12Resource);
+                SetDebugName();
 
                 // The device child can be something that is not a Direct3D resource actually,
                 // like a Sampler State, for example
-                if (result.IsSuccess)
-                {
-                    nativeResource = d3d12Resource.Handle;
-                }
-
-                SetDebugName(Name);
+                nativeResource = TryGetResource();
             }
+        }
+
+        /// <summary>
+        ///   Internal method to detach the internal <see cref="ID3D11DeviceChild"/> without incrementing or decrementing
+        ///   the reference count.
+        /// </summary>
+        protected internal void UnsetNativeDeviceChild()
+        {
+            nativeDeviceChild = default;
+        }
+
+        /// <summary>
+        ///   Internal method to set the internal <see cref="ID3D11DeviceChild"/> without incrementing or decrementing
+        ///   the reference count.
+        /// </summary>
+        protected internal void SetNativeDeviceChild(ComPtr<ID3D12DeviceChild> deviceChild)
+        {
+            nativeDeviceChild = deviceChild.Handle;
+
+            // The device child can be something that is not a Direct3D resource actually,
+            // like a Sampler State, for example.
+            // If it is a resource, however, its reference count is incremented.
+            nativeResource = TryGetResource();
+
+            SetDebugName();
+        }
+
+        /// <summary>
+        ///   Attempts to retrieve the Direct3D 11 resource associated with the current device child.
+        /// </summary>
+        /// <returns>
+        ///   A <see cref="ComPtr{ID3D11Resource}"/> representing the Direct3D 11 resource if the operation is successful;
+        ///   otherwise, the a <see langword="null"/> COM pointer.
+        /// </returns>
+        private ComPtr<ID3D12Resource> TryGetResource()
+        {
+            // NOTE: This increments the reference count of the resource, if it is a valid one
+            HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D12Resource> d3dResource);
+            return result.IsSuccess ? d3dResource : default;
         }
 
         /// <summary>
         /// Associates the private data to the device child, useful to get the name in PIX debugger.
         /// </summary>
-        internal void SetDebugName(string name)
+        internal void SetDebugName()
         {
             if (GraphicsDevice.IsDebugMode && NativeDeviceChild.IsNotNull())
-                NativeDeviceChild.SetDebugName($"{name} ({(nint)NativeDeviceChild.Handle:X16})");
+                NativeDeviceChild.SetDebugName($"{Name} ({(nint)NativeDeviceChild.Handle:X16})");
         }
 
         /// <summary>
@@ -121,8 +155,7 @@ namespace Stride.Graphics
                     var commandListFenceValue = GraphicsDevice.CommandListFence.NextFenceValue;
                     GraphicsDevice.CommandListFence.WaitForFenceCPUInternal(commandListFenceValue);
 
-                    NativeDeviceChild.Release();
-                    NativeDeviceChild = null;
+                    SafeRelease(ref nativeResource);
                 }
                 else
                 {
@@ -133,7 +166,7 @@ namespace Stride.Graphics
                 }
             }
 
-            SafeRelease(ref nativeResource);
+            SafeRelease(ref nativeDeviceChild);
         }
 
         /// <summary>
@@ -145,6 +178,21 @@ namespace Stride.Graphics
         protected internal virtual bool OnRecreate()
         {
             return false;
+        }
+
+        /// <summary>
+        ///   Swaps the Graphics Resource's internal data with another Graphics Resource.
+        /// </summary>
+        /// <param name="other">The other Graphics Resource.</param>
+        internal virtual void SwapInternal(GraphicsResourceBase other)
+        {
+            var deviceChild = nativeDeviceChild;
+            nativeDeviceChild = other.nativeDeviceChild;
+            other.nativeDeviceChild = deviceChild;
+
+            var resource = nativeResource;
+            nativeResource = other.nativeResource;
+            other.nativeResource = resource;
         }
     }
 }

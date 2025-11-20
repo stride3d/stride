@@ -203,7 +203,7 @@ namespace Stride.Graphics
             if (result.IsFailure)
                 result.Throw();
 
-            NativeDeviceChild = buffer.AsDeviceChild();
+            SetNativeDeviceChild(buffer.AsDeviceChild());
             GPUVirtualAddress = NativeResource.GetGPUVirtualAddress();
 
             if (heapType == HeapType.Upload)
