@@ -58,6 +58,7 @@ public static class Program
     private static Dispatcher mainDispatcher;
     private static RenderDocManager renderDocManager;
     private static readonly ConcurrentQueue<string> LogRingbuffer = new();
+    private static bool enableThumbnailServices = true;
 
     [STAThread]
     public static void Main()
@@ -106,6 +107,14 @@ public static class Program
                     else if (args[i] == "/DebugEditorGraphics")
                     {
                         StrideConfig.GraphicsDebugMode = true;
+                    }
+                    else if (args[i] == "/DisableThumbnails")
+                    {
+                        enableThumbnailServices = false;
+                    }
+                    else if (args[i] == "/DisablePreview")
+                    {
+                        GameStudioPreviewService.DisablePreview = true;
                     }
                     else if (args[i] == "/PixGpuCapturer")
                     {
@@ -239,7 +248,8 @@ public static class Program
             mru.LoadFromSettings();
             var editor = new GameStudioViewModel(serviceProvider, mru);
             AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
-            AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
+            var strideEditorPlugin = (StrideEditorPlugin)AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
+            strideEditorPlugin.EnableThumbnailService = enableThumbnailServices;
 
             // Attempt to load the startup session, if available
             if (!UPath.IsNullOrEmpty(initialSessionPath))
