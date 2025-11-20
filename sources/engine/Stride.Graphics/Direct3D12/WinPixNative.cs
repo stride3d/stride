@@ -68,6 +68,29 @@ public static class WinPixNative
         return dllPath;
     }
 
+    public enum PIXCaptureParametersType : uint
+    {
+        PIX_CAPTURE_GPU = 1 << 1,
+    }
+
+    // Define the managed equivalent of the PIXCaptureParameters structure
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct PIXCaptureParametersGPU
+    {
+        [MarshalAs(UnmanagedType.LPWStr)]
+        public string FileName;
+    }
+
+    // void WINAPI PIXBeginCapture2
+    [DllImport(RuntimeDllName, EntryPoint = "PIXBeginCapture2",
+        CallingConvention = CallingConvention.StdCall)]
+    internal static extern void PIXBeginCapture2(PIXCaptureParametersType type, ref PIXCaptureParametersGPU parameters);
+
+    // void WINAPI PIXBeginCapture2
+    [DllImport(RuntimeDllName, EntryPoint = "PIXEndCapture",
+        CallingConvention = CallingConvention.StdCall)]
+    internal static extern void PIXEndCapture(bool discard);
+
     // void WINAPI PIXEndEventOnCommandList(ID3D12GraphicsCommandList* commandList)
     [DllImport(RuntimeDllName, EntryPoint = "PIXEndEventOnCommandList",
         CallingConvention = CallingConvention.StdCall)]
