@@ -153,7 +153,7 @@ namespace Stride.Graphics
             }
 
             // Create buffer
-            vkCreateBuffer(GraphicsDevice.NativeDevice, &createInfo, null, out NativeBuffer);
+            GraphicsDevice.CheckResult(vkCreateBuffer(GraphicsDevice.NativeDevice, &createInfo, null, out NativeBuffer));
 
             // Allocate memory
             var memoryProperties = VkMemoryPropertyFlags.DeviceLocal;
@@ -229,7 +229,7 @@ namespace Stride.Graphics
                 vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &bufferMemoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
 
                 // Close and submit
-                vkEndCommandBuffer(commandBuffer);
+                GraphicsDevice.CheckResult(vkEndCommandBuffer(commandBuffer));
 
                 GraphicsDevice.ExecuteAndWaitCopyQueueGPU(commandBuffer);
 
@@ -266,7 +266,7 @@ namespace Stride.Graphics
                 //view = (Description.BufferFlags & BufferFlags.RawBuffer) != 0 ? VkBufferViewType.Raw : VkBufferViewType.Formatted,
             };
 
-            vkCreateBufferView(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out var bufferView);
+            GraphicsDevice.CheckResult(vkCreateBufferView(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out var bufferView));
             return bufferView;
         }
 

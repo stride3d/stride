@@ -79,7 +79,7 @@ namespace Stride.Graphics
 
             ConvertMinFilter(Description.Filter, out createInfo.minFilter, out createInfo.magFilter, out createInfo.mipmapMode, out createInfo.compareEnable, out createInfo.anisotropyEnable);
 
-            vkCreateSampler(GraphicsDevice.NativeDevice, &createInfo, null, out NativeSampler);
+            GraphicsDevice.CheckResult(vkCreateSampler(GraphicsDevice.NativeDevice, &createInfo, null, out NativeSampler));
         }
 
         private static VkSamplerAddressMode ConvertAddressMode(TextureAddressMode addressMode)

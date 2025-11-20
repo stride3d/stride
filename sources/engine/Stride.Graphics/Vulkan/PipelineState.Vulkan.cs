@@ -77,7 +77,7 @@ namespace Stride.Graphics
                     };
 
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
-                        vkCreateComputePipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, 1, &createInfo, allocator: null, nativePipelinePtr);
+                        GraphicsDevice.CheckResult(vkCreateComputePipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, 1, &createInfo, allocator: null, nativePipelinePtr));
                 }
             }
             else
@@ -226,7 +226,7 @@ namespace Stride.Graphics
                         subpass = 0
                     };
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
-                        vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr);
+                        GraphicsDevice.CheckResult(vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr));
                 }
             }
 
@@ -325,7 +325,7 @@ namespace Stride.Graphics
                     subpassCount = 1,
                     pSubpasses = &subpass
                 };
-                vkCreateRenderPass(GraphicsDevice.NativeDevice, &renderPassCreateInfo, allocator: null, out NativeRenderPass);
+                GraphicsDevice.CheckResult(vkCreateRenderPass(GraphicsDevice.NativeDevice, &renderPassCreateInfo, allocator: null, out NativeRenderPass));
             }
         }
 
@@ -432,7 +432,7 @@ namespace Stride.Graphics
                 setLayoutCount = 1,
                 pSetLayouts = &nativeDescriptorSetLayout
             };
-            vkCreatePipelineLayout(GraphicsDevice.NativeDevice, &pipelineLayoutCreateInfo, allocator: null, out NativeLayout);
+            GraphicsDevice.CheckResult(vkCreatePipelineLayout(GraphicsDevice.NativeDevice, &pipelineLayoutCreateInfo, allocator: null, out NativeLayout));
         }
 
         private unsafe VkPipelineShaderStageCreateInfo[] CreateShaderStages(PipelineStateDescription pipelineStateDescription, out Dictionary<int, string> inputAttributeNames)
@@ -461,7 +461,7 @@ namespace Stride.Graphics
                         stage = VulkanConvertExtensions.Convert(stages[i].Stage),
                         pName = entryPointPointer
                     };
-                    vkCreateShaderModule(GraphicsDevice.NativeDevice, shaderBytecode.Data, allocator: null, out nativeStages[i].module);
+                    GraphicsDevice.CheckResult(vkCreateShaderModule(GraphicsDevice.NativeDevice, shaderBytecode.Data, allocator: null, out nativeStages[i].module));
                 }
             }
 

@@ -217,7 +217,7 @@ namespace Stride.Graphics
 
             lock (QueueLock)
             {
-                vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null);
+                CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
 
                 // Wait on GPU side to complete so that next command list (i.e. for a draw) can access the newly copied resources
                 // TODO: move that to user side for more control? (once we have D3D12/Vulkan only)
@@ -227,6 +227,12 @@ namespace Stride.Graphics
 
             nativeResourceCollector.Release();
             graphicsResourceLinkCollector.Release();
+        }
+
+        internal void CheckResult(VkResult vkResult)
+        {
+            if (vkResult != VkResult.Success)
+                throw new InvalidOperationException($"Vulkan call returned {vkResult}");
         }
 
         /// <summary>
@@ -354,7 +360,7 @@ namespace Stride.Graphics
                 pEnabledFeatures = &enabledFeature,
             };
 
-            vkCreateDevice(NativePhysicalDevice, in deviceCreateInfo, null, out nativeDevice);
+            CheckResult(vkCreateDevice(NativePhysicalDevice, in deviceCreateInfo, null, out nativeDevice));
 
             vkLoadDevice(nativeDevice);
 
@@ -370,16 +376,16 @@ namespace Stride.Graphics
                     flags = VkCommandPoolCreateFlags.ResetCommandBuffer
                 };
 
-                vkCreateCommandPool(NativeDevice, &commandPoolCreateInfo, null, out var result);
+                CheckResult(vkCreateCommandPool(NativeDevice, &commandPoolCreateInfo, null, out var result));
                 return result;
             }, true);
 
             DescriptorPools = new HeapPool(this);
 
             // Fence for next frame and resource cleaning
-            FrameFence = new(NativeDevice);
-            CopyFence = new(NativeDevice);
-            CommandListFence = new(NativeDevice);
+            FrameFence = new(this);
+            CopyFence = new(this);
+            CommandListFence = new(this);
 
             nativeResourceCollector = new NativeResourceCollector(this);
             graphicsResourceLinkCollector = new GraphicsResourceLinkCollector(this);
@@ -442,7 +448,7 @@ namespace Stride.Graphics
                         flags = VkBufferCreateFlags.None,
                         usage = VkBufferUsageFlags.TransferSrc,
                     };
-                    vkCreateBuffer(NativeDevice, &bufferCreateInfo, null, out nativeUploadBuffer);
+                    CheckResult(vkCreateBuffer(NativeDevice, &bufferCreateInfo, null, out nativeUploadBuffer));
                     AllocateMemory(VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent);
 
                     fixed (IntPtr* nativeUploadBufferStartPtr = &nativeUploadBufferStart)
@@ -471,7 +477,7 @@ namespace Stride.Graphics
 
             lock (QueueLock)
             {
-                vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null);
+                CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
 
                 CopyFence.Signal(NativeCommandQueue, CopyFence.NextFenceValue);
                 // Wait on GPU side to complete so that next command list (i.e. for a draw) can access the newly copied resources
@@ -541,7 +547,7 @@ namespace Stride.Graphics
             EmptyTexture = null;
 
             // Wait for all queues to be idle
-            vkDeviceWaitIdle(nativeDevice);
+            CheckResult(vkDeviceWaitIdle(nativeDevice));
 
             // Mark upload buffer for destruction
             if (nativeUploadBuffer != VkBuffer.Null)
@@ -598,7 +604,7 @@ namespace Stride.Graphics
 
             lock (QueueLock)
             {
-                vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null);
+                CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
 
                 // Wait on GPU side to complete so that next command list (i.e. for a draw) can access the newly copied resources
                 // TODO: move that to user side for more control? (once we have D3D12/Vulkan only)
@@ -677,23 +683,23 @@ namespace Stride.Graphics
 
         internal unsafe struct FenceHelper : IDisposable
         {
-            private VkDevice nativeDevice;
+            private GraphicsDevice graphicsDevice;
             public VkSemaphore Semaphore;
             public ulong NextFenceValue = 1;
             public ulong LastCompletedFence;
 
-            public FenceHelper(VkDevice device)
+            public FenceHelper(GraphicsDevice graphicsDevice)
             {
-                this.nativeDevice = device;
+                this.graphicsDevice = graphicsDevice;
                 var timelineInfo = new VkSemaphoreTypeCreateInfo { sType = VkStructureType.SemaphoreTypeCreateInfo, semaphoreType = VkSemaphoreType.Timeline };
                 var createInfo = new VkSemaphoreCreateInfo { sType = VkStructureType.SemaphoreCreateInfo, pNext = &timelineInfo };
-                vkCreateSemaphore(nativeDevice, &createInfo, null, out Semaphore);
+                graphicsDevice.CheckResult(vkCreateSemaphore(graphicsDevice.NativeDevice, &createInfo, null, out Semaphore));
             }
 
             internal ulong GetCompletedValue()
             {
                 ulong result = 0;
-                vkGetSemaphoreCounterValue(nativeDevice, Semaphore, &result);
+                vkGetSemaphoreCounterValue(graphicsDevice.NativeDevice, Semaphore, &result);
                 return result;
             }
 
@@ -723,7 +729,7 @@ namespace Stride.Graphics
                             pSemaphores = semaphore,
                             pValues = &fenceValue,
                         };
-                        vkWaitSemaphores(nativeDevice, &waitInfo, ulong.MaxValue);
+                        vkWaitSemaphores(graphicsDevice.NativeDevice, &waitInfo, ulong.MaxValue);
                         LastCompletedFence = fenceValue;
                     }
                 }
@@ -749,7 +755,7 @@ namespace Stride.Graphics
 
                     };
 
-                    vkQueueSubmit(commandQueue, 1, &submitInfo, VkFence.Null);
+                    graphicsDevice.CheckResult(vkQueueSubmit(commandQueue, 1, &submitInfo, VkFence.Null));
                 }
             }
 
@@ -774,13 +780,13 @@ namespace Stride.Graphics
 
                     };
 
-                    vkQueueSubmit(commandQueue, 1, &submitInfo, VkFence.Null);
+                    graphicsDevice.CheckResult(vkQueueSubmit(commandQueue, 1, &submitInfo, VkFence.Null));
                 }
             }
 
             public void Dispose()
             {
-                vkDestroySemaphore(nativeDevice, Semaphore);
+                vkDestroySemaphore(graphicsDevice.NativeDevice, Semaphore);
             }
         }
     }
@@ -858,7 +864,7 @@ namespace Stride.Graphics
                 flags = VkCommandPoolCreateFlags.ResetCommandBuffer
             };
 
-            vkCreateCommandPool(graphicsDevice.NativeDevice, &commandPoolCreateInfo, null, out commandPool);
+            GraphicsDevice.CheckResult(vkCreateCommandPool(graphicsDevice.NativeDevice, &commandPoolCreateInfo, null, out commandPool));
         }
 
         protected override unsafe VkCommandBuffer CreateObject()
@@ -912,7 +918,7 @@ namespace Stride.Graphics
                     pPoolSizes = fPoolSizes,
                     maxSets = GraphicsDevice.MaxDescriptorSetCount,
                 };
-                vkCreateDescriptorPool(GraphicsDevice.NativeDevice, &descriptorPoolCreateInfo, null, out var descriptorPool);
+                GraphicsDevice.CheckResult(vkCreateDescriptorPool(GraphicsDevice.NativeDevice, &descriptorPoolCreateInfo, null, out var descriptorPool));
                 return descriptorPool;
             }
         }

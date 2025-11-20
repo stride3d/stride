@@ -205,7 +205,7 @@ namespace Stride.Graphics
             };
 
             // Create buffer
-            vkCreateBuffer(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out NativeBuffer);
+            GraphicsDevice.CheckResult(vkCreateBuffer(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out NativeBuffer));
 
             // Allocate and bind memory
             vkGetBufferMemoryRequirements(GraphicsDevice.NativeDevice, NativeBuffer, out var memoryRequirements);
@@ -270,7 +270,7 @@ namespace Stride.Graphics
 
             // Create native image
             // TODO: Multisampling, flags, usage, etc.
-            vkCreateImage(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out NativeImage);
+            GraphicsDevice.CheckResult(vkCreateImage(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out NativeImage));
 
             // Allocate and bind memory
             vkGetImageMemoryRequirements(GraphicsDevice.NativeDevice, NativeImage, out var memoryRequirements);
@@ -397,7 +397,7 @@ namespace Stride.Graphics
             }
 
             // Close and submit
-            vkEndCommandBuffer(commandBuffer);
+            GraphicsDevice.CheckResult(vkEndCommandBuffer(commandBuffer));
 
             GraphicsDevice.ExecuteAndWaitCopyQueueGPU(commandBuffer);
         }
@@ -545,7 +545,7 @@ namespace Stride.Graphics
                 }
             }
 
-            vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out var imageView);
+            GraphicsDevice.CheckResult(vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out var imageView));
             return imageView;
         }
 
@@ -588,7 +588,7 @@ namespace Stride.Graphics
                     throw new NotSupportedException("TextureCube dimension is expecting an arraysize > 1");
             }
 
-            vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out var imageView);
+            GraphicsDevice.CheckResult(vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out var imageView));
             return imageView;
         }
 
@@ -623,7 +623,7 @@ namespace Stride.Graphics
             //        createInfo.Flags |= (int)AttachmentViewCreateFlags.AttachmentViewCreateReadOnlyStencilBit;
             //}
 
-            vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out var imageView);
+            GraphicsDevice.CheckResult(vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out var imageView));
             return imageView;
         }
 

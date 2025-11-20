@@ -98,7 +98,7 @@ namespace Stride.Graphics
             CleanupRenderPass();
 
             // Close
-            vkEndCommandBuffer(currentCommandList.NativeCommandBuffer);
+            GraphicsDevice.CheckResult(vkEndCommandBuffer(currentCommandList.NativeCommandBuffer));
 
             // Staging resources not updated anymore
             foreach (var stagingResource in currentCommandList.StagingResources)
@@ -1483,7 +1483,7 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed(bool immediate = false)
         {
-            vkDeviceWaitIdle(GraphicsDevice.NativeDevice);
+            GraphicsDevice.CheckResult(vkDeviceWaitIdle(GraphicsDevice.NativeDevice));
 
             if (descriptorPool != VkDescriptorPool.Null)
             {
@@ -1537,7 +1537,7 @@ namespace Stride.Graphics
                                 height = (uint) renderTarget.ViewHeight,
                                 layers = 1 // TODO VULKAN: Use correct view depth/array size
                             };
-                            vkCreateFramebuffer(GraphicsDevice.NativeDevice, &framebufferCreateInfo, null, out activeFramebuffer);
+                            GraphicsDevice.CheckResult(vkCreateFramebuffer(GraphicsDevice.NativeDevice, &framebufferCreateInfo, null, out activeFramebuffer));
                             GraphicsDevice.Collect(activeFramebuffer);
                             framebuffers.Add(framebufferKey, activeFramebuffer);
                         }

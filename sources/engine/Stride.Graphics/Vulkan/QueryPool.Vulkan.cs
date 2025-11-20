@@ -50,7 +50,7 @@ namespace Stride.Graphics
                     throw new NotImplementedException();
             }
 
-            vkCreateQueryPool(GraphicsDevice.NativeDevice, &createInfo, null, out NativeQueryPool);
+            GraphicsDevice.CheckResult(vkCreateQueryPool(GraphicsDevice.NativeDevice, &createInfo, null, out NativeQueryPool));
         }
 
         /// <inheritdoc/>

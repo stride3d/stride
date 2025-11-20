@@ -104,7 +104,7 @@ namespace Stride.Graphics
                         bindingCount = (uint)usedBindingCount,
                         pBindings = usedBindingCount > 0 ? fBindings : null,
                     };
-                    vkCreateDescriptorSetLayout(device.NativeDevice, &createInfo, null, out var descriptorSetLayout);
+                    device.CheckResult(vkCreateDescriptorSetLayout(device.NativeDevice, &createInfo, null, out var descriptorSetLayout));
                     return descriptorSetLayout;
                 }
             }
