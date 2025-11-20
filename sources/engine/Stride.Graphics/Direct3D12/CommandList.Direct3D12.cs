@@ -121,7 +121,7 @@ namespace Stride.Graphics
             currentCommandList.StagingResources = GraphicsDevice.StagingResourceLists.Acquire();
 
             // Get a new allocator and unused command list
-            currentCommandList.NativeCommandAllocator = GraphicsDevice.CommandAllocators.GetObject();
+            currentCommandList.NativeCommandAllocator = GraphicsDevice.CommandAllocators.GetObject(GraphicsDevice.CommandListFence.Fence->GetCompletedValue());
             ResetCommandList();
 
             boundPipelineState = null;
@@ -703,7 +703,7 @@ namespace Stride.Graphics
             // If we need to create a new heap, get one from the pool
             if (createNewHeap)
             {
-                srvHeap = GraphicsDevice.SrvHeaps.GetObject();
+                srvHeap = GraphicsDevice.SrvHeaps.GetObject(GraphicsDevice.CommandListFence.Fence->GetCompletedValue());
                 srvHeapOffset = 0;
                 srvMapping.Clear();
             }
@@ -737,7 +737,7 @@ namespace Stride.Graphics
             // If we need to create a new heap, get one from the pool
             if (createNewHeap)
             {
-                samplerHeap = GraphicsDevice.SamplerHeaps.GetObject();
+                samplerHeap = GraphicsDevice.SamplerHeaps.GetObject(GraphicsDevice.CommandListFence.Fence->GetCompletedValue());
                 samplerHeapOffset = 0;
                 samplerMapping.Clear();
             }

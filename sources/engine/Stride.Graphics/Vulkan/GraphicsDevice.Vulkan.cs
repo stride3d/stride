@@ -993,7 +993,7 @@ namespace Stride.Graphics
     internal abstract class TemporaryResourceCollector<T> : IDisposable
     {
         protected readonly GraphicsDevice GraphicsDevice;
-        private readonly Queue<KeyValuePair<long, T>> items = new Queue<KeyValuePair<long, T>>();
+        private readonly Queue<KeyValuePair<long, T>> items = new();
 
         protected TemporaryResourceCollector(GraphicsDevice graphicsDevice)
         {

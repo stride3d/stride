@@ -118,8 +118,7 @@ namespace Stride.Graphics
                     // We make sure all previous command lists are completed (GPU->CPU sync point)
                     // Note: this is a huge perf-hit in realtime, so it should be only used in rare cases (i.e. backbuffer resize or application exit).
                     //       also, we currently do that one by one but we might want to batch them if it proves too slow.
-                    var commandListFenceValue = GraphicsDevice.CommandListFence.NextFenceValue++;
-                    GraphicsDevice.CommandListFence.Signal(GraphicsDevice.NativeCommandQueue, commandListFenceValue);
+                    var commandListFenceValue = GraphicsDevice.CommandListFence.NextFenceValue;
                     GraphicsDevice.CommandListFence.WaitForFenceCPUInternal(commandListFenceValue);
 
                     NativeDeviceChild.Release();

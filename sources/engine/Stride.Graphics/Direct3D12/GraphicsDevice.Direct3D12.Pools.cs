@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Threading;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 
@@ -38,6 +38,7 @@ public unsafe partial class GraphicsDevice
     {
         // A queue to hold live objects that will be reused when it is safe to do so
         private readonly Queue<LiveObject> liveObjects = new();
+        private readonly bool threadsafe;
 
         #region LiveObject structure
 
@@ -68,15 +69,16 @@ public unsafe partial class GraphicsDevice
         ///   Initializes a new instance of the <see cref="ResourcePool{T}"/> class.
         /// </summary>
         /// <param name="graphicsDevice">The Graphics Device to associate with this resource pool.</param>
-        protected ResourcePool(GraphicsDevice graphicsDevice)
+        protected ResourcePool(GraphicsDevice graphicsDevice, bool threadsafe)
         {
             GraphicsDevice = graphicsDevice;
+            this.threadsafe = threadsafe;
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            lock (liveObjects)
+            using (OptionalLock.Lock(liveObjects, threadsafe))
             {
                 foreach (var (_, liveObject) in liveObjects)
                 {
@@ -99,15 +101,15 @@ public unsafe partial class GraphicsDevice
         ///   A COM pointer to the retrieved object. If no reusable object is available, a new
         ///   object is created and returned.
         /// </returns>
-        public ComPtr<T> GetObject()
+        public ComPtr<T> GetObject(ulong completedFenceValue)
         {
             // TODO: D3D12: SpinLock
-            lock (liveObjects)
+            using (OptionalLock.Lock(liveObjects, threadsafe))
             {
                 // Check if first pooled object is ready for reuse
                 if (liveObjects.TryPeek(out LiveObject liveObject))
                 {
-                    if (liveObject.FenceValue <= GraphicsDevice.nativeFence->GetCompletedValue())
+                    if (liveObject.FenceValue <= completedFenceValue)
                     {
                         liveObjects.Dequeue();
                         var reusableObject = liveObject.Object;
@@ -159,14 +161,46 @@ public unsafe partial class GraphicsDevice
         public void RecycleObject(ulong fenceValue, ComPtr<T> obj)
         {
             // TODO D3D12: SpinLock
-            lock (liveObjects)
+            using (OptionalLock.Lock(liveObjects, threadsafe))
             {
                 // Enqueue for reuse when the fence value is reached
                 liveObjects.Enqueue(new LiveObject(fenceValue, obj));
             }
         }
-    }
 
+        // TODO: do we want to use spinlock instead? (need to measure impact, not good if too long wait)
+        private struct OptionalLock : IDisposable
+        {
+            private readonly object lockObject;
+            private readonly bool locked;
+
+            // Use a private constructor to force usage through the static factory methods
+            private OptionalLock(object lockObject, bool locked)
+            {
+                this.lockObject = lockObject;
+                this.locked = locked;
+            }
+
+            public void Dispose()
+            {
+                if (locked)
+                {
+                    Monitor.Exit(lockObject);
+                }
+            }
+
+            // Factory method for a locked scope
+            public static OptionalLock Lock(object lockObject, bool useLock)
+            {
+                if (useLock)
+                {
+                    useLock = false;
+                    Monitor.Enter(lockObject, ref useLock);
+                }
+                return new OptionalLock(lockObject, useLock);
+            }
+        }
+    }
 
     /// <summary>
     ///   Internal pool of reusable <see cref="ID3D12CommandAllocator"/>s.
@@ -177,7 +211,7 @@ public unsafe partial class GraphicsDevice
     ///   new allocators as needed and resetting them for reuse. It is designed to optimize resource
     ///   usage in scenarios where multiple command allocators are required.
     /// </remarks>
-    internal class CommandAllocatorPool(GraphicsDevice graphicsDevice) : ResourcePool<ID3D12CommandAllocator>(graphicsDevice)
+    internal class CommandAllocatorPool(GraphicsDevice graphicsDevice, bool threadsafe) : ResourcePool<ID3D12CommandAllocator>(graphicsDevice, threadsafe)
     {
         /// <inheritdoc/>
         protected override ComPtr<ID3D12CommandAllocator> CreateObject()
@@ -214,7 +248,7 @@ public unsafe partial class GraphicsDevice
     ///   new Descriptor Heaps as needed and resetting them for reuse. It is designed to optimize resource
     ///   usage in scenarios where multiple Descriptor Heaps are required.
     /// </remarks>
-    internal class HeapPool(GraphicsDevice graphicsDevice, int heapSize, DescriptorHeapType heapType) : ResourcePool<ID3D12DescriptorHeap>(graphicsDevice)
+    internal class HeapPool(GraphicsDevice graphicsDevice, bool threadsafe, int heapSize, DescriptorHeapType heapType) : ResourcePool<ID3D12DescriptorHeap>(graphicsDevice, threadsafe)
     {
         private readonly int heapSize = heapSize;
         private readonly DescriptorHeapType heapType = heapType;

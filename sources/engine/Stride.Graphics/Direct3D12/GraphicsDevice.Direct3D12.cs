@@ -180,7 +180,6 @@ namespace Stride.Graphics
         // An event used to signal when the fence has been completed
         internal FenceHelper FrameFence;
         internal FenceHelper CommandListFence;
-        internal FenceHelper CopyFence;
 
         /// <summary>
         ///   Temporary or destroyed Graphics Resources that are kept around until the GPU doesn't need them anymore.
@@ -240,7 +239,11 @@ namespace Stride.Graphics
         /// <summary>
         ///   Marks the Graphics Device Context as <strong>inactive</strong> on the current thread.
         /// </summary>
-        public void End() { }
+        public void End()
+        {
+            FrameFence.Signal(NativeCommandQueue, FrameFence.NextFenceValue);
+            FrameFence.NextFenceValue++;
+        }
 
         /// <summary>
         ///   Executes a Compiled Command List.
@@ -282,14 +285,15 @@ namespace Stride.Graphics
             {
                 var commandList = commandLists[index];
                 commandListToExecute[index] = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
-                RecycleCommandListResources(commandList, commandListFenceValue);
+                RecycleCommandListResources(commandList, commandListFenceValue + 1);
             }
+
+            CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
 
             // Submit and signal the fence
             nativeCommandQueue->ExecuteCommandLists((uint) count, commandListToExecute);
 
-            CommandListFence.Signal(NativeCommandQueue, commandListFenceValue);
-            CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
+            CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
 
             ReleaseTemporaryResources();
         }
@@ -455,9 +459,9 @@ namespace Stride.Graphics
             }
 
             // Prepare pools
-            CommandAllocators = new CommandAllocatorPool(this);
-            SrvHeaps = new HeapPool(this, SrvHeapSize, DescriptorHeapType.CbvSrvUav);
-            SamplerHeaps = new HeapPool(this, SamplerHeapSize, DescriptorHeapType.Sampler);
+            CommandAllocators = new CommandAllocatorPool(this, true);
+            SrvHeaps = new HeapPool(this, true, SrvHeapSize, DescriptorHeapType.CbvSrvUav);
+            SamplerHeaps = new HeapPool(this, true, SamplerHeapSize, DescriptorHeapType.Sampler);
 
             // Prepare descriptor allocators
             SamplerAllocator = new DescriptorAllocator(this, DescriptorHeapType.Sampler);
@@ -482,9 +486,10 @@ namespace Stride.Graphics
 
             commandList.Close();
 
+            // Fence for next frame and resource cleaning
             FrameFence = new(this);
-            CopyFence = new(this);
             CommandListFence = new(this);
+            CommandListFence.NextFenceValue = 0; // start at 0 for command list (we wait for previous command list signal and 0 is already set by default)
 
             //
             // Enables the Direct3D 12 debug layer if available.
@@ -606,6 +611,8 @@ namespace Stride.Graphics
         /// </remarks>
         internal void ExecuteAndWaitCopyQueueGPU()
         {
+            var commandListFenceValue = CommandListFence.NextFenceValue++;
+
             // For now, we execute everything on the non-copy command queue otherwise ResourceBarrier won't work
             // Improvement: on Copy queue: we'll need to make sure to use only Common/Copy (and go back to Common before transfer); then a Signal
             //              on Graphics queue: Wait for signal and then ResourceBarrier
@@ -613,9 +620,7 @@ namespace Stride.Graphics
             var commandList = (ID3D12CommandList*) nativeCopyCommandList;
             nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, in commandList);
 
-            CopyFence.Signal(NativeCommandQueue, CopyFence.NextFenceValue);
-            CopyFence.Wait(NativeCommandQueue, CopyFence.NextFenceValue);
-            CopyFence.NextFenceValue++;
+            CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
         }
 
         /// <summary>
@@ -688,7 +693,6 @@ namespace Stride.Graphics
             ReleaseTemporaryResources();
 
             FrameFence.Dispose();
-            CopyFence.Dispose();
             CommandListFence.Dispose();
 
             // Release pools
@@ -739,17 +743,19 @@ namespace Stride.Graphics
         {
             var commandListFenceValue = CommandListFence.NextFenceValue++;
 
+            CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
+
             // Submit and signal fence
             var nativeCommandList = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
             nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, ref nativeCommandList);
 
-            CommandListFence.Signal(NativeCommandQueue, commandListFenceValue);
-            CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
+            // Wait on GPU side to complete so that next command list (i.e. for a draw) can access the newly copied resources
+            CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
 
             // Recycle resources
-            RecycleCommandListResources(commandList, commandListFenceValue);
+            RecycleCommandListResources(commandList, commandListFenceValue + 1);
 
-            return commandListFenceValue;
+            return commandListFenceValue + 1;
         }
 
         /// <summary>
@@ -804,7 +810,6 @@ namespace Stride.Graphics
 
             CommandAllocators.RecycleObject(fenceValue, commandList.NativeCommandAllocator);
         }
-
 
         /// <summary>
         ///   Tags a Graphics Resource as no having alive references, meaning it should be safe to dispose it
@@ -927,7 +932,6 @@ namespace Stride.Graphics
 
                 if (result.IsFailure)
                     result.Throw();
-
             }
 
             public void Dispose()
