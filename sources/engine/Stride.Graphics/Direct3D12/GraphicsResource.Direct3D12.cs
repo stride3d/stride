@@ -15,13 +15,17 @@ namespace Stride.Graphics
         internal GraphicsResource ParentResource;
 
         /// <summary>
-        ///   An optional fence value used to track the staging of this Graphics Resource.
+        /// Fence value used with <see cref="GraphicsDevice.CopyFence"/> during resource initialization. Need to be waited on for CPU access.
         /// </summary>
-        internal ulong? StagingFenceValue;
+        internal ulong? CopyFenceValue;
         /// <summary>
-        ///   The Command List being used to record commands for staging data into this Graphics Resource.
+        /// Fence value used with <see cref="GraphicsDevice.CommandListFence"/> when resource is being written by a command list (i.e. <see cref="CommandList.Copy(GraphicsResource, GraphicsResource)"/>). Need to be waited on for CPU access.
         /// </summary>
-        internal CommandList StagingBuilder;
+        internal ulong? CommandListFenceValue;
+        /// <summary>
+        /// Command list which updated the resource (i.e. <see cref="CommandList.Copy(GraphicsResource, GraphicsResource)"/>) before it has been submitted. Will become <see cref="CommandListFenceValue"/> when command list is submitted.
+        /// </summary>
+        internal CommandList UpdatingCommandList;
 
         /// <summary>
         ///   A handle to the CPU-accessible Shader Resource View (SRV) Descriptor.

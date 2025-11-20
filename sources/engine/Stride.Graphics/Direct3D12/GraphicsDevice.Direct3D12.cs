@@ -180,6 +180,7 @@ namespace Stride.Graphics
         // An event used to signal when the fence has been completed
         internal FenceHelper FrameFence;
         internal FenceHelper CommandListFence;
+        internal FenceHelper CopyFence;
 
         /// <summary>
         ///   Temporary or destroyed Graphics Resources that are kept around until the GPU doesn't need them anymore.
@@ -490,6 +491,7 @@ namespace Stride.Graphics
             FrameFence = new(this);
             CommandListFence = new(this);
             CommandListFence.NextFenceValue = 0; // start at 0 for command list (we wait for previous command list signal and 0 is already set by default)
+            CopyFence = new(this);
 
             //
             // Enables the Direct3D 12 debug layer if available.
@@ -609,9 +611,10 @@ namespace Stride.Graphics
         ///   before proceeding. It signals the associated fence and waits for its completion,
         ///   throwing an exception if the operation fails.
         /// </remarks>
-        internal void ExecuteAndWaitCopyQueueGPU()
+        internal ulong ExecuteAndWaitCopyQueueGPU()
         {
-            var commandListFenceValue = CommandListFence.NextFenceValue++;
+            var copyFenceValue = CopyFence.NextFenceValue++;
+            var nextCopyFenceValue = copyFenceValue + 1;
 
             // For now, we execute everything on the non-copy command queue otherwise ResourceBarrier won't work
             // Improvement: on Copy queue: we'll need to make sure to use only Common/Copy (and go back to Common before transfer); then a Signal
@@ -620,7 +623,9 @@ namespace Stride.Graphics
             var commandList = (ID3D12CommandList*) nativeCopyCommandList;
             nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, in commandList);
 
-            CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
+            CopyFence.Signal(NativeCommandQueue, nextCopyFenceValue);
+
+            return nextCopyFenceValue;
         }
 
         /// <summary>
@@ -690,6 +695,7 @@ namespace Stride.Graphics
 
             FrameFence.Dispose();
             CommandListFence.Dispose();
+            CopyFence.Dispose();
 
             // Release pools
             CommandAllocators.Dispose();
@@ -779,7 +785,7 @@ namespace Stride.Graphics
             // Set fence on staging textures
             foreach (var stagingResource in commandList.StagingResources)
             {
-                stagingResource.StagingFenceValue = fenceValue;
+                stagingResource.CommandListFenceValue = fenceValue;
             }
 
             StagingResourceLists.Release(commandList.StagingResources);

@@ -11,9 +11,20 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResource
     {
+        /// <summary>
+        /// Fence value used with <see cref="GraphicsDevice.CopyFence"/> during resource initialization. Need to be waited on for CPU access.
+        /// </summary>
+        internal ulong? CopyFenceValue;
+        /// <summary>
+        /// Fence value used with <see cref="GraphicsDevice.CommandListFence"/> when resource is being written by a command list (i.e. <see cref="CommandList.Copy(GraphicsResource, GraphicsResource)"/>). Need to be waited on for CPU access.
+        /// </summary>
+        internal ulong? CommandListFenceValue;
+        /// <summary>
+        /// Command list which updated the resource (i.e. <see cref="CommandList.Copy(GraphicsResource, GraphicsResource)"/>) before it has been submitted. Will become <see cref="CommandListFenceValue"/> when command list is submitted.
+        /// </summary>
+        internal CommandList UpdatingCommandList;
+
         internal VkDeviceMemory NativeMemory;
-        internal ulong? StagingFenceValue;
-        internal CommandList StagingBuilder;
         internal VkPipelineStageFlags NativePipelineStageMask;
 
         protected bool IsDebugMode

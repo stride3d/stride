@@ -65,8 +65,8 @@ namespace Stride.Graphics
             (NativeImageAspect, other.NativeImageAspect)                 = (other.NativeImageAspect, NativeImageAspect);
             //
             (NativeMemory, other.NativeMemory)                           = (other.NativeMemory, NativeMemory);
-            (StagingFenceValue, other.StagingFenceValue)                 = (other.StagingFenceValue, StagingFenceValue);
-            (StagingBuilder, other.StagingBuilder)                       = (other.StagingBuilder, StagingBuilder);
+            (CommandListFenceValue, other.CommandListFenceValue)                 = (other.CommandListFenceValue, CommandListFenceValue);
+            (UpdatingCommandList, other.UpdatingCommandList)                       = (other.UpdatingCommandList, UpdatingCommandList);
             (NativePipelineStageMask, other.NativePipelineStageMask)     = (other.NativePipelineStageMask, NativePipelineStageMask);
         }
 
@@ -285,7 +285,7 @@ namespace Stride.Graphics
 
         private unsafe void InitializeData(DataBox[] dataBoxes)
         {
-            var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CommandListFence.GetCompletedValue());
+            var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CopyFence.GetCompletedValue());
 
             var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo, flags = VkCommandBufferUsageFlags.OneTimeSubmit };
             vkBeginCommandBuffer(commandBuffer, &beginInfo);
@@ -389,8 +389,11 @@ namespace Stride.Graphics
             // Close and submit
             GraphicsDevice.CheckResult(vkEndCommandBuffer(commandBuffer));
 
-            GraphicsDevice.ExecuteAndWaitCopyQueueGPU(commandBuffer);
-            GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CommandListFence.NextFenceValue, commandBuffer);
+            var copyFenceValue = GraphicsDevice.ExecuteAndWaitCopyQueueGPU(commandBuffer);
+            GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CopyFence.NextFenceValue, commandBuffer);
+
+            // Make sure any subsequent CPU access (i.e. MapSubresource) will wait for copy command list to be finished
+            CopyFenceValue = copyFenceValue;
         }
 
         /// <inheritdoc/>

@@ -186,7 +186,7 @@ namespace Stride.Graphics
             // Staging resources not updated anymore
             foreach (var stagingResource in currentCommandList.StagingResources)
             {
-                stagingResource.StagingBuilder = null;
+                stagingResource.UpdatingCommandList = null;
             }
 
             // Recycle heaps
@@ -1237,8 +1237,8 @@ namespace Stride.Graphics
                     }
 
                     // Fence for host access
-                    destinationParent.StagingFenceValue = null;
-                    destinationParent.StagingBuilder = this;
+                    destinationParent.CommandListFenceValue = null;
+                    destinationParent.UpdatingCommandList = this;
                     currentCommandList.StagingResources.Add(destinationParent);
                 }
                 else // Copy Texture -> Texture
@@ -1347,8 +1347,8 @@ namespace Stride.Graphics
                 if (destinationBuffer.Usage == GraphicsResourceUsage.Staging)
                 {
                     // Fence for host access
-                    destinationBuffer.StagingFenceValue = null;
-                    destinationBuffer.StagingBuilder = this;
+                    destinationBuffer.CommandListFenceValue = null;
+                    destinationBuffer.UpdatingCommandList = this;
                     currentCommandList.StagingResources.Add(destinationBuffer);
                 }
             }
@@ -1542,8 +1542,8 @@ namespace Stride.Graphics
                     };
 
                     // Fence for host access
-                    destinationParent.StagingFenceValue = null;
-                    destinationParent.StagingBuilder = this;
+                    destinationParent.CommandListFenceValue = null;
+                    destinationParent.UpdatingCommandList = this;
                     currentCommandList.StagingResources.Add(destinationParent);
                 }
                 else
@@ -2021,23 +2021,40 @@ namespace Stride.Graphics
             else if (mapMode != MapMode.WriteNoOverwrite)
             {
                 // Need to wait?
-                if (resource.StagingFenceValue is null || !GraphicsDevice.CommandListFence.IsFenceCompleteInternal(resource.StagingFenceValue.Value))
+                if (
+                    // used in command list which hasn't be submitted yet? (only valid if our own, checked later)
+                    resource.UpdatingCommandList is not null
+                    // updated in a previous command list which hasn't be finished yet
+                    || (resource.CommandListFenceValue is not null && !GraphicsDevice.CommandListFence.IsFenceCompleteInternal(resource.CommandListFenceValue.Value)))
                 {
                     if (doNotWait)
                     {
                         return new MappedResource(resource, subResourceIndex, dataBox: default);
                     }
 
-                    // Need to flush? (check if part of current command list)
-                    if (resource.StagingBuilder == this)
+                    if (resource.UpdatingCommandList == this)
+                        // Need to flush? (check if part of current command list)
+                        // resource.CommandListFenceValue should be set after
                         FlushInternal(wait: false);
-
-                    // If the resource is not being updated by this command list, we need to wait for the fence
-                    if (resource.StagingFenceValue is null)
+                    else if (resource.UpdatingCommandList is not null)
                         throw new InvalidOperationException("CommandList updating the staging resource has not been submitted");
 
-                    GraphicsDevice.CommandListFence.WaitForFenceCPUInternal(resource.StagingFenceValue.Value);
+                    if (resource.CommandListFenceValue is null)
+                        throw new InvalidOperationException($"Invalid state for {resource.CommandListFenceValue}");
+
+                    GraphicsDevice.CommandListFence.WaitForFenceCPUInternal(resource.CommandListFenceValue.Value);
+
+                    // We're now up to date, remove command list fence value (if any)
+                    resource.CommandListFenceValue = null;
                 }
+            }
+
+            // Also make sure all copy queues are done
+            // (important for all cases, since it uploads initial data and also set resource barrier)
+            if (resource.CopyFenceValue.HasValue)
+            {
+                GraphicsDevice.CopyFence.WaitForFenceCPUInternal(resource.CopyFenceValue.Value);
+                resource.CopyFenceValue = null;
             }
 
             scoped ref var fullRange = ref NullRef<D3D12Range>();

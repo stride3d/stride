@@ -108,7 +108,7 @@ namespace Stride.Graphics
             // Staging resources not updated anymore
             foreach (var stagingResource in currentCommandList.StagingResources)
             {
-                stagingResource.StagingBuilder = null;
+                stagingResource.UpdatingCommandList = null;
             }
 
             activePipeline = null;
@@ -947,8 +947,8 @@ namespace Stride.Graphics
                         }
 
                         // VkFence for host access
-                        destinationParent.StagingFenceValue = null;
-                        destinationParent.StagingBuilder = this;
+                        destinationParent.CommandListFenceValue = null;
+                        destinationParent.UpdatingCommandList = this;
                         currentCommandList.StagingResources.Add(destinationParent);
                     }
                     else
@@ -1121,8 +1121,8 @@ namespace Stride.Graphics
                     }
 
                     //// VkFence for host access
-                    destinationParent.StagingFenceValue = null;
-                    destinationParent.StagingBuilder = this;
+                    destinationParent.CommandListFenceValue = null;
+                    destinationParent.UpdatingCommandList = this;
                     currentCommandList.StagingResources.Add(destinationParent);
                 }
                 else
@@ -1437,26 +1437,42 @@ namespace Stride.Graphics
             if (mapMode != MapMode.WriteNoOverwrite && mapMode != MapMode.Write)
             {
                 // Need to wait?
-                if (!resource.StagingFenceValue.HasValue || !GraphicsDevice.CommandListFence.IsFenceCompleteInternal(resource.StagingFenceValue.Value))
+                if (
+                    // used in command list which hasn't be submitted yet? (only valid if our own, checked later)
+                    resource.UpdatingCommandList is not null
+                    // updated in a previous command list which hasn't be finished yet
+                    || (resource.CommandListFenceValue is not null && !GraphicsDevice.CommandListFence.IsFenceCompleteInternal(resource.CommandListFenceValue.Value)))
                 {
+                    // User told us not to wait, return right away
                     if (doNotWait)
                     {
                         return new MappedResource(resource, subResourceIndex, dataBox: default);
                     }
 
-                    // This will be set only if need to flush (due to a previous Copy)
-                    if (resource.StagingBuilder != null)
-                    {
+                    if (resource.UpdatingCommandList == this)
                         // Need to flush? (check if part of current command list)
-                        if (resource.StagingBuilder == this)
-                            FlushInternal(false);
+                        // resource.CommandListFenceValue should be set after
+                        FlushInternal(false);
+                    else if (resource.UpdatingCommandList is not null)
+                        // Another command list updated this resource, but it's not been submitted (otherwise it would be stored in resource.CommandListFenceValue
+                        throw new InvalidOperationException("CommandList updating the staging resource has not been submitted");
 
-                        if (!resource.StagingFenceValue.HasValue)
-                            throw new InvalidOperationException("CommandList updating the staging resource has not been submitted");
+                    if (resource.CommandListFenceValue is null)
+                        throw new InvalidOperationException($"Invalid state for {resource.CommandListFenceValue}");
 
-                        GraphicsDevice.CommandListFence.WaitForFenceCPUInternal(resource.StagingFenceValue.Value);
-                    }
+                    GraphicsDevice.CommandListFence.WaitForFenceCPUInternal(resource.CommandListFenceValue.Value);
+
+                    // We're now up to date, remove command list fence value (if any)
+                    resource.CommandListFenceValue = null;
                 }
+            }
+
+            // Also make sure all copy queues are done
+            // (important for all cases, since it uploads initial data and also set resource barrier)
+            if (resource.CopyFenceValue.HasValue)
+            {
+                GraphicsDevice.CopyFence.WaitForFenceCPUInternal(resource.CopyFenceValue.Value);
+                resource.CopyFenceValue = null;
             }
 
             void* mappedMemory;

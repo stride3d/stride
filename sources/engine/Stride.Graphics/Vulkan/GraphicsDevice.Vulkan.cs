@@ -225,6 +225,8 @@ namespace Stride.Graphics
 
             var commandListFenceValue = CommandListFence.NextFenceValue++;
             var nextCommandListFenceValue = commandListFenceValue + 1;
+            // Make sure all copies are done as well
+            var waitFenceValues = stackalloc ulong[] { commandListFenceValue, CopyFence.NextFenceValue };
 
             // Collect resources
             var commandBuffers = stackalloc VkCommandBuffer[count];
@@ -238,25 +240,25 @@ namespace Stride.Graphics
             var timelineInfo = new VkTimelineSemaphoreSubmitInfo
             {
                 sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                waitSemaphoreValueCount = 1,
-                pWaitSemaphoreValues = &commandListFenceValue,
+                waitSemaphoreValueCount = 2,
+                pWaitSemaphoreValues = &waitFenceValues[0],
                 signalSemaphoreValueCount = 1,
                 pSignalSemaphoreValues = &nextCommandListFenceValue,
             };
 
-            var commandListSemaphore = CommandListFence.Semaphore;
-            var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+            var semaphores = stackalloc VkSemaphore[] { CommandListFence.Semaphore, CopyFence.Semaphore };
+            var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
             var submitInfo = new VkSubmitInfo
             {
                 sType = VkStructureType.SubmitInfo,
                 pNext = &timelineInfo,
                 commandBufferCount = (uint)count,
                 pCommandBuffers = commandBuffers,
-                waitSemaphoreCount = 1,
-                pWaitSemaphores = &commandListSemaphore,
-                pWaitDstStageMask = &pipelineStageFlags,
+                waitSemaphoreCount = 2,
+                pWaitSemaphores = &semaphores[0],
+                pWaitDstStageMask = &pipelineStageFlags[0],
                 signalSemaphoreCount = 1,
-                pSignalSemaphores = &commandListSemaphore,
+                pSignalSemaphores = &semaphores[0],
             };
 
             lock (QueueLock)
@@ -493,41 +495,34 @@ namespace Stride.Graphics
             }
         }
 
-        internal unsafe void ExecuteAndWaitCopyQueueGPU(VkCommandBuffer commandBuffer)
+        internal unsafe ulong ExecuteAndWaitCopyQueueGPU(VkCommandBuffer commandBuffer)
         {
-            // Note: We force a wait on previous fence value even though it's not strictly necessary for the copy itself
-            //       Reason is, we don't want to signal the next CommandList fence before we checked the previous one finished (otherwise it'll break normal ExecuteCommandLists which will resume too early)
-            var commandListFenceValue = CommandListFence.NextFenceValue++;
-            var nextCommandListFenceValue = commandListFenceValue + 1;
+            var copyFenceValue = CopyFence.NextFenceValue++;
+            var nextCopyFenceValue = copyFenceValue + 1;
 
             var timelineInfo = new VkTimelineSemaphoreSubmitInfo
             {
                 sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                waitSemaphoreValueCount = 1,
-                pWaitSemaphoreValues = &commandListFenceValue,
                 signalSemaphoreValueCount = 1,
-                pSignalSemaphoreValues = &nextCommandListFenceValue,
+                pSignalSemaphoreValues = &nextCopyFenceValue,
             };
-            var commandListSemaphore = CommandListFence.Semaphore;
-            var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+            var copySemaphore = CopyFence.Semaphore;
             var submitInfo = new VkSubmitInfo
             {
                 sType = VkStructureType.SubmitInfo,
                 pNext = &timelineInfo,
                 commandBufferCount = 1,
                 pCommandBuffers = &commandBuffer,
-                waitSemaphoreCount = 1,
-                pWaitSemaphores = &commandListSemaphore,
-                pWaitDstStageMask = &pipelineStageFlags,
-
                 signalSemaphoreCount = 1,
-                pSignalSemaphores = &commandListSemaphore,
+                pSignalSemaphores = &copySemaphore,
             };
 
             lock (QueueLock)
             {
                 CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
             }
+
+            return nextCopyFenceValue;
         }
 
         protected unsafe void AllocateMemory(VkMemoryPropertyFlags memoryProperties)
@@ -636,6 +631,8 @@ namespace Stride.Graphics
 
             var commandListFenceValue = CommandListFence.NextFenceValue++;
             var nextCommandListFenceValue = commandListFenceValue + 1;
+            // Make sure all copies are done as well
+            var waitFenceValues = stackalloc ulong[] { commandListFenceValue, CopyFence.NextFenceValue };
 
             // Submit commands
             var nativeCommandBufferCopy = commandList.NativeCommandBuffer;
@@ -643,25 +640,25 @@ namespace Stride.Graphics
             var timelineInfo = new VkTimelineSemaphoreSubmitInfo
             {
                 sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                waitSemaphoreValueCount = 1,
-                pWaitSemaphoreValues = &commandListFenceValue,
+                waitSemaphoreValueCount = 2,
+                pWaitSemaphoreValues = &waitFenceValues[0],
                 signalSemaphoreValueCount = 1,
                 pSignalSemaphoreValues = &nextCommandListFenceValue,
             };
 
-            var commandListSemaphore = CommandListFence.Semaphore;
-            var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+            var semaphores = stackalloc VkSemaphore[] { CommandListFence.Semaphore, CopyFence.Semaphore };
+            var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
             var submitInfo = new VkSubmitInfo
             {
                 sType = VkStructureType.SubmitInfo,
                 pNext = &timelineInfo,
                 commandBufferCount = 1,
                 pCommandBuffers = &nativeCommandBufferCopy,
-                waitSemaphoreCount = 1,
-                pWaitSemaphores = &commandListSemaphore,
-                pWaitDstStageMask = &pipelineStageFlags,
+                waitSemaphoreCount = 2,
+                pWaitSemaphores = &semaphores[0],
+                pWaitDstStageMask = &pipelineStageFlags[0],
                 signalSemaphoreCount = 1,
-                pSignalSemaphores = &commandListSemaphore,
+                pSignalSemaphores = &semaphores[0],
             };
 
             lock (QueueLock)
@@ -680,7 +677,7 @@ namespace Stride.Graphics
             // Set fence on staging textures
             foreach (var stagingResource in commandList.StagingResources)
             {
-                stagingResource.StagingFenceValue = commandListFenceValue;
+                stagingResource.CommandListFenceValue = commandListFenceValue;
             }
 
             StagingResourceLists.Release(commandList.StagingResources);

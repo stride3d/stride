@@ -548,7 +548,7 @@ namespace Stride.Graphics
                 dstAccessMask = VkAccessFlags.MemoryRead
             };
 
-            var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CommandListFence.GetCompletedValue());
+            var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(0);
 
             var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo };
             vkBeginCommandBuffer(commandBuffer, &beginInfo);
@@ -582,7 +582,7 @@ namespace Stride.Graphics
                 GraphicsDevice.CheckResult(vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue));
             }
 
-            GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CommandListFence.LastCompletedFence, commandBuffer);
+            GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(0, commandBuffer);
 
             // Create submit semaphores
             submitSemaphores = new VkSemaphore[buffers.Length];

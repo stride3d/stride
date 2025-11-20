@@ -173,7 +173,7 @@ namespace Stride.Graphics
 
             if (SizeInBytes > 0)
             {
-                var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CommandListFence.GetCompletedValue());
+                var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CopyFence.GetCompletedValue());
 
                 var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo, flags = VkCommandBufferUsageFlags.OneTimeSubmit };
                 vkBeginCommandBuffer(commandBuffer, &beginInfo);
@@ -221,8 +221,11 @@ namespace Stride.Graphics
                 // Close and submit
                 GraphicsDevice.CheckResult(vkEndCommandBuffer(commandBuffer));
 
-                GraphicsDevice.ExecuteAndWaitCopyQueueGPU(commandBuffer);
-                GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CommandListFence.NextFenceValue, commandBuffer);
+                var copyFenceValue = GraphicsDevice.ExecuteAndWaitCopyQueueGPU(commandBuffer);
+                GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CopyFence.NextFenceValue, commandBuffer);
+
+                // Make sure any subsequent CPU access (i.e. MapSubresource) will wait for copy command list to be finished
+                CopyFenceValue = copyFenceValue;
 
                 InitializeViews();
             }

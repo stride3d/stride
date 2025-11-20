@@ -104,8 +104,8 @@ namespace Stride.Graphics
 
             // GraphicsResource
             (ParentResource, other.ParentResource)                       = (other.ParentResource, ParentResource);
-            (StagingFenceValue, other.StagingFenceValue)                 = (other.StagingFenceValue, StagingFenceValue);
-            (StagingBuilder, other.StagingBuilder)                       = (other.StagingBuilder, StagingBuilder);
+            (CommandListFenceValue, other.CommandListFenceValue)         = (other.CommandListFenceValue, CommandListFenceValue);
+            (UpdatingCommandList, other.UpdatingCommandList)             = (other.UpdatingCommandList, UpdatingCommandList);
             (NativeShaderResourceView, other.NativeShaderResourceView)   = (other.NativeShaderResourceView, NativeShaderResourceView);
             (NativeUnorderedAccessView, other.NativeUnorderedAccessView) = (other.NativeUnorderedAccessView, NativeUnorderedAccessView);
             (NativeResourceState, other.NativeResourceState)             = (other.NativeResourceState, NativeResourceState);
@@ -367,7 +367,10 @@ namespace Stride.Graphics
                         if (result.IsFailure)
                             result.Throw();
 
-                        GraphicsDevice.ExecuteAndWaitCopyQueueGPU();
+                        var copyFenceValue = GraphicsDevice.ExecuteAndWaitCopyQueueGPU();
+
+                        // Make sure any subsequent CPU access (i.e. MapSubresource) will wait for copy command list to be finished
+                        CopyFenceValue = copyFenceValue;
                     }
                 }
 
