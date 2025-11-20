@@ -375,7 +375,7 @@ namespace Stride.Graphics
                         continue;
                 }
 
-                nativeDevice = device.DisposeBy(this);
+                nativeDevice = device;
 
                 RequestedProfile = graphicsProfile;
                 CurrentFeatureLevel = featureLevel;
@@ -390,7 +390,7 @@ namespace Stride.Graphics
             if (result.IsFailure)
                 result.Throw();
 
-            nativeCommandQueue = commandQueue.DisposeBy(this);
+            nativeCommandQueue = commandQueue;
 
             // Describe and create the copy command queue
             queueDesc.Type = CommandListType.Copy;
@@ -399,7 +399,7 @@ namespace Stride.Graphics
             if (result.IsFailure)
                 result.Throw();
 
-            nativeCopyCommandQueue = copyQueue.DisposeBy(this);
+            nativeCopyCommandQueue = copyQueue;
 
             // Get the tick frequency of the timestamp queries
             ulong timestampFreq = default;
@@ -475,14 +475,14 @@ namespace Stride.Graphics
             if (result.IsFailure)
                 result.Throw();
 
-            nativeCopyCommandAllocator = commandAllocator.DisposeBy(this);
+            nativeCopyCommandAllocator = commandAllocator;
 
             result = nativeDevice->CreateCommandList(nodeMask: 0, CommandListType.Direct, commandAllocator, pInitialState: ref NullRef<ID3D12PipelineState>(),
                                                      out ComPtr<ID3D12GraphicsCommandList> commandList);
             if (result.IsFailure)
                 result.Throw();
 
-            nativeCopyCommandList = commandList.DisposeBy(this);
+            nativeCopyCommandList = commandList;
 
             commandList.Close();
 
@@ -582,7 +582,7 @@ namespace Stride.Graphics
                 if (result.IsFailure)
                     result.Throw();
 
-                nativeUploadBuffer = uploadBuffer.DisposeBy(this);
+                nativeUploadBuffer = uploadBuffer;
 
                 void* mappedBufferAddress = null;
                 result = uploadBuffer.Map(Subresource: 0, pReadRange: in NullRef<Silk.NET.Direct3D12.Range>(), ref mappedBufferAddress);
@@ -678,14 +678,10 @@ namespace Stride.Graphics
 
             // Release command queue
             SafeRelease(ref nativeCommandQueue);
-            NativeCommandQueue.RemoveDisposeBy(this);
 
             SafeRelease(ref nativeCopyCommandQueue);
-            NativeCopyCommandQueue.RemoveDisposeBy(this);
             SafeRelease(ref nativeCopyCommandAllocator);
-            NativeCopyCommandAllocator.RemoveDisposeBy(this);
             SafeRelease(ref nativeCopyCommandList);
-            NativeCopyCommandList.RemoveDisposeBy(this);
 
             SafeRelease(ref nativeUploadBuffer);
 
@@ -718,7 +714,6 @@ namespace Stride.Graphics
             }
 
             SafeRelease(ref nativeDevice);
-            NativeDevice.RemoveDisposeBy(this);
         }
 
         /// <summary>
