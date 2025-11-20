@@ -542,8 +542,7 @@ public partial class SPVGenerator : IIncrementalGenerator
     static void WriteConstantInstructions(SpirvGrammar grammar, in InstructionData instruction, StringBuilder builder, StringBuilder body1, StringBuilder body2, StringBuilder body3, StringBuilder body4)
     {
         body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
-                                .AppendLine("{")
-                                .AppendLine("DataIndex = index;");
+                                .AppendLine("{");
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
         {
