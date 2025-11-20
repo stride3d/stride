@@ -508,31 +508,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Calls <see cref="Texture.OnDestroyed"/> for all children of the specified Texture.
-        /// </summary>
-        /// <param name="parentTexture">The parent Texture whose children are to be destroyed.</param>
-        /// <returns>A list of the children Textures which were destroyed.</returns>
-        private List<Texture> DestroyChildrenTextures(Texture parentTexture)
-        {
-            var childrenTextures = new List<Texture>();
-            var resources = GraphicsDevice.Resources;
-
-            lock (resources)
-            {
-                foreach (var resource in resources)
-                {
-                    if (resource is Texture texture && texture.ParentTexture == parentTexture)
-                    {
-                        texture.OnDestroyed(true);
-                        childrenTextures.Add(texture);
-                    }
-                }
-            }
-
-            return childrenTextures;
-        }
-
-        /// <summary>
         ///   Creates or reinitializes the Swap-Chain with the current configuration.
         /// </summary>
         /// <returns>The new or recreated <see cref="IDXGISwapChain"/>.</returns>

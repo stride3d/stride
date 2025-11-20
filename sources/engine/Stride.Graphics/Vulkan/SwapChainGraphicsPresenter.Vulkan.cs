@@ -2,7 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
+using System.Diagnostics;
 using System.Linq;
+using Stride.Core;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
@@ -16,7 +18,7 @@ namespace Stride.Graphics
         private VkSwapchainKHR swapChain;
         private VkSurfaceKHR surface;
 
-        private Texture backbuffer;
+        private Texture backBuffer;
         private SwapChainImageInfo[] swapchainImages;
         private uint currentBufferIndex;
 
@@ -31,19 +33,19 @@ namespace Stride.Graphics
         {
             PresentInterval = presentationParameters.PresentationInterval;
 
-            backbuffer = new Texture(device);
+            backBuffer = new Texture(device);
 
             CreateSurface();
 
             // Initialize the swap chain
-            CreateSwapChain();
+            CreateSwapChain(Description.BackBufferWidth, Description.BackBufferHeight, Description.BackBufferFormat);
         }
 
         public override Texture BackBuffer
         {
             get
             {
-                return backbuffer;
+                return backBuffer;
             }
         }
 
@@ -157,13 +159,13 @@ namespace Stride.Graphics
             }
 
             // Flip render targets
-            backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
+            backBuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
         }
 
         public override void BeginDraw(CommandList commandList)
         {
             // Backbuffer needs to be cleared
-            backbuffer.IsInitialized = false;
+            backBuffer.IsInitialized = false;
         }
 
         public override void EndDraw(CommandList commandList, bool present)
@@ -195,13 +197,29 @@ namespace Stride.Graphics
 
             base.OnRecreated();
 
+            // Manually update all children textures
+            var fastList = DestroyChildrenTextures(backBuffer);
+
             // Recreate swap chain
-            CreateSwapChain();
+            CreateSwapChain(backBuffer.Width, backBuffer.Height, backBuffer.Format);
+
+            foreach (var texture in fastList)
+            {
+                texture.InitializeFrom(backBuffer, texture.ViewDescription);
+            }
         }
 
         protected override void ResizeBackBuffer(int width, int height, PixelFormat format)
         {
-            CreateSwapChain();
+            // Manually update all children textures
+            var fastList = DestroyChildrenTextures(backBuffer);
+
+            CreateSwapChain(width, height, format);
+
+            foreach (var texture in fastList)
+            {
+                texture.InitializeFrom(backBuffer, texture.ViewDescription);
+            }
         }
 
         protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
@@ -210,11 +228,19 @@ namespace Stride.Graphics
             newTextureDescription.Width = width;
             newTextureDescription.Height = height;
 
+            // Manually update all children textures
+            var fastList = DestroyChildrenTextures(DepthStencilBuffer);
+
             // Manually update the texture
             DepthStencilBuffer.OnDestroyed(true);
 
             // Put it in our back buffer texture
             DepthStencilBuffer.InitializeFrom(newTextureDescription);
+
+            foreach (var texture in fastList)
+            {
+                texture.InitializeFrom(DepthStencilBuffer, texture.ViewDescription);
+            }
         }
 
 
@@ -225,7 +251,7 @@ namespace Stride.Graphics
 
             vkDeviceWaitIdle(GraphicsDevice.NativeDevice);
 
-            backbuffer.OnDestroyed(true);
+            backBuffer.OnDestroyed(true);
 
             foreach (var swapchainImage in swapchainImages)
             {
@@ -237,9 +263,9 @@ namespace Stride.Graphics
             swapChain = VkSwapchainKHR.Null;
         }
 
-        private unsafe void CreateSwapChain()
+        private unsafe void CreateSwapChain(int width, int height, PixelFormat desiredFormat)
         {
-            var formats = new[] { PixelFormat.B8G8R8A8_UNorm_SRgb, PixelFormat.R8G8B8A8_UNorm_SRgb, PixelFormat.B8G8R8A8_UNorm, PixelFormat.R8G8B8A8_UNorm };
+            var formats = new[] { desiredFormat, PixelFormat.B8G8R8A8_UNorm_SRgb, PixelFormat.R8G8B8A8_UNorm_SRgb, PixelFormat.B8G8R8A8_UNorm, PixelFormat.R8G8B8A8_UNorm };
 
             foreach (var format in formats)
             {
@@ -250,6 +276,11 @@ namespace Stride.Graphics
                 if ((formatProperties.optimalTilingFeatures & VkFormatFeatureFlags.ColorAttachment) != 0)
                 {
                     Description.BackBufferFormat = format;
+                    if (format != desiredFormat)
+                    {
+                        // Investigate what formats we want to allow if desired format can't be created
+                        if (Debugger.IsAttached) Debugger.Break();
+                    }
                     break;
                 }
             }
@@ -347,11 +378,15 @@ namespace Stride.Graphics
             }
             // Create surface
 #if STRIDE_UI_SDL
-            var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
-            Silk.NET.Core.Native.VkNonDispatchableHandle surfaceHandle = default;
-            SDL.Window.SDL.VulkanCreateSurface((Silk.NET.SDL.Window*)control.SdlHandle, new Silk.NET.Core.Native.VkHandle(GraphicsDevice.NativeInstance.Handle), ref surfaceHandle);
-            surface = new VkSurfaceKHR(surfaceHandle.Handle);
-#else
+            if (Description.DeviceWindowHandle.Context == Games.AppContextType.DesktopSDL)
+            {
+                var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
+                Silk.NET.Core.Native.VkNonDispatchableHandle surfaceHandle = default;
+                SDL.Window.SDL.VulkanCreateSurface((Silk.NET.SDL.Window*)control.SdlHandle, new Silk.NET.Core.Native.VkHandle(GraphicsDevice.NativeInstance.Handle), ref surfaceHandle);
+                surface = new VkSurfaceKHR(surfaceHandle.Handle);
+            }
+            else
+#endif
             if (Platform.Type == PlatformType.Windows)
             {
                 var controlHandle = Description.DeviceWindowHandle.Handle;
@@ -363,8 +398,8 @@ namespace Stride.Graphics
                 var surfaceCreateInfo = new VkWin32SurfaceCreateInfoKHR
                 {
                     sType = VkStructureType.Win32SurfaceCreateInfoKHR,
-                    instanceHandle = Process.GetCurrentProcess().Handle,
-                    windowHandle = controlHandle,
+                    hinstance = Process.GetCurrentProcess().Handle,
+                    hwnd = controlHandle,
                 };
                 vkCreateWin32SurfaceKHR(GraphicsDevice.NativeInstance, &surfaceCreateInfo, null, out surface);
             }
@@ -380,7 +415,6 @@ namespace Stride.Graphics
             {
                 throw new NotSupportedException();
             }
-#endif
         }
 
         private unsafe void CreateBackBuffers()
@@ -399,19 +433,19 @@ namespace Stride.Graphics
                 MultisampleCount = MultisampleCount.None,
                 Usage = GraphicsResourceUsage.Default
             };
-            backbuffer.InitializeWithoutResources(backBufferDescription);
+            backBuffer.InitializeWithoutResources(backBufferDescription);
 
             var createInfo = new VkImageViewCreateInfo
             {
                 sType = VkStructureType.ImageViewCreateInfo,
                 subresourceRange = new VkImageSubresourceRange(VkImageAspectFlags.Color, 0, 1, 0, 1),
-                format = backbuffer.NativeFormat,
+                format = backBuffer.NativeFormat,
                 viewType = VkImageViewType.Image2D,
             };
 
             // We initialize swapchain images to PresentSource, since we swap them out while in this layout.
-            backbuffer.NativeAccessMask = VkAccessFlags.MemoryRead;
-            backbuffer.NativeLayout = VkImageLayout.PresentSrcKHR;
+            backBuffer.NativeAccessMask = VkAccessFlags.MemoryRead;
+            backBuffer.NativeLayout = VkImageLayout.PresentSrcKHR;
 
             var imageMemoryBarrier = new VkImageMemoryBarrier
             {
@@ -472,7 +506,7 @@ namespace Stride.Graphics
             vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), VkFence.Null, out currentBufferIndex);
 
             // Apply the first swap chain image to the texture
-            backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
+            backBuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
         }
     }
 }

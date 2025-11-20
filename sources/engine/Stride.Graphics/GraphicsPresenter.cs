@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using Stride.Core;
 
 namespace Stride.Graphics;
@@ -302,6 +303,31 @@ public abstract class GraphicsPresenter : ComponentBase
             // If the device does not support sRGB or the ColorSpace is Gamma, but the backbuffer format asked is sRGB, convert it to non sRGB
             return backBufferFormat.ToNonSRgb();
         }
+    }
+
+    /// <summary>
+    ///   Calls <see cref="Texture.OnDestroyed"/> for all children of the specified Texture.
+    /// </summary>
+    /// <param name="parentTexture">The parent Texture whose children are to be destroyed.</param>
+    /// <returns>A list of the children Textures which were destroyed.</returns>
+    protected List<Texture> DestroyChildrenTextures(Texture parentTexture)
+    {
+        var childrenTextures = new List<Texture>();
+        var resources = GraphicsDevice.Resources;
+
+        lock (resources)
+        {
+            foreach (var resource in resources)
+            {
+                if (resource is Texture texture && texture.ParentTexture == parentTexture)
+                {
+                    texture.OnDestroyed(true);
+                    childrenTextures.Add(texture);
+                }
+            }
+        }
+
+        return childrenTextures;
     }
 
     /// <summary>
