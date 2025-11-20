@@ -285,7 +285,7 @@ namespace Stride.Graphics
 
         private unsafe void InitializeData(DataBox[] dataBoxes)
         {
-            var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CopyFence.GetCompletedValue());
+            var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CommandListFence.GetCompletedValue());
 
             var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo, flags = VkCommandBufferUsageFlags.OneTimeSubmit };
             vkBeginCommandBuffer(commandBuffer, &beginInfo);
@@ -388,9 +388,9 @@ namespace Stride.Graphics
 
             // Close and submit
             GraphicsDevice.CheckResult(vkEndCommandBuffer(commandBuffer));
-            GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CopyFence.NextFenceValue, commandBuffer);
 
             GraphicsDevice.ExecuteAndWaitCopyQueueGPU(commandBuffer);
+            GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CommandListFence.NextFenceValue, commandBuffer);
         }
 
         /// <inheritdoc/>

@@ -9,6 +9,7 @@ using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using System.Text;
+using System.Diagnostics;
 
 namespace Stride.Graphics
 {
@@ -253,6 +254,7 @@ namespace Stride.Graphics
         private unsafe static uint DebugReport(VkDebugUtilsMessageSeverityFlagsEXT severity, VkDebugUtilsMessageTypeFlagsEXT types, VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* userData)
         {
             var message = new VkUtf8String(pCallbackData->pMessage).ToString();
+            Debug.WriteLine($"Vulkan: {severity} {message}");
 
             // Redirect to log
             if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Error)

@@ -19,6 +19,7 @@ namespace Stride.Graphics
         private VkRenderPass activeRenderPass;
         private VkRenderPass previousRenderPass;
         private PipelineState activePipeline;
+        private bool pipelineDirty = true;
 
         private readonly Dictionary<FramebufferKey, VkFramebuffer> framebuffers = new();
         private readonly VkImageView[] framebufferAttachments = new VkImageView[9];
@@ -82,6 +83,10 @@ namespace Stride.Graphics
             };
             vkBeginCommandBuffer(currentCommandList.NativeCommandBuffer, &beginInfo);
 
+            pipelineDirty = true;
+            viewportDirty = true;
+            scissorsDirty = true;
+
             activeStencilReference = null;
         }
 
@@ -129,17 +134,6 @@ namespace Stride.Graphics
                 GraphicsDevice.CommandListFence.WaitForFenceCPUInternal(commandListFenceValue);
 
             Reset();
-
-            // Restore states
-            vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
-
-            if (activePipeline != null)
-            {
-                vkCmdBindPipeline(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativePipeline);
-                var descriptorSetCopy = descriptorSet;
-                vkCmdBindDescriptorSets(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativeLayout, firstSet: 0, descriptorSetCount: 1, &descriptorSetCopy, dynamicOffsetCount: 0, dynamicOffsets: null);
-            }
-            SetRenderTargetsImpl(depthStencilBuffer, RenderTargets);
         }
 
         /// <summary>
@@ -194,6 +188,14 @@ namespace Stride.Graphics
         /// <param name="buffers">The buffers.</param>
         public void SetStreamTargets(params Buffer[] buffers)
         {
+        }
+
+        private unsafe void BindPipeline()
+        {
+            if (!pipelineDirty)
+                return;
+
+            vkCmdBindPipeline(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativePipeline);
         }
 
         /// <summary>
@@ -266,17 +268,12 @@ namespace Stride.Graphics
         /// <exception cref="InvalidOperationException">Cannot GraphicsDevice.Draw*() without an effect being previously applied with Effect.Apply() method</exception>
         private unsafe void PrepareDraw()
         {
-            SetViewportImpl();
-
-            if (!activeStencilReference.HasValue)
-            {
-                activeStencilReference = 0;
-                vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, 0);
-            }
-
             // Lazily set the render pass and frame buffer
             EnsureRenderPass();
+            BindPipeline();
             BindDescriptorSets();
+            SetViewportImpl();
+            vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
         }
 
         private unsafe void BindDescriptorSets()
@@ -432,12 +429,12 @@ namespace Stride.Graphics
             if (pipelineState == activePipeline)
                 return;
 
+            viewportDirty = true;
             // If scissor state changed, force a refresh
             scissorsDirty |= (pipelineState?.Description.RasterizerState.ScissorTestEnable ?? false) != (activePipeline?.Description.RasterizerState.ScissorTestEnable ?? false);
 
             activePipeline = pipelineState;
-
-            vkCmdBindPipeline(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, pipelineState.NativePipeline);
+            pipelineDirty = true;
         }
 
         public unsafe void SetVertexBuffer(int index, Buffer buffer, int offset, int stride)
@@ -1580,6 +1577,10 @@ namespace Stride.Graphics
             {
                 vkCmdEndRenderPass(currentCommandList.NativeCommandBuffer);
                 activeRenderPass = VkRenderPass.Null;
+
+                viewportDirty = true;
+                scissorsDirty = true;
+                pipelineDirty = true;
             }
         }
 

@@ -145,25 +145,33 @@ namespace Stride.Graphics
             // Code is inspired from https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html (good code example)
             // except we start the loop from vkQueueSubmit+vkQueuePresent and then proceed with preparing next frame resources
 
-            // Signal semaphore (that we will wait on during present for GPU=>GPU sync, to make sure all previous command buffers have been executed)
-            var currentBufferIndexCopy = currentBufferIndex;
-            var acquireSemaphore = acquireSemaphores[currentFrameIndex];
-            var submitSemaphore = submitSemaphores[currentBufferIndexCopy];
-            var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
-            var submitInfo = new VkSubmitInfo
-            {
-                sType = VkStructureType.SubmitInfo,
-                waitSemaphoreCount = 1,
-                pWaitSemaphores = &acquireSemaphore,
-                pWaitDstStageMask = &pipelineStageFlags,
-                signalSemaphoreCount = 1,
-                pSignalSemaphores = &submitSemaphore,
-            };
-
             lock (GraphicsDevice.QueueLock)
             {
+                // Signal semaphore (that we will wait on during present for GPU=>GPU sync, to make sure all previous command buffers have been executed)
+                var submitSemaphore = submitSemaphores[currentBufferIndex];
+                var frameFence = GraphicsDevice.FrameFence.Semaphore;
+                var frameFenceValue = GraphicsDevice.FrameFence.NextFenceValue - 1;
+                var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                {
+                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    waitSemaphoreValueCount = 1,
+                    pWaitSemaphoreValues = &frameFenceValue,
+                };
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    pNext = &timelineInfo,
+                    waitSemaphoreCount = 1,
+                    pWaitSemaphores = &frameFence,
+                    pWaitDstStageMask = &pipelineStageFlags,
+                    signalSemaphoreCount = 1,
+                    pSignalSemaphores = &submitSemaphore,
+                };
+                
                 GraphicsDevice.CheckResult(vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, frameFences[currentFrameIndex]));
 
+                var currentBufferIndexCopy = currentBufferIndex;
                 var swapChainCopy = swapChain;
                 var presentInfo = new VkPresentInfoKHR
                 {
@@ -176,6 +184,7 @@ namespace Stride.Graphics
                 };
 
                 // Present
+                Debug.WriteLine($"Present image {currentBufferIndex}: {swapchainImages[currentBufferIndex].NativeImage.Handle.ToString("X")}");
                 var presentResult = vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo);
                 if (presentResult == VkResult.ErrorOutOfDateKHR)
                 {
@@ -200,6 +209,34 @@ namespace Stride.Graphics
 
             // Flip render targets
             backBuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
+            Debug.WriteLine($"Next swapchain image {currentBufferIndex}: {swapchainImages[currentBufferIndex].NativeImage.Handle.ToString("X")}");
+
+            lock (GraphicsDevice.QueueLock)
+            {
+                // Signal vkAcquireNextImageKHR Fence => GraphicsDevice.CommandList (so that next command list will wait for this to complete)
+                var acquireSemaphore = acquireSemaphores[currentFrameIndex];
+                var commandListFence = GraphicsDevice.CommandListFence.Semaphore;
+                var nextCommandListFenceValue = ++GraphicsDevice.CommandListFence.NextFenceValue;
+                var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                {
+                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    signalSemaphoreValueCount = 1,
+                    pSignalSemaphoreValues = &nextCommandListFenceValue,
+                };
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    pNext = &timelineInfo,
+                    waitSemaphoreCount = 1,
+                    pWaitSemaphores = &acquireSemaphore,
+                    pWaitDstStageMask = &pipelineStageFlags,
+                    signalSemaphoreCount = 1,
+                    pSignalSemaphores = &commandListFence,
+                };
+
+                GraphicsDevice.CheckResult(vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+            }
         }
 
         public override void BeginDraw(CommandList commandList)
@@ -511,7 +548,7 @@ namespace Stride.Graphics
                 dstAccessMask = VkAccessFlags.MemoryRead
             };
 
-            var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CopyFence.GetCompletedValue());
+            var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CommandListFence.GetCompletedValue());
 
             var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo };
             vkBeginCommandBuffer(commandBuffer, &beginInfo);
@@ -533,20 +570,19 @@ namespace Stride.Graphics
             // Close and submit
             GraphicsDevice.CheckResult(vkEndCommandBuffer(commandBuffer));
 
-            var submitInfo = new VkSubmitInfo
-            {
-                sType = VkStructureType.SubmitInfo,
-                commandBufferCount = 1,
-                pCommandBuffers = &commandBuffer,
-            };
-
             lock (GraphicsDevice.QueueLock)
             {
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    commandBufferCount = 1,
+                    pCommandBuffers = &commandBuffer,
+                };
                 GraphicsDevice.CheckResult(vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null));
                 GraphicsDevice.CheckResult(vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue));
             }
 
-            GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CopyFence.LastCompletedFence, commandBuffer);
+            GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CommandListFence.LastCompletedFence, commandBuffer);
 
             // Create submit semaphores
             submitSemaphores = new VkSemaphore[buffers.Length];
@@ -571,6 +607,21 @@ namespace Stride.Graphics
             
             // Apply the first swap chain image to the texture
             backBuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
+
+            lock (GraphicsDevice.QueueLock)
+            {
+                var acquireSemaphore = acquireSemaphores[currentFrameIndex];
+                var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    waitSemaphoreCount = 1,
+                    pWaitSemaphores = &acquireSemaphore,
+                    pWaitDstStageMask = &pipelineStageFlags,
+                };
+
+                GraphicsDevice.CheckResult(vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+            }
         }
     }
 }
