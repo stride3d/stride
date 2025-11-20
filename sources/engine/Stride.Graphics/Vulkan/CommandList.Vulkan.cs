@@ -911,6 +911,7 @@ namespace Stride.Graphics
 
                 vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
 
+                // TODO: compute all regions at once in a single call
                 for (var subresource = 0; subresource < sourceTexture.MipLevelCount * sourceTexture.ArraySize; ++subresource)
                 {
                     var arraySlice = subresource / sourceTexture.MipLevelCount;
@@ -955,7 +956,7 @@ namespace Stride.Graphics
                     }
                     else
                     {
-                        var destinationSubresource = new VkImageSubresourceLayers(destinationParent.NativeImageAspect, (uint) mipLevel, (uint) arraySlice, (uint) destinationTexture.ArraySize);
+                        var destinationSubresource = new VkImageSubresourceLayers(destinationParent.NativeImageAspect, (uint) mipLevel, (uint) arraySlice, layerCount: 1);
 
                         if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                         {
@@ -969,13 +970,18 @@ namespace Stride.Graphics
                         }
                         else
                         {
-                            var copy = new VkImageCopy
+                            // Image to image copy: process array all at once
+                            destinationSubresource.layerCount = (uint)destinationTexture.ArraySize;
+                            if (arraySlice == 0)
                             {
-                                srcSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint) mipLevel, (uint) arraySlice, (uint) sourceTexture.ArraySize),
-                                dstSubresource = destinationSubresource,
-                                extent = new VkExtent3D(width, height, depth)
-                            };
-                            vkCmdCopyImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &copy);
+                                var copy = new VkImageCopy
+                                {
+                                    srcSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)mipLevel, (uint)arraySlice, (uint)sourceTexture.ArraySize),
+                                    dstSubresource = destinationSubresource,
+                                    extent = new VkExtent3D(width, height, depth)
+                                };
+                                vkCmdCopyImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &copy);
+                            }
                         }
                     }
                 }
