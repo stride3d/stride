@@ -9,7 +9,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Stride.Core;
-using Stride.Core.Collections;
 using Stride.Core.Extensions;
 using Stride.Core.Serialization;
 using Stride.Core.UnsafeExtensions;
@@ -20,8 +19,8 @@ namespace Stride.Rendering
     ///   A collection of parameters used by Effects and Shaders, such as resources and data.
     ///   It can force a specific data and resource layout (usually by the consuming Effect).
     /// </summary>
+    [DataSerializerGlobal(null, typeof(List<ParameterKeyInfo>))]
     [DataSerializer(typeof(Serializer))]
-    [DataSerializerGlobal(null, typeof(FastList<ParameterKeyInfo>))]
     [DebuggerTypeProxy(typeof(DebugView))]
     public partial class ParameterCollection
     {
@@ -70,7 +69,7 @@ namespace Stride.Rendering
         ///   Gets the list of <see cref="ParameterKeyInfo"/> that describes the parameters in the collection.
         /// </summary>
         [DataMemberIgnore]
-        public FastList<ParameterKeyInfo> ParameterKeyInfos => parameterKeyInfos;
+        public List<ParameterKeyInfo> ParameterKeyInfos => parameterKeyInfos;
 
         /// <summary>
         ///   Gets the layout of the parameters in the collection, including information about
@@ -243,11 +242,12 @@ namespace Stride.Rendering
             ArgumentNullException.ThrowIfNull(parameterKey);
 
             // Find existing first
-            for (int i = 0; i < parameterKeyInfos.Count; ++i)
+            var parameterKeyInfosSpan = CollectionsMarshal.AsSpan(parameterKeyInfos);
+            for (int i = 0; i < parameterKeyInfosSpan.Length; ++i)
             {
-                if (parameterKeyInfos.Items[i].Key == parameterKey)
+                if (parameterKeyInfosSpan[i].Key == parameterKey)
                 {
-                    return parameterKeyInfos.Items[i].GetObjectAccessor();
+                    return parameterKeyInfosSpan[i].GetObjectAccessor();
                 }
             }
 
@@ -305,11 +305,12 @@ namespace Stride.Rendering
             ArgumentNullException.ThrowIfNull(parameterKey);
 
             // Try to find an existing parameter key first and return its accessor
-            for (int i = 0; i < parameterKeyInfos.Count; ++i)
+            var parameterKeyInfosSpan = CollectionsMarshal.AsSpan(parameterKeyInfos);
+            for (int i = 0; i < parameterKeyInfosSpan.Length; ++i)
             {
-                if (parameterKeyInfos.Items[i].Key == parameterKey)
+                if (parameterKeyInfosSpan[i].Key == parameterKey)
                 {
-                    return parameterKeyInfos.Items[i].GetValueAccessor();
+                    return parameterKeyInfosSpan[i].GetValueAccessor();
                 }
             }
 
@@ -633,7 +634,7 @@ namespace Stride.Rendering
         /// <param name="value">The value to set to the parameter.</param>
         public unsafe void Set<T>(ValueParameterAccessor<T> parameter, ref readonly T value) where T : unmanaged
         {
-            Debug.Assert(parameter.Offset <= dataValues.Length - sizeof(T));
+            Debug.Assert(parameter.Offset + sizeof(T) <= dataValues.Length);
 
             Unsafe.WriteUnaligned(ref dataValues[parameter.Offset], value);
         }
@@ -650,15 +651,19 @@ namespace Stride.Rendering
         /// </exception>
         public unsafe void Set<T>(ValueParameterAccessor<T> parameter, int count, ref readonly T firstValue) where T : unmanaged
         {
-            Debug.Assert(parameter.Offset <= dataValues.Length - sizeof(T));
+            int bufferSize = dataValues.Length;
+            Debug.Assert(parameter.Offset < bufferSize, $"The offset {parameter.Offset:X} is out of bounds! (Buffer size: {bufferSize})");
 
             // Align to float4
             var stride = Align(sizeof(T));
-            var elementCount = parameter.Count;
+            var totalSize = count * stride;
 
-            if (count > elementCount)
+            Debug.Assert(parameter.Offset + count * stride <= dataValues.Length);
+            Debug.Assert(parameter.Offset + totalSize <= bufferSize, $"The data will overrun the buffer size! (Offset: {parameter.Offset:X}, Size: {totalSize}, Buffer size: {bufferSize})");
+
+            if (count > parameter.Count)
             {
-                throw new ArgumentException($"The count {count} exceeds the maximum allowed count {elementCount} for the parameter.", nameof(count));
+                throw new ArgumentException($"The count {count} exceeds the maximum allowed count {parameter.Count} for the parameter.", nameof(count));
             }
 
             scoped ref var dataRef = ref dataValues[parameter.Offset];
@@ -689,7 +694,7 @@ namespace Stride.Rendering
                 PermutationCounter++;
             }
 
-            // For value types, we don't assign again because this causes boxing.
+            // For value types, we don't assign again because this causes boxing
             if (!typeof(T).IsValueType || !isSame)
             {
                 objectValues[parameter.BindingSlot] = value;
@@ -717,7 +722,7 @@ namespace Stride.Rendering
         /// <returns>The value of the value parameter.</returns>
         public unsafe T Get<T>(ValueParameterAccessor<T> parameter) where T : unmanaged
         {
-            Debug.Assert(parameter.Offset <= dataValues.Length - sizeof(T));
+            Debug.Assert(parameter.Offset + sizeof(T) <= dataValues.Length);
 
             return Unsafe.ReadUnaligned<T>(ref dataValues[parameter.Offset]);
         }
@@ -777,7 +782,9 @@ namespace Stride.Rendering
                 var oldValue = objectValues[accessor.Offset];
                 if ((oldValue is not null && (value is null || !oldValue.Equals(value))) // oldValue non-null => Check equality
                     || (oldValue is null && value is not null))                          // oldValue null => Check if value too
-                        PermutationCounter++;
+                {
+                    PermutationCounter++;
+                }
             }
             objectValues[accessor.Offset] = value;
         }
@@ -800,7 +807,7 @@ namespace Stride.Rendering
         /// <exception cref="ArgumentException">
         ///   The <paramref name="parameterKey"/> is not of type <see cref="ParameterKeyType.Permutation"/> or <see cref="ParameterKeyType.Object"/>.
         /// </exception>
-        public object? GetObject(ParameterKey parameterKey) //------------------------ Return null if not found
+        public object? GetObject(ParameterKey parameterKey)
         {
             ArgumentNullException.ThrowIfNull(parameterKey);
 
@@ -896,8 +903,9 @@ namespace Stride.Rendering
             var layoutParameterKeyInfos = collectionLayout.LayoutParameterKeyInfos;
 
             // Do a first pass to measure Constant Buffer size
-            var newParameterKeyInfos = new FastList<ParameterKeyInfo>(capacity: Math.Max(1, parameterKeyInfos.Count));
+            var newParameterKeyInfos = new List<ParameterKeyInfo>(capacity: Math.Max(1, parameterKeyInfos.Count));
             newParameterKeyInfos.AddRange(parameterKeyInfos);
+            var newParameterKeyInfosSpan = CollectionsMarshal.AsSpan(newParameterKeyInfos);
             var processedParameters = new bool[parameterKeyInfos.Count];
 
             var bufferSize = collectionLayout.BufferSize;
@@ -912,7 +920,7 @@ namespace Stride.Rendering
                     if (parameterKeyInfos[i].Key == layoutParameterKeyInfo.Key)
                     {
                         processedParameters[i] = true;
-                        newParameterKeyInfos.Items[i] = layoutParameterKeyInfo;
+                        newParameterKeyInfosSpan[i] = layoutParameterKeyInfo;
                         break;
                     }
                 }
@@ -925,21 +933,21 @@ namespace Stride.Rendering
                 if (processedParameters[i])
                     continue;
 
-                var parameterKeyInfo = newParameterKeyInfos[i];
+                var parameterKeyInfo = newParameterKeyInfosSpan[i];
 
                 if (parameterKeyInfo.IsValueParameter)
                 {
-                    newParameterKeyInfos.Items[i].Offset = bufferSize;
+                    newParameterKeyInfosSpan[i].Offset = bufferSize;
 
                     var additionalSize = ComputeAlignedSizeMinusTrailingPadding(
-                        elementSize: newParameterKeyInfos.Items[i].Key.Size,
-                        newParameterKeyInfos.Items[i].Count);
+                        elementSize: newParameterKeyInfosSpan[i].Key.Size,
+                        newParameterKeyInfosSpan[i].Count);
 
                     bufferSize += additionalSize;
                 }
                 else if (parameterKeyInfo.IsResourceParameter)
                 {
-                    newParameterKeyInfos.Items[i].BindingSlot = resourceCount++;
+                    newParameterKeyInfosSpan[i].BindingSlot = resourceCount++;
                 }
             }
 
@@ -958,9 +966,12 @@ namespace Stride.Rendering
                     var defaultValueMetadata = layoutParameterKeyInfo.Key?.DefaultValueMetadata;
                     if (defaultValueMetadata is not null)
                     {
-                        Debug.Assert((uint) layoutParameterKeyInfo.Offset <= (uint) newDataValues.Length);
+                        int dataOffset = layoutParameterKeyInfo.Offset;
+                        int dataSize = layoutParameterKeyInfo.Key.Size;
+                        Debug.Assert(dataOffset < bufferSize, $"The offset {dataOffset:X} is out of bounds! (Buffer size: {bufferSize})");
+                        Debug.Assert(dataOffset + dataSize <= bufferSize, $"The data will overrun the buffer size! (Offset: {dataOffset:X}, Size: {dataSize}, Buffer size: {bufferSize})");
 
-                        scoped ref byte destRef = ref Unsafe.Add(ref newDataValuesRef, layoutParameterKeyInfo.Offset);
+                        scoped ref byte destRef = ref Unsafe.Add(ref newDataValuesRef, dataOffset);
                         defaultValueMetadata.WriteValue(ref destRef, Alignment);
                     }
                 }
@@ -1022,6 +1033,7 @@ namespace Stride.Rendering
                 }
                 else if (newParameterKeyInfo.IsResourceParameter)
                 {
+                    Debug.Assert(oldParameterKeyInfo.BindingSlot < objectValues.Length);
                     Debug.Assert(newParameterKeyInfo.BindingSlot < newResourceValues.Length);
                     Debug.Assert(newResourceValues[newParameterKeyInfo.BindingSlot] is null, $"Overwritten resource in binding slot {newParameterKeyInfo.BindingSlot}");
 

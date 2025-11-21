@@ -94,12 +94,14 @@ public static unsafe class GraphicsMarshal
     {
         var texture = new Texture(device);
 
+        texture.InitializeFromImpl(dxTexture2D, isSRgb);
+
         if (takeOwnership)
         {
-            dxTexture2D->AddRef();
+            // We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+            // compensate with Release() to return the reference count to its previous value
+            dxTexture2D->Release();
         }
-
-        texture.InitializeFromImpl(dxTexture2D, isSRgb);
 
         return texture;
     }

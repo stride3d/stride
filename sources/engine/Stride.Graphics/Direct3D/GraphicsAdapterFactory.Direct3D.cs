@@ -4,6 +4,7 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D
 
 using System.Collections.Generic;
+
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 

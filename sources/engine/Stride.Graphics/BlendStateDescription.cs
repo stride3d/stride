@@ -43,7 +43,7 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
     /// <remarks><inheritdoc cref="Default" path="/remarks"/></remarks>
     public BlendStateDescription()
     {
-        SetDefaults();
+        SetDefaultRenderTargetDescriptions();
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
     /// <remarks><inheritdoc cref="Default" path="/remarks"/></remarks>
     public BlendStateDescription(Blend sourceBlend, Blend destinationBlend) : this()
     {
-        SetDefaults();
+        SetDefaultRenderTargetDescriptions();
         RenderTargets[0].BlendEnable = true;
         RenderTargets[0].ColorSourceBlend = sourceBlend;
         RenderTargets[0].ColorDestinationBlend = destinationBlend;
@@ -85,7 +85,7 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
     /// <summary>
     ///   Sets default values for this Blend State Description.
     /// </summary>
-    private void SetDefaults()
+    private void SetDefaultRenderTargetDescriptions()
     {
         var defaultRenderTargetDesc = BlendStateRenderTargetDescription.Default;
 
@@ -177,7 +177,7 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
             IndependentBlendEnable != other.IndependentBlendEnable)
             return false;
 
-        return RenderTargets.AsReadOnlySpan().SequenceEqual(other.RenderTargets);
+        return RenderTargets.AsReadOnlySpan().SequenceEqual(other.RenderTargets.AsReadOnlySpan());
     }
 
     /// <inheritdoc/>
@@ -202,8 +202,11 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
         var hash = new HashCode();
         hash.Add(AlphaToCoverageEnable);
         hash.Add(IndependentBlendEnable);
-        for (int i = 0; i < RenderTargets.Count; i++)
-            hash.Add(RenderTargets[i]);
+
+        scoped ReadOnlySpan<BlendStateRenderTargetDescription> renderTargetsSpan = RenderTargets.AsReadOnlySpan();
+        for (int i = 0; i < renderTargetsSpan.Length; i++)
+            hash.Add(renderTargetsSpan[i]);
+
         return hash.ToHashCode();
     }
 }

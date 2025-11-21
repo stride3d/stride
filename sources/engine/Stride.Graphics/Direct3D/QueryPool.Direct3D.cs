@@ -4,6 +4,7 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 
 using System;
+
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 
@@ -53,7 +54,7 @@ public unsafe partial class QueryPool
     }
 
     /// <inheritdoc/>
-    protected internal override void OnDestroyed()
+    protected internal override void OnDestroyed(bool immediately = false)
     {
         for (var i = 0; i < QueryCount; i++)
         {
@@ -61,7 +62,7 @@ public unsafe partial class QueryPool
         }
         nativeQueries = null;
 
-        base.OnDestroyed();
+        base.OnDestroyed(immediately);
     }
 
     /// <summary>

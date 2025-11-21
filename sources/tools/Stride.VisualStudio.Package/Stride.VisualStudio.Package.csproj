@@ -33,8 +33,10 @@
     <PackageReference Include="Microsoft.VisualStudio.SDK" ExcludeAssets="runtime">
         <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build" PrivateAssets="true" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="true" ExcludeAssets="all" />
     <PackageReference Include="NuGet.Commands" />
 	<PackageReference Include="Polysharp" />
 

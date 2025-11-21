@@ -24,7 +24,7 @@ namespace Stride.VirtualReality
             public enum Hand
             {
                 Left,
-                Right,
+                Right
             }
 
             public static int GetDeviceIndex(Hand hand)
@@ -412,15 +412,20 @@ namespace Stride.VirtualReality
         public static Texture GetMirrorTexture(GraphicsDevice device, int eyeIndex)
         {
             var nativeDevice = device.NativeDevice;
-            var eyeTexSrv = IntPtr.Zero;
-            Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, (nint) nativeDevice.Handle, ref eyeTexSrv);
 
-            var tex = new Texture(device);
-            var srv = (ID3D11ShaderResourceView*) (void*) eyeTexSrv;
+            var eyeTextureSrv = IntPtr.Zero;
+            Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, (nint) nativeDevice.Handle, ref eyeTextureSrv);
 
-            tex.InitializeFromImpl(srv);
+            var srv = (ID3D11ShaderResourceView*) eyeTextureSrv;
 
-            return tex;
+            var texture = new Texture(device).InitializeFromImpl(srv);
+
+            // We don't need to take ownership of the COM pointer.
+            //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+            //   compensate with Release() to return the reference count to its previous value
+            srv->Release();
+
+            return texture;
         }
 
         public static void GetRecommendedRenderTargetSize(out (uint x, uint y) size)

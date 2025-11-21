@@ -192,16 +192,17 @@ namespace Stride.Graphics
             if (srvDescription.ViewDimension == D3DSrvDimension.D3D101SrvDimensionTexture2D)
             {
                 NativeShaderResourceView = ToComPtr(srv);
-                NativeShaderResourceView.AddRef();
+                NativeShaderResourceView.AddRef();          // We AddRef() explicitly instead of using the implicit ComPtr conversion
 
                 ComPtr<ID3D11Resource> resource = default;
-                srv->GetResource(ref resource);
+                srv->GetResource(ref resource);                                                 // Calls AddRef() on the resource
 
-                HResult result = resource.QueryInterface(out ComPtr<ID3D11Texture2D> texture);
+                HResult result = resource.QueryInterface(out ComPtr<ID3D11Texture2D> texture);  // Calls AddRef() on the Texture
 
                 if (result.IsFailure)
                     result.Throw();
 
+                // We have incremented the reference count twice for the same object, so we need to release one
                 resource.Release();
 
                 SetNativeDeviceChild(texture.AsDeviceChild());
@@ -245,6 +246,8 @@ namespace Stride.Graphics
             otherTexture.depthStencilView = dsv;
 
             (HasStencil, otherTexture.HasStencil) = (otherTexture.HasStencil, HasStencil);
+
+            // TODO: Update Debug names?
         }
 
         /// <summary>
@@ -422,6 +425,10 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc cref="GraphicsResourceBase.OnDestroyed" path="/summary"/>
+        /// <param name="immediately">
+        ///   A value indicating whether the Texture should be destroyed immediately (<see langword="true"/>),
+        ///   or if it can be deferred until it's safe to do so (<see langword="false"/>).
+        /// </param>
         /// <remarks>
         ///   This method releases all the native resources associated with the Texture:
         ///   <list type="bullet">
@@ -433,7 +440,7 @@ namespace Stride.Graphics
         ///     </item>
         ///   </list>
         /// </remarks>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             // If it was a View, do not release reference, just forget it
             if (ParentTexture is not null)
@@ -445,10 +452,11 @@ namespace Stride.Graphics
                 GraphicsDevice?.RegisterTextureMemoryUsage(-SizeInBytes);
             }
 
+            // Release Views, which are always created and managed by us
             SafeRelease(ref depthStencilView);
             SafeRelease(ref renderTargetView);
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         /// <summary>
@@ -672,7 +680,7 @@ namespace Stride.Graphics
             }
 
             ComPtr<ID3D11RenderTargetView> rtv = default;
-            HResult result = NativeDevice.CreateRenderTargetView(NativeResource, &rtvDescription, ref rtv);
+            HResult result = NativeDevice.CreateRenderTargetView(NativeResource, in rtvDescription, ref rtv);
 
             if (result.IsFailure)
                 result.Throw();
@@ -750,7 +758,7 @@ namespace Stride.Graphics
             }
 
             ComPtr<ID3D11UnorderedAccessView> uav = default;
-            HResult result = NativeDevice.CreateUnorderedAccessView(NativeResource, &uavDescription, ref uav);
+            HResult result = NativeDevice.CreateUnorderedAccessView(NativeResource, in uavDescription, ref uav);
 
             if (result.IsFailure)
                 result.Throw();
@@ -816,7 +824,7 @@ namespace Stride.Graphics
             }
 
             ComPtr<ID3D11DepthStencilView> dsv = default;
-            HResult result = NativeDevice.CreateDepthStencilView(NativeResource, &dsvDescription, ref dsv);
+            HResult result = NativeDevice.CreateDepthStencilView(NativeResource, in dsvDescription, ref dsv);
 
             if (result.IsFailure)
                 result.Throw();
@@ -851,10 +859,11 @@ namespace Stride.Graphics
             if (dataBoxes.IsEmpty)
                 return default;
 
-            // NOTE: This conversion works only IF the memory layout of DataBox matches that of SubresourceData
+            // NOTE: This conversion works only IF the memory layout AND semantics of DataBox
+            //       matches that of SubresourceData
             Debug.Assert(sizeof(DataBox) == sizeof(SubresourceData));
 
-            return dataBoxes.Cast<DataBox, SubresourceData>();
+            return dataBoxes.As<DataBox, SubresourceData>();
         }
 
         /// <summary>

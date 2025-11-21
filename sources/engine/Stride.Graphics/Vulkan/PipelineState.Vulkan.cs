@@ -330,7 +330,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override unsafe void OnDestroyed()
+        protected internal override unsafe void OnDestroyed(bool immediately = false)
         {
             if (NativePipeline != VkPipeline.Null)
             {
@@ -341,7 +341,7 @@ namespace Stride.Graphics
                 vkDestroyDescriptorSetLayout(GraphicsDevice.NativeDevice, NativeDescriptorSetLayout, allocator: null);
             }
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         internal struct DescriptorSetInfo

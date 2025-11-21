@@ -68,10 +68,7 @@ namespace Stride.Graphics
         private IDXGISwapChain* swapChain;
 
         private int bufferCount;
-
-#if STRIDE_GRAPHICS_API_DIRECT3D12
         private uint bufferSwapIndex;
-#endif
 
         /// <summary>
         ///   Initializes a new instance of the <see cref="SwapChainGraphicsPresenter"/> class.
@@ -104,6 +101,12 @@ namespace Stride.Graphics
                 : new Texture(device);
 
             backBuffer.InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb);
+            nativeBackBuffer.Release();
+
+            // We don't need to take ownership of the back-buffer, as it belongs to the SwapChain.
+            //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+            //   compensate with Release() to return the reference count to its previous value
+            nativeBackBuffer.Release();
 
             // Reload should get Back-Buffer from Swap-Chain as well
             // TODO: Stale statement/comment?
@@ -369,6 +372,11 @@ namespace Stride.Graphics
             var nextBackBuffer = GetBackBuffer<BackBufferResourceType>(bufferSwapIndex);
 
             backBuffer.InitializeFromImpl(nextBackBuffer, Description.BackBufferFormat.IsSRgb);
+
+            // We don't need to take ownership of the back-buffer, as it belongs to the SwapChain.
+            //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+            //   compensate with Release() to return the reference count to its previous value
+            nextBackBuffer.Release();
 #endif
         }
 
@@ -384,7 +392,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             // Manually update Back-Buffer Texture
             backBuffer.OnDestroyed();
@@ -392,7 +400,7 @@ namespace Stride.Graphics
 
             SafeRelease(ref swapChain);
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         /// <inheritdoc/>
@@ -405,12 +413,18 @@ namespace Stride.Graphics
 
             // Get the newly created native Texture
             var backBufferTexture = GetBackBuffer<BackBufferResourceType>();
+            bufferSwapIndex = 0;
 
             // Put it in our Back-Buffer Texture
             // TODO: Update new size
             // TODO: Size is already updated in InitializeFromImpl with the new TextureDescription, isn't it?
             backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
             backBuffer.LifetimeState = GraphicsResourceLifetimeState.Active;
+
+            // We don't need to take ownership of the back-buffer, as it belongs to the SwapChain.
+            //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+            //   compensate with Release() to return the reference count to its previous value
+            backBufferTexture.Release();
         }
 
         /// <inheritdoc/>
@@ -419,7 +433,7 @@ namespace Stride.Graphics
             HResult result;
 
             // Manually update the Back-Buffer Texture
-            backBuffer.OnDestroyed();
+            backBuffer.OnDestroyed(immediately: true);
 
             // Manually update all children Textures (Views)
             var childrenTextures = DestroyChildrenTextures(backBuffer);
@@ -469,9 +483,15 @@ namespace Stride.Graphics
 
             // Get the newly created native Texture
             var backBufferTexture = GetBackBuffer<BackBufferResourceType>();
+            bufferSwapIndex = 0;
 
             // Put it in our Back-Buffer Texture
             backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
+
+            // We don't need to take ownership of the back-buffer, as it belongs to the SwapChain.
+            //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+            //   compensate with Release() to return the reference count to its previous value
+            backBufferTexture.Release();
 
             foreach (var childTexture in childrenTextures)
             {
@@ -489,7 +509,7 @@ namespace Stride.Graphics
             };
 
             // Manually update the Depth-Stencil Buffer
-            DepthStencilBuffer.OnDestroyed();
+            DepthStencilBuffer.OnDestroyed(immediately: true);
 
             // Manually update all children Textures (Views)
             var childrenTextures = DestroyChildrenTextures(DepthStencilBuffer);
@@ -519,7 +539,7 @@ namespace Stride.Graphics
                 {
                     if (resource is Texture texture && texture.ParentTexture == parentTexture)
                     {
-                        texture.OnDestroyed();
+                        texture.OnDestroyed(immediately: true);
                         childrenTextures.Add(texture);
                     }
                 }

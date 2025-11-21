@@ -28,14 +28,18 @@ namespace Stride.VirtualReality
             textures = new Texture[textureCount];
             for (var i = 0; i < textureCount; i++)
             {
-                var ptr = OculusOvr.GetQuadLayerTextureDx(ovrSession, OverlayPtr, OculusOvrHmd.Dx11Texture2DGuid, i);
-                if (ptr == IntPtr.Zero)
+                var dxTexture2D = (ID3D11Texture2D*) OculusOvr.GetQuadLayerTextureDx(ovrSession, OverlayPtr, OculusOvrHmd.Dx11Texture2DGuid, i);
+                if (dxTexture2D is null)
                 {
                     throw new Exception(OculusOvr.GetError());
                 }
 
-                textures[i] = new Texture(device);
-                textures[i].InitializeFromImpl((ID3D11Texture2D*) ptr, treatAsSrgb: false);
+                textures[i] = new Texture(device).InitializeFromImpl(dxTexture2D, treatAsSrgb: false);
+
+                // We don't need to take ownership of the COM pointer.
+                //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+                //   compensate with Release() to return the reference count to its previous value
+                dxTexture2D->Release();
             }
         }
 

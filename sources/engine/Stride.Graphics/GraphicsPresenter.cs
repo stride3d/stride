@@ -358,11 +358,16 @@ public abstract class GraphicsPresenter : ComponentBase
     /// <summary>
     ///   Called when the Graphics Presenter has been destroyed.
     /// </summary>
+    /// <param name="immediately">
+    ///   A value indicating whether the resources used by the Graphics Presenter should be
+    ///   destroyed immediately (<see langword="true"/>), or if it can be deferred until
+    ///   it's safe to do so (<see langword="false"/>).
+    /// </param>
     /// <remarks>
     ///   When overriden in a derived class, this method allows to perform additional cleanup
     ///   and release of associated resources.
     /// </remarks>
-    protected internal virtual void OnDestroyed()
+    protected internal virtual void OnDestroyed(bool immediately = false)
     {
     }
 

@@ -148,18 +148,17 @@ namespace Stride.Core.Assets
             {
                 Name = Path.GetFileNameWithoutExtension(projectPath), // make sure this package never collides with a dependency
                 FilePath = projectPath,
-                Dependencies = new List<LibraryDependency>()
-                {
-                    new LibraryDependency
-                    {
-                        LibraryRange = new LibraryRange(packageName, versionRange, LibraryDependencyTarget.Package),
-                    }
-                },
                 TargetFrameworks =
                 {
                     new TargetFrameworkInformation
                     {
                         FrameworkName = nugetFramework,
+                        Dependencies = [
+                            new LibraryDependency
+                            {
+                                LibraryRange = new LibraryRange(packageName, versionRange, LibraryDependencyTarget.Package),
+                            }
+                        ],
                     }
                 },
                 RestoreMetadata = new ProjectRestoreMetadata

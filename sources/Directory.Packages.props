@@ -37,33 +37,36 @@
     <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="2.22.0" />
     <PackageVersion Include="Stride.SharpFont" Version="1.0.1" />
     <PackageVersion Include="System.Drawing.Common" Version="8.0.1" />
-    <PackageVersion Include="System.Memory" Version="4.5.5" />
+    <PackageVersion Include="System.Memory" Version="4.6.3" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="10.0.0" />
-    <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
+    <PackageVersion Include="System.ValueTuple" Version="4.6.1" />
     <PackageVersion Include="Vortice.Vulkan" Version="2.1.2" />
+    <PackageVersion Include="WinPixEventRuntime" Version="1.0.240308001" />
   </ItemGroup>
   <!-- Other dependencies -->
   <ItemGroup>
     <PackageVersion Include="JetBrains.Rider.PathLocator" Version="1.0.12" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
-    <PackageVersion Include="Microsoft.Build" Version="17.0.0" />
-    <PackageVersion Include="Microsoft.Build.Locator" Version="1.6.10" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.0.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Features" Version="3.6.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.6.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.6.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.6.0" />
+    <PackageVersion Include="Microsoft.NET.StringTools" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build.Locator" Version="1.10.12" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Features" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.8.2112" />
     <PackageVersion Include="Mono.Cecil" Version="0.11.5" />
     <PackageVersion Include="Mono.Options" Version="6.12.0.148" />
-    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="NuGet.Commands" Version="6.14.0" />
-    <PackageVersion Include="NuGet.Configuration" Version="6.14.0" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageVersion Include="NuGet.Commands" Version="7.0.0" />
+    <PackageVersion Include="NuGet.Configuration" Version="7.0.0" />
     <PackageVersion Include="NuGet.PackageManagement" Version="6.14.0" />
-    <PackageVersion Include="NuGet.Protocol" Version="6.14.0" />
-    <PackageVersion Include="NuGet.Resolver" Version="6.14.0" />
+    <PackageVersion Include="NuGet.Protocol" Version="7.0.0" />
+    <PackageVersion Include="NuGet.Resolver" Version="7.0.0" />
     <PackageVersion Include="Silk.NET.Assimp" Version="2.22.0" />
     <PackageVersion Include="Stride.GNU.Getopt" Version="2.0.0" />
     <PackageVersion Include="Stride.GNU.Gettext" Version="2.0.0" />
@@ -80,8 +83,8 @@
     <PackageVersion Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageVersion Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
     <PackageVersion Include="System.Management" Version="10.0.0" />
-    <PackageVersion Include="System.Reactive" Version="6.0.0" />
-    <PackageVersion Include="System.Reactive.Linq" Version="6.0.0" />
+    <PackageVersion Include="System.Reactive" Version="6.1.0" />
+    <PackageVersion Include="System.Reactive.Linq" Version="6.1.0" />
     <PackageVersion Include="System.Reflection" Version="4.3.0" />
     <PackageVersion Include="System.Reflection.Emit" Version="4.7.0" />
     <PackageVersion Include="System.Reflection.Metadata" Version="10.0.0" />
@@ -130,7 +133,7 @@
   </ItemGroup>
   <!-- Windows/WPF dependencies -->
   <ItemGroup>
-    <PackageVersion Include="AvalonEdit" Version="6.3.0.90" />
+    <PackageVersion Include="AvalonEdit" Version="6.3.1.120" />
     <PackageVersion Include="Dirkster.AvalonDock" Version="4.72.1" />
     <PackageVersion Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
@@ -138,13 +141,13 @@
     <PackageVersion Include="Stride.CrashReport" Version="1.0.2" />
     <PackageVersion Include="Stride.GraphX.WPF.Controls" Version="2.4.0" />
     <PackageVersion Include="Stride.Metrics" Version="1.0.3" />
-    <PackageVersion Include="RoslynPad.Editor.Windows" Version="1.2.0" />
-    <PackageVersion Include="RoslynPad.Roslyn" Version="3.6.0" />
-    <PackageVersion Include="RoslynPad.Roslyn.Windows" Version="3.6.0" />
+    <PackageVersion Include="RoslynPad.Editor.Windows" Version="4.12.1" />
+    <PackageVersion Include="RoslynPad.Roslyn" Version="4.12.1" />
+    <PackageVersion Include="RoslynPad.Roslyn.Windows" Version="4.12.1" />
   </ItemGroup>
   <!-- Analyzers -->
   <ItemGroup>
-    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.7.0" PrivateAssets="all" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
   </ItemGroup>
 </Project>

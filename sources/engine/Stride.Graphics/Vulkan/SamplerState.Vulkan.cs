@@ -40,12 +40,12 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             GraphicsDevice.Collect(NativeSampler);
             NativeSampler = VkSampler.Null;
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         private unsafe void CreateNativeSampler()

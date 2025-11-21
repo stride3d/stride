@@ -39,7 +39,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes);
 
@@ -61,7 +61,7 @@ namespace Stride.Graphics
                 NativeMemory = VkDeviceMemory.Null;
             }
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         /// <inheritdoc/>

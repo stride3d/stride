@@ -14,9 +14,7 @@ namespace Stride.Rendering
         private struct QueryEvent
         {
             public QueryPool Pool;
-
             public int Index;
-
             public ProfilingKey ProfilingKey;
         }
 
@@ -45,27 +43,25 @@ namespace Stride.Rendering
         /// <param name="profilingKey">The <see cref="ProfilingKey"/></param>
         public Scope BeginProfile(Color4 profileColor, ProfilingKey profilingKey)
         {
-            if (!Profiler.IsEnabled(profilingKey))
+            if (Profiler.IsEnabled(profilingKey))
             {
-                return new Scope(this, profilingKey);
+                EnsureQueryPoolSize();
+
+                // Push the current query range onto the stack
+                var query = new QueryEvent
+                {
+                    ProfilingKey = profilingKey,
+                    Pool = currentQueryPool,
+                    Index = currentQueryIndex++
+                };
+                queries.Push(query);
+
+                // Query the timestamp at the beginning of the range
+                commandList.WriteTimestamp(currentQueryPool, query.Index);
+
+                // Add the queries to the list of queries to proceess
+                queryEvents.Enqueue(query);
             }
-
-            EnsureQueryPoolSize();
-
-            // Push the current query range onto the stack
-            var query = new QueryEvent
-            {
-                ProfilingKey = profilingKey,
-                Pool = currentQueryPool,
-                Index = currentQueryIndex++,
-            };
-            queries.Push(query);
-
-            // Query the timestamp at the beginning of the range
-            commandList.WriteTimestamp(currentQueryPool, query.Index);
-
-            // Add the queries to the list of queries to proceess
-            queryEvents.Enqueue(query);
 
             // Sets a debug marker if debug mode is enabled
             if (commandList.GraphicsDevice.IsDebugMode)
@@ -81,29 +77,27 @@ namespace Stride.Rendering
         /// </summary>
         public void EndProfile(ProfilingKey profilingKey)
         {
-            if (!Profiler.IsEnabled(profilingKey))
+            if (Profiler.IsEnabled(profilingKey))
             {
-                return;
+                if (queries.Count == 0)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                EnsureQueryPoolSize();
+
+                // Get the current query
+                var query = queries.Pop();
+                query.Pool = currentQueryPool;
+                query.Index = currentQueryIndex++;
+                query.ProfilingKey = null;
+
+                // Query the timestamp at the end of the range
+                commandList.WriteTimestamp(query.Pool, query.Index);
+
+                // Add the queries to the list of queries to proceess
+                queryEvents.Enqueue(query);
             }
-
-            if (queries.Count == 0)
-            {
-                throw new InvalidOperationException();
-            }
-
-            EnsureQueryPoolSize();
-
-            // Get the current query
-            var query = queries.Pop();
-            query.Pool = currentQueryPool;
-            query.Index = currentQueryIndex++;
-            query.ProfilingKey = null;
-
-            // Query the timestamp at the end of the range
-            commandList.WriteTimestamp(query.Pool, query.Index);
-
-            // Add the queries to the list of queries to proceess
-            queryEvents.Enqueue(query);
 
             // End the debug marker
             if (commandList.GraphicsDevice.IsDebugMode)

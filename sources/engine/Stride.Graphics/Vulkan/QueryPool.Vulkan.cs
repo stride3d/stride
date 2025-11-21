@@ -54,12 +54,12 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             GraphicsDevice.Collect(NativeQueryPool);
             NativeQueryPool = VkQueryPool.Null;
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
     }
 }

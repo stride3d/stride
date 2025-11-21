@@ -42,6 +42,7 @@ namespace Stride.Graphics
         private int nativeUploadBufferOffset;
         private object nativeUploadBufferLock = new();
 
+        // TODO: review that and align it with D3D12 (and possibly move it in common API once D3D12/Vulkan only)
         private Queue<KeyValuePair<long, VkFence>> nativeFences = new Queue<KeyValuePair<long, VkFence>>();
         private long lastCompletedFence;
         internal long NextFenceValue = 1;
@@ -538,7 +539,7 @@ namespace Stride.Graphics
             vkDestroyDevice(nativeDevice, null);
         }
 
-        internal void OnDestroyed()
+        internal void OnDestroyed(bool immediately = false)
         {
         }
 
@@ -992,7 +993,7 @@ namespace Stride.Graphics
     internal abstract class TemporaryResourceCollector<T> : IDisposable
     {
         protected readonly GraphicsDevice GraphicsDevice;
-        private readonly Queue<KeyValuePair<long, T>> items = new Queue<KeyValuePair<long, T>>();
+        private readonly Queue<KeyValuePair<long, T>> items = new();
 
         protected TemporaryResourceCollector(GraphicsDevice graphicsDevice)
         {

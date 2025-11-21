@@ -15,6 +15,7 @@ using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Scripts;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Dirtiables;
@@ -30,6 +31,8 @@ namespace Stride.Assets.Presentation.ViewModel
     /// </summary>
     public class CodeViewModel : DispatcherViewModel, IDisposable
     {
+        public LoggerResult Logger { get; } = new("Project");
+
         /// <summary>
         /// The editor minimum font size.
         /// </summary>
@@ -65,7 +68,7 @@ namespace Stride.Assets.Presentation.ViewModel
 
         private async Task InitializeAsync(StrideAssetsViewModel strideAssetsViewModel)
         {
-            var projectWatcher = new ProjectWatcher(strideAssetsViewModel.Session);
+            var projectWatcher = new ProjectWatcher(strideAssetsViewModel.Session, Logger);
             await projectWatcher.Initialize();
             var workspace = (await projectWatcher.RoslynHost).Workspace;
 

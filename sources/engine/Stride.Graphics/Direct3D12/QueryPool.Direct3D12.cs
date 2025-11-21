@@ -5,11 +5,14 @@
 
 using System;
 using System.Runtime.CompilerServices;
+
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 using Silk.NET.DXGI;
+
 using Stride.Core;
 using Stride.Core.UnsafeExtensions;
+
 using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
@@ -30,7 +33,13 @@ namespace Stride.Graphics
         /// </remarks>
         internal ComPtr<ID3D12QueryHeap> NativeQueryHeap => ToComPtr(nativeQueryHeap);
 
+        /// <summary>
+        ///   The fence value of when the read-back of Queries data has completed.
+        /// </summary>
         internal ulong CompletedValue;
+        /// <summary>
+        ///   The fence value signaled for a pending read-back of Queries data.
+        /// </summary>
         internal ulong PendingValue;
 
 
@@ -64,10 +73,9 @@ namespace Stride.Graphics
                 if (result.IsFailure)
                     result.Throw();
 
-                ref var destData = ref dataArray.AsSpan().Cast<long, byte>()[0];
+                ref var destData = ref dataArray.AsSpan().Cast<long, byte>().GetReference();
                 ref var srcData = ref Unsafe.AsRef<byte>(mappedData);
 
-                //Unsafe.CopyBlockUnaligned(ref destData, ref srcData, byteCount: (uint) QueryCount * sizeof(long));
                 MemoryUtilities.CopyWithAlignmentFallback(ref destData, ref srcData, (uint) QueryCount * sizeof(long));
 
                 readbackBuffer->Unmap(Subresource: 0, pWrittenRange: in range);
@@ -77,28 +85,31 @@ namespace Stride.Graphics
             // Otherwise, queue readback
             var commandList = GraphicsDevice.NativeCopyCommandList;
 
-            ref var nullPipelineState = ref Unsafe.NullRef<ID3D12PipelineState>();
-            result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: ref nullPipelineState);
+            lock (GraphicsDevice.NativeCopyCommandListLock)
+            {
+                var nullPipelineState = NullComPtr<ID3D12PipelineState>();
+                result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, nullPipelineState);
 
-            if (result.IsFailure)
-                result.Throw();
+                if (result.IsFailure)
+                    result.Throw();
 
-            commandList.ResolveQueryData(nativeQueryHeap, Silk.NET.Direct3D12.QueryType.Timestamp,
-                                         StartIndex: 0, (uint) QueryCount, readbackBuffer, AlignedDestinationBufferOffset: 0);
+                commandList.ResolveQueryData(nativeQueryHeap, Silk.NET.Direct3D12.QueryType.Timestamp,
+                                             StartIndex: 0, (uint) QueryCount, readbackBuffer, AlignedDestinationBufferOffset: 0);
 
-            result = commandList.Close();
+                result = commandList.Close();
 
-            if (result.IsFailure)
-                result.Throw();
+                if (result.IsFailure)
+                    result.Throw();
 
-            var copyCommandList = commandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
-            var commandQueue = GraphicsDevice.NativeCommandQueue;
-            commandQueue.ExecuteCommandLists(NumCommandLists: 1, ref copyCommandList);
+                var copyCommandList = commandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
+                var commandQueue = GraphicsDevice.NativeCommandQueue;
+                commandQueue.ExecuteCommandLists(NumCommandLists: 1, ref copyCommandList);
 
-            result = commandQueue.Signal(readbackFence, PendingValue);
+                result = commandQueue.Signal(readbackFence, PendingValue);
 
-            if (result.IsFailure)
-                result.Throw();
+                if (result.IsFailure)
+                    result.Throw();
+            }
 
             return false;
         }
@@ -165,13 +176,13 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             SafeRelease(ref nativeQueryHeap);
             SafeRelease(ref readbackBuffer);
             SafeRelease(ref readbackFence);
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         /// <summary>

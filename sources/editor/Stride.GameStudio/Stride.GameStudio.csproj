@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Import Project="..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="..\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems" Label="Shared" />
@@ -30,6 +30,9 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="ServiceWire" />
     <PackageReference Include="SharpDX" />
     <PackageReference Include="Stride.Metrics" />
@@ -114,6 +117,18 @@
   </PropertyGroup>
   <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
+      <!-- We need to manually include Microsoft.CodeAnalysis.Workspaces.MSBuild.dll, buildhost and analyzer dlls because it expects those to be side-by-side (which is not the case in the nuget folder with contentFiles folder) -->
+      <!-- As a future improvement, two possible fixes: (1) we might want to copy all dll and contents in a folder during NuGetResolver so that it behaves similar to a normal build, or (2) PR MSBuild to have this configurable -->
+      <BuildOutputInPackage Include="$(OutputPath)Microsoft.CodeAnalysis.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Microsoft.CodeAnalysis.CSharp.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Microsoft.CodeAnalysis.Features.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Microsoft.CodeAnalysis.CSharp.Features.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" />
+      <BuildHostFiles Include="$(OutputPath)BuildHost-netcore\**\*.*" />
+      <BuildOutputInPackage Include="%(BuildHostFiles.Identity)">
+        <TargetPath>BuildHost-netcore\%(BuildHostFiles.RecursiveDir)%(BuildHostFiles.Filename)%(BuildHostFiles.Extension)</TargetPath>
+      </BuildOutputInPackage>
+      
       <BuildOutputInPackage Include="$(OutputPath)Stride.Core.AssemblyProcessor.*" />
     </ItemGroup>
   </Target>

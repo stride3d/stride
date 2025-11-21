@@ -260,47 +260,11 @@ namespace Stride.Graphics
         public void SetRenderTargetAndViewport(Texture depthStencilView, Texture renderTargetView)
         {
             depthStencilBuffer = depthStencilView;
-            renderTargets[0] = renderTargetView;
+
+            renderTargets[0] = renderTargetView;  // TODO: Should we clear the other entries?
             renderTargetCount = renderTargetView is not null ? 1 : 0;
 
-            SetRenderTargetsAndViewportImpl(depthStencilBuffer, [ renderTargetView ]);
-        }
-
-        /// <summary>
-        ///   Binds a Depth-Stencil Buffer and two Render Targets to the output-merger stage,
-        ///   setting also the viewport according to their dimensions.
-        /// </summary>
-        /// <param name="depthStencilView">
-        ///   A view of the Depth-Stencil Buffer to bind.
-        ///   Specify <see langword="null"/> to unbind the currently bound Depth-Stencil Buffer.
-        /// </param>
-        /// <param name="renderTargetView">
-        ///   A view of the first Render Target to bind.
-        ///   Specify <see langword="null"/> to unbind the currently bound first Render Target.
-        /// </param>
-        /// <param name="secondRenderTargetView">
-        ///   A view of a second Render Target to bind.
-        ///   Specify <see langword="null"/> to unbind the currently bound second Render Target.
-        /// </param>
-        /// <remarks>
-        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
-        ///   in the manual for more information.
-        /// </remarks>
-        public void SetRenderTargetAndViewport(Texture depthStencilView, Texture renderTargetView, Texture secondRenderTargetView)
-        {
-            depthStencilBuffer = depthStencilView;
-            renderTargets[0] = renderTargetView;
-            renderTargets[1] = secondRenderTargetView;
-
-            renderTargetCount = (renderTargetView, secondRenderTargetView) switch
-            {
-                (null,     null) => 0,
-                (not null, null) => 1,
-                (null,     not null) => 1,
-                _ => 2
-            };
-
-            SetRenderTargetsAndViewportImpl(depthStencilBuffer, [ renderTargetView, secondRenderTargetView ]);
+            SetRenderTargetsAndViewportImpl(depthStencilBuffer, renderTargetCount > 0 ? [ renderTargetView ] : []);
         }
 
         /// <summary>
@@ -321,7 +285,12 @@ namespace Stride.Graphics
         /// </remarks>
         public void SetRenderTargetsAndViewport(ReadOnlySpan<Texture> renderTargetViews)
         {
-            SetRenderTargetsAndViewport(depthStencilView: null, renderTargetViews);
+            depthStencilBuffer = null;
+
+            renderTargetCount = renderTargetViews.Length;
+            renderTargetViews.CopyTo(renderTargets);
+
+            SetRenderTargetsAndViewportImpl(depthStencilView: null, renderTargetViews);
         }
 
         /// <summary>
@@ -343,14 +312,14 @@ namespace Stride.Graphics
         ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
         ///   in the manual for more information.
         /// </remarks>
-        public void SetRenderTargetsAndViewport(Texture depthStencilView, ReadOnlySpan<Texture> renderTargetViews)
+        public void SetRenderTargetsAndViewport(Texture depthStencilView, params ReadOnlySpan<Texture> renderTargetViews)
         {
             depthStencilBuffer = depthStencilView;
 
             renderTargetCount = renderTargetViews.Length;
-            renderTargetViews.CopyTo(renderTargets);
+            renderTargetViews.CopyTo(renderTargets);  // TODO: Should we clear the other entries?
 
-            SetRenderTargetsAndViewportImpl(depthStencilBuffer, renderTargets);
+            SetRenderTargetsAndViewportImpl(depthStencilBuffer, renderTargetViews);
         }
 
         /// <summary>
@@ -371,10 +340,11 @@ namespace Stride.Graphics
         public void SetRenderTarget(Texture depthStencilView, Texture renderTargetView)
         {
             depthStencilBuffer = depthStencilView;
-            renderTargets[0] = renderTargetView;
-            renderTargetCount = renderTargetView is not null ? 1 : 0;
 
-            SetRenderTargetsImpl(depthStencilBuffer, [ renderTargetView ]);
+            renderTargetCount = renderTargetView is not null ? 1 : 0;
+            renderTargets[0] = renderTargetView;  // TODO: Should we clear the other entries?
+
+            SetRenderTargetsImpl(depthStencilBuffer, renderTargetCount > 0 ? [ renderTargetView ] : []);
         }
 
         /// <summary>
@@ -394,7 +364,14 @@ namespace Stride.Graphics
         /// </remarks>
         public void SetRenderTargets(ReadOnlySpan<Texture> renderTargetViews)
         {
-            SetRenderTargets(depthStencilView: null, renderTargetViews);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(renderTargetViews.Length, MaxRenderTargetCount);
+
+            depthStencilBuffer = null;
+
+            renderTargetCount = renderTargetViews.Length;
+            renderTargetViews.CopyTo(renderTargets);  // TODO: Should we clear the other entries?
+
+            SetRenderTargetsImpl(depthStencilView: null, renderTargetViews);
         }
 
         /// <summary>
@@ -415,17 +392,18 @@ namespace Stride.Graphics
         ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
         ///   in the manual for more information.
         /// </remarks>
-        public void SetRenderTargets(Texture depthStencilView, ReadOnlySpan<Texture> renderTargetViews)
+        public void SetRenderTargets(Texture depthStencilView, params ReadOnlySpan<Texture> renderTargetViews)
         {
             ArgumentOutOfRangeException.ThrowIfGreaterThan(renderTargetViews.Length, MaxRenderTargetCount);
 
             depthStencilBuffer = depthStencilView;
 
             renderTargetCount = renderTargetViews.Length;
-            renderTargetViews.CopyTo(renderTargets);
+            renderTargetViews.CopyTo(renderTargets);  // TODO: Should we clear the other entries?
 
-            SetRenderTargetsImpl(depthStencilBuffer, renderTargets);
+            SetRenderTargetsImpl(depthStencilBuffer, renderTargetViews);
         }
+
 
         /// <summary>
         ///   Binds a Depth-Stencil Buffer and one or more Render Targets atomically to the output-merger stage,

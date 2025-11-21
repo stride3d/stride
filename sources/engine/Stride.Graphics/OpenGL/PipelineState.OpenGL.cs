@@ -82,7 +82,7 @@ namespace Stride.Graphics
                 DepthStencilState.Apply(commandList);
         }
 
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             var pipelineStateCache = GetPipelineStateCache();
 
@@ -91,7 +91,7 @@ namespace Stride.Graphics
             if (VertexAttribs != null)
                 pipelineStateCache.VertexAttribsCache.Release(VertexAttribs);
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         struct VertexAttribsKey : IEquatable<VertexAttribsKey>

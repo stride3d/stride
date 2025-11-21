@@ -1,5 +1,5 @@
 !UIPageAsset
-Id: 5175f272-13da-45dd-9f7b-540e7121dd56
+Id: 5175f272-13da-45dd-9f7b-540e7121dd57
 SerializedVersion: {Stride: 2.1.0.1}
 Tags: []
 Design:
@@ -21,7 +21,7 @@ Hierarchy:
                 MaximumHeight: 3.40282347E+38
                 MaximumDepth: 3.40282347E+38
                 Text: TutorialButtonTemplate
-                Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
+                Font: f7f1e44e-6a57-4b1f-818e-21711622883e:UI/OpenSans-font
                 TextSize: 20.0
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
         -   UIElement: !StackPanel
@@ -54,13 +54,13 @@ Hierarchy:
                 Padding: {Left: 10.0, Top: 5.0, Right: 10.0, Bottom: 7.0}
                 Content: !TextBlock ref!! 42c26bd2-d2ad-4956-9ade-2c34e8211487
                 PressedImage: !SpriteFromTexture
-                    Texture: 11885e0d-3260-4b62-a0fd-d5f908fa3e8f:UI/btn_normal
+                    Texture: 11885e0d-3260-4b62-a0fd-d5f908fa3e8e:UI/btn_normal
                     Center: {X: 0.0, Y: 0.0}
                 NotPressedImage: !SpriteFromTexture
-                    Texture: 11885e0d-3260-4b62-a0fd-d5f908fa3e8f:UI/btn_normal
+                    Texture: 11885e0d-3260-4b62-a0fd-d5f908fa3e8e:UI/btn_normal
                     Center: {X: 0.0, Y: 0.0}
                 MouseOverImage: !SpriteFromTexture
-                    Texture: bfa21909-0aa7-4f47-9d73-b075d7ac0b39:UI/btn_hover
+                    Texture: bfa21909-0aa7-4f47-9d73-b075d7ac0b38:UI/btn_hover
                     Center: {X: 0.0, Y: 0.0}
         -   UIElement: !StackPanel
                 Id: 3cc1f546-c886-435e-aba1-75ea9620a29b
@@ -87,7 +87,7 @@ Hierarchy:
                 MaximumHeight: 3.40282347E+38
                 MaximumDepth: 3.40282347E+38
                 Text: Menu
-                Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
+                Font: f7f1e44e-6a57-4b1f-818e-21711622883e:UI/OpenSans-font
                 TextSize: 24.0
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
         -   UIElement: !Grid
@@ -118,13 +118,13 @@ Hierarchy:
                 Padding: {Left: 10.0, Top: 5.0, Right: 10.0, Bottom: 7.0}
                 Content: !TextBlock ref!! 175165ef-6d72-47d9-bea5-f3bfe833f09f
                 PressedImage: !SpriteFromTexture
-                    Texture: 11885e0d-3260-4b62-a0fd-d5f908fa3e8f:UI/btn_normal
+                    Texture: 11885e0d-3260-4b62-a0fd-d5f908fa3e8e:UI/btn_normal
                     Center: {X: 0.0, Y: 0.0}
                 NotPressedImage: !SpriteFromTexture
-                    Texture: 11885e0d-3260-4b62-a0fd-d5f908fa3e8f:UI/btn_normal
+                    Texture: 11885e0d-3260-4b62-a0fd-d5f908fa3e8e:UI/btn_normal
                     Center: {X: 0.0, Y: 0.0}
                 MouseOverImage: !SpriteFromTexture
-                    Texture: bfa21909-0aa7-4f47-9d73-b075d7ac0b39:UI/btn_hover
+                    Texture: bfa21909-0aa7-4f47-9d73-b075d7ac0b38:UI/btn_hover
                     Center: {X: 0.0, Y: 0.0}
         -   UIElement: !TextBlock
                 Id: c9e62031-c22e-40cb-93a6-ab7b31525217
@@ -139,7 +139,7 @@ Hierarchy:
                 MaximumDepth: 3.40282347E+38
                 Name: titleText
                 Text: C# BEGINNER
-                Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
+                Font: f7f1e44e-6a57-4b1f-818e-21711622883e:UI/OpenSans-font
                 TextSize: 50.0
                 TextColor: {R: 0, G: 255, B: 255, A: 255}
                 TextAlignment: Center
@@ -156,7 +156,7 @@ Hierarchy:
                 MaximumDepth: 3.40282347E+38
                 Name: tutorialTitleTxt
                 Text: Tutorial scene
-                Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
+                Font: f7f1e44e-6a57-4b1f-818e-21711622883e:UI/OpenSans-font
                 TextSize: 35.0
                 TextColor: {R: 6, G: 0, B: 20, A: 255}
                 TextAlignment: Center

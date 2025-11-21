@@ -222,7 +222,9 @@ namespace Stride.Graphics
         /// </summary>
         private unsafe partial void InitializePostFeatures()
         {
-            // Create the main command list
+            // Create the main Command List
+            // NOTE: The lifetime of the Command List is managed by this GraphicsDevice, so the Command List
+            //       should not Release()
             InternalMainCommandList = new CommandList(this).DisposeBy(this);
         }
 
@@ -460,13 +462,17 @@ namespace Stride.Graphics
         /// <summary>
         ///   Called when the Graphics Device is being destroyed.
         /// </summary>
-        internal void OnDestroyed()
+        /// <param name="immediately">
+        ///   A value indicating whether the resources used by the Graphics Device should be destroyed immediately
+        ///   (<see langword="true"/>), or if it can be deferred until it's safe to do so (<see langword="false"/>).
+        /// </param>
+        internal void OnDestroyed(bool immediately = false)
         {
         }
 
 
         /// <summary>
-        ///   Tags a Graphics Resource as no having alive references, meaning it should be safe to dispose it
+        ///   Tags a Graphics Resource as having no alive references, meaning it should be safe to dispose it
         ///   or discard its contents during the next <see cref="CommandList.MapSubResource"/> or <c>SetData</c> operation.
         /// </summary>
         /// <param name="resourceLink">
@@ -477,9 +483,6 @@ namespace Stride.Graphics
             if (resourceLink.Resource is GraphicsResource resource)
                 resource.DiscardNextMap = true;
         }
-
-        [DllImport("kernel32.dll", EntryPoint = "GetModuleHandle", CharSet = CharSet.Unicode)]
-        private static extern IntPtr GetModuleHandle(string lpModuleName);
     }
 }
 

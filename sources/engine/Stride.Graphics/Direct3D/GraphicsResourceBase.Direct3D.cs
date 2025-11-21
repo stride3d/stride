@@ -42,23 +42,20 @@ public abstract unsafe partial class GraphicsResourceBase
                 return;
 
             var previousDeviceChild = nativeDeviceChild;
+            if (previousDeviceChild is not null)
+                previousDeviceChild->Release();
 
             nativeDeviceChild = value.Handle;
 
-            if (nativeDeviceChild is not null)
-            {
-                nativeDeviceChild->AddRef();
-            }
-            if (nativeDeviceChild != previousDeviceChild)
-            {
-                if (previousDeviceChild is not null)
-                    previousDeviceChild->Release();
-            }
+            if (nativeDeviceChild is null)
+                return;
+
+            nativeDeviceChild->AddRef();
 
             SetDebugName();
 
             // The device child can be something that is not a Direct3D resource actually,
-            // like a Sampler State, for example
+            // like a Sampler State, for example.
             nativeResource = TryGetResource();
         }
     }
@@ -69,7 +66,8 @@ public abstract unsafe partial class GraphicsResourceBase
     /// </summary>
     protected internal void UnsetNativeDeviceChild()
     {
-        nativeDeviceChild = default;
+        nativeDeviceChild = null;
+        nativeResource = null;
     }
 
     /// <summary>
@@ -82,7 +80,6 @@ public abstract unsafe partial class GraphicsResourceBase
 
         // The device child can be something that is not a Direct3D resource actually,
         // like a Sampler State, for example.
-        // If it is a resource, however, its reference count is incremented.
         nativeResource = TryGetResource();
 
         SetDebugName();
@@ -95,11 +92,20 @@ public abstract unsafe partial class GraphicsResourceBase
     ///   A <see cref="ComPtr{ID3D11Resource}"/> representing the Direct3D 11 resource if the operation is successful;
     ///   otherwise, the a <see langword="null"/> COM pointer.
     /// </returns>
+    /// <remarks>
+    ///   Note the returned resource (which is also the <see cref="ID3D11DeviceChild"/>) reference count
+    ///   is incremented if the operation is successful.
+    /// </remarks>
     private ComPtr<ID3D11Resource> TryGetResource()
     {
         // NOTE: This increments the reference count of the resource, if it is a valid one
         HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D11Resource> d3dResource);
-        return result.IsSuccess ? d3dResource : default;
+        if (result.IsSuccess)
+        {
+            d3dResource.Release();  // Decrement the reference count as it's the same "device child" object
+            return d3dResource;
+        }
+        return default;
     }
 
     /// <summary>
@@ -140,15 +146,22 @@ public abstract unsafe partial class GraphicsResourceBase
     ///   Called when the <see cref="GraphicsDevice"/> has been detected to be internally destroyed,
     ///   or when the <see cref="Destroy"/> methad has been called. Raises the <see cref="Destroyed"/> event.
     /// </summary>
+    /// <param name="immediately">
+    ///   A value indicating whether the resource should be destroyed immediately (<see langword="true"/>),
+    ///   or if it can be deferred until it's safe to do so (<see langword="false"/>).
+    /// </param>
     /// <remarks>
     ///   This method releases the underlying native resources (<see cref="ID3D11Resource"/> and <see cref="ID3D11DeviceChild"/>).
     /// </remarks>
-    protected internal virtual partial void OnDestroyed()
+    protected internal virtual partial void OnDestroyed(bool immediately = false)
     {
         Destroyed?.Invoke(this, EventArgs.Empty);
 
         SafeRelease(ref nativeDeviceChild);
-        SafeRelease(ref nativeResource);
+
+        // We do not Release the resource because it is the same as the "device child",
+        // and we count it as just a single reference (see TryGetResource method).
+        nativeResource = null;
     }
 
     /// <summary>

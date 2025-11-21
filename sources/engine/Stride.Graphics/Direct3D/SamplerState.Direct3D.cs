@@ -54,7 +54,7 @@ public unsafe partial class SamplerState
     }
 
     /// <inheritdoc/>
-    protected internal override void OnDestroyed()
+    protected internal override void OnDestroyed(bool immediately = false)
     {
         // As we set the Sampler State as the internal ID3D11DeviceChild,
         // it would be released when the GraphicsDevice disposes the GraphicsResourceBase.
@@ -62,7 +62,7 @@ public unsafe partial class SamplerState
         UnsetNativeDeviceChild();
         ComPtrHelpers.SafeRelease(ref samplerState);
 
-        base.OnDestroyed();
+        base.OnDestroyed(immediately);
     }
 
     private unsafe void CreateNativeSamplerState()

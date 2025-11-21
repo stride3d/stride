@@ -165,7 +165,7 @@ namespace Stride.Graphics
 
             // NOTE: Assume the same underlying integer type
             Debug.Assert(sizeof(GraphicsProfile) == sizeof(D3DFeatureLevel));
-            var featureLevels = targetProfiles.Cast<GraphicsProfile, D3DFeatureLevel>();
+            var featureLevels = targetProfiles.As<GraphicsProfile, D3DFeatureLevel>();
 
             IDXGIAdapter* nativeAdapter = (IDXGIAdapter*) Adapter.NativeAdapter.Handle;
             ID3D11Device* deviceTemp = null;
@@ -173,7 +173,7 @@ namespace Stride.Graphics
             D3DFeatureLevel createdFeatureLevel = default;
 
             d3d11.CreateDevice(nativeAdapter, D3DDriverType.Unknown, Software: 0, Flags: 0,
-                               in featureLevels[0], (uint) featureLevels.Length,
+                               in featureLevels.GetReference(), (uint) featureLevels.Length,
                                D3D11.SdkVersion,
                                ref deviceTemp, ref createdFeatureLevel, ref deviceContext);
 
