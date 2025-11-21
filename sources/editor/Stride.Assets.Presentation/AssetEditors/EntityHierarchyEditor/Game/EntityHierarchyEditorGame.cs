@@ -50,6 +50,10 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
         protected EntityHierarchyEditorGame(TaskCompletionSource<bool> gameContentLoadedTaskSource, IEffectCompiler effectCompiler, string effectLogPath)
         {
+            // Make sure to use a size large enough to avoid negative viewports for subviews until resized
+            GraphicsDeviceManager.PreferredBackBufferWidth = 512;
+            GraphicsDeviceManager.PreferredBackBufferHeight = 512;
+
             this.gameContentLoadedTaskSource = gameContentLoadedTaskSource;
             this.effectCompiler = effectCompiler;
             this.effectLogPath = effectLogPath;
