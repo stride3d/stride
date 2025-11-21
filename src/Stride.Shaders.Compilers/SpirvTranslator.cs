@@ -81,6 +81,22 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
 
         if (cross.CompilerCreateShaderResources(compiler, &resources) != Result.Success)
             throw new Exception($"{cross.CompilerCreateShaderResources(compiler, &resources)} : could not create shader resources");
+
+        if (cross.CompilerBuildCombinedImageSamplers(compiler) != Result.Success)
+            throw new Exception($"{cross.CompilerBuildCombinedImageSamplers(compiler)} : Could not enable combined image samplers");
+
+        nuint numSamplers = 0;
+        CombinedImageSampler* combinedImageSamplers = null;
+        if (cross.CompilerGetCombinedImageSamplers(compiler, &combinedImageSamplers, ref numSamplers) != Result.Success)
+            throw new Exception($"{cross.CompilerGetCombinedImageSamplers(compiler, &combinedImageSamplers, ref numSamplers)}");
+
+        for (uint i = 0; i < numSamplers; ++i)
+        {
+            var textureName = cross.CompilerGetNameS(compiler, combinedImageSamplers[i].ImageId);
+            var samplerName = cross.CompilerGetNameS(compiler, combinedImageSamplers[i].SamplerId);
+            cross.CompilerSetName(compiler, combinedImageSamplers[i].CombinedId, $"SPIRV_Cross_Combined{textureName}{samplerName}");
+        }
+
         if (cross.CompilerCompile(compiler, &translated) != Result.Success)
             throw new Exception($"{cross.CompilerCompile(compiler, &translated)} : could not compile code");
 

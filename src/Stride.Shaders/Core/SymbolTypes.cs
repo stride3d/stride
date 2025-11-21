@@ -50,6 +50,7 @@ public abstract record SymbolType()
             ("Buffer", "float") => (new BufferType(ScalarType.From("float"), -1) as SymbolType, true),
             ("Buffer", "int") => (new BufferType(ScalarType.From("int"), -1), true),
             ("Buffer", "uint") => (new BufferType(ScalarType.From("uint"), -1), true),
+            // TODO: Use scalar type instead of vector type as in SPIR-V spec?
             ("Buffer", "float2") => (new BufferType(VectorType.From("float2"), -1), true),
             ("Buffer", "float3") => (new BufferType(VectorType.From("float3"), -1), true),
             ("Buffer", "float4") => (new BufferType(VectorType.From("float4"), -1), true),
@@ -59,14 +60,14 @@ public abstract record SymbolType()
             ("Buffer", "uint2") => (new BufferType(VectorType.From("uint2"), -1), true),
             ("Buffer", "uint3") => (new BufferType(VectorType.From("uint3"), -1), true),
             ("Buffer", "uint4") => (new BufferType(VectorType.From("uint4"), -1), true),
-            ("Texture", null) => (new Texture1DType(VectorType.From("float4")), true),
-            ("Texture1D", null) => (new Texture1DType(VectorType.From("float4")), true),
-            ("Texture2D", null) => (new Texture2DType(VectorType.From("float4")), true),
-            ("Texture3D", null) => (new Texture3DType(VectorType.From("float4")), true),
-            ("Texture", "int4" or "uint4" or "float4") => (new Texture1DType(VectorType.From(templateType)), true),
-            ("Texture1D", "int4" or "uint4" or "float4") => (new Texture1DType(VectorType.From(templateType)), true),
-            ("Texture2D", "int4" or "uint4" or "float4") => (new Texture2DType(VectorType.From(templateType)), true),
-            ("Texture3D", "int4" or "uint4" or "float4") => (new Texture3DType(VectorType.From(templateType)), true),
+            ("Texture", null) => (new Texture1DType(ScalarType.From("float")), true),
+            ("Texture1D", null) => (new Texture1DType(ScalarType.From("float")), true),
+            ("Texture2D", null) => (new Texture2DType(ScalarType.From("float")), true),
+            ("Texture3D", null) => (new Texture3DType(ScalarType.From("float")), true),
+            ("Texture", "int4" or "uint4" or "float4") => (new Texture1DType(VectorType.From(templateType).BaseType), true),
+            ("Texture1D", "int4" or "uint4" or "float4") => (new Texture1DType(VectorType.From(templateType).BaseType), true),
+            ("Texture2D", "int4" or "uint4" or "float4") => (new Texture2DType(VectorType.From(templateType).BaseType), true),
+            ("Texture3D", "int4" or "uint4" or "float4") => (new Texture3DType(VectorType.From(templateType).BaseType), true),
 
             _ => (null, false)
         };
@@ -144,36 +145,36 @@ public sealed record BufferType(SymbolType BaseType, int Size) : SymbolType()
 }
 
 // TODO: Add sampler parameters
-public sealed record SamplerType(string Name) : SymbolType()
+public sealed record SamplerType() : SymbolType()
 {
-    public override string ToId() => $"{Name}";
-    public override string ToString() => $"SamplerState {Name}";
+    public override string ToId() => $"type_sampler";
+    public override string ToString() => $"SamplerState";
 }
 public sealed record SampledImage(TextureType ImageType) : SymbolType()
 {
     public override string ToString() => $"SampledImage<{ImageType}>";
 }
 
-public abstract record TextureType(SymbolType ReturnType, Dim Dimension, int Depth, bool Arrayed, bool Multisampled, int Sampled, ImageFormat Format) : SymbolType()
+public abstract record TextureType(ScalarType ReturnType, Dim Dimension, int Depth, bool Arrayed, bool Multisampled, int Sampled, ImageFormat Format) : SymbolType()
 {
     public override string ToId() => $"Texture_{ReturnType}";
     public override string ToString() => $"Texture<{ReturnType}>({Dimension}, {Depth}, {Arrayed}, {Multisampled}, {Sampled}, {Format})";
 }
 
-public sealed record Texture1DType(SymbolType ReturnType) : TextureType(ReturnType, Dim.Dim1D, 2, false, false, 1, ImageFormat.Unknown)
+public sealed record Texture1DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim1D, 2, false, false, 1, ImageFormat.Unknown)
 {
     public override string ToString() => $"Texture1D<{ReturnType}>";
 }
-public sealed record Texture2DType(SymbolType ReturnType) : TextureType(ReturnType, Dim.Dim2D, 2, false, false, 1, ImageFormat.Unknown)
+public sealed record Texture2DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim2D, 2, false, false, 1, ImageFormat.Unknown)
 {
     public override string ToString() => $"Texture2D<{ReturnType}>";
 }
-public sealed record Texture3DType(SymbolType ReturnType) : TextureType(ReturnType, Dim.Dim3D, 2, false, false, 1, ImageFormat.Unknown)
+public sealed record Texture3DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim3D, 2, false, false, 1, ImageFormat.Unknown)
 {
     public override string ToString() => $"Texture3D<{ReturnType}>";
 }
 
-public sealed record TextureCubeType(SymbolType ReturnType) : TextureType(ReturnType, Dim.Cube, 2, false, false, 1, ImageFormat.Unknown)
+public sealed record TextureCubeType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Cube, 2, false, false, 1, ImageFormat.Unknown)
 {
     public override string ToString() => $"TextureCube<{ReturnType}>";
 }

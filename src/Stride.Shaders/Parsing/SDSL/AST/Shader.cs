@@ -112,6 +112,32 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 }
                 types.Add(typeFunctionInstruction.ResultId, new FunctionType(returnType, parameterTypes));
             }
+            else if (instruction.Op == Op.OpTypeImage && new OpTypeImage(instruction) is { } typeImage)
+            {
+                var sampledType = (ScalarType)types[typeImage.SampledType];
+                TextureType textureType = typeImage.Dim switch
+                {
+                    Dim.Dim1D => new Texture1DType(sampledType),
+                    Dim.Dim2D => new Texture2DType(sampledType),
+                    Dim.Dim3D => new Texture3DType(sampledType),
+                    Dim.Cube => new TextureCubeType(sampledType),
+                    _ => throw new NotImplementedException(),
+                };
+                textureType = textureType with
+                {
+                    Depth = typeImage.Depth,
+                    Arrayed = typeImage.Arrayed == 1 ? true : false,
+                    Multisampled = typeImage.MS == 1 ? true : false,
+                    Format = typeImage.Imageformat,
+                    Sampled = typeImage.Sampled,
+                };
+
+                types.Add(typeImage.ResultId, textureType);
+            }
+            else if (instruction.Op == Op.OpTypeSampler && new OpTypeSampler(instruction) is { } typeSampler)
+            {
+                types.Add(typeSampler.ResultId, new SamplerType());
+            }
             else if (instruction.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)instruction is { } importShader)
             {
                 if (importShader.Type == ImportType.External)
@@ -223,7 +249,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     table.DeclaredTypes.TryAdd(memberType.ToString(), memberType);
                 }
 
-                svar.Type = new PointerType(memberType, Specification.StorageClass.Private);
+                var storageClass = Specification.StorageClass.Private;
+                if (memberType is TextureType)
+                    storageClass = Specification.StorageClass.UniformConstant;
+
+                svar.Type = new PointerType(memberType, storageClass);
                 table.DeclaredTypes.TryAdd(svar.Type.ToString(), svar.Type);
             }
             else if (member is CBuffer cb)
@@ -237,8 +267,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (member is ShaderSamplerState samplerState)
             {
-                samplerState.Type = new SamplerType(samplerState.Name);
-                table.DeclaredTypes.Add(samplerState.Type.ToString(), samplerState.Type);
+                samplerState.Type = new SamplerType();
+                table.DeclaredTypes.TryAdd(samplerState.Type.ToString(), samplerState.Type);
             }
         }
 
