@@ -294,7 +294,7 @@ public class TypeName(string name, TextLocation info, bool isArray) : Literal(in
 
     public bool TryResolveType(SymbolTable table, [MaybeNullWhen(false)] out SymbolType symbolType)
     {
-        if (!IsArray && Generics.Count == 0)
+        if (!IsArray)
         {
             if (table.DeclaredTypes.TryGetValue(Name, out symbolType))
                 return true;

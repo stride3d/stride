@@ -6,6 +6,7 @@ using Stride.Shaders.Spirv.Tools;
 using System.IO;
 using Stride.Shaders.Parsing.Analysis;
 using static Stride.Shaders.Spirv.Specification;
+using System.Runtime.InteropServices;
 
 namespace Stride.Shaders.Spirv.Processing
 {
@@ -35,7 +36,7 @@ namespace Stride.Shaders.Spirv.Processing
             public override string ToString() => $"{Type} {Name} {(Read ? "R" : "")} {(Write ? "W" : "")}";
         }
 
-        record struct AnalysisResult(SortedList<int, (StreamInfo Stream, bool IsDirect)> Streams, List<int> Blocks);
+        record struct AnalysisResult(SortedList<int, (StreamInfo Stream, bool IsDirect)> Streams, List<int> Blocks, List<int> Resources);
 
         public void Process(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context)
         {
@@ -75,6 +76,13 @@ namespace Stride.Shaders.Spirv.Processing
                 GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult);
             }
 
+            int currentBinding = 0;
+            foreach (var resource in analysisResult.Resources)
+            {
+                context.Add(new OpDecorate(resource, ParameterizedFlags.DecorationDescriptorSet(0)));
+                context.Add(new OpDecorate(resource, ParameterizedFlags.DecorationBinding(currentBinding++)));
+            }
+
             buffer.FluentAdd(new OpExecutionMode(psWrapper.ResultId, ExecutionMode.OriginUpperLeft));
         }
 
@@ -97,6 +105,7 @@ namespace Stride.Shaders.Spirv.Processing
             HashSet<int> blockTypes = [];
             Dictionary<int, int> blockPointerTypes = [];
             List<int> blockIds = [];
+            List<int> resources = [];
 
             // Build name table
             SortedList<int, string> nameTable = [];
@@ -181,8 +190,7 @@ namespace Stride.Shaders.Spirv.Processing
                     {
                         Storageclass: StorageClass.Private,
                         ResultId: int
-                    } variable
-                   )
+                    } variable)
                 {
                     var name = nameTable.TryGetValue(variable.ResultId, out var nameId)
                         ? nameId
@@ -191,9 +199,23 @@ namespace Stride.Shaders.Spirv.Processing
                     semanticTable.TryGetValue(variable.ResultId, out var semantic);
                     streams.Add(variable.ResultId, (new StreamInfo(semantic, name, type, variable.ResultId), true));
                 }
+
+                if (instruction.Op == Op.OpVariable && ((OpVariable)instruction) is
+                    {
+                        Storageclass: StorageClass.UniformConstant,
+                        ResultId: int
+                    } resource)
+                {
+                    var name = nameTable.TryGetValue(resource.ResultId, out var nameId)
+                        ? nameId
+                        : $"unnamed_{resource.ResultId}";
+                    var type = context.ReverseTypes[resource.ResultType];
+
+                    resources.Add(resource.ResultId);
+                }
             }
 
-            return new(streams, blockIds);
+            return new(streams, blockIds, resources);
         }
 
         private OpFunction GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult)

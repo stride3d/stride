@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Stride.Shaders.Core;
 using Stride.Shaders.Core.Analysis;
 using Stride.Shaders.Parsing.Analysis;
@@ -7,6 +6,7 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
+using System.Collections.Immutable;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
@@ -46,16 +46,18 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
             table.Errors.Add(new SemanticErrors(Info, "Sampler states with parameters are not supported in SPIR-V generation."));
 
         (_, var context) = compiler;
-        Type = new PointerType(new SamplerType(Name), Specification.StorageClass.UniformConstant);
+        Type = new PointerType(new SamplerType(), Specification.StorageClass.UniformConstant);
+        var registeredType = context.GetOrRegister(Type);
         if (!table.RootSymbols.TryGetValue(Name, out _))
         {
             context
-            .FluentAdd(new OpTypeSampler(context.Bound++), out var register)
+            .FluentAdd(new OpVariable(registeredType, context.Bound++, Specification.StorageClass.UniformConstant, null), out var register)
             .FluentAdd(new OpName(register.ResultId, Name), out _);
 
             var sid = new SymbolID(Name, SymbolKind.SamplerState);
             var symbol = new Symbol(sid, Type, register.ResultId);
-            table.RootSymbols.Add(Name, symbol);
+            table.CurrentShader.Components.Add(symbol);
+            table.CurrentFrame.Add(Name, symbol);
         }
         else throw new Exception($"SamplerState {Name} already defined");
     }
@@ -113,8 +115,13 @@ public sealed class ShaderMember(
         var (builder, context) = compiler;
         var registeredType = context.GetOrRegister(Type);
         var variable = context.Bound++;
+
         // TODO: Add a StreamSDSL storage class?
-        context.Add(new OpVariable(registeredType, variable, Specification.StorageClass.Private, null));
+        var storageClass = Specification.StorageClass.Private;
+        if (Type is PointerType pointerType)
+            storageClass = pointerType.StorageClass;
+
+        context.Add(new OpVariable(registeredType, variable, storageClass, null));
         context.Variables.Add(Name, new(variable, registeredType, Name));
         if (Semantic != null)
             context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(Semantic.Name)));

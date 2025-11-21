@@ -1,7 +1,10 @@
-﻿using Silk.NET.Maths;
+﻿using Silk.NET.Core.Native;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using System;
+using System.Drawing;
+using System.Globalization;
 using System.Text;
 
 namespace Stride.Graphics.RHI;
@@ -232,6 +235,30 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
                 Gl.BindBuffer(GLEnum.UniformBuffer, 0); // Unbind
 
                 Gl.BindBufferRange(GLEnum.UniformBuffer, 0, ubo, 0, sizeof(uint));
+            }
+            else if (param.Key.StartsWith("texture."))
+            {
+                if (!param.Value.StartsWith("#"))
+                    throw new NotSupportedException();
+
+                var textureName = param.Key.Substring("texture.".Length);
+                var location = Gl.GetProgramResourceLocation(Shader, GLEnum.Uniform, textureName);
+                if (location == -1)
+                    throw new InvalidOperationException($"Could not find resource {textureName}");
+
+                var texture = Gl.GenTexture();
+                Gl.BindTexture(GLEnum.Texture2D, texture);
+
+                var hexColor = param.Value.Substring(1);
+                uint color = uint.Parse(hexColor.Substring(0, 8), NumberStyles.HexNumber);
+                color = (((color << 24) & 0xff000000) |
+                    ((color << 8) & 0xff0000) |
+                    ((color >> 8) & 0xff00) |
+                    ((color >> 24) & 0xff));
+
+                Gl.TexImage2D(GLEnum.Texture2D, 0, (int)GLEnum.Rgba, 1, 1, 0, GLEnum.Rgba, GLEnum.UnsignedByte, (void*)&color);
+
+                Gl.ProgramUniform1(Shader, location, texture);
             }
         }
 

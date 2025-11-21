@@ -204,34 +204,30 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         }
         if (Source is Identifier { ValueType: TextureType or Texture2DType or Texture3DType } && Accessors is [MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 }])
         {
-            result = Source.Compile(table, shader, compiler);
+            result = Source.CompileAsValue(table, shader, compiler);
             if (Accessors is [MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } implicitSampling])
             {
-                var samplerValue = implicitSampling.Parameters.Values[0].Compile(table, shader, compiler);
-                var texCoordValue = implicitSampling.Parameters.Values[1].Compile(table, shader, compiler);
+                var textureValue = result;
+                var samplerValue = implicitSampling.Parameters.Values[0].CompileAsValue(table, shader, compiler);
+                var texCoordValue = implicitSampling.Parameters.Values[1].CompileAsValue(table, shader, compiler);
                 var typeSampledImage = context.GetOrRegister(new SampledImage((TextureType)Source.ValueType));
-                var loadSampler = builder.Insert(new OpLoad(samplerValue.TypeId, context.Bound++, samplerValue.Id, Specification.MemoryAccessMask.None));
-                var loadCoord = builder.Insert(new OpLoad(texCoordValue.TypeId, context.Bound++, texCoordValue.Id, Specification.MemoryAccessMask.None));
-                var loadTexture = builder.Insert(new OpLoad(result.TypeId, context.Bound++, result.Id, Specification.MemoryAccessMask.None));
-                var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, loadTexture.ResultId, loadSampler.ResultId));
-                var returnType = context.GetOrRegister(((TextureType)Source.ValueType).ReturnType);
-                var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, loadCoord.ResultId, Specification.ImageOperandsMask.None));
+                var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
+                var returnType = context.GetOrRegister(new VectorType(((TextureType)Source.ValueType).ReturnType, 4));
+                var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, Specification.ImageOperandsMask.None));
                 Type = ((TextureType)Source.ValueType).ReturnType;
                 return new(sample.ResultId, sample.ResultType);
             }
             else if (Accessors is [MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 } explicitSampling])
             {
-                var samplerValue = explicitSampling.Parameters.Values[0].Compile(table, shader, compiler);
-                var texCoordValue = explicitSampling.Parameters.Values[1].Compile(table, shader, compiler);
-                var levelValue = explicitSampling.Parameters.Values[2].Compile(table, shader, compiler);
+                var textureValue = result;
+                var samplerValue = explicitSampling.Parameters.Values[0].CompileAsValue(table, shader, compiler);
+                var texCoordValue = explicitSampling.Parameters.Values[1].CompileAsValue(table, shader, compiler);
+                var levelValue = explicitSampling.Parameters.Values[2].CompileAsValue(table, shader, compiler);
 
                 var typeSampledImage = context.GetOrRegister(new SampledImage((TextureType)Source.ValueType));
-                var loadSampler = builder.Insert(new OpLoad(samplerValue.TypeId, context.Bound++, samplerValue.Id, Specification.MemoryAccessMask.None));
-                var loadCoord = builder.Insert(new OpLoad(texCoordValue.TypeId, context.Bound++, texCoordValue.Id, Specification.MemoryAccessMask.None));
-                var loadTexture = builder.Insert(new OpLoad(result.TypeId, context.Bound++, result.Id, Specification.MemoryAccessMask.None));
-                var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, loadTexture.ResultId, loadSampler.ResultId));
-                var returnType = context.GetOrRegister(((TextureType)Source.ValueType).ReturnType);
-                var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, loadCoord.ResultId, ParameterizedFlags.ImageOperandsLod(levelValue.Id)));
+                var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
+                var returnType = context.GetOrRegister(new VectorType(((TextureType)Source.ValueType).ReturnType, 4));
+                var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, ParameterizedFlags.ImageOperandsLod(levelValue.Id)));
                 Type = ((TextureType)Source.ValueType).ReturnType;
                 return new(sample.ResultId, sample.ResultType);
             }
