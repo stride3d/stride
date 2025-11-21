@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Stride.Core;
@@ -45,6 +46,7 @@ namespace Stride.Graphics
         internal FenceHelper FrameFence;
         internal FenceHelper CommandListFence;
         internal FenceHelper CopyFence;
+        internal ulong LastGPUSyncCopyFenceToCommandFence;
 
         internal HeapPool DescriptorPools;
         internal const uint MaxDescriptorSetCount = 256;
@@ -171,35 +173,35 @@ namespace Stride.Graphics
         /// </summary>
         public unsafe void End()
         {
-            // Add a dependency between command list fence and frame fence
-            var commandListFenceValue = CommandListFence.NextFenceValue;
-            var frameFenceValue = FrameFence.NextFenceValue++;
-
-            var timelineInfo = new VkTimelineSemaphoreSubmitInfo
-            {
-                sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                waitSemaphoreValueCount = 1,
-                pWaitSemaphoreValues = &commandListFenceValue,
-                signalSemaphoreValueCount = 1,
-                pSignalSemaphoreValues = &frameFenceValue,
-            };
-
-            var commandListSemaphore = CommandListFence.Semaphore;
-            var frameSemaphore = FrameFence.Semaphore;
-            var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
-            var submitInfo = new VkSubmitInfo
-            {
-                sType = VkStructureType.SubmitInfo,
-                pNext = &timelineInfo,
-                waitSemaphoreCount = 1,
-                pWaitSemaphores = &commandListSemaphore,
-                pWaitDstStageMask = &pipelineStageFlags,
-                signalSemaphoreCount = 1,
-                pSignalSemaphores = &frameSemaphore,
-            };
-            
             lock (QueueLock)
             {
+                // Add a dependency between command list fence and frame fence
+                var commandListFenceValue = CommandListFence.NextFenceValue;
+                var frameFenceValue = FrameFence.NextFenceValue++;
+
+                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                {
+                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    waitSemaphoreValueCount = 1,
+                    pWaitSemaphoreValues = &commandListFenceValue,
+                    signalSemaphoreValueCount = 1,
+                    pSignalSemaphoreValues = &frameFenceValue,
+                };
+
+                var commandListSemaphore = CommandListFence.Semaphore;
+                var frameSemaphore = FrameFence.Semaphore;
+                var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    pNext = &timelineInfo,
+                    waitSemaphoreCount = 1,
+                    pWaitSemaphores = &commandListSemaphore,
+                    pWaitDstStageMask = &pipelineStageFlags,
+                    signalSemaphoreCount = 1,
+                    pSignalSemaphores = &frameSemaphore,
+                };
+
                 CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
             }
         }
@@ -223,57 +225,66 @@ namespace Stride.Graphics
             if (commandLists == null) throw new ArgumentNullException(nameof(commandLists));
             if (count > commandLists.Length) throw new ArgumentOutOfRangeException(nameof(count));
 
-            var commandListFenceValue = CommandListFence.NextFenceValue++;
-            var nextCommandListFenceValue = commandListFenceValue + 1;
-            // Make sure all copies are done as well
-            var waitFenceValues = stackalloc ulong[] { commandListFenceValue, CopyFence.NextFenceValue };
-
-            // Collect resources
             var commandBuffers = stackalloc VkCommandBuffer[count];
             for (int i = 0; i < count; i++)
-            {
                 commandBuffers[i] = commandLists[i].NativeCommandBuffer;
-                RecycleCommandListResources(commandLists[i], nextCommandListFenceValue);
-            }
 
-            // Submit commands
-            var timelineInfo = new VkTimelineSemaphoreSubmitInfo
-            {
-                sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                waitSemaphoreValueCount = 2,
-                pWaitSemaphoreValues = &waitFenceValues[0],
-                signalSemaphoreValueCount = 1,
-                pSignalSemaphoreValues = &nextCommandListFenceValue,
-            };
-
-            var semaphores = stackalloc VkSemaphore[] { CommandListFence.Semaphore, CopyFence.Semaphore };
-            var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
-            var submitInfo = new VkSubmitInfo
-            {
-                sType = VkStructureType.SubmitInfo,
-                pNext = &timelineInfo,
-                commandBufferCount = (uint)count,
-                pCommandBuffers = commandBuffers,
-                waitSemaphoreCount = 2,
-                pWaitSemaphores = &semaphores[0],
-                pWaitDstStageMask = &pipelineStageFlags[0],
-                signalSemaphoreCount = 1,
-                pSignalSemaphores = &semaphores[0],
-            };
-
+            ulong nextCommandListFenceValue;
             lock (QueueLock)
             {
+                var commandListFenceValue = CommandListFence.NextFenceValue++;
+                nextCommandListFenceValue = commandListFenceValue + 1;
+                // Make sure all copies are done as well
+                var copyFenceValue = CopyFence.NextFenceValue;
+                var waitFenceValues = stackalloc ulong[] { commandListFenceValue, copyFenceValue };
+
+                // Do we need to wait for CopyFence?
+                var semaphoreCount = copyFenceValue > LastGPUSyncCopyFenceToCommandFence ? 2 : 1;
+                // Remember that we waited 
+                LastGPUSyncCopyFenceToCommandFence = copyFenceValue;
+
+                // Submit commands
+                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                {
+                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    waitSemaphoreValueCount = 2,
+                    pWaitSemaphoreValues = &waitFenceValues[0],
+                    signalSemaphoreValueCount = 1,
+                    pSignalSemaphoreValues = &nextCommandListFenceValue,
+                };
+
+                var semaphores = stackalloc VkSemaphore[] { CommandListFence.Semaphore, CopyFence.Semaphore };
+                var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    pNext = &timelineInfo,
+                    commandBufferCount = (uint)count,
+                    pCommandBuffers = commandBuffers,
+                    waitSemaphoreCount = 2,
+                    pWaitSemaphores = &semaphores[0],
+                    pWaitDstStageMask = &pipelineStageFlags[0],
+                    signalSemaphoreCount = 1,
+                    pSignalSemaphores = &semaphores[0],
+                };
+
                 CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+            }
+
+            // Collect resources
+            for (int i = 0; i < count; i++)
+            {
+                RecycleCommandListResources(commandLists[i], nextCommandListFenceValue);
             }
 
             nativeResourceCollector.Release();
             graphicsResourceLinkCollector.Release();
         }
 
-        internal void CheckResult(VkResult vkResult)
+        internal void CheckResult(VkResult vkResult, [CallerArgumentExpression("vkResult")] string call = null)
         {
             if (vkResult != VkResult.Success)
-                throw new InvalidOperationException($"Vulkan call returned {vkResult}");
+                throw new InvalidOperationException($"Vulkan call {call} returned {vkResult}");
         }
 
         /// <summary>
@@ -497,32 +508,32 @@ namespace Stride.Graphics
 
         internal unsafe ulong ExecuteAndWaitCopyQueueGPU(VkCommandBuffer commandBuffer)
         {
-            var copyFenceValue = CopyFence.NextFenceValue++;
-            var nextCopyFenceValue = copyFenceValue + 1;
-
-            var timelineInfo = new VkTimelineSemaphoreSubmitInfo
-            {
-                sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                signalSemaphoreValueCount = 1,
-                pSignalSemaphoreValues = &nextCopyFenceValue,
-            };
-            var copySemaphore = CopyFence.Semaphore;
-            var submitInfo = new VkSubmitInfo
-            {
-                sType = VkStructureType.SubmitInfo,
-                pNext = &timelineInfo,
-                commandBufferCount = 1,
-                pCommandBuffers = &commandBuffer,
-                signalSemaphoreCount = 1,
-                pSignalSemaphores = &copySemaphore,
-            };
-
             lock (QueueLock)
             {
-                CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
-            }
+                var copyFenceValue = CopyFence.NextFenceValue++;
+                var nextCopyFenceValue = copyFenceValue + 1;
 
-            return nextCopyFenceValue;
+                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                {
+                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    signalSemaphoreValueCount = 1,
+                    pSignalSemaphoreValues = &nextCopyFenceValue,
+                };
+                var copySemaphore = CopyFence.Semaphore;
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    pNext = &timelineInfo,
+                    commandBufferCount = 1,
+                    pCommandBuffers = &commandBuffer,
+                    signalSemaphoreCount = 1,
+                    pSignalSemaphores = &copySemaphore,
+                };
+                
+                CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+
+                return nextCopyFenceValue;
+            }
         }
 
         protected unsafe void AllocateMemory(VkMemoryPropertyFlags memoryProperties)
@@ -629,40 +640,46 @@ namespace Stride.Graphics
             //    nativeUploadBufferMemory = VkDeviceMemory.Null;
             //}
 
-            var commandListFenceValue = CommandListFence.NextFenceValue++;
-            var nextCommandListFenceValue = commandListFenceValue + 1;
-            // Make sure all copies are done as well
-            var waitFenceValues = stackalloc ulong[] { commandListFenceValue, CopyFence.NextFenceValue };
-
-            // Submit commands
-            var nativeCommandBufferCopy = commandList.NativeCommandBuffer;
-
-            var timelineInfo = new VkTimelineSemaphoreSubmitInfo
-            {
-                sType = VkStructureType.TimelineSemaphoreSubmitInfo,
-                waitSemaphoreValueCount = 2,
-                pWaitSemaphoreValues = &waitFenceValues[0],
-                signalSemaphoreValueCount = 1,
-                pSignalSemaphoreValues = &nextCommandListFenceValue,
-            };
-
-            var semaphores = stackalloc VkSemaphore[] { CommandListFence.Semaphore, CopyFence.Semaphore };
-            var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
-            var submitInfo = new VkSubmitInfo
-            {
-                sType = VkStructureType.SubmitInfo,
-                pNext = &timelineInfo,
-                commandBufferCount = 1,
-                pCommandBuffers = &nativeCommandBufferCopy,
-                waitSemaphoreCount = 2,
-                pWaitSemaphores = &semaphores[0],
-                pWaitDstStageMask = &pipelineStageFlags[0],
-                signalSemaphoreCount = 1,
-                pSignalSemaphores = &semaphores[0],
-            };
-
+            ulong nextCommandListFenceValue;
             lock (QueueLock)
             {
+                var commandListFenceValue = CommandListFence.NextFenceValue++;
+                nextCommandListFenceValue = commandListFenceValue + 1;
+                // Make sure all copies are done as well
+                var copyFenceValue = CopyFence.NextFenceValue;
+                var waitFenceValues = stackalloc ulong[] { commandListFenceValue, copyFenceValue };
+
+                // Do we need to wait for CopyFence?
+                var semaphoreCount = copyFenceValue > LastGPUSyncCopyFenceToCommandFence ? 2 : 1;
+                // Remember that we waited 
+                LastGPUSyncCopyFenceToCommandFence = copyFenceValue;
+
+                // Submit commands
+                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                {
+                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    waitSemaphoreValueCount = 2,
+                    pWaitSemaphoreValues = &waitFenceValues[0],
+                    signalSemaphoreValueCount = 1,
+                    pSignalSemaphoreValues = &nextCommandListFenceValue,
+                };
+
+                var semaphores = stackalloc VkSemaphore[] { CommandListFence.Semaphore, CopyFence.Semaphore };
+                var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
+                var nativeCommandBufferCopy = commandList.NativeCommandBuffer;
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    pNext = &timelineInfo,
+                    commandBufferCount = 1,
+                    pCommandBuffers = &nativeCommandBufferCopy,
+                    waitSemaphoreCount = 2,
+                    pWaitSemaphores = &semaphores[0],
+                    pWaitDstStageMask = &pipelineStageFlags[0],
+                    signalSemaphoreCount = 1,
+                    pSignalSemaphores = &semaphores[0],
+                };
+                
                 CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
             }
 

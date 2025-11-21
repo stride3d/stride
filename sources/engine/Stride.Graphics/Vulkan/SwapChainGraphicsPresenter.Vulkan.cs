@@ -168,7 +168,7 @@ namespace Stride.Graphics
                     signalSemaphoreCount = 1,
                     pSignalSemaphores = &submitSemaphore,
                 };
-                
+
                 GraphicsDevice.CheckResult(vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, frameFences[currentFrameIndex]));
 
                 var currentBufferIndexCopy = currentBufferIndex;
@@ -184,10 +184,10 @@ namespace Stride.Graphics
                 };
 
                 // Present
-                Debug.WriteLine($"Present image {currentBufferIndex}: {swapchainImages[currentBufferIndex].NativeImage.Handle.ToString("X")}");
                 var presentResult = vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo);
                 if (presentResult == VkResult.ErrorOutOfDateKHR)
                 {
+                    // Likely a window resize; wait for WM_SIZE to be processed next frame
                     OnRecreated();
                     return;
                 }
@@ -201,36 +201,56 @@ namespace Stride.Graphics
             GraphicsDevice.CheckResult(vkWaitForFences(GraphicsDevice.NativeDevice, frameFences[currentFrameIndex], VkBool32.True, ulong.MaxValue));
             vkResetFences(GraphicsDevice.NativeDevice, frameFences[currentFrameIndex]);
 
+            AcquireNextImage(true);
+        }
+
+        private unsafe void AcquireNextImage(bool recreateIfFails)
+        {
             // Get next image
-            if (vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, acquireSemaphores[currentFrameIndex], VkFence.Null, out currentBufferIndex) == VkResult.ErrorOutOfDateKHR)
+            var result = vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, acquireSemaphores[currentFrameIndex], VkFence.Null, out currentBufferIndex);
+            if (result == VkResult.ErrorOutOfDateKHR)
             {
-                OnRecreated();
+                if (recreateIfFails)
+                {
+                    OnRecreated();
+                    return;
+                }
+                else
+                    throw new InvalidOperationException($"Could not acquire swapchain image: {result}");
+            }
+            else
+            {
+                GraphicsDevice.CheckResult(result, "vkAcquireNextImageKHR");
             }
 
             // Flip render targets
             backBuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
-            Debug.WriteLine($"Next swapchain image {currentBufferIndex}: {swapchainImages[currentBufferIndex].NativeImage.Handle.ToString("X")}");
 
             lock (GraphicsDevice.QueueLock)
             {
                 // Signal vkAcquireNextImageKHR Fence => GraphicsDevice.CommandList (so that next command list will wait for this to complete)
                 var acquireSemaphore = acquireSemaphores[currentFrameIndex];
                 var commandListFence = GraphicsDevice.CommandListFence.Semaphore;
-                var nextCommandListFenceValue = ++GraphicsDevice.CommandListFence.NextFenceValue;
-                var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+                var commandListFenceValue = GraphicsDevice.CommandListFence.NextFenceValue++;
+                var nextCommandListFenceValue = commandListFenceValue + 1;
+                var waitFenceValues = stackalloc ulong[] { commandListFenceValue, 0 }; // second value is ignored (binary semaphore)
                 var timelineInfo = new VkTimelineSemaphoreSubmitInfo
                 {
                     sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    waitSemaphoreValueCount = 2,
+                    pWaitSemaphoreValues = &waitFenceValues[0],
                     signalSemaphoreValueCount = 1,
                     pSignalSemaphoreValues = &nextCommandListFenceValue,
                 };
+                var semaphores = stackalloc VkSemaphore[] { commandListFence, acquireSemaphore };
+                var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
                 var submitInfo = new VkSubmitInfo
                 {
                     sType = VkStructureType.SubmitInfo,
                     pNext = &timelineInfo,
-                    waitSemaphoreCount = 1,
-                    pWaitSemaphores = &acquireSemaphore,
-                    pWaitDstStageMask = &pipelineStageFlags,
+                    waitSemaphoreCount = 2,
+                    pWaitSemaphores = &semaphores[0],
+                    pWaitDstStageMask = &pipelineStageFlags[0],
                     signalSemaphoreCount = 1,
                     pSignalSemaphores = &commandListFence,
                 };
@@ -274,19 +294,20 @@ namespace Stride.Graphics
 
             base.OnRecreated();
 
-            // Manually update all children textures
-            var fastList = DestroyChildrenTextures(backBuffer);
+            RecreateBackBuffer(backBuffer.Width, backBuffer.Height, backBuffer.Format);
 
-            // Recreate swap chain
-            CreateSwapChain(backBuffer.Width, backBuffer.Height, backBuffer.Format);
-
-            foreach (var texture in fastList)
-            {
-                texture.InitializeFrom(backBuffer, texture.ViewDescription);
-            }
+            // Check if backbuffer size changed; if yes, apply to depth buffer
+            if (Description.BackBufferWidth != DepthStencilBuffer.Description.Width
+                || Description.BackBufferHeight != DepthStencilBuffer.Description.Height)
+                ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, DepthStencilBuffer.ViewFormat);
         }
 
         protected override void ResizeBackBuffer(int width, int height, PixelFormat format)
+        {
+            RecreateBackBuffer(width, height, format);
+        }
+
+        private void RecreateBackBuffer(int width, int height, PixelFormat format)
         {
             // Manually update all children textures
             var fastList = DestroyChildrenTextures(backBuffer);
@@ -394,6 +415,9 @@ namespace Stride.Graphics
 
             // Create swapchain
             vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out var surfaceCapabilities);
+
+            Description.BackBufferWidth = (int)surfaceCapabilities.currentExtent.width;
+            Description.BackBufferHeight = (int)surfaceCapabilities.currentExtent.height;
 
             // Buffer count
             uint desiredImageCount = Math.Max(surfaceCapabilities.minImageCount, 2);
@@ -603,25 +627,9 @@ namespace Stride.Graphics
 
             // Get next image
             currentFrameIndex = 0;
-            vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, acquireSemaphores[currentFrameIndex], VkFence.Null, out currentBufferIndex);
-            
-            // Apply the first swap chain image to the texture
-            backBuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
 
-            lock (GraphicsDevice.QueueLock)
-            {
-                var acquireSemaphore = acquireSemaphores[currentFrameIndex];
-                var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
-                var submitInfo = new VkSubmitInfo
-                {
-                    sType = VkStructureType.SubmitInfo,
-                    waitSemaphoreCount = 1,
-                    pWaitSemaphores = &acquireSemaphore,
-                    pWaitDstStageMask = &pipelineStageFlags,
-                };
-
-                GraphicsDevice.CheckResult(vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null));
-            }
+            // We allow failure to not have recursion (we just created, if it failed, it will likely fail again)
+            AcquireNextImage(false);
         }
     }
 }

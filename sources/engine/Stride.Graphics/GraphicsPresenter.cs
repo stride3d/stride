@@ -212,11 +212,17 @@ public abstract class GraphicsPresenter : ComponentBase
     /// </exception>
     public void Resize(int width, int height, PixelFormat format)
     {
+        format = NormalizeBackBufferFormat(format);
+        if (width == Description.BackBufferWidth
+            && height == Description.BackBufferHeight
+            && format == Description.BackBufferFormat)
+            return;
+
         GraphicsDevice.Begin();
 
         Description.BackBufferWidth = width;
         Description.BackBufferHeight = height;
-        Description.BackBufferFormat = NormalizeBackBufferFormat(format);
+        Description.BackBufferFormat = format;
 
         ResizeBackBuffer(width, height, format);
         ResizeDepthStencilBuffer(width, height, DepthStencilBuffer.ViewFormat);
@@ -271,9 +277,11 @@ public abstract class GraphicsPresenter : ComponentBase
     /// </exception>
     public void SetOutputColorSpace(ColorSpaceType colorSpace, PixelFormat format)
     {
+        format = NormalizeBackBufferFormat(format);
+
         GraphicsDevice.Begin();
 
-        Description.BackBufferFormat = NormalizeBackBufferFormat(format);
+        Description.BackBufferFormat = format;
 
         ResizeBackBuffer(Description.BackBufferWidth, Description.BackBufferHeight, format);
         ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, DepthStencilBuffer.ViewFormat);
