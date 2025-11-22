@@ -15,7 +15,7 @@ public readonly struct EffectBytecodeCompilerResult
     /// <summary>
     ///   The Effect bytecode. Can be <see langword="null"/> if no bytecode has been generated.
     /// </summary>
-    public readonly EffectBytecode? ByteCode;
+    public readonly EffectBytecode? Bytecode;
 
     /// <summary>
     ///   The compilation log.
@@ -37,7 +37,7 @@ public readonly struct EffectBytecodeCompilerResult
     /// <param name="loadSource">A value indicating how the Effect / Shader was loaded.</param>
     public EffectBytecodeCompilerResult(EffectBytecode bytecode, EffectBytecodeCacheLoadSource loadSource) : this()
     {
-        ByteCode = bytecode;
+        Bytecode = bytecode;
         CompilationLog = EmptyLoggerResult;
         LoadSource = loadSource;
     }
@@ -51,9 +51,9 @@ public readonly struct EffectBytecodeCompilerResult
     /// <param name="compilationLog">
     ///   The log containing information about the compilation, warnings, errors, etc.
     /// </param>
-    public EffectBytecodeCompilerResult(EffectBytecode byteCode, LoggerResult compilationLog)
+    public EffectBytecodeCompilerResult(EffectBytecode bytecode, LoggerResult compilationLog)
     {
-        ByteCode = byteCode;
+        Bytecode = bytecode;
         CompilationLog = compilationLog;
         LoadSource = EffectBytecodeCacheLoadSource.JustCompiled;
     }
@@ -64,5 +64,5 @@ public readonly struct EffectBytecodeCompilerResult
     /// <param name="compilationLog">
     ///   The log containing information about the compilation, warnings, errors, etc.
     /// </param>
-    public EffectBytecodeCompilerResult(LoggerResult compilationLog) : this(byteCode: null, compilationLog) { }
+    public EffectBytecodeCompilerResult(LoggerResult compilationLog) : this(bytecode: null, compilationLog) { }
 }
