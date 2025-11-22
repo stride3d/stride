@@ -83,19 +83,20 @@ namespace Stride.Shaders.Compiler.Direct3D
 
             if (isDebug)
             {
-                // We could also specify D3DCOMPILE_SKIP_OPTIMIZATION, but that makes shaders sometimes
-                // use more registers and ALU ops than maximum allowed on Graphics Profiles <= 9.3
                 shaderFlags = D3DCOMPILE_DEBUG;
+
+                // We only specify D3DCOMPILE_SKIP_OPTIMIZATION on Graphics Profiles >= 10.0, as below that
+                // shaders sometimes use more registers and ALU ops than maximum allowed
+                if (profile >= GraphicsProfile.Level_10_0)
+                    shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
             }
-            switch (optimLevel)
+            else switch (optimLevel)
             {
                 case 0: shaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL0; break;
                 case 1: shaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL1; break;
                 case 2: shaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL2; break;
                 case 3: shaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL3; break;
             }
-
-            var shaderBytes = shaderSource.GetAsciiSpan();
 
             ComPtr<ID3D10Blob> bytecode = default;
             ComPtr<ID3D10Blob> compileErrors = default;
@@ -176,9 +177,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                 var shaderSourceSpan = shaderSource.GetAsciiSpan();
                 var shaderSourceLength = (nuint) shaderSourceSpan.Length;
 
-                ref var noSourceName = ref Unsafe.NullRef<byte>();
+                ref var noSourceName = ref NullRef<byte>();
 
-                ref var noDefines = ref Unsafe.NullRef<D3DShaderMacro>();
+                ref var noDefines = ref NullRef<D3DShaderMacro>();
                 var noIncludes = default(ComPtr<ID3DInclude>);
 
                 var entryPointSpan = entryPoint.GetUtf8Span();
@@ -207,7 +208,7 @@ namespace Stride.Shaders.Compiler.Direct3D
             //
             string Disassemble(ComPtr<ID3D10Blob> bytecode)
             {
-                ref var noComments = ref Unsafe.NullRef<byte>();
+                ref var noComments = ref NullRef<byte>();
 
                 ComPtr<ID3D10Blob> disassembly = default;
 
@@ -419,13 +420,13 @@ namespace Stride.Shaders.Compiler.Direct3D
                             var parameter = new EffectValueDescription()
                             {
                                 Type =
-                        {
-                            Class = (EffectParameterClass) variableTypeDescription.Class,
-                            Type = ConvertVariableValueType(variableTypeDescription.Type, log),
-                            Elements = (int) variableTypeDescription.Elements,
-                            RowCount = (byte) variableTypeDescription.Rows,
-                            ColumnCount = (byte) variableTypeDescription.Columns
-                        },
+                                {
+                                    Class = (EffectParameterClass) variableTypeDescription.Class,
+                                    Type = ConvertVariableValueType(variableTypeDescription.Type, log),
+                                    Elements = (int) variableTypeDescription.Elements,
+                                    RowCount = (byte) variableTypeDescription.Rows,
+                                    ColumnCount = (byte) variableTypeDescription.Columns
+                                },
                                 RawName = variableName,
                                 Offset = (int) variableDescription.StartOffset,
                                 Size = (int) variableDescription.Size
