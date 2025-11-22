@@ -548,7 +548,7 @@ namespace Stride.TextureConverter.TexLibraries
                     {
                         //xOffset += 4;
                         //node.Texture.SubImageArray[i].RowPitch += 4;
-                        Console.WriteLine(node.Texture.SubImageArray[i].RowPitch); ///////////////----------------------------------------------------------------------------------------
+                        Console.WriteLine(node.Texture.SubImageArray[i].RowPitch); // TODO: Fix row pitch for 24 bits textures? Why is this commented?
                     }*/
                     for (int j = 0; j < node.Texture.SubImageArray[i].Height; ++j)
                     {

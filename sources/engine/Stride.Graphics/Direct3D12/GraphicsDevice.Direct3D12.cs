@@ -178,9 +178,12 @@ namespace Stride.Graphics
         internal int SamplerHandleIncrementSize;
 
         /// <summary>
-        ///   Fence used to track the completion of commands for the current frame.------------------------------------
+        ///   Fence used to track the completion of commands for the current frame.
         /// </summary>
         internal FenceHelper FrameFence;
+        /// <summary>
+        ///   Fence used to track the completion of in-flight Command Lists for the Command Queue.
+        /// </summary>
         internal FenceHelper CommandListFence;
 
         /// <summary>
