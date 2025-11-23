@@ -11,7 +11,6 @@ namespace Stride.Engine.Builder;
 /// <summary>
 /// Helps build the game and preps it to be able to run after <see cref="Build"/>.
 /// </summary>
-/// <typeparam name="T"></typeparam>
 public class GameBuilder : IGameBuilder
 {
     /// <summary>
