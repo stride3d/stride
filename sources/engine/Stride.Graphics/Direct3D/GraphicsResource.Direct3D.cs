@@ -1,97 +1,155 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-using System;
 
-using SharpDX.Direct3D11;
+using Silk.NET.Core.Native;
+using Silk.NET.Direct3D11;
 
-namespace Stride.Graphics
+using static Stride.Graphics.ComPtrHelpers;
+
+namespace Stride.Graphics;
+
+public abstract unsafe partial class GraphicsResource
 {
+    private ID3D11ShaderResourceView* shaderResourceView;
+    private ID3D11UnorderedAccessView* unorderedAccessView;
+
     /// <summary>
-    /// GraphicsResource class
+    ///   Used to internally force a <c>WriteDiscard</c> (to force a resource rename) with the <see cref="GraphicsResourceAllocator"/>.
     /// </summary>
-    public abstract partial class GraphicsResource
+    internal bool DiscardNextMap;
+
+
+    /// <inheritdoc/>
+    protected override void OnNameChanged()
     {
-        private ShaderResourceView shaderResourceView;
-        private UnorderedAccessView unorderedAccessView;
-        internal bool DiscardNextMap; // Used to internally force a WriteDiscard (to force a rename) with the GraphicsResourceAllocator
+        base.OnNameChanged();
 
-        protected bool IsDebugMode
+        if (IsDebugMode)
         {
-            get
+            if (shaderResourceView is not null)
             {
-                return GraphicsDevice != null && GraphicsDevice.IsDebugMode;
+                NativeShaderResourceView.SetDebugName(Name is null ? null : $"{Name} SRV");
             }
-        }
-
-        protected override void OnNameChanged()
-        {
-            base.OnNameChanged();
-            if (IsDebugMode)
+            if (unorderedAccessView is not null)
             {
-                if (this.shaderResourceView != null)
-                {
-                    shaderResourceView.DebugName = Name == null ? null : $"{Name} SRV";
-                }
-
-                if (this.unorderedAccessView != null)
-                {
-                    unorderedAccessView.DebugName = Name == null ? null : $"{Name} UAV";
-                }
+                NativeUnorderedAccessView.SetDebugName(Name is null ? null : $"{Name} UAV");
             }
-        }
-
-        /// <summary>
-        /// Gets or sets the ShaderResourceView attached to this GraphicsResource.
-        /// Note that only Texture, Texture3D, RenderTarget2D, RenderTarget3D, DepthStencil are using this ShaderResourceView
-        /// </summary>
-        /// <value>The device child.</value>
-        protected internal SharpDX.Direct3D11.ShaderResourceView NativeShaderResourceView
-        {
-            get
-            {
-                return shaderResourceView;
-            }
-            set
-            {
-                shaderResourceView = value;
-
-                if (IsDebugMode && shaderResourceView != null)
-                {
-                    shaderResourceView.DebugName = Name == null ? null : $"{Name} SRV";
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the UnorderedAccessView attached to this GraphicsResource.
-        /// </summary>
-        /// <value>The device child.</value>
-        protected internal UnorderedAccessView NativeUnorderedAccessView
-        {
-            get
-            {
-                return unorderedAccessView;
-            }
-            set
-            {
-                unorderedAccessView = value;
-
-                if (IsDebugMode && unorderedAccessView != null)
-                {
-                    unorderedAccessView.DebugName = Name == null ? null : $"{Name} UAV";
-                }
-            }
-        }
-
-        protected internal override void OnDestroyed()
-        {
-            ReleaseComObject(ref shaderResourceView);
-            ReleaseComObject(ref unorderedAccessView);
-
-            base.OnDestroyed();
         }
     }
+
+    /// <summary>
+    ///   Gets or sets the <see cref="ID3D11ShaderResourceView"/> attached to the Graphics Resource.
+    /// </summary>
+    /// <value>The Shader Resource View associated with the Graphics Resource.</value>
+    /// <remarks>
+    ///   Only <see cref="Texture"/>s are using this Shader Resource View.
+    ///   <para>
+    ///     If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+    ///     reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+    ///   </para>
+    /// </remarks>
+    protected internal ComPtr<ID3D11ShaderResourceView> NativeShaderResourceView
+    {
+        get => ToComPtr(shaderResourceView);
+        set
+        {
+            if (shaderResourceView == value.Handle)
+                return;
+
+            var previousShaderResourceView = shaderResourceView;
+
+            // We assume the COM pointer we receive has been called AddRef(), so we
+            // just take ownership without calling it again
+            shaderResourceView = value.Handle;
+
+            if (shaderResourceView != previousShaderResourceView)
+            {
+                // Following the logic of the comment above, when we are no longer the owners
+                // of the COM pointer, we Release() it.
+                // It us up to users to call AddRef() on it if they plan to use it further
+                if (previousShaderResourceView is not null)
+                    previousShaderResourceView->Release();
+            }
+
+            if (IsDebugMode && shaderResourceView is not null)
+            {
+                NativeShaderResourceView.SetDebugName(Name is null ? null : $"{Name} SRV");
+            }
+        }
+    }
+
+    /// <summary>
+    ///   Gets or sets the <see cref="ID3D11UnorderedAccessView"/> attached to the Graphics Resource.
+    /// </summary>
+    /// <value>The Unordered Access View associated with the Graphics Resource.</value>
+    /// <remarks>
+    ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+    ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+    /// </remarks>
+    protected internal ComPtr<ID3D11UnorderedAccessView> NativeUnorderedAccessView
+    {
+        get => ToComPtr(unorderedAccessView);
+        set
+        {
+            if (unorderedAccessView == value.Handle)
+                return;
+
+            var previousUnorderedAccessView = unorderedAccessView;
+
+            // We assume the COM pointer we receive has been called AddRef(), so we
+            // just take ownership without calling it again
+            unorderedAccessView = value.Handle;
+
+            if (unorderedAccessView != previousUnorderedAccessView)
+            {
+                // Following the logic of the comment above, when we are no longer the owners
+                // of the COM pointer, we Release() it.
+                // It us up to users to call AddRef() on it if they plan to use it further
+                if (previousUnorderedAccessView is not null)
+                    previousUnorderedAccessView->Release();
+            }
+
+            if (IsDebugMode && unorderedAccessView is not null)
+            {
+                NativeUnorderedAccessView.SetDebugName(Name is null ? null : $"{Name} UAV");
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    ///   This method releases the underlying native resources (<see cref="ID3D11ShaderResourceView"/> and <see cref="ID3D11UnorderedAccessView"/>),
+    ///   and then calls <see cref="GraphicsResourceBase.OnDestroyed"/>.
+    /// </remarks>
+    protected internal override void OnDestroyed(bool immediately = false)
+    {
+        SafeRelease(ref shaderResourceView);
+        SafeRelease(ref unorderedAccessView);
+
+        base.OnDestroyed(immediately);
+    }
+
+    /// <summary>
+    ///   Swaps the Graphics Resource's internal data with another Graphics Resource.
+    /// </summary>
+    /// <param name="other">The other Graphics Resource.</param>
+    internal override void SwapInternal(GraphicsResourceBase other)
+    {
+        base.SwapInternal(other);
+
+        if (other is not GraphicsResource otherResource)
+            return;
+
+        var uav = unorderedAccessView;
+        unorderedAccessView = otherResource.unorderedAccessView;
+        otherResource.unorderedAccessView = uav;
+
+        var srv = shaderResourceView;
+        shaderResourceView = otherResource.shaderResourceView;
+        otherResource.shaderResourceView = srv;
+    }
 }
- 
+
 #endif

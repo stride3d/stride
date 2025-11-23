@@ -25,7 +25,7 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
-  
+
   <!-- Add support for building this project from the Project Directory -->
   <PropertyGroup>
     <DependencyDir>$(ProjectDir)..\..\..\deps</DependencyDir>
@@ -47,7 +47,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-  
+
   <!-- Compiled Items -->
   <ItemGroup>
     <Compile Include="..\Stride.Core\DataMemberMode.cs">
@@ -88,17 +88,17 @@
       <DesignTime>True</DesignTime>
     </Compile>
   </ItemGroup>
-  
+
   <!-- Items that have no role in the build process -->
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
-  
+
   <!-- Indicates this Project is included in Unit Test Projects -->
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  
+
   <!-- Define the full set of built items for later use -->
   <ItemGroup>
     <BuiltItems Include="$(TargetDir)*" />
@@ -107,7 +107,7 @@
   <!-- ======================================================================================== -->
   <!-- Tasks & Targets                                                                          -->
   <!-- ======================================================================================== -->
-  
+
   <!-- Define a custom task for writing text to a file -->
   <UsingTask
     TaskName="WriteAllText"
@@ -135,7 +135,7 @@
       DestinationFolder="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)"
     />
   </Target>
-  
+
   <!-- Packs the BuildItems into a single  DLL and generates a .hash file from it -->
   <Target Name="GenerateHash" AfterTargets="CopyFiles">
    <!-- Generate the hash and then write it to disk with the .hash extension -->

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
 {
@@ -20,28 +21,25 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="GraphicsOutput" />.
+        ///   Initializes a new instance of <see cref="GraphicsOutput"/>.
         /// </summary>
-        /// <param name="adapter">The adapter.</param>
-        /// <param name="displayIndex">Index of the output.</param>
-        /// <exception cref="System.ArgumentNullException">output</exception>
+        /// <param name="adapter">The Graphics Adapter the output depends on.</param>
+        /// <param name="displayIndex">The index of the output.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref cref="output"/> is <see langword="null"/>.</exception>
         internal GraphicsOutput(GraphicsAdapter adapter, int displayIndex)
         {
-            if (adapter == null) throw new ArgumentNullException("adapter");
-            
-            this.adapter = adapter;
+            ArgumentNullException.ThrowIfNull(adapter);
+
+            Adapter = adapter;
             this.displayIndex = displayIndex;
 
-            var SDL = Stride.Graphics.SDL.Window.SDL;
+            var SDL = Graphics.SDL.Window.SDL;
 
             unsafe
             {
                 var bounds = new Silk.NET.Maths.Rectangle<int>();
                 SDL.GetDisplayBounds(displayIndex, &bounds);
-                desktopBounds.Width = bounds.Size.X;
-                desktopBounds.Height = bounds.Size.Y;
-                desktopBounds.X = bounds.Origin.X;
-                desktopBounds.Y = bounds.Origin.Y;
+                DesktopBounds = new Rectangle(bounds.Origin.X, bounds.Origin.Y, bounds.Size.X, bounds.Size.Y);
             }
 
             DisplayName = SDL.GetDisplayNameS(displayIndex);
@@ -101,7 +99,7 @@ namespace Stride.Graphics
         private void InitializeCurrentDisplayMode()
         {
             var SDL = Stride.Graphics.SDL.Window.SDL;
-            var mode = new DisplayMode(PixelFormat.None, desktopBounds.Width, desktopBounds.Height, new Rational(1, 0));
+            var mode = new DisplayMode(PixelFormat.None, DesktopBounds.Width, DesktopBounds.Height, new Rational(1, 0));
 
             currentDisplayMode = FindClosestMatchingDisplayMode([], mode);
         }

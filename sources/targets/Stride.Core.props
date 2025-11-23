@@ -21,7 +21,7 @@
     <StridePlatform Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">UWP</StridePlatform>
     <StridePlatform Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">Android</StridePlatform>
     <StridePlatform Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' ">iOS</StridePlatform>
-    
+
     <StridePlatformFullName Condition="'$(StridePlatformFullName)' == ''">$(StridePlatform)</StridePlatformFullName>
 
     <StridePlatformDeps Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' ">dotnet</StridePlatformDeps>
@@ -34,8 +34,8 @@
   <Import Project="$(MSBuildThisFileDirectory)..\..\build\$(SolutionName).Build.props" Condition="Exists('$(MSBuildThisFileDirectory)..\..\build\$(SolutionName).Build.props')" />
   <Import Project="$(MSBuildThisFileDirectory)..\..\build\Stride.Core.Build.props" Condition="Exists('$(MSBuildThisFileDirectory)..\..\build\Stride.Core.Build.props')" />
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.TargetFrameworks.Editor.props" />
-  
-  <!-- 
+
+  <!--
     Settings StridePlatform specific
   -->
   <PropertyGroup>
@@ -47,7 +47,7 @@
     <StridePlatforms>$([MSBuild]::Unescape('$(StridePlatforms)'))</StridePlatforms>
     <_StridePlatforms>;$(StridePlatforms);</_StridePlatforms>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">
     <!-- Fixes for GetPackagingOutputs (note: not sure if still necessary) -->
     <WindowsAppContainer>false</WindowsAppContainer>
@@ -55,7 +55,7 @@
     <Platform>AnyCPU</Platform>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">  
+  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <!-- Add net10.0 no matter what (needed for references) -->
     <StrideRuntimeTargetFrameworks>net10.0</StrideRuntimeTargetFrameworks>
@@ -127,7 +127,7 @@
     <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     Global Settings per project
   -->
   <PropertyGroup>
@@ -207,7 +207,7 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' "/>
   <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' "/>
 
-  <!-- 
+  <!--
     Settings StrideNETRuntime specific
   -->
   <PropertyGroup Condition="$(TargetFramework.StartsWith('net10'))">

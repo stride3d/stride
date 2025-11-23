@@ -42,6 +42,7 @@ namespace Stride.Graphics
         private int nativeUploadBufferOffset;
         private object nativeUploadBufferLock = new();
 
+        // TODO: review that and align it with D3D12 (and possibly move it in common API once D3D12/Vulkan only)
         private Queue<KeyValuePair<long, VkFence>> nativeFences = new Queue<KeyValuePair<long, VkFence>>();
         private long lastCompletedFence;
         internal long NextFenceValue = 1;
@@ -159,9 +160,9 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Enables profiling.
+        ///   Enables or disables profiling.
         /// </summary>
-        /// <param name="enabledFlag">if set to <c>true</c> [enabled flag].</param>
+        /// <param name="enabledFlag"><see langword="true"/> to enable profiling; <see langword="false"/> to disable it.</param>
         public void EnableProfile(bool enabledFlag)
         {
         }
@@ -230,14 +231,14 @@ namespace Stride.Graphics
             graphicsResourceLinkCollector.Release();
         }
 
-        private void InitializePostFeatures()
+        /// <summary>
+        ///   Initializes the platform-specific features of the Graphics Device once it has been fully initialized.
+        /// </summary>
+        private unsafe partial void InitializePostFeatures()
         {
         }
 
-        private string GetRendererName()
-        {
-            return rendererName;
-        }
+        private partial string GetRendererName() => rendererName;
 
         public void SimulateReset()
         {
@@ -245,12 +246,12 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///     Initializes the specified device.
+        ///   Initialize the platform-specific implementation of the Graphics Device.
         /// </summary>
-        /// <param name="graphicsProfiles">The graphics profiles.</param>
+        /// <param name="graphicsProfiles">A non-<see langword="null"/> list of the graphics profiles to try, in order of preference.</param>
         /// <param name="deviceCreationFlags">The device creation flags.</param>
         /// <param name="windowHandle">The window handle.</param>
-        private unsafe void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
+        private unsafe partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
             if (nativeDevice != VkDevice.Null)
             {
@@ -484,11 +485,18 @@ namespace Stride.Graphics
             vkBindBufferMemory(NativeDevice, nativeUploadBuffer, nativeUploadBufferMemory, 0);
         }
 
-        private void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription)
+        /// <summary>
+        ///   Makes Vulkan-specific adjustments to the Pipeline State objects created by the Graphics Device.
+        /// </summary>
+        /// <param name="pipelineStateDescription">A Pipeline State description that can be modified and adjusted.</param>
+        private partial void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription)
         {
         }
 
-        protected void DestroyPlatformDevice()
+        /// <summary>
+        ///   Releases the platform-specific Graphics Device and all its associated resources.
+        /// </summary>
+        protected partial void DestroyPlatformDevice()
         {
             ReleaseDevice();
         }
@@ -531,7 +539,7 @@ namespace Stride.Graphics
             vkDestroyDevice(nativeDevice, null);
         }
 
-        internal void OnDestroyed()
+        internal void OnDestroyed(bool immediately = false)
         {
         }
 
@@ -676,7 +684,14 @@ namespace Stride.Graphics
             nativeResourceCollector.Add(NextFenceValue, nativeResource);
         }
 
-        internal void TagResource(GraphicsResourceLink resourceLink)
+        /// <summary>
+        ///   Tags a Graphics Resource as no having alive references, meaning it should be safe to dispose it
+        ///   or discard its contents during the next <see cref="CommandList.MapSubResource"/> or <c>SetData</c> operation.
+        /// </summary>
+        /// <param name="resourceLink">
+        ///   A <see cref="GraphicsResourceLink"/> object identifying the Graphics Resource along some related allocation information.
+        /// </param>
+        internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink)
         {
             switch (resourceLink.Resource)
             {
@@ -755,7 +770,7 @@ namespace Stride.Graphics
         protected override void Destroy()
         {
             lock (liveObjects)
-            { 
+            {
                 foreach (var item in liveObjects)
                 {
                     DestroyObject(item.Value);
@@ -974,11 +989,11 @@ namespace Stride.Graphics
             item.Destroy(GraphicsDevice);
         }
     }
-    
+
     internal abstract class TemporaryResourceCollector<T> : IDisposable
     {
         protected readonly GraphicsDevice GraphicsDevice;
-        private readonly Queue<KeyValuePair<long, T>> items = new Queue<KeyValuePair<long, T>>();
+        private readonly Queue<KeyValuePair<long, T>> items = new();
 
         protected TemporaryResourceCollector(GraphicsDevice graphicsDevice)
         {

@@ -3,18 +3,18 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 
 using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
-using SharpDX.Direct3D11;
+using Silk.NET.Direct3D11;
 using Valve.VR;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
-using System.Runtime.CompilerServices;
-using System.Diagnostics;
 
 namespace Stride.VirtualReality
 {
-    internal static class OpenVR
+    internal static unsafe class OpenVR
     {
         public class Controller
         {
@@ -24,7 +24,7 @@ namespace Stride.VirtualReality
             public enum Hand
             {
                 Left,
-                Right,
+                Right
             }
 
             public static int GetDeviceIndex(Hand hand)
@@ -233,7 +233,7 @@ namespace Stride.VirtualReality
             {
                 eType = ETextureType.DirectX,
                 eColorSpace = EColorSpace.Auto,
-                handle = texture.NativeResource.NativePointer,
+                handle = (nint) texture.NativeResource.Handle
             };
             var bounds = new VRTextureBounds_t
             {
@@ -411,16 +411,21 @@ namespace Stride.VirtualReality
 
         public static Texture GetMirrorTexture(GraphicsDevice device, int eyeIndex)
         {
-            var nativeDevice = device.NativeDevice.NativePointer;
-            var eyeTexSrv = IntPtr.Zero;
-            Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, nativeDevice, ref eyeTexSrv);
+            var nativeDevice = device.NativeDevice;
 
-            var tex = new Texture(device);
-            var srv = new ShaderResourceView(eyeTexSrv);
+            var eyeTextureSrv = IntPtr.Zero;
+            Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, (nint) nativeDevice.Handle, ref eyeTextureSrv);
 
-            tex.InitializeFromImpl(srv);
+            var srv = (ID3D11ShaderResourceView*) eyeTextureSrv;
 
-            return tex;
+            var texture = new Texture(device).InitializeFromImpl(srv);
+
+            // We don't need to take ownership of the COM pointer.
+            //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+            //   compensate with Release() to return the reference count to its previous value
+            srv->Release();
+
+            return texture;
         }
 
         public static void GetRecommendedRenderTargetSize(out (uint x, uint y) size)
@@ -448,7 +453,7 @@ namespace Stride.VirtualReality
             {
                 eType = ETextureType.DirectX,
                 eColorSpace = EColorSpace.Auto,
-                handle = texture.NativeResource.NativePointer,
+                handle = (nint) texture.NativeResource.Handle
             };
 
             return Valve.VR.OpenVR.Overlay.SetOverlayTexture(overlayId, ref tex) == EVROverlayError.None;

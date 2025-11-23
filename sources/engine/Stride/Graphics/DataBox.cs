@@ -1,108 +1,75 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Runtime.InteropServices;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+/// <summary>
+///   Defines a region of data organized in 3D.
+/// </summary>
+/// <param name="dataPointer">A pointer to the data.</param>
+/// <param name="rowPitch">The number of bytes per row of the data.</param>
+/// <param name="slicePitch">The number of bytes per slice of the data (for a 3D Texture, a slice is a 2D image).</param>
+[StructLayout(LayoutKind.Sequential)]
+public struct DataBox(IntPtr dataPointer, int rowPitch, int slicePitch) : IEquatable<DataBox>
 {
     /// <summary>
-    /// Provides access to data organized in 3D.
+    ///   An empty <see cref="DataBox"/>.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct DataBox : IEquatable<DataBox>
+    public static readonly DataBox Empty = default;
+
+
+    /// <summary>
+    ///   A pointer to the data.
+    /// </summary>
+    public IntPtr DataPointer = dataPointer;
+
+    /// <summary>
+    ///   The number of bytes per row of the data.
+    /// </summary>
+    public int RowPitch = rowPitch;
+
+    /// <summary>
+    ///   The number of bytes per slice of the data (for a 3D Texture, a slice is a 2D image).
+    /// </summary>
+    public int SlicePitch = slicePitch;
+
+
+    /// <summary>
+    ///   Gets a value indicating whether this data box is empty.
+    /// </summary>
+    /// <value><see langword="true"/> if this instance is empty; otherwise, <see langword="false"/>.</value>
+    public readonly bool IsEmpty => EqualsByRef(in Empty);
+
+
+    /// <inheritdoc/>
+    public readonly bool Equals(DataBox other)
     {
-        /// <summary>
-        /// An empty DataBox.
-        /// </summary>
-        private static DataBox empty;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataBox"/> struct.
-        /// </summary>
-        /// <param name="datapointer">The datapointer.</param>
-        /// <param name="rowPitch">The row pitch.</param>
-        /// <param name="slicePitch">The slice pitch.</param>
-        public DataBox(IntPtr datapointer, int rowPitch, int slicePitch)
-        {
-            DataPointer = datapointer;
-            RowPitch = rowPitch;
-            SlicePitch = slicePitch;
-        }
-
-        /// <summary>
-        /// Pointer to the data.
-        /// </summary>
-        public IntPtr DataPointer;
-
-        /// <summary>
-        /// Gets the number of bytes per row.
-        /// </summary>
-        public int RowPitch;
-
-        /// <summary>
-        /// Gets the number of bytes per slice (for a 3D texture, a slice is a 2D image)
-        /// </summary>
-        public int SlicePitch;
-
-        /// <summary>
-        /// Gets a value indicating whether this instance is empty.
-        /// </summary>
-        /// <value><c>true</c> if this instance is empty; otherwise, <c>false</c>.</value>
-        public bool IsEmpty
-        {
-            get
-            {
-                return EqualsByRef(ref empty);
-            }
-        }
-
-        public bool Equals(DataBox other)
-        {
-            return EqualsByRef(ref other);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            return obj is DataBox && Equals((DataBox)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = DataPointer.GetHashCode();
-                hashCode = (hashCode * 397) ^ RowPitch;
-                hashCode = (hashCode * 397) ^ SlicePitch;
-                return hashCode;
-            }
-        }
-
-        /// <summary>
-        /// Implements the operator ==.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>The result of the operator.</returns>
-        public static bool operator ==(DataBox left, DataBox right)
-        {
-            return left.Equals(right);
-        }
-
-        /// <summary>
-        /// Implements the operator !=.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>The result of the operator.</returns>
-        public static bool operator !=(DataBox left, DataBox right)
-        {
-            return !left.Equals(right);
-        }
-
-        private bool EqualsByRef(ref DataBox other)
-        {
-            return DataPointer == other.DataPointer && RowPitch == other.RowPitch && SlicePitch == other.SlicePitch;
-        }
+        return EqualsByRef(in other);
     }
+
+    private readonly bool EqualsByRef(scoped ref readonly DataBox other)
+    {
+        return DataPointer == other.DataPointer
+            && RowPitch == other.RowPitch
+            && SlicePitch == other.SlicePitch;
+    }
+
+    /// <inheritdoc/>
+    public override readonly bool Equals(object obj)
+    {
+        return obj is DataBox dataBox && Equals(dataBox);
+    }
+
+    /// <inheritdoc/>
+    public override readonly int GetHashCode()
+    {
+        return HashCode.Combine(DataPointer, RowPitch, SlicePitch);
+    }
+
+    public static bool operator ==(DataBox left, DataBox right) => left.Equals(right);
+
+    public static bool operator !=(DataBox left, DataBox right) => !left.Equals(right);
 }

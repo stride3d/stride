@@ -42,12 +42,12 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override unsafe void OnDestroyed()
+        protected internal override unsafe void OnDestroyed(bool immediately = false)
         {
             GraphicsDevice.NativeDevice.DestroyDescriptorSetLayout(NativeLayout);
             NativeLayout = VkDescriptorSetLayout.Null;
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 #endif
 

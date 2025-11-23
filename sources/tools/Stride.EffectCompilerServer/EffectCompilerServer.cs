@@ -111,7 +111,7 @@ namespace Stride.EffectCompilerServer
                 StreamId = remoteEffectCompilerEffectRequest.StreamId,
                 LogMessages = precompiledEffectShaderPass.CompilationLog.Messages.Select(x => new SerializableLogMessage((LogMessage)x)).ToList(),
                 LogHasErrors = precompiledEffectShaderPass.CompilationLog.HasErrors,
-                EffectBytecode = precompiledEffectShaderPass.Bytecode,
+                EffectBytecode = precompiledEffectShaderPass.ByteCode,
             });
         }
     }

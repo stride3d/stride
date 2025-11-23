@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
-using System;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
@@ -42,7 +41,7 @@ namespace Stride.Graphics
             //            sType = VkStructureType.DebugMarkerObjectNameInfo,
             //            Object = ,
             //            ObjectName = new IntPtr(bytesPointer),
-            //            ObjectType = 
+            //            ObjectType =
             //        };
             //        GraphicsDevice.NativeDevice.DebugMarkerSetObjectName(ref nameInfo);
             //    }

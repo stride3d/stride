@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Threading.Tasks;
+
 using Xunit;
 
 using Stride.Core.Mathematics;
@@ -43,7 +45,9 @@ namespace Stride.Graphics.Tests
         {
             base.RegisterTests();
 
-            FrameGameSystem.Draw(DrawText).TakeScreenshot();
+            FrameGameSystem
+                .Draw(DrawText)
+                .TakeScreenshot();
         }
 
         protected override async Task LoadContent()
@@ -53,7 +57,6 @@ namespace Stride.Graphics.Tests
             hanSans13 = Content.Load<SpriteFont>(AssetPrefix + "HanSans13");
             hanSans18 = Content.Load<SpriteFont>(AssetPrefix + "HanSans18");
 
-            // Instantiate a SpriteBatch
             spriteBatch = new SpriteBatch(GraphicsDevice);
         }
 
@@ -93,9 +96,7 @@ namespace Stride.Graphics.Tests
             spriteBatch.End();
         }
 
-        /// <summary>
-        /// Run the test
-        /// </summary>
+
         [Fact]
         public void RunDynamicSpriteFontJapanese()
         {

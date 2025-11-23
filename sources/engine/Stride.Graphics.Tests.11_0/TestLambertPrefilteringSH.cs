@@ -35,15 +35,17 @@ namespace Stride.Graphics.Tests
 
         private bool useComputeShader;
 
-        private Int2 screenSize = new Int2(768, 1024);
+        private static readonly Int2 ScreenSize = new(768, 1024);
 
         private EffectInstance cubemapSpriteEffect;
 
+
         public TestLambertPrefilteringSH()
         {
-            GraphicsDeviceManager.PreferredBackBufferWidth = screenSize.X;
-            GraphicsDeviceManager.PreferredBackBufferHeight = screenSize.Y;
+            GraphicsDeviceManager.PreferredBackBufferWidth = ScreenSize.X;
+            GraphicsDeviceManager.PreferredBackBufferHeight = ScreenSize.Y;
         }
+
 
         protected override async Task LoadContent()
         {
@@ -58,9 +60,15 @@ namespace Stride.Graphics.Tests
             renderSHEffect.Initialize(drawEffectContext);
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
+
             inputCubemap = Content.Load<Texture>("CubeMap");
-            outputCubemap = Texture.NewCube(GraphicsDevice, 256, 1, PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget | TextureFlags.ShaderResource).DisposeBy(this);
-            displayedCubemap = outputCubemap;
+
+            outputCubemap = Texture.NewCube(GraphicsDevice,
+                                            size: 256, mipCount: 1,
+                                            format: PixelFormat.R8G8B8A8_UNorm,
+                                            textureFlags: TextureFlags.RenderTarget | TextureFlags.ShaderResource);
+
+            displayedCubemap = outputCubemap.DisposeBy(this);
         }
 
         private void PrefilterCubeMap(RenderDrawContext context)
@@ -69,7 +77,7 @@ namespace Stride.Graphics.Tests
                 return;
 
             if (useComputeShader)
-            { 
+            {
                 lamberFilter.HarmonicOrder = 5;
                 lamberFilter.RadianceMap = inputCubemap;
                 lamberFilter.Draw(context);
@@ -96,10 +104,10 @@ namespace Stride.Graphics.Tests
 
         private void RenderCubeMap(RenderDrawContext context)
         {
-            if (displayedCubemap == null || spriteBatch == null)
+            if (displayedCubemap is null || spriteBatch is null)
                 return;
 
-            var size = new Vector2(screenSize.X / 3f, screenSize.Y / 4f);
+            var size = new Vector2(ScreenSize.X / 3f, ScreenSize.Y / 4f);
 
             context.CommandList.SetRenderTargetAndViewport(null, GraphicsDevice.Presenter.BackBuffer);
             context.CommandList.Clear(GraphicsDevice.Presenter.BackBuffer, Color.Green);
@@ -164,10 +172,11 @@ namespace Stride.Graphics.Tests
             base.Draw(gameTime);
         }
 
+
         [SkippableFact]
         public void RunTestPass2()
         {
-            IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);
+            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGLES);
 
             RunGameTest(new TestLambertPrefilteringSH());
         }
