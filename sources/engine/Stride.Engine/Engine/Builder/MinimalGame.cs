@@ -52,7 +52,7 @@ public class MinimalGame : GameBase, IHostedService
 
         if (gameCreation)
         {
-            //if our device width or height is actually smaller then requested we use the device one
+            //if our device width or height is actually smaller than requested we use the device one
             deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = Math.Min(deviceManager.PreferredBackBufferWidth, Window.ClientBounds.Width);
             deviceManager.PreferredBackBufferHeight = Context.RequestedHeight = Math.Min(deviceManager.PreferredBackBufferHeight, Window.ClientBounds.Height);
         }
