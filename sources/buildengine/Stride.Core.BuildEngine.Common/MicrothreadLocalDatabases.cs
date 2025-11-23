@@ -117,7 +117,6 @@ public static class MicrothreadLocalDatabases
         {
             get => MicroThreadLocalDatabaseFileProvider.Value;
             set => MicroThreadLocalDatabaseFileProvider.Value = value;
-                //throw new InvalidOperationException($"Can not change the value of a {nameof(MicroThreadLocalProviderService.FileProvider)}");
         }
     }
 }
