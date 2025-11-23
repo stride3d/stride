@@ -16,8 +16,8 @@ public class TrackingHashSet<T> : ISet<T>, IReadOnlySet<T>, ITrackingCollectionC
 {
     private readonly HashSet<T> innerHashSet = [];
 
-    private EventHandler<TrackingCollectionChangedEventArgs<T>>? _itemAdded;
-    private EventHandler<TrackingCollectionChangedEventArgs<T>>? _itemRemoved;
+    private EventHandler<TrackingCollectionChangedEventArgs<T>>? itemAdded;
+    private EventHandler<TrackingCollectionChangedEventArgs<T>>? itemRemoved;
 
     /// <inheritdoc/>
     public event EventHandler<TrackingCollectionChangedEventArgs<T>> CollectionChanged
@@ -25,13 +25,13 @@ public class TrackingHashSet<T> : ISet<T>, IReadOnlySet<T>, ITrackingCollectionC
         add
         {
             // We keep a list in reverse order for removal, so that we can easily have multiple handlers depending on each others
-            _itemAdded = (EventHandler<TrackingCollectionChangedEventArgs<T>>)Delegate.Combine(_itemAdded, value);
-            _itemRemoved = (EventHandler<TrackingCollectionChangedEventArgs<T>>)Delegate.Combine(value, _itemRemoved);
+            itemAdded = (EventHandler<TrackingCollectionChangedEventArgs<T>>)Delegate.Combine(itemAdded, value);
+            itemRemoved = (EventHandler<TrackingCollectionChangedEventArgs<T>>)Delegate.Combine(value, itemRemoved);
         }
         remove
         {
-            _itemAdded = (EventHandler<TrackingCollectionChangedEventArgs<T>>?)Delegate.Remove(_itemAdded, value);
-            _itemRemoved = (EventHandler<TrackingCollectionChangedEventArgs<T>>?)Delegate.Remove(_itemRemoved, value);
+            itemAdded = (EventHandler<TrackingCollectionChangedEventArgs<T>>?)Delegate.Remove(itemAdded, value);
+            itemRemoved = (EventHandler<TrackingCollectionChangedEventArgs<T>>?)Delegate.Remove(itemRemoved, value);
         }
     }
 
@@ -40,7 +40,7 @@ public class TrackingHashSet<T> : ISet<T>, IReadOnlySet<T>, ITrackingCollectionC
     {
         if (innerHashSet.Add(item))
         {
-            _itemAdded?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Add, item, default, -1, true));
+            itemAdded?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Add, item, default, -1, true));
             return true;
         }
 
@@ -116,7 +116,7 @@ public class TrackingHashSet<T> : ISet<T>, IReadOnlySet<T>, ITrackingCollectionC
     /// <inheritdoc/>
     public void Clear()
     {
-        if (_itemRemoved != null)
+        if (itemRemoved != null)
         {
             foreach (var item in innerHashSet.ToArray())
             {
@@ -153,7 +153,7 @@ public class TrackingHashSet<T> : ISet<T>, IReadOnlySet<T>, ITrackingCollectionC
         if (!innerHashSet.Remove(item))
             return false;
 
-        _itemRemoved?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Remove, item, default, -1, true));
+        itemRemoved?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Remove, item, default, -1, true));
         return true;
     }
 
