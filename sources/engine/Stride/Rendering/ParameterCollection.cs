@@ -654,12 +654,13 @@ namespace Stride.Rendering
             int bufferSize = dataValues.Length;
             Debug.Assert(parameter.Offset < bufferSize, $"The offset {parameter.Offset:X} is out of bounds! (Buffer size: {bufferSize})");
 
-            // Align to float4
+            // Align to float4 (16 bytes)
             var stride = Align(sizeof(T));
-            var totalSize = count * stride;
 
-            Debug.Assert(parameter.Offset + count * stride <= dataValues.Length);
-            Debug.Assert(parameter.Offset + totalSize <= bufferSize, $"The data will overrun the buffer size! (Offset: {parameter.Offset:X}, Size: {totalSize}, Buffer size: {bufferSize})");
+            Debug.Assert(parameter.Offset + ComputeAlignedSizeMinusTrailingPadding(sizeof(T), count) <= dataValues.Length);
+            Debug.Assert(parameter.Offset + ComputeAlignedSizeMinusTrailingPadding(sizeof(T), count) <= bufferSize,
+                         $"The data will overrun the buffer size! (Offset: {parameter.Offset:X}, " +
+                         $"Size: {ComputeAlignedSizeMinusTrailingPadding(sizeof(T), count)}, Buffer size: {bufferSize})");
 
             if (count > parameter.Count)
             {
