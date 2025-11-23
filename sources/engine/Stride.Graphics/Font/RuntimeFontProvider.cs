@@ -62,9 +62,6 @@ public class RuntimeFontProvider
                 $"Cannot register a different path '{filePath}' for the same font name and style.");
         }
 
-        if (registeredFonts.ContainsKey(key))
-            return;
-
         fontSystem.FontManager.LoadFontFromFileSystem(fontName, filePath, style);
 
         registeredFonts[key] = new RuntimeFontInfo(fontName, filePath, style);
