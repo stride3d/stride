@@ -2,11 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
-using Stride.Core;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
@@ -102,9 +98,9 @@ namespace Stride.Graphics
 //                {
 //                    // Force render target destruction
 //                    // TODO: We should track all user created render targets that points to back buffer as well (or deny their creation?)
-//                    backBuffer.OnDestroyed();
+//                    backBuffer.OnDestroyed(true);
 
-//                    OnDestroyed();
+//                    OnDestroyed(true);
 
 //                    Description.IsFullScreen = true;
 
@@ -122,7 +118,7 @@ namespace Stride.Graphics
 //                    Resize(backBuffer.ViewWidth, backBuffer.ViewHeight, backBuffer.ViewFormat);
 //                }
 
-//                // If going to window mode: 
+//                // If going to window mode:
 //                if (!switchToFullScreen)
 //                {
 //                    // call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
@@ -180,14 +176,14 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override unsafe void OnDestroyed()
+        protected internal override unsafe void OnDestroyed(bool immediately = false)
         {
             DestroySwapchain();
 
             vkDestroySurfaceKHR(GraphicsDevice.NativeInstance, surface, null);
             surface = VkSurfaceKHR.Null;
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         /// <inheritdoc/>
@@ -215,7 +211,7 @@ namespace Stride.Graphics
             newTextureDescription.Height = height;
 
             // Manually update the texture
-            DepthStencilBuffer.OnDestroyed();
+            DepthStencilBuffer.OnDestroyed(true);
 
             // Put it in our back buffer texture
             DepthStencilBuffer.InitializeFrom(newTextureDescription);
@@ -229,7 +225,7 @@ namespace Stride.Graphics
 
             vkDeviceWaitIdle(GraphicsDevice.NativeDevice);
 
-            backbuffer.OnDestroyed();
+            backbuffer.OnDestroyed(true);
 
             foreach (var swapchainImage in swapchainImages)
             {
@@ -399,7 +395,7 @@ namespace Stride.Graphics
                 Depth = 1,
                 Flags = TextureFlags.RenderTarget,
                 Format = Description.BackBufferFormat,
-                MipLevels = 1,
+                MipLevelCount = 1,
                 MultisampleCount = MultisampleCount.None,
                 Usage = GraphicsResourceUsage.Default
             };
@@ -474,7 +470,7 @@ namespace Stride.Graphics
 
             // Get next image
             vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), VkFence.Null, out currentBufferIndex);
-            
+
             // Apply the first swap chain image to the texture
             backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
         }

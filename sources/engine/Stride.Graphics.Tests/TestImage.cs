@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -196,7 +196,7 @@ namespace Stride.Graphics.Tests
                         intermediateFormat == ImageFileType.Tiff || // TODO remove this when Save method is implemented for the tiff format
                         sourceFormat == ImageFileType.Bmp || // TODO remove this when Load method is fixed for the bmp format
                         sourceFormat == ImageFileType.Tiff)) // TODO remove this when Load method is fixed for the tiff format
-                        continue; 
+                        continue;
 
                     if (intermediateFormat == ImageFileType.Wmp || sourceFormat == ImageFileType.Wmp ||
                         intermediateFormat == ImageFileType.Tga || sourceFormat == ImageFileType.Tga) // TODO remove this when Load/Save methods are implemented for those types.
@@ -226,7 +226,7 @@ namespace Stride.Graphics.Tests
 
                     // Load an image from a buffer
                     byte[] buffer;
-                    using (var inStream = game.Content.OpenAsStream(filePath, StreamFlags.None))
+                    using (var inStream = game.Content.OpenAsStream(filePath))
                     {
                         var bufferSize = inStream.Length;
                         buffer = new byte[bufferSize];
@@ -239,7 +239,7 @@ namespace Stride.Graphics.Tests
                         var tempStream = new MemoryStream();
                         image.Save(tempStream, intermediateFormat);
                         tempStream.Position = 0;
-                        
+
                         // Reload the image from the memory stream.
                         var image2 = Image.Load(tempStream);
                         CompareImage(image, image2, false, 0, fileName);
@@ -261,13 +261,13 @@ namespace Stride.Graphics.Tests
             var fileName = sourceFormat.ToFileExtension().Substring(1) + "Image";
             var filePath = "ImageTypes/" + fileName;
             Image image;
-            using (var inStream = game.Content.OpenAsStream(filePath, StreamFlags.None))
+            using (var inStream = game.Content.OpenAsStream(filePath))
                 image = Image.Load(inStream);
             image.Dispose();
 
             // Load an image from a buffer
             byte[] buffer;
-            using (var inStream = game.Content.OpenAsStream(filePath, StreamFlags.None))
+            using (var inStream = game.Content.OpenAsStream(filePath))
             {
                 var bufferSize = inStream.Length;
                 buffer = new byte[bufferSize];
@@ -286,7 +286,7 @@ namespace Stride.Graphics.Tests
                 using (var outStream = VirtualFileSystem.ApplicationCache.OpenStream(fileName + extension, VirtualFileMode.Create, VirtualFileAccess.Write))
                     image.Save(outStream, intermediateFormat);
 
-                if (intermediateFormat == ImageFileType.Stride || intermediateFormat == ImageFileType.Dds || (sourceFormat == intermediateFormat 
+                if (intermediateFormat == ImageFileType.Stride || intermediateFormat == ImageFileType.Dds || (sourceFormat == intermediateFormat
                     && intermediateFormat != ImageFileType.Gif)) // TODO: remove this when Giff compression/decompression is fixed
                 {
                     int allowSmallDifferences;

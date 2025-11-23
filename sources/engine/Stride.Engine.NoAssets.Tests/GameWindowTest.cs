@@ -2,11 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xunit;
+
 using Stride.Core.Mathematics;
-using Stride.Graphics;
 using Stride.Graphics.Regression;
-using Stride.Rendering.Sprites;
-using Stride.Core;
 using Stride.Games;
 
 namespace Stride.Engine.Tests
@@ -24,7 +22,7 @@ namespace Stride.Engine.Tests
                 var windowRenderer = new GameWindowRenderer(game.Services, context)
                 {
                     PreferredBackBufferWidth = 640,
-                    PreferredBackBufferHeight = 480,
+                    PreferredBackBufferHeight = 480
                 };
                 windowRenderer.Initialize();
                 ((IContentable)windowRenderer).LoadContent();
@@ -34,9 +32,8 @@ namespace Stride.Engine.Tests
 
                 windowRenderer.BeginDraw();
                 game.GraphicsContext.CommandList.Clear(windowRenderer.Presenter.BackBuffer, Color.Blue);
-                windowRenderer.EndDraw();
-
                 game.SaveImage(windowRenderer.Presenter.BackBuffer, "Clear");
+                windowRenderer.EndDraw();
 
                 windowRenderer.Dispose();
             });

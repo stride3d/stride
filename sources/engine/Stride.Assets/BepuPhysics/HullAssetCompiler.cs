@@ -267,7 +267,7 @@ internal class HullAssetCompiler : AssetCompilerBase
 
                         for (var t = 0; t < indices.Length; t += 3)
                         {
-                            Core.Utilities.Swap(ref indices[t], ref indices[t + 2]);
+                            MemoryUtilities.Swap(ref indices[t], ref indices[t + 2]);
                         }
 
                         hullsList.Add(new DecomposedHulls.Hull(pointsV3, indices));

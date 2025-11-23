@@ -40,7 +40,7 @@ namespace Stride.Shaders.Tests
 
             var color1Mixin = new ShaderClassSource("ComputeColorFixed", "Material.DiffuseColorValue");
             var color2Mixin = new ShaderClassSource("ComputeColorFixed", "Material.SpecularColorValue");
-            
+
             var compMixin = new ShaderMixinSource();
             compMixin.Mixins.Add(new ShaderClassSource("ComputeColorMultiply"));
             compMixin.AddComposition("color1", color1Mixin);
@@ -51,8 +51,8 @@ namespace Stride.Shaders.Tests
             mixinSource.Mixins.Add(new ShaderClassSource("AlbedoFlatShading"));
             mixinSource.AddComposition("albedoDiffuse", compMixin);
 
-            var byteCode = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
-            Assert.NotEqual(default(TaskOrResult<EffectBytecodeCompilerResult>), byteCode);
+            var bytecode = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
+            Assert.NotEqual(default, bytecode);
         }
 
         [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
@@ -75,8 +75,8 @@ namespace Stride.Shaders.Tests
             mixinSource.Mixins.Add(new ShaderClassSource("AlbedoFlatShading"));
             mixinSource.AddComposition("albedoDiffuse", compMixin);
 
-            var byteCode = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
-            Assert.NotEqual(default(TaskOrResult<EffectBytecodeCompilerResult>), byteCode);
+            var bytecode = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
+            Assert.NotEqual(default, bytecode);
         }
 
         [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]

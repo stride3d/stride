@@ -108,6 +108,10 @@ public static class Program
                     {
                         EmbeddedGame.DebugMode = true;
                     }
+                    else if (args[i] == "/PixGpuCapturer")
+                    {
+                        WinPixNative.LoadPixGpuCapturer();
+                    }
                     else if (args[i] == "/RenderDoc")
                     {
                         // TODO: RenderDoc is not working here (when not in debug)

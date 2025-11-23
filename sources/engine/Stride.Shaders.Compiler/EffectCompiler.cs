@@ -212,34 +212,7 @@ namespace Stride.Shaders.Compiler
                 case GraphicsPlatform.OpenGL:
                 case GraphicsPlatform.OpenGLES:
                 case GraphicsPlatform.Vulkan:
-                    // get the number of render target outputs
-                    var rtOutputs = 0;
-                    var psOutput = parsingResult.Shader.Declarations.OfType<StructType>().FirstOrDefault(x => x.Name.Text == "PS_OUTPUT");
-                    if (psOutput != null)
-                    {
-                        foreach (var rto in psOutput.Fields)
-                        {
-                            var sem = rto.Qualifiers.OfType<Semantic>().FirstOrDefault();
-                            if (sem != null)
-                            {
-                                // special case SV_Target
-                                if (rtOutputs == 0 && sem.Name.Text == "SV_Target")
-                                {
-                                    rtOutputs = 1;
-                                    break;
-                                }
-                                for (var i = rtOutputs; i < 8; ++i)
-                                {
-                                    if (sem.Name.Text == ("SV_Target" + i))
-                                    {
-                                        rtOutputs = i + 1;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    compiler = new OpenGL.ShaderCompiler(rtOutputs);
+                    compiler = new OpenGL.ShaderCompiler();
                     break;
                 default:
                     throw new NotSupportedException();

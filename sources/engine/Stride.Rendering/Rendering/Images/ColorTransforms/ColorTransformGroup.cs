@@ -231,7 +231,7 @@ namespace Stride.Rendering.Images
 
         public void NotifyPermutationChange()
         {
-            Parameters.PermutationCounter++;
+            Parameters.NotifyPermutationChange();
         }
 
         private ParameterKey GetComposedKey(ParameterKey key, int transformIndex)

@@ -191,7 +191,7 @@ namespace Stride.Streaming
         /// <param name="options">The streaming options when streaming those resources</param>
         public void StreamResources(ParameterCollection parameters, StreamingOptions? options = null)
         {
-            if (parameters.ObjectValues == null)
+            if (parameters.ObjectValues.IsEmpty)
                 return;
 
             // Register all binded textures
@@ -241,7 +241,7 @@ namespace Stride.Streaming
         /// <param name="options">The streaming options when streaming those resources</param>
         public void SetResourceStreamingOptions(ParameterCollection parameters, StreamingOptions? options = null)
         {
-            if (parameters.ObjectValues == null)
+            if (parameters.ObjectValues.IsEmpty)
                 return;
 
             // Register all binded textures

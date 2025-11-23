@@ -17,10 +17,11 @@ namespace Stride.Rendering
         //public Viewport Viewport6;
         //public Viewport Viewport7;
 
+
         /// <summary>
-        /// Capture state from <see cref="CommandList.Viewports"/>.
+        ///   Captures the state from <see cref="CommandList.Viewports"/>.
         /// </summary>
-        /// <param name="commandList">The command list to capture state from.</param>
+        /// <param name="commandList">The Command List to capture state from.</param>
         public unsafe void CaptureState(CommandList commandList)
         {
             // TODO: Support multiple viewports

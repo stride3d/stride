@@ -7,14 +7,11 @@ namespace Stride.Graphics.Tests
 {
     public class TestStaticSpriteFont : TestSpriteFont
     {
-        public TestStaticSpriteFont()
-            : base("StaticFonts/", "sta")
+        public TestStaticSpriteFont() : base(assetPrefix: "StaticFonts/", saveImageSuffix: "sta")
         {
         }
 
-        /// <summary>
-        /// Run the test
-        /// </summary>
+
         [Fact]
         public void RunTestStaticSpriteFont()
         {

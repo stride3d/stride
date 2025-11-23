@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -115,18 +115,23 @@ namespace Stride.Graphics
 
         internal const float DepthBiasShiftOneUnit = 0.0001f;
 
-        protected BatchBase(GraphicsDevice device, EffectBytecode defaultEffectByteCode, EffectBytecode defaultEffectByteCodeSRgb, ResourceBufferInfo resourceBufferInfo, VertexDeclaration vertexDeclaration, int indexSize = sizeof(short))
+        protected BatchBase(GraphicsDevice device,
+                            EffectBytecode defaultEffectBytecode,
+                            EffectBytecode defaultEffectBytecodeSRgb,
+                            ResourceBufferInfo resourceBufferInfo,
+                            VertexDeclaration vertexDeclaration,
+                            int indexSize = sizeof(short))
         {
-            if (defaultEffectByteCode == null) throw new ArgumentNullException(nameof(defaultEffectByteCode));
-            if (defaultEffectByteCodeSRgb == null) throw new ArgumentNullException(nameof(defaultEffectByteCodeSRgb));
-            if (resourceBufferInfo == null) throw new ArgumentNullException("resourceBufferInfo");
-            if (vertexDeclaration == null) throw new ArgumentNullException("vertexDeclaration");
+            ArgumentNullException.ThrowIfNull(defaultEffectBytecode);
+            ArgumentNullException.ThrowIfNull(defaultEffectBytecodeSRgb);
+            ArgumentNullException.ThrowIfNull(resourceBufferInfo);
+            ArgumentNullException.ThrowIfNull(vertexDeclaration);
 
             graphicsDevice = device;
             mutablePipeline = new MutablePipelineState(device);
             // TODO GRAPHICS REFACTOR Should we initialize FX lazily?
-            DefaultEffect = new EffectInstance(new Effect(device, defaultEffectByteCode) { Name = "BatchDefaultEffect" });
-            DefaultEffectSRgb = new EffectInstance(new Effect(device, defaultEffectByteCodeSRgb) { Name = "BatchDefaultEffectSRgb" });
+            DefaultEffect = new EffectInstance(new Effect(device, defaultEffectBytecode) { Name = "BatchDefaultEffect" });
+            DefaultEffectSRgb = new EffectInstance(new Effect(device, defaultEffectBytecodeSRgb) { Name = "BatchDefaultEffectSRgb" });
 
             drawsQueue = new ElementInfo[resourceBufferInfo.BatchCapacity];
             drawTextures = new Texture[resourceBufferInfo.BatchCapacity];
@@ -276,7 +281,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Flushes the sprite batch and restores the device state to how it was before Begin was called. 
+        /// Flushes the sprite batch and restores the device state to how it was before Begin was called.
         /// </summary>
         public void End()
         {
@@ -304,7 +309,7 @@ namespace Stride.Graphics
             // We are with begin pair
             isBeginCalled = false;
         }
-        
+
         private void SortSprites()
         {
             IComparer<int> comparer;
@@ -445,15 +450,15 @@ namespace Stride.Graphics
                         lastFrameBuffers.Add(ResourceContext.IndexBuffer);
                     }
                 }
-                
+
                 int indexCount = 0, vertexCount = 0;
                 int batchStart = offset;
-                for (int vertexLeft = ResourceContext.VertexCount - ResourceContext.VertexBufferPosition, indexLeft = ResourceContext.IndexCount - ResourceContext.IndexBufferPosition; 
-                     offset < end && vertexCount < vertexLeft && indexCount < indexLeft; 
+                for (int vertexLeft = ResourceContext.VertexCount - ResourceContext.VertexBufferPosition, indexLeft = ResourceContext.IndexCount - ResourceContext.IndexBufferPosition;
+                     offset < end && vertexCount < vertexLeft && indexCount < indexLeft;
                      offset++)
                 {
                     ref var spriteElementInfo = ref sprites[offset];
-                    
+
                     vertexCount += spriteElementInfo.VertexCount;
                     indexCount += spriteElementInfo.IndexCount;
                 }
@@ -462,9 +467,9 @@ namespace Stride.Graphics
                 var offsetIndexInBytes = ResourceContext.IndexBufferPosition * indexStructSize;
 
                 var mappedIndices = new MappedResource();
-                var mappedVertices = GraphicsContext.CommandList.MapSubresource(ResourceContext.VertexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetVertexInBytes, vertexCount * vertexStructSize);
+                var mappedVertices = GraphicsContext.CommandList.MapSubResource(ResourceContext.VertexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetVertexInBytes, vertexCount * vertexStructSize);
                 if (ResourceContext.IsIndexBufferDynamic)
-                    mappedIndices = GraphicsContext.CommandList.MapSubresource(ResourceContext.IndexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetIndexInBytes, indexCount * indexStructSize);
+                    mappedIndices = GraphicsContext.CommandList.MapSubResource(ResourceContext.IndexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetIndexInBytes, indexCount * indexStructSize);
 
                 var vertexPointer = mappedVertices.DataBox.DataPointer;
                 var indexPointer = mappedIndices.DataBox.DataPointer;
@@ -480,9 +485,9 @@ namespace Stride.Graphics
                     indexPointer += indexStructSize * spriteElementInfo.IndexCount;
                 }
 
-                GraphicsContext.CommandList.UnmapSubresource(mappedVertices);
+                GraphicsContext.CommandList.UnmapSubResource(mappedVertices);
                 if (ResourceContext.IsIndexBufferDynamic)
-                    GraphicsContext.CommandList.UnmapSubresource(mappedIndices);
+                    GraphicsContext.CommandList.UnmapSubResource(mappedIndices);
 
                 // Draw from the specified index
                 GraphicsContext.CommandList.DrawIndexed(indexCount, ResourceContext.IndexBufferPosition);
@@ -530,13 +535,13 @@ namespace Stride.Graphics
         /// <param name="indexPointer">The pointer to the index array buffer to update. This value is null if the index buffer used is static.</param>
         /// <param name="vexterStartOffset">The offset in the vertex buffer where the vertex of the element starts</param>
         protected abstract void UpdateBufferValuesFromElementInfo(ref ElementInfo elementInfo, IntPtr vertexPointer, IntPtr indexPointer, int vexterStartOffset);
-        
+
         #region Nested types
 
         protected struct DrawTextures
         {
             public Texture Texture0;
-            
+
             public static bool NotEqual(ref DrawTextures left, ref DrawTextures right)
             {
                 return left.Texture0 != right.Texture0;
@@ -573,7 +578,7 @@ namespace Stride.Graphics
             /// Gets or sets the static indices to use for the index buffer.
             /// </summary>
             public short[] StaticIndices;
-            
+
             /// <summary>
             /// Gets the value indicating whether the index buffer is static or dynamic.
             /// </summary>
@@ -619,7 +624,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <remarks>
         /// The index buffer is used in static mode and contains six indices for each quad. The vertex buffer contains 4 vertices for each quad.
-        /// Rectangle is composed of two triangles as follow: 
+        /// Rectangle is composed of two triangles as follow:
         ///                  v0 - - - v1                  v0 - - - v1
         ///                  |  \      |                  | t1   /  |
         ///  If cycle=true:  |    \ t1 | If cycle=false:  |    /    |
@@ -689,14 +694,14 @@ namespace Stride.Graphics
                 return ImageInfos[right].Depth.CompareTo(ImageInfos[left].Depth);
             }
         }
-        
+
         protected abstract class QueueComparer<TInfo> : IComparer<int>
         {
             public TInfo[] ImageInfos;
 
             public abstract int Compare(int x, int y);
         }
-        
+
         /// <summary>
         /// Use a ResourceContext per GraphicsDevice (DeviceContext)
         /// </summary>

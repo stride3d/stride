@@ -93,7 +93,7 @@ namespace Stride.Graphics.Data
                     storage.GetChunk(mipIndex)?.GetData(fileProvider);
 
                 // Allocate buffer for image data
-                var buffer = Utilities.AllocateMemory(size);
+                var buffer = MemoryUtilities.Allocate(size);
 
                 try
                 {
@@ -122,7 +122,7 @@ namespace Stride.Graphics.Data
                             if (!chunk.IsLoaded)
                                 throw new ContentStreamingException("Data chunk is not loaded.", storage);
 
-                            Utilities.CopyWithAlignmentFallback((void*)bufferPtr, (void*)data, (uint)chunk.Size);
+                            MemoryUtilities.CopyWithAlignmentFallback((void*)bufferPtr, (void*)data, (uint)chunk.Size);
                             bufferPtr += chunk.Size;
                         }
                     }
@@ -134,7 +134,7 @@ namespace Stride.Graphics.Data
                 catch
                 {
                     // Free memory in case of error
-                    Utilities.FreeMemory(buffer);
+                    MemoryUtilities.Free(buffer);
 
                     throw;
                 }
