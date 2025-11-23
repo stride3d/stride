@@ -106,12 +106,11 @@ namespace Stride.Graphics
                 ? new Texture(device, "SwapChain Back-Buffer")
                 : new Texture(device);
 
-            backBuffer.InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb);
-            nativeBackBuffer.Release();
 
             // We don't need to take ownership of the back-buffer, as it belongs to the SwapChain.
             //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
             //   compensate with Release() to return the reference count to its previous value
+            backBuffer.InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb);
             nativeBackBuffer.Release();
 
             // Reload should get Back-Buffer from Swap-Chain as well
@@ -404,7 +403,7 @@ namespace Stride.Graphics
         protected internal override void OnDestroyed(bool immediately = false)
         {
             // Manually update Back-Buffer Texture
-            backBuffer.OnDestroyed();
+            backBuffer.OnDestroyed(immediately);
             backBuffer.LifetimeState = GraphicsResourceLifetimeState.Destroyed;
 
             SafeRelease(ref swapChain);
@@ -755,7 +754,7 @@ namespace Stride.Graphics
                 ScanlineOrdering = modeDescription.ScanlineOrdering
             };
 
-            ComPtr<IDXGIOutput> doNotRestringOutput = default;
+            ComPtr<IDXGIOutput> doNotRestrictOutput = default;
 
             // We assume at least IDXGISwapChain1 support (DXGI 1.2, Windows 7+ / UWP)
             Debug.Assert(GraphicsAdapterFactory.NativeFactoryVersion >= 2);
@@ -768,7 +767,7 @@ namespace Stride.Graphics
 #endif
             ComPtr<IDXGISwapChain1> newSwapChain = default;
 
-            HResult result = nativeFactory.CreateSwapChainForHwnd(GraphicsDevice.NativeDevice.AsIUnknown(), handle, in description, in fullscreenDescription, doNotRestringOutput, ref newSwapChain);
+            HResult result = nativeFactory.CreateSwapChainForHwnd(GraphicsDevice.NativeDevice.AsIUnknown(), handle, in description, in fullscreenDescription, doNotRestrictOutput, ref newSwapChain);
 
             if (result.IsFailure)
                 result.Throw();
