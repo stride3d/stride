@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using SharpFont;
 using Stride.Core;
@@ -13,7 +14,7 @@ using Stride.Core.Serialization.Contents;
 namespace Stride.Graphics.Font
 {
     /// <summary>
-    /// A font manager is in charge of loading in memory the ttf files, looking for font informations, rendering and then caching the <see cref="CharacterBitmap"/>s on the CPU . 
+    /// A font manager is in charge of loading in memory the ttf files, looking for font informations, rendering and then caching the <see cref="CharacterBitmap"/>s on the CPU .
     /// </summary>
     internal class FontManager : IDisposable
     {
@@ -90,7 +91,7 @@ namespace Stride.Graphics.Font
         }
 
         /// <summary>
-        /// Start the generation of the specified character's bitmap. 
+        /// Start the generation of the specified character's bitmap.
         /// </summary>
         /// <remarks>Does nothing if the bitmap already exist or if the generation is currently running.</remarks>
         /// <param name="characterSpecification">The character we want the bitmap of</param>
@@ -114,6 +115,38 @@ namespace Stride.Graphics.Font
             }
         }
 
+        /// <summary>
+        /// Loads a font from the specified file on the file system and adds it to the internal font cache for use with
+        /// the given font name and style.
+        /// </summary>
+        /// <remarks>If a font with the same name and style is already cached, the method does nothing.
+        /// This method is thread-safe when adding new fonts to the cache.</remarks>
+        /// <param name="fontName">The name to associate with the loaded font. This name is used to reference the font in subsequent
+        /// operations.</param>
+        /// <param name="filePath">The path to the font file on the file system. The file must exist and be accessible.</param>
+        /// <param name="style">The style to apply to the loaded font, such as regular, bold, or italic.</param>
+        /// <exception cref="FileNotFoundException">Thrown if the file specified by <paramref name="filePath"/> does not exist.</exception>
+        public void LoadFontFromFileSystem(string fontName, string filePath, FontStyle style)
+        {
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException($"Font file not found: {filePath}");
+
+            var cacheKey = FontHelper.GetFontPath(fontName, style);
+
+            // Return if the font is already cached
+            if (cachedFontFaces.ContainsKey(cacheKey))
+                return;
+
+            // Load font data into memory
+            var fontData = File.ReadAllBytes(filePath);
+
+            // Create FreeType face and add to cache
+            lock (freetypeLibrary)
+            {
+                cachedFontFaces[cacheKey] = freetypeLibrary.NewMemoryFace(fontData, 0);
+            }
+        }
+
         private void GenerateCharacterGlyph(CharacterSpecification character, bool renderBitmap)
         {
             // first the possible current glyph info
@@ -123,7 +156,7 @@ namespace Stride.Graphics.Font
             if (character.Size.X < 1 || character.Size.Y < 1)
                 return;
 
-            // get the face of the font 
+            // get the face of the font
             var fontFace = GetOrCreateFontFace(character.FontName, character.Style);
             lock (freetypeLibrary)
             {
@@ -223,7 +256,7 @@ namespace Stride.Graphics.Font
             // see if the index of the character is valid
             return glyphIndex != 0;
         }
-        
+
         public void Dispose()
         {
             // terminate the build thread
@@ -252,7 +285,7 @@ namespace Stride.Graphics.Font
                 freetypeLibrary.Dispose();
             freetypeLibrary = null;
         }
-        
+
         private Face GetOrCreateFontFace(string fontFamily, FontStyle fontStyle)
         {
             var fontPath = FontHelper.GetFontPath(fontFamily, fontStyle);
@@ -266,7 +299,7 @@ namespace Stride.Graphics.Font
         private void LoadFontInMemory(string fontPath)
         {
             // return if the font is already cached
-            if (cachedFontFaces.ContainsKey(fontPath)) 
+            if (cachedFontFaces.ContainsKey(fontPath))
                 return;
 
             // load the font from the data base
@@ -298,7 +331,7 @@ namespace Stride.Graphics.Font
                     if (character.Size.X < 1 || character.Size.Y < 1)
                         goto DequeueRequest;
 
-                    // get the face of the font 
+                    // get the face of the font
                     var fontFace = GetOrCreateFontFace(character.FontName, character.Style);
 
                     lock (freetypeLibrary)
@@ -320,13 +353,13 @@ namespace Stride.Graphics.Font
                         RenderBitmap(character, fontFace);
                     }
 
-                DequeueRequest:
+DequeueRequest:
 
-                    // update the generated cached data
+// update the generated cached data
                     lock (dataStructuresLock)
                         bitmapsToGenerate.Dequeue();
                 }
             }
-        }   
+        }
     }
 }
