@@ -22,9 +22,13 @@ namespace Stride.Graphics.Font
         internal readonly HashSet<SpriteFont> AllocatedSpriteFonts = new HashSet<SpriteFont>();
 
         /// <summary>
-        /// Gets the runtime font provider for registering fonts from the file system.
+        /// Gets the runtime font provider for registering and managing fonts loaded from the file system.
         /// </summary>
-        internal RuntimeFontProvider RuntimeFonts { get; private set; }
+        /// <remarks>
+        /// Use this to register custom fonts at runtime that are not part of the content pipeline.
+        /// Fonts registered through this provider can be loaded using <see cref="LoadRuntimeFont"/>.
+        /// </remarks>
+        public RuntimeFontProvider RuntimeFonts { get; private set; }
 
         /// <summary>
         /// Create a new instance of <see cref="FontSystem" /> base on the provided <see cref="Stride.Graphics.GraphicsDevice" />.
@@ -52,7 +56,7 @@ namespace Stride.Graphics.Font
         /// Loads a runtime-registered font by name.
         /// This bypasses the content pipeline entirely.
         /// </summary>
-        /// <param name="fontName">The registered font name</param>
+        /// <param name="fontName">The registered font name. If the font is not registered, the method returns <c>null</c>.</param>
         /// <param name="defaultSize">The default font size</param>
         /// <param name="style">The font style</param>
         /// <returns>A SpriteFont instance, or null if not registered</returns>
