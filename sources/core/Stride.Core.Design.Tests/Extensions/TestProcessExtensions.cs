@@ -39,12 +39,13 @@ public class TestProcessExtensions
     public async Task WaitForExitAsync_WithRunningProcess_WaitsForExit()
     {
         // Create a process that takes a short time to exit
+        // Using ping with -n 2 sends 2 pings which takes about 1 second
         using var process = new Process
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = "cmd.exe",
-                Arguments = "/c timeout /t 1 /nobreak",
+                FileName = "ping",
+                Arguments = "127.0.0.1 -n 2",
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardOutput = true
@@ -52,6 +53,9 @@ public class TestProcessExtensions
         };
 
         process.Start();
+
+        // Verify the process is actually running
+        Assert.False(process.HasExited);
 
         // Wait asynchronously for exit
         var exitTask = process.WaitForExitAsync();
@@ -63,13 +67,14 @@ public class TestProcessExtensions
     [Fact]
     public async Task WaitForExitAsync_WithCancellation_CancelsWait()
     {
-        // Create a long-running process
+        // Create a long-running process using ping with high count
+        // This is more reliable than timeout command across different environments
         using var process = new Process
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = "cmd.exe",
-                Arguments = "/c timeout /t 10 /nobreak",
+                FileName = "ping",
+                Arguments = "127.0.0.1 -n 100",
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardOutput = true
@@ -88,8 +93,11 @@ public class TestProcessExtensions
         await Assert.ThrowsAsync<TaskCanceledException>(async () => await exitTask);
 
         // Clean up the process
-        process.Kill();
-        process.WaitForExit();
+        if (!process.HasExited)
+        {
+            process.Kill();
+            process.WaitForExit();
+        }
     }
 
     [Fact]
