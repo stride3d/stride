@@ -54,6 +54,9 @@ namespace Stride.Graphics
     {
         private readonly Texture backBuffer;
 
+        /// <inheritdoc/>
+        public override Texture BackBuffer => backBuffer;
+
 #if STRIDE_GRAPHICS_API_DIRECT3D11
         private readonly bool flipModelSupport;
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
@@ -73,8 +76,38 @@ namespace Stride.Graphics
         private IDXGISwapChain1* swapChain;
         private uint swapChainVersion;
 
+        /// <summary>
+        ///   Gets the internal DXGI Swap-Chain.
+        /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
+        internal ComPtr<IDXGISwapChain1> NativeSwapChain => ToComPtr(swapChain);
+
+        /// <summary>
+        ///   Gets the version number of the native DXGI Swap-Chain supported.
+        /// </summary>
+        /// <value>
+        ///   This indicates the latest DXGI Swap-Chain interface version supported by this Swap-Chain.
+        ///   For example, if the value is 4, then this Swap-Chain supports up to <see cref="IDXGISwapChain4"/>.
+        /// </value>
+        internal uint NativeSwapChainVersion => swapChainVersion;
+
         private int bufferCount;
         private uint bufferSwapIndex;
+
+        // TODO: This boxes the ComPtr, which is not ideal
+        /// <inheritdoc/>
+        public override object NativePresenter => NativeSwapChain;
+
+        /// <inheritdoc/>
+        public override bool IsFullScreen
+        {
+            get => GetFullScreenState();
+            set => SetFullscreenState(value);
+        }
+
 
         /// <summary>
         ///   Initializes a new instance of the <see cref="SwapChainGraphicsPresenter"/> class.
@@ -100,16 +133,17 @@ namespace Stride.Graphics
             // Initialize the Swap-Chain
             CreateSwapChain();
 
+            // Gets the native Back-Buffer from the Swap-Chain.
+            //   This increments the reference count of the COM object,
+            //   so we need to Release() it when discarding or swapping it.
             var nativeBackBuffer = GetBackBuffer<BackBufferResourceType>();
 
             backBuffer = GraphicsDevice.IsDebugMode
                 ? new Texture(device, "SwapChain Back-Buffer")
                 : new Texture(device);
 
-
-            // We don't need to take ownership of the back-buffer, as it belongs to the SwapChain.
-            //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
-            //   compensate with Release() to return the reference count to its previous value
+            // Texture.InitializeFromImpl also increments the reference count when storing the COM pointer;
+            // compensate with Release() to return the reference count to its previous value
             backBuffer.InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb);
             nativeBackBuffer.Release();
 
@@ -127,19 +161,7 @@ namespace Stride.Graphics
                 var dxgiFactory = GraphicsAdapterFactory.NativeFactory;
                 var dxgiFactoryVersion = GraphicsAdapterFactory.NativeFactoryVersion;
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11
                 supportsFlipModel = CheckFlipModelSupport(dxgiFactoryVersion);
-
-#elif STRIDE_GRAPHICS_API_DIRECT3D12
-
-                // From MSDN: https://learn.microsoft.com/en-us/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect
-
-                //   DXGI_SWAP_EFFECT_DISCARD or DXGI_SWAP_EFFECT_SEQUENTIAL:
-                //     This enumeration value is never supported. D3D12 apps must use DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
-                //     or DXGI_SWAP_EFFECT_FLIP_DISCARD.
-
-                supportsFlipModel = true;
-#endif
                 supportsTearing = CheckTearingSupport(dxgiFactoryVersion, dxgiFactory);
             }
 
@@ -153,6 +175,15 @@ namespace Stride.Graphics
                 // The requested interfaces need at least Windows 8 and IDXGIFactory4
                 return dxgiFactoryVersion >= 4;
             }
+#elif STRIDE_GRAPHICS_API_DIRECT3D12
+
+            // From MSDN: https://learn.microsoft.com/en-us/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect
+
+            //   DXGI_SWAP_EFFECT_DISCARD or DXGI_SWAP_EFFECT_SEQUENTIAL:
+            //     This enumeration value is never supported. D3D12 apps must use DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
+            //     or DXGI_SWAP_EFFECT_FLIP_DISCARD.
+
+            static bool CheckFlipModelSupport(uint dxgiFactoryVersion) => true;
 #endif
             //
             // Determines if the DXGI adapter and the system supports tearing, also known as "vsync-off".
@@ -183,7 +214,7 @@ namespace Stride.Graphics
         ///   If the swap effect is not <see cref="SwapEffect.Sequential"/>, this method only has
         ///   access to the first Buffer; for this case (which is the default), set the index to zero.
         /// </param>
-        /// <returns>Returns a reference to a back-buffer interface.</returns>
+        /// <returns>Returns a reference to a Back-Buffer Texture.</returns>
         private ComPtr<TD3DResource> GetBackBuffer<TD3DResource>(uint index = 0) where TD3DResource : unmanaged, IComVtbl<TD3DResource>
         {
             // NOTE: The Swap-Chain Back-Buffer is a COM object, so this AddRef()s.
@@ -191,111 +222,6 @@ namespace Stride.Graphics
 
             swapChain->GetBuffer(index, out ComPtr<TD3DResource> resource);
             return resource;
-        }
-
-        /// <inheritdoc/>
-        public override Texture BackBuffer => backBuffer;
-
-        // TODO: This boxes the ComPtr, which is not ideal
-        /// <inheritdoc/>
-        public override object NativePresenter => NativeSwapChain;
-
-        /// <summary>
-        ///   Gets the internal DXGI Swap-Chain.
-        /// </summary>
-        /// <remarks>
-        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
-        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
-        /// </remarks>
-        internal ComPtr<IDXGISwapChain1> NativeSwapChain => ToComPtr(swapChain);
-
-        /// <summary>
-        ///   Gets the version number of the native DXGI Swap-Chain supported.
-        /// </summary>
-        /// <value>
-        ///   This indicates the latest DXGI Swap-Chain interface version supported by this Swap-Chain.
-        ///   For example, if the value is 4, then this Swap-Chain supports up to <see cref="IDXGISwapChain4"/>.
-        /// </value>
-        internal uint NativeSwapChainVersion => swapChainVersion;
-
-        /// <inheritdoc/>
-        public override bool IsFullScreen
-        {
-            get
-            {
-#if STRIDE_PLATFORM_UWP
-                return false;
-#else
-                return GetFullScreenState();
-#endif
-            }
-
-            set
-            {
-#if !STRIDE_PLATFORM_UWP
-                if (swapChain is null)
-                    return;
-
-                var outputIndex = Description.PreferredFullScreenOutputIndex;
-
-                var output = GraphicsDevice.Adapter != null && outputIndex < GraphicsDevice.Adapter.Outputs.Length
-                    ? GraphicsDevice.Adapter.Outputs[outputIndex]
-                    // There are no outputs connected to the current Graphics Adapter
-                    : null;
-
-                bool isCurrentlyFullscreen = GetFullScreenState(out var currentOutput);
-
-                if (currentOutput.IsNotNull())
-                    currentOutput.Release();
-
-                // Check if the current fullscreen monitor is the same as the new one.
-                // If not fullscreen, currentOutput will be null but output won't be, so don't compare them
-                if (isCurrentlyFullscreen == value &&
-                    (isCurrentlyFullscreen is false || (output is not null && currentOutput.IsNotNull() && currentOutput.Handle == output.NativeOutput.Handle)))
-                    return;
-
-                bool switchToFullScreen = value;
-
-                // If going to fullscreen mode: call 1) SwapChain.ResizeTarget 2) SwapChain.IsFullScreen
-                var description = new ModeDesc
-                {
-                    Width = (uint) backBuffer.ViewWidth,
-                    Height = (uint) backBuffer.ViewHeight,
-                    RefreshRate = Description.RefreshRate.ToSilk(),
-                    Format = (Format) Description.BackBufferFormat
-                };
-                if (switchToFullScreen)
-                {
-                    OnDestroyed();
-
-                    Description.IsFullScreen = true;
-
-                    OnRecreated();
-                }
-                else
-                {
-                    Description.IsFullScreen = false;
-                    HResult result = swapChain->SetFullscreenState(Fullscreen: 0, pTarget: null);
-
-                    if (result.IsFailure)
-                        result.Throw();
-
-                    // Call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
-                    Resize(backBuffer.ViewWidth, backBuffer.ViewHeight, backBuffer.ViewFormat);
-                }
-
-                // If going to window mode:
-                if (!switchToFullScreen)
-                {
-                    // Call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
-                    description.RefreshRate = default;
-                    HResult result = swapChain->ResizeTarget(in description);
-
-                    if (result.IsFailure)
-                        result.Throw();
-                }
-#endif
-            }
         }
 
         /// <summary>
@@ -328,10 +254,92 @@ namespace Stride.Graphics
         /// </returns>
         private bool GetFullScreenState()
         {
+#if STRIDE_PLATFORM_UWP
+            // In UWP, SwapChains are always windowed. The system controls full-screen mode
+            return false;
+#else
             SkipInit(out int isFullScreen);
             swapChain->GetFullscreenState(ref isFullScreen, ppTarget: null);
 
             return isFullScreen != 0;
+#endif
+        }
+
+        /// <summary>
+        ///   Sets the presentation mode of the Graphics Presenter.
+        /// </summary>
+        /// <param name="isFullScreen">
+        ///   A value indicating whether the presentation will be in full screen.
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> if the presentation will be in full screen.</item>
+        ///     <item><see langword="false"/> if the presentation will be in a window.</item>
+        ///   </list>
+        /// </param>
+        private void SetFullscreenState(bool isFullScreen)
+        {
+#if !STRIDE_PLATFORM_UWP
+            if (swapChain is null)
+                return;
+
+            var outputIndex = Description.PreferredFullScreenOutputIndex;
+
+            var output = GraphicsDevice.Adapter != null && outputIndex < GraphicsDevice.Adapter.Outputs.Length
+                    ? GraphicsDevice.Adapter.Outputs[outputIndex]
+                    // There are no outputs connected to the current Graphics Adapter
+                    : null;
+
+            bool isCurrentlyFullscreen = GetFullScreenState(out var currentOutput);
+
+            if (currentOutput.IsNotNull())
+                currentOutput.Release();
+
+            // Check if the current fullscreen monitor is the same as the new one.
+            // If not fullscreen, currentOutput will be null but output won't be, so don't compare them
+            if (isCurrentlyFullscreen == isFullScreen &&
+                (isCurrentlyFullscreen is false || (output is not null && currentOutput.IsNotNull() && currentOutput.Handle == output.NativeOutput.Handle)))
+                return;
+
+            bool switchToFullScreen = isFullScreen;
+
+            // If going to fullscreen mode: call 1) SwapChain.ResizeTarget 2) SwapChain.IsFullScreen
+            var description = new ModeDesc
+            {
+                Width = (uint) backBuffer.ViewWidth,
+                Height = (uint) backBuffer.ViewHeight,
+                RefreshRate = Description.RefreshRate.ToSilk(),
+                Format = (Format) Description.BackBufferFormat
+            };
+            if (switchToFullScreen)
+            {
+                OnDestroyed();
+
+                Description.IsFullScreen = true;
+
+                OnRecreated();
+            }
+            else
+            {
+                Description.IsFullScreen = false;
+                HResult result = swapChain->SetFullscreenState(Fullscreen: 0, pTarget: null);
+
+                if (result.IsFailure)
+                    result.Throw();
+
+                // Call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
+                Resize(backBuffer.ViewWidth, backBuffer.ViewHeight, backBuffer.ViewFormat);
+            }
+
+            // If going to window mode:
+            if (!switchToFullScreen)
+            {
+                // Call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
+                description.RefreshRate = default;
+                HResult result = swapChain->ResizeTarget(in description);
+
+                if (result.IsFailure)
+                    result.Throw();
+            }
+#endif
         }
 
         /// <inheritdoc/>
@@ -376,14 +384,19 @@ namespace Stride.Graphics
             // Manually swap the Back-Buffers
             backBuffer.NativeResource.Release();
 
+            // Gets the native Back-Buffer from the Swap-Chain.
+            //   This increments the reference count of the COM object,
+            //   so we need to Release() it when discarding or swapping it.
             bufferSwapIndex = (uint)((++bufferSwapIndex) % bufferCount);
             var nextBackBuffer = GetBackBuffer<BackBufferResourceType>(bufferSwapIndex);
 
-            backBuffer.InitializeFromImpl(nextBackBuffer, Description.BackBufferFormat.IsSRgb);
+            // TODO: Maybe we should have a lighter Texture.SwapImpl method for this?
+            //       InitializeFromImpl() is quite heavy for just swapping the internal resource pointer.
+            //       It recreates the internal description and other things that for presenting should not have changed.
 
-            // We don't need to take ownership of the back-buffer, as it belongs to the SwapChain.
-            //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
-            //   compensate with Release() to return the reference count to its previous value
+            // Texture.InitializeFromImpl also increments the reference count when storing the COM pointer;
+            // compensate with Release() to return the reference count to its previous value
+            backBuffer.InitializeFromImpl(nextBackBuffer, Description.BackBufferFormat.IsSRgb);
             nextBackBuffer.Release();
 #endif
         }
@@ -420,19 +433,18 @@ namespace Stride.Graphics
             CreateSwapChain();
 
             // Get the newly created native Texture
+            //   This increments the reference count of the COM object,
+            //   so we need to Release() it when discarding or swapping it.
             var backBufferTexture = GetBackBuffer<BackBufferResourceType>();
             bufferSwapIndex = 0;
 
             // Put it in our Back-Buffer Texture
-            // TODO: Update new size
-            // TODO: Size is already updated in InitializeFromImpl with the new TextureDescription, isn't it?
-            backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
-            backBuffer.LifetimeState = GraphicsResourceLifetimeState.Active;
-
-            // We don't need to take ownership of the back-buffer, as it belongs to the SwapChain.
-            //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+            //   Texture.InitializeFromImpl also increments the reference count when storing the COM pointer;
             //   compensate with Release() to return the reference count to its previous value
+            backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
             backBufferTexture.Release();
+
+            backBuffer.LifetimeState = GraphicsResourceLifetimeState.Active;
         }
 
         /// <inheritdoc/>
@@ -487,15 +499,15 @@ namespace Stride.Graphics
                 result.Throw();
 
             // Get the newly created native Texture
+            //   This increments the reference count of the COM object,
+            //   so we need to Release() it when discarding or swapping it.
             var backBufferTexture = GetBackBuffer<BackBufferResourceType>();
             bufferSwapIndex = 0;
 
             // Put it in our Back-Buffer Texture
-            backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
-
-            // We don't need to take ownership of the back-buffer, as it belongs to the SwapChain.
-            //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+            //   Texture.InitializeFromImpl also increments the reference count when storing the COM pointer;
             //   compensate with Release() to return the reference count to its previous value
+            backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
             backBufferTexture.Release();
 
             foreach (var childTexture in childrenTextures)
