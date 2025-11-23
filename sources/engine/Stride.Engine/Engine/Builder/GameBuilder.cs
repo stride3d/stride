@@ -15,7 +15,7 @@ namespace Stride.Engine.Builder;
 public class GameBuilder : IGameBuilder
 {
     /// <summary>
-    /// This is used to allow the same instance to be registered multiple times as differenet interfaces or types. This was done due to how <see cref="IServiceRegistry"/> works."/>
+    /// This is used to allow the same instance to be registered multiple times as different interfaces or types. This was done due to how <see cref="IServiceRegistry"/> works."/>
     /// </summary>
     public Dictionary<Type, object> InternalServices { get; internal set; } = [];
 
