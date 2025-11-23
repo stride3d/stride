@@ -14,8 +14,8 @@ namespace Stride.Core.Collections;
 [DataSerializer(typeof(ListAllSerializer<,>), Mode = DataSerializerGenericMode.TypeAndGenericArguments)]
 public class TrackingCollection<T> : FastCollection<T>, ITrackingCollectionChanged<T>
 {
-    private EventHandler<TrackingCollectionChangedEventArgs<T>>? _itemAdded;
-    private EventHandler<TrackingCollectionChangedEventArgs<T>>? _itemRemoved;
+    private EventHandler<TrackingCollectionChangedEventArgs<T>>? itemAdded;
+    private EventHandler<TrackingCollectionChangedEventArgs<T>>? itemRemoved;
 
     /// <inheritdoc/>
     public event EventHandler<TrackingCollectionChangedEventArgs<T>> CollectionChanged
@@ -23,13 +23,13 @@ public class TrackingCollection<T> : FastCollection<T>, ITrackingCollectionChang
         add
         {
             // We keep a list in reverse order for removal, so that we can easily have multiple handlers depending on each others
-            _itemAdded = (EventHandler<TrackingCollectionChangedEventArgs<T>>)Delegate.Combine(_itemAdded, value);
-            _itemRemoved = (EventHandler<TrackingCollectionChangedEventArgs<T>>)Delegate.Combine(value, _itemRemoved);
+            itemAdded = (EventHandler<TrackingCollectionChangedEventArgs<T>>)Delegate.Combine(itemAdded, value);
+            itemRemoved = (EventHandler<TrackingCollectionChangedEventArgs<T>>)Delegate.Combine(value, itemRemoved);
         }
         remove
         {
-            _itemAdded = (EventHandler<TrackingCollectionChangedEventArgs<T>>?)Delegate.Remove(_itemAdded, value);
-            _itemRemoved = (EventHandler<TrackingCollectionChangedEventArgs<T>>?)Delegate.Remove(_itemRemoved, value);
+            itemAdded = (EventHandler<TrackingCollectionChangedEventArgs<T>>?)Delegate.Remove(itemAdded, value);
+            itemRemoved = (EventHandler<TrackingCollectionChangedEventArgs<T>>?)Delegate.Remove(itemRemoved, value);
         }
     }
 
@@ -37,13 +37,13 @@ public class TrackingCollection<T> : FastCollection<T>, ITrackingCollectionChang
     protected override void InsertItem(int index, T item)
     {
         base.InsertItem(index, item);
-        _itemAdded?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Add, item, default, index, true));
+        itemAdded?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Add, item, default, index, true));
     }
 
     /// <inheritdoc/>
     protected override void RemoveItem(int index)
     {
-        _itemRemoved?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Remove, this[index], default, index, true));
+        itemRemoved?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Remove, this[index], default, index, true));
         base.RemoveItem(index);
     }
 
@@ -57,7 +57,7 @@ public class TrackingCollection<T> : FastCollection<T>, ITrackingCollectionChang
     protected void ClearItemsEvents()
     {
         // Note: Changing CollectionChanged is not thread-safe
-        var collectionChanged = _itemRemoved;
+        var collectionChanged = itemRemoved;
         if (collectionChanged != null)
         {
             for (var i = Count - 1; i >= 0; --i)
@@ -69,13 +69,13 @@ public class TrackingCollection<T> : FastCollection<T>, ITrackingCollectionChang
     protected override void SetItem(int index, T item)
     {
         // Note: Changing CollectionChanged is not thread-safe
-        var collectionChangedRemoved = _itemRemoved;
+        var collectionChangedRemoved = itemRemoved;
 
         T? oldItem = collectionChangedRemoved != null ? this[index] : default;
         collectionChangedRemoved?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Remove, oldItem, default, index, false));
 
         base.SetItem(index, item);
 
-        _itemAdded?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Add, item, oldItem, index, false));
+        itemAdded?.Invoke(this, new TrackingCollectionChangedEventArgs<T>(NotifyCollectionChangedAction.Add, item, oldItem, index, false));
     }
 }

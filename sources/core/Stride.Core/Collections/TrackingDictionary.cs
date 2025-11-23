@@ -23,8 +23,8 @@ public class TrackingDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDict
 {
     private readonly Dictionary<TKey, TValue> innerDictionary;
 
-    private EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>>? _itemAdded;
-    private EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>>? _itemRemoved;
+    private EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>>? itemAdded;
+    private EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>>? itemRemoved;
 
     /// <inheritdoc/>
     public event EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>> CollectionChanged
@@ -32,13 +32,13 @@ public class TrackingDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDict
         add
         {
             // We keep a list in reverse order for removal, so that we can easily have multiple handlers depending on each others
-            _itemAdded = (EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>>)Delegate.Combine(_itemAdded, value);
-            _itemRemoved = (EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>>)Delegate.Combine(value, _itemRemoved);
+            itemAdded = (EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>>)Delegate.Combine(itemAdded, value);
+            itemRemoved = (EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>>)Delegate.Combine(value, itemRemoved);
         }
         remove
         {
-            _itemAdded = (EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>>?)Delegate.Remove(_itemAdded, value);
-            _itemRemoved = (EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>>?)Delegate.Remove(_itemRemoved, value);
+            itemAdded = (EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>>?)Delegate.Remove(itemAdded, value);
+            itemRemoved = (EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>>?)Delegate.Remove(itemRemoved, value);
         }
     }
 
@@ -54,7 +54,7 @@ public class TrackingDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDict
     public void Add(TKey key, TValue value)
     {
         innerDictionary.Add(key, value);
-        _itemAdded?.Invoke(this, new TrackingKeyedCollectionChangedEventArgs<TKey, TValue>(NotifyCollectionChangedAction.Add, key, value, default, true));
+        itemAdded?.Invoke(this, new TrackingKeyedCollectionChangedEventArgs<TKey, TValue>(NotifyCollectionChangedAction.Add, key, value, default, true));
     }
 
     /// <inheritdoc/>
@@ -72,7 +72,7 @@ public class TrackingDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDict
     /// <inheritdoc/>
     public bool Remove(TKey key)
     {
-        var collectionChanged = _itemRemoved;
+        var collectionChanged = itemRemoved;
         if (collectionChanged != null && innerDictionary.TryGetValue(key, out var dictValue))
             collectionChanged(this, new TrackingKeyedCollectionChangedEventArgs<TKey, TValue>(NotifyCollectionChangedAction.Remove, key, dictValue, default, true));
 
@@ -100,7 +100,7 @@ public class TrackingDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDict
         }
         set
         {
-            var collectionChangedRemoved = _itemRemoved;
+            var collectionChangedRemoved = itemRemoved;
             if (collectionChangedRemoved != null)
             {
                 var alreadyExisting = innerDictionary.TryGetValue(key, out var oldValue);
@@ -110,7 +110,7 @@ public class TrackingDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDict
                 innerDictionary[key] = value;
 
                 // Note: CollectionChanged is considered not thread-safe, so no need to skip if null here, shouldn't happen
-                _itemAdded?.Invoke(this, new TrackingKeyedCollectionChangedEventArgs<TKey, TValue>(NotifyCollectionChangedAction.Add, key, innerDictionary[key], oldValue, !alreadyExisting));
+                itemAdded?.Invoke(this, new TrackingKeyedCollectionChangedEventArgs<TKey, TValue>(NotifyCollectionChangedAction.Add, key, innerDictionary[key], oldValue, !alreadyExisting));
             }
             else
             {
@@ -128,7 +128,7 @@ public class TrackingDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDict
     /// <inheritdoc/>
     public void Clear()
     {
-        var collectionChanged = _itemRemoved;
+        var collectionChanged = itemRemoved;
         if (collectionChanged != null)
         {
             foreach (var key in innerDictionary.Keys.ToArray())
@@ -169,7 +169,7 @@ public class TrackingDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDict
     /// <inheritdoc/>
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
-        var collectionChanged = _itemRemoved;
+        var collectionChanged = itemRemoved;
         if (collectionChanged != null && innerDictionary.Contains(item))
             return innerDictionary.Remove(item.Key);
 
