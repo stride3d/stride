@@ -30,21 +30,22 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using Silk.NET.Maths;
 using Silk.NET.Core.Native;
-using Silk.NET.DXGI;
 using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
+using Silk.NET.Maths;
 
-using Stride.Core.Mathematics;
 using Stride.Core.UnsafeExtensions;
 
 using Rectangle = Stride.Core.Mathematics.Rectangle;
+using Point = Stride.Core.Mathematics.Point;
 
 namespace Stride.Graphics
 {
     public sealed unsafe partial class GraphicsOutput
     {
         private IDXGIOutput* dxgiOutput;
+        private uint dxgiOutputVersion;
         private readonly uint outputIndex;
 
         private readonly OutputDesc outputDescription;
@@ -57,6 +58,15 @@ namespace Stride.Graphics
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<IDXGIOutput> NativeOutput => ComPtrHelpers.ToComPtr(dxgiOutput);
+
+        /// <summary>
+        ///   Gets the version number of the native DXGI output supported.
+        /// </summary>
+        /// <value>
+        ///   This indicates the latest DXGI output interface version supported by this output.
+        ///   For example, if the value is 4, then this output supports up to <see cref="IDXGIOutput4"/>.
+        /// </value>
+        internal uint NativeOutputVersion => dxgiOutputVersion;
 
         /// <summary>
         ///   Gets the handle of the monitor associated with this <see cref="GraphicsOutput"/>.
@@ -82,6 +92,7 @@ namespace Stride.Graphics
 
             this.outputIndex = outputIndex;
             dxgiOutput = nativeOutput;
+            dxgiOutputVersion = GetLatestDxgiOutputVersion(dxgiOutput);
 
             Adapter = adapter;
 
@@ -102,6 +113,52 @@ namespace Stride.Graphics
             };
 
             outputDescription = outputDesc;
+
+            //
+            // Queries the latest DXGI output version supported.
+            //
+            static uint GetLatestDxgiOutputVersion(IDXGIOutput* dxgiOutput)
+            {
+                HResult result;
+                uint dxgiOutputVersion;
+
+                if ((result = dxgiOutput->QueryInterface<IDXGIOutput6>(out _)).IsSuccess)
+                {
+                    dxgiOutputVersion = 6;
+                    dxgiOutput->Release();
+                }
+                else if ((result = dxgiOutput->QueryInterface<IDXGIOutput5>(out _)).IsSuccess)
+                {
+                    dxgiOutputVersion = 5;
+                    dxgiOutput->Release();
+                }
+                else if ((result = dxgiOutput->QueryInterface<IDXGIOutput4>(out _)).IsSuccess)
+                {
+                    dxgiOutputVersion = 4;
+                    dxgiOutput->Release();
+                }
+                else if ((result = dxgiOutput->QueryInterface<IDXGIOutput3>(out _)).IsSuccess)
+                {
+                    dxgiOutputVersion = 3;
+                    dxgiOutput->Release();
+                }
+                else if ((result = dxgiOutput->QueryInterface<IDXGIOutput2>(out _)).IsSuccess)
+                {
+                    dxgiOutputVersion = 2;
+                    dxgiOutput->Release();
+                }
+                else if ((result = dxgiOutput->QueryInterface<IDXGIOutput1>(out _)).IsSuccess)
+                {
+                    dxgiOutputVersion = 1;
+                    dxgiOutput->Release();
+                }
+                else
+                {
+                    dxgiOutputVersion = 0;
+                }
+
+                return dxgiOutputVersion;
+            }
         }
 
         /// <inheritdoc/>
@@ -197,7 +254,8 @@ namespace Stride.Graphics
             static void ThrowNoCompatibleProfile(HResult result, GraphicsAdapter adapter, ReadOnlySpan<GraphicsProfile> targetProfiles)
             {
                 var exception = Marshal.GetExceptionForHR(result.Value)!;
-                Log.Error($"Failed to create Direct3D device using adapter '{adapter.Description}' with profiles: {string.Join(", ", targetProfiles.ToArray())}.\nException: {exception}");
+                Log.Error($"Failed to create Direct3D device using adapter '{adapter.Description}' with profiles: " +
+                          $"{string.Join(", ", targetProfiles.ToArray())}.\nException: {exception}");
                 throw exception;
             }
         }
@@ -210,9 +268,6 @@ namespace Stride.Graphics
             var modesAvailable = new List<DisplayMode>();
             var knownModes = new Dictionary<int, DisplayMode>();
 
-#if DIRECTX11_1
-            using ComPtr<IDXGIOutput1> dxgiOutput1 = dxgiOutput->QueryInterface<IDXGIOutput1>();
-#endif
             const uint DisplayModeEnumerationFlags = DXGI.EnumModesInterlaced | DXGI.EnumModesScaling;
 
             foreach (var format in Enum.GetValues<Format>())
@@ -220,26 +275,32 @@ namespace Stride.Graphics
                 if (format == Format.FormatForceUint)
                     continue;
 
+                if (dxgiOutputVersion >= 1)
+                    GetDisplayModeList1(dxgiOutput, format);
+                else
+                    GetDisplayModeList(dxgiOutput, format);
+            }
+
+            supportedDisplayModes = modesAvailable.ToArray();
+
+            //
+            // Gets the display modes available by querying a IDXGIOutput.
+            //
+            void GetDisplayModeList(IDXGIOutput* dxgiOutput, Format format)
+            {
                 uint displayModeCount = 0;
-#if DIRECTX11_1
-                HResult result = dxgiOutput1.GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, pDesc: null);
-#else
                 HResult result = dxgiOutput->GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, pDesc: null);
-#endif
+
                 if (result.IsFailure && result.Code != DxgiConstants.ErrorNotCurrentlyAvailable)
                     result.Throw();
                 if (displayModeCount == 0)
-                    continue;
+                    return;
 
-#if DIRECTX11_1
-                Span<ModeDesc1> displayModes = stackalloc ModeDesc1[(int) displayModeCount];
-                result = dxgiOutput1.GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes.GetReference());
-#else
                 Span<ModeDesc> displayModes = stackalloc ModeDesc[(int) displayModeCount];
                 result = dxgiOutput->GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes.GetReference());
-#endif
+
                 if (result.IsFailure)
-                    continue;
+                    return;
 
                 for (int i = 0; i < displayModeCount; i++)
                 {
@@ -260,7 +321,46 @@ namespace Stride.Graphics
                 }
             }
 
-            supportedDisplayModes = modesAvailable.ToArray();
+            //
+            // Gets the display modes available by querying a IDXGIOutput.
+            //
+            void GetDisplayModeList1(IDXGIOutput* dxgiOutput, Format format)
+            {
+                Debug.Assert(dxgiOutputVersion >= 1);
+                var dxgiOutput1 = (IDXGIOutput1*) dxgiOutput;
+
+                uint displayModeCount = 0;
+                HResult result = dxgiOutput1->GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, pDesc: null);
+
+                if (result.IsFailure && result.Code != DxgiConstants.ErrorNotCurrentlyAvailable)
+                    result.Throw();
+                if (displayModeCount == 0)
+                    return;
+
+                Span<ModeDesc1> displayModes1 = stackalloc ModeDesc1[(int) displayModeCount];
+                result = dxgiOutput1->GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes1.GetReference());
+
+                if (result.IsFailure)
+                    return;
+
+                for (int i = 0; i < displayModeCount; i++)
+                {
+                    ref var mode = ref displayModes1[i];
+
+                    if (mode.Scaling != ModeScaling.Unspecified)
+                        continue;
+
+                    var modeKey = HashCode.Combine(format, mode.Width, mode.Height, mode.RefreshRate.Numerator, mode.RefreshRate.Denominator);
+
+                    if (!knownModes.ContainsKey(modeKey))
+                    {
+                        var displayMode = DisplayMode.FromDescription(in mode);
+
+                        knownModes.Add(modeKey, displayMode);
+                        modesAvailable.Add(displayMode);
+                    }
+                }
+            }
         }
 
         /// <summary>

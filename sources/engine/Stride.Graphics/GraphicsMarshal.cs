@@ -27,7 +27,7 @@ public static unsafe class GraphicsMarshal
     ///   A COM pointer to a <see cref="IDXGISwapChain"/> instance representing the native DirectX swap-chain,
     ///   or <see langword="null"/> if the <paramref name="presenter"/> does not encapsulate a DXGI swap-chain.
     /// </returns>
-    public static ComPtr<IDXGISwapChain>? GetNativeSwapChain(GraphicsPresenter presenter)
+    public static ComPtr<IDXGISwapChain1>? GetNativeSwapChain(GraphicsPresenter presenter)
         => presenter is SwapChainGraphicsPresenter swapChainPresenter
             ? swapChainPresenter.NativeSwapChain
             : null;

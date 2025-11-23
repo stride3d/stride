@@ -34,7 +34,10 @@ namespace Stride.Graphics
         /// <returns>A corresponding <see cref="DisplayMode"/>.</returns>
         internal static DisplayMode FromDescription(ref readonly ModeDesc description)
         {
-            return new DisplayMode((PixelFormat) description.Format, (int) description.Width, (int) description.Height, new Rational((int) description.RefreshRate.Numerator, (int) description.RefreshRate.Denominator));
+            return new DisplayMode((PixelFormat) description.Format,
+                                   (int) description.Width,
+                                   (int) description.Height,
+                                   new Rational((int) description.RefreshRate.Numerator, (int) description.RefreshRate.Denominator));
         }
 
         /// <summary>
@@ -44,7 +47,10 @@ namespace Stride.Graphics
         /// <returns>A corresponding <see cref="DisplayMode"/>.</returns>
         internal static DisplayMode FromDescription(ref readonly ModeDesc1 description)
         {
-            return new DisplayMode((PixelFormat) description.Format, (int) description.Width, (int) description.Height, new Rational((int) description.RefreshRate.Numerator, (int) description.RefreshRate.Denominator));
+            return new DisplayMode((PixelFormat) description.Format,
+                                   (int) description.Width,
+                                   (int) description.Height,
+                                   new Rational((int) description.RefreshRate.Numerator, (int) description.RefreshRate.Denominator));
         }
     }
 }

@@ -39,6 +39,7 @@ namespace Stride.Graphics
     public sealed unsafe partial class GraphicsAdapter
     {
         private IDXGIAdapter1* dxgiAdapter;
+        private readonly uint dxgiAdapterVersion;
 
         private readonly uint adapterOrdinal;
         private readonly AdapterDesc1 adapterDesc;
@@ -56,6 +57,15 @@ namespace Stride.Graphics
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<IDXGIAdapter1> NativeAdapter => ComPtrHelpers.ToComPtr(dxgiAdapter);
+
+        /// <summary>
+        ///   Gets the version number of the native DXGI adapter supported.
+        /// </summary>
+        /// <value>
+        ///   This indicates the latest DXGI adapter interface version supported by this adapter.
+        ///   For example, if the value is 4, then this adapter supports up to <see cref="IDXGIAdapter4"/>.
+        /// </value>
+        internal uint NativeAdapterVersion => dxgiAdapterVersion;
 
         /// <summary>
         ///   Gets the description of this adapter.
@@ -84,6 +94,7 @@ namespace Stride.Graphics
         {
             this.adapterOrdinal = adapterOrdinal;
             dxgiAdapter = adapter.Handle;
+            dxgiAdapterVersion = GetLatestDxgiAdapterVersion(dxgiAdapter);
 
             Unsafe.SkipInit(out AdapterDesc1 dxgiAdapterDesc);
             HResult result = NativeAdapter.GetDesc1(ref dxgiAdapterDesc);
@@ -117,6 +128,37 @@ namespace Stride.Graphics
             while (foundValidOutput);
 
             graphicsOutputs = outputsList.ToArray();
+
+            //
+            // Queries the latest DXGI adapter version supported.
+            //
+            static uint GetLatestDxgiAdapterVersion(IDXGIAdapter1* dxgiAdapter)
+            {
+                HResult result;
+                uint dxgiAdapterVersion;
+
+                if ((result = dxgiAdapter->QueryInterface<IDXGIAdapter4>(out _)).IsSuccess)
+                {
+                    dxgiAdapterVersion = 4;
+                    dxgiAdapter->Release();
+                }
+                else if ((result = dxgiAdapter->QueryInterface<IDXGIAdapter3>(out _)).IsSuccess)
+                {
+                    dxgiAdapterVersion = 3;
+                    dxgiAdapter->Release();
+                }
+                else if ((result = dxgiAdapter->QueryInterface<IDXGIAdapter2>(out _)).IsSuccess)
+                {
+                    dxgiAdapterVersion = 2;
+                    dxgiAdapter->Release();
+                }
+                else
+                {
+                    dxgiAdapterVersion = 1;
+                }
+
+                return dxgiAdapterVersion;
+            }
         }
 
         /// <inheritdoc/>

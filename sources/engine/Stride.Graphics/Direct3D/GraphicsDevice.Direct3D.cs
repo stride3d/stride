@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
@@ -31,7 +30,10 @@ namespace Stride.Graphics
         private string rendererName;
 
         private ID3D11Device* nativeDevice;
+        private uint nativeDeviceVersion;
+
         private ID3D11DeviceContext* nativeDeviceContext;
+        private uint nativeDeviceContextVersion;
 
         private ID3D11InfoQueue* nativeInfoQueue;
 
@@ -45,6 +47,15 @@ namespace Stride.Graphics
         public ComPtr<ID3D11Device> NativeDevice => ToComPtr(nativeDevice);
 
         /// <summary>
+        ///   Gets the version number of the native Direct3D device supported.
+        /// </summary>
+        /// <value>
+        ///   This indicates the latest Direct3D device interface version supported by this device.
+        ///   For example, if the value is 4, then this device supports up to <see cref="ID3D11Device4"/>.
+        /// </value>
+        internal uint NativeDeviceVersion => nativeDeviceVersion;
+
+        /// <summary>
         ///   Gets the internal Direct3D 11 Device Context.
         /// </summary>
         /// <remarks>
@@ -52,6 +63,15 @@ namespace Stride.Graphics
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<ID3D11DeviceContext> NativeDeviceContext => ToComPtr(nativeDeviceContext);
+
+        /// <summary>
+        ///   Gets the version number of the native Direct3D device context supported.
+        /// </summary>
+        /// <value>
+        ///   This indicates the latest Direct3D device context interface version supported by this device.
+        ///   For example, if the value is 4, then this device context supports up to <see cref="ID3D11DeviceContext4"/>.
+        /// </value>
+        internal uint NativeDeviceContextVersion => nativeDeviceContextVersion;
 
         private readonly Queue<ComPtr<ID3D11Query>> disjointQueries = new(4);
         private readonly Stack<ComPtr<ID3D11Query>> currentDisjointQueries = new(2);
@@ -285,7 +305,10 @@ namespace Stride.Graphics
                 }
 
                 nativeDevice = device;
+                nativeDeviceVersion = GetLatestDeviceVersion(nativeDevice);
+
                 nativeDeviceContext = deviceContext;
+                nativeDeviceContextVersion = GetLatestDeviceContextVersion(nativeDeviceContext);
 
                 // INTEL workaround: force ShaderProfile to be 10+ as well
                 if (Adapter.VendorId == 0x8086)
@@ -312,6 +335,85 @@ namespace Stride.Graphics
                     infoQueue.SetBreakOnSeverity(MessageSeverity.Error, true);
                     infoQueue.SetBreakOnSeverity(MessageSeverity.Warning, false);
                 }
+            }
+
+            return;
+
+            //
+            // Queries the latest Direct3D 11 device version supported.
+            //
+            static uint GetLatestDeviceVersion(ID3D11Device* device)
+            {
+                HResult result;
+                uint deviceVersion;
+
+                if ((result = device->QueryInterface<ID3D11Device5>(out _)).IsSuccess)
+                {
+                    deviceVersion = 5;
+                    device->Release();
+                }
+                else if ((result = device->QueryInterface<ID3D11Device4>(out _)).IsSuccess)
+                {
+                    deviceVersion = 4;
+                    device->Release();
+                }
+                else if ((result = device->QueryInterface<ID3D11Device3>(out _)).IsSuccess)
+                {
+                    deviceVersion = 3;
+                    device->Release();
+                }
+                else if ((result = device->QueryInterface<ID3D11Device2>(out _)).IsSuccess)
+                {
+                    deviceVersion = 2;
+                    device->Release();
+                }
+                else if ((result = device->QueryInterface<ID3D11Device1>(out _)).IsSuccess)
+                {
+                    deviceVersion = 1;
+                    device->Release();
+                }
+                else
+                {
+                    deviceVersion = 0;
+                }
+
+                return deviceVersion;
+            }
+
+            //
+            // Queries the latest Direct3D 11 device context version supported.
+            //
+            static uint GetLatestDeviceContextVersion(ID3D11DeviceContext* deviceContext)
+            {
+                HResult result;
+                uint deviceContextVersion;
+
+                if ((result = deviceContext->QueryInterface<ID3D11DeviceContext4>(out _)).IsSuccess)
+                {
+                    deviceContextVersion = 4;
+                    deviceContext->Release();
+                }
+                else if ((result = deviceContext->QueryInterface<ID3D11DeviceContext3>(out _)).IsSuccess)
+                {
+                    deviceContextVersion = 3;
+                    deviceContext->Release();
+                }
+                else if ((result = deviceContext->QueryInterface<ID3D11DeviceContext2>(out _)).IsSuccess)
+                {
+                    deviceContextVersion = 2;
+                    deviceContext->Release();
+                }
+                else if ((result = deviceContext->QueryInterface<ID3D11DeviceContext1>(out _)).IsSuccess)
+                {
+                    deviceContextVersion = 1;
+                    deviceContext->Release();
+                }
+                else
+                {
+                    deviceContextVersion = 0;
+                }
+
+                return deviceContextVersion;
             }
         }
 
