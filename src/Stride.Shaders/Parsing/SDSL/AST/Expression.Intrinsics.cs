@@ -50,7 +50,7 @@ public class FAbsCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLFAbs(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -62,7 +62,7 @@ public class SAbsCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLSAbs(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -74,7 +74,7 @@ public class FSignCall(ShaderExpressionList parameters, TextLocation info) : Met
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLFSign(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -86,7 +86,7 @@ public class SSignCall(ShaderExpressionList parameters, TextLocation info) : Met
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLSSign(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -98,7 +98,7 @@ public class FloorCall(ShaderExpressionList parameters, TextLocation info) : Met
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLFloor(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -110,7 +110,7 @@ public class CeilCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLCeil(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -122,7 +122,7 @@ public class FractCall(ShaderExpressionList parameters, TextLocation info) : Met
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLFract(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -134,7 +134,7 @@ public class RadiansCall(ShaderExpressionList parameters, TextLocation info) : M
         var radians = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(radians.TypeId, context.Bound++, context.GLSLSet ?? -1, radians.Id));
+        var instruction = builder.Insert(new GLSLRadians(radians.TypeId, context.Bound++, context.GLSLSet ?? -1, radians.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -146,7 +146,7 @@ public class DegreesCall(ShaderExpressionList parameters, TextLocation info) : M
         var radians = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(radians.TypeId, context.Bound++, context.GLSLSet ?? -1, radians.Id));
+        var instruction = builder.Insert(new GLSLDegrees(radians.TypeId, context.Bound++, context.GLSLSet ?? -1, radians.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -158,7 +158,7 @@ public class SinCall(ShaderExpressionList parameters, TextLocation info) : Metho
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLSin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -170,7 +170,7 @@ public class CosCall(ShaderExpressionList parameters, TextLocation info) : Metho
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLCos(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -182,7 +182,7 @@ public class TanCall(ShaderExpressionList parameters, TextLocation info) : Metho
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLTan(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -194,7 +194,7 @@ public class AsinCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLAsin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -206,7 +206,7 @@ public class AcosCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLAcos(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -218,7 +218,7 @@ public class AtanCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var y_over_x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(y_over_x.TypeId, context.Bound++, context.GLSLSet ?? -1, y_over_x.Id));
+        var instruction = builder.Insert(new GLSLAtan(y_over_x.TypeId, context.Bound++, context.GLSLSet ?? -1, y_over_x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -230,7 +230,7 @@ public class SinhCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLSinh(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -242,7 +242,7 @@ public class CoshCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLCosh(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -254,7 +254,7 @@ public class TanhCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLTanh(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -266,7 +266,7 @@ public class AsinhCall(ShaderExpressionList parameters, TextLocation info) : Met
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLAsinh(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -278,7 +278,7 @@ public class AcoshCall(ShaderExpressionList parameters, TextLocation info) : Met
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLAcosh(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -290,7 +290,7 @@ public class AtanhCall(ShaderExpressionList parameters, TextLocation info) : Met
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLAtanh(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
