@@ -316,7 +316,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             context.Add(new OpSDSLMixinInherit(shader.ResultId));
         }
 
-        foreach (var member in Elements.OfType<CBuffer>())
+        foreach (var member in Elements.OfType<ShaderBuffer>())
             member.Compile(table, this, compiler);
         foreach (var member in Elements.OfType<ShaderMember>())
             member.Compile(table, this, compiler);

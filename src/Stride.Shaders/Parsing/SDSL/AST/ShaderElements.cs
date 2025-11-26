@@ -156,6 +156,8 @@ public abstract class ShaderBuffer(string name, TextLocation info) : ShaderEleme
             _ => throw new NotSupportedException()
         };
     }
+
+    public abstract void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler);
 }
 
 public class ShaderStructMember(TypeName typename, Identifier identifier, TextLocation info) : Node(info)
@@ -202,7 +204,7 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
 
 public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name, info)
 {
-    public void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var pointerType = context.GetOrRegister(new PointerType(Type, Specification.StorageClass.Uniform));
@@ -222,5 +224,38 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
     }
 }
 
-public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, info);
-public sealed class TBuffer(string name, TextLocation info) : ShaderBuffer(name, info);
+public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, info)
+{
+    public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+
+        for (var index = 0; index < Members.Count; index++)
+        {
+            var member = Members[index];
+
+            (var storageClass, var kind) = member.Type switch
+            {
+                TextureType => (Specification.StorageClass.UniformConstant, SymbolKind.Variable),
+                SamplerType => (Specification.StorageClass.UniformConstant, SymbolKind.SamplerState),
+                _ => throw new NotImplementedException(),
+            };
+
+            var type = new PointerType(member.Type, storageClass);
+            var typeId = context.GetOrRegister(type);
+            context.FluentAdd(new OpVariable(typeId, context.Bound++, storageClass, null), out var variable);
+            context.AddName(variable.ResultId, member.Name);
+            var sid = new SymbolID(member.Name, kind, Storage.Uniform);
+            var symbol = new Symbol(sid, type, variable.ResultId);
+            table.CurrentFrame.Add(member.Name, symbol);
+        }
+    }
+}
+
+public sealed class TBuffer(string name, TextLocation info) : ShaderBuffer(name, info)
+{
+    public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
+    {
+        throw new NotImplementedException();
+    }
+}
