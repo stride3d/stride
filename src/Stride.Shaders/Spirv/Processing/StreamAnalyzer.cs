@@ -336,7 +336,7 @@ namespace Stride.Shaders.Spirv.Processing
                 buffer.Add(new OpReturn());
                 buffer.Add(new OpFunctionEnd());
 
-                Span<int> pvariables = stackalloc int[inputStreams.Count + outputStreams.Count + privateStreams.Count + analysisResult.Blocks.Count];
+                Span<int> pvariables = stackalloc int[inputStreams.Count + outputStreams.Count + privateStreams.Count + analysisResult.Blocks.Count + analysisResult.Resources.Count];
                 int pvariableIndex = 0;
                 foreach (var inputStream in inputStreams)
                     pvariables[pvariableIndex++] = inputStream.Id;
@@ -344,8 +344,11 @@ namespace Stride.Shaders.Spirv.Processing
                     pvariables[pvariableIndex++] = outputStream.Id;
                 foreach (var privateStream in privateStreams)
                     pvariables[pvariableIndex++] = privateStream.VariableId;
+                // TODO: filter blocks and resources actually used by this entrypoint with ProcessMethod()?
                 foreach (var block in analysisResult.Blocks)
                     pvariables[pvariableIndex++] = block;
+                foreach (var resource in analysisResult.Resources)
+                    pvariables[pvariableIndex++] = resource;
 
                 context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [.. pvariables]));
             }
