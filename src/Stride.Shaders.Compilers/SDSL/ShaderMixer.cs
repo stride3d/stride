@@ -22,7 +22,7 @@ namespace Stride.Shaders.Compilers.SDSL;
 public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 {
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
-    public void MergeSDSL(string entryShaderName, out byte[] bytecode)
+    public void MergeSDSL(ShaderSource shaderSource, out byte[] bytecode)
     {
         var temp = new NewSpirvBuffer();
 
@@ -30,7 +30,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var table = new SymbolTable();
 
         var effectEvaluator = new EffectEvaluator(ShaderLoader);
-        var shaderSource = effectEvaluator.EvaluateEffects(new ShaderClassSource(entryShaderName));
+        shaderSource = effectEvaluator.EvaluateEffects(shaderSource);
 
         var shaderSource2 = EvaluateInheritanceAndCompositions(shaderSource);
 

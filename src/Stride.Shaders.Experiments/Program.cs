@@ -3,6 +3,7 @@ using Stride.Shaders.Experiments;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System.Runtime.InteropServices;
 using Stride.Shaders.Spirv.Tools;
+using Stride.Shaders.Parsing.SDSL;
 
 // Examples.CompileSDSL("RenderTests/If");
 
@@ -10,7 +11,7 @@ using Stride.Shaders.Spirv.Tools;
 var loader = new Examples.ShaderLoader();
 loader.LoadExternalFile("Test", out var testBuffer);
 var shaderMixer = new ShaderMixer(loader);
-shaderMixer.MergeSDSL("If", out var bytecode);
+shaderMixer.MergeSDSL(new ShaderClassSource("If"), out var bytecode);
 var buffer = new NewSpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode.AsSpan()));
 var source = Spv.Dis(buffer);
 File.WriteAllText("test.spvdis", source);

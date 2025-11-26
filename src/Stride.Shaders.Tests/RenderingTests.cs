@@ -11,6 +11,7 @@ using Stride.Shaders.Compilers;
 using Stride.Shaders.Compilers.SDSL;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System.Diagnostics.CodeAnalysis;
@@ -50,7 +51,7 @@ public class RenderingTests
     {
         // Compiler shader
         var shaderMixer = new ShaderMixer(new ShaderLoader());
-        shaderMixer.MergeSDSL(shaderName, out var bytecode);
+        shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), out var bytecode);
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
 
         // Convert to GLSL
