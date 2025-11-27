@@ -216,11 +216,16 @@ public record struct LiteralsParser : IParser<Literal>
         var position = scanner.Position;
         if (Tokens.Char('\"', ref scanner, advance: true))
         {
-            Parsers.Until(ref scanner, '\"', advance: true);
-            if (scanner.Span[position..scanner.Position].Contains('\n'))
-                return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[position], scanner.Memory));
-            parsed = new(scanner.Span[position..scanner.Position].ToString(), scanner[position..scanner.Position]);
-            return true;
+            var strStart = scanner.Position;
+            Parsers.Until(ref scanner, '\"', advance: false);
+            var strEnd = scanner.Position;
+            if (Tokens.Char('\"', ref scanner, advance: true))
+            {
+                if (scanner.Span[position..scanner.Position].Contains('\n'))
+                    return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[position], scanner.Memory));
+                parsed = new(scanner.Span[strStart..strEnd].ToString(), scanner[position..scanner.Position]);
+                return true;
+            }
         }
         return Parsers.Exit(ref scanner, result, out parsed, position);
     }
