@@ -155,6 +155,8 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         )
         {
             parsed = new ShaderMember(typeName, identifier, value, scanner[position..scanner.Position], isStage, streamKind);
+            if (hasAttributes)
+                parsed.Attributes = attributes.Attributes;
             return true;
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
