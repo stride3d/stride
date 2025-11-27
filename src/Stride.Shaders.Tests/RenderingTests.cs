@@ -14,12 +14,14 @@ using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Tools;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using Spv = Stride.Shaders.Spirv.Tools.Spv;
 
 namespace Stride.Shaders.Parsing.Tests;
 
@@ -41,7 +43,15 @@ public class RenderingTests
             var text = MonoGamePreProcessor.OpenAndRun(filename);
             var sdslc = new SDSLC();
             sdslc.ShaderLoader = this;
-            return sdslc.Compile(text, out buffer);
+
+            var result = sdslc.Compile(text, out buffer);
+#if DEBUG
+            if (result)
+            {
+                Spv.Dis(buffer, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+            }
+#endif
+            return result;
         }
     }
 

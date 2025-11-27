@@ -17,33 +17,34 @@ public partial class ShaderMixer
     /// <param name="root"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    private ShaderMixinSource EvaluateInheritanceAndCompositions(ShaderSource shaderSource, ShaderMixinSource? root = null)
+    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(ShaderSource shaderSource, ShaderMixinInstantiation? root = null)
     {
         bool isRoot = root == null;
-        var mixinList = new List<ShaderClassSource>();
+        var mixinList = new List<ShaderClassInstantiation>();
 
         var shaderMixinSource = shaderSource switch
         {
             ShaderMixinSource mixinSource2 => mixinSource2,
             ShaderClassSource classSource => new ShaderMixinSource { Mixins = { classSource } },
         };
+
         foreach (var mixinToMerge in shaderMixinSource.Mixins)
         {
-            if (mixinToMerge.GenericArguments != null && mixinToMerge.GenericArguments.Length > 0)
-                throw new NotImplementedException();
-
-            var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge.ClassName);
-            SpirvBuilder.BuildInheritanceList(ShaderLoader, buffer, mixinList);
-            if (!mixinList.Contains(mixinToMerge))
-                mixinList.Add(mixinToMerge);
+            if (mixinToMerge.GenericArguments.Length > 0)
+                throw new NotImplementedException("Generics at the top-level shaders is not supported");
+            var mixinToMerge2 = new ShaderClassInstantiation(mixinToMerge.ClassName, []);
+            var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge2, ResolveStep.Mix);
+            mixinToMerge2.Buffer = buffer;
+            //SpirvBuilder.BuildInheritanceList(ShaderLoader, buffer, mixinList, ResolveStep.Mix);
+            SpirvBuilder.BuildInheritanceList(ShaderLoader, mixinToMerge2, mixinList, ResolveStep.Mix);
         }
 
-        shaderMixinSource.Mixins.Clear();
-        shaderMixinSource.Mixins.AddRange(mixinList);
+        var compositions = new Dictionary<string, ShaderMixinInstantiation>();
+        var result = new ShaderMixinInstantiation(mixinList, compositions);
 
-        foreach (var shaderName in mixinList)
+        foreach (var shaderName in mixinList.ToArray())
         {
-            var shader = SpirvBuilder.GetOrLoadShader(ShaderLoader, shaderName.ClassName);
+            var shader = shaderName.Buffer;
             ShaderClass.ProcessNameAndTypes(shader, 0, shader.Count, out var names, out var types);
 
             bool hasStage = false;
@@ -61,8 +62,8 @@ public partial class ShaderMixer
                         {
                             compositionMixin = new ShaderMixinSource { Mixins = { new ShaderClassSource(shaderSymbol.Name) } };
                         }
-                        compositionMixin = (ShaderMixinSource)EvaluateInheritanceAndCompositions(compositionMixin, root ?? shaderMixinSource);
-                        shaderMixinSource.Compositions[variableName] = compositionMixin;
+                        var composition = EvaluateInheritanceAndCompositions(compositionMixin, root ?? result);
+                        compositions[variableName] = composition;
                     }
                 }
 
@@ -75,13 +76,13 @@ public partial class ShaderMixer
             // If there are any stage variables, add class to root
             if (!isRoot && hasStage)
             {
-                var shaderNameStageOnly = new ShaderClassSource(shaderName.ClassName) { GenericArguments = shaderName.GenericArguments, ImportStageOnly = true };
+                var shaderNameStageOnly = new ShaderClassInstantiation(shaderName.ClassName, shaderName.GenericArguments, ImportStageOnly: true) { Buffer = shaderName.Buffer, ShaderReferences = shaderName.ShaderReferences };
                 // Make sure it's not already added yet (either standard or stage only)
                 if (!root!.Mixins.Contains(shaderName) && !root!.Mixins.Contains(shaderNameStageOnly))
                     root!.Mixins.Add(shaderNameStageOnly);
             }
         }
 
-        return shaderMixinSource;
+        return result;
     }
 }

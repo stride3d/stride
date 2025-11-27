@@ -43,7 +43,7 @@ public struct LiteralArray<T> : ISpirvElement, IFromSpirv<LiteralArray<T>>, IDis
 
     MemoryOwner<int> Memory { get; set { field?.Dispose(); field = value; } }
     public readonly ReadOnlySpan<int> Words => Memory is not null ? Memory.Span : [];
-    MemoryOwner<T> Elements { get; set { field?.Dispose(); field = value; } }
+    public MemoryOwner<T> Elements { get; set { field?.Dispose(); field = value; } }
     public readonly int WordCount => Elements?.Length ?? -1;
 
 

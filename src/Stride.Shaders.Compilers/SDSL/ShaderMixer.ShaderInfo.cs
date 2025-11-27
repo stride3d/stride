@@ -4,6 +4,7 @@ using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Core;
 using static Stride.Shaders.Spirv.Specification;
+using Stride.Shaders.Spirv.Building;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
@@ -92,7 +93,7 @@ public partial class ShaderMixer
         }
     }
 
-    private void RemapInheritedIds(NewSpirvBuffer temp, int shaderStart, int shaderEnd, ShaderInfo shaderInfo, MixinNode mixinNode)
+    private void RemapInheritedIds(NewSpirvBuffer temp, int shaderStart, int shaderEnd, ShaderClassInstantiation classSource, ShaderInfo shaderInfo, MixinNode mixinNode)
     {
         var importedShaders = new Dictionary<int, ShaderInfo>();
         var idRemapping = new Dictionary<int, int>();
@@ -116,7 +117,9 @@ public partial class ShaderMixer
             {
                 if (importShader.Type == Specification.ImportType.Inherit)
                 {
-                    importedShaders.Add(importShader.ResultId, mixinNode.ShadersByName[importShader.ShaderName]);
+                    //var shaderClassSource = Spirv.Building.SpirvBuilder.ConvertToShaderClassSource(temp, shaderStart, shaderEnd, importShader);
+                    var shaderClassSource = classSource.ShaderReferences[importShader.ResultId - classSource.OffsetId];
+                    importedShaders.Add(importShader.ResultId, mixinNode.ShadersByName[shaderClassSource.ToClassName()]);
 
                     SetOpNop(i.Data.Memory.Span);
                 }

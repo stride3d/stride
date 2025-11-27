@@ -29,8 +29,9 @@ public sealed class ShaderClassSource(string className) : ShaderSource, IEquatab
             return ClassName;
 
         var result = new StringBuilder();
-        if (ImportStageOnly)
-            result.Append("stage ");
+        // We should make this optional as it currently bothers class registration by name
+        //if (ImportStageOnly)
+        //    result.Append("stage ");
         result.Append(ClassName);
         if (GenericArguments != null && GenericArguments.Length > 0)
         {

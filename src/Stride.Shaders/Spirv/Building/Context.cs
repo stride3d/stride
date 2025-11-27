@@ -1,3 +1,4 @@
+using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
@@ -206,7 +207,7 @@ public class SpirvContext
 
     private int RegisterShaderType(ShaderSymbol shaderSymbol)
     {
-        FluentAdd(new OpSDSLImportShader(Bound++, new(shaderSymbol.Name), ImportType.External), out var shader);
+        FluentAdd(new OpSDSLImportShader(Bound++, ImportType.External, new(shaderSymbol.Name), new(shaderSymbol.GenericArguments.AsSpan())), out var shader);
         AddName(shader.ResultId, shaderSymbol.Name);
         for (var index = 0; index < shaderSymbol.Components.Count; index++)
         {

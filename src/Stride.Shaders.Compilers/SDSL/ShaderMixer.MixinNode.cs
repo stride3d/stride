@@ -1,4 +1,6 @@
-﻿namespace Stride.Shaders.Compilers.SDSL;
+﻿using Stride.Shaders.Spirv.Building;
+
+namespace Stride.Shaders.Compilers.SDSL;
 
 public partial class ShaderMixer
 {

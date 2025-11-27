@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Stride.Shaders.Spirv;
+using Stride.Shaders.Spirv.Building;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Core;
@@ -236,7 +237,8 @@ public sealed record StreamsSymbol : SymbolType;
 public sealed record ConstantBufferSymbol(string Name, List<(string Name, SymbolType Type)> Members) : StructuredType(Name, Members);
 public sealed record ParamsSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
 public sealed record EffectSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
-public sealed record ShaderSymbol(string Name, List<Symbol> Components) : SymbolType
+
+public sealed record ShaderSymbol(string Name, int[] GenericArguments, List<Symbol> Components) : SymbolType
 {
     public Symbol Get(string name, SymbolKind kind)
     {
@@ -255,5 +257,14 @@ public sealed record ShaderSymbol(string Name, List<Symbol> Components) : Symbol
             }
         value = null!;
         return false;
+    }
+
+    public string ToClassName()
+    {
+        if (GenericArguments.Length == 0)
+            return Name;
+
+        var className = new ShaderClassInstantiation(Name, GenericArguments);
+        return className.ToClassName();
     }
 }

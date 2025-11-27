@@ -276,6 +276,17 @@ public sealed class NewSpirvBuffer() : IDisposable
         return true;
     }
 
+    public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction
+    {
+        if (index < 0 || index >= Instructions.Count)
+            throw new InvalidOperationException();
+
+        Instructions[index].Dispose();
+        Instructions[index] = new(instruction.InstructionMemory);
+        UpdateBound(Instructions[index]);
+        return Instructions[index];
+    }
+
     public Enumerator GetEnumerator() => new(this);
 
     public ref struct Enumerator(NewSpirvBuffer buffer)

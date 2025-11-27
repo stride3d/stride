@@ -70,12 +70,17 @@
           "kind": "IdResult"
         },
         {
+          "kind": "ImportType",
+          "name": "type"
+        },
+        {
           "kind": "LiteralString",
           "name": "shaderName"
         },
         {
-          "kind": "ImportType",
-          "name": "type"
+          "kind": "IdRef",
+          "quantifier": "*",
+          "name": "generics"
         }
       ]
     },
@@ -164,6 +169,25 @@
         {
           "kind": "LiteralString",
           "name": "mixin"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLGenericParameter",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" }
+      ]
+    },
+    {
+      "opname": "OpConstantStringSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        {
+          "kind": "LiteralString",
+          "name": "'Literal String'"
         }
       ]
     }

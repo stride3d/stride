@@ -61,6 +61,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 #if DEBUG
         File.WriteAllBytes("test.spv", bytecode);
         File.WriteAllText("test.spvdis", Spv.Dis(temp));
+        Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 #endif
     }
 
@@ -76,7 +77,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     }
 
 
-    MixinNode MergeMixinNode(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, NewSpirvBuffer buffer, ShaderMixinSource mixinSource, MixinNode? stage = null, string? currentCompositionPath = null)
+    MixinNode MergeMixinNode(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, NewSpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode? stage = null, string? currentCompositionPath = null)
     {
         if (currentCompositionPath != null)
             buffer.Add(new OpSDSLEffect(currentCompositionPath));
@@ -136,19 +137,18 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         return mixinNode;
     }
 
-    private void ProcessMixinClasses(SpirvContext context, NewSpirvBuffer temp, ShaderMixinSource mixinSource, MixinNode mixinNode)
+    private void ProcessMixinClasses(SpirvContext context, NewSpirvBuffer temp, ShaderMixinInstantiation mixinSource, MixinNode mixinNode)
     {
         var isRoot = mixinNode.Stage == null;
         var offset = context.Bound;
         var nextOffset = 0;
 
         var shaders = mixinNode.Shaders;
-        var shadersByName = mixinNode.ShadersByName;
 
         mixinNode.StartInstruction = temp.Count;
         foreach (var shaderClass in mixinSource.Mixins)
         {
-            var shader = SpirvBuilder.GetOrLoadShader(ShaderLoader, shaderClass.ClassName);
+            var shader = shaderClass.Buffer;
             offset += nextOffset;
             nextOffset = 0;
             shader.Header = shader.Header with { Bound = shader.Header.Bound + offset };
@@ -209,6 +209,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     OffsetIds(i2, offset);
             }
 
+            shaderClass.Start = shaderStart;
+            shaderClass.End = shaderStart;
+            shaderClass.OffsetId = offset;
+
             // Build ShaderInfo
             var shaderInfo = new ShaderInfo(shaders.Count, shaderClass.ClassName, shaderStart, temp.Count);
             shaderInfo.CompositionPath = mixinNode.CompositionPath;
@@ -217,11 +221,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             PopulateShaderInfo(temp, shaderStart, temp.Count, shaderInfo, mixinNode);
 
-            shadersByName.Add(shaderClass.ClassName, shaderInfo);
+            mixinNode.ShadersByName.Add(shaderClass.ToClassName(), shaderInfo);
             shaders.Add(shaderInfo);
 
             // Remap ids from inherited class (OpSDSLImport*)
-            RemapInheritedIds(temp, shaderStart, temp.Count, shaderInfo, mixinNode);
+            RemapInheritedIds(temp, shaderStart, temp.Count, shaderClass, shaderInfo, mixinNode);
         }
 
         mixinNode.EndInstruction = temp.Count;
@@ -259,7 +263,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             var i = temp[index];
             if (i.Data.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shaderInstruction)
             {
-                currentShader = mixinNode.ShadersByName[shaderInstruction.ShaderName];
+                //currentShader = mixinNode.ShadersByName[shaderInstruction.ShaderName];
+                // TODO: better way to find ShaderInfo
+                currentShader = mixinNode.Shaders.First(x => index >= x.StartInstruction && index < x.EndInstruction);
             }
             else if (i.Data.Op == Op.OpSDSLShaderEnd)
             {
@@ -362,8 +368,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     var composition = mixinNode.Compositions[callTarget.Target];
                     methodMixinGroup = composition;
 
-                    Spv.Dis(temp, DisassemblerFlags.Id);
-
                     var functionName = externalFunctions[functionCall.Function];
                     var functionId = composition.MethodGroupsByName[functionName];
 
@@ -371,8 +375,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                     SetOpNop(temp[index - 1].Data.Memory.Span);
                 }
-
-                Spv.Dis(temp, DisassemblerFlags.Name & DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex);
 
                 bool foundInStage = false;
                 if (!methodMixinGroup.MethodGroups.TryGetValue(functionCall.Function, out var methodGroupEntry))
