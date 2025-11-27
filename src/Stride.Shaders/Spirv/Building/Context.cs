@@ -50,6 +50,8 @@ public class SpirvContext
     public Dictionary<(SymbolType Type, object Value), SpirvValue> LiteralConstants { get; } = [];
     NewSpirvBuffer Buffer { get; set; } = new();
 
+    public int? GLSLSet { get; private set; }
+
     public void PutShaderName(string name)
     {
         if (Name is null)
@@ -58,6 +60,19 @@ public class SpirvContext
             Buffer.Insert(0, new OpSDSLShader(name));
         }
         else throw new NotImplementedException();
+    }
+    public void ImportGLSL()
+    {
+        foreach(var i in Buffer)
+        {
+            if(i.Op == Op.OpExtInstImport && (OpExtInstImport)i is { Name: "GLSL.std.450" })
+            {
+                GLSLSet ??= ((OpExtInstImport)i).ResultId;
+                return;
+            }
+        }
+        Buffer.Insert(1, new OpExtInstImport(Bound++, "GLSL.std.450"));
+        GLSLSet = Bound - 1;
     }
 
     public void AddName(int target, string name)
@@ -280,7 +295,7 @@ public class SpirvContext
         };
 
         if (LiteralConstants.TryGetValue((literal.Type, literalValue), out var result))
-             return result;
+            return result;
         var instruction = literal switch
         {
             BoolLiteral { Value: true } lit => Buffer.Add(new OpConstantTrue(GetOrRegister(lit.Type), Bound++)),

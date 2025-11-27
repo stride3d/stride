@@ -147,7 +147,12 @@ public partial class SpirvBuilder
 
 internal static class SymbolExtensions
 {
-
+    public static ScalarType GetElementType(this SymbolType symbol) => symbol switch
+        {
+            ScalarType s => s,
+            VectorType v => v.BaseType,
+            MatrixType m => m.BaseType,
+        };
     public static bool IsSignedInteger(this SymbolType symbol) => symbol is ScalarType { TypeName: "sbyte" or "short" or "int" or "long" };
     public static bool IsUnsignedInteger(this SymbolType symbol) => symbol is ScalarType { TypeName: "byte" or "ushort" or "uint" or "ulong" };
     public static bool IsFloating(this SymbolType symbol) => symbol is ScalarType { TypeName: "half" or "float" or "double" };
