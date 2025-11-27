@@ -117,6 +117,11 @@ public record struct GenericsValueParser : IParser<Expression>
             parsed = vector;
             return true;
         }
+        else if (LiteralsParser.StringLiteral(ref scanner, result, out var stringLiteral))
+        {
+            parsed = stringLiteral;
+            return true;
+        }
         else if (PostfixParser.Postfix(ref scanner, result, out var accessor))
         {
             if (accessor is AccessorChainExpression ae && ae.Source is Identifier)
