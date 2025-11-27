@@ -1,0 +1,13 @@
+// PSMain(ExpectedResult=#00FFFF00)
+
+namespace Stride.Shaders.Tests;
+
+shader Intrinsics
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(sin(0), cos(0), sin(radians(90)), cos(radians(90)));
+    }
+}
