@@ -1,8 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <Compile Include="..\..\submodules\CppNet8\*.cs" LinkBase="CppNet" />
+    <Compile Include="..\..\submodules\CppNet8\JavaCompat\*.cs" LinkBase="CppNet\JavaCompat" />
+    <Compile Remove="..\..\submodules\CppNet8\CppReader.cs" />
+    <Compile Remove="..\..\submodules\CppNet8\CppTask.cs" />
+    <Compile Remove="..\..\submodules\CppNet8\InputLexerSource.cs" />
+    <Compile Remove="..\..\submodules\CppNet8\TokenSnifferSource.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Spirv.Core\Stride.Shaders.Spirv.Core.csproj" />
-    <ProjectReference Include="..\..\submodules\CppNet8\CppNet.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
