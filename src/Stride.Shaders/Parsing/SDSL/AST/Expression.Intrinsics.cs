@@ -1,7 +1,9 @@
+using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
+using System;
 
 namespace Stride.Shaders.Parsing.SDSL;
 
@@ -42,7 +44,7 @@ public class TruncCall(ShaderExpressionList parameters, TextLocation info) : Met
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
-public class FAbsCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fabs", info), parameters, info)
+public class AbsCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fabs", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -50,11 +52,25 @@ public class FAbsCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFAbs(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
-        return new(instruction.ResultId, instruction.ResultType);
+
+        var elementType = Parameters.Values[0].Type.GetElementType();
+        if (elementType.IsFloating())
+        {
+            var instruction = builder.Insert(new GLSLFAbs(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+            return new(instruction.ResultId, instruction.ResultType);
+        }
+        else if (elementType.IsInteger())
+        {
+            var instruction = builder.Insert(new GLSLSAbs(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+            return new(instruction.ResultId, instruction.ResultType);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unknown type for abs: {elementType}");
+        }
     }
 }
-public class SAbsCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("sabs", info), parameters, info)
+public class SignCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fsign", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -62,32 +78,22 @@ public class SAbsCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLSAbs(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class FSignCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fsign", info), parameters, info)
-{
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFSign(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class SSignCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("ssign", info), parameters, info)
-{
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLSSign(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
-        return new(instruction.ResultId, instruction.ResultType);
+
+        var elementType = Parameters.Values[0].Type.GetElementType();
+        if (elementType.IsFloating())
+        {
+            var instruction = builder.Insert(new GLSLFSign(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+            return new(instruction.ResultId, instruction.ResultType);
+        }
+        else if (elementType.IsInteger())
+        {
+            var instruction = builder.Insert(new GLSLSSign(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+            return new(instruction.ResultId, instruction.ResultType);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unknown type for abs: {elementType}");
+        }
     }
 }
 public class FloorCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("floor", info), parameters, info)
@@ -398,7 +404,8 @@ public class DeterminantCall(ShaderExpressionList parameters, TextLocation info)
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLDeterminant(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var resultType = Parameters.Values[0].Type.GetElementType();
+        var instruction = builder.Insert(new GLSLDeterminant(context.GetOrRegister(resultType), context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -794,7 +801,8 @@ public class LengthCall(ShaderExpressionList parameters, TextLocation info) : Me
         var x = Parameters.Values[0].Compile(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLLength(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var resultType = Parameters.Values[0].Type.GetElementType();
+        var instruction = builder.Insert(new GLSLLength(context.GetOrRegister(resultType), context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -976,5 +984,40 @@ public class NClampCall(ShaderExpressionList parameters, TextLocation info) : Me
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLNClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id));
         return new(instruction.ResultId, instruction.ResultType);
+    }
+}
+public class MulCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("pow", info), parameters, info)
+{
+    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        if (context.GLSLSet == null)
+            context.ImportGLSL();
+
+        var xType = Parameters.Values[0].Type;
+        var yType = Parameters.Values[1].Type;
+
+        if (xType.GetElementType() != yType.GetElementType())
+            throw new NotImplementedException("mul type conversion is currently not implemented");
+
+        if (!xType.IsFloating())
+            throw new NotImplementedException("Only implemented for floating types");
+
+        // Version on https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-mul
+        var result = (xType, yType) switch
+        {
+            (ScalarType type1, ScalarType type2) => builder.InsertData(new OpFMul(x.TypeId, context.Bound++, x.Id, y.Id)),
+            (ScalarType type1, VectorType type2) => builder.InsertData(new OpVectorTimesScalar(y.TypeId, context.Bound++, y.Id, x.Id)),
+            (ScalarType type1, MatrixType type2) => builder.InsertData(new OpMatrixTimesScalar(y.TypeId, context.Bound++, y.Id, x.Id)),
+            (VectorType type1, ScalarType type2) => builder.InsertData(new OpVectorTimesScalar(x.TypeId, context.Bound++, x.Id, y.Id)),
+            (VectorType type1, VectorType type2) when type1.Size == type2.Size => builder.InsertData(new OpDot(x.TypeId, context.Bound++, x.Id, y.Id)),
+            (VectorType type1, MatrixType type2) when type1.Size == type2.Rows => builder.InsertData(new OpVectorTimesMatrix(context.GetOrRegister(new VectorType(type1.BaseType, type2.Columns)), context.Bound++, x.Id, y.Id)),
+            (MatrixType type1, ScalarType type2) => builder.InsertData(new OpMatrixTimesScalar(x.TypeId, context.Bound++, x.Id, y.Id)),
+            (MatrixType type1, VectorType type2) when type1.Columns == type2.Size => builder.InsertData(new OpMatrixTimesVector(context.GetOrRegister(new VectorType(type1.BaseType, type1.Rows)), context.Bound++, x.Id, y.Id)),
+            (MatrixType type1, MatrixType type2) when type1.Columns == type2.Rows => builder.InsertData(new OpMatrixTimesMatrix(context.GetOrRegister(new MatrixType(type1.BaseType, type1.Rows, type2.Columns)), context.Bound++, x.Id, y.Id)),
+        };
+
+        return new SpirvValue(result);
     }
 }

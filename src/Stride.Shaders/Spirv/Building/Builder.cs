@@ -87,6 +87,10 @@ public partial class SpirvBuilder()
         where T : struct, IMemoryInstruction
         => Buffer.Insert(Position++, value);
 
+    public OpData InsertData<T>(in T value)
+        where T : struct, IMemoryInstruction
+        => Buffer.InsertData(Position++, value);
+
     [Obsolete("Use the insert method instead")]
     public NewSpirvBuffer GetBuffer() => Buffer;
 
