@@ -177,7 +177,8 @@
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResultType" },
-        { "kind": "IdResult" }
+        { "kind": "IdResult" },
+        { "kind": "GenericParameterKindSDSL", "name": "kind" }
       ]
     },
     {
@@ -189,6 +190,13 @@
           "kind": "LiteralString",
           "name": "'Literal String'"
         }
+      ]
+    },
+    {
+      "opname": "OpTypeGenericLinkSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" }
       ]
     }
   ],
@@ -221,6 +229,34 @@
     },
     {
       "category": "ValueEnum",
+      "kind": "Decoration",
+      "enumerants": [
+        {
+          "enumerant": "LinkSDSL",
+          "value": 8000,
+          "parameters": [
+            {
+              "kind": "LiteralString",
+              "name": "'Name'"
+            }
+          ],
+          "version": "1.0"
+        },
+        {
+          "enumerant": "LinkIdSDSL",
+          "value": 8001,
+          "parameters": [
+            {
+              "kind": "IdRef"
+            }
+          ],
+          "version": "1.0"
+        }
+
+      ]
+    },
+    {
+      "category": "ValueEnum",
       "kind": "ImportType",
       "enumerants": [
         {
@@ -229,6 +265,20 @@
         },
         {
           "enumerant": "Inherit",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "GenericParameterKindSDSL",
+      "enumerants": [
+        {
+          "enumerant": "Float",
+          "value": 0
+        },
+        {
+          "enumerant": "LinkType",
           "value": 1
         }
       ]

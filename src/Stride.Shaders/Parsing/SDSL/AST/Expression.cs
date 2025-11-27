@@ -20,7 +20,7 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
 
     public SymbolType? ValueType => Type is PointerType pointerType ? pointerType.BaseType : Type;
 
-    public SpirvValue CompileAsValue(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public virtual SpirvValue CompileAsValue(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var result = Compile(table, shader, compiler);
         return compiler.Builder.AsValue(compiler.Context, result);

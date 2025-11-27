@@ -268,3 +268,5 @@ public sealed record ShaderSymbol(string Name, int[] GenericArguments, List<Symb
         return className.ToClassName();
     }
 }
+
+public sealed record GenericLinkType : SymbolType;

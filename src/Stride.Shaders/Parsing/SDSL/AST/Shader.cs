@@ -231,7 +231,12 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 table.DeclaredTypes.TryAdd(genericParameterType.ToString(), genericParameterType);
 
                 var genericParameterTypeId = context.GetOrRegister(genericParameterType);
-                context.Add(new OpSDSLGenericParameter(genericParameterTypeId, context.Bound));
+                var genericParameterKind = genericParameterType switch
+                {
+                    ScalarType { TypeName: "float" } => GenericParameterKindSDSL.Float,
+                    GenericLinkType => GenericParameterKindSDSL.LinkType,
+                };
+                context.Add(new OpSDSLGenericParameter(genericParameterTypeId, context.Bound, genericParameterKind));
                 context.AddName(context.Bound, genericParameter.Name);
                 table.CurrentFrame.Add(genericParameter.Name, new(new(genericParameter.Name, SymbolKind.ConstantGeneric), genericParameterType, context.Bound));
 

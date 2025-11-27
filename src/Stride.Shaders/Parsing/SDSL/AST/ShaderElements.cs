@@ -220,6 +220,41 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
             var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
             var symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), variable, index);
             table.CurrentFrame.Add(member.Name, symbol);
+
+            if (member.Attributes != null && member.Attributes.Count > 0)
+            {
+                foreach (var attribute in member.Attributes)
+                {
+                    if (attribute is AnyShaderAttribute anyAttribute && anyAttribute.Name == "Link")
+                    {
+                        if (anyAttribute.Parameters[0] is StringLiteral linkLiteral)
+                        {
+                            // Try to resolve generic parameter when encoded as string (deprecated)
+                            if (table.TryResolveSymbol(linkLiteral.Value, out var linkLiteralSymbol))
+                            {
+                                // TODO: make it a warning only?
+                                table.Errors.Add(new(Info, "LinkType generics should be passed without quotes"));
+                            }
+
+                            context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkSDSL(linkLiteral.Value)));
+                        }
+                        else if (anyAttribute.Parameters[0] is Identifier identifier)
+                        {
+                            if (!table.TryResolveSymbol(identifier.Name, out var linkSymbol))
+                            {
+                                throw new InvalidOperationException();
+                            }
+                            context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkIdSDSL(linkSymbol.IdRef)));
+                        }
+                        else
+                        {
+                            throw new NotImplementedException($"Attribute {attribute} is not supported");
+                        }
+                    }
+                    else
+                        throw new NotImplementedException($"Attribute {attribute} is not supported");
+                }
+            }
         }
     }
 }

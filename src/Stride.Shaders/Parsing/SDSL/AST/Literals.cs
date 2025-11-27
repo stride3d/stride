@@ -22,7 +22,16 @@ public class StringLiteral(string value, TextLocation info) : Literal(info)
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var i = context.Add(new OpConstantStringSDSL(context.Bound++, Value));
+        // Note: we rely on undefined type (0); we assume those string literals will be used in only very specific cases where we expect them (i.e. generic instantiation parameters) and will be removed
+        return new SpirvValue(i.IdResult.Value, 0);
+    }
+
+    public override SpirvValue CompileAsValue(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    {
+        // Since we use type 0, CompileAsValue won't work
+        return Compile(table, shader, compiler);
     }
 
     public override string ToString()
@@ -296,6 +305,11 @@ public class TypeName(string name, TextLocation info, bool isArray) : Literal(in
     {
         if (!IsArray)
         {
+            if (Name == "LinkType")
+            {
+                symbolType = new GenericLinkType();
+                return true;
+            }
             if (table.DeclaredTypes.TryGetValue(Name, out symbolType))
                 return true;
             else if (SymbolType.TryGetNumeric(Name, out var numeric))

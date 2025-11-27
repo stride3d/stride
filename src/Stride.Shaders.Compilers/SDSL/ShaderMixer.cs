@@ -471,7 +471,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             if (temp[i].Op == Op.OpNop)
                 temp.RemoveAt(i--);
             // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
-            else if (temp[i].Op == Op.OpSDSLShader || temp[i].Op == Op.OpSDSLShaderEnd || temp[i].Op == Op.OpSDSLEffect || temp[i].Op == Op.OpSDSLEffectEnd)
+            else if (temp[i].Op == Op.OpSDSLShader
+                || temp[i].Op == Op.OpSDSLShaderEnd
+                || temp[i].Op == Op.OpSDSLEffect
+                || temp[i].Op == Op.OpSDSLEffectEnd
+                || temp[i].Op == Op.OpConstantStringSDSL
+                || temp[i].Op == Op.OpTypeGenericLinkSDSL)
                 temp.RemoveAt(i--);
         }
     }

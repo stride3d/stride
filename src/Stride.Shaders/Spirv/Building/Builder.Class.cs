@@ -159,7 +159,7 @@ public partial class SpirvBuilder
             }
         }
 
-         // Remove OpName
+        // Remove OpName
         for (var index = 0; index < shader.Count; index++)
         {
             var i = shader[index];
@@ -188,8 +188,15 @@ public partial class SpirvBuilder
                         resolvedParameters.Add(i.Data.IdResult!.Value, value.Value.ToString());
 
                         // import constant in current shader
-
                         shader.Add(new OpConstant<float>(i.Data.IdResultType!.Value, i.Data.IdResult!.Value, value.Value));
+                    }
+                }
+                else if (i.Op == Op.OpConstantStringSDSL && (OpConstantStringSDSL)i is { } constantString)
+                {
+                    if (targets.Contains(i.Data.IdResult!.Value))
+                    {
+                        var value = constantString.LiteralString;
+                        resolvedParameters.Add(i.Data.IdResult!.Value, value);
                     }
                 }
                 else if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
@@ -201,6 +208,22 @@ public partial class SpirvBuilder
                 }
             }
         }
+
+        // Try to resolve LinkType generics
+        for (var index = 0; index < shader.Count; index++)
+        {
+            var i = shader[index];
+            if (i.Op == Op.OpMemberDecorateString
+                && ((OpMemberDecorateString)i) is { Decoration: { Value: Decoration.LinkIdSDSL, Parameters: { } m } } linkDecorate)
+            {
+                using var n = new LiteralValue<int>(m.Span);
+                if (resolvedParameters.TryGetValue(n.Value, out var resolvedValue))
+                {
+                    linkDecorate.Decoration = new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words]);
+                }
+            }
+        }
+
 
         // Fully resolved?
         if (resolvedParameters.Count == targets.Count)
