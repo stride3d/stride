@@ -13,6 +13,14 @@
     <PackageReference Include="Silk.NET.SPIRV.Cross" Version="2.22.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="./native/spirv_to_dxil.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
