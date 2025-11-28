@@ -135,7 +135,7 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
             var indexLiteral = new IntegerLiteral(new(32, false, true), 1, new());
             indexLiteral.Compile(table, shader, compiler);
             var constant1 = context.CreateConstant(indexLiteral);
-            var result = builder.BinaryOperation(context, context.GetOrRegister(pointerType.BaseType), expression, Operator.Plus, constant1);
+            var result = builder.BinaryOperation(context, expression, Operator.Plus, constant1);
 
             builder.Insert(new OpStore(expression.Id, result.Id, null));
 
@@ -320,20 +320,11 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
     {
         var left = Left.CompileAsValue(table, shader, compiler);
         var right = Right.CompileAsValue(table, shader, compiler);
-        if (
-            OperatorTable.BinaryOperationResultingType(
-                Left.ValueType ?? throw new NotImplementedException("Missing type"),
-                Right.ValueType ?? throw new NotImplementedException("Missing type"),
-                Op,
-                out var t
-            )
-        )
-            Type = t;
-        else
-            table.Errors.Add(new(Info, SDSLErrorMessages.SDSL0104));
 
         var (builder, context) = compiler;
-        return builder.BinaryOperation(context, context.GetOrRegister(Type), left, Op, right);
+        var result = builder.BinaryOperation(context, left, Op, right);
+        Type = context.ReverseTypes[result.TypeId];
+        return result;
     }
 
     public override string ToString()

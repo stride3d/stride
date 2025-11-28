@@ -216,19 +216,7 @@ public class Assign(TextLocation info) : Statement(info)
                 var left = builder.AsValue(context, target);
                 var right = builder.AsValue(context, source);
 
-                if (
-                    OperatorTable.BinaryOperationResultingType(
-                        variable.Variable.ValueType ?? throw new NotImplementedException("Missing type"),
-                        variable.Value.ValueType ?? throw new NotImplementedException("Missing type"),
-                        binaryOperator,
-                        out var t
-                    )
-                )
-                    Type = t;
-                else
-                    table.Errors.Add(new(Info, SDSLErrorMessages.SDSL0104));
-
-                source = builder.BinaryOperation(context, context.GetOrRegister(Type), left, binaryOperator, right);
+                source = builder.BinaryOperation(context, left, binaryOperator, right);
             }
 
             // Make sure to convert to proper type

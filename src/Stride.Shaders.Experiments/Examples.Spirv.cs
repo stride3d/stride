@@ -37,7 +37,6 @@ public static partial class Examples
         builder.SetPositionTo(block);
         var v = builder.BinaryOperation(
             context,
-            function.Parameters["a"].TypeId,
             function.Parameters["a"], Operator.Plus, function.Parameters["b"]
         );
         builder.Return(v);
