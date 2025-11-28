@@ -478,6 +478,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || temp[i].Op == Op.OpConstantStringSDSL
                 || temp[i].Op == Op.OpTypeGenericLinkSDSL)
                 temp.RemoveAt(i--);
+            else if (temp[i].Op == Op.OpMemberDecorateString && ((OpMemberDecorateString)temp[i]).Decoration.Value == Decoration.LinkSDSL)
+                temp.RemoveAt(i--);
         }
     }
 }

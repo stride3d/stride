@@ -106,7 +106,7 @@ public record struct PrefixParser : IParser<Expression>
                 && Parsers.FollowedBy(ref scanner, result, PostfixParser.Postfix, out Expression expression, withSpaces: true, advance: true)
         )
         {
-            parsed = new CastExpression(typeName.Name, Operator.Cast, expression, scanner[position..scanner.Position]);
+            parsed = new CastExpression(typeName, Operator.Cast, expression, scanner[position..scanner.Position]);
             return true;
         }
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);

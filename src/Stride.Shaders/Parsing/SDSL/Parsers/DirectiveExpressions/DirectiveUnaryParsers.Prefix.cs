@@ -171,7 +171,7 @@ public record struct DirectiveCastExpressionParser : IParser<Expression>
                 && DirectiveUnaryParsers.Primary(ref scanner, result, out var lit)
         )
         {
-            parsed = new CastExpression(typeName.Name, Operator.Cast, lit, scanner[position..scanner.Position]);
+            parsed = new CastExpression(new TypeName(typeName.Name, typeName.Info, false), Operator.Cast, lit, scanner[position..scanner.Position]);
             return true;
         }
         else

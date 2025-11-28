@@ -279,6 +279,22 @@ public class SpirvContext
         return id ?? -1;
     }
 
+    public unsafe SpirvValue CreateConstantCompositeRepeat(Literal literal, int size)
+    {
+        var value = CreateConstant(literal);
+        if (size == 1)
+            return value;
+
+        Span<int> values = stackalloc int[size];
+        for (int i = 0; i < size; ++i)
+            values[i] = size;
+        
+        var type = new VectorType((ScalarType)ReverseTypes[value.TypeId], size);
+        var instruction = Buffer.Add(new OpConstantComposite(GetOrRegister(type), Bound++, new(values)));
+
+        return new(instruction);
+    }
+
     public SpirvValue CreateConstant(Literal literal)
     {
         object literalValue = literal switch

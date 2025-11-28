@@ -124,6 +124,139 @@ public partial class SpirvBuilder
         return new(instruction, name);
     }
 
+    public SpirvValue Convert(SpirvContext context, in SpirvValue value, in SymbolType castType)
+    {
+        var valueId = value.Id;
+        var valueType = context.ReverseTypes[value.TypeId];
+        var originalType = valueType;
+
+        // No conversion necessary?
+        if (castType == valueType)
+            return value;
+
+        if (castType is StructType || valueType is StructType)
+            throw new NotImplementedException("Can't cast between structures (cast from {valueType} to {castType})");
+
+        // We don't support cast with object yet, filter for numeral types
+        if ((castType is not ScalarType && castType is not VectorType && castType is not MatrixType)
+            || (valueType is not ScalarType && valueType is not VectorType && valueType is not MatrixType))
+            throw new NotImplementedException($"Cast only work between numeral types (cast from {valueType} to {castType})");
+
+        Span<int> values = stackalloc int[castType is MatrixType m ? m.Rows : 1];
+
+        // Truncating
+        switch (valueType, castType)
+        {
+            case (ScalarType s1, ScalarType s2):
+                values[0] = valueId;
+                break;
+            case (VectorType v1, ScalarType s2):
+                {
+                    values[0] = Insert(new OpCompositeExtract(context.GetOrRegister(v1.BaseType), context.Bound++, valueId, [0])).ResultId;
+                    valueType = v1.BaseType;
+                    break;
+                }
+            case (VectorType v1, VectorType v2) when v1.Size <= v2.Size:
+                throw new InvalidOperationException($"Can't cast from {v1} to {v2} (more components)");
+            case (VectorType v1, VectorType v2) when v1.Size > v2.Size:
+                {
+                    Span<int> valuesTemp = stackalloc int[v2.Size];
+                    for (int i = 0; i < v2.Size; ++i)
+                        Insert(new OpCompositeExtract(context.GetOrRegister(v1.BaseType), valuesTemp[i] = context.Bound++, valueId, [i]));
+                    valueType = new VectorType(v1.BaseType, v2.Size);
+                    values[0] = Insert(new OpCompositeConstruct(context.GetOrRegister(valueType), context.Bound++, new LiteralArray<int>(valuesTemp))).ResultId;
+                    break;
+                }
+            case (VectorType v1, MatrixType m2) when v1.Size != m2.Rows * m2.Columns:
+                throw new InvalidOperationException($"Can't cast from {v1} to {m2}");
+            case (VectorType v1, MatrixType m2) when v1.Size == m2.Rows * m2.Columns:
+                throw new NotImplementedException($"Cast from {v1} to {m2} is not implemented (even though it should be valid since number of components is same");
+            case (MatrixType m1, ScalarType s2):
+                values[0] = Insert(new OpCompositeExtract(context.GetOrRegister(m1.BaseType), context.Bound++, valueId, [0, 0])).ResultId;
+                break;
+            case (MatrixType m1, VectorType v2) when v2.Size != m1.Rows * m1.Columns:
+                throw new InvalidOperationException($"Can't cast from {m1} to {v2}");
+            case (MatrixType m1, VectorType v2) when v2.Size == m1.Rows * m1.Columns:
+                throw new NotImplementedException($"Cast from {m1} to {v2} is not implemented (even though it should be valid since number of components is same");
+            case (MatrixType m1, MatrixType m2) when m1.Rows < m2.Rows || m1.Columns < m2.Columns:
+                throw new InvalidOperationException($"Can't cast from {m1} to {m2} (larger matrix)");
+            case (MatrixType m1, MatrixType m2) when m1.Rows >= m2.Rows && m1.Columns >= m2.Columns:
+                {
+                    for (int i = 0; i < m2.Rows; ++i)
+                    {
+                        values[i] = Insert(new OpCompositeExtract(context.GetOrRegister(new VectorType(m1.BaseType, m1.Columns)), context.Bound++, valueId, [i])).ResultId;
+                        if (m1.Columns != m2.Columns)
+                        {
+                            Span<int> shuffleIndices = stackalloc int[m2.Columns];
+                            for (int j = 0; j < m2.Columns; ++j)
+                                shuffleIndices[j] = j;
+                            values[i] = Insert(new OpVectorShuffle(context.GetOrRegister(new VectorType(m1.BaseType, m2.Columns)), context.Bound++, values[i], values[i], new(shuffleIndices))).ResultId;
+                        }
+                    }
+                    valueType = new VectorType(m1.BaseType, m2.Columns);
+                    break;
+                }
+        }
+
+        // Type casting
+        // (process each vector one by one)
+        (int elementSize, var castTypeSameSize) = valueType switch
+        {
+            ScalarType s => (1, (SymbolType)castType.GetElementType()),
+            VectorType s => (s.Size, new VectorType(castType.GetElementType(), s.Size)),
+        };
+        for (int i = 0; i < values.Length; ++i)
+        {
+            var rowValue = values[i];
+            if (rowValue == 0)
+                throw new InvalidOperationException($"Type conversion from {originalType} to {castType} failed during conversion (current type: {valueType})");
+
+            var typeCasting = (valueType.GetElementType(), castType.GetElementType()) switch
+            {
+                // https://learn.microsoft.com/en-us/windows/win32/direct3d9/casting-and-conversion
+                (ScalarType { TypeName: "float" }, ScalarType { TypeName: "int" }) => InsertData(new OpConvertFToS(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+
+                (ScalarType { TypeName: "float" }, ScalarType { TypeName: "bool" }) => InsertData(new OpFOrdNotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 0.0, null, new()), elementSize).Id)),
+                (ScalarType { TypeName: "int" }, ScalarType { TypeName: "bool" }) => InsertData(new OpINotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 0, new()), elementSize).Id)),
+
+                (ScalarType { TypeName: "int" }, ScalarType { TypeName: "float" }) => InsertData(new OpConvertSToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+
+                (ScalarType { TypeName: "bool" }, ScalarType { TypeName: "int" }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 1, new()), elementSize).Id, context.CreateConstant(new IntegerLiteral(new(32, false, true), 0, new())).Id)),
+                (ScalarType { TypeName: "bool" }, ScalarType { TypeName: "float" }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 1.0, null, new()), elementSize).Id, context.CreateConstant(new FloatLiteral(new(32, true, true), 0.0, null, new())).Id)),
+            };
+            values[i] = typeCasting.IdResult!.Value;
+
+            // Update type
+            if (i == values.Length - 1)
+                valueType = castTypeSameSize;
+        }
+
+        // Expanding
+        int result = values[0];
+        switch (valueType, castType)
+        {
+            case (ScalarType, VectorType v2):
+                result = Insert(new OpCompositeConstruct(context.GetOrRegister(v2), context.Bound++, new LiteralArray<int>(Enumerable.Repeat(result, v2.Size).ToArray())));
+                valueType = v2;
+                break;
+            case (ScalarType, MatrixType m2):
+                result = Insert(new OpCompositeConstruct(context.GetOrRegister(new VectorType(m2.BaseType, m2.Columns)), context.Bound++, new LiteralArray<int>(Enumerable.Repeat(result, m2.Columns).ToArray())));
+                result = Insert(new OpCompositeConstruct(context.GetOrRegister(m2), context.Bound++, new LiteralArray<int>(Enumerable.Repeat(result, m2.Rows).ToArray())));
+                valueType = m2;
+                break;
+            case (MatrixType, MatrixType m2):
+                // rebuild type
+                result = Insert(new OpCompositeConstruct(context.GetOrRegister(m2), context.Bound++, new LiteralArray<int>(values)));
+                valueType = m2;
+                break;
+        }
+
+        if (valueType != castType)
+            throw new NotImplementedException($"Type conversion from {originalType} to {castType} failed after expansion (current type: {valueType})");
+
+        return new SpirvValue(result, context.GetOrRegister(castType));
+    }
+
     public SpirvValue CallFunction(SymbolTable table, SpirvContext context, Symbol functionSymbol, Span<int> parameters)
     {
         // Note: Overload should have been chosen before

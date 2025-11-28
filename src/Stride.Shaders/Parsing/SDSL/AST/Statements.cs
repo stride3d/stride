@@ -125,7 +125,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         for (var index = 0; index < Variables.Count; index++)
         {
             if (Variables[index].Value != null)
-                compiledValues[index] = Variables[index].Value!.Compile(table, shader, compiler);
+                compiledValues[index] = Variables[index].Value!.CompileAsValue(table, shader, compiler);
         }
 
         // Compute type
@@ -147,7 +147,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
             table.DeclaredTypes.TryAdd(TypeName.ToString(), Type);
         }
 
-        var underlyingType = context.GetOrRegister(Type);
+        var underlyingType = Type;
         Type = new PointerType(Type, Specification.StorageClass.Function);
 
         var registeredType = context.GetOrRegister(Type);
@@ -170,9 +170,8 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
             {
                 var source = compiledValues[index];
 
-                var sourceLoad = context.Bound++;
-                builder.Insert(new OpLoad(underlyingType, sourceLoad, source.Id, Specification.MemoryAccessMask.None));
-                source = new(sourceLoad, underlyingType);
+                // Make sure type is correct
+                source = builder.Convert(context, source, underlyingType);
 
                 builder.Insert(new OpStore(variable, source.Id, null));
             }
@@ -194,16 +193,9 @@ public class Assign(TextLocation info) : Statement(info)
         foreach (var variable in Variables)
         {
             var target = variable.Variable.Compile(table, shader, compiler);
-            var source = variable.Value!.Compile(table, shader, compiler);
+            var source = variable.Value!.CompileAsValue(table, shader, compiler);
             if (variable.Variable.Type is not PointerType)
                 throw new InvalidOperationException("can only assign to pointer type");
-            if (variable.Value!.Type is PointerType p)
-            {
-                var sourceLoad = context.Bound++;
-                var underlyingType = context.GetOrRegister(p.BaseType);
-                builder.Insert(new OpLoad(underlyingType, sourceLoad, source.Id, Specification.MemoryAccessMask.None));
-                source = new(sourceLoad, underlyingType);
-            }
 
             if (variable.Operator != AssignOperator.Simple)
             {
@@ -239,7 +231,8 @@ public class Assign(TextLocation info) : Statement(info)
                 source = builder.BinaryOperation(context, context.GetOrRegister(Type), left, binaryOperator, right);
             }
 
-
+            // Make sure to convert to proper type
+            source = builder.Convert(context, source, variable.Variable.ValueType);
             builder.Insert(new OpStore(target.Id, source.Id, null));
         }
     }

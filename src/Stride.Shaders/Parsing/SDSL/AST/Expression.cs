@@ -64,17 +64,20 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 
         foreach (var p in list)
         {
-            var paramSource = p.Compile(table, shader, compiler).Id;
-            var paramType = context.GetOrRegister(functionType.ParameterTypes[tmp]);
+            var paramSource = p.CompileAsValue(table, shader, compiler);
+            var paramType = functionType.ParameterTypes[tmp];
 
             // Wrap param in proper pointer type (function)
             var paramVariable = context.Bound++;
+            builder.AddFunctionVariable(context.GetOrRegister(paramType), paramVariable);
 
-            builder.AddFunctionVariable(paramType, paramVariable);
+            // Convert type (if necessary)
+            var paramValueType = paramType;
+            if (paramValueType is PointerType pointerType)
+                paramValueType = pointerType.BaseType;
+            paramSource = builder.Convert(context, paramSource, paramValueType);
 
-            var loadedParam = context.Bound++;
-            builder.Insert(new OpLoad(compiler.Context.Types[p.ValueType], loadedParam, paramSource, null));
-            builder.Insert(new OpStore(paramVariable, loadedParam, null));
+            builder.Insert(new OpStore(paramVariable, paramSource.Id, null));
 
             compiledParams[tmp++] = paramVariable;
         }
@@ -147,12 +150,19 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
     }
 }
 
-public class CastExpression(string typeName, Operator op, Expression expression, TextLocation info) : PrefixExpression(op, expression, info)
+public class CastExpression(TypeName typeName, Operator op, Expression expression, TextLocation info) : PrefixExpression(op, expression, info)
 {
-    public string TypeName { get; set; } = typeName;
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public TypeName TypeName { get; set; } = typeName;
+
+    public unsafe override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        var castType = TypeName.ResolveType(table);
+        var value = Expression.CompileAsValue(table, shader, compiler);
+
+        Type = castType;
+
+        return builder.Convert(context, value, castType);
     }
 }
 
