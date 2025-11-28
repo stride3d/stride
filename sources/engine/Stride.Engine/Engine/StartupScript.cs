@@ -1,20 +1,25 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Collections;
 using Stride.Core.MicroThreading;
 
 namespace Stride.Engine
 {
     public abstract class StartupScript : ScriptComponent
     {
-        internal PriorityQueueNode<SchedulerEntry> StartSchedulerNode;
+        internal readonly SchedulerEntry StartSchedulerNode = new();
 
         /// <summary>
         /// Called before the script enters it's update loop.
         /// </summary>
         public virtual void Start()
         {
+        }
+
+        protected internal override void PriorityUpdated()
+        {
+            base.PriorityUpdated();
+            StartSchedulerNode.Priority = Priority;
         }
     }
 }

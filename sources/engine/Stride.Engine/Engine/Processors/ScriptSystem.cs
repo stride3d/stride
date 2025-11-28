@@ -4,10 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Stride.Core;
-using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.MicroThreading;
 using Stride.Core.Serialization.Contents;
@@ -20,18 +18,16 @@ namespace Stride.Engine.Processors
     /// </summary>
     public sealed class ScriptSystem : GameSystemBase
     {
-        private const long UpdateBit = 1L << 32;
-
+        internal const long UpdateBit = 1L << 32;
         internal static readonly Logger Log = GlobalLogger.GetLogger("ScriptSystem");
 
         /// <summary>
         /// Contains all currently executed scripts
         /// </summary>
-        private readonly HashSet<ScriptComponent> registeredScripts = new HashSet<ScriptComponent>();
-        private readonly HashSet<ScriptComponent> scriptsToStart = new HashSet<ScriptComponent>();
-        private readonly HashSet<SyncScript> syncScripts = new HashSet<SyncScript>();
-        private readonly List<ScriptComponent> scriptsToStartCopy = new List<ScriptComponent>();
-        private readonly List<SyncScript> syncScriptsCopy = new List<SyncScript>();
+        private readonly HashSet<ScriptComponent> registeredScripts = new();
+        private readonly HashSet<ScriptComponent> scriptsToStart = new();
+        private readonly HashSet<SchedulerEntry> syncScripts = new();
+        private readonly List<ScriptComponent> liveReloads = new();
 
         /// <summary>
         /// Gets the scheduler.
@@ -65,63 +61,39 @@ namespace Stride.Engine.Processors
 
         public override void Update(GameTime gameTime)
         {
-            // Copy scripts to process (so that scripts added during this frame don't affect us)
             // TODO: How to handle scripts that we want to start during current frame?
-            scriptsToStartCopy.AddRange(scriptsToStart);
-            scriptsToStart.Clear();
-            syncScriptsCopy.AddRange(syncScripts);
 
             // Schedule new scripts: StartupScript.Start() and AsyncScript.Execute()
-            foreach (var script in scriptsToStartCopy)
+            foreach (var script in scriptsToStart)
             {
                 // Start the script
-                var startupScript = script as StartupScript;
-                if (startupScript != null)
+                if (script is StartupScript startupScript)
                 {
-                    startupScript.StartSchedulerNode = Scheduler.Add(startupScript.Start, startupScript.Priority, startupScript, startupScript.ProfilingKey);
+                    startupScript.StartSchedulerNode.Action ??= startupScript.Start;
+                    startupScript.StartSchedulerNode.Token = startupScript;
+                    startupScript.StartSchedulerNode.ProfilingKey = startupScript.ProfilingKey;
+                    Scheduler.Schedule(startupScript.StartSchedulerNode, ScheduleMode.Last);
+                    if (startupScript.IsLiveReloading)
+                        liveReloads.Add(startupScript);
                 }
-                else
+                // Start a microthread with execute method if it's an async script
+                else if (script is AsyncScript asyncScript)
                 {
-                    // Start a microthread with execute method if it's an async script
-                    var asyncScript = script as AsyncScript;
-                    if (asyncScript != null)
-                    {
-                        asyncScript.MicroThread = AddTask(asyncScript.Execute, asyncScript.Priority | UpdateBit);
-                        asyncScript.MicroThread.ProfilingKey = asyncScript.ProfilingKey;
-                    }
+                    asyncScript.MicroThread = AddTask(asyncScript.Execute, asyncScript.Priority | UpdateBit);
+                    asyncScript.MicroThread.ProfilingKey = asyncScript.ProfilingKey;
                 }
             }
+            scriptsToStart.Clear();
 
             // Schedule existing scripts: SyncScript.Update()
-            foreach (var syncScript in syncScriptsCopy)
-            {
-                // Update priority
-                var updateSchedulerNode = syncScript.UpdateSchedulerNode;
-                updateSchedulerNode.Value.Priority = syncScript.Priority | UpdateBit;
-
-                // Schedule
-                Scheduler.Schedule(updateSchedulerNode, ScheduleMode.Last);
-            }
+            Scheduler.Schedule(syncScripts, ScheduleMode.Last);
 
             // Run current micro threads
             Scheduler.Run();
 
-            // Flag scripts as not being live reloaded after starting/executing them for the first time
-            foreach (var script in scriptsToStartCopy)
-            {
-                // Remove the start node after it got executed
-                var startupScript = script as StartupScript;
-                if (startupScript != null)
-                {
-                    startupScript.StartSchedulerNode = null;
-                }
-
-                if (script.IsLiveReloading)
-                    script.IsLiveReloading = false;
-            }
-
-            scriptsToStartCopy.Clear();
-            syncScriptsCopy.Clear();
+            foreach (var scriptComponent in liveReloads)
+                scriptComponent.IsLiveReloading = false;
+            liveReloads.Clear();
         }
 
         /// <summary>
@@ -137,6 +109,7 @@ namespace Stride.Engine.Processors
         /// Adds the specified micro thread function.
         /// </summary>
         /// <param name="microThreadFunction">The micro thread function.</param>
+        /// <param name="priority">Lower values will run the associated micro thread sooner</param>
         /// <returns>MicroThread.</returns>
         public MicroThread AddTask(Func<Task> microThreadFunction, long priority = 0)
         {
@@ -169,13 +142,12 @@ namespace Stride.Engine.Processors
             scriptsToStart.Add(script);
 
             // If it's a synchronous script, add it to the list as well
-            var syncScript = script as SyncScript;
-            if (syncScript != null)
+            if (script is SyncScript syncScript)
             {
-                syncScript.UpdateSchedulerNode = Scheduler.Create(syncScript.Update, syncScript.Priority | UpdateBit);
-                syncScript.UpdateSchedulerNode.Value.Token = syncScript;
-                syncScript.UpdateSchedulerNode.Value.ProfilingKey = syncScript.ProfilingKey;
-                syncScripts.Add(syncScript);
+                syncScript.UpdateSchedulerNode.Action ??= syncScript.Update;
+                syncScript.UpdateSchedulerNode.Token = syncScript;
+                syncScript.UpdateSchedulerNode.ProfilingKey = syncScript.ProfilingKey;
+                syncScripts.Add(syncScript.UpdateSchedulerNode);
             }
         }
 
@@ -206,21 +178,14 @@ namespace Stride.Engine.Processors
             }
 
             // Remove script from the scheduler, in case it was removed during scheduler execution
-            var startupScript = script as StartupScript;
-            if (startupScript != null)
+            if (script is StartupScript startupScript)
             {
-                if (startupScript.StartSchedulerNode != null)
-                {
-                    Scheduler?.Unschedule(startupScript.StartSchedulerNode);
-                    startupScript.StartSchedulerNode = null;
-                }
+                Scheduler?.Unschedule(startupScript.StartSchedulerNode);
 
-                var syncScript = script as SyncScript;
-                if (syncScript != null)
+                if (script is SyncScript syncScript)
                 {
-                    syncScripts.Remove(syncScript);
+                    syncScripts.Remove(syncScript.UpdateSchedulerNode);
                     Scheduler?.Unschedule(syncScript.UpdateSchedulerNode);
-                    syncScript.UpdateSchedulerNode = null;
                 }
             }
         }
@@ -253,23 +218,12 @@ namespace Stride.Engine.Processors
                 ExceptionDispatchInfo.Capture(e).Throw();
 
             // Remove script from all lists
-            var syncScript = script as SyncScript;
-            if (syncScript != null)
+            if (script is SyncScript syncScript)
             {
-                syncScripts.Remove(syncScript);
+                syncScripts.Remove(syncScript.UpdateSchedulerNode);
             }
 
             registeredScripts.Remove(script);
-        }
-
-        private class PriorityScriptComparer : IComparer<ScriptComponent>
-        {
-            public static readonly PriorityScriptComparer Default = new PriorityScriptComparer();
-
-            public int Compare(ScriptComponent x, ScriptComponent y)
-            {
-                return x.Priority.CompareTo(y.Priority);
-            }
         }
     }
 }

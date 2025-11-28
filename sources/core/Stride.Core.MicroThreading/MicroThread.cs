@@ -25,7 +25,7 @@ public class MicroThread
 
     private int state;
     private readonly CancellationTokenSource cancellationTokenSource;
-    internal PriorityQueueNode<SchedulerEntry> ScheduledLinkedListNode;
+    internal SchedulerEntry SchedulerEntry;
     internal LinkedListNode<MicroThread> AllLinkedListNode; // Also used as lock for "CompletionTask"
     internal MicroThreadCallbackList Callbacks;
     internal SynchronizationContext? SynchronizationContext;
@@ -34,7 +34,7 @@ public class MicroThread
     {
         Id = Interlocked.Increment(ref globalCounterId);
         Scheduler = scheduler;
-        ScheduledLinkedListNode = new PriorityQueueNode<SchedulerEntry>(new SchedulerEntry(this));
+        SchedulerEntry = new() { MicroThread = this };
         AllLinkedListNode = new LinkedListNode<MicroThread>(this);
         ScheduleMode = ScheduleMode.Last;
         Flags = flags;
@@ -50,11 +50,11 @@ public class MicroThread
     /// </value>
     public long Priority
     {
-        get { return ScheduledLinkedListNode.Value.Priority; }
+        get { return SchedulerEntry.Priority; }
         set
         {
-            if (ScheduledLinkedListNode.Value.Priority != value)
-                Reschedule(ScheduleMode.First, value);
+            if (SchedulerEntry.Priority != value)
+                Scheduler.Reschedule(SchedulerEntry, ScheduleMode.First, value);
         }
     }
 
@@ -215,7 +215,7 @@ public class MicroThread
     /// <returns>Task.</returns>
     public async Task Run()
     {
-        Reschedule(ScheduleMode.First, Priority);
+        Scheduler.Reschedule(SchedulerEntry, ScheduleMode.First, Priority);
         var currentScheduler = Scheduler.Current;
         if (currentScheduler == Scheduler)
             await Scheduler.Yield();
@@ -251,69 +251,21 @@ public class MicroThread
         State = (exception is OperationCanceledException) ? MicroThreadState.Canceled : MicroThreadState.Failed;
     }
 
-    internal void Reschedule(ScheduleMode scheduleMode, long newPriority)
-    {
-        lock (Scheduler.ScheduledEntries)
-        {
-            if (ScheduledLinkedListNode.Index != -1)
-            {
-                Scheduler.ScheduledEntries.Remove(ScheduledLinkedListNode);
-                ScheduledLinkedListNode.Value.Priority = newPriority;
-                Scheduler.Schedule(ScheduledLinkedListNode, scheduleMode);
-            }
-            else
-            {
-                ScheduledLinkedListNode.Value.Priority = newPriority;
-            }
-        }
-    }
-
     internal void ScheduleContinuation(ScheduleMode scheduleMode, SendOrPostCallback callback, object? callbackState)
     {
         Debug.Assert(callback != null);
-        lock (Scheduler.ScheduledEntries)
-        {
-            var node = NewCallback();
-            node.SendOrPostCallback = callback;
-            node.CallbackState = callbackState;
-            Callbacks.Add(node);
-
-            if (ScheduledLinkedListNode.Index == -1)
-                Scheduler.Schedule(ScheduledLinkedListNode, scheduleMode);
-        }
+        var node = Scheduler.NewCallback();
+        node.SendOrPostCallback = callback;
+        node.CallbackState = callbackState;
+        Scheduler.Schedule(ref Callbacks, node, SchedulerEntry, scheduleMode);
     }
 
     internal void ScheduleContinuation(ScheduleMode scheduleMode, Action callback)
     {
         Debug.Assert(callback != null);
-        lock (Scheduler.ScheduledEntries)
-        {
-            var node = NewCallback();
-            node.MicroThreadAction = callback;
-            Callbacks.Add(node);
-
-            if (ScheduledLinkedListNode.Index == -1)
-                Scheduler.Schedule(ScheduledLinkedListNode, scheduleMode);
-        }
-    }
-
-    private MicroThreadCallbackNode NewCallback()
-    {
-        MicroThreadCallbackNode node;
-        var pool = Scheduler.CallbackNodePool;
-
-        if (Scheduler.CallbackNodePool.Count > 0)
-        {
-            var index = pool.Count - 1;
-            node = pool[index];
-            pool.RemoveAt(index);
-        }
-        else
-        {
-            node = new MicroThreadCallbackNode();
-        }
-
-        return node;
+        var node = Scheduler.NewCallback();
+        node.MicroThreadAction = callback;
+        Scheduler.Schedule(ref Callbacks, node, SchedulerEntry, scheduleMode);
     }
 }
 
