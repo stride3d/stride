@@ -934,9 +934,7 @@ namespace Stride.Graphics
         public void BeginProfile(Color4 profileColor, string name)
         {
             if (IsDebugMode)
-                WinPixNative.PIXBeginEventOnCommandList((nint) currentCommandList.NativeCommandList.Handle,
-                                                        (uint) profileColor.ToBgra(),
-                                                        name);
+                WinPixNative.PIXBeginEventOnCommandList(currentCommandList.NativeCommandList, profileColor, name);
         }
 
         /// <summary>
@@ -946,7 +944,7 @@ namespace Stride.Graphics
         public void EndProfile()
         {
             if (IsDebugMode)
-                WinPixNative.PIXEndEventOnCommandList((nint) currentCommandList.NativeCommandList.Handle);
+                WinPixNative.PIXEndEventOnCommandList(currentCommandList.NativeCommandList);
         }
 
         // TODO: Unused, remove?
