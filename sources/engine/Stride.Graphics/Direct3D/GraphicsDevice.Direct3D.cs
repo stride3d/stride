@@ -288,6 +288,13 @@ namespace Stride.Graphics
                         featureLevel = D3DFeatureLevel.Level100;
                 }
 
+                // RenderDoc workaround: Force level 10+ (otherwise it crashes on StartFrameCapture)
+                if (IsRenderDocLoaded())
+                {
+                    if (featureLevel < D3DFeatureLevel.Level100)
+                        featureLevel = D3DFeatureLevel.Level100;
+                }
+
                 var adapter = Adapter.NativeAdapter.AsComPtr<IDXGIAdapter1, IDXGIAdapter>();
                 ComPtr<ID3D11Device> device = default;
                 ComPtr<ID3D11DeviceContext> deviceContext = default;
@@ -414,6 +421,18 @@ namespace Stride.Graphics
                 }
 
                 return deviceContextVersion;
+            }
+
+            //
+            // Determines if RenderDoc is loaded in the current process.
+            //
+            static bool IsRenderDocLoaded()
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    return Win32.GetModuleHandle("renderdoc.dll") != 0;
+                }
+                return false;
             }
         }
 

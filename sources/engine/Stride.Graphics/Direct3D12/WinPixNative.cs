@@ -109,12 +109,6 @@ public static class WinPixNative
         IntPtr commandQueue,
         ulong color,
         [MarshalAs(UnmanagedType.LPStr)] string formatString);
-
-    [DllImport("kernel32", EntryPoint = "LoadLibrary", SetLastError = true, CharSet = CharSet.Unicode)]
-    private static extern IntPtr LoadLibrary(string lpFileName);
-
-    [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern IntPtr GetModuleHandle(string lpModuleName);
 }
 
 #endif
