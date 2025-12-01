@@ -30,6 +30,7 @@ SOFTWARE.
 #endregion
 
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -58,18 +59,21 @@ public sealed class Deque<T> : IList<T>, System.Collections.IList
     /// </summary>
     private int offset;
 
+    /// <summary>
+    /// Used to wrap around indices when incrementing outside buffer range
+    /// </summary>
     private int mask;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Deque&lt;T&gt;"/> class with the specified capacity.
     /// </summary>
-    /// <param name="capacity">The initial capacity. Must be greater than <c>0</c>.</param>
+    /// <param name="capacity">The initial capacity. Must be a power of two greater than <c>0</c>.</param>
     public Deque(int capacity)
     {
         if (capacity < 1)
             throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be greater than 0.");
 
-        if ((capacity & (capacity - 1)) != 0)
+        if (int.IsPow2(capacity) == false)
             throw new InvalidOperationException("Capacity must be a power of two");
 
         buffer = new T[capacity];
@@ -435,7 +439,7 @@ public sealed class Deque<T> : IList<T>, System.Collections.IList
             if (value < Count)
                 throw new InvalidOperationException("Capacity cannot be set to a value less than Count");
 
-            if ((value & (value - 1)) != 0)
+            if (int.IsPow2(value) == false)
                 throw new InvalidOperationException("Capacity must be a power of two");
 
             if (value == buffer.Length)
@@ -632,15 +636,52 @@ public sealed class Deque<T> : IList<T>, System.Collections.IList
         }
 
         // Copy new items into place
-        int i = index;
-        foreach (T item in collection)
+        if (TryGetSpan(collection, out var spanToCopy))
         {
-            DequeIndexToBufferRef(i) = item;
-            ++i;
+            int start = (index + offset) & mask;
+            int end = (index + spanToCopy.Length + offset) & mask;
+            var bufferAsSpan = this.buffer.AsSpan();
+            if (end < start)
+            {
+                int firstCopyLength = bufferAsSpan.Length - start;
+                spanToCopy[..firstCopyLength].CopyTo(bufferAsSpan[start..]);
+                spanToCopy[firstCopyLength..].CopyTo(bufferAsSpan[..end]);
+            }
+            else
+            {
+                spanToCopy.CopyTo(bufferAsSpan[start..end]);
+            }
+        }
+        else
+        {
+            int i = index;
+            foreach (T item in collection)
+            {
+                DequeIndexToBufferRef(i) = item;
+                ++i;
+            }
         }
 
         // Adjust valid count
         Count += collectionCount;
+
+        static bool TryGetSpan(IEnumerable<T> collection, out ReadOnlySpan<T> span)
+        {
+            if (collection is List<T> list)
+            {
+                span = CollectionsMarshal.AsSpan(list);
+                return true;
+            }
+
+            if (collection is T[] array)
+            {
+                span = array.AsSpan();
+                return true;
+            }
+
+            span = default;
+            return false;
+        }
     }
 
     /// <summary>
@@ -734,15 +775,16 @@ public sealed class Deque<T> : IList<T>, System.Collections.IList
         int collectionCount = collection.Count();
         CheckNewIndexArgument(Count, index);
 
-        // Overflow-safe check for "this.Count + collectionCount > this.Capacity"
-        if (collectionCount > Capacity - Count)
-        {
-            Capacity = checked(Count + collectionCount);
-        }
-
         if (collectionCount == 0)
         {
             return;
+        }
+
+        // Overflow-safe check for "this.Count + collectionCount > this.Capacity"
+        if (collectionCount > Capacity - Count)
+        {
+            var c = checked(Count + collectionCount);
+            Capacity = checked((int)BitOperations.RoundUpToPowerOf2((uint)c));
         }
 
         DoInsertRange(index, collection, collectionCount);
