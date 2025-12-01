@@ -33,11 +33,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Packages", "..\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Editor.CrashReport", "..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.csproj", "{2880C313-2483-416D-A902-DC2259EDFF64}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
 		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
-		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
 		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,6 +106,10 @@ Global
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2880C313-2483-416D-A902-DC2259EDFF64}.Debug|Any CPU.ActiveCfg = Debug|iPhone
+		{2880C313-2483-416D-A902-DC2259EDFF64}.Debug|Any CPU.Build.0 = Debug|iPhone
+		{2880C313-2483-416D-A902-DC2259EDFF64}.Release|Any CPU.ActiveCfg = Release|iPhone
+		{2880C313-2483-416D-A902-DC2259EDFF64}.Release|Any CPU.Build.0 = Release|iPhone
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

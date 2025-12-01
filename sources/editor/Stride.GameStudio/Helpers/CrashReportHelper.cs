@@ -158,9 +158,9 @@ namespace Stride.GameStudio.Helpers
                 crashReport.Data[i] = (crashReport.Data[i].Item1, data);
             }
 
-            var reporter = new CrashReportForm(crashReport);
+            var reporter = new CrashReportWindow(crashReport);
             var result = reporter.ShowDialog();
-            StrideGameStudio.MetricsClient?.CrashedSession(result == DialogResult.Yes);
+            StrideGameStudio.MetricsClient?.CrashedSession(result is true);
         }
 
         private static void ExpandAction(TransactionViewModel actionItem, StringBuilder sb, int increment)

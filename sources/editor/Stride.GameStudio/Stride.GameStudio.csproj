@@ -1,7 +1,6 @@
 ﻿<Project>
   <Import Project="..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
-  <Import Project="..\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems" Label="Shared" />
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -74,6 +73,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
     <ProjectReference Include="..\..\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj" IncludeAssets="Build" />
+    <ProjectReference Include="..\Stride.Editor.CrashReport\Stride.Editor.CrashReport.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\BACKERS.md" Link="BACKERS.md">
