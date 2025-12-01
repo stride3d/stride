@@ -26,7 +26,8 @@ namespace Stride.Engine.Processors
         /// </summary>
         private readonly HashSet<ScriptComponent> registeredScripts = new();
         private readonly HashSet<ScriptComponent> scriptsToStart = new();
-        private readonly HashSet<SchedulerEntry> syncScripts = new();
+        private readonly HashSet<SyncScript> scriptsToReschedule = new();
+        private readonly Dictionary<long, (SchedulerEntry entry, HashSet<SyncScript> associatedCollection)> syncScriptByPriority = new();
         private readonly List<ScriptComponent> liveReloads = new();
 
         /// <summary>
@@ -72,9 +73,11 @@ namespace Stride.Engine.Processors
                     startupScript.StartSchedulerNode.Action ??= startupScript.Start;
                     startupScript.StartSchedulerNode.Token = startupScript;
                     startupScript.StartSchedulerNode.ProfilingKey = startupScript.ProfilingKey;
-                    Scheduler.Schedule(startupScript.StartSchedulerNode, ScheduleMode.Last);
+                    Scheduler.Schedule(startupScript.StartSchedulerNode, startupScript.Priority, ScheduleMode.Last);
                     if (startupScript.IsLiveReloading)
                         liveReloads.Add(startupScript);
+                    if (script is SyncScript syncScript)
+                        scriptsToReschedule.Add(syncScript);
                 }
                 // Start a microthread with execute method if it's an async script
                 else if (script is AsyncScript asyncScript)
@@ -85,8 +88,28 @@ namespace Stride.Engine.Processors
             }
             scriptsToStart.Clear();
 
-            // Schedule existing scripts: SyncScript.Update()
-            Scheduler.Schedule(syncScripts, ScheduleMode.Last);
+            foreach (var syncScript in scriptsToReschedule)
+            {
+                syncScript.ScriptSystem = this;
+                syncScript.ScheduledPriorityForUpdate = syncScript.Priority | UpdateBit;
+                if (syncScriptByPriority.TryGetValue(syncScript.ScheduledPriorityForUpdate, out var data) == false)
+                {
+                    data.associatedCollection = new();
+                    data.entry = new()
+                    {
+                        Action = () => ExecuteSyncScripts(data.associatedCollection),
+                        Token = this,
+                    };
+                    syncScriptByPriority[syncScript.ScheduledPriorityForUpdate] = data;
+                }
+
+                data.associatedCollection.Add(syncScript);
+            }
+            scriptsToReschedule.Clear();
+
+            // Schedule existing scripts to run their SyncScript.Update() through ExecuteSyncScripts bound to this entry
+            foreach (var (priority, (entry, scripts)) in syncScriptByPriority)
+                Scheduler.Schedule(entry, priority, ScheduleMode.Last);
 
             // Run current micro threads
             Scheduler.Run();
@@ -140,14 +163,24 @@ namespace Stride.Engine.Processors
 
             // Register script for Start() and possibly async Execute()
             scriptsToStart.Add(script);
+        }
 
-            // If it's a synchronous script, add it to the list as well
-            if (script is SyncScript syncScript)
+        private void ExecuteSyncScripts(HashSet<SyncScript> entries)
+        {
+            foreach (var syncScript in entries)
             {
-                syncScript.UpdateSchedulerNode.Action ??= syncScript.Update;
-                syncScript.UpdateSchedulerNode.Token = syncScript;
-                syncScript.UpdateSchedulerNode.ProfilingKey = syncScript.ProfilingKey;
-                syncScripts.Add(syncScript.UpdateSchedulerNode);
+                var profilingKey = syncScript.ProfilingKey ?? MicroThreadProfilingKeys.ProfilingKey;
+                using (Profiler.Begin(profilingKey))
+                {
+                    try
+                    {
+                        syncScript.Update();
+                    }
+                    catch (Exception e)
+                    {
+                        HandleSynchronousException(syncScript, e);
+                    }
+                }
             }
         }
 
@@ -183,10 +216,7 @@ namespace Stride.Engine.Processors
                 Scheduler?.Unschedule(startupScript.StartSchedulerNode);
 
                 if (script is SyncScript syncScript)
-                {
-                    syncScripts.Remove(syncScript.UpdateSchedulerNode);
-                    Scheduler?.Unschedule(syncScript.UpdateSchedulerNode);
-                }
+                    TryUnscheduleSyncScript(syncScript);
             }
         }
 
@@ -204,6 +234,29 @@ namespace Stride.Engine.Processors
             newScript.IsLiveReloading = true;
         }
 
+        internal void MarkAsPriorityChanged(SyncScript script)
+        {
+            scriptsToReschedule.Add(script);
+        }
+
+        private bool TryUnscheduleSyncScript(SyncScript syncScript)
+        {
+            if (syncScript.ScriptSystem == null)
+                return false;
+
+            scriptsToReschedule.Remove(syncScript);
+            syncScript.ScriptSystem = null;
+            var (entry, collection) = syncScriptByPriority[syncScript.ScheduledPriorityForUpdate];
+            collection.Remove(syncScript);
+            if (collection.Count == 0)
+            {
+                syncScriptByPriority.Remove(syncScript.ScheduledPriorityForUpdate);
+                Scheduler?.Unschedule(entry);
+            }
+
+            return true;
+        }
+
         private void Scheduler_ActionException(Scheduler scheduler, SchedulerEntry schedulerEntry, Exception e)
         {
             HandleSynchronousException((ScriptComponent)schedulerEntry.Token, e);
@@ -219,9 +272,7 @@ namespace Stride.Engine.Processors
 
             // Remove script from all lists
             if (script is SyncScript syncScript)
-            {
-                syncScripts.Remove(syncScript.UpdateSchedulerNode);
-            }
+                TryUnscheduleSyncScript(syncScript);
 
             registeredScripts.Remove(script);
         }

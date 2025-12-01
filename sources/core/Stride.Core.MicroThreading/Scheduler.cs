@@ -362,43 +362,32 @@ public class Scheduler : IDisposable
         }
     }
 
-    internal void Schedule(ref MicroThreadCallbackList callbackList, MicroThreadCallbackNode node, SchedulerEntry schedulerEntry, ScheduleMode scheduleMode)
+    internal void Schedule(ref MicroThreadCallbackList callbackList, MicroThreadCallbackNode node, SchedulerEntry schedulerEntry, long priority, ScheduleMode scheduleMode)
     {
         lock (bucketsLock)
         {
             callbackList.Add(node);
             if (schedulerEntry.CurrentQueue == null)
-                Schedule(schedulerEntry, scheduleMode);
+                Schedule(schedulerEntry, priority, scheduleMode);
         }
     }
 
-    internal void Schedule(SchedulerEntry newEntry, ScheduleMode scheduleMode)
+    internal void Schedule(SchedulerEntry newEntry, long priority, ScheduleMode scheduleMode)
     {
         lock (bucketsLock)
         {
-            ScheduleUnsafe(newEntry, scheduleMode);
+            ScheduleUnsafe(newEntry, priority, scheduleMode);
         }
     }
 
-    internal void Schedule(HashSet<SchedulerEntry> newEntry, ScheduleMode scheduleMode)
-    {
-        lock (bucketsLock)
-        {
-            foreach (var schedulerEntry in newEntry)
-            {
-                ScheduleUnsafe(schedulerEntry, scheduleMode);
-            }
-        }
-    }
-
-    private void ScheduleUnsafe(SchedulerEntry newEntry, ScheduleMode scheduleMode)
+    private void ScheduleUnsafe(SchedulerEntry newEntry, long priority, ScheduleMode scheduleMode)
     {
         if (newEntry.CurrentQueue != null)
             throw new InvalidOperationException($"Already scheduled, call {nameof(Unschedule)} before running this method");
 
         if (newEntry.PreviousQueue is { } previousQueue 
             && previousQueue.Owner == this
-            && previousQueue.Priority == newEntry.Priority
+            && previousQueue.Priority == priority
             && previousQueue.InBucketPool == false)
         {
             if (previousQueue.Deque.Count == 0)
@@ -407,14 +396,14 @@ public class Scheduler : IDisposable
             newEntry.CurrentQueue = previousQueue;
         }
         // Edge case: this entry has never been scheduled, or its priority changed, or the priority was unused last schedule
-        else if (buckets.TryGetValue(newEntry.Priority, out newEntry.CurrentQueue) == false 
-                 && emptyBuckets.Remove(newEntry.Priority, out newEntry.CurrentQueue) == false)
+        else if (buckets.TryGetValue(priority, out newEntry.CurrentQueue) == false 
+                 && emptyBuckets.Remove(priority, out newEntry.CurrentQueue) == false)
         {
             if (bucketPool.TryPop(out newEntry.CurrentQueue))
                 newEntry.CurrentQueue.InBucketPool = false;
             else
                 newEntry.CurrentQueue = new(this);
-            newEntry.CurrentQueue.Priority = newEntry.Priority;
+            newEntry.CurrentQueue.Priority = priority;
         }
             
         newEntry.PreviousQueue = newEntry.CurrentQueue;
@@ -468,19 +457,14 @@ public class Scheduler : IDisposable
         }
     }
 
-    internal void Reschedule(SchedulerEntry scheduledEntry, ScheduleMode scheduleMode, long newPriority)
+    internal void Reschedule(SchedulerEntry scheduledEntry, long newPriority, ScheduleMode scheduleMode)
     {
         lock (bucketsLock)
         {
             if (scheduledEntry.CurrentQueue != null)
             {
                 Unschedule(scheduledEntry);
-                scheduledEntry.Priority = newPriority;
-                Schedule(scheduledEntry, scheduleMode);
-            }
-            else
-            {
-                scheduledEntry.Priority = newPriority;
+                Schedule(scheduledEntry, newPriority, scheduleMode);
             }
         }
     }

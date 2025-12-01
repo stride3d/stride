@@ -10,7 +10,6 @@ namespace Stride.Core.MicroThreading;
 /// </summary>
 internal class SchedulerEntry
 {
-    public long Priority;
     public int BinarySearchHelper;
     public Scheduler.ExecutionQueue? CurrentQueue;
     public Scheduler.ExecutionQueue? PreviousQueue;

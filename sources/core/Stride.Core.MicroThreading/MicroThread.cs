@@ -4,7 +4,6 @@
 #pragma warning disable SA1402 // File may only contain a single class
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 
 namespace Stride.Core.MicroThreading;
@@ -23,9 +22,10 @@ public class MicroThread
 
     private static long globalCounterId;
 
+    private long priority;
     private int state;
     private readonly CancellationTokenSource cancellationTokenSource;
-    internal SchedulerEntry SchedulerEntry;
+    private readonly SchedulerEntry schedulerEntry;
     internal LinkedListNode<MicroThread> AllLinkedListNode; // Also used as lock for "CompletionTask"
     internal MicroThreadCallbackList Callbacks;
     internal SynchronizationContext? SynchronizationContext;
@@ -34,7 +34,7 @@ public class MicroThread
     {
         Id = Interlocked.Increment(ref globalCounterId);
         Scheduler = scheduler;
-        SchedulerEntry = new() { MicroThread = this };
+        schedulerEntry = new() { MicroThread = this };
         AllLinkedListNode = new LinkedListNode<MicroThread>(this);
         ScheduleMode = ScheduleMode.Last;
         Flags = flags;
@@ -50,11 +50,14 @@ public class MicroThread
     /// </value>
     public long Priority
     {
-        get { return SchedulerEntry.Priority; }
+        get { return priority; }
         set
         {
-            if (SchedulerEntry.Priority != value)
-                Scheduler.Reschedule(SchedulerEntry, ScheduleMode.First, value);
+            if (priority != value)
+            {
+                priority = value;
+                Scheduler.Reschedule(schedulerEntry, priority, ScheduleMode.First);
+            }
         }
     }
 
@@ -215,7 +218,7 @@ public class MicroThread
     /// <returns>Task.</returns>
     public async Task Run()
     {
-        Scheduler.Reschedule(SchedulerEntry, ScheduleMode.First, Priority);
+        Scheduler.Reschedule(schedulerEntry, Priority, ScheduleMode.First);
         var currentScheduler = Scheduler.Current;
         if (currentScheduler == Scheduler)
             await Scheduler.Yield();
@@ -257,7 +260,7 @@ public class MicroThread
         var node = Scheduler.NewCallback();
         node.SendOrPostCallback = callback;
         node.CallbackState = callbackState;
-        Scheduler.Schedule(ref Callbacks, node, SchedulerEntry, scheduleMode);
+        Scheduler.Schedule(ref Callbacks, node, schedulerEntry, priority, scheduleMode);
     }
 
     internal void ScheduleContinuation(ScheduleMode scheduleMode, Action callback)
@@ -265,7 +268,7 @@ public class MicroThread
         Debug.Assert(callback != null);
         var node = Scheduler.NewCallback();
         node.MicroThreadAction = callback;
-        Scheduler.Schedule(ref Callbacks, node, SchedulerEntry, scheduleMode);
+        Scheduler.Schedule(ref Callbacks, node, schedulerEntry, priority, scheduleMode);
     }
 }
 

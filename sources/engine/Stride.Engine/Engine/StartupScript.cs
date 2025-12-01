@@ -15,11 +15,5 @@ namespace Stride.Engine
         public virtual void Start()
         {
         }
-
-        protected internal override void PriorityUpdated()
-        {
-            base.PriorityUpdated();
-            StartSchedulerNode.Priority = Priority;
-        }
     }
 }
