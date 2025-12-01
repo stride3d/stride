@@ -29,8 +29,8 @@ internal class NavigationBuilder(BuildSettings buildSettings)
         GeneratedData ret = result;
         ret.Success = false;
 
-        RcVec3f bmin = new (buildSettings.BoundingBox.Minimum.X,buildSettings.BoundingBox.Minimum.Y,buildSettings.BoundingBox.Minimum.Z);
-        RcVec3f bmax = new (buildSettings.BoundingBox.Maximum.X,buildSettings.BoundingBox.Maximum.Y,buildSettings.BoundingBox.Maximum.Z);
+        RcVec3f bmin = new (buildSettings.BoundingBox.Minimum.X, buildSettings.BoundingBox.Minimum.Y, buildSettings.BoundingBox.Minimum.Z);
+        RcVec3f bmax = new (buildSettings.BoundingBox.Maximum.X, buildSettings.BoundingBox.Maximum.Y, buildSettings.BoundingBox.Maximum.Z);
 
         RcVec3f bbSize = bmax - bmin;
 
