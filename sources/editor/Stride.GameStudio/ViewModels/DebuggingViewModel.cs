@@ -38,7 +38,6 @@ namespace Stride.GameStudio.ViewModels
 {
     public class DebuggingViewModel : DispatcherViewModel, IDisposable
     {
-        private const int LookUpFrequency = 25;
         private readonly IDebugService debugService;
         private readonly GameStudioViewModel editor;
         private readonly Dictionary<PackageLoadedAssembly, ModifiedAssembly> modifiedAssemblies;
@@ -455,13 +454,11 @@ namespace Stride.GameStudio.ViewModels
                         case PlatformType.Linux:
                             platformName = "Linux";
                             extraProperties.Add("SolutionPlatform", "Linux");
-                            configuration = "CoreCLR_" + configuration;
                             break;
 
                         case PlatformType.macOS:
                             platformName = "macOS";
                             extraProperties.Add("SolutionPlatform", "macOS");
-                            configuration = "CoreCLR_" + configuration;
                             break;
 
                         default:
