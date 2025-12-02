@@ -212,14 +212,17 @@ public class SpirvContext
         FluentAdd(new OpSDSLImportShader(Bound++, new(shaderSymbol.Name), new(shaderSymbol.GenericArguments.AsSpan())), out var shader);
         AddName(shader.ResultId, shaderSymbol.Name);
 
-        // Import types and variables/functions
-        //foreach (var structType in shaderType.StructTypes)
-        //{
-        //    context.FluentAdd(new OpSDSLImportStruct(context.Bound, structType.Name, shaderId), out var @struct);
-        //    context.AddName(context.Bound, structType.Name);
-        //    context.Bound++;
-        //}
+        // Import struct
+        var structTypes = CollectionsMarshal.AsSpan(shaderSymbol.StructTypes);
+        foreach (ref var structType in structTypes)
+        {
+            FluentAdd(new OpSDSLImportStruct(Bound++, structType.Type.Name, shader.ResultId), out var @struct);
+            AddName(@struct.ResultId, structType.Type.Name);
+            // Fill the ID
+            structType.ImportedId = @struct.ResultId;
+        }
 
+        // Import variables/functions
         var components = CollectionsMarshal.AsSpan(shaderSymbol.Components);
         foreach (ref var c in components)
         {

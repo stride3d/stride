@@ -107,6 +107,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         //Console.WriteLine("Done type remapping");
         Spv.Dis(buffer, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
+        // Import struct types
+        ImportStructTypes(globalContext, buffer, mixinNode);
+
         // Build names and types mappings
         ShaderClass.ProcessNameAndTypes(buffer, mixinNode.StartInstruction, mixinNode.EndInstruction, globalContext.Names, globalContext.Types);
 
@@ -338,6 +341,26 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 }
             }
         }
+    }
+
+    private void ImportStructTypes(MixinGlobalContext globalContext, NewSpirvBuffer buffer, MixinNode mixinNode)
+    {
+        var idRemapping = new Dictionary<int, int>();
+        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
+        {
+            var i = buffer[index];
+
+            if (i.Data.Op == Op.OpSDSLImportStruct && (OpSDSLImportStruct)i is { } importStruct)
+            {
+                var shaderName = mixinNode.ExternalShaders[importStruct.Shader];
+                var shader = mixinNode.ShadersByName[shaderName];
+                var structId = shader.StructTypes[importStruct.StructName];
+                idRemapping.Add(importStruct.ResultId, structId);
+                SetOpNop(i.Data.Memory.Span);
+            }
+        }
+
+        SpirvBuilder.RemapIds(buffer, mixinNode.StartInstruction, mixinNode.EndInstruction, idRemapping);
     }
 
     private static void PatchMethodCalls(MixinGlobalContext globalContext, NewSpirvBuffer temp, MixinNode mixinNode)

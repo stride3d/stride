@@ -141,9 +141,15 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 types.Add(typeSampler.ResultId, new SamplerType());
             }
+            // Unresolved content
+            // This only happens during EvaluateInheritanceAndCompositions so it's not important to have all information valid
             else if (instruction.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)instruction is { } importShader)
             {
                 types.Add(importShader.ResultId, new ShaderSymbol(importShader.ShaderName, importShader.Values.Elements.Memory.ToArray()));
+            }
+            else if (instruction.Op == Op.OpSDSLImportStruct && (OpSDSLImportStruct)instruction is { } importStruct)
+            {
+                types.Add(importStruct.ResultId, new StructType(importStruct.StructName, []));
             }
         }
 
@@ -152,20 +158,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         {
             var instruction = buffer[i];
 
-            // ResultType might be declared after, so done in second pass
-            if (instruction.Op == Op.OpSDSLImportFunction && (OpSDSLImportFunction)instruction is { } importFunction)
-            {
-                if (types.TryGetValue(importFunction.Shader, out var type) && type is ShaderSymbol shaderSymbol)
-                {
-                    var returnType = types[importFunction.ResultType];
-                    var symbol = new Symbol(new(importFunction.FunctionName, SymbolKind.Method, FunctionFlags: importFunction.Flags), returnType, importFunction.ResultId);
-                    // TODO: review if really necessary?
-                    // (external functions are resolved differently)
-                    shaderSymbol.Components.Add(symbol);
-                }
-            }
             // Can be declared before OpTypeStruct, so done in second pass
-            else if (instruction.Op == Op.OpMemberDecorate && (OpMemberDecorate)instruction is { } memberDecorate)
+            if (instruction.Op == Op.OpMemberDecorate && (OpMemberDecorate)instruction is { } memberDecorate)
             {
                 var structType = (StructType)types[memberDecorate.StructureType];
                 if (memberDecorate.Decoration == Decoration.ColMajor)
@@ -181,7 +175,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         ProcessNameAndTypes(buffer, 0, buffer.Count, out var names, out var types);
 
         var symbols = new List<Symbol>();
-        var structTypes = new List<StructType>();
+        var structTypes = new List<(StructType Type, int ImportedId)>();
         for (var index = 0; index < buffer.Count; index++)
         {
             var instruction = buffer[index];
@@ -212,7 +206,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
             if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
             {
-                structTypes.Add((StructType)types[typeStructInstruction.ResultId]);
+                structTypes.Add(((StructType)types[typeStructInstruction.ResultId], -1));
             }
 
             if (instruction.Op == Op.OpSDSLGenericParameter)
@@ -377,6 +371,14 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     public static void Inherit(SymbolTable table, SpirvContext context, ShaderSymbol shaderType, bool addToRoot)
     {
         var shaderId = context.GetOrRegister(shaderType);
+
+        foreach (var structType in shaderType.StructTypes)
+        {
+            // Add the struct like if it was part of our shader (but using the imported id)
+            context.Types.Add(structType.Type, structType.ImportedId);
+            context.ReverseTypes.Add(structType.ImportedId, structType.Type);
+            table.DeclaredTypes.TryAdd(structType.Type.Name, structType.Type);
+        }
 
         foreach (var c in shaderType.Components)
         {

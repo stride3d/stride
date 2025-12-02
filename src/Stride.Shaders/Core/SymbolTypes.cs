@@ -242,7 +242,7 @@ public sealed record EffectSymbol(string Name, List<(string Name, SymbolType Typ
 public sealed record ShaderSymbol(string Name, int[] GenericArguments) : SymbolType
 {
     public List<Symbol> Components { get; init; } = [];
-    public List<StructType> StructTypes { get; init; } = [];
+    public List<(StructType Type, int ImportedId)> StructTypes { get; init; } = [];
 
     public string ToClassName()
     {

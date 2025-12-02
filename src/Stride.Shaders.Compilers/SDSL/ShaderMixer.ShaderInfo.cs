@@ -35,6 +35,7 @@ public partial class ShaderMixer
         public Dictionary<int, string> Names { get; } = new();
         public Dictionary<string, int> Functions { get; } = new();
         public Dictionary<string, (int Id, SymbolType Type)> Variables { get; } = new();
+        public Dictionary<string, int> StructTypes { get; } = new();
 
         public override string ToString() => $"{ShaderName} ({(CompositionPath != null ? $" {CompositionPath} " : "")}{StartInstruction}..{EndInstruction})";
     }
@@ -78,6 +79,11 @@ public partial class ShaderMixer
                     SetOpNop(i.Data.Memory.Span);
                     removedIds.Add(typePointer.ResultId);
                 }
+            }
+            else if (i.Data.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStruct)
+            {
+                var structName = shaderInfo.Names[typeStruct];
+                shaderInfo!.StructTypes.Add(structName, typeStruct.ResultId);
             }
         }
 
