@@ -156,8 +156,6 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
             var d = Variables[index];
 
             var variable = context.Bound++;
-            builder.Insert(new OpVariable(registeredType, variable, Specification.StorageClass.Function, null));
-
             builder.AddFunctionVariable(registeredType, variable);
             context.AddName(variable, d.Variable);
 
