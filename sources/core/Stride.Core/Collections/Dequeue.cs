@@ -172,8 +172,25 @@ public sealed class Deque<T> : IList<T>, System.Collections.IList
     public int BinarySearch(T item, IComparer<T>? comparer = null)
     {
         comparer ??= Comparer<T>.Default;
-        #warning need to finish this
-        return IndexOf(item);
+        if (WrapsAround(offset, Count, out var splitA, out var splitB))
+        {
+            int i = splitA.BinarySearch(item, comparer);
+            if (i >= 0)
+                return i;
+            if (~i < splitA.Length)
+                return i;
+            
+            int left = Count - (Capacity - offset);
+            i = splitB[..left].BinarySearch(item, comparer);
+            if (i >= 0)
+                return splitA.Length + i;
+            
+            return ~(splitA.Length + ~i);
+        }
+        else
+        {
+            return splitA.BinarySearch(item, comparer);
+        }
     }
 
     /// <summary>
@@ -447,17 +464,17 @@ public sealed class Deque<T> : IList<T>, System.Collections.IList
 
             // Create the new buffer and copy our existing range.
             T[] newBuffer = new T[value];
-            if (IsSplit)
+            var newSpan = newBuffer.AsSpan();
+            if (WrapsAround(offset, Count, out var splitA, out var splitB))
             {
                 // The existing buffer is split, so we have to copy it in parts
-                int length = Capacity - offset;
-                Array.Copy(buffer, offset, newBuffer, 0, length);
-                Array.Copy(buffer, 0, newBuffer, length, Count - length);
+                splitA.CopyTo(newSpan[.. splitA.Length]);
+                splitB.CopyTo(newSpan[splitA.Length .. (splitA.Length + splitB.Length)]);
             }
             else
             {
                 // The existing buffer is whole
-                Array.Copy(buffer, offset, newBuffer, 0, Count);
+                splitA.CopyTo(newSpan[.. splitA.Length]);
             }
 
             // Set up to use the new buffer.
@@ -473,6 +490,39 @@ public sealed class Deque<T> : IList<T>, System.Collections.IList
     /// <returns>The number of elements contained in this deque.</returns>
     public int Count { get; private set; }
 
+    /// <summary>
+    /// Returns whether reading the buffer at <paramref name="index"/> for <paramref name="count"/>
+    /// would go past the end and wrap around to the start of the buffer
+    /// </summary>
+    /// <param name="index">The start of the read</param>
+    /// <param name="count">The amount of items to read</param>
+    /// <param name="splitA">
+    /// The span of the buffer from <paramref name="index"/> to the end of the buffer when true,
+    /// or the end of <paramref name="count"/> when false
+    /// </param>
+    /// <param name="splitB">The span of the buffer from the start to the end of <paramref name="count"/></param>
+    /// <returns></returns>
+    private bool WrapsAround(int index, int count, out Span<T> splitA, out Span<T> splitB)
+    {
+        var span = buffer.AsSpan();
+        index &= mask;
+        int countToEnd = span.Length - index;
+        int countAfterEnd = (count - (countToEnd));
+        if (countAfterEnd > 0)
+        {
+            splitA = span[index ..];
+            splitB = span[.. countAfterEnd];
+            return true;
+        }
+
+        splitA = span.Slice(index, count);
+        splitB = Span<T>.Empty;
+        return false;
+    }
+
+    /// <summary>
+    /// Retrieve the value in the buffer from a deque index
+    /// </summary>
     private ref T DequeIndexToBufferRef(int index)
     {
         // Can use unsafe, this cannot compute a value outside buffer range
@@ -638,18 +688,14 @@ public sealed class Deque<T> : IList<T>, System.Collections.IList
         // Copy new items into place
         if (TryGetSpan(collection, out var spanToCopy))
         {
-            int start = (index + offset) & mask;
-            int end = (index + spanToCopy.Length + offset) & mask;
-            var bufferAsSpan = this.buffer.AsSpan();
-            if (end < start)
+            if (WrapsAround(index + offset, spanToCopy.Length, out var firstSplit, out var secondSplit))
             {
-                int firstCopyLength = bufferAsSpan.Length - start;
-                spanToCopy[..firstCopyLength].CopyTo(bufferAsSpan[start..]);
-                spanToCopy[firstCopyLength..].CopyTo(bufferAsSpan[..end]);
+                spanToCopy[..firstSplit.Length].CopyTo(firstSplit);
+                spanToCopy[firstSplit.Length..].CopyTo(secondSplit);
             }
             else
             {
-                spanToCopy.CopyTo(bufferAsSpan[start..end]);
+                spanToCopy.CopyTo(firstSplit);
             }
         }
         else

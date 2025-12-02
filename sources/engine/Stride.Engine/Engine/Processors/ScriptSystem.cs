@@ -97,7 +97,7 @@ namespace Stride.Engine.Processors
                     data.associatedCollection = new();
                     data.entry = new()
                     {
-                        Action = () => ExecuteSyncScripts(data.associatedCollection),
+                        Action = () => ExecuteBatchOfSyncScripts(data.associatedCollection),
                         Token = this,
                     };
                     syncScriptByPriority[syncScript.ScheduledPriorityForUpdate] = data;
@@ -117,6 +117,25 @@ namespace Stride.Engine.Processors
             foreach (var scriptComponent in liveReloads)
                 scriptComponent.IsLiveReloading = false;
             liveReloads.Clear();
+        }
+
+        private void ExecuteBatchOfSyncScripts(HashSet<SyncScript> entries)
+        {
+            foreach (var syncScript in entries)
+            {
+                var profilingKey = syncScript.ProfilingKey ?? MicroThreadProfilingKeys.ProfilingKey;
+                using (Profiler.Begin(profilingKey))
+                {
+                    try
+                    {
+                        syncScript.Update();
+                    }
+                    catch (Exception e)
+                    {
+                        HandleSynchronousException(syncScript, e);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -163,25 +182,6 @@ namespace Stride.Engine.Processors
 
             // Register script for Start() and possibly async Execute()
             scriptsToStart.Add(script);
-        }
-
-        private void ExecuteSyncScripts(HashSet<SyncScript> entries)
-        {
-            foreach (var syncScript in entries)
-            {
-                var profilingKey = syncScript.ProfilingKey ?? MicroThreadProfilingKeys.ProfilingKey;
-                using (Profiler.Begin(profilingKey))
-                {
-                    try
-                    {
-                        syncScript.Update();
-                    }
-                    catch (Exception e)
-                    {
-                        HandleSynchronousException(syncScript, e);
-                    }
-                }
-            }
         }
 
         /// <summary>
@@ -259,7 +259,18 @@ namespace Stride.Engine.Processors
 
         private void Scheduler_ActionException(Scheduler scheduler, SchedulerEntry schedulerEntry, Exception e)
         {
-            HandleSynchronousException((ScriptComponent)schedulerEntry.Token, e);
+            if (schedulerEntry.Token is ScriptComponent scriptComponent)
+            {
+                HandleSynchronousException(scriptComponent, e);
+            }
+            else // This could occur when the ScriptSystem throws while processing SyncScripts in batch
+            {
+                Log.Error("Unexpected exception while executing a script.", e);
+
+                // Only crash if live scripting debugger is not listening
+                if (Scheduler.PropagateExceptions)
+                    ExceptionDispatchInfo.Capture(e).Throw();
+            }
         }
 
         private void HandleSynchronousException(ScriptComponent script, Exception e)
