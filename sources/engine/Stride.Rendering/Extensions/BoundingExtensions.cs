@@ -6,73 +6,69 @@ using System.Linq;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Data;
-using Stride.Graphics.Semantics;
 
 namespace Stride.Extensions
 {
     public static class BoundingExtensions
     {
-        public static BoundingBox ComputeBounds(this VertexBufferBinding vertexBufferBinding, ref Matrix matrix, out BoundingSphere boundingSphere)
+        public static unsafe BoundingBox ComputeBounds(this VertexBufferBinding vertexBufferBinding, ref Matrix matrix, out BoundingSphere boundingSphere)
         {
-            var helper = new VertexBufferHelper(vertexBufferBinding, vertexBufferBinding.Buffer.GetSerializationData().Content, out _);
+            var positionOffset = vertexBufferBinding.Declaration
+                .EnumerateWithOffsets()
+                .First(x => x.VertexElement.SemanticAsText == "POSITION")
+                .Offset;
 
-            var computeBoundsStruct = new ComputeBoundsStruct
-            {
-                Box = BoundingBox.Empty, 
-                Sphere = new BoundingSphere(),
-                Matrix = matrix
-            };
-            helper.Read<PositionSemantic, Vector3, ComputeBoundsStruct>(default, computeBoundsStruct);
+            var boundingBox = BoundingBox.Empty;
+            boundingSphere = new BoundingSphere();
 
-            boundingSphere = computeBoundsStruct.Sphere;
-            return computeBoundsStruct.Box;
-        }
-
-        struct ComputeBoundsStruct : VertexBufferHelper.IReader<Vector3>
-        {
-            public required BoundingBox Box;
-            public required BoundingSphere Sphere;
-            public required Matrix Matrix;
-
-            public unsafe void Read<TConverter, TSource>(byte* startPointer, int elementCount, int stride, Span<Vector3> destination) where TConverter : IConverter<TSource, Vector3> where TSource : unmanaged
+            var vertexStride = vertexBufferBinding.Declaration.VertexStride;
+            fixed (byte* bufferStart = &vertexBufferBinding.Buffer.GetSerializationData().Content[vertexBufferBinding.Offset])
             {
                 // Calculates bounding box and bounding sphere center
-                for (byte* sourcePtr = startPointer, end = startPointer + elementCount * stride; sourcePtr < end; sourcePtr += stride)
+                byte* buffer = bufferStart + positionOffset;
+                for (int i = 0; i < vertexBufferBinding.Count; ++i)
                 {
-                    TConverter.Convert(*(TSource*)sourcePtr, out var position);
+                    var position = (Vector3*)buffer;
                     Vector3 transformedPosition;
 
-                    Vector3.TransformCoordinate(ref position, ref Matrix, out transformedPosition);
+                    Vector3.TransformCoordinate(ref *position, ref matrix, out transformedPosition);
 
                     // Prepass calculate the center of the sphere
-                    Vector3.Add(ref transformedPosition, ref Sphere.Center, out Sphere.Center);
-                    
-                    BoundingBox.Merge(ref Box, ref transformedPosition, out Box);
+                    Vector3.Add(ref transformedPosition, ref boundingSphere.Center, out boundingSphere.Center);
+
+                    BoundingBox.Merge(ref boundingBox, ref transformedPosition, out boundingBox);
+
+                    buffer += vertexStride;
                 }
 
                 //This is the center of our sphere.
-                Sphere.Center /= elementCount;
+                boundingSphere.Center /= (float)vertexBufferBinding.Count;
 
                 // Calculates bounding sphere center
-                for (byte* sourcePtr = startPointer, end = startPointer + elementCount * stride; sourcePtr < end; sourcePtr += stride)
+                buffer = bufferStart + positionOffset;
+                for (int i = 0; i < vertexBufferBinding.Count; ++i)
                 {
-                    TConverter.Convert(*(TSource*)sourcePtr, out var position);
+                    var position = (Vector3*)buffer;
                     Vector3 transformedPosition;
 
-                    Vector3.TransformCoordinate(ref position, ref Matrix, out transformedPosition);
+                    Vector3.TransformCoordinate(ref *position, ref matrix, out transformedPosition);
 
-                    //We are doing a relative distance comparison to find the maximum distance
+                    //We are doing a relative distance comparasin to find the maximum distance
                     //from the center of our sphere.
                     float distance;
-                    Vector3.DistanceSquared(ref Sphere.Center, ref transformedPosition, out distance);
+                    Vector3.DistanceSquared(ref boundingSphere.Center, ref transformedPosition, out distance);
 
-                    if (distance > Sphere.Radius)
-                        Sphere.Radius = distance;
+                    if (distance > boundingSphere.Radius)
+                        boundingSphere.Radius = distance;
+
+                    buffer += vertexStride;
                 }
 
                 //Find the real distance from the DistanceSquared.
-                Sphere.Radius = MathF.Sqrt(Sphere.Radius);
+                boundingSphere.Radius = MathF.Sqrt(boundingSphere.Radius);
             }
+
+            return boundingBox;
         }
     }
 }
