@@ -2,20 +2,20 @@
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.PostProcessing;
 using Stride.Shaders.Spirv.Processing;
 using Stride.Shaders.Spirv.Tools;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using Stride.Shaders.Parsing.SDSL;
 using static Stride.Shaders.Spirv.Specification;
-using Stride.Shaders.Spirv.PostProcessing;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
@@ -35,20 +35,23 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var shaderSource2 = EvaluateInheritanceAndCompositions(shaderSource);
 
         // Root shader
-        MergeMixinNode(new MixinGlobalContext(), context, table, temp, shaderSource2);
+        var globalContext = new MixinGlobalContext();
+        MergeMixinNode(globalContext, context, table, temp, shaderSource2);
 
         context.Insert(0, new OpCapability(Capability.Shader));
         context.Insert(1, new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
         context.Insert(2, new OpExtension("SPV_GOOGLE_hlsl_functionality1"));
 
-        CleanupUnnecessaryInstructions(temp);
         temp.Sort();
+
+        Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
         new StreamAnalyzer().Process(table, temp, context);
 
+        CleanupUnnecessaryInstructions(temp);
+
         foreach (var inst in context)
             temp.Add(inst.Data);
-
 
         // Final processing
         SpirvProcessor.Process(temp);
@@ -76,6 +79,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         public MixinNode? Result { get; }
     }
 
+    struct LinkInfo
+    {
+        public string LinkName;
+        public string ResourceGroup;
+        public string LogicalGroup;
+    }
 
     MixinNode MergeMixinNode(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, NewSpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode? stage = null, string? currentCompositionPath = null)
     {
@@ -96,7 +105,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         new TypeDuplicateRemover().Apply(buffer);
 
         //Console.WriteLine("Done type remapping");
-        //Spv.Dis(buffer, true);
+        Spv.Dis(buffer, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
         // Build names and types mappings
         ShaderClass.ProcessNameAndTypes(buffer, mixinNode.StartInstruction, mixinNode.EndInstruction, globalContext.Names, globalContext.Types);
@@ -125,7 +134,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
         {
             var i = buffer[index];
-            if (i.Op == Op.OpSDSLImportShader || i.Op == Op.OpSDSLImportFunction)
+            if (i.Op == Op.OpSDSLImportShader || i.Op == Op.OpSDSLImportFunction || i.Op == Op.OpSDSLImportVariable)
             {
                 SetOpNop(i.Data.Memory.Span);
             }
@@ -224,8 +233,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             mixinNode.ShadersByName.Add(shaderClass.ToClassName(), shaderInfo);
             shaders.Add(shaderInfo);
 
-            // Remap ids from inherited class (OpSDSLImport*)
-            RemapInheritedIds(temp, shaderStart, temp.Count, shaderClass, shaderInfo, mixinNode);
+            BuildImportInfo(temp, shaderStart, temp.Count, shaderClass, shaderInfo, mixinNode);
         }
 
         mixinNode.EndInstruction = temp.Count;
@@ -256,6 +264,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
 
+        Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+
         // Build method group info (override, etc.)
         ShaderInfo? currentShader = null;
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
@@ -271,16 +281,31 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 currentShader = null;
             }
+            else if (i.Data.Op == Op.OpVariable && (OpVariable)i is { } variable && variable.Storageclass == Specification.StorageClass.Private)
+            {
+                var variableName = globalContext.Names[variable.ResultId];
+                mixinNode.VariablesByName.Add(variableName, variable.ResultId);
+            }
             else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
                 if (temp[index + 1].Op == Op.OpSDSLFunctionInfo &&
-                    (OpSDSLFunctionInfo)temp[index + 1] is { } functionInfo)
+                    (OpSDSLFunctionInfo)temp[index + 1] is { } functionInfo) 
                 {
                     var functionName = globalContext.Names[function.ResultId];
 
                     var methodMixinGroup = mixinNode;
                     if (!mixinNode.IsRoot && (functionInfo.Flags & FunctionFlagsMask.Stage) != 0)
                         methodMixinGroup = methodMixinGroup.Stage;
+
+                    // If OpSDSLFunctionInfo.Parent is coming from a OpSDSLImportFunction, find the real ID
+                    if (functionInfo.Parent != 0)
+                    {
+                        if (mixinNode.ExternalFunctions.TryGetValue(functionInfo.Parent, out var parentFunctionInfo))
+                        {
+                            var shaderName = mixinNode.ExternalShaders[parentFunctionInfo.ShaderId];
+                            functionInfo.Parent = mixinNode.ShadersByName[shaderName].Functions[parentFunctionInfo.Name];
+                        }
+                    }
 
                     // Check if it has a parent (and if yes, share the MethodGroup)
                     if (!methodMixinGroup.MethodGroups.TryGetValue(functionInfo.Parent, out var methodGroup))
@@ -317,105 +342,131 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     private static void PatchMethodCalls(MixinGlobalContext globalContext, NewSpirvBuffer temp, MixinNode mixinNode)
     {
-        var externalShaders = new HashSet<int>();
-        var externalFunctions = new Dictionary<int, string>();
+        var memberAccesses = new Dictionary<int, int>();
+        var thisInstructions = new HashSet<int>();
+        var baseInstructions = new HashSet<int>();
+        var stageInstructions = new HashSet<int>();
         ShaderInfo? currentShader = null;
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
         {
             var i = temp[index];
-            // Only import shaders should be left
-            if (i.Data.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)
+            currentShader = mixinNode.Shaders.Last(x => index >= x.StartInstruction);
+
+            // Apply any OpMemberAccessSDSL remapping
+            if (memberAccesses.Count > 0)
+                SpirvBuilder.RemapIds(memberAccesses, i);
+
+            if (i.Data.Op == Op.OpThisSDSL && (OpThisSDSL)i is { } thisInstruction)
             {
-                // Only external should be left
-                if (importShader.Type == ImportType.External)
-                {
-                    externalShaders.Add(importShader.ResultId);
-                    SetOpNop(i.Data.Memory.Span);
-                }
+                thisInstructions.Add(thisInstruction.ResultId);
+                SetOpNop(i.Data.Memory.Span);
             }
-            else if (i.Data.Op == Op.OpSDSLImportFunction && (OpSDSLImportFunction)i is { } importFunction)
+            else if (i.Data.Op == Op.OpBaseSDSL && (OpBaseSDSL)i is { } baseInstruction)
             {
-                if (externalShaders.Contains(importFunction.Shader))
-                {
-                    externalFunctions.Add(importFunction.ResultId, importFunction.FunctionName);
-                    SetOpNop(i.Data.Memory.Span);
-                }
+                baseInstructions.Add(baseInstruction.ResultId);
+                SetOpNop(i.Data.Memory.Span);
             }
-            // Removing OpName for OpSDSLImportShader and OpSDSLImportFunction (they are always located after, so no problem to do it in a single pass)
-            else if (i.Data.Op == Op.OpName && (OpName)i is { } nameInstruction)
+            else if (i.Data.Op == Op.OpStageSDSL && (OpStageSDSL)i is { } stageInstruction)
             {
-                if (externalShaders.Contains(nameInstruction.Target) || externalFunctions.ContainsKey(nameInstruction.Target))
+                stageInstructions.Add(stageInstruction.ResultId);
+                SetOpNop(i.Data.Memory.Span);
+            }
+            else if (i.Data.Op == Op.OpMemberAccessSDSL && (OpMemberAccessSDSL)i is { } memberAccess)
+            {
+                // Find out the proper mixin node (the member instance)
+                var isThis = thisInstructions.Contains(memberAccess.Instance);
+                var isBase = baseInstructions.Contains(memberAccess.Instance);
+                var isStage = stageInstructions.Contains(memberAccess.Instance);
+                MixinNode instanceMixinGroup;
+                if (isThis || isBase)
+                    instanceMixinGroup = mixinNode;
+                else if (isStage)
+                    instanceMixinGroup = mixinNode.Stage ?? mixinNode;
+                else
+                    instanceMixinGroup = mixinNode.Compositions[memberAccess.Instance];
+
+                Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+
+                if (mixinNode.ExternalVariables.TryGetValue(memberAccess.Member, out var variable))
                 {
-                    SetOpNop(i.Data.Memory.Span);
+                    instanceMixinGroup.VariablesByName.TryGetValue(variable.Name, out var variableId);
+                    memberAccesses.Add(memberAccess.ResultId, variableId);
                 }
+                else if (globalContext.Types[memberAccess.ResultType] is FunctionType)
+                {
+                    // In case of functions, OpMemberAccessSDSL.Member could either be a OpFunction or a OpImportFunctionSDSL
+                    var functionId = memberAccess.Member;
+                    if (mixinNode.ExternalFunctions.TryGetValue(memberAccess.Member, out var function))
+                        // Process member call (composition)
+                        functionId = instanceMixinGroup.MethodGroupsByName[function.Name];
+
+                    bool foundInStage = false;
+                    if (!instanceMixinGroup.MethodGroups.TryGetValue(functionId, out var methodGroupEntry))
+                    {
+                        // Try again as a stage method (only if not a base call)
+                        if (instanceMixinGroup.Stage == null || !instanceMixinGroup.Stage.MethodGroups.TryGetValue(functionId, out methodGroupEntry))
+                            throw new InvalidOperationException($"Can't find method group info for {globalContext.Names[functionId]}");
+                        foundInStage = true;
+                    }
+
+                    // Process base call
+                    if (isBase)
+                    {
+                        // We currently do not allow calling base stage method from a non-stage method
+                        // (if we were to allow them later, we would need to tweak following detection code as ShaderIndex comparison is only valid for items within the same MixinNode)
+                        if (foundInStage)
+                            throw new InvalidOperationException($"Method {globalContext.Names[functionId]} was found but a base call can't be performed on a stage method from a non-stage method");
+
+                        // Is it a base call? if yes, find the direct parent
+                        // Let's find the method in same group just before ours
+                        bool baseMethodFound = false;
+                        for (int j = methodGroupEntry.Methods.Count - 1; j >= 0; --j)
+                        {
+                            if (methodGroupEntry.Methods[j].Shader.ShaderIndex < currentShader.ShaderIndex)
+                            {
+                                functionId = methodGroupEntry.Methods[j].MethodId;
+                                baseMethodFound = true;
+                                break;
+                            }
+                        }
+
+                        if (!baseMethodFound)
+                            throw new InvalidOperationException($"Can't find a base method for {globalContext.Names[functionId]}");
+
+                        SetOpNop(temp[index - 1].Data.Memory.Span);
+                    }
+                    else
+                    {
+                        // If not, get the most derived implementation
+                        functionId = methodGroupEntry.Methods[^1].MethodId;
+                    }
+
+                    memberAccesses.Add(memberAccess.ResultId, functionId);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Member {memberAccess.Member} not found");
+                }
+
+                SetOpNop(i.Data.Memory.Span);
             }
             else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
                 if (!mixinNode.MethodGroups.TryGetValue(function.ResultId, out var methodGroupEntry))
                     throw new InvalidOperationException($"Can't find method group info for {globalContext.Names[function.ResultId]}");
-
-                currentShader = mixinNode.Shaders.Last(x => index >= x.StartInstruction);
+            }
+            else if (i.Data.Op == Op.OpFunctionEnd)
+            {
+                memberAccesses.Clear();
             }
             else if (i.Data.Op == Op.OpFunctionCall && (OpFunctionCall)i is { } functionCall)
             {
-                var methodMixinGroup = mixinNode;
-                var isBaseCall = temp[index - 1].Op == Op.OpSDSLCallBase;
-
-                // Process member call (composition)
-                if (temp[index - 1].Op == Op.OpSDSLCallTarget)
+                if (memberAccesses.TryGetValue(functionCall.Function, out var functionId))
                 {
-                    var callTarget = (OpSDSLCallTarget)temp[index - 1];
-                    var composition = mixinNode.Compositions[callTarget.Target];
-                    methodMixinGroup = composition;
-
-                    var functionName = externalFunctions[functionCall.Function];
-                    var functionId = composition.MethodGroupsByName[functionName];
-
                     functionCall.Function = functionId;
-
-                    SetOpNop(temp[index - 1].Data.Memory.Span);
                 }
 
-                bool foundInStage = false;
-                if (!methodMixinGroup.MethodGroups.TryGetValue(functionCall.Function, out var methodGroupEntry))
-                {
-                    // Try again as a stage method (only if not a base call)
-                    if (methodMixinGroup.Stage == null || !methodMixinGroup.Stage.MethodGroups.TryGetValue(functionCall.Function, out methodGroupEntry))
-                        throw new InvalidOperationException($"Can't find method group info for {globalContext.Names[functionCall.Function]}");
-                    foundInStage = true;
-                }
-
-                // Process base call
-                if (isBaseCall)
-                {
-                    // We currently do not allow calling base stage method from a non-stage method
-                    // (if we were to allow them later, we would need to tweak following detection code as ShaderIndex comparison is only valid for items within the same MixinNode)
-                    if (foundInStage)
-                        throw new InvalidOperationException($"Method {globalContext.Names[functionCall.Function]} was found but a base call can't be performed on a stage method from a non-stage method");
-
-                    // Is it a base call? if yes, find the direct parent
-                    // Let's find the method in same group just before ours
-                    bool baseMethodFound = false;
-                    for (int j = methodGroupEntry.Methods.Count - 1; j >= 0; --j)
-                    {
-                        if (methodGroupEntry.Methods[j].Shader.ShaderIndex < currentShader.ShaderIndex)
-                        {
-                            functionCall.Function = methodGroupEntry.Methods[j].MethodId;
-                            baseMethodFound = true;
-                            break;
-                        }
-                    }
-
-                    if (!baseMethodFound)
-                        throw new InvalidOperationException($"Can't find a base method for {globalContext.Names[functionCall.Function]}");
-
-                    SetOpNop(temp[index - 1].Data.Memory.Span);
-                }
-                else
-                {
-                    // If not, get the most derived implementation
-                    functionCall.Function = methodGroupEntry.Methods[^1].MethodId;
-                }
+                Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
             }
         }
     }
@@ -477,6 +528,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || temp[i].Op == Op.OpSDSLEffectEnd
                 || temp[i].Op == Op.OpConstantStringSDSL
                 || temp[i].Op == Op.OpTypeGenericLinkSDSL)
+                temp.RemoveAt(i--);
+            else if (temp[i].Op == Op.OpDecorateString && ((OpDecorateString)temp[i]).Decoration.Value == Decoration.LinkSDSL)
                 temp.RemoveAt(i--);
             else if (temp[i].Op == Op.OpMemberDecorateString && ((OpMemberDecorateString)temp[i]).Decoration.Value == Decoration.LinkSDSL)
                 temp.RemoveAt(i--);

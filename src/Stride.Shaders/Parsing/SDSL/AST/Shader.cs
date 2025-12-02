@@ -220,7 +220,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         table.Push();
 
-        var symbols = new List<Symbol>();
         var openGenerics = new int[Generics != null ? Generics.Parameters.Count : 0];
         if (Generics != null)
         {
@@ -320,7 +319,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
         }
 
-        var currentShader = new ShaderSymbol(Name, openGenerics, symbols);
+        var currentShader = new ShaderSymbol(Name, openGenerics, []);
         RegisterShaderType(table, currentShader);
 
         table.CurrentShader = currentShader;
@@ -331,35 +330,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         foreach (var shaderType in shaderSymbols)
         {
-            // Import types and variables/functions
-            context.FluentAdd(new OpSDSLImportShader(context.Bound, ImportType.Inherit, new(shaderType.Name), new(shaderType.GenericArguments.AsSpan())), out var shader);
-            context.AddName(context.Bound, shaderType.Name);
-            context.Bound++;
-
-            foreach (var c in shaderType.Components)
-            {
-                if (c.Id.Kind == SymbolKind.Variable)
-                {
-                    var variableTypeId = context.GetOrRegister(c.Type);
-                    context.FluentAdd(new OpSDSLImportVariable(variableTypeId, context.Bound, c.Id.Name, shader.ResultId), out var variable);
-                    context.AddName(context.Bound, c.Id.Name);
-                    context.Bound++;
-                    table.CurrentFrame.Add(c.Id.Name, c with { IdRef = variable.ResultId });
-                }
-                else if (c.Id.Kind == SymbolKind.Method)
-                {
-                    var functionType = (FunctionType)c.Type;
-
-                    var functionReturnTypeId = context.GetOrRegister(functionType.ReturnType);
-                    context.FluentAdd(new OpSDSLImportFunction(functionReturnTypeId, context.Bound, c.Id.Name, shader.ResultId, c.Id.FunctionFlags), out var function);
-                    context.AddName(context.Bound, c.Id.Name);
-                    context.Bound++;
-                    table.CurrentFrame.Add(c.Id.Name, c with { IdRef = function.ResultId });
-                }
-            }
-
-            // Mark inherit
-            context.Add(new OpSDSLMixinInherit(shader.ResultId));
+            Inherit(table, context, shaderType, true);
         }
 
         foreach (var member in Elements.OfType<ShaderBuffer>())
@@ -380,7 +351,51 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         table.Pop();
     }
 
-    private static ShaderSymbol LoadExternalShaderType(SymbolTable table, ShaderClassInstantiation classSource)
+    public static void Inherit(SymbolTable table, SpirvContext context, ShaderSymbol shaderType, bool addToRoot)
+    {
+        // Import types and variables/functions
+        var shaderId = context.Bound++;
+        context.FluentAdd(new OpSDSLImportShader(shaderId, ImportType.Inherit, new(shaderType.Name), new(shaderType.GenericArguments.AsSpan())), out var shader);
+        context.AddName(shaderId, shaderType.Name);
+
+        for (int i = 0; i < shaderType.Components.Count; i++)
+        {
+            Symbol c = shaderType.Components[i];
+            if (c.Id.Kind == SymbolKind.Variable)
+            {
+                var variableTypeId = context.GetOrRegister(c.Type);
+                context.FluentAdd(new OpSDSLImportVariable(context.Bound, variableTypeId, c.Id.Name, shader.ResultId), out var variable);
+                context.AddName(context.Bound, c.Id.Name);
+                context.Bound++;
+                shaderType.Components[i] = c = c with { IdRef = variable.ResultId, ImplicitThis = true };
+                if (addToRoot)
+                    table.CurrentFrame.Add(c.Id.Name, c);
+            }
+            else if (c.Id.Kind == SymbolKind.Method)
+            {
+                var functionType = (FunctionType)c.Type;
+
+                var functionReturnTypeId = context.GetOrRegister(functionType.ReturnType);
+                context.FluentAdd(new OpSDSLImportFunction(context.Bound, functionReturnTypeId, c.Id.Name, shader.ResultId, c.Id.FunctionFlags), out var function);
+                context.AddName(context.Bound, c.Id.Name);
+                context.Bound++;
+                shaderType.Components[i] = c = c with { IdRef = function.ResultId, ImplicitThis = true };
+                if (addToRoot)
+                    table.CurrentFrame.Add(c.Id.Name, c);
+            }
+        }
+
+        if (!addToRoot)
+        {
+            var symbol = new Symbol(new(shaderType.Name, SymbolKind.Shader), shaderType, shaderId);
+            table.CurrentFrame.Add(shaderType.Name, symbol);
+        }
+
+        // Mark inherit
+        context.Add(new OpSDSLMixinInherit(shader.ResultId));
+    }
+
+    public static ShaderSymbol LoadExternalShaderType(SymbolTable table, ShaderClassInstantiation classSource)
     {
         var shaderBuffer = classSource.Buffer;
 

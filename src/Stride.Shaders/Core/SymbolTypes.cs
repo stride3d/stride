@@ -240,25 +240,6 @@ public sealed record EffectSymbol(string Name, List<(string Name, SymbolType Typ
 
 public sealed record ShaderSymbol(string Name, int[] GenericArguments, List<Symbol> Components) : SymbolType
 {
-    public Symbol Get(string name, SymbolKind kind)
-    {
-        foreach (var e in Components)
-            if (e.Id.Kind == kind && e.Id.Name == name)
-                return e;
-        throw new ArgumentException($"{name} not found in Mixin {Name}");
-    }
-    public bool TryGet(string name, SymbolKind kind, out Symbol? value)
-    {
-        foreach (var e in Components)
-            if (e.Id.Kind == kind && e.Id.Name == name)
-            {
-                value = e;
-                return true;
-            }
-        value = null!;
-        return false;
-    }
-
     public string ToClassName()
     {
         if (GenericArguments.Length == 0)

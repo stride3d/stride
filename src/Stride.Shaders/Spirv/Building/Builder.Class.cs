@@ -1,6 +1,7 @@
 ﻿using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Tools;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -128,8 +129,51 @@ public partial class SpirvBuilder
         }
     }
 
-    public static NewSpirvBuffer InstantiateGenericShader(NewSpirvBuffer shader, ShaderClassInstantiation classSource, ResolveStep resolveStep, NewSpirvBuffer? parentBuffer = null)
+    public static object GetConstantValue(OpData data, NewSpirvBuffer buffer)
     {
+        int typeId = data.Op switch
+        {
+            Op.OpConstant or Op.OpSpecConstant => data.Memory.Span[1],
+            _ => throw new Exception("Unsupported context dependent number in instruction " + data.Op)
+        };
+        var operand = data.Get("value");
+        if (buffer.TryGetInstructionById(typeId, out var typeInst))
+        {
+            if (typeInst.Op == Op.OpTypeInt)
+            {
+                var type = (OpTypeInt)typeInst;
+                return type switch
+                {
+                    { Width: <= 32, Signedness: 0 } => operand.ToLiteral<uint>(),
+                    { Width: <= 32, Signedness: 1 } => operand.ToLiteral<int>(),
+                    { Width: 64, Signedness: 0 } => operand.ToLiteral<ulong>(),
+                    { Width: 64, Signedness: 1 } => operand.ToLiteral<long>(),
+                    _ => throw new NotImplementedException("Unsupported int width " + type.Width),
+                };
+            }
+            else if (typeInst.Op == Op.OpTypeFloat)
+            {
+                var type = new OpTypeFloat(typeInst);
+                return type switch
+                {
+                    { Width: 16 } => operand.ToLiteral<Half>(),
+                    { Width: 32 } => operand.ToLiteral<float>(),
+                    { Width: 64 } => operand.ToLiteral<double>(),
+                    _ => throw new NotImplementedException("Unsupported float width " + type.Width),
+                };
+            }
+            else
+                throw new NotImplementedException("Unsupported context dependent number with type " + typeInst.Op);
+        }
+        else
+            throw new Exception("Cannot find type instruction for id " + typeId);
+    }
+
+    public static NewSpirvBuffer InstantiateGenericShader(NewSpirvBuffer shader, ShaderClassInstantiation classSource, ResolveStep resolveStep, NewSpirvBuffer parentBuffer)
+    {
+        if (parentBuffer == null)
+            throw new ArgumentNullException(nameof(parentBuffer));
+
         // Instantiate generics
         var copiedShader = new NewSpirvBuffer();
         foreach (var i in shader)
@@ -139,10 +183,10 @@ public partial class SpirvBuilder
         }
         shader = copiedShader;
 
-        var generics = new List<int>();
+        // Collect ShaderName and OpSDSLGenericParameter
+        List<int> generics = new();
         var genericArgumentIndex = 0;
-        Dictionary<int, int> idRemapping = new();
-        HashSet<int> targets = new();
+        Dictionary<int, List<int>> targets = new();
         for (var index = 0; index < shader.Count; index++)
         {
             var i = shader[index];
@@ -152,26 +196,14 @@ public partial class SpirvBuilder
             }
             else if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is {} genericParameter)
             {
-                idRemapping.Add(genericParameter.ResultId, classSource.GenericArguments[genericArgumentIndex]);
-                targets.Add(classSource.GenericArguments[genericArgumentIndex]);
+                generics.Add(genericParameter.ResultId);
+                if (!targets.TryGetValue(classSource.GenericArguments[genericArgumentIndex], out var genericParametersForThisArgument))
+                    targets.Add(classSource.GenericArguments[genericArgumentIndex], genericParametersForThisArgument = new());
+                genericParametersForThisArgument.Add(genericParameter.ResultId);
                 genericArgumentIndex++;
-                SetOpNop(i.Data.Memory.Span);
+                SetOpNop(i.Data.Memory.Span); 
             }
         }
-
-        // Remove OpName
-        for (var index = 0; index < shader.Count; index++)
-        {
-            var i = shader[index];
-            if (i.Op == Op.OpName && (OpName)i is { } name)
-            {
-                if (idRemapping.ContainsKey(name.Target))
-                    SetOpNop(i.Data.Memory.Span);
-            }
-        }
-
-        if (idRemapping.Count > 0)
-            RemapIds(shader, 0, shader.Count, idRemapping);
 
         // Try to resolve fully the new generic parameter values
         var resolvedParameters = new Dictionary<int, string>();
@@ -182,29 +214,33 @@ public partial class SpirvBuilder
                 var i = parentBuffer[index];
                 if (i.Op == Op.OpConstant)
                 {
-                    if (targets.Contains(i.Data.IdResult!.Value))
+                    if (targets.TryGetValue(i.Data.IdResult!.Value, out var parameters))
                     {
-                        var value = new LiteralValue<float>(i.Data.Memory.Span[3..]);
-                        resolvedParameters.Add(i.Data.IdResult!.Value, value.Value.ToString());
+                        var value = GetConstantValue(i.Data, parentBuffer);
 
                         // import constant in current shader
-                        shader.Add(new OpConstant<float>(i.Data.IdResultType!.Value, i.Data.IdResult!.Value, value.Value));
+                        foreach (var parameter in parameters)
+                        {
+                            resolvedParameters.Add(parameter, value.ToString());
+                            var i2 = new OpData(i.Data.Memory.Span);
+                            i2.IdResult = parameter;
+                            shader.Add(i2);
+                        }
                     }
                 }
                 else if (i.Op == Op.OpConstantStringSDSL && (OpConstantStringSDSL)i is { } constantString)
                 {
-                    if (targets.Contains(i.Data.IdResult!.Value))
+                    if (targets.TryGetValue(i.Data.IdResult!.Value, out var parameters))
                     {
                         var value = constantString.LiteralString;
-                        resolvedParameters.Add(i.Data.IdResult!.Value, value);
+                        // This will be used later for resolving LinkType generics
+                        foreach (var parameter in parameters)
+                            resolvedParameters.Add(parameter, value);
                     }
                 }
                 else if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
                 {
-                    if (targets.Contains(genericParameter.ResultId))
-                    {
-
-                    }
+                    // Unresolved parameter, keep as is
                 }
             }
         }
@@ -226,9 +262,9 @@ public partial class SpirvBuilder
 
 
         // Fully resolved?
-        if (resolvedParameters.Count == targets.Count)
+        if (resolvedParameters.Count == generics.Count)
         {
-            var parameters = string.Join(',', classSource.GenericArguments.Select(x => resolvedParameters[x]));
+            var parameters = string.Join(',', generics.Select(x => resolvedParameters[x]));
             var className = classSource.ClassName + "<" + parameters + ">";
 
             if (resolveStep == ResolveStep.Mix)
@@ -242,9 +278,13 @@ public partial class SpirvBuilder
                 var i = shader[index];
                 if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shaderDeclaration)
                 {
-                    shaderDeclaration.ShaderName = classSource.ClassName + "<" + parameters + ">";
+                    shaderDeclaration.ShaderName = className;
                 }
             }
+        }
+        else if (resolveStep == ResolveStep.Mix)
+        {
+            throw new InvalidOperationException("During mix phase, shaders generics are expected to be fully resolved");
         }
 
         return shader;
@@ -256,46 +296,71 @@ public partial class SpirvBuilder
         words[1..].Clear();
     }
 
-    private static void RemapIds(NewSpirvBuffer buffer, int shaderStart, int shaderEnd, Dictionary<int, int> idRemapping)
+    public static void RemapIds(NewSpirvBuffer buffer, int shaderStart, int shaderEnd, Dictionary<int, int> idRemapping)
     {
         for (var index = shaderStart; index < buffer.Count; index++)
         {
             var i = buffer[index];
-            foreach (var op in i.Data)
-            {
-                if ((op.Kind == OperandKind.IdRef
-                     || op.Kind == OperandKind.IdResultType
-                     || op.Kind == OperandKind.PairIdRefLiteralInteger
-                     || op.Kind == OperandKind.PairIdRefIdRef)
-                    && op.Words.Length > 0
-                    && idRemapping.TryGetValue(op.Words[0], out var to1))
-                {
-                    op.Words[0] = to1;
-                }
+            RemapIds(idRemapping, i);
+        }
+    }
 
-                if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
-                     || op.Kind == OperandKind.PairIdRefIdRef)
-                    && idRemapping.TryGetValue(op.Words[1], out var to2))
-                {
-                    op.Words[1] = to2;
-                }
+    public static void RemapIds(Dictionary<int, int> idRemapping, OpDataIndex i)
+    {
+        foreach (var op in i.Data)
+        {
+            if ((op.Kind == OperandKind.IdRef
+                 || op.Kind == OperandKind.IdResultType
+                 || op.Kind == OperandKind.PairIdRefLiteralInteger
+                 || op.Kind == OperandKind.PairIdRefIdRef)
+                && op.Words.Length > 0
+                && idRemapping.TryGetValue(op.Words[0], out var to1))
+            {
+                op.Words[0] = to1;
+            }
+
+            if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
+                 || op.Kind == OperandKind.PairIdRefIdRef)
+                && idRemapping.TryGetValue(op.Words[1], out var to2))
+            {
+                op.Words[1] = to2;
             }
         }
     }
 
-    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, ResolveStep resolveStep, NewSpirvBuffer? parentBuffer = null)
+    /// <summary>
+    /// Gets or load a shader, with generic instantiation (if requested).
+    /// </summary>
+    /// <param name="shaderLoader"></param>
+    /// <param name="classSource">The generics parameters should be in <see cref="parentBuffer"/>.</param>
+    /// <param name="resolveStep"></param>
+    /// <param name="parentBuffer"></param>
+    /// <returns></returns>
+    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, ResolveStep resolveStep, NewSpirvBuffer parentBuffer)
     {
         var shader = GetOrLoadShader(shaderLoader, classSource.ClassName);
 
+        Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+
         if (classSource.GenericArguments.Length > 0)
         {
+            Console.WriteLine($"Instantiating {classSource.ClassName} with parameters {string.Join(",", classSource.GenericArguments.Select(x => $"%{x}"))}");
+            Console.WriteLine($"Instantiating from buffer generics {parentBuffer[0].Data}:");
+            foreach (var i in parentBuffer)
+            {
+                if (i.Data.IdResult is int id && classSource.GenericArguments.Contains(id))
+                {
+                    Console.WriteLine($" - [{classSource.GenericArguments.IndexOf(id)}] %{id} => {i.Data}");
+                }
+            }
             shader = InstantiateGenericShader(shader, classSource, resolveStep, parentBuffer);
+            Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
         }
 
         return shader;
     }
 
-    private static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className)
+    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className)
     {
         if (!shaderLoader.LoadExternalBuffer(className, out var buffer))
             throw new InvalidOperationException($"Could not load shader [{className}]");

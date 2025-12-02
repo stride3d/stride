@@ -6,6 +6,7 @@ using Stride.Shaders.Spirv.Core.Buffers;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
@@ -236,10 +237,22 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var symbol = table.ResolveSymbol(Name);
+        var (builder, context) = compiler;
+
+        if (!table.TryResolveSymbol(Name, out var symbol))
+        {
+            // Maybe it's a static variable? try to resolve by loading file
+            var classSource = new ShaderClassInstantiation(Name, []);
+            classSource.Buffer = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, ResolveStep.Compile, context.GetBuffer());
+            var shaderType = ShaderClass.LoadExternalShaderType(table, classSource);
+
+            ShaderClass.Inherit(table, context, shaderType, false);
+            // Let's add this shader
+
+            throw new NotImplementedException();
+        }
         Type = symbol.Type;
 
-        var (builder, context) = compiler;
         var resultType = context.GetOrRegister(Type);
         var result = new SpirvValue(symbol.IdRef, resultType, Name);
 
@@ -249,6 +262,14 @@ public class Identifier(string name, TextLocation info) : Literal(info)
             indexLiteral.Compile(table, shader, compiler);
             var index = context.CreateConstant(indexLiteral).Id;
             result.Id = compiler.Builder.Insert(new OpAccessChain(resultType, compiler.Context.Bound++, symbol.IdRef, [index]));
+        }
+        else if (symbol.ImplicitThis is true)
+        {
+            var isStage = (symbol.Id.FunctionFlags & Spirv.Specification.FunctionFlagsMask.Stage) != 0;
+            var instance = isStage
+                ? builder.Insert(new OpStageSDSL(context.Bound++)).ResultId
+                : builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
+            result.Id = builder.Insert(new OpMemberAccessSDSL(resultType, context.Bound++, instance, symbol.IdRef));
         }
 
         return result;

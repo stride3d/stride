@@ -19,12 +19,8 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
 
         var hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes) && Parsers.Spaces0(ref scanner, result, out _);
 
-        if (Tokens.Literal("compose", ref scanner))
-            return Parsers.Exit(ref scanner, result, out parsed, position);
-
-
         var hasModifier =
-            Parsers.VariableModifiers(ref scanner, result, out var isStaged, out var streamKind, out var interpolation, out var typeModifier, out var storageClass, advance: true)
+            Parsers.VariableModifiers(ref scanner, result, out var isStaged, out var isCompose, out var streamKind, out var interpolation, out var typeModifier, out var storageClass, advance: true)
             && Parsers.Spaces0(ref scanner, result, out _);
 
         if (Parsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typeName, out var identifier, out value))
@@ -40,6 +36,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
                     {
                         Attributes = hasAttributes ? attributes.Attributes : null!,
                         IsStaged = isStaged,
+                        IsCompose = isCompose,
                         Interpolation = interpolation,
                         StreamKind = streamKind,
                         TypeModifier = typeModifier,

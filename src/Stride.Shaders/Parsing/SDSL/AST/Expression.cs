@@ -82,14 +82,25 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
             compiledParams[tmp++] = paramVariable;
         }
 
+        int? instance = null;
         if (MemberCall != null)
         {
-            builder.Insert(new OpSDSLCallTarget(MemberCall.Value.Id));
+            instance = MemberCall.Value.Id;
         }
         else if (IsBaseCall)
         {
-            builder.Insert(new OpSDSLCallBase());
+            instance = builder.Insert(new OpBaseSDSL(context.Bound++)).ResultId;
         }
+        else if (functionSymbol.ImplicitThis)
+        {
+            var isStage = (functionSymbol.Id.FunctionFlags & Spirv.Specification.FunctionFlagsMask.Stage) != 0;
+            instance = isStage
+                ? builder.Insert(new OpStageSDSL(context.Bound++)).ResultId
+                : builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
+        }
+
+        if (instance is int instanceId)
+            functionSymbol.IdRef = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(functionType), context.Bound++, instanceId, functionSymbol.IdRef)).ResultId;
 
         return builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
     }
@@ -189,7 +200,6 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     {
         var (builder, context) = compiler;
         SpirvValue result;
-        var variable = context.Bound++;
 
         int firstIndex = 0;
         SymbolType currentValueType;
@@ -246,32 +256,44 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         }
         else
         {
-            Span<int> indexes = stackalloc int[Accessors.Count];
-            for (var i = firstIndex; i <= Accessors.Count; i++)
+            int lastCreatedChainStart = firstIndex;
+            void EmitOpAccessChain(int currentIndex, int nextStart, Span<int> indexes)
             {
-                // Last accessor (or method call next)
-                if (i == Accessors.Count || Accessors[i] is MethodCall)
+                // Do we need to issue an OpAccessChain?
+                if (currentIndex > lastCreatedChainStart)
                 {
-                    // Do we need to issue an OpAccessChain?
-                    if (i > firstIndex)
-                    {
-                        var resultType = context.GetOrRegister(Type);
-                        var accessChain = builder.Insert(new OpAccessChain(variable, resultType, result.Id, [.. indexes.Slice(firstIndex, i - firstIndex)]));
-                        result = new SpirvValue(accessChain.ResultId, resultType);
-                    }
-
-                    if (i == Accessors.Count)
-                        break;
-
-                    firstIndex = i + 1;
+                    var resultType = context.GetOrRegister(currentValueType);
+                    var test = new LiteralArray<int>(indexes);
+                    var accessChain = builder.Insert(new OpAccessChain(context.Bound++, resultType, result.Id, [.. indexes.Slice(lastCreatedChainStart, currentIndex - lastCreatedChainStart)]));
+                    result = new SpirvValue(accessChain.ResultId, resultType);
                 }
 
+                lastCreatedChainStart = nextStart;
+            }
+
+            Span<int> indexes = stackalloc int[Accessors.Count];
+            for (var i = firstIndex; i < Accessors.Count; i++)
+            {
                 var accessor = Accessors[i];
                 switch (currentValueType, accessor)
                 {
                     case (PointerType { BaseType: ShaderSymbol s }, MethodCall methodCall2):
+                        // Emit OpAccessChain with everything so far
+                        // next start is i + 1 because current value doesn't add a call
+                        EmitOpAccessChain(i, i + 1, indexes);
+
                         methodCall2.MemberCall = result;
                         result = methodCall2.Compile(table, shader, compiler);
+                        break;
+                    case (PointerType { BaseType: ShaderSymbol s }, Identifier field):
+                        // Emit OpAccessChain with everything so far
+                        // next start is i + 1 because current value doesn't add a call
+                        EmitOpAccessChain(i, i + 1, indexes);
+
+                        var matchingComponent = s.Components.First(x => x.Id.Kind == SymbolKind.Variable && x.Id.Name == field.Name);
+                        accessor.Type = matchingComponent.Type;
+                        var inst = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(matchingComponent.Type), context.Bound++, result.Id, matchingComponent.IdRef));
+                        result = new(inst.ResultId, inst.ResultType);
                         break;
                     case (PointerType { BaseType: StructType s }, Identifier field):
                         var index = s.TryGetFieldIndex(field);
@@ -289,6 +311,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
                 currentValueType = accessor.Type;
             }
+
+            EmitOpAccessChain(Accessors.Count, Accessors.Count, indexes);
         }
 
         Type = currentValueType;

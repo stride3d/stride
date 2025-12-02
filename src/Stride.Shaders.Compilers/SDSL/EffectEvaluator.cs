@@ -20,7 +20,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     if (classSource.GenericArguments != null && classSource.GenericArguments.Length > 0)
                         throw new NotImplementedException();
 
-                    var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, new ShaderClassInstantiation(classSource.ClassName, []), ResolveStep.Compile);
+                    var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, classSource.ClassName);
                     if (buffer[0].Op == Op.OpSDSLEffect)
                     {
                         var mixinTree = new ShaderMixinSource();

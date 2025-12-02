@@ -46,7 +46,7 @@ public record struct StreamInfo(ushort EntryPoint, StreamIO Stream);
 /// Defines a symbol.
 /// </summary>
 /// <param name="GroupMembers">Only used for specific <see cref="Type"/> such as <see cref="FunctionGroupType"/></param>
-public record struct Symbol(SymbolID Id, SymbolType Type, int IdRef, int? AccessChain = null, ImmutableArray<Symbol> GroupMembers = default);
+public record struct Symbol(SymbolID Id, SymbolType Type, int IdRef, int? AccessChain = null, bool ImplicitThis = false, ImmutableArray<Symbol> GroupMembers = default);
 
 
 

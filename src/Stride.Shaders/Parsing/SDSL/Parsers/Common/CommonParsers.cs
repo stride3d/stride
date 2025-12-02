@@ -119,11 +119,12 @@ public static class Parsers
         return matched;
     }
 
-    public static bool VariableModifiers<TScanner>(ref TScanner scanner, ParseResult result, out bool isStaged, out StreamKind streamKind, out InterpolationModifier interpolation, out TypeModifier typeModifier, out StorageClass storageClass, bool advance = true)
+    public static bool VariableModifiers<TScanner>(ref TScanner scanner, ParseResult result, out bool isStaged, out bool isCompose, out StreamKind streamKind, out InterpolationModifier interpolation, out TypeModifier typeModifier, out StorageClass storageClass, bool advance = true)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         isStaged = false;
+        isCompose = false;
         streamKind = StreamKind.None;
         interpolation = InterpolationModifier.None;
         typeModifier = TypeModifier.None;
@@ -133,7 +134,8 @@ public static class Parsers
         while (
             Tokens.AnyOf(
                 [
-                    "stage", 
+                    "stage",
+                    "compose",
                     "stream", 
                     "patchstream", 
                     "linear", 
@@ -161,41 +163,43 @@ public static class Parsers
             matched = true;
             if (match == "stage")
                 isStaged = true;
-            else if(match == "stream")
+            else if (match == "compose")
+                isCompose = true;
+            else if (match == "stream")
                 streamKind = StreamKind.Stream;
-            else if(match == "patchstream")
+            else if (match == "patchstream")
                 streamKind = StreamKind.PatchStream;
-            else if(match == "linear")
+            else if (match == "linear")
                 interpolation = InterpolationModifier.Linear;
-            else if(match == "centroid")
+            else if (match == "centroid")
                 interpolation = InterpolationModifier.Centroid;
-            else if(match == "nointerpolation")
+            else if (match == "nointerpolation")
                 interpolation = InterpolationModifier.NoInterpolation;
-            else if(match == "noperspective")
+            else if (match == "noperspective")
                 interpolation = InterpolationModifier.NoPerspective;
-            else if(match == "sample")
+            else if (match == "sample")
                 interpolation = InterpolationModifier.Sample;
-            else if(match == "extern")
+            else if (match == "extern")
                 storageClass = StorageClass.Extern;
-            else if(match == "nointerpolation")
+            else if (match == "nointerpolation")
                 storageClass = StorageClass.NoInterpolation;
-            else if(match == "precise")
+            else if (match == "precise")
                 storageClass = StorageClass.Precise;
-            else if(match == "shared")
+            else if (match == "shared")
                 storageClass = StorageClass.Shared;
-            else if(match == "groupshared")
+            else if (match == "groupshared")
                 storageClass = StorageClass.GroupShared;
-            else if(match == "static")
+            else if (match == "static")
                 storageClass = StorageClass.Static;
-            else if(match == "uniform")
+            else if (match == "uniform")
                 storageClass = StorageClass.Uniform;
-            else if(match == "volatile")
+            else if (match == "volatile")
                 storageClass = StorageClass.Volatile;
-            else if(match == "const")
+            else if (match == "const")
                 typeModifier = TypeModifier.Const;
-            else if(match == "rowmajor")
+            else if (match == "rowmajor")
                 typeModifier = TypeModifier.RowMajor;
-            else if(match == "columnmajor")
+            else if (match == "columnmajor")
                 typeModifier = TypeModifier.ColumnMajor;
             else break;
         }

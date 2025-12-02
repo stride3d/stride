@@ -7,6 +7,7 @@ using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
 using System.Collections.Immutable;
+using System.Diagnostics.Metrics;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
@@ -104,6 +105,7 @@ public sealed class ShaderMember(
     public TypeName TypeName { get; set; } = typeName;
     public Identifier? Semantic { get; set; } = semantic;
     public StreamKind StreamKind { get; set; } = streamKind;
+    public bool IsCompose { get; set; }
     public bool IsArray => TypeName?.IsArray ?? false;
     public Expression? Value { get; set; } = initialValue;
     public TypeModifier TypeModifier { get; set; } = typeModifier;
@@ -126,6 +128,8 @@ public sealed class ShaderMember(
         if (Semantic != null)
             context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(Semantic.Name)));
         context.AddName(variable, Name);
+
+        RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
 
         var sid =
             new SymbolID
@@ -225,7 +229,7 @@ public class ShaderMethod(
         if (IsStaged)
             functionFlags |= Specification.FunctionFlagsMask.Stage;
 
-        var symbol = new Symbol(new(Name, SymbolKind.Method, FunctionFlags: functionFlags), Type, function.Id);
+        var symbol = new Symbol(new(Name, SymbolKind.Method, FunctionFlags: functionFlags), Type, function.Id, ImplicitThis: true);
         table.CurrentShader.Components.Add(symbol);
         table.CurrentFrame.Add(Name, symbol);
     }

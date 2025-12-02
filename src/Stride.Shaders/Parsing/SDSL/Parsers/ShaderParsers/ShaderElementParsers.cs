@@ -35,11 +35,6 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
                 parsed = sampler;
                 return true;
             }
-            else if (Compose(ref scanner, result, out var compose))
-            {
-                parsed = compose;
-                return true;
-            }
             else if (Method(ref scanner, result, out var method))
             {
                 parsed = method;

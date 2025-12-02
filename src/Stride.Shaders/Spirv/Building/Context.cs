@@ -219,8 +219,14 @@ public class SpirvContext
                 var functionReturnTypeId = GetOrRegister(functionType.ReturnType);
 
                 c.IdRef = Bound++;
-                Add(new OpSDSLImportFunction(functionReturnTypeId, c.IdRef, c.Id.Name, shader.ResultId, c.Id.FunctionFlags));
+                Add(new OpSDSLImportFunction(c.IdRef, functionReturnTypeId, c.Id.Name, shader.ResultId, c.Id.FunctionFlags));
                 AddName(c.IdRef, c.Id.Name);
+            }
+            else if (c.Id.Kind == SymbolKind.Variable)
+            {
+
+                c.IdRef = Bound++;
+                Add(new OpSDSLImportVariable(c.IdRef, GetOrRegister(c.Type), c.Id.Name, shader.ResultId));
             }
             shaderSymbol.Components[index] = c;
         }

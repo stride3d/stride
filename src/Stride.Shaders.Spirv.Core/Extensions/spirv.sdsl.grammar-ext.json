@@ -88,8 +88,8 @@
       "opname": "OpSDSLImportFunction",
       "class": "Miscellaneous",
       "operands": [
-        { "kind": "IdResultType" },
         { "kind": "IdResult" },
+        { "kind": "IdResultType" },
         {
           "kind": "LiteralString",
           "name": "functionName"
@@ -108,8 +108,8 @@
       "opname": "OpSDSLImportVariable",
       "class": "Miscellaneous",
       "operands": [
-        { "kind": "IdResultType" },
         { "kind": "IdResult" },
+        { "kind": "IdResultType" },
         {
           "kind": "LiteralString",
           "name": "variableName"
@@ -117,6 +117,22 @@
         {
           "kind": "IdRef",
           "name": "shader"
+        }
+      ]
+    },
+    {
+      "opname": "OpMemberAccessSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        {
+          "kind": "IdRef",
+          "name": "instance"
+        },
+        {
+          "kind": "IdRef",
+          "name": "member"
         }
       ]
     },
@@ -135,18 +151,25 @@
       ]
     },
     {
-      "opname": "OpSDSLCallTarget",
+      "opname": "OpBaseSDSL",
       "class": "Miscellaneous",
       "operands": [
-        {
-          "kind": "IdRef",
-          "name": "target"
-        }
+        { "kind": "IdResult" }
       ]
     },
     {
-      "opname": "OpSDSLCallBase",
-      "class": "Miscellaneous"
+      "opname": "OpThisSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" }
+      ]
+    },
+    {
+      "opname": "OpStageSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" }
+      ]
     },
     {
       "opname": "OpSDSLMixin",
@@ -178,7 +201,10 @@
       "operands": [
         { "kind": "IdResultType" },
         { "kind": "IdResult" },
-        { "kind": "GenericParameterKindSDSL", "name": "kind" }
+        {
+          "kind": "GenericParameterKindSDSL",
+          "name": "kind"
+        }
       ]
     },
     {
@@ -251,8 +277,29 @@
             }
           ],
           "version": "1.0"
+        },
+        {
+          "enumerant": "ResourceGroupSDSL",
+          "value": 8002,
+          "parameters": [
+            {
+              "kind": "LiteralString",
+              "name": "'ResourceGroup'"
+            }
+          ],
+          "version": "1.0"
+        },
+        {
+          "enumerant": "LogicalGroupSDSL",
+          "value": 8003,
+          "parameters": [
+            {
+              "kind": "LiteralString",
+              "name": "'LogicalGroup'"
+            }
+          ],
+          "version": "1.0"
         }
-
       ]
     },
     {

@@ -33,7 +33,7 @@ public partial class ShaderMixer
             if (mixinToMerge.GenericArguments != null && mixinToMerge.GenericArguments.Length > 0)
                 throw new NotImplementedException("Generics at the top-level shaders is not supported");
             var mixinToMerge2 = new ShaderClassInstantiation(mixinToMerge.ClassName, []);
-            var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge2, ResolveStep.Mix);
+            var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge2.ClassName);
             mixinToMerge2.Buffer = buffer;
             //SpirvBuilder.BuildInheritanceList(ShaderLoader, buffer, mixinList, ResolveStep.Mix);
             SpirvBuilder.BuildInheritanceList(ShaderLoader, mixinToMerge2, mixinList, ResolveStep.Mix);

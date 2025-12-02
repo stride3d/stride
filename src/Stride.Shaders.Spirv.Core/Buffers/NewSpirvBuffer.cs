@@ -59,8 +59,17 @@ public struct OpData : IDisposable, IComparable<OpData>
 
     public readonly void Dispose() => Memory.Dispose();
 
+    public readonly SpvOperand Get(string name)
+    {
+        foreach (var o in this)
+        {
+            if (name == o.Name && (o.Kind.ToString().Contains("Literal") || o.Kind.ToString().Contains("Id")))
+                return o;
+        }
+        throw new Exception($"No operand '{name}' in op {Op}");
+    }
 
-    public readonly bool TryGetOperand<T>(string name, out T operand)
+    public readonly bool TryGet<T>(string name, out T operand)
     {
         foreach (var o in this)
         {

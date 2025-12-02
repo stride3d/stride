@@ -4,6 +4,7 @@ using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
+using System;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -204,6 +205,46 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
 
 public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name, info)
 {
+    public static (string? LinkName, int? LinkId) ProcessLinkAttributes(SymbolTable table, TextLocation info, List<ShaderAttribute> attributes)
+    {
+        if (attributes != null)
+        {
+            foreach (var attribute in attributes)
+            {
+                if (attribute is AnyShaderAttribute anyAttribute && anyAttribute.Name == "Link")
+                {
+                    if (anyAttribute.Parameters[0] is StringLiteral linkLiteral)
+                    {
+                        // Try to resolve generic parameter when encoded as string (deprecated)
+                        if (table.TryResolveSymbol(linkLiteral.Value, out var linkLiteralSymbol))
+                        {
+                            // TODO: make it a warning only?
+                            table.Errors.Add(new(info, "LinkType generics should be passed without quotes"));
+                        }
+
+                        return (linkLiteral.Value, null);
+                    }
+                    else if (anyAttribute.Parameters[0] is Identifier identifier)
+                    {
+                        if (!table.TryResolveSymbol(identifier.Name, out var linkSymbol))
+                        {
+                            throw new InvalidOperationException();
+                        }
+                        return (null, linkSymbol.IdRef);
+                    }
+                    else
+                    {
+                        throw new NotImplementedException($"Attribute {attribute} is not supported");
+                    }
+                }
+                else
+                    throw new NotImplementedException($"Attribute {attribute} is not supported");
+            }
+        }
+
+        return (null, null);
+    }
+
     public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
@@ -223,37 +264,11 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
 
             if (member.Attributes != null && member.Attributes.Count > 0)
             {
-                foreach (var attribute in member.Attributes)
-                {
-                    if (attribute is AnyShaderAttribute anyAttribute && anyAttribute.Name == "Link")
-                    {
-                        if (anyAttribute.Parameters[0] is StringLiteral linkLiteral)
-                        {
-                            // Try to resolve generic parameter when encoded as string (deprecated)
-                            if (table.TryResolveSymbol(linkLiteral.Value, out var linkLiteralSymbol))
-                            {
-                                // TODO: make it a warning only?
-                                table.Errors.Add(new(Info, "LinkType generics should be passed without quotes"));
-                            }
-
-                            context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkSDSL(linkLiteral.Value)));
-                        }
-                        else if (anyAttribute.Parameters[0] is Identifier identifier)
-                        {
-                            if (!table.TryResolveSymbol(identifier.Name, out var linkSymbol))
-                            {
-                                throw new InvalidOperationException();
-                            }
-                            context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkIdSDSL(linkSymbol.IdRef)));
-                        }
-                        else
-                        {
-                            throw new NotImplementedException($"Attribute {attribute} is not supported");
-                        }
-                    }
-                    else
-                        throw new NotImplementedException($"Attribute {attribute} is not supported");
-                }
+                var linkInfo = ProcessLinkAttributes(table, Info, member.Attributes);
+                if (linkInfo.LinkId is int linkId)
+                    context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkIdSDSL(linkId)));
+                else
+                    context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkSDSL(linkInfo.LinkName ?? $"{shaderClass.Name}.{member.Name}")));
             }
         }
     }
@@ -264,6 +279,10 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
     public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
+
+        var splitDotIndex = Name.IndexOf('.');
+        var resourceGroupName = splitDotIndex != -1 ? Name.Substring(0, splitDotIndex) : Name;
+        var logicalGroupName = splitDotIndex != -1 ? Name.Substring(splitDotIndex + 1) : null;
 
         for (var index = 0; index < Members.Count; index++)
         {
@@ -280,10 +299,26 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
             var typeId = context.GetOrRegister(type);
             context.FluentAdd(new OpVariable(typeId, context.Bound++, storageClass, null), out var variable);
             context.AddName(variable.ResultId, member.Name);
+
+            DecorateVariableLinkInfo(table, shaderClass, context, Info, member.Name, member.Attributes, variable.ResultId);
+
+            context.Add(new OpDecorateString(variable.ResultId, ParameterizedFlags.DecorationResourceGroupSDSL(resourceGroupName)));
+            if (logicalGroupName != null)
+                context.Add(new OpDecorateString(variable.ResultId, ParameterizedFlags.DecorationLogicalGroupSDSL(logicalGroupName)));
+
             var sid = new SymbolID(member.Name, kind, Storage.Uniform);
             var symbol = new Symbol(sid, type, variable.ResultId);
             table.CurrentFrame.Add(member.Name, symbol);
         }
+    }
+
+    internal static void DecorateVariableLinkInfo(SymbolTable table, ShaderClass shaderClass, SpirvContext context, TextLocation info, string memberName, List<ShaderAttribute> attributes, int variableId)
+    {
+        var linkInfo = CBuffer.ProcessLinkAttributes(table, info, attributes);
+        if (linkInfo.LinkId is int linkId)
+            context.Add(new OpDecorateString(variableId, ParameterizedFlags.DecorationLinkIdSDSL(linkId)));
+        else
+            context.Add(new OpDecorateString(variableId, ParameterizedFlags.DecorationLinkSDSL(linkInfo.LinkName ?? $"{shaderClass.Name}.{memberName}")));
     }
 }
 

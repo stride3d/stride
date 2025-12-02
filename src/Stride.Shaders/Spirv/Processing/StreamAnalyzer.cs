@@ -182,7 +182,6 @@ namespace Stride.Shaders.Spirv.Processing
                 }
             }
 
-
             // Analyze streams
             foreach (var instruction in buffer)
             {
@@ -408,7 +407,7 @@ namespace Stride.Shaders.Spirv.Processing
                 if (instruction.Op is Op.OpFunction && ((OpFunction)instruction).ResultId == functionId)
                     return index;
             }
-            throw new NotImplementedException();
+            throw new InvalidOperationException($"Could not find start of method {functionId}");
         }
     }
 }

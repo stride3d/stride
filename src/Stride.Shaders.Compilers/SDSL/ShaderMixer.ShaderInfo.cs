@@ -1,10 +1,11 @@
 ﻿using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
-using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv;
-using Stride.Shaders.Spirv.Core;
-using static Stride.Shaders.Spirv.Specification;
 using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core;
+using Stride.Shaders.Spirv.Core.Buffers;
+using System.Globalization;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
@@ -93,94 +94,52 @@ public partial class ShaderMixer
         }
     }
 
-    private void RemapInheritedIds(NewSpirvBuffer temp, int shaderStart, int shaderEnd, ShaderClassInstantiation classSource, ShaderInfo shaderInfo, MixinNode mixinNode)
+    private void BuildImportInfo(NewSpirvBuffer temp, int shaderStart, int shaderEnd, ShaderClassInstantiation classSource, ShaderInfo shaderInfo, MixinNode mixinNode)
     {
-        var importedShaders = new Dictionary<int, ShaderInfo>();
-        var idRemapping = new Dictionary<int, int>();
+        var inheritedShaders = new HashSet<int>();
+        for (var index = shaderStart; index < temp.Count; index++)
+        {
+            var i = temp[index];
+            if (i.Data.Op == Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)i is { } mixinInherit)
+            {
+                inheritedShaders.Add(mixinInherit.Shader);
+                SetOpNop(i.Data.Memory.Span);
+            }
+        }
+
         for (var index = shaderStart; index < temp.Count; index++)
         {
             var i = temp[index];
 
-            if (i.Data.Op == Op.OpName && (OpName)i is { } nameInstruction)
+            if (i.Data.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)
             {
-                if (idRemapping.ContainsKey(nameInstruction.Target))
-                {
-                    SetOpNop(i.Data.Memory.Span);
-                    shaderInfo.Names.Remove(nameInstruction.Target);
-                }
-            }
-            else if (i.Data.Op == Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)i is { } mixinInherit)
-            {
+                mixinNode.ExternalShaders.Add(importShader.ResultId, importShader.ShaderName);
                 SetOpNop(i.Data.Memory.Span);
             }
-            else if (i.Data.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)
+            else if (i.Data.Op == Op.OpSDSLImportFunction && (OpSDSLImportFunction)i is { } importFunction)
             {
-                if (importShader.Type == Specification.ImportType.Inherit)
+                if (mixinNode.ExternalShaders.ContainsKey(importFunction.Shader))
                 {
-                    //var shaderClassSource = Spirv.Building.SpirvBuilder.ConvertToShaderClassSource(temp, shaderStart, shaderEnd, importShader);
-                    var shaderClassSource = classSource.ShaderReferences[importShader.ResultId - classSource.OffsetId];
-                    importedShaders.Add(importShader.ResultId, mixinNode.ShadersByName[shaderClassSource.ToClassName()]);
-
+                    mixinNode.ExternalFunctions.Add(importFunction.ResultId, (importFunction.Shader, importFunction.FunctionName));
                     SetOpNop(i.Data.Memory.Span);
                 }
             }
             else if (i.Data.Op == Op.OpSDSLImportVariable && (OpSDSLImportVariable)i is { } importVariable)
             {
-                if (importedShaders.TryGetValue(importVariable.Shader, out var importedShader))
+                if (mixinNode.ExternalShaders.ContainsKey(importVariable.Shader))
                 {
-                    var importedVariable = importedShader.Variables[importVariable.VariableName];
-
-                    idRemapping.Add(importVariable.ResultId, importedVariable.Id);
-
+                    mixinNode.ExternalVariables.Add(importVariable.ResultId, (importVariable.Shader, importVariable.VariableName));
                     SetOpNop(i.Data.Memory.Span);
                 }
             }
-            else if (i.Data.Op == Op.OpSDSLImportFunction && (OpSDSLImportFunction)i is { } importFunction)
+            // Removing OpName for OpSDSLImportShader and OpSDSLImportFunction (they are always located after, so no problem to do it in a single pass)
+            else if (i.Data.Op == Op.OpName && (OpName)i is { } nameInstruction)
             {
-                if (importedShaders.TryGetValue(importFunction.Shader, out var importedShader))
+                if (mixinNode.ExternalShaders.ContainsKey(nameInstruction.Target)
+                    || mixinNode.ExternalFunctions.ContainsKey(nameInstruction.Target)
+                    || mixinNode.ExternalVariables.ContainsKey(nameInstruction.Target))
                 {
-                    if (importedShader.Functions.ContainsKey(importFunction.FunctionName))
-                    {
-                        var importedFunction = importedShader.Functions[importFunction.FunctionName];
-                        idRemapping.Add(importFunction.ResultId, importedFunction);
-                    }
-                    else if (importedShader.Stage != null && importedShader.Stage.Functions.ContainsKey(importFunction.FunctionName))
-                    {
-                        var importedFunction = importedShader.Stage.Functions[importFunction.FunctionName];
-                        idRemapping.Add(importFunction.ResultId, importedFunction);
-                    }
-                    else
-                    {
-                        // We have some cases when function is removed (i.e. stage/non-stage depending on mixin node), but import is still there.
-                        // In this case, we map to 0 and make sure it's not referenced during next step.
-                        idRemapping.Add(importFunction.ResultId, 0);
-                    }
-
                     SetOpNop(i.Data.Memory.Span);
-                }
-            }
-
-            foreach (var op in i.Data)
-            {
-                if ((op.Kind == OperandKind.IdRef
-                     || op.Kind == OperandKind.IdResultType
-                     || op.Kind == OperandKind.PairIdRefLiteralInteger
-                     || op.Kind == OperandKind.PairIdRefIdRef)
-                    && op.Words.Length > 0
-                    && idRemapping.TryGetValue(op.Words[0], out var to1))
-                {
-                    if (to1 == 0)
-                        throw new InvalidOperationException($"Tried to remap a non-existing id {op.Words[0]} at instruction {index}");
-                    op.Words[0] = to1;
-                }
-
-                if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
-                     || op.Kind == OperandKind.PairIdRefIdRef)
-                    && idRemapping.TryGetValue(op.Words[1], out var to2))
-                {
-                    if (to2 == 0)
-                        throw new InvalidOperationException($"Tried to remap a non-existing id {op.Words[1]} at instruction {index}");
-                    op.Words[1] = to2;
                 }
             }
         }
