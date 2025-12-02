@@ -25,7 +25,9 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
         }
         if(parsed.AST is ShaderFile sf)
         {
-            foreach (var declaration in sf.Namespaces.First().Declarations)
+            // TODO: support namespace
+            var declarations = sf.Namespaces.SelectMany(x => x.Declarations).Concat(sf.RootDeclarations);
+            foreach (var declaration in declarations)
             {
                 if (declaration is ShaderClass shader)
                 {
