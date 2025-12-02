@@ -21,7 +21,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
         lastBuffer = null;
         if (parsed.Errors.Count > 0)
         {
-            throw new Exception("Some parse errors");
+            throw new Exception($"Some parse errors:{Environment.NewLine}{string.Join(Environment.NewLine, parsed.Errors)}");
         }
         if(parsed.AST is ShaderFile sf)
         {
