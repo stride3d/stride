@@ -29,6 +29,7 @@ namespace Stride.Engine.Processors
         private readonly HashSet<SyncScript> scriptsToReschedule = new();
         private readonly Dictionary<long, (SchedulerEntry entry, HashSet<SyncScript> associatedCollection)> syncScriptByPriority = new();
         private readonly List<ScriptComponent> liveReloads = new();
+        private readonly Stack<SchedulerEntry> schedulerPool = new();
 
         /// <summary>
         /// Gets the scheduler.
@@ -70,10 +71,19 @@ namespace Stride.Engine.Processors
                 // Start the script
                 if (script is StartupScript startupScript)
                 {
-                    startupScript.StartSchedulerNode.Action ??= startupScript.Start;
-                    startupScript.StartSchedulerNode.Token = startupScript;
-                    startupScript.StartSchedulerNode.ProfilingKey = startupScript.ProfilingKey;
-                    Scheduler.Schedule(startupScript.StartSchedulerNode, startupScript.Priority, ScheduleMode.Last);
+                    if (schedulerPool.TryPop(out var entry) == false)
+                        entry = new();
+
+                    entry.Action = () =>
+                    {
+                        schedulerPool.Push(startupScript.StartSchedulerNode);
+                        startupScript.StartSchedulerNode = null;
+                        startupScript.Start();
+                    };
+                    entry.Token = startupScript;
+                    entry.ProfilingKey = startupScript.ProfilingKey;
+                    startupScript.StartSchedulerNode = entry;
+                    Scheduler.Schedule(entry, startupScript.Priority, ScheduleMode.Last);
                     if (startupScript.IsLiveReloading)
                         liveReloads.Add(startupScript);
                     if (script is SyncScript syncScript)
@@ -90,16 +100,18 @@ namespace Stride.Engine.Processors
 
             foreach (var syncScript in scriptsToReschedule)
             {
+                TryUnscheduleSyncScript(syncScript);
                 syncScript.ScriptSystem = this;
                 syncScript.ScheduledPriorityForUpdate = syncScript.Priority | UpdateBit;
                 if (syncScriptByPriority.TryGetValue(syncScript.ScheduledPriorityForUpdate, out var data) == false)
                 {
+                    if (schedulerPool.TryPop(out data.entry) == false)
+                        data.entry = new();
+
                     data.associatedCollection = new();
-                    data.entry = new()
-                    {
-                        Action = () => ExecuteBatchOfSyncScripts(data.associatedCollection),
-                        Token = this,
-                    };
+                    data.entry.Action = () => ExecuteBatchOfSyncScripts(data.associatedCollection);
+                    data.entry.Token = this;
+                    data.entry.ProfilingKey = null;
                     syncScriptByPriority[syncScript.ScheduledPriorityForUpdate] = data;
                 }
 
@@ -213,7 +225,12 @@ namespace Stride.Engine.Processors
             // Remove script from the scheduler, in case it was removed during scheduler execution
             if (script is StartupScript startupScript)
             {
-                Scheduler?.Unschedule(startupScript.StartSchedulerNode);
+                if (startupScript.StartSchedulerNode is not null)
+                {
+                    Scheduler?.Unschedule(startupScript.StartSchedulerNode);
+                    schedulerPool.Push(startupScript.StartSchedulerNode);
+                    startupScript.StartSchedulerNode = null;
+                }
 
                 if (script is SyncScript syncScript)
                     TryUnscheduleSyncScript(syncScript);
@@ -246,12 +263,13 @@ namespace Stride.Engine.Processors
 
             scriptsToReschedule.Remove(syncScript);
             syncScript.ScriptSystem = null;
-            var (entry, collection) = syncScriptByPriority[syncScript.ScheduledPriorityForUpdate];
+            var (schedulerEntry, collection) = syncScriptByPriority[syncScript.ScheduledPriorityForUpdate];
             collection.Remove(syncScript);
             if (collection.Count == 0)
             {
                 syncScriptByPriority.Remove(syncScript.ScheduledPriorityForUpdate);
-                Scheduler?.Unschedule(entry);
+                Scheduler?.Unschedule(schedulerEntry);
+                schedulerPool.Push(schedulerEntry);
             }
 
             return true;
