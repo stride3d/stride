@@ -264,7 +264,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 {
                     var resultType = context.GetOrRegister(currentValueType);
                     var test = new LiteralArray<int>(indexes);
-                    var accessChain = builder.Insert(new OpAccessChain(context.Bound++, resultType, result.Id, [.. indexes.Slice(lastCreatedChainStart, currentIndex - lastCreatedChainStart)]));
+                    var accessChain = builder.Insert(new OpAccessChain(resultType, context.Bound++, result.Id, [.. indexes.Slice(lastCreatedChainStart, currentIndex - lastCreatedChainStart)]));
                     result = new SpirvValue(accessChain.ResultId, resultType);
                 }
 
@@ -295,7 +295,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         var inst = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(matchingComponent.Type), context.Bound++, result.Id, matchingComponent.IdRef));
                         result = new(inst.ResultId, inst.ResultType);
                         break;
-                    case (PointerType { BaseType: StructType s }, Identifier field):
+                    case (PointerType { BaseType: StructType s } p, Identifier field):
                         var index = s.TryGetFieldIndex(field);
                         if (index == -1)
                             throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
@@ -303,6 +303,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         var indexLiteral = new IntegerLiteral(new(32, false, true), index, new());
                         indexLiteral.Compile(table, shader, compiler);
                         indexes[i] = context.CreateConstant(indexLiteral).Id;
+                        accessor.Type = new PointerType(s.Members[index].Type, p.StorageClass);
                         break;
                     // TODO: Swizzle, etc.
                     default:
