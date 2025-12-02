@@ -70,10 +70,16 @@ namespace Stride.Engine.Processors
                 // Start the script
                 if (script is StartupScript startupScript)
                 {
-                    startupScript.StartSchedulerNode.Action ??= startupScript.Start;
-                    startupScript.StartSchedulerNode.Token = startupScript;
-                    startupScript.StartSchedulerNode.ProfilingKey = startupScript.ProfilingKey;
-                    Scheduler.Schedule(startupScript.StartSchedulerNode, startupScript.Priority, ScheduleMode.Last);
+                    if (startupScript.StartSchedulerNode.Action == null)
+                    {
+                        startupScript.StartSchedulerNode = startupScript.StartSchedulerNode with
+                        {
+                            Action = startupScript.Start,
+                            Token = startupScript,
+                            ProfilingKey = startupScript.ProfilingKey,
+                        };
+                    }
+                    Scheduler.Schedule(ref startupScript.StartSchedulerNode, startupScript.Priority, ScheduleMode.Last);
                     if (startupScript.IsLiveReloading)
                         liveReloads.Add(startupScript);
                     if (script is SyncScript syncScript)
@@ -109,7 +115,12 @@ namespace Stride.Engine.Processors
 
             // Schedule existing scripts to run their SyncScript.Update() through ExecuteSyncScripts bound to this entry
             foreach (var (priority, (entry, scripts)) in syncScriptByPriority)
-                Scheduler.Schedule(entry, priority, ScheduleMode.Last);
+            {
+                // We don't need to keep track of whether this entry should be unscheduled,  
+                // so we can safely pass a copy
+                var cpy = entry;
+                Scheduler.Schedule(ref cpy, priority, ScheduleMode.Last);
+            }
 
             // Run current micro threads
             Scheduler.Run();
@@ -213,7 +224,7 @@ namespace Stride.Engine.Processors
             // Remove script from the scheduler, in case it was removed during scheduler execution
             if (script is StartupScript startupScript)
             {
-                Scheduler?.Unschedule(startupScript.StartSchedulerNode);
+                Scheduler?.Unschedule(ref startupScript.StartSchedulerNode);
 
                 if (script is SyncScript syncScript)
                     TryUnscheduleSyncScript(syncScript);
@@ -246,13 +257,11 @@ namespace Stride.Engine.Processors
 
             scriptsToReschedule.Remove(syncScript);
             syncScript.ScriptSystem = null;
-            var (entry, collection) = syncScriptByPriority[syncScript.ScheduledPriorityForUpdate];
-            collection.Remove(syncScript);
-            if (collection.Count == 0)
-            {
+
+            var data = syncScriptByPriority[syncScript.ScheduledPriorityForUpdate];
+            data.associatedCollection.Remove(syncScript);
+            if (data.associatedCollection.Count == 0)
                 syncScriptByPriority.Remove(syncScript.ScheduledPriorityForUpdate);
-                Scheduler?.Unschedule(entry);
-            }
 
             return true;
         }

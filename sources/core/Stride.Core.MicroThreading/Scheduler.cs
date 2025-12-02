@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
@@ -28,6 +29,7 @@ public class Scheduler : IDisposable
     private bool isDisposed;
     private int runRecursion;
     private readonly Lock bucketsLock = new();
+    private readonly HashSet<SchedulerEntry> scheduled = new();
     private readonly PriorityQueue<ExecutionQueue> sortedPriorities = new(PrioritiesComparer.Shared);
     private readonly Dictionary<long, ExecutionQueue> buckets = new();
     private readonly Dictionary<long, ExecutionQueue> emptyBuckets = new();
@@ -183,7 +185,7 @@ public class Scheduler : IDisposable
                     }
 
                     schedulerEntry = deque.Deque.RemoveFromFront();
-                    schedulerEntry.CurrentQueue = null;
+                    scheduled.Remove(schedulerEntry);
 
                     microThread = schedulerEntry.MicroThread;
                     if (microThread != null)
@@ -362,29 +364,30 @@ public class Scheduler : IDisposable
         }
     }
 
-    internal void Schedule(ref MicroThreadCallbackList callbackList, MicroThreadCallbackNode node, SchedulerEntry schedulerEntry, long priority, ScheduleMode scheduleMode)
+    internal void Schedule(ref MicroThreadCallbackList callbackList, MicroThreadCallbackNode node, ref SchedulerEntry schedulerEntry, long priority, ScheduleMode scheduleMode)
     {
         lock (bucketsLock)
         {
             callbackList.Add(node);
-            if (schedulerEntry.CurrentQueue == null)
-                Schedule(schedulerEntry, priority, scheduleMode);
+            if (scheduled.Contains(schedulerEntry) == false)
+                Schedule(ref schedulerEntry, priority, scheduleMode);
         }
     }
 
-    internal void Schedule(SchedulerEntry newEntry, long priority, ScheduleMode scheduleMode)
+    internal void Schedule(ref SchedulerEntry newEntry, long priority, ScheduleMode scheduleMode)
     {
         lock (bucketsLock)
         {
-            ScheduleUnsafe(newEntry, priority, scheduleMode);
+            ScheduleUnsafe(ref newEntry, priority, scheduleMode);
         }
     }
 
-    private void ScheduleUnsafe(SchedulerEntry newEntry, long priority, ScheduleMode scheduleMode)
+    private void ScheduleUnsafe(ref SchedulerEntry newEntry, long priority, ScheduleMode scheduleMode)
     {
-        if (newEntry.CurrentQueue != null)
+        if (scheduled.Contains(newEntry))
             throw new InvalidOperationException($"Already scheduled, call {nameof(Unschedule)} before running this method");
 
+        ExecutionQueue? queue;
         if (newEntry.PreviousQueue is { } previousQueue 
             && previousQueue.Owner == this
             && previousQueue.Priority == priority
@@ -393,55 +396,68 @@ public class Scheduler : IDisposable
             if (previousQueue.Deque.Count == 0)
                 emptyBuckets.Remove(previousQueue.Priority);
 
-            newEntry.CurrentQueue = previousQueue;
+            queue = previousQueue;
         }
         // Edge case: this entry has never been scheduled, or its priority changed, or the priority was unused last schedule
-        else if (buckets.TryGetValue(priority, out newEntry.CurrentQueue) == false 
-                 && emptyBuckets.Remove(priority, out newEntry.CurrentQueue) == false)
+        else if (buckets.TryGetValue(priority, out queue) == false 
+                 && emptyBuckets.Remove(priority, out queue) == false)
         {
-            if (bucketPool.TryPop(out newEntry.CurrentQueue))
-                newEntry.CurrentQueue.InBucketPool = false;
+            if (bucketPool.TryPop(out queue))
+                queue.InBucketPool = false;
             else
-                newEntry.CurrentQueue = new(this);
-            newEntry.CurrentQueue.Priority = priority;
+                queue = new(this);
+            queue.Priority = priority;
         }
-            
-        newEntry.PreviousQueue = newEntry.CurrentQueue;
 
-        var deque = newEntry.CurrentQueue.Deque;
+        var deque = queue.Deque;
         if (deque.Count == 0)
         {
-            buckets.Add(newEntry.CurrentQueue.Priority, newEntry.CurrentQueue);
-            sortedPriorities.Enqueue(newEntry.CurrentQueue);
+            buckets.Add(queue.Priority, queue);
+            sortedPriorities.Enqueue(queue);
         }
 
         if (scheduleMode == ScheduleMode.First)
         {
-            newEntry.BinarySearchHelper = deque.Count > 0 ? deque[0].BinarySearchHelper - 1 : 0;
+            newEntry = newEntry with
+            {
+                BinarySearchHelper = deque.Count > 0 ? deque[0].BinarySearchHelper - 1 : 0,
+                PreviousQueue = queue
+            };
             deque.AddToFront(newEntry);
         }
         else
         {
-            newEntry.BinarySearchHelper = deque.Count > 0 ? deque[^1].BinarySearchHelper + 1 : 0;
+            newEntry = newEntry with
+            {
+                BinarySearchHelper = deque.Count > 0 ? deque[^1].BinarySearchHelper + 1 : 0,
+                PreviousQueue = queue
+            };
             deque.AddToBack(newEntry);
         }
+
+        scheduled.Add(newEntry);
     }
 
-    internal void Unschedule(SchedulerEntry schedulerEntry)
+    internal bool Unschedule(ref SchedulerEntry schedulerEntry)
     {
         lock (bucketsLock)
         {
-            if (schedulerEntry.CurrentQueue is { } deque)
+            if (scheduled.Remove(schedulerEntry))
             {
-                schedulerEntry.CurrentQueue = null;
-                deque.Deque.RemoveAt(deque.Deque.BinarySearch(schedulerEntry, DequeComparer.Shared));
+                var deque = schedulerEntry.PreviousQueue!;
+                int binarySearch = deque.Deque.BinarySearch(schedulerEntry, DequeComparer.Shared);
+                Debug.Assert(binarySearch >= 0 && deque.Deque[binarySearch].Equals(schedulerEntry));
+                deque.Deque.RemoveAt(binarySearch);
                 if (deque.Deque.Count == 0)
                 {
                     emptyBuckets.Add(deque.Priority, deque);
                     buckets.Remove(deque.Priority);
                     sortedPriorities.Remove(deque);
                 }
+
+                return true;
             }
+            return false;
         }
     }
 
@@ -449,23 +465,18 @@ public class Scheduler : IDisposable
     {
         public static DequeComparer Shared = new();
         
-        public int Compare(SchedulerEntry? x, SchedulerEntry? y)
+        public int Compare(SchedulerEntry x, SchedulerEntry y)
         {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
             return x.BinarySearchHelper.CompareTo(y.BinarySearchHelper);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
     }
 
-    internal void Reschedule(SchedulerEntry scheduledEntry, long newPriority, ScheduleMode scheduleMode)
+    internal void Reschedule(ref SchedulerEntry scheduledEntry, long newPriority, ScheduleMode scheduleMode)
     {
         lock (bucketsLock)
         {
-            if (scheduledEntry.CurrentQueue != null)
-            {
-                Unschedule(scheduledEntry);
-                Schedule(scheduledEntry, newPriority, scheduleMode);
-            }
+            if (Unschedule(ref scheduledEntry))
+                Schedule(ref scheduledEntry, newPriority, scheduleMode);
         }
     }
 

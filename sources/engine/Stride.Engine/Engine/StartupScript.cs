@@ -7,7 +7,7 @@ namespace Stride.Engine
 {
     public abstract class StartupScript : ScriptComponent
     {
-        internal readonly SchedulerEntry StartSchedulerNode = new();
+        internal SchedulerEntry StartSchedulerNode = new();
 
         /// <summary>
         /// Called before the script enters it's update loop.
