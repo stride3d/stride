@@ -70,10 +70,6 @@
           "kind": "IdResult"
         },
         {
-          "kind": "ImportType",
-          "name": "type"
-        },
-        {
           "kind": "LiteralString",
           "name": "shaderName"
         },
@@ -113,6 +109,21 @@
         {
           "kind": "LiteralString",
           "name": "variableName"
+        },
+        {
+          "kind": "IdRef",
+          "name": "shader"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLImportStruct",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        {
+          "kind": "LiteralString",
+          "name": "structName"
         },
         {
           "kind": "IdRef",
@@ -299,20 +310,6 @@
             }
           ],
           "version": "1.0"
-        }
-      ]
-    },
-    {
-      "category": "ValueEnum",
-      "kind": "ImportType",
-      "enumerants": [
-        {
-          "enumerant": "External",
-          "value": 0
-        },
-        {
-          "enumerant": "Inherit",
-          "value": 1
         }
       ]
     },

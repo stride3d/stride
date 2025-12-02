@@ -200,6 +200,13 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
         table.DeclaredTypes.TryAdd(TypeName.ToString(), Type);
     }
 
+    public void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+        var structType = (StructType)Type;
+        context.DeclareStructuredType(structType.ToId(), structType);
+    }
+
     public override string ToString()
     {
         return $"struct {TypeName} ({string.Join(", ", Members)})";
@@ -252,6 +259,7 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
     public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
+        context.DeclareCBuffer((ConstantBufferSymbol)Type);
         var pointerType = context.GetOrRegister(new PointerType(Type, Specification.StorageClass.Uniform));
         var variable = context.Bound++;
         // TODO: Add a StreamSDSL storage class?

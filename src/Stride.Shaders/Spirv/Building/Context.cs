@@ -7,6 +7,7 @@ using Stride.Shaders.Spirv.Tools;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Building;
@@ -188,7 +189,6 @@ public class SpirvContext
                 MatrixType m => Buffer.Add(new OpTypeVector(Bound++, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns)).IdResult,
                 ArrayType a => Buffer.Add(new OpTypeArray(Bound++, GetOrRegister(a.BaseType), a.Size)).IdResult,
                 StructType st => RegisterStructuredType(st.ToId(), st),
-                ConstantBufferSymbol cb => RegisterCBuffer(cb),
                 FunctionType f => RegisterFunctionType(f),
                 PointerType p => RegisterPointerType(p),
                 ShaderSymbol s => RegisterShaderType(s),
@@ -209,11 +209,20 @@ public class SpirvContext
 
     private int RegisterShaderType(ShaderSymbol shaderSymbol)
     {
-        FluentAdd(new OpSDSLImportShader(Bound++, ImportType.External, new(shaderSymbol.Name), new(shaderSymbol.GenericArguments.AsSpan())), out var shader);
+        FluentAdd(new OpSDSLImportShader(Bound++, new(shaderSymbol.Name), new(shaderSymbol.GenericArguments.AsSpan())), out var shader);
         AddName(shader.ResultId, shaderSymbol.Name);
-        for (var index = 0; index < shaderSymbol.Components.Count; index++)
+
+        // Import types and variables/functions
+        //foreach (var structType in shaderType.StructTypes)
+        //{
+        //    context.FluentAdd(new OpSDSLImportStruct(context.Bound, structType.Name, shaderId), out var @struct);
+        //    context.AddName(context.Bound, structType.Name);
+        //    context.Bound++;
+        //}
+
+        var components = CollectionsMarshal.AsSpan(shaderSymbol.Components);
+        foreach (ref var c in components)
         {
-            var c = shaderSymbol.Components[index];
             if (c.Id.Kind == SymbolKind.Method)
             {
                 var functionType = (FunctionType)c.Type;
@@ -225,19 +234,23 @@ public class SpirvContext
             }
             else if (c.Id.Kind == SymbolKind.Variable)
             {
+                // Currently, we ignore cbuffer
+                // TOOD: review that
+                if (c.Type is PointerType { StorageClass: Specification.StorageClass.Uniform } p && p.BaseType is StructType)
+                    continue;
 
                 c.IdRef = Bound++;
                 Add(new OpSDSLImportVariable(c.IdRef, GetOrRegister(c.Type), c.Id.Name, shader.ResultId));
+                AddName(c.IdRef, c.Id.Name);
             }
-            shaderSymbol.Components[index] = c;
         }
 
         return shader.ResultId;
     }
 
-    private int RegisterCBuffer(ConstantBufferSymbol cb)
+    public int DeclareCBuffer(ConstantBufferSymbol cb)
     {
-        var result = RegisterStructuredType($"type.{cb.ToId()}", cb);
+        var result = DeclareStructuredType($"type.{cb.ToId()}", cb);
 
         Buffer.Add(new OpDecorate(result, Decoration.Block));
         int constantBufferOffset = 0;
@@ -249,6 +262,8 @@ public class SpirvContext
 
             Buffer.Add(new OpMemberDecorate(result, index, ParameterizedFlags.DecorationOffset(constantBufferOffset)));
         }
+
+        Types[cb] = result;
 
         return result;
     }
@@ -289,6 +304,11 @@ public class SpirvContext
 
     int RegisterStructuredType(string name, StructuredType structSymbol)
     {
+        throw new InvalidOperationException();
+    }
+
+    public int DeclareStructuredType(string name, StructuredType structSymbol)
+    {
         Span<int> types = stackalloc int[structSymbol.Members.Count];
         for (var index = 0; index < structSymbol.Members.Count; index++)
             types[index] = GetOrRegister(structSymbol.Members[index].Type);
@@ -307,6 +327,9 @@ public class SpirvContext
                 Add(new OpMemberDecorate(id, index, new ParameterizedFlag<Specification.Decoration>(Specification.Decoration.RowMajor, [])));
 
         }
+
+        Types[structSymbol] = id;
+
         return id;
     }
 

@@ -143,16 +143,15 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (instruction.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)instruction is { } importShader)
             {
-                if (importShader.Type == ImportType.External)
-                {
-                    types.Add(importShader.ResultId, new ShaderSymbol(importShader.ShaderName, importShader.Values.Elements.Memory.ToArray(), []));
-                }
+                types.Add(importShader.ResultId, new ShaderSymbol(importShader.ShaderName, importShader.Values.Elements.Memory.ToArray()));
             }
         }
 
         // Second pass (for processing when info from first pass is needed)
-        foreach (var instruction in buffer)
+        for (var i = start; i < end; i++)
         {
+            var instruction = buffer[i];
+
             // ResultType might be declared after, so done in second pass
             if (instruction.Op == Op.OpSDSLImportFunction && (OpSDSLImportFunction)instruction is { } importFunction)
             {
@@ -182,6 +181,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         ProcessNameAndTypes(buffer, 0, buffer.Count, out var names, out var types);
 
         var symbols = new List<Symbol>();
+        var structTypes = new List<StructType>();
         for (var index = 0; index < buffer.Count; index++)
         {
             var instruction = buffer[index];
@@ -210,13 +210,22 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 symbols.Add(new(sid, functionType, functionInstruction.ResultId));
             }
 
+            if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
+            {
+                structTypes.Add((StructType)types[typeStructInstruction.ResultId]);
+            }
+
             if (instruction.Op == Op.OpSDSLGenericParameter)
             {
                 throw new NotImplementedException();
             }
         }
 
-        var shaderType = new ShaderSymbol(classSource.ClassName, classSource.GenericArguments, symbols);
+        var shaderType = new ShaderSymbol(classSource.ClassName, classSource.GenericArguments)
+        {
+            Components = symbols,
+            StructTypes = structTypes,
+        };
         return shaderType;
     }
 
@@ -331,7 +340,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
         }
 
-        var currentShader = new ShaderSymbol(Name, openGenerics, []);
+        var currentShader = new ShaderSymbol(Name, openGenerics);
         RegisterShaderType(table, currentShader);
 
         table.CurrentShader = currentShader;
@@ -345,6 +354,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             Inherit(table, context, shaderType, true);
         }
 
+        foreach (var member in Elements.OfType<ShaderStruct>())
+            member.Compile(table, this, compiler);
         foreach (var member in Elements.OfType<ShaderBuffer>())
             member.Compile(table, this, compiler);
         foreach (var member in Elements.OfType<ShaderMember>())
@@ -365,35 +376,19 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
     public static void Inherit(SymbolTable table, SpirvContext context, ShaderSymbol shaderType, bool addToRoot)
     {
-        // Import types and variables/functions
-        var shaderId = context.Bound++;
-        context.FluentAdd(new OpSDSLImportShader(shaderId, ImportType.Inherit, new(shaderType.Name), new(shaderType.GenericArguments.AsSpan())), out var shader);
-        context.AddName(shaderId, shaderType.Name);
+        var shaderId = context.GetOrRegister(shaderType);
 
-        for (int i = 0; i < shaderType.Components.Count; i++)
+        foreach (var c in shaderType.Components)
         {
-            Symbol c = shaderType.Components[i];
             if (c.Id.Kind == SymbolKind.Variable)
             {
-                var variableTypeId = context.GetOrRegister(c.Type);
-                context.FluentAdd(new OpSDSLImportVariable(context.Bound, variableTypeId, c.Id.Name, shader.ResultId), out var variable);
-                context.AddName(context.Bound, c.Id.Name);
-                context.Bound++;
-                shaderType.Components[i] = c = c with { IdRef = variable.ResultId, ImplicitThis = true };
                 if (addToRoot)
-                    table.CurrentFrame.Add(c.Id.Name, c);
+                    table.CurrentFrame.Add(c.Id.Name, c with { ImplicitThis = true });
             }
             else if (c.Id.Kind == SymbolKind.Method)
             {
-                var functionType = (FunctionType)c.Type;
-
-                var functionReturnTypeId = context.GetOrRegister(functionType.ReturnType);
-                context.FluentAdd(new OpSDSLImportFunction(context.Bound, functionReturnTypeId, c.Id.Name, shader.ResultId, c.Id.FunctionFlags), out var function);
-                context.AddName(context.Bound, c.Id.Name);
-                context.Bound++;
-                shaderType.Components[i] = c = c with { IdRef = function.ResultId, ImplicitThis = true };
                 if (addToRoot)
-                    table.CurrentFrame.Add(c.Id.Name, c);
+                    table.CurrentFrame.Add(c.Id.Name, c with { ImplicitThis = true });
             }
         }
 
@@ -404,7 +399,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         }
 
         // Mark inherit
-        context.Add(new OpSDSLMixinInherit(shader.ResultId));
+        context.Add(new OpSDSLMixinInherit(shaderId));
     }
 
     public static ShaderSymbol LoadExternalShaderType(SymbolTable table, ShaderClassInstantiation classSource)
