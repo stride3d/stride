@@ -25,7 +25,7 @@ public class MicroThread
     private long priority;
     private int state;
     private readonly CancellationTokenSource cancellationTokenSource;
-    private SchedulerEntry schedulerEntry;
+    private readonly SchedulerEntry schedulerEntry;
     internal LinkedListNode<MicroThread> AllLinkedListNode; // Also used as lock for "CompletionTask"
     internal MicroThreadCallbackList Callbacks;
     internal SynchronizationContext? SynchronizationContext;
@@ -56,7 +56,7 @@ public class MicroThread
             if (priority != value)
             {
                 priority = value;
-                Scheduler.Reschedule(ref schedulerEntry, priority, ScheduleMode.First);
+                Scheduler.Reschedule(schedulerEntry, priority, ScheduleMode.First);
             }
         }
     }
@@ -218,7 +218,7 @@ public class MicroThread
     /// <returns>Task.</returns>
     public async Task Run()
     {
-        Scheduler.Reschedule(ref schedulerEntry, Priority, ScheduleMode.First);
+        Scheduler.Reschedule(schedulerEntry, Priority, ScheduleMode.First);
         var currentScheduler = Scheduler.Current;
         if (currentScheduler == Scheduler)
             await Scheduler.Yield();
@@ -260,7 +260,7 @@ public class MicroThread
         var node = Scheduler.NewCallback();
         node.SendOrPostCallback = callback;
         node.CallbackState = callbackState;
-        Scheduler.Schedule(ref Callbacks, node, ref schedulerEntry, priority, scheduleMode);
+        Scheduler.Schedule(ref Callbacks, node, schedulerEntry, priority, scheduleMode);
     }
 
     internal void ScheduleContinuation(ScheduleMode scheduleMode, Action callback)
@@ -268,7 +268,7 @@ public class MicroThread
         Debug.Assert(callback != null);
         var node = Scheduler.NewCallback();
         node.MicroThreadAction = callback;
-        Scheduler.Schedule(ref Callbacks, node, ref schedulerEntry, priority, scheduleMode);
+        Scheduler.Schedule(ref Callbacks, node, schedulerEntry, priority, scheduleMode);
     }
 }
 

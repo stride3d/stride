@@ -8,12 +8,13 @@ namespace Stride.Core.MicroThreading;
 /// <summary>
 /// Either a microthread or an action with priority.
 /// </summary>
-internal record struct SchedulerEntry
+internal class SchedulerEntry
 {
-    public int BinarySearchHelper { get; init; }
-    public Scheduler.ExecutionQueue? PreviousQueue { get; init; }
-    public Action? Action { get; init; }
-    public MicroThread? MicroThread { get; init; }
-    public object? Token { get; init; }
-    public ProfilingKey? ProfilingKey { get; init; }
+    public int BinarySearchHelper;
+    public Scheduler.ExecutionQueue? CurrentQueue;
+    public Scheduler.ExecutionQueue? PreviousQueue;
+    public Action? Action;
+    public MicroThread? MicroThread;
+    public object? Token;
+    public ProfilingKey? ProfilingKey;
 }
