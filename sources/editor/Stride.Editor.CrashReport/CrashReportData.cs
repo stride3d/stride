@@ -9,7 +9,7 @@ namespace Stride.Editor.CrashReport;
 
 public class CrashReportData
 {
-    public List<(string, string)> Data = [];
+    public readonly List<(string, string)> Data = [];
 
     public string this[string key]
     {

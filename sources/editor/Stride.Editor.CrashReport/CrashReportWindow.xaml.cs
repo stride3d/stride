@@ -17,23 +17,18 @@ public partial class CrashReportWindow : Window
     public const string PrivacyPolicyUrl = "https://stride3d.net/legal/privacy-policy";
     private const string GithubIssuesUrl = "https://github.com/stride3d/stride/issues/new?labels=bug&template=bug_report.md";
     private readonly CrashReportData currentData;
-    
-    public CrashReportWindow(CrashReportData crashReport)
+    public string ApplicationName { get; }
+
+    public CrashReportWindow(CrashReportData crashReport, string applicationName)
     {
         InitializeComponent();
         currentData = crashReport;
         textBoxLog.Text = crashReport.ToString();
+        ApplicationName = applicationName;
+        DataContext = this;
     }
 
-    private bool Expanded
-    {
-        get;
-        set
-        {
-            field = value;
-            RefreshSize();
-        }
-    } = false;
+    private bool Expanded { get; set { field = value; RefreshSize(); } } = false;
 
     private void RefreshSize()
     {

@@ -61,7 +61,7 @@ namespace Stride.LauncherApp.CrashReport
                 crashReport.Data.Add((conf.Key, conf.Value));
             }
 
-            var reporter = new CrashReportWindow(crashReport);
+            var reporter = new CrashReportWindow(crashReport, "Stride Launcher");
             reporter.ShowDialog();
         }
 

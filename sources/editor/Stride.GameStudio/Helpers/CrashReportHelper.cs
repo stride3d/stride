@@ -158,7 +158,7 @@ namespace Stride.GameStudio.Helpers
                 crashReport.Data[i] = (crashReport.Data[i].Item1, data);
             }
 
-            var reporter = new CrashReportWindow(crashReport);
+            var reporter = new CrashReportWindow(crashReport, "Stride GameStudio");
             var result = reporter.ShowDialog();
             StrideGameStudio.MetricsClient?.CrashedSession(result is true);
         }
