@@ -138,13 +138,13 @@ public abstract class ShaderBuffer(string name, TextLocation info) : ShaderEleme
 
     public override void ProcessSymbol(SymbolTable table)
     {
-        var fields = new List<(string Name, SymbolType Type)>();
+        var fields = new List<(string Name, SymbolType Type, TypeModifier TypeModifier)>();
         foreach (var smem in Members)
         {
             smem.Type = smem.TypeName.ResolveType(table);
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
 
-            fields.Add((smem.Name, smem.Type));
+            fields.Add((smem.Name, smem.Type, smem.TypeModifier));
         }
 
         Type = new ConstantBufferSymbol(Name, fields);
@@ -165,7 +165,11 @@ public class ShaderStructMember(TypeName typename, Identifier identifier, TextLo
 {
     public TypeName TypeName { get; set; } = typename;
     public SymbolType? Type { get; set; }
+
+    public TypeModifier TypeModifier { get; set; }
+
     public Identifier Name { get; set; } = identifier;
+
     public List<ShaderAttribute> Attributes { get; set; } = [];
 
     public override string ToString()
@@ -183,13 +187,13 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
 
     public override void ProcessSymbol(SymbolTable table)
     {
-        var fields = new List<(string Name, SymbolType Type)>();
+        var fields = new List<(string Name, SymbolType Type, TypeModifier TypeModifier)>();
         foreach (var smem in Members)
         {
             smem.Type = smem.TypeName.ResolveType(table);
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
 
-            fields.Add((smem.Name, smem.Type));
+            fields.Add((smem.Name, smem.Type, smem.TypeModifier));
         }
 
         Type = new StructType(TypeName.ToString() ?? "", fields);
@@ -261,6 +265,11 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
             var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
             var symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), variable, index);
             table.CurrentFrame.Add(member.Name, symbol);
+
+            if (member.TypeModifier != TypeModifier.ColumnMajor)
+                context.Add(new OpMemberDecorate(context.GetOrRegister(Type), index, new ParameterizedFlag<Specification.Decoration>(Specification.Decoration.ColMajor, [])));
+            else if (member.TypeModifier != TypeModifier.RowMajor)
+                context.Add(new OpMemberDecorate(context.GetOrRegister(Type), index, new ParameterizedFlag<Specification.Decoration>(Specification.Decoration.RowMajor, [])));
 
             if (member.Attributes != null && member.Attributes.Count > 0)
             {

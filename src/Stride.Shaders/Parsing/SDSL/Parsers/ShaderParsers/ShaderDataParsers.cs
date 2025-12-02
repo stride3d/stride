@@ -205,6 +205,16 @@ public record struct ShaderStructMemberParser : IParser<ShaderStructMember>
     {
         var position = scanner.Position;
         var hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes);
+
+        var hasTypeModifier =
+            Tokens.AnyOf(
+                ["const", "row_major", "column_major"],
+                ref scanner,
+                out var typemodifier,
+                advance: true)
+            && Parsers.Spaces1(ref scanner, result, out _)
+            ;
+
         if (
             Parsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName typename, withSpaces: true, advance: true)
             && Parsers.Spaces1(ref scanner, result, out _)
@@ -215,6 +225,8 @@ public record struct ShaderStructMemberParser : IParser<ShaderStructMember>
             parsed = new ShaderStructMember(typename, identifier, scanner[position..scanner.Position]);
             if (hasAttributes)
                 parsed.Attributes = attributes.Attributes;
+            if (hasTypeModifier)
+                parsed.TypeModifier = typemodifier.ToTypeModifier();
             return true;
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);

@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using static Stride.Shaders.Spirv.Specification;
@@ -106,7 +107,7 @@ public sealed record ArrayType(SymbolType BaseType, int Size) : SymbolType()
 {
     public override string ToString() => $"{BaseType}[{Size}]";
 }
-public record StructuredType(string Name, List<(string Name, SymbolType Type)> Members) : SymbolType()
+public record StructuredType(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : SymbolType()
 {
     public override string ToId() => Name;
     public override string ToString() => $"{Name}{{{string.Join(", ", Members.Select(x => $"{x.Type} {x.Name}"))}}}";
@@ -139,7 +140,7 @@ public record StructuredType(string Name, List<(string Name, SymbolType Type)> M
 
 }
 
-public sealed record StructType(string Name, List<(string Name, SymbolType Type)> Members) : StructuredType(Name, Members);
+public sealed record StructType(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : StructuredType(Name, Members);
 public sealed record BufferType(SymbolType BaseType, int Size) : SymbolType()
 {
     public override string ToString() => $"Buffer<{BaseType}, {Size}>";
@@ -234,7 +235,7 @@ public sealed record FunctionType(SymbolType ReturnType, List<SymbolType> Parame
 
 public sealed record StreamsSymbol : SymbolType;
 
-public sealed record ConstantBufferSymbol(string Name, List<(string Name, SymbolType Type)> Members) : StructuredType(Name, Members);
+public sealed record ConstantBufferSymbol(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : StructuredType(Name, Members);
 public sealed record ParamsSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
 public sealed record EffectSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
 

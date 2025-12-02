@@ -95,13 +95,13 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 var structName = names[typeStructInstruction.ResultId];
                 var fieldsData = typeStructInstruction.Values;
-                var fields = new List<(string Name, SymbolType Type)>();
+                var fields = new List<(string Name, SymbolType Type, TypeModifier TypeModifier)>();
                 for (var index = 0; index < fieldsData.WordCount; index++)
                 {
                     var fieldData = fieldsData.Words[index];
                     var type = types[fieldData];
                     var name = memberNames[(typeStructInstruction.ResultId, index)];
-                    fields.Add((name, type));
+                    fields.Add((name, type, TypeModifier.None));
                 }
                 types.Add(typeStructInstruction.ResultId, new StructType(structName, fields));
             }
@@ -149,8 +149,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 }
             }
         }
+
+        // Second pass (for processing when info from first pass is needed)
         foreach (var instruction in buffer)
         {
+            // ResultType might be declared after, so done in second pass
             if (instruction.Op == Op.OpSDSLImportFunction && (OpSDSLImportFunction)instruction is { } importFunction)
             {
                 if (types.TryGetValue(importFunction.Shader, out var type) && type is ShaderSymbol shaderSymbol)
@@ -161,6 +164,15 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     // (external functions are resolved differently)
                     shaderSymbol.Components.Add(symbol);
                 }
+            }
+            // Can be declared before OpTypeStruct, so done in second pass
+            else if (instruction.Op == Op.OpMemberDecorate && (OpMemberDecorate)instruction is { } memberDecorate)
+            {
+                var structType = (StructType)types[memberDecorate.StructureType];
+                if (memberDecorate.Decoration == Decoration.ColMajor)
+                    structType.Members[memberDecorate.Member] = structType.Members[memberDecorate.Member] with { TypeModifier = TypeModifier.ColumnMajor };
+                else if (memberDecorate.Decoration == Decoration.RowMajor)
+                    structType.Members[memberDecorate.Member] = structType.Members[memberDecorate.Member] with { TypeModifier = TypeModifier.RowMajor };
             }
         }
     }

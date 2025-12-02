@@ -4,6 +4,7 @@ using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using static Stride.Shaders.Spirv.Specification;
@@ -239,14 +240,51 @@ public class SpirvContext
         var result = RegisterStructuredType($"type.{cb.ToId()}", cb);
 
         Buffer.Add(new OpDecorate(result, Decoration.Block));
+        int constantBufferOffset = 0;
         for (var index = 0; index < cb.Members.Count; index++)
         {
-            if (index > 0)
-                throw new NotImplementedException("Offset");
-            Buffer.Add(new OpMemberDecorate(result, index, ParameterizedFlags.DecorationOffset(0)));
+            // Properly compute size and offset according to DirectX rules
+            var member = cb.Members[index];
+            var memberSize = ComputeCBufferOffset(member.Type, member.TypeModifier, ref constantBufferOffset);
+
+            Buffer.Add(new OpMemberDecorate(result, index, ParameterizedFlags.DecorationOffset(constantBufferOffset)));
         }
 
         return result;
+    }
+
+    public static (int Size, int Alignment) TypeSizeInBuffer(SymbolType symbol, TypeModifier typeModifier)
+        => (symbol) switch
+        {
+            ScalarType { TypeName: "sbyte" or "byte" } => (1, 4),
+            ScalarType { TypeName: "short" or "ushort" } => (2, 4),
+            ScalarType { TypeName: "int" or "uint" or "float" } => (4, 4),
+            ScalarType { TypeName: "long" or "ulong" or "double" } => (8, 4),
+            VectorType v => (TypeSizeInBuffer(v.BaseType, typeModifier).Size * v.Size, 4),
+            // Note: HLSL default is ColumnMajor, review that for GLSL/Vulkan later
+            MatrixType m when typeModifier == TypeModifier.ColumnMajor || typeModifier == TypeModifier.None => (TypeSizeInBuffer(m.BaseType, typeModifier).Size * ((4 * m.Columns - 1) + m.Rows), 4),
+            MatrixType m when typeModifier == TypeModifier.RowMajor => (TypeSizeInBuffer(m.BaseType, typeModifier).Size * ((4 * m.Rows - 1) + m.Columns), 4),
+            // Round up to 16 bytes (size of float4)
+            ArrayType a => ((TypeSizeInBuffer(a.BaseType, typeModifier).Size + 15) / 16 * 16 * a.Size, 16),
+            // TODO: StructureType
+        };
+
+    //
+    // Computes the size of a member type, including its alignment and array size.
+    // It does so recursively for structs, and handles different parameter classes.
+    //
+    static int ComputeCBufferOffset(SymbolType type, TypeModifier typeModifier, ref int constantBufferOffset)
+    {
+        (var size, var alignment) = TypeSizeInBuffer(type, typeModifier);
+
+        // Align to float4 if it is bigger than leftover space in current float4
+        if (constantBufferOffset / 16 != (constantBufferOffset + size - 1) / 16)
+            alignment = 16;
+
+        // Align offset and store it as member offset
+        constantBufferOffset = (constantBufferOffset + alignment - 1) / alignment * alignment;
+
+        return size;
     }
 
     int RegisterStructuredType(string name, StructuredType structSymbol)
@@ -256,11 +294,20 @@ public class SpirvContext
             types[index] = GetOrRegister(structSymbol.Members[index].Type);
 
         var result = Buffer.Add(new OpTypeStruct(Bound++, [.. types]));
-        var id = result.IdResult;
-        AddName(id ?? -1, name);
+        var id = result.IdResult ?? throw new InvalidOperationException();
+        AddName(id, name);
         for (var index = 0; index < structSymbol.Members.Count; index++)
-            AddMemberName(id ?? -1, index, structSymbol.Members[index].Name);
-        return id ?? -1;
+        {
+            var member = structSymbol.Members[index];
+            AddMemberName(id, index, member.Name);
+
+            if (member.TypeModifier != TypeModifier.ColumnMajor)
+                Add(new OpMemberDecorate(id, index, new ParameterizedFlag<Specification.Decoration>(Specification.Decoration.ColMajor, [])));
+            else if (member.TypeModifier != TypeModifier.RowMajor)
+                Add(new OpMemberDecorate(id, index, new ParameterizedFlag<Specification.Decoration>(Specification.Decoration.RowMajor, [])));
+
+        }
+        return id;
     }
 
 
