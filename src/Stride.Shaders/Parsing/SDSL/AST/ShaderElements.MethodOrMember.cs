@@ -124,7 +124,6 @@ public sealed class ShaderMember(
             storageClass = pointerType.StorageClass;
 
         context.Add(new OpVariable(registeredType, variable, storageClass, null));
-        context.Variables.Add(Name, new(variable, registeredType, Name));
         if (Semantic != null)
             context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(Semantic.Name)));
         context.AddName(variable, Name);

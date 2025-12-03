@@ -49,18 +49,4 @@ public partial class SpirvBuilder
         CurrentFunction!.Value.Parameters.Add(name, value);
         return value; 
     }
-    public SpirvFunction CreateEntryPoint(SpirvContext context, ExecutionModel execModel, string name, FunctionType type, ReadOnlySpan<Symbol> variables, FunctionControlMask mask = FunctionControlMask.None)
-    {
-        Buffer.FluentAdd(new OpFunction(context.GetOrRegister(type.ReturnType), context.Bound++, mask, context.GetOrRegister(type)), out var func);
-        context.AddName(func, name);
-        context.SetEntryPoint(execModel, func, name, variables);
-        var result = new SpirvFunction(func.ResultId, name, type);
-        if(!variables.IsEmpty)
-            foreach(var p in variables)
-                context.AddName(context.Variables[p.Id.Name].Id, p.Id.Name);
-        CurrentFunction = result;
-        return result;
-    }
-    
-    
 }

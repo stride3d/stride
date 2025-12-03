@@ -48,7 +48,6 @@ public class SpirvContext
 {
     public int Bound { get; set; } = 1;
     public string? Name { get; private set; }
-    public SortedList<string, SpirvValue> Variables { get; } = [];
     public Dictionary<SymbolType, int> Types { get; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; } = [];
     public Dictionary<(SymbolType Type, object Value), SpirvValue> LiteralConstants { get; } = [];
@@ -153,7 +152,7 @@ public class SpirvContext
         Span<int> pvariables = stackalloc int[variables.Length];
         int pos = 0;
         foreach (var v in variables)
-            pvariables[pos++] = Variables[v.Id.Name].Id;
+            pvariables[pos++] = v.IdRef;
         Buffer.Add(new OpEntryPoint(model, function, name, [.. pvariables]));
     }
 
