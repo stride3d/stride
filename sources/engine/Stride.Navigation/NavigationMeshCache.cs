@@ -18,13 +18,12 @@ namespace Stride.Navigation
         /// <summary>
         /// State of static colliders by their component Id that was used for building
         /// </summary>
-        public Dictionary<Guid, NavigationMeshCachedObject> Objects =
-            new Dictionary<Guid, NavigationMeshCachedObject>();
+        public readonly Dictionary<Guid, NavigationMeshCachedObject> Objects = new();
         
         /// <summary>
         /// The bounding boxes used for build
         /// </summary>
-        public List<BoundingBox> BoundingBoxes = new List<BoundingBox>();
+        public List<BoundingBox> BoundingBoxes = [];
         
         /// <summary>
         /// Hash for the building settings used

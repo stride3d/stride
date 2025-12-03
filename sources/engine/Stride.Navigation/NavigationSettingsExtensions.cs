@@ -14,12 +14,10 @@ namespace Stride.Navigation
         /// </summary>
         public static ObjectId ComputeGroupsHash(this NavigationSettings settings)
         {
-            using (DigestStream stream = new DigestStream(Stream.Null))
-            {
-                BinarySerializationWriter writer = new BinarySerializationWriter(stream);
-                writer.Write(settings.Groups);
-                return stream.CurrentHash;
-            }
+            using DigestStream stream = new DigestStream(Stream.Null);
+            BinarySerializationWriter writer = new BinarySerializationWriter(stream);
+            writer.Write(settings.Groups);
+            return stream.CurrentHash;
         }
     }
 }

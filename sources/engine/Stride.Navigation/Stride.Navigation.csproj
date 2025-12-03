@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-    <StrideNativeOutputName>libstridenavigation</StrideNativeOutputName>
   </PropertyGroup>
 
   <Import Project="..\..\targets\Stride.props" />
@@ -25,20 +24,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Stride.Navigation.dll.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Stride.Native.Libs.targets">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Navigation.cpp" />
-    <None Include="Navigation.hpp" />
-    <None Include="NavigationBuilder.cpp" />
-    <None Include="NavigationBuilder.hpp" />
-    <None Include="NavigationMesh.cpp" />
-    <None Include="NavigationMesh.hpp" />
+    <PackageReference Include="DotRecast.Detour" />
+    <PackageReference Include="DotRecast.Recast" />
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />

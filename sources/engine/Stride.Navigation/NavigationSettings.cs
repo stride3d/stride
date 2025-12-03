@@ -58,7 +58,7 @@ namespace Stride.Navigation
         /// The groups that use the dynamic navigation mesh
         /// </userdoc>
         [DataMember(30)]
-        public List<NavigationMeshGroup> Groups = new List<NavigationMeshGroup>();
+        public List<NavigationMeshGroup> Groups = [];
     }
 
     public class NavigationSettingsFactory : IObjectFactory
@@ -71,10 +71,7 @@ namespace Stride.Navigation
                 EnableDynamicNavigationMesh = false,
                 BuildSettings = ObjectFactoryRegistry.NewInstance<NavigationMeshBuildSettings>(),
                 IncludedCollisionGroups = CollisionFilterGroupFlags.AllFilter,
-                Groups = new List<NavigationMeshGroup>
-                {
-                    ObjectFactoryRegistry.NewInstance<NavigationMeshGroup>(),
-                },
+                Groups = [ObjectFactoryRegistry.NewInstance<NavigationMeshGroup>()],
             };
         }
     }

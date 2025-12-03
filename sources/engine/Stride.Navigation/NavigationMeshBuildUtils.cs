@@ -22,7 +22,7 @@ namespace Stride.Navigation
         /// <returns></returns>
         public static List<Point> GetOverlappingTiles(NavigationMeshBuildSettings settings, BoundingBox boundingBox)
         {
-            List<Point> ret = new List<Point>();
+            List<Point> ret = [];
             float tcs = settings.TileSize * settings.CellSize;
             Vector2 start = boundingBox.Minimum.XZ() / tcs;
             Vector2 end = boundingBox.Maximum.XZ() / tcs;
@@ -101,9 +101,7 @@ namespace Stride.Navigation
         public static void BuildPlanePoints(ref Plane plane, float size, out Vector3[] points, out int[] inds)
         {
             Vector3 up = plane.Normal;
-            Vector3 right;
-            Vector3 forward;
-            GenerateTangentBinormal(up, out right, out forward);
+            GenerateTangentBinormal(up, out var right, out var forward);
 
             points = new Vector3[4];
             points[0] = -forward * size - right * size + up * plane.D;
@@ -176,32 +174,30 @@ namespace Stride.Navigation
             {
                 return false;
             }
+
+            if (collider.ColliderShapes.Count == 1)
+            {
+                if (!collider.ColliderShapes[0].Match(collider.ColliderShape.Description))
+                {
+                    return false;
+                }
+            }
             else
             {
-                if (collider.ColliderShapes.Count == 1)
+                var compound = collider.ColliderShape as CompoundColliderShape;
+                if ((compound != null) && (compound.Count == collider.ColliderShapes.Count))
                 {
-                    if (!collider.ColliderShapes[0].Match(collider.ColliderShape.Description))
+                    for (int i = 0; i < compound.Count; ++i)
                     {
-                        return false;
+                        if (!collider.ColliderShapes[i].Match(compound[i].Description))
+                        {
+                            return false;
+                        }
                     }
                 }
                 else
                 {
-                    var compound = collider.ColliderShape as CompoundColliderShape;
-                    if ((compound != null) && (compound.Count == collider.ColliderShapes.Count))
-                    {
-                        for (int i = 0; i < compound.Count; ++i)
-                        {
-                            if (!collider.ColliderShapes[i].Match(compound[i].Description))
-                            {
-                                return false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
 

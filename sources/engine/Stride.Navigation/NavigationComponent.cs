@@ -30,19 +30,16 @@ namespace Stride.Navigation
         [DataMemberIgnore]
         internal NavigationMeshGroup Group;
 
-        private NavigationMesh navigationMesh;
-        private Guid groupId;
-
         /// <summary>
         /// The navigation mesh which is being used. Setting this to <c>null</c> will load the dynamic navigation mesh for the current game (if enabled)
         /// </summary>
         [DataMember(10)]
         public NavigationMesh NavigationMesh
         {
-            get { return navigationMesh; }
+            get;
             set
             {
-                navigationMesh = value; 
+                field = value; 
                 NavigationMeshChanged?.Invoke(this, null);
             }
         }
@@ -54,10 +51,10 @@ namespace Stride.Navigation
         [Display("Group")]
         public Guid GroupId
         {
-            get { return groupId; }
+            get;
             set
             {
-                groupId = value;
+                field = value;
                 NavigationMeshChanged?.Invoke(this, null);
             }
         }

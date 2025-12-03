@@ -21,6 +21,6 @@ namespace Stride.Navigation
         /// <remarks>
         /// Planes are an exceptions to normal geometry since their size depends on the size of the bounding boxes in the scene, however we don't want to rebuild the whole scene, unless the actual shape of the plane changes
         /// </remarks>
-        internal readonly List<Plane> Planes = new List<Plane>();
+        internal readonly List<Plane> Planes = [];
     }
 }
