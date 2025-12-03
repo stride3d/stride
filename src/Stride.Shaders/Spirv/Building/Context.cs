@@ -186,7 +186,7 @@ public class SpirvContext
 
                     },
                 VectorType v => Buffer.Add(new OpTypeVector(Bound++, GetOrRegister(v.BaseType), v.Size)).IdResult,
-                MatrixType m => Buffer.Add(new OpTypeVector(Bound++, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns)).IdResult,
+                MatrixType m => Buffer.Add(new OpTypeMatrix(Bound++, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns)).IdResult,
                 ArrayType a => Buffer.Add(new OpTypeArray(Bound++, GetOrRegister(a.BaseType), a.Size)).IdResult,
                 StructType st => RegisterStructuredType(st.ToId(), st),
                 FunctionType f => RegisterFunctionType(f),

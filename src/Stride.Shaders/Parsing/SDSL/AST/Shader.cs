@@ -91,6 +91,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var innerType = (ScalarType)types[vectorInstruction.ComponentType];
                 types.Add(vectorInstruction.ResultId, new VectorType(innerType, vectorInstruction.ComponentCount));
             }
+            else if (instruction.Op == Op.OpTypeMatrix && (OpTypeMatrix)instruction is { } matrixInstruction)
+            {
+                var innerType = (VectorType)types[matrixInstruction.ColumnType];
+                types.Add(matrixInstruction.ResultId, new MatrixType(innerType.BaseType, innerType.Size, matrixInstruction.ColumnCount));
+            }
             else if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
             {
                 var structName = names[typeStructInstruction.ResultId];
