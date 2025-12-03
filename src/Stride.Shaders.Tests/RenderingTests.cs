@@ -58,7 +58,7 @@ public class RenderingTests
     {
         // Compiler shader
         var shaderMixer = new ShaderMixer(new ShaderLoader());
-        shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), out var bytecode);
+        shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), out var bytecode, out var effectReflection);
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
 
         // Convert to GLSL
@@ -90,6 +90,7 @@ public class RenderingTests
             if (codeVS != null)
                 renderer.VertexShaderSource = codeVS;
             using var frameBuffer = MemoryOwner<byte>.Allocate(width * height * 4);
+            renderer.EffectReflection = effectReflection;
             renderer.RenderFrame(frameBuffer.Span);
             var pixels = Image.LoadPixelData<Rgba32>(frameBuffer.Span, width, height);
             Assert.Equal(width, pixels.Width);

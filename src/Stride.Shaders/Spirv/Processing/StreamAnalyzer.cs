@@ -76,13 +76,6 @@ namespace Stride.Shaders.Spirv.Processing
                 GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult);
             }
 
-            int currentBinding = 0;
-            foreach (var resource in analysisResult.Resources)
-            {
-                context.Add(new OpDecorate(resource, ParameterizedFlags.DecorationDescriptorSet(0)));
-                context.Add(new OpDecorate(resource, ParameterizedFlags.DecorationBinding(currentBinding++)));
-            }
-
             buffer.FluentAdd(new OpExecutionMode(psWrapper.ResultId, ExecutionMode.OriginUpperLeft));
         }
 

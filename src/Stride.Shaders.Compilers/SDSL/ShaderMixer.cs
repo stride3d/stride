@@ -22,7 +22,7 @@ namespace Stride.Shaders.Compilers.SDSL;
 public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 {
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
-    public void MergeSDSL(ShaderSource shaderSource, out byte[] bytecode)
+    public void MergeSDSL(ShaderSource shaderSource, out byte[] bytecode, out EffectReflection effectReflection)
     {
         var temp = new NewSpirvBuffer();
 
@@ -48,6 +48,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         new StreamAnalyzer().Process(table, temp, context);
 
+        // Merge cbuffers and rgroups
+        Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        MergeCBuffers(globalContext, context, temp);
+        Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        ComputeCBufferOffsets(globalContext, context, temp);
+
         CleanupUnnecessaryInstructions(temp);
 
         foreach (var inst in context)
@@ -66,12 +72,181 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         File.WriteAllText("test.spvdis", Spv.Dis(temp));
         Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 #endif
+
+        effectReflection = globalContext.Reflection;
+    }
+
+    private void MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
+    {
+        var cbuffersByNames = buffer
+            .Where(x => x.Op == Op.OpVariable)
+            .Select(x => (OpVariable)x)
+            // Note: MemberOffset is simply a shift in Members index, not something like a byte offset
+            .Select(x => (
+                Variable: x,
+                StructTypePtrId: x.ResultType,
+                StructType: context.ReverseTypes[x.ResultType] is PointerType p && p.StorageClass == Specification.StorageClass.Uniform && p.BaseType is StructuredType s ? s : null,
+                MemberOffset: 0))
+            // TODO: Check Decoration.Block?
+            .Where(x => x.StructType != null)
+            .GroupBy(x => globalContext.Names[x.Variable.ResultId]);
+
+        foreach (var cbuffersEntry in cbuffersByNames)
+        {
+            if (cbuffersEntry.Count() > 1)
+            {
+                var cbuffers = cbuffersEntry.ToList();
+                var cbuffersSpan = CollectionsMarshal.AsSpan(cbuffers);
+                int offset = 0;
+                // TODO: Analyze and skip cbuffers parts which are unused
+                foreach (ref var cbuffer in cbuffersSpan)
+                {
+                    cbuffer.MemberOffset = offset;
+                    offset += cbuffer.StructType.Members.Count;
+                }
+                var variables = cbuffers.ToDictionary(x => x.Variable.ResultId, x => x);
+                var structTypes = cbuffers.Select(x => x.StructType);
+                var structTypeIds = cbuffers.ToDictionary(x => context.Types[x.StructType], x => x);
+
+                var mergedCbufferStruct = new ConstantBufferSymbol(cbuffersEntry.Key, structTypes.SelectMany(x => x.Members).ToList());
+                var mergedCbufferStructId = context.DeclareCBuffer(mergedCbufferStruct);
+                var mergedCbufferPtrStructId = context.GetOrRegister(new PointerType(mergedCbufferStruct, Specification.StorageClass.Uniform));
+
+                // Remap member ids
+                foreach (var i in buffer)
+                {
+                    if (i.Op == Op.OpMemberName && (OpMemberName)i is { } memberName)
+                    {
+                        if (structTypeIds.TryGetValue(memberName.Type, out var cbuffer))
+                            memberName.Member += cbuffer.MemberOffset;
+                    }
+                    else if (i.Op == Op.OpMemberDecorate && (OpMemberDecorate)i is { } memberDecorate)
+                    {
+                        if (structTypeIds.TryGetValue(memberDecorate.StructureType, out var cbuffer))
+                            memberDecorate.Member += cbuffer.MemberOffset;
+                    }
+                    else if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { } memberDecorateString)
+                    {
+                        if (structTypeIds.TryGetValue(memberDecorateString.StructType, out var cbuffer))
+                            memberDecorateString.Member += cbuffer.MemberOffset;
+                    }
+                    else if (i.Op == Op.OpAccessChain && (OpAccessChain)i is { } accessChain)
+                    {
+                        if (variables.TryGetValue(accessChain.BaseId, out var cbuffer) && cbuffer.MemberOffset > 0)
+                        {
+                            // According to spec, this must be a OpConstant (and we only create them with int)
+                            var indexes = accessChain.Values.Elements.Span;
+                            var constantId = indexes[0];
+                            var index = cbuffer.MemberOffset + (int)SpirvBuilder.GetConstantValue(constantId, buffer);
+                            indexes[0] = context.CompileConstant(index).Id;
+
+                            // Regenerate buffer (since we modify accessChain.Values, it doesn't get rebuilt automatically)
+                            accessChain.UpdateInstructionMemory();
+                        }
+                    }
+                    // Out of safety, check for any OpLoad/OpStore on the variables (forbidden, only OpAccessChain)
+                    else if (i.Op == Op.OpLoad && (OpLoad)i is { } load)
+                    {
+                        if (variables.TryGetValue(load.Pointer, out var cbuffer))
+                            throw new NotSupportedException("Can't OpLoad with cbuffer");
+                    }
+                    else if (i.Op == Op.OpStore && (OpStore)i is { } store)
+                    {
+                        if (variables.TryGetValue(store.Pointer, out var cbuffer))
+                            throw new NotSupportedException("Can't OpLoad with cbuffer");
+                    }
+                }
+
+                var idRemapping = new Dictionary<int, int>();
+                // Update variable to use new type
+                idRemapping.Add(cbuffersSpan[0].StructTypePtrId, mergedCbufferPtrStructId);
+
+                foreach (ref var cbuffer in cbuffersSpan.Slice(1))
+                {
+                    // Update all cbuffers access to be replaced with unified cbuffer
+                    idRemapping.Add(cbuffer.Variable.ResultId, cbuffersSpan[0].Variable.ResultId);
+                    // Remove other cbuffer variables
+                    SetOpNop(cbuffer.Variable.InstructionMemory.Span);
+                    // TODO: Do we want to remove unecessary types?
+                    //       Maybe we don't care as they are not used anymore, they will be ignored.
+                    //       Also, if we do so, maybe we could do it as part of a global pass at the end rather than now?
+                }
+
+                SpirvBuilder.RemapIds(buffer, 0, buffer.Count, idRemapping);
+            }
+        }
+    }
+
+    private void ComputeCBufferOffsets(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
+    {
+        var cbuffers = buffer
+            .Where(x => x.Op == Op.OpVariable)
+            .Select(x => (OpVariable)x)
+            // Note: MemberOffset is simply a shift in Members index, not something like a byte offset
+            .Select(x => (
+                Variable: x,
+                StructTypePtrId: x.ResultType,
+                StructType: context.ReverseTypes[x.ResultType] is PointerType p && p.StorageClass == Specification.StorageClass.Uniform && p.BaseType is StructuredType s ? s : null,
+                MemberOffset: 0))
+            .Where(x => x.StructType != null)
+            .ToList();
+
+        EffectTypeDescription ConvertType(SymbolType symbolType)
+        {
+            return symbolType switch
+            {
+                ScalarType { TypeName: "int" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Int, RowCount = 1, ColumnCount = 1 },
+                ScalarType { TypeName: "float" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Float, RowCount = 1, ColumnCount = 1 },
+                // TODO: should we use RowCount instead? (need to update Stride)
+                VectorType v => ConvertType(v.BaseType) with { Class = EffectParameterClass.Vector, ColumnCount = v.Size },
+                MatrixType m => ConvertType(m.BaseType) with { Class = EffectParameterClass.Vector, RowCount = m.Rows, ColumnCount = m.Columns },
+            };
+        }
+
+        foreach (var cbuffer in cbuffers)
+        {
+            int constantBufferOffset = 0;
+            var cb = cbuffer.StructType;
+            
+            var memberInfos = new EffectValueDescription[cb.Members.Count];
+            for (var index = 0; index < cb.Members.Count; index++)
+            {
+                // Properly compute size and offset according to DirectX rules
+                var member = cb.Members[index];
+                var memberSize = SpirvBuilder.ComputeCBufferOffset(member.Type, member.TypeModifier, ref constantBufferOffset);
+
+                context.Add(new OpMemberDecorate(context.Types[cbuffer.StructType], index, ParameterizedFlags.DecorationOffset(constantBufferOffset)));
+
+                memberInfos[index] = new EffectValueDescription
+                {
+                    Type = ConvertType(member.Type),
+                    RawName = member.Name,
+                    Offset = constantBufferOffset,
+                    Size = memberSize,
+                };
+
+                // Adjust offset for next item
+                constantBufferOffset += memberSize;
+            }
+
+            globalContext.Reflection.ConstantBuffers.Add(new EffectConstantBufferDescription
+            {
+                Name = globalContext.Names[cbuffer.Variable.ResultId],
+                // Round buffer size to next multiple of 16 bytes
+                Size = (constantBufferOffset + 15) / 16 * 16,
+
+                Type = ConstantBufferType.ConstantBuffer,
+                Members = memberInfos,
+            });
+        }
     }
 
     class MixinGlobalContext
     {
         public Dictionary<int, string> Names { get; } = [];
         public Dictionary<int, SymbolType> Types { get; } = [];
+
+        public EffectReflection Reflection { get; } = new();
     }
 
     class MixinNodeContext
@@ -110,6 +285,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Import struct types
         ImportStructTypes(globalContext, buffer, mixinNode);
 
+        Spv.Dis(buffer, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+
         // Build names and types mappings
         ShaderClass.ProcessNameAndTypes(buffer, mixinNode.StartInstruction, mixinNode.EndInstruction, globalContext.Names, globalContext.Types);
 
@@ -133,6 +310,71 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         // Patch method calls (virtual calls & base calls)
         PatchMethodCalls(globalContext, buffer, mixinNode);
+
+        // Process reflection
+        Dictionary<int, LinkInfo> linkInfos = new();
+        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
+        {
+            var i = buffer[index];
+            
+            // Fill linkInfos
+            if (i.Op == Op.OpDecorateString && (OpDecorateString)i is
+                {
+                    Target: int t,
+                    Decoration:
+                    {
+                        Value: Decoration.LinkSDSL or Decoration.ResourceGroupSDSL or Decoration.LogicalGroupSDSL,
+                        Parameters: { } m
+                    }
+                } decoration)
+            {
+                using var n = new LiteralValue<string>(m.Span);
+                ref var linkInfo = ref CollectionsMarshal.GetValueRefOrAddDefault(linkInfos, t, out _);
+                if (decoration.Decoration.Value == Decoration.LinkSDSL)
+                    linkInfo.LinkName = n.Value;
+                else if (decoration.Decoration.Value == Decoration.ResourceGroupSDSL)
+                    linkInfo.ResourceGroup = n.Value;
+                else if (decoration.Decoration.Value == Decoration.LogicalGroupSDSL)
+                    linkInfo.LogicalGroup = n.Value;
+            }
+            else if (i.Op == Op.OpVariable && (OpVariable)i is { } variable)
+            {
+                var type = context.ReverseTypes[variable.ResultType];
+                if (type is PointerType pointerType)
+                {
+                    if (pointerType.BaseType is TextureType)
+                    {
+                        var name = globalContext.Names[variable.ResultId];
+                        linkInfos.TryGetValue(variable.ResultId, out var linkInfo);
+                        var linkName = linkInfo.LinkName;
+                        if (currentCompositionPath != null)
+                            linkName = $"{currentCompositionPath}.{linkName}";
+
+                        var slot = globalContext.Reflection.ResourceBindings.Count;
+                        globalContext.Reflection.ResourceBindings.Add(new EffectResourceBindingDescription
+                        {
+                            KeyInfo = new EffectParameterKeyInfo { KeyName = linkName },
+                            Class = EffectParameterClass.ShaderResourceView,
+                            Type = EffectParameterType.Texture,
+                            ElementType = default,
+                            RawName = name,
+                            ResourceGroup = linkInfo.ResourceGroup,
+                            //Stage = , // filed by ShaderCompiler
+                            SlotStart = globalContext.Reflection.ResourceBindings.Count,
+                            SlotCount = 1,
+                            LogicalGroup = linkInfo.LogicalGroup,
+                        });
+
+                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationDescriptorSet(0)));
+                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationBinding(slot)));
+                    }
+                    else if (pointerType.BaseType is SamplerType)
+                    {
+
+                    }
+                }
+            }
+        }
 
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
         {
@@ -357,6 +599,20 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 var structId = shader.StructTypes[importStruct.StructName];
                 idRemapping.Add(importStruct.ResultId, structId);
                 SetOpNop(i.Data.Memory.Span);
+            }
+        }
+
+        // Remove associated OpName
+        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
+        {
+            var i = buffer[index];
+
+            if (i.Data.Op == Op.OpName && (OpName)i is { } name)
+            {
+                if (idRemapping.ContainsKey(name.Target))
+                {
+                    SetOpNop(i.Data.Memory.Span);
+                }
             }
         }
 

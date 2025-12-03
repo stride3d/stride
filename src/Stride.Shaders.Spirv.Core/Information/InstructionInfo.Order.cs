@@ -71,6 +71,7 @@ public partial class InstructionInfo
         foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpType") || x.ToString().StartsWith("OpConstant") || x.ToString().StartsWith("OpSpec")))
             OrderGroup[(e, null)] = group;
 
+        group++;
         foreach (var e in Enum.GetValues<StorageClass>().Where(x => x != StorageClass.Function))
             OrderGroup[(Op.OpVariable, e)] = group;
 

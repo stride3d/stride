@@ -1,5 +1,6 @@
 #pragma warning disable CS9264 // Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
 
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -160,7 +161,7 @@ public record struct OpDataIndex(int Index, NewSpirvBuffer Buffer)
     public readonly ref OpData Data => ref Buffer.GetRef(Index);
 }
 
-public sealed class NewSpirvBuffer() : IDisposable
+public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
 {
     public SpirvHeader Header { get; set; } = new("1.4", 0, 1);
     List<OpData> Instructions { get; set; } = [];
@@ -196,6 +197,7 @@ public sealed class NewSpirvBuffer() : IDisposable
     public void Add(OpData data)
     {
         Instructions.Add(data);
+        UpdateBound(data);
     }
 
     public OpData Add<T>(in T instruction) where T : struct, IMemoryInstruction
@@ -298,13 +300,19 @@ public sealed class NewSpirvBuffer() : IDisposable
 
     public Enumerator GetEnumerator() => new(this);
 
-    public ref struct Enumerator(NewSpirvBuffer buffer)
+    public struct Enumerator(NewSpirvBuffer buffer) : IEnumerator<OpDataIndex>
     {
         readonly NewSpirvBuffer buffer = buffer;
         private readonly List<OpData> list = buffer.Instructions;
         private int index = -1;
 
         public readonly OpDataIndex Current => new(index, buffer);
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose()
+        {
+        }
 
         public bool MoveNext()
         {
@@ -314,6 +322,11 @@ public sealed class NewSpirvBuffer() : IDisposable
                 return true;
             }
             return false;
+        }
+
+        public void Reset()
+        {
+            index = -1;
         }
     }
 
@@ -376,6 +389,16 @@ public sealed class NewSpirvBuffer() : IDisposable
         result.Instructions.AddRange(buffer1.Instructions);
         result.Instructions.AddRange(buffer2.Instructions);
         return result;
+    }
+
+    IEnumerator<OpDataIndex> IEnumerable<OpDataIndex>.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }
 

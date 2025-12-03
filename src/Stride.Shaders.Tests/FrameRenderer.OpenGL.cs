@@ -2,6 +2,7 @@
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using Stride.Shaders;
 using System;
 using System.Drawing;
 using System.Globalization;
@@ -67,6 +68,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
             1, 2, 3
     ];
 
+    public EffectReflection EffectReflection { get; set; }
 
     public override unsafe void RenderFrame(Span<byte> result)
     {
@@ -225,13 +227,21 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
                     continue;
                 Gl.UniformBlockBinding(Shader, blockIndex, 0);
 
-                // Note: we only support a single int value for now
-                if (!int.TryParse(param.Value, out var data))
-                    throw new NotImplementedException("Tests only support a single integer in cbuffer");
+                var cbReflection = EffectReflection.ConstantBuffers.Single(x => x.Name == cbufferName);
+                var cbufferData = new byte[cbReflection.Size];
+                foreach (var cbufferParameter in TestHeaderParser.ParseParameters(param.Value))
+                {
+                    var cbMemberReflection = cbReflection.Members.Single(x => x.RawName == cbufferParameter.Key);
+                    if (cbMemberReflection.Type.Class != EffectParameterClass.Scalar || cbMemberReflection.Type.Type != EffectParameterType.Int)
+                        throw new NotImplementedException();
+
+                    fixed (byte* cbufferDataPtr = cbufferData)
+                        *((int*)&cbufferDataPtr[cbMemberReflection.Offset]) = int.Parse(cbufferParameter.Value);
+                }
 
                 Gl.GenBuffers(1, out uint ubo);
                 Gl.BindBuffer(GLEnum.UniformBuffer, ubo);
-                Gl.BufferData(GLEnum.UniformBuffer, sizeof(uint), &data, GLEnum.DynamicDraw);
+                Gl.BufferData(GLEnum.UniformBuffer, (nuint)cbReflection.Size, cbufferData, GLEnum.DynamicDraw);
                 Gl.BindBuffer(GLEnum.UniformBuffer, 0); // Unbind
 
                 Gl.BindBufferRange(GLEnum.UniformBuffer, 0, ubo, 0, sizeof(uint));
