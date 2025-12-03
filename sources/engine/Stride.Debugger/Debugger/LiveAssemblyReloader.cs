@@ -1,29 +1,30 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Stride.Core;
 using Stride.Core.Reflection;
-using Stride.Core.Serialization;
 using Stride.Core.Yaml;
 using Stride.Core.Yaml.Events;
 using Stride.Core.Yaml.Serialization;
 using Stride.Debugger.Target;
 using Stride.Engine;
+using Stride.Games;
 
 namespace Stride.Debugger
 {
     public static class LiveAssemblyReloader
     {
-        public static void Reload(Game game, AssemblyContainer assemblyContainer, List<Assembly> assembliesToUnregister, List<Assembly> assembliesToRegister)
+        public static void Reload(GameBase game, AssemblyContainer assemblyContainer, List<Assembly> assembliesToUnregister, List<Assembly> assembliesToRegister)
         {
             List<Entity> entities = new List<Entity>();
 
+            var sceneSystem = game.Services.GetSafeServiceAs<SceneSystem>();
+
             if (game != null)
-                entities.AddRange(game.SceneSystem.SceneInstance);
+                entities.AddRange(sceneSystem.SceneInstance);
 
             CloneReferenceSerializer.References = new List<object>();
 
