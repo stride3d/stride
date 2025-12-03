@@ -1,4 +1,4 @@
-namespace Stride.Graphics.RHI;
+namespace Stride.Shaders.Parsing.Tests;
 
 public abstract class FrameRenderer(uint width = 800, uint height = 600, byte[]? vertexSpirv = null, byte[]? fragmentSpirv = null)
 {

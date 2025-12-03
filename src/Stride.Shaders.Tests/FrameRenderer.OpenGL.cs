@@ -7,7 +7,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Text;
 
-namespace Stride.Graphics.RHI;
+namespace Stride.Shaders.Parsing.Tests;
 
 
 
