@@ -44,7 +44,7 @@ public ref struct SpvOperand
         using var lit = new LiteralValue<T>(Words);
         return lit.Value;
     }
-    public readonly LiteralArray<T> ToLiteralArray<T>()
+    public readonly LiteralArray<T> ToLiteralArray<T>() where T : struct
         => LiteralArray<T>.From(Words);
 
     public readonly bool TryToLiteral<T>(out LiteralValue<T> literal)
@@ -62,7 +62,7 @@ public ref struct SpvOperand
         };
         return true;
     }
-    public readonly bool TryToArray<T>(out LiteralArray<T> literal)
+    public readonly bool TryToArray<T>(out LiteralArray<T> literal) where T : struct
     {
         literal = default;
         (bool r, literal) = (literal, Kind) switch

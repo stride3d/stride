@@ -284,7 +284,7 @@ struct TemporaryArray : IDisposable
         item.Words.CopyTo(Memory.Span[Length..]);
         Length += item.WordCount;
     }
-    public void Add<T>(LiteralArray<T> item)
+    public void Add<T>(LiteralArray<T> item) where T : struct
     {
         Expand(item.WordCount);
         item.Words.CopyTo(Memory.Span[Length..]);

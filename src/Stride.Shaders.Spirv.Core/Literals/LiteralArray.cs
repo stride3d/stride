@@ -9,14 +9,14 @@ namespace Stride.Shaders.Spirv.Core;
 
 public static class LiteralArrayHelper
 {
-    public static LiteralArray<T> Create<T>(ReadOnlySpan<T> elements)
+    public static LiteralArray<T> Create<T>(ReadOnlySpan<T> elements) where T : struct
     {
         return new LiteralArray<T>(elements);
     }
 }
 
 [CollectionBuilder(typeof(LiteralArrayHelper), "Create")]
-public struct LiteralArray<T> : ISpirvElement, IFromSpirv<LiteralArray<T>>, IDisposable
+public struct LiteralArray<T> : ISpirvElement, IFromSpirv<LiteralArray<T>>, IDisposable where T : struct
 {
     static LiteralArray()
     {
@@ -34,44 +34,36 @@ public struct LiteralArray<T> : ISpirvElement, IFromSpirv<LiteralArray<T>>, IDis
             or LiteralArray<Half>
             or LiteralArray<float>
             or LiteralArray<double>
-            or LiteralArray<string>
             or LiteralArray<bool>
             or LiteralArray<(int, int)> => true,
             _ => throw new Exception("Type not supported in SPIR-V")
         };
     }
 
-    MemoryOwner<int> Memory { get; set { field?.Dispose(); field = value; } }
-    public readonly ReadOnlySpan<int> Words => Memory is not null ? Memory.Span : [];
     public MemoryOwner<T> Elements { get; set { field?.Dispose(); field = value; } }
     public readonly int WordCount => Elements?.Length ?? -1;
 
+    public readonly ReadOnlySpan<int> Words => Elements is not null ? MemoryMarshal.Cast<T, int>(Elements.Span) : [];
 
     public LiteralArray()
     {
         Elements = MemoryOwner<T>.Empty;
-        Memory = MemoryOwner<int>.Empty;
     }
     
     public LiteralArray(MemoryOwner<T> elements)
     {
         Elements = elements;
-        Memory = MemoryOwner<int>.Empty;
-        UpdateWords();
     }
     public LiteralArray(ReadOnlySpan<T> elements)
     {
         Elements = MemoryOwner<T>.Allocate(elements.Length);
         elements.CopyTo(Elements.Span);
-        Memory = MemoryOwner<int>.Empty;
-        UpdateWords();
     }
 
     public void Assign(LiteralArray<T> owner)
     {
         Elements?.Dispose();
         Elements = owner.Elements;
-        UpdateWords();
     }
     public void Assign(MemoryOwner<T> owner)
     {
@@ -94,53 +86,6 @@ public struct LiteralArray<T> : ISpirvElement, IFromSpirv<LiteralArray<T>>, IDis
     }
 
     public readonly void Dispose() => Elements.Dispose();
-
-    void UpdateWords()
-    {
-        Memory?.Dispose();
-        var memorySize = Elements.Length > 0 && Elements.Span[0] is long or ulong or double or ValueTuple<int, int> ? Elements.Length * 2 : Elements.Length;
-        Memory = MemoryOwner<int>.Allocate(memorySize, AllocationMode.Clear);
-        var pos = 0;
-        foreach (var element in Elements.Span)
-        {
-            if (element is bool or byte or sbyte or short or ushort or int or uint or float)
-            {
-                Memory.Span[pos++] = element switch
-                {
-                    bool b => b ? 1 : 0,
-                    byte b => b,
-                    sbyte sb => sb,
-                    short s => s,
-                    ushort us => us,
-                    int i => i,
-                    uint ui => (int)ui,
-                    float f => BitConverter.SingleToInt32Bits(f),
-                    _ => throw new NotImplementedException()
-                };
-            }
-            else if (element is long or ulong or double or ValueTuple<int, int>)
-            {
-                Memory.Span[pos++] = element switch
-                {
-                    long l => (int)(l >> 32),
-                    ulong ul => (int)(ul >> 32),
-                    double d => (int)(BitConverter.DoubleToInt64Bits(d) >> 32),
-                    ValueTuple<int, int> vt => vt.Item1,
-                    _ => throw new NotImplementedException()
-                };
-                Memory.Span[pos++] = element switch
-                {
-                    long l => (int)(l & 0xFFFFFFFF),
-                    ulong ul => (int)(ul & 0xFFFFFFFF),
-                    double d => (int)(BitConverter.DoubleToInt64Bits(d) & 0xFFFFFFFF),
-                    ValueTuple<int, int> vt => vt.Item2,
-                    _ => throw new NotImplementedException()
-                };
-            }
-            else throw new NotImplementedException();
-        }
-        
-    }
 
     public readonly Span<T>.Enumerator GetEnumerator() => Elements.Span.GetEnumerator();
 
