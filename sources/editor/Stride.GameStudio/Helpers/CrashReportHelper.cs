@@ -7,15 +7,11 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Stride.Core.Assets.Editor.Components.Transactions;
-#if DEBUG
-using System.Diagnostics;
-#endif
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Transactions;
 using Stride.Core.Windows;
 using Stride.Assets;
-using Stride.CrashReport;
 using Stride.Core.Presentation.Services;
 using Stride.Editor.CrashReport;
 using Stride.Graphics;
@@ -27,40 +23,19 @@ namespace Stride.GameStudio.Helpers
 {
     public static class CrashReportHelper
     {
-        public class ReportSettings : ICrashEmailSetting
-        {
-            public ReportSettings()
-            {
-                Email = Core.Assets.Editor.Settings.EditorSettings.StoreCrashEmail.GetValue();
-                StoreCrashEmail = !string.IsNullOrEmpty(Email);
-            }
-
-            public bool StoreCrashEmail { get; set; }
-
-            public string Email { get; set; }
-
-            public void Save()
-            {
-                Core.Assets.Editor.Settings.EditorSettings.StoreCrashEmail.SetValue(Email);
-                Core.Assets.Editor.Settings.EditorSettings.Save();
-            }
-        }
-
-        public const int DebugVersion = 4;
+        private const int DebugVersion = 4;
 
         public static void SendReport(string exceptionMessage, int crashLocation, string[] logs, string threadName)
         {
             var crashReport = new CrashReportData
             {
                 ["Application"] = "GameStudio",
-                ["UserEmail"] = "",
-                ["UserMessage"] = "",
                 ["StrideVersion"] = StrideVersion.NuGetVersion,
                 ["GameStudioVersion"] = DebugVersion.ToString(),
                 ["ThreadName"] = string.IsNullOrEmpty(threadName) ? "" : threadName,
 #if DEBUG
                 ["CrashLocation"] = crashLocation.ToString(),
-                ["ProcessID"] = Process.GetCurrentProcess().Id.ToString()
+                ["ProcessID"] = Environment.ProcessId.ToString()
 #endif
             };
 
@@ -132,8 +107,7 @@ namespace Stride.GameStudio.Helpers
                         if (transactionsInProgressField != null)
                         {
                             var stack = stackField.GetValue(actionService);
-                            var transactionsInProgress = transactionsInProgressField.GetValue(stack) as IEnumerable<IReadOnlyTransaction>;
-                            if (transactionsInProgress != null)
+                            if (transactionsInProgressField.GetValue(stack) is IEnumerable<IReadOnlyTransaction> transactionsInProgress)
                             {
                                 var sb = new StringBuilder();
                                 sb.AppendLine("Transactions in progress:");
@@ -154,14 +128,13 @@ namespace Stride.GameStudio.Helpers
 
             crashReport["CurrentDirectory"] = Environment.CurrentDirectory;
             crashReport["CommandArgs"] = string.Join(" ", AppHelper.GetCommandLineArgs());
-            var osVersion = CrashReportUtils.GetOsVersionAndCaption();
-            crashReport["OsVersion"] = $"{osVersion.Key} {osVersion.Value} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}";
+            crashReport["OsVersion"] = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}";
             crashReport["ProcessorCount"] = Environment.ProcessorCount.ToString();
             crashReport["Exception"] = exceptionMessage;
             var videoConfig = AppHelper.GetVideoConfig();
             foreach (var conf in videoConfig)
             {
-                crashReport.Data.Add(Tuple.Create(conf.Key, conf.Value));
+                crashReport.Data.Add((conf.Key, conf.Value));
             }
 
             var nonFatalReport = new StringBuilder();
@@ -182,12 +155,12 @@ namespace Stride.GameStudio.Helpers
                 data = Regex.Replace(data, Regex.Escape(Environment.GetEnvironmentVariable("USERPROFILE")), Regex.Escape("%USERPROFILE%"), RegexOptions.IgnoreCase);
                 data = Regex.Replace(data, $@"\b{Regex.Escape(Environment.GetEnvironmentVariable("USERNAME"))}\b", Regex.Escape("%USERNAME%"), RegexOptions.IgnoreCase);
 
-                crashReport.Data[i] = Tuple.Create(crashReport.Data[i].Item1, data);
+                crashReport.Data[i] = (crashReport.Data[i].Item1, data);
             }
 
-            var reporter = new CrashReportForm(crashReport, new ReportSettings());
+            var reporter = new CrashReportWindow(crashReport, "Stride GameStudio");
             var result = reporter.ShowDialog();
-            StrideGameStudio.MetricsClient?.CrashedSession(result == DialogResult.Yes);
+            StrideGameStudio.MetricsClient?.CrashedSession(result is true);
         }
 
         private static void ExpandAction(TransactionViewModel actionItem, StringBuilder sb, int increment)

@@ -26,15 +26,14 @@ namespace Stride.GameStudio.Remote
         /// <summary>
         /// Launch <paramref name="exePath"/> on remote host using credentials stored in EditorSettings.
         /// Before launching all the files requires by <paramref name="exePath"/> are copied over to host
-        /// using the location specified in EditorSettings.Location. If <paramref name="isCoreCLR"/> is set
-        /// all the Stride native libraries are copied over to the current directory of the game on the remote
+        /// using the location specified in EditorSettings.Location.
+        /// All the Stride native libraries are copied over to the current directory of the game on the remote
         /// host via the `CoreCLRSetup` script.
         /// </summary>
         /// <param name="logger">Logger to show progress and any issues that may occur.</param>
         /// <param name="exePath">Path on the local machine where the executable was compiled.</param>
-        /// <param name="isCoreCLR">Is <paramref name="exePath"/> executed against .NET Core?</param>
         /// <returns>True when launch was successful, false otherwise.</returns>
-        internal static bool Launch([NotNull] LoggerResult logger, [NotNull] UFile exePath, bool isCoreCLR)
+        internal static bool Launch([NotNull] LoggerResult logger, [NotNull] UFile exePath)
         {
             if (logger == null) throw new ArgumentNullException(nameof(logger));
             if (exePath == null) throw new ArgumentNullException(nameof(exePath));
@@ -55,31 +54,25 @@ namespace Stride.GameStudio.Remote
                     sshClient.Connect();
                     if (sshClient.IsConnected)
                     {
-                        string cmdString;
-                        SshCommand cmd;
-
                         // Due to lack of Dllmap config for CoreCLR, we have to ensure that our native libraries
                         // are copied next to the executable. The CoreCLRSetup script will check the 32-bit vs 64-bit
                         // of the `dotnet` runner and copy the .so files from the proper x86 or x64 directory.
-                        if (isCoreCLR)
+                        string cmdString = "bash -c 'source /etc/profile ; cd " + location + "/" + exePath.GetFileNameWithoutExtension() + ";" + "sh ./CoreCLRSetup.sh'";
+                        SshCommand cmd = sshClient.CreateCommand(cmdString);
+                        cmd.Execute();
+                        var err = cmd.Error;
+                        if (!string.IsNullOrEmpty(err))
                         {
-                            cmdString = "bash -c 'source /etc/profile ; cd " + location + "/" + exePath.GetFileNameWithoutExtension() + ";" + "sh ./CoreCLRSetup.sh'";
-                            cmd = sshClient.CreateCommand(cmdString);
-                            cmd.Execute();
-                            var err = cmd.Error;
+                            logger.Error(err);
+                            // We don't exit here in case of failure, we just print the error and continue
+                            // Users can then try to fix the issue directly on the remote host.
+                        }
+                        else
+                        {
+                            err = cmd.Result;
                             if (!string.IsNullOrEmpty(err))
                             {
-                                logger.Error(err);
-                                // We don't exit here in case of failure, we just print the error and continue
-                                // Users can then try to fix the issue directly on the remote host.
-                            }
-                            else
-                            {
-                                err = cmd.Result;
-                                if (!string.IsNullOrEmpty(err))
-                                {
-                                    logger.Info(err);
-                                }
+                                logger.Info(err);
                             }
                         }
                         // Try to get the main IP of the machine
@@ -89,7 +82,6 @@ namespace Stride.GameStudio.Remote
                         {
                             connectionRouter = " StrideConnectionRouterRemoteIP=" + ipv4;
                         }
-                        var dotnetEngine = StrideEditorSettings.UseCoreCLR.GetValue() ? " dotnet " : " mono ";
                         if (!string.IsNullOrEmpty(display))
                         {
                             display = " DISPLAY=" + display;
@@ -98,7 +90,7 @@ namespace Stride.GameStudio.Remote
                         {
                             display = " DISPLAY=:0.0";
                         }
-                        cmdString = "bash -c 'source /etc/profile ; cd " + location + "/" + exePath.GetFileNameWithoutExtension() + ";" + display + connectionRouter + dotnetEngine + "./" + exePath.GetFileName() + "'";
+                        cmdString = "bash -c 'source /etc/profile ; cd " + location + "/" + exePath.GetFileNameWithoutExtension() + ";" + display + connectionRouter + " dotnet ./" + exePath.GetFileName() + "'";
                         cmd = sshClient.CreateCommand(cmdString);
                         cmd.BeginExecute((callback) =>
                         {

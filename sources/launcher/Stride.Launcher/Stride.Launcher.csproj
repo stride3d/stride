@@ -43,7 +43,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Stride.Metrics" Version="1.0.3" />
-    <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs">
@@ -105,6 +104,7 @@
     <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.Yaml\Stride.Core.Yaml.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
+    <ProjectReference Include="..\..\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Dialogs\Stride.Core.Presentation.Dialogs.csproj" />
   </ItemGroup>
@@ -131,5 +131,4 @@
   <Import Project="..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
   <Import Project="..\..\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
   <Import Project="..\..\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems" Label="Shared" />
-  <Import Project="..\..\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems" Label="Shared" />
 </Project>
