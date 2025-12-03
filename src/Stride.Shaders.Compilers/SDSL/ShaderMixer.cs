@@ -277,14 +277,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         //Console.WriteLine("Done SDSL importing");
         //Spv.Dis(buffer, true);
 
-        new TypeDuplicateRemover().Apply(buffer);
-
-        //Console.WriteLine("Done type remapping");
         Spv.Dis(buffer, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
         // Import struct types
         ImportStructTypes(globalContext, buffer, mixinNode);
 
+        new TypeDuplicateRemover().Apply(buffer);
+
+        //Console.WriteLine("Done type remapping");
         Spv.Dis(buffer, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
         // Build names and types mappings
@@ -526,11 +526,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 currentShader = null;
             }
-            else if (i.Data.Op == Op.OpVariable && (OpVariable)i is { } variable && variable.Storageclass == Specification.StorageClass.Private)
-            {
-                var variableName = globalContext.Names[variable.ResultId];
-                mixinNode.VariablesByName.Add(variableName, variable.ResultId);
-            }
             else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
                 if (temp[index + 1].Op == Op.OpSDSLFunctionInfo &&
@@ -668,8 +663,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                 if (mixinNode.ExternalVariables.TryGetValue(memberAccess.Member, out var variable))
                 {
-                    instanceMixinGroup.VariablesByName.TryGetValue(variable.Name, out var variableId);
-                    memberAccesses.Add(memberAccess.ResultId, variableId);
+                    var shaderName = mixinNode.ExternalShaders[variable.ShaderId];
+
+                    var shaderInfo = mixinNode.ShadersByName[shaderName];
+                    if (!shaderInfo.Variables.TryGetValue(variable.Name, out var variableInfo))
+                        throw new InvalidOperationException($"External variable {variable.Name} not found");
+                    memberAccesses.Add(memberAccess.ResultId, variableInfo.Id);
                 }
                 else if (globalContext.Types[memberAccess.ResultType] is FunctionType)
                 {
@@ -711,8 +710,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                         if (!baseMethodFound)
                             throw new InvalidOperationException($"Can't find a base method for {globalContext.Names[functionId]}");
-
-                        SetOpNop(temp[index - 1].Data.Memory.Span);
                     }
                     else
                     {
@@ -738,15 +735,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 memberAccesses.Clear();
             }
-            else if (i.Data.Op == Op.OpFunctionCall && (OpFunctionCall)i is { } functionCall)
-            {
-                if (memberAccesses.TryGetValue(functionCall.Function, out var functionId))
-                {
-                    functionCall.Function = functionId;
-                }
 
-                Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
-            }
+            SpirvBuilder.RemapIds(memberAccesses, i);
         }
     }
 

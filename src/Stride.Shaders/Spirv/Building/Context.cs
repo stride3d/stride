@@ -191,7 +191,7 @@ public class SpirvContext
                 StructType st => RegisterStructuredType(st.ToId(), st),
                 FunctionType f => RegisterFunctionType(f),
                 PointerType p => RegisterPointerType(p),
-                ShaderSymbol s => RegisterShaderType(s),
+                ShaderSymbol s => ImportShaderType(s),
                 Texture1DType t => Buffer.Add(new OpTypeImage(Bound++, GetOrRegister(t.ReturnType), t.Dimension, t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
                 Texture2DType t => Buffer.Add(new OpTypeImage(Bound++, GetOrRegister(t.ReturnType), t.Dimension, t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
                 Texture3DType t => Buffer.Add(new OpTypeImage(Bound++, GetOrRegister(t.ReturnType), t.Dimension, t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
@@ -207,7 +207,7 @@ public class SpirvContext
         }
     }
 
-    private int RegisterShaderType(ShaderSymbol shaderSymbol)
+    public int ImportShaderType(ShaderSymbol shaderSymbol)
     {
         FluentAdd(new OpSDSLImportShader(Bound++, new(shaderSymbol.Name), new(shaderSymbol.GenericArguments.AsSpan())), out var shader);
         AddName(shader.ResultId, shaderSymbol.Name);
@@ -216,10 +216,14 @@ public class SpirvContext
         var structTypes = CollectionsMarshal.AsSpan(shaderSymbol.StructTypes);
         foreach (ref var structType in structTypes)
         {
-            FluentAdd(new OpSDSLImportStruct(Bound++, structType.Type.Name, shader.ResultId), out var @struct);
+            FluentAdd(new OpSDSLImportStruct(Bound++, structType.Type.ToId(), shader.ResultId), out var @struct);
             AddName(@struct.ResultId, structType.Type.Name);
             // Fill the ID
             structType.ImportedId = @struct.ResultId;
+
+            // Register it so that it can be used right after during OpVariable for cbuffer
+            Types.Add(structType.Type, structType.ImportedId);
+            ReverseTypes.Add(structType.ImportedId, structType.Type);
         }
 
         // Import variables/functions
@@ -237,11 +241,6 @@ public class SpirvContext
             }
             else if (c.Id.Kind == SymbolKind.Variable)
             {
-                // Currently, we ignore cbuffer
-                // TOOD: review that
-                if (c.Type is PointerType { StorageClass: Specification.StorageClass.Uniform } p && p.BaseType is StructType)
-                    continue;
-
                 c.IdRef = Bound++;
                 Add(new OpSDSLImportVariable(c.IdRef, GetOrRegister(c.Type), c.Id.Name, shader.ResultId));
                 AddName(c.IdRef, c.Id.Name);
@@ -253,7 +252,7 @@ public class SpirvContext
 
     public int DeclareCBuffer(ConstantBufferSymbol cb)
     {
-        var result = DeclareStructuredType($"type.{cb.ToId()}", cb);
+        var result = DeclareStructuredType(cb);
 
         Buffer.Add(new OpDecorate(result, Decoration.Block));
 
@@ -265,7 +264,7 @@ public class SpirvContext
         throw new InvalidOperationException();
     }
 
-    public int DeclareStructuredType(string name, StructuredType structSymbol)
+    public int DeclareStructuredType(StructuredType structSymbol)
     {
         Span<int> types = stackalloc int[structSymbol.Members.Count];
         for (var index = 0; index < structSymbol.Members.Count; index++)
@@ -273,7 +272,7 @@ public class SpirvContext
 
         var result = Add(new OpTypeStruct(Bound++, [.. types]));
         var id = result.IdResult ?? throw new InvalidOperationException();
-        AddName(id, name);
+        AddName(id, structSymbol.ToId());
         for (var index = 0; index < structSymbol.Members.Count; index++)
         {
             var member = structSymbol.Members[index];

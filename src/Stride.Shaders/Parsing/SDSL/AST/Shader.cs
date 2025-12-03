@@ -40,6 +40,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     public static void ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end, Dictionary<int, string> names, Dictionary<int, SymbolType> types)
     {
         var memberNames = new Dictionary<(int, int), string>();
+        var blocks = new HashSet<int>();
         for (var i = start; i < end; i++)
         {
             var instruction = buffer[i];
@@ -52,6 +53,12 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 OpMemberName nameInstruction = instruction;
                 memberNames.Add((nameInstruction.Type, nameInstruction.Member), nameInstruction.Name);
+            }
+            else if (instruction.Op == Op.OpDecorate)
+            {
+                OpDecorate decorateInstruction = instruction;
+                if (decorateInstruction.Decoration.Value == Decoration.Block)
+                    blocks.Add(decorateInstruction.Target);
             }
             else if (instruction.Op == Op.OpTypeFloat)
             {
@@ -108,7 +115,10 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var name = memberNames[(typeStructInstruction.ResultId, index)];
                     fields.Add((name, type, TypeModifier.None));
                 }
-                types.Add(typeStructInstruction.ResultId, new StructType(structName, fields));
+                StructuredType structType = (blocks.Contains(typeStructInstruction.ResultId))
+                    ? new ConstantBufferSymbol(structName.StartsWith("type.") ? structName.Substring("type.".Length) : throw new InvalidOperationException(), fields)
+                    : new StructType(structName, fields);
+                types.Add(typeStructInstruction.ResultId, structType);
             }
             else if (instruction.Op == Op.OpTypeFunction && new OpTypeFunction(instruction) is { } typeFunctionInstruction)
             {
@@ -166,7 +176,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             // Can be declared before OpTypeStruct, so done in second pass
             if (instruction.Op == Op.OpMemberDecorate && (OpMemberDecorate)instruction is { } memberDecorate)
             {
-                var structType = (StructType)types[memberDecorate.StructureType];
+                var structType = (StructuredType)types[memberDecorate.StructureType];
                 if (memberDecorate.Decoration == Decoration.ColMajor)
                     structType.Members[memberDecorate.Member] = structType.Members[memberDecorate.Member] with { TypeModifier = TypeModifier.ColumnMajor };
                 else if (memberDecorate.Decoration == Decoration.RowMajor)
@@ -180,7 +190,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         ProcessNameAndTypes(buffer, 0, buffer.Count, out var names, out var types);
 
         var symbols = new List<Symbol>();
-        var structTypes = new List<(StructType Type, int ImportedId)>();
+        var structTypes = new List<(StructuredType Type, int ImportedId)>();
         for (var index = 0; index < buffer.Count; index++)
         {
             var instruction = buffer[index];
@@ -211,7 +221,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
             if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
             {
-                structTypes.Add(((StructType)types[typeStructInstruction.ResultId], -1));
+                structTypes.Add(((StructuredType)types[typeStructInstruction.ResultId], -1));
             }
 
             if (instruction.Op == Op.OpSDSLGenericParameter)
@@ -380,28 +390,44 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         foreach (var structType in shaderType.StructTypes)
         {
             // Add the struct like if it was part of our shader (but using the imported id)
-            context.Types.Add(structType.Type, structType.ImportedId);
-            context.ReverseTypes.Add(structType.ImportedId, structType.Type);
             table.DeclaredTypes.TryAdd(structType.Type.Name, structType.Type);
         }
 
-        foreach (var c in shaderType.Components)
+        if (addToRoot)
+            table.CurrentFrame.AddImplicitShader(shaderType);
+        /*foreach (var c in shaderType.Components)
         {
             if (c.Id.Kind == SymbolKind.Variable)
             {
                 if (addToRoot)
-                    table.CurrentFrame.Add(c.Id.Name, c with { ImplicitThis = true });
+                {
+                    table.CurrentFrame.Add(c.Id.Name, c with { ImplicitThisType = c.Type });
+
+                    // cbuffer: add members
+                    if (c.Type is PointerType { StorageClass: Specification.StorageClass.Uniform } p && p.BaseType is ConstantBufferSymbol cb)
+                    {
+                        for (int index = 0; index < cb.Members.Count; index++)
+                        {
+                            var member = cb.Members[index];
+
+                            var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
+                            var symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.IdRef, ImplicitThisType: c.Type, AccessChain: index);
+
+                            table.CurrentFrame.Add(member.Name, symbol);
+                        }
+                    }
+                }
             }
             else if (c.Id.Kind == SymbolKind.Method)
             {
                 if (addToRoot)
-                    table.CurrentFrame.Add(c.Id.Name, c with { ImplicitThis = true });
+                    table.CurrentFrame.Add(c.Id.Name, c with { ImplicitThisType = c.Type });
             }
-        }
+        }*/
 
         if (!addToRoot)
         {
-            var symbol = new Symbol(new(shaderType.Name, SymbolKind.Shader), shaderType, shaderId);
+            var symbol = new Symbol(new(shaderType.Name, SymbolKind.Shader), new PointerType(shaderType, Specification.StorageClass.Private), shaderId);
             table.CurrentFrame.Add(shaderType.Name, symbol);
         }
 

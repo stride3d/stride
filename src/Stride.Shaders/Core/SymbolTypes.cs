@@ -1,8 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Core;
@@ -235,14 +236,17 @@ public sealed record FunctionType(SymbolType ReturnType, List<SymbolType> Parame
 
 public sealed record StreamsSymbol : SymbolType;
 
-public sealed record ConstantBufferSymbol(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : StructuredType(Name, Members);
+public sealed record ConstantBufferSymbol(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : StructuredType(Name, Members)
+{
+    public override string ToId() => $"type.{Name}";
+}
 public sealed record ParamsSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
 public sealed record EffectSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
 
 public sealed record ShaderSymbol(string Name, int[] GenericArguments) : SymbolType
 {
     public List<Symbol> Components { get; init; } = [];
-    public List<(StructType Type, int ImportedId)> StructTypes { get; init; } = [];
+    public List<(StructuredType Type, int ImportedId)> StructTypes { get; init; } = [];
 
     public string ToClassName()
     {
@@ -251,6 +255,35 @@ public sealed record ShaderSymbol(string Name, int[] GenericArguments) : SymbolT
 
         var className = new ShaderClassInstantiation(Name, GenericArguments);
         return className.ToClassName();
+    }
+
+    internal bool TryResolveSymbol(string name, out Symbol symbol)
+    {
+        foreach (var c in Components)
+        {
+            if (c.Id.Name == name)
+            {
+                symbol = c with { ImplicitThisType = c.Type };
+                return true;
+            }
+
+            if (c.Type is PointerType { StorageClass: Specification.StorageClass.Uniform } p && p.BaseType is ConstantBufferSymbol cb)
+            {
+                for (int index = 0; index < cb.Members.Count; index++)
+                {
+                    var member = cb.Members[index];
+                    if (member.Name == name)
+                    {
+                        var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
+                        symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.IdRef, ImplicitThisType: c.Type, AccessChain: index);
+                        return true;
+                    }
+                }
+            }
+        }
+
+        symbol = default;
+        return false;
     }
 }
 

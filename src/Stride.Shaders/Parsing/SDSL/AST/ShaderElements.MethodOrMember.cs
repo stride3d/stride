@@ -228,7 +228,7 @@ public class ShaderMethod(
         if (IsStaged)
             functionFlags |= Specification.FunctionFlagsMask.Stage;
 
-        var symbol = new Symbol(new(Name, SymbolKind.Method, FunctionFlags: functionFlags), Type, function.Id, ImplicitThis: true);
+        var symbol = new Symbol(new(Name, SymbolKind.Method, FunctionFlags: functionFlags), Type, function.Id, ImplicitThisType: Type);
         table.CurrentShader.Components.Add(symbol);
         table.CurrentFrame.Add(Name, symbol);
     }

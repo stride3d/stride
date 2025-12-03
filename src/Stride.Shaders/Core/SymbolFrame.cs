@@ -8,10 +8,17 @@ public class SymbolFrame()
 {
     readonly Dictionary<string, Symbol> symbols = [];
 
+    readonly List<ShaderSymbol> implicitShaders = [];
+
     public Symbol this[string name]
     {
         get => symbols[name];
         set => symbols[name] = value;
+    }
+
+    public void AddImplicitShader(ShaderSymbol shaderSymbol)
+    {
+        implicitShaders.Add(shaderSymbol);
     }
 
     public void Add(string name, Symbol symbol)
@@ -37,7 +44,18 @@ public class SymbolFrame()
     public bool ContainsKey(string name) => symbols.ContainsKey(name);
     public bool ContainsValue(Symbol symbol) => symbols.ContainsValue(symbol);
     public bool TryGetValue(string name, out Symbol symbol)
-        => symbols.TryGetValue(name, out symbol);
+    {
+        if (symbols.TryGetValue(name, out symbol))
+            return true;
+
+        foreach (var implicitShader in implicitShaders)
+        {
+            if (implicitShader.TryResolveSymbol(name, out symbol))
+                return true;
+        }
+
+        return false;
+    }
 
     public Dictionary<string, Symbol>.Enumerator GetEnumerator() => symbols.GetEnumerator();
 }

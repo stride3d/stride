@@ -91,7 +91,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         {
             instance = builder.Insert(new OpBaseSDSL(context.Bound++)).ResultId;
         }
-        else if (functionSymbol.ImplicitThis)
+        else if (functionSymbol.ImplicitThisType is { } thisType)
         {
             var isStage = (functionSymbol.Id.FunctionFlags & Spirv.Specification.FunctionFlagsMask.Stage) != 0;
             instance = isStage
@@ -288,10 +288,13 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         // next start is i + 1 because current value doesn't add a call
                         EmitOpAccessChain(i, i + 1, indexes);
 
-                        var matchingComponent = s.Components.First(x => x.Id.Kind == SymbolKind.Variable && x.Id.Name == field.Name);
+                        if (!s.TryResolveSymbol(field.Name, out var matchingComponent))
+                            throw new InvalidOperationException();
+
+                        // TODO: figure out instance (this vs composition)
+                        result = Identifier.EmitSymbol(compiler, builder, context, matchingComponent);
                         accessor.Type = matchingComponent.Type;
-                        var inst = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(matchingComponent.Type), context.Bound++, result.Id, matchingComponent.IdRef));
-                        result = new(inst.ResultId, inst.ResultType);
+
                         break;
                     case (PointerType { BaseType: StructType s } p, Identifier field):
                         var index = s.TryGetFieldIndex(field);

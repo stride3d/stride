@@ -204,7 +204,7 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
     {
         var (builder, context) = compiler;
         var structType = (StructType)Type;
-        context.DeclareStructuredType(structType.ToId(), structType);
+        context.DeclareStructuredType(structType);
     }
 
     public override string ToString()
@@ -270,7 +270,7 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
         {
             var member = Members[index];
             var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
-            var symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), variable, index);
+            var symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), variable, AccessChain: index);
             table.CurrentFrame.Add(member.Name, symbol);
 
             if (member.TypeModifier != TypeModifier.ColumnMajor)

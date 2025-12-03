@@ -199,31 +199,39 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         {
             // Maybe it's a static variable? try to resolve by loading file
             var classSource = new ShaderClassInstantiation(Name, []);
-            classSource.Buffer = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, ResolveStep.Compile, context.GetBuffer());
+            classSource.Buffer = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, Name);
             var shaderType = ShaderClass.LoadExternalShaderType(table, classSource);
 
+            // Shader is inherited (TODO: do we want to do something more "selective", i.e. import only the required variable if it's a cbuffer?)
             ShaderClass.Inherit(table, context, shaderType, false);
-            // Let's add this shader
 
-            throw new NotImplementedException();
+            symbol = table.ResolveSymbol(Name);
         }
         Type = symbol.Type;
 
-        var resultType = context.GetOrRegister(Type);
-        var result = new SpirvValue(symbol.IdRef, resultType, Name);
+        return EmitSymbol(compiler, builder, context, symbol);
+    }
 
+    public static SpirvValue EmitSymbol(CompilerUnit compiler, SpirvBuilder builder, SpirvContext context, Symbol symbol, int? instance = null)
+    {
+        var resultType = context.GetOrRegister(symbol.Type);
+        var result = new SpirvValue(symbol.IdRef, resultType, symbol.Id.Name);
+
+        if (symbol.ImplicitThisType is { } thisType)
+        {
+            var isStage = (symbol.Id.FunctionFlags & Spirv.Specification.FunctionFlagsMask.Stage) != 0;
+            if (instance == null)
+            {
+                instance = isStage
+                    ? builder.Insert(new OpStageSDSL(context.Bound++)).ResultId
+                    : builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
+            }
+            result.Id = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(thisType), context.Bound++, instance.Value, result.Id));
+        }
         if (symbol.AccessChain is int accessChainIndex)
         {
             var index = context.CompileConstant(accessChainIndex).Id;
-            result.Id = compiler.Builder.Insert(new OpAccessChain(resultType, compiler.Context.Bound++, symbol.IdRef, [index]));
-        }
-        else if (symbol.ImplicitThis is true)
-        {
-            var isStage = (symbol.Id.FunctionFlags & Spirv.Specification.FunctionFlagsMask.Stage) != 0;
-            var instance = isStage
-                ? builder.Insert(new OpStageSDSL(context.Bound++)).ResultId
-                : builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
-            result.Id = builder.Insert(new OpMemberAccessSDSL(resultType, context.Bound++, instance, symbol.IdRef));
+            result.Id = compiler.Builder.Insert(new OpAccessChain(resultType, compiler.Context.Bound++, result.Id, [index]));
         }
 
         return result;
