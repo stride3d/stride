@@ -13,7 +13,7 @@ public class RoundCall(ShaderExpressionList parameters, TextLocation info) : Met
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLRound(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -25,7 +25,7 @@ public class RoundEvenCall(ShaderExpressionList parameters, TextLocation info) :
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLRoundEven(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -37,7 +37,7 @@ public class TruncCall(ShaderExpressionList parameters, TextLocation info) : Met
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLTrunc(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -49,11 +49,11 @@ public class AbsCall(ShaderExpressionList parameters, TextLocation info) : Metho
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
 
-        var elementType = Parameters.Values[0].Type.GetElementType();
+        var elementType = Parameters.Values[0].ValueType.GetElementType();
         if (elementType.IsFloating())
         {
             var instruction = builder.Insert(new GLSLFAbs(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -75,11 +75,11 @@ public class SignCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
 
-        var elementType = Parameters.Values[0].Type.GetElementType();
+        var elementType = Parameters.Values[0].ValueType.GetElementType();
         if (elementType.IsFloating())
         {
             var instruction = builder.Insert(new GLSLFSign(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -101,7 +101,7 @@ public class FloorCall(ShaderExpressionList parameters, TextLocation info) : Met
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLFloor(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -113,7 +113,7 @@ public class CeilCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLCeil(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -125,7 +125,7 @@ public class FractCall(ShaderExpressionList parameters, TextLocation info) : Met
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLFract(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -137,7 +137,7 @@ public class RadiansCall(ShaderExpressionList parameters, TextLocation info) : M
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var radians = Parameters.Values[0].Compile(table, shader, compiler);
+        var radians = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLRadians(radians.TypeId, context.Bound++, context.GLSLSet ?? -1, radians.Id));
@@ -149,7 +149,7 @@ public class DegreesCall(ShaderExpressionList parameters, TextLocation info) : M
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var radians = Parameters.Values[0].Compile(table, shader, compiler);
+        var radians = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLDegrees(radians.TypeId, context.Bound++, context.GLSLSet ?? -1, radians.Id));
@@ -161,7 +161,7 @@ public class SinCall(ShaderExpressionList parameters, TextLocation info) : Metho
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLSin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -173,7 +173,7 @@ public class CosCall(ShaderExpressionList parameters, TextLocation info) : Metho
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLCos(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -185,7 +185,7 @@ public class TanCall(ShaderExpressionList parameters, TextLocation info) : Metho
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLTan(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -197,7 +197,7 @@ public class AsinCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLAsin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -209,7 +209,7 @@ public class AcosCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLAcos(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -221,7 +221,7 @@ public class AtanCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var y_over_x = Parameters.Values[0].Compile(table, shader, compiler);
+        var y_over_x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLAtan(y_over_x.TypeId, context.Bound++, context.GLSLSet ?? -1, y_over_x.Id));
@@ -233,7 +233,7 @@ public class SinhCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLSinh(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -245,7 +245,7 @@ public class CoshCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLCosh(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -257,7 +257,7 @@ public class TanhCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLTanh(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -269,7 +269,7 @@ public class AsinhCall(ShaderExpressionList parameters, TextLocation info) : Met
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLAsinh(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -281,7 +281,7 @@ public class AcoshCall(ShaderExpressionList parameters, TextLocation info) : Met
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLAcosh(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -293,7 +293,7 @@ public class AtanhCall(ShaderExpressionList parameters, TextLocation info) : Met
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLAtanh(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -305,7 +305,7 @@ public class Atan2Call(ShaderExpressionList parameters, TextLocation info) : Met
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLAtan2(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
@@ -317,7 +317,7 @@ public class PowCall(ShaderExpressionList parameters, TextLocation info) : Metho
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLPow(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
@@ -329,7 +329,7 @@ public class ExpCall(ShaderExpressionList parameters, TextLocation info) : Metho
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLExp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -341,7 +341,7 @@ public class LogCall(ShaderExpressionList parameters, TextLocation info) : Metho
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLLog(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -353,7 +353,7 @@ public class Exp2Call(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLExp2(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -365,7 +365,7 @@ public class Log2Call(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLLog2(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -377,7 +377,7 @@ public class SqrtCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLSqrt(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -389,7 +389,7 @@ public class InverseSqrtCall(ShaderExpressionList parameters, TextLocation info)
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLInverseSqrt(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -401,10 +401,10 @@ public class DeterminantCall(ShaderExpressionList parameters, TextLocation info)
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var resultType = Parameters.Values[0].Type.GetElementType();
+        var resultType = Parameters.Values[0].ValueType.GetElementType();
         var instruction = builder.Insert(new GLSLDeterminant(context.GetOrRegister(resultType), context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
@@ -414,7 +414,7 @@ public class MatrixInverseCall(ShaderExpressionList parameters, TextLocation inf
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLMatrixInverse(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -426,7 +426,7 @@ public class ModfCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, i) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, i) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLModf(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, i.Id));
@@ -438,7 +438,7 @@ public class ModfStructCall(ShaderExpressionList parameters, TextLocation info) 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLModfStruct(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -450,7 +450,7 @@ public class FMinCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLFMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
@@ -462,7 +462,7 @@ public class UMinCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLUMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
@@ -474,7 +474,7 @@ public class SMinCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLSMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
@@ -486,7 +486,7 @@ public class FMaxCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLFMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
@@ -498,7 +498,7 @@ public class UMaxCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLUMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
@@ -510,7 +510,7 @@ public class SMaxCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLSMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
@@ -522,7 +522,7 @@ public class FClampCall(ShaderExpressionList parameters, TextLocation info) : Me
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, minVal, maxVal) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler), Parameters.Values[2].Compile(table, shader, compiler));
+        var (x, minVal, maxVal) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLFClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id));
@@ -534,7 +534,7 @@ public class UClampCall(ShaderExpressionList parameters, TextLocation info) : Me
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, minVal, maxVal) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler), Parameters.Values[2].Compile(table, shader, compiler));
+        var (x, minVal, maxVal) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLUClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id));
@@ -546,7 +546,7 @@ public class SClampCall(ShaderExpressionList parameters, TextLocation info) : Me
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, minVal, maxVal) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler), Parameters.Values[2].Compile(table, shader, compiler));
+        var (x, minVal, maxVal) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLSClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id));
@@ -558,7 +558,7 @@ public class FMixCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y, a) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler), Parameters.Values[2].Compile(table, shader, compiler));
+        var (x, y, a) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLFMix(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id, a.Id));
@@ -570,7 +570,7 @@ public class IMixCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y, a) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler), Parameters.Values[2].Compile(table, shader, compiler));
+        var (x, y, a) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLIMix(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id, a.Id));
@@ -582,7 +582,7 @@ public class StepCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (edge, x) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (edge, x) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLStep(edge.TypeId, context.Bound++, context.GLSLSet ?? -1, edge.Id, x.Id));
@@ -594,7 +594,7 @@ public class SmoothStepCall(ShaderExpressionList parameters, TextLocation info) 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (edge0, edge1, x) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler), Parameters.Values[2].Compile(table, shader, compiler));
+        var (edge0, edge1, x) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLSmoothStep(edge0.TypeId, context.Bound++, context.GLSLSet ?? -1, edge0.Id, edge1.Id, x.Id));
@@ -606,7 +606,7 @@ public class FmaCall(ShaderExpressionList parameters, TextLocation info) : Metho
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (a, b, c) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler), Parameters.Values[2].Compile(table, shader, compiler));
+        var (a, b, c) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLFma(a.TypeId, context.Bound++, context.GLSLSet ?? -1, a.Id, b.Id, a.Id));
@@ -618,7 +618,7 @@ public class FrexpCall(ShaderExpressionList parameters, TextLocation info) : Met
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, exp) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, exp) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLFrexp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, exp.Id));
@@ -630,7 +630,7 @@ public class FrexpStructCall(ShaderExpressionList parameters, TextLocation info)
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLMatrixInverse(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -642,7 +642,7 @@ public class LdexpCall(ShaderExpressionList parameters, TextLocation info) : Met
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, exp) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, exp) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLLdexp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, exp.Id));
@@ -654,7 +654,7 @@ public class PackSnorm4x8Call(ShaderExpressionList parameters, TextLocation info
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var v = Parameters.Values[0].Compile(table, shader, compiler);
+        var v = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLPackSnorm4x8(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
@@ -666,7 +666,7 @@ public class PackUnorm4x8Call(ShaderExpressionList parameters, TextLocation info
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var v = Parameters.Values[0].Compile(table, shader, compiler);
+        var v = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLPackUnorm4x8(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
@@ -678,7 +678,7 @@ public class PackSnorm2x16Call(ShaderExpressionList parameters, TextLocation inf
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var v = Parameters.Values[0].Compile(table, shader, compiler);
+        var v = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLPackSnorm2x16(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
@@ -690,7 +690,7 @@ public class PackUnorm2x16Call(ShaderExpressionList parameters, TextLocation inf
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var v = Parameters.Values[0].Compile(table, shader, compiler);
+        var v = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLPackUnorm2x16(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
@@ -702,7 +702,7 @@ public class PackHalf2x16Call(ShaderExpressionList parameters, TextLocation info
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var v = Parameters.Values[0].Compile(table, shader, compiler);
+        var v = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLPackHalf2x16(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
@@ -714,7 +714,7 @@ public class PackDouble2x32Call(ShaderExpressionList parameters, TextLocation in
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var v = Parameters.Values[0].Compile(table, shader, compiler);
+        var v = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLPackDouble2x32(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
@@ -726,7 +726,7 @@ public class UnpackSnorm2x16Call(ShaderExpressionList parameters, TextLocation i
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        var p = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLUnpackSnorm2x16(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
@@ -738,7 +738,7 @@ public class UnpackUnorm2x16Call(ShaderExpressionList parameters, TextLocation i
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        var p = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLUnpackUnorm2x16(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
@@ -750,7 +750,7 @@ public class UnpackHalf2x16Call(ShaderExpressionList parameters, TextLocation in
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var v = Parameters.Values[0].Compile(table, shader, compiler);
+        var v = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLUnpackHalf2x16(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
@@ -762,7 +762,7 @@ public class UnpackSnorm4x8Call(ShaderExpressionList parameters, TextLocation in
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        var p = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLUnpackSnorm4x8(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
@@ -774,7 +774,7 @@ public class UnpackUnorm4x8Call(ShaderExpressionList parameters, TextLocation in
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        var p = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLUnpackUnorm4x8(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
@@ -786,7 +786,7 @@ public class UnpackDouble2x32Call(ShaderExpressionList parameters, TextLocation 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var p = Parameters.Values[0].Compile(table, shader, compiler);
+        var p = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLUnpackDouble2x32(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
@@ -798,10 +798,10 @@ public class LengthCall(ShaderExpressionList parameters, TextLocation info) : Me
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var resultType = Parameters.Values[0].Type.GetElementType();
+        var resultType = Parameters.Values[0].ValueType.GetElementType();
         var instruction = builder.Insert(new GLSLLength(context.GetOrRegister(resultType), context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
@@ -811,7 +811,7 @@ public class DistanceCall(ShaderExpressionList parameters, TextLocation info) : 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (p0, p1) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (p0, p1) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLDistance(p0.TypeId, context.Bound++, context.GLSLSet ?? -1, p0.Id, p1.Id));
@@ -823,7 +823,7 @@ public class CrossCall(ShaderExpressionList parameters, TextLocation info) : Met
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLCross(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
@@ -835,7 +835,7 @@ public class NormalizeCall(ShaderExpressionList parameters, TextLocation info) :
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var x = Parameters.Values[0].Compile(table, shader, compiler);
+        var x = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLNormalize(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -847,7 +847,7 @@ public class FaceForwardCall(ShaderExpressionList parameters, TextLocation info)
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (N, I, Nre) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler), Parameters.Values[2].Compile(table, shader, compiler));
+        var (N, I, Nre) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLFaceForward(N.TypeId, context.Bound++, context.GLSLSet ?? -1, N.Id, I.Id, Nre.Id));
@@ -859,7 +859,7 @@ public class ReflectCall(ShaderExpressionList parameters, TextLocation info) : M
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (I, N) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (I, N) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLReflect(I.TypeId, context.Bound++, context.GLSLSet ?? -1, I.Id, N.Id));
@@ -871,7 +871,7 @@ public class RefractCall(ShaderExpressionList parameters, TextLocation info) : M
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (I, N, eta) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler), Parameters.Values[2].Compile(table, shader, compiler));
+        var (I, N, eta) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLRefract(I.TypeId, context.Bound++, context.GLSLSet ?? -1, I.Id, N.Id, eta.Id));
@@ -883,7 +883,7 @@ public class FindILsbCall(ShaderExpressionList parameters, TextLocation info) : 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var value = Parameters.Values[0].Compile(table, shader, compiler);
+        var value = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLFindILsb(value.TypeId, context.Bound++, context.GLSLSet ?? -1, value.Id));
@@ -895,7 +895,7 @@ public class FindSMsbCall(ShaderExpressionList parameters, TextLocation info) : 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var value = Parameters.Values[0].Compile(table, shader, compiler);
+        var value = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLFindSMsb(value.TypeId, context.Bound++, context.GLSLSet ?? -1, value.Id));
@@ -907,7 +907,7 @@ public class FindUMsbCall(ShaderExpressionList parameters, TextLocation info) : 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var value = Parameters.Values[0].Compile(table, shader, compiler);
+        var value = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLFindUMsb(value.TypeId, context.Bound++, context.GLSLSet ?? -1, value.Id));
@@ -919,7 +919,7 @@ public class InterpolateAtCentroidCall(ShaderExpressionList parameters, TextLoca
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var interpolant = Parameters.Values[0].Compile(table, shader, compiler);
+        var interpolant = Parameters.Values[0].CompileAsValue(table, shader, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLInterpolateAtCentroid(interpolant.TypeId, context.Bound++, context.GLSLSet ?? -1, interpolant.Id));
@@ -931,7 +931,7 @@ public class InterpolateAtSampleCall(ShaderExpressionList parameters, TextLocati
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (interpolant, sample) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (interpolant, sample) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLInterpolateAtSample(interpolant.TypeId, context.Bound++, context.GLSLSet ?? -1, interpolant.Id, sample.Id));
@@ -943,7 +943,7 @@ public class InterpolateAtOffsetCall(ShaderExpressionList parameters, TextLocati
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (interpolant, offset) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (interpolant, offset) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLInterpolateAtOffset(interpolant.TypeId, context.Bound++, context.GLSLSet ?? -1, interpolant.Id, offset.Id));
@@ -955,7 +955,7 @@ public class NMinCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLNMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
@@ -967,7 +967,7 @@ public class NMaxCall(ShaderExpressionList parameters, TextLocation info) : Meth
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLNMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
@@ -979,7 +979,7 @@ public class NClampCall(ShaderExpressionList parameters, TextLocation info) : Me
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, minVal, maxVal) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler), Parameters.Values[2].Compile(table, shader, compiler));
+        var (x, minVal, maxVal) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLNClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id));
@@ -991,17 +991,17 @@ public class MulCall(ShaderExpressionList parameters, TextLocation info) : Metho
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].Compile(table, shader, compiler), Parameters.Values[1].Compile(table, shader, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
 
-        var xType = Parameters.Values[0].Type;
-        var yType = Parameters.Values[1].Type;
+        var xType = Parameters.Values[0].ValueType;
+        var yType = Parameters.Values[1].ValueType;
 
         if (xType.GetElementType() != yType.GetElementType())
             throw new NotImplementedException("mul type conversion is currently not implemented");
 
-        if (!xType.IsFloating())
+        if (!xType.GetElementType().IsFloating())
             throw new NotImplementedException("Only implemented for floating types");
 
         // Version on https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-mul
