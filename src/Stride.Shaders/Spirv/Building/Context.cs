@@ -1,5 +1,6 @@
 using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -360,7 +361,7 @@ public class SpirvContext
 
     public unsafe SpirvValue CreateConstantCompositeRepeat(Literal literal, int size)
     {
-        var value = CreateConstant(literal);
+        var value = CompileConstantLiteral(literal);
         if (size == 1)
             return value;
 
@@ -374,7 +375,30 @@ public class SpirvContext
         return new(instruction);
     }
 
-    public SpirvValue CreateConstant(Literal literal)
+    public Literal CreateLiteral(object value, TextLocation location = default)
+    {
+        return value switch
+        {
+            bool i => new BoolLiteral(i, location),
+            sbyte i => new IntegerLiteral(new(8, false, true), i, location),
+            byte i => new IntegerLiteral(new(8, false, false), i, location),
+            short i => new IntegerLiteral(new(16, false, true), i, location),
+            ushort i => new IntegerLiteral(new(16, false, false), i, location),
+            int i => new IntegerLiteral(new(32, false, true), i, location),
+            uint i => new IntegerLiteral(new(32, false, false), i, location),
+            long i => new IntegerLiteral(new(64, false, true), i, location),
+            ulong i => new IntegerLiteral(new(64, false, false), (long)i, location),
+            float i => new FloatLiteral(new(32, true, true), i, null, location),
+            double i => new FloatLiteral(new(64, true, true), i, null, location),
+        };
+    }
+
+    public SpirvValue CompileConstant(object value, TextLocation location = default)
+    {
+        return CompileConstantLiteral(CreateLiteral(value, location));
+    }
+
+    public SpirvValue CompileConstantLiteral(Literal literal)
     {
         object literalValue = literal switch
         {
@@ -391,8 +415,36 @@ public class SpirvContext
             },
         };
 
+        if (literal.Type == null)
+        {
+            literal.Type = literal switch
+            {
+                BoolLiteral lit => ScalarType.From("bool"),
+                IntegerLiteral lit => lit.Suffix switch
+                {
+                    { Signed: true, Size: 8 } => ScalarType.From("sbyte"),
+                    { Signed: true, Size: 16 } => ScalarType.From("short"),
+                    { Signed: true, Size: 32 } => ScalarType.From("int"),
+                    { Signed: true, Size: 64 } => ScalarType.From("long"),
+                    { Signed: false, Size: 8 } => ScalarType.From("byte"),
+                    { Signed: false, Size: 16 } => ScalarType.From("ushort"),
+                    { Signed: false, Size: 32 } => ScalarType.From("uint"),
+                    { Signed: false, Size: 64 } => ScalarType.From("ulong"),
+                    _ => throw new NotImplementedException("Unsupported integer suffix")
+                },
+                FloatLiteral lit => lit.Suffix.Size switch
+                {
+                    16 => ScalarType.From("half"),
+                    32 => ScalarType.From("float"),
+                    64 => ScalarType.From("double"),
+                    _ => throw new NotImplementedException("Unsupported float")
+                },
+            };
+        }
+
         if (LiteralConstants.TryGetValue((literal.Type, literalValue), out var result))
             return result;
+
         var instruction = literal switch
         {
             BoolLiteral { Value: true } lit => Buffer.Add(new OpConstantTrue(GetOrRegister(lit.Type), Bound++)),
@@ -405,6 +457,8 @@ public class SpirvContext
                 { Size: <= 16, Signed: true } => Buffer.Add(new OpConstant<short>(GetOrRegister(lit.Type), Bound++, (short)lit.IntValue)),
                 { Size: <= 32, Signed: false } => Buffer.Add(new OpConstant<uint>(GetOrRegister(lit.Type), Bound++, unchecked((uint)lit.IntValue))),
                 { Size: <= 32, Signed: true } => Buffer.Add(new OpConstant<int>(GetOrRegister(lit.Type), Bound++, lit.IntValue)),
+                { Size: <= 64, Signed: false } => Buffer.Add(new OpConstant<ulong>(GetOrRegister(lit.Type), Bound++, unchecked((uint)lit.LongValue))),
+                { Size: <= 64, Signed: true } => Buffer.Add(new OpConstant<long>(GetOrRegister(lit.Type), Bound++, lit.LongValue)),
                 _ => throw new NotImplementedException()
             },
             FloatLiteral lit => lit.Suffix.Size switch

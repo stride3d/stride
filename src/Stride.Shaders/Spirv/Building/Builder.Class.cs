@@ -129,6 +129,14 @@ public partial class SpirvBuilder
         }
     }
 
+    public static object GetConstantValue(int constantId, NewSpirvBuffer buffer)
+    {
+        if (!buffer.TryGetInstructionById(constantId, out var constant))
+            throw new Exception("Cannot find constant instruction for id " + constantId);
+
+        return GetConstantValue(constant.Data, buffer);
+    }
+
     public static object GetConstantValue(OpData data, NewSpirvBuffer buffer)
     {
         int typeId = data.Op switch

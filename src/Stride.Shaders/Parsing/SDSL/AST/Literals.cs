@@ -68,34 +68,7 @@ public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : Numb
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        Type = Suffix switch
-        {
-            { Signed: true, Size: 8 } => ScalarType.From("sbyte"),
-            { Signed: true, Size: 16 } => ScalarType.From("short"),
-            { Signed: true, Size: 32 } => ScalarType.From("int"),
-            { Signed: true, Size: 64 } => ScalarType.From("long"),
-            { Signed: false, Size: 8 } => ScalarType.From("byte"),
-            { Signed: false, Size: 16 } => ScalarType.From("ushort"),
-            { Signed: false, Size: 32 } => ScalarType.From("uint"),
-            { Signed: false, Size: 64 } => ScalarType.From("ulong"),
-            _ => throw new NotImplementedException("Unsupported integer suffix")
-        };
-
-
-        // _ = (Type, Suffix) switch
-        // {
-        //     (ScalarType, { Size: > 32 }) => compiler.Context.Add(new OpConstant<long>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, LongValue)),
-        //     (ScalarType, { Size: <= 32 }) => compiler.Context.Add(new OpConstant<int>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, IntValue)),
-        //     _ => throw new NotImplementedException("")
-        // };
-
-        var i = (Type, Suffix) switch
-        {
-            (ScalarType, { Size: > 32 }) => compiler.Context.Add(new OpConstant<long>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, LongValue)),
-            (ScalarType, { Size: <= 32 }) => compiler.Context.Add(new OpConstant<int>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, IntValue)),
-            _ => throw new NotImplementedException("")
-        };
-        return new SpirvValue(i.IdResult ?? -1, i.IdResultType ?? -1, null);
+        return compiler.Context.CompileConstantLiteral(this);
     }
 }
 
@@ -106,20 +79,7 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        Type = Suffix.Size switch
-        {
-            16 => ScalarType.From("half"),
-            32 => ScalarType.From("float"),
-            64 => ScalarType.From("double"),
-            _ => throw new NotImplementedException("Unsupported float")
-        };
-        var i = (Type, Suffix) switch
-        {
-            (ScalarType, { Size: > 32 }) => compiler.Context.Add(new OpConstant<double>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, DoubleValue)),
-            (ScalarType, { Size: <= 32 }) => compiler.Context.Add(new OpConstant<float>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, (float)DoubleValue)),
-            _ => throw new NotImplementedException("")
-        };
-        return new SpirvValue(i.IdResult ?? -1, i.IdResultType ?? -1, null);
+        return compiler.Context.CompileConstantLiteral(this);
     }
 }
 
@@ -136,12 +96,7 @@ public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var i = Value switch
-        {
-            true => compiler.Context.Add(new OpConstantTrue(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++)),
-            false => compiler.Context.Add(new OpConstantFalse(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++))
-        };
-        return new SpirvValue(i.IdResult ?? -1, i.IdResultType ?? -1, null);
+        return compiler.Context.CompileConstantLiteral(this);
     }
 }
 
@@ -161,6 +116,7 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
+        // TODO: avoid duplicates
         var (builder, context) = compiler;
         Span<int> values = stackalloc int[Values.Count];
         int tmp = 0;
@@ -258,9 +214,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
         if (symbol.AccessChain is int accessChainIndex)
         {
-            var indexLiteral = new IntegerLiteral(new(32, false, true), accessChainIndex, new());
-            indexLiteral.Compile(table, shader, compiler);
-            var index = context.CreateConstant(indexLiteral).Id;
+            var index = context.CompileConstant(accessChainIndex).Id;
             result.Id = compiler.Builder.Insert(new OpAccessChain(resultType, compiler.Context.Bound++, symbol.IdRef, [index]));
         }
         else if (symbol.ImplicitThis is true)

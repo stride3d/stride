@@ -143,9 +143,7 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
         Type = Expression.Type;
         if (Expression.Type is PointerType pointerType && pointerType.BaseType is ScalarType { TypeName: "int" or "long" })
         {
-            var indexLiteral = new IntegerLiteral(new(32, false, true), 1, new());
-            indexLiteral.Compile(table, shader, compiler);
-            var constant1 = context.CreateConstant(indexLiteral);
+            var constant1 = context.CompileConstant(1);
             var result = builder.BinaryOperation(context, expression, Operator.Plus, constant1);
 
             builder.Insert(new OpStore(expression.Id, result.Id, null));
@@ -300,9 +298,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         if (index == -1)
                             throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
                         //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
-                        var indexLiteral = new IntegerLiteral(new(32, false, true), index, new());
-                        indexLiteral.Compile(table, shader, compiler);
-                        indexes[i] = context.CreateConstant(indexLiteral).Id;
+                        indexes[i] = context.CompileConstant(index).Id;
                         accessor.Type = new PointerType(s.Members[index].Type, p.StorageClass);
                         break;
                     // TODO: Swizzle, etc.

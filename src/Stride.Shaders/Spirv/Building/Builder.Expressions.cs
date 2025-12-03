@@ -310,8 +310,8 @@ public partial class SpirvBuilder
 
                     (ScalarType { TypeName: "int" }, ScalarType { TypeName: "float" }) => InsertData(new OpConvertSToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
 
-                    (ScalarType { TypeName: "bool" }, ScalarType { TypeName: "int" }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 1, new()), elementSize).Id, context.CreateConstant(new IntegerLiteral(new(32, false, true), 0, new())).Id)),
-                    (ScalarType { TypeName: "bool" }, ScalarType { TypeName: "float" }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 1.0, null, new()), elementSize).Id, context.CreateConstant(new FloatLiteral(new(32, true, true), 0.0, null, new())).Id)),
+                    (ScalarType { TypeName: "bool" }, ScalarType { TypeName: "int" }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 1, new()), elementSize).Id, context.CompileConstant(0).Id)),
+                    (ScalarType { TypeName: "bool" }, ScalarType { TypeName: "float" }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 1.0, null, new()), elementSize).Id, context.CompileConstant(0.0).Id)),
 
                     // Bitcast (int=>uint or uint=>int)
                     (ScalarType { TypeName: "int" }, ScalarType { TypeName: "uint" }) => InsertData(new OpBitcast(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
