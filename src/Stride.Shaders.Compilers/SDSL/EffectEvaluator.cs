@@ -83,7 +83,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     {
                         if (mixinTree.Compositions.TryGetValue(composition.Key, out var mixinTreeComposition))
                             mixinTree.Compositions.Add(composition.Key, mixinTreeComposition = new ShaderMixinSource());
-                        Merge(mixinTreeComposition, composition.Value);
+                        Merge((ShaderMixinSource)mixinTreeComposition, composition.Value);
                     }
 
                     break;
@@ -93,9 +93,9 @@ namespace Stride.Shaders.Compilers.SDSL
         public void MergeComposition(ShaderMixinSource mixinTree, string compositionName, ShaderSource evaluatedSource)
         {
             if (!mixinTree.Compositions.TryGetValue(compositionName, out var composition))
-                mixinTree.Compositions.Add(compositionName, composition = new());
+                mixinTree.Compositions.Add(compositionName, composition = new ShaderMixinSource());
 
-            Merge(composition, evaluatedSource);
+            Merge((ShaderMixinSource)composition, evaluatedSource);
         }
     }
 }

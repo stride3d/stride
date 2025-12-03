@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Stride.Shaders.Spirv.Tools;
 using Stride.Shaders.Compilers.Direct3D;
 using Stride.Shaders.Parsing.SDSL;
+using Stride.Shaders;
 
 Console.WriteLine(Spv2DXIL.spirv_to_dxil_get_version());
 

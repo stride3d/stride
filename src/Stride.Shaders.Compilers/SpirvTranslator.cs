@@ -7,6 +7,8 @@ using System.Text;
 
 namespace Stride.Shaders.Compilers;
 
+using Compiler = Silk.NET.SPIRV.Cross.Compiler;
+
 public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
 {
     static readonly Cross cross = Cross.GetApi();

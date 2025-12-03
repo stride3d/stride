@@ -14,6 +14,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Stride.Core" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\core\Stride.Core\bin\Debug\net10.0\Stride.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Stride.Shaders" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
+    </Reference>
     <Content Include="./native/spirv_to_dxil.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -26,6 +32,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName Condition="'$(StrideDirectory)' != ''">$(MSBuildProjectName)2</AssemblyName>
   </PropertyGroup>
 
 </Project>

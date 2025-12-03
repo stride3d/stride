@@ -12,10 +12,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
+    <Reference Include="Stride.Shaders" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
-     <None Include="..\..\assets\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\" />
+    <None Include="..\..\assets\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\" />
   </ItemGroup>
 
 </Project>

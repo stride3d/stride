@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <!--<StrideDirectory>$(MSBuildThisFileDirectory)\..\..\stride</StrideDirectory>-->
+  </PropertyGroup>
+</Project>

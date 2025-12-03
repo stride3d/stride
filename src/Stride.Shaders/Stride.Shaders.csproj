@@ -7,10 +7,18 @@
     <Compile Remove="..\..\submodules\CppNet8\CppTask.cs" />
     <Compile Remove="..\..\submodules\CppNet8\InputLexerSource.cs" />
     <Compile Remove="..\..\submodules\CppNet8\TokenSnifferSource.cs" />
+    <Compile Remove="StrideImported\**" Condition="'$(StrideDirectory)' != ''" />
+    <None Remove="StrideImported\**" Condition="'$(StrideDirectory)' != ''" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Spirv.Core\Stride.Shaders.Spirv.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Stride.Shaders" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <PropertyGroup>
@@ -18,6 +26,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <AssemblyName Condition="'$(StrideDirectory)' != ''">$(MSBuildProjectName)2</AssemblyName>
   </PropertyGroup>
 
 </Project>

@@ -14,6 +14,10 @@
     <PackageReference Include="Silk.NET.Vulkan" Version="2.22.0" />
     <PackageReference Include="Silk.NET.Windowing" Version="2.22.0" />
     <PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.22.0" />
+    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
+    <Reference Include="Stride.Shaders" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
