@@ -69,7 +69,7 @@ public class TruncCall(ShaderExpressionList parameters, TextLocation info) : Met
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
-public class AbsCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fabs", info), parameters, info)
+public class AbsCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("abs", info), parameters, info)
 {
     public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -470,7 +470,7 @@ public class ModfStructCall(ShaderExpressionList parameters, TextLocation info) 
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
-public class FMinCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fmin", info), parameters, info)
+public class MinCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("min", info), parameters, info)
 {
     public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -478,11 +478,22 @@ public class FMinCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
-        return new(instruction.ResultId, instruction.ResultType);
+
+        var xType = Parameters.Values[0].ValueType;
+        var yType = Parameters.Values[1].ValueType;
+
+        var resultType = IntrinsicHelper.FindCommonType(SpirvBuilder.FindCommonBaseTypeForBinaryOperation(xType.GetElementType(), yType.GetElementType()), xType, yType);
+
+        var instruction = resultType.GetElementType() switch
+        {
+            ScalarType { TypeName: "float" } => builder.InsertData(new GLSLFMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
+            ScalarType { TypeName: "uint" } => builder.InsertData(new GLSLUMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
+            ScalarType { TypeName: "int" } => builder.InsertData(new GLSLSMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
+        };
+        return new(instruction);
     }
 }
-public class UMinCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("umin", info), parameters, info)
+public class MaxCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("max", info), parameters, info)
 {
     public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -490,59 +501,22 @@ public class UMinCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLUMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
-        return new(instruction.ResultId, instruction.ResultType);
+
+        var xType = Parameters.Values[0].ValueType;
+        var yType = Parameters.Values[1].ValueType;
+
+        var resultType = IntrinsicHelper.FindCommonType(SpirvBuilder.FindCommonBaseTypeForBinaryOperation(xType.GetElementType(), yType.GetElementType()), xType, yType);
+
+        var instruction = resultType.GetElementType() switch
+        {
+            ScalarType { TypeName: "float" } => builder.InsertData(new GLSLFMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
+            ScalarType { TypeName: "uint" } => builder.InsertData(new GLSLUMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
+            ScalarType { TypeName: "int" } => builder.InsertData(new GLSLSMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
+        };
+        return new(instruction);
     }
 }
-public class SMinCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("smin", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLSMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class FMaxCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fmax", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class UMaxCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("umax", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLUMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class SMaxCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("smax", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLSMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class FClampCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fclamp", info), parameters, info)
+public class ClampCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("clamp", info), parameters, info)
 {
     public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -550,32 +524,53 @@ public class FClampCall(ShaderExpressionList parameters, TextLocation info) : Me
         var (x, minVal, maxVal) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id));
-        return new(instruction.ResultId, instruction.ResultType);
+
+        // Ensure all vectors have the same size
+        var xType = Parameters.Values[0].ValueType;
+        var minValType = Parameters.Values[1].ValueType;
+        var maxValType = Parameters.Values[2].ValueType;
+
+        var baseType = SpirvBuilder.FindCommonBaseTypeForBinaryOperation(SpirvBuilder.FindCommonBaseTypeForBinaryOperation(xType.GetElementType(), minValType.GetElementType()), maxValType.GetElementType());
+        var resultType = IntrinsicHelper.FindCommonType(baseType, xType, minValType, maxValType);
+
+        x = builder.Convert(context, x, resultType);
+        minVal = builder.Convert(context, minVal, resultType);
+        maxVal = builder.Convert(context, maxVal, resultType);
+
+        var instruction = baseType switch
+        {
+            ScalarType { TypeName: "float" } => builder.InsertData(new GLSLFClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id)),
+            ScalarType { TypeName: "uint" } => builder.InsertData(new GLSLUClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id)),
+            ScalarType { TypeName: "int" } => builder.InsertData(new GLSLSClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id)),
+        };
+        return new(instruction);
     }
 }
-public class UClampCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("uclamp", info), parameters, info)
+public class SaturateCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("saturate", info), parameters, info)
 {
     public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (x, minVal, maxVal) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
+        var x = (Parameters.Values[0].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLUClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class SClampCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("sclamp", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        var (x, minVal, maxVal) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLSClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id));
-        return new(instruction.ResultId, instruction.ResultType);
+
+        var xType = Parameters.Values[0].ValueType;
+        var constant0 = context.CompileConstant(0.0f);
+        var constant1 = context.CompileConstant(1.0f);
+
+        var baseType = xType.GetElementType();
+        // Ensure 0.0 amd 1.0 constants have same type as x
+        constant0 = builder.Convert(context, constant0, xType);
+        constant1 = builder.Convert(context, constant1, xType);
+
+        var instruction = baseType switch
+        {
+            ScalarType { TypeName: "float" } => builder.InsertData(new GLSLFClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, constant0.Id, constant1.Id)),
+            ScalarType { TypeName: "uint" } => builder.InsertData(new GLSLUClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, constant0.Id, constant1.Id)),
+            ScalarType { TypeName: "int" } => builder.InsertData(new GLSLSClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, constant0.Id, constant1.Id)),
+        };
+        return new(instruction);
     }
 }
 public class LerpCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("lerp", info), parameters, info)
@@ -1007,42 +1002,6 @@ public class InterpolateAtOffsetCall(ShaderExpressionList parameters, TextLocati
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLInterpolateAtOffset(interpolant.TypeId, context.Bound++, context.GLSLSet ?? -1, interpolant.Id, offset.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class NMinCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("nmin", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLNMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class NMaxCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("nmax", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLNMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class NClampCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("nclamp", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        var (x, minVal, maxVal) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLNClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }

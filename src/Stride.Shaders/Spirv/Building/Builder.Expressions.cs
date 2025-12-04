@@ -22,6 +22,23 @@ public partial class SpirvBuilder
         return result;
     }
 
+    public static ScalarType FindCommonBaseTypeForBinaryOperation(SymbolType leftElementType, SymbolType rightElementType)
+    {
+        return (leftElementType, rightElementType) switch
+        {
+            (ScalarType { TypeName: "long" }, _) or (_, ScalarType { TypeName: "long" }) => throw new NotImplementedException("64bit integers"),
+            // Matching types
+            (ScalarType { TypeName: "int" or "uint" or "float" or "double" } l, ScalarType r) when l == r => l,
+            // If one side is float and other is non-floating, promote to floating
+            (ScalarType { TypeName: "int" or "uint" } l, ScalarType { TypeName: "float" or "double" } r) => r,
+            (ScalarType { TypeName: "float" or "double" } l, ScalarType { TypeName: "int" or "uint" } r) => l,
+            // If one side is unsigned, promote to unsigned (bitcast)
+            (ScalarType { TypeName: "int" } l, ScalarType { TypeName: "uint" } r) => r,
+            (ScalarType { TypeName: "uint" } l, ScalarType { TypeName: "int" } r) => l,
+            _ => throw new NotImplementedException($"Couldn't figure out element type for binary operation between {leftElementType} and {rightElementType}"),
+        };
+    }
+
     public SpirvValue BinaryOperation(SpirvContext context, SpirvValue left, Operator op, SpirvValue right, string? name = null)
     {
         var leftType = context.ReverseTypes[left.TypeId];
@@ -30,37 +47,9 @@ public partial class SpirvBuilder
         var leftElementType = leftType.GetElementType();
         var rightElementType = rightType.GetElementType();
 
-        ScalarType desiredElementType;
-
         // Check base types
         // TODO: special case for operators expecting different types (i.e. bit shifts)
-        switch (leftElementType, rightElementType)
-        {
-            case (ScalarType { TypeName: "long" }, _) or (_, ScalarType { TypeName: "long" }):
-                throw new NotImplementedException("64bit integers");
-
-            // Matching types
-            case (ScalarType { TypeName: "int" or "uint" or "float" or "double" } l, ScalarType r) when l == r:
-                desiredElementType = l;
-                break;
-            // If one side is float and other is non-floating, promote to floating
-            case (ScalarType { TypeName: "int" or "uint" } l, ScalarType { TypeName: "float" or "double" } r):
-                desiredElementType = r;
-                break;
-            case (ScalarType { TypeName: "float" or "double" } l, ScalarType { TypeName: "int" or "uint" } r):
-                desiredElementType = l;
-                break;
-
-            // If one side is unsigned, promote to unsigned (bitcast)
-            case (ScalarType { TypeName: "int"} l, ScalarType { TypeName: "uint" } r):
-                desiredElementType = r;
-                break;
-            case (ScalarType { TypeName: "uint" } l, ScalarType { TypeName: "int" } r):
-                desiredElementType = l;
-                break;
-            default:
-                throw new NotImplementedException($"Couldn't figure out element type for binary operation between {leftType} and {rightType}");
-        }
+        var desiredElementType = FindCommonBaseTypeForBinaryOperation(leftElementType, rightElementType);
 
         // Check size
         SymbolType resultType;
