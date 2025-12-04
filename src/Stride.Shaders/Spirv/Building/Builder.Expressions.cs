@@ -361,12 +361,6 @@ public partial class SpirvBuilder
         var fcall = Buffer.InsertData(Position++, new OpFunctionCall(context.GetOrRegister(functionType.ReturnType), context.Bound++, functionSymbol.IdRef, [.. parameters]));
         return new(fcall, functionSymbol.Id.Name);
     }
-
-    public SpirvValue CompositeConstruct(SpirvContext context, CompositeLiteral literal, Span<int> values)
-    {
-        var instruction = Buffer.Insert(Position++, new OpCompositeConstruct(context.GetOrRegister(literal.Type), context.Bound++, [.. values]));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
 }
 
 
@@ -374,6 +368,12 @@ public partial class SpirvBuilder
 
 internal static class SymbolExtensions
 {
+    public static int GetElementCount(this SymbolType symbol) => symbol switch
+        {
+            ScalarType s => 1,
+            VectorType v => v.Size,
+            MatrixType m => m.Rows * m.Columns,
+        };
     public static ScalarType GetElementType(this SymbolType symbol) => symbol switch
         {
             ScalarType s => s,

@@ -116,39 +116,68 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
 
     public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        // TODO: avoid duplicates
         var (builder, context) = compiler;
-        Span<int> values = stackalloc int[Values.Count];
-        int tmp = 0;
-        foreach (var v in Values)
-            values[tmp++] = v.Compile(table, shader, compiler).Id;
 
         Type = GenerateType(table);
 
-        return builder.CompositeConstruct(context, this, [.. values]);
+        (var compositeCount, var totalCount) = Type switch
+        {
+            VectorType v => (v.Size, v.Size),
+            MatrixType m => (m.Rows, m.Columns * m.Rows),
+        };
+
+        Span<int> values = stackalloc int[totalCount];
+        Span<int> compositeValues = stackalloc int[compositeCount];
+
+        // Note: There are a lot of opportunity to optimize by working with vector-to-vector copy (if they align correctly) and/or OpVectorShuffle, but it can get quite complex to handle all cases
+        //       However, it is probably optimized by SPIRV-Cross or the compiler/driver, so maybe not worth optimzing (due to increased code cases/complexity)
+        var elementIndex = 0;
+        foreach (var sourceValue in Values)
+        {
+            var value = sourceValue.CompileAsValue(table, shader, compiler);
+            var valueType = sourceValue.ValueType;
+
+            // We expand elements, because float4 can be created from (float, float2, float), or (float2x2)
+            var elementType = valueType.GetElementType();
+            for (int i = 0; i < valueType.GetElementCount(); ++i)
+            {
+                SpirvValue extractedValue = valueType switch
+                {
+                    MatrixType m => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(elementType), context.Bound++, value.Id, [i / m.Rows, i % m.Rows]))),
+                    VectorType v => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(elementType), context.Bound++, value.Id, [i]))),
+                    ScalarType s => value,
+                };
+                // If too many elments, keep counting so that exception is still thrown a bit later, with total count
+                var currentElementIndex = elementIndex++;
+                if (currentElementIndex >= values.Length)
+                    continue;
+                values[currentElementIndex] = builder.Convert(context, extractedValue, elementType).Id;
+            }
+        }
+
+        if (elementIndex != totalCount)
+            throw new InvalidOperationException($"{nameof(VectorLiteral)}: Expecting {totalCount} elements but got {elementIndex} for type {Type}");
+
+        // Regroup by rows (if necessary, only for Matrix)
+        int compositeSize = totalCount / compositeCount;
+        for (int i = 0; i < compositeCount; ++i)
+        {
+            compositeValues[i] = Type switch
+            {
+                MatrixType m => builder.Insert(new OpCompositeConstruct(context.GetOrRegister(new VectorType(m.BaseType, compositeSize)), context.Bound++, [.. values.Slice(i * compositeSize, compositeSize)])).ResultId,
+                VectorType v => values[i],
+            };
+        }
+
+        var instruction = builder.Insert(new OpCompositeConstruct(context.GetOrRegister(Type), context.Bound++, [.. compositeValues]));
+        return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class VectorLiteral(TypeName typeName, TextLocation info) : CompositeLiteral(info)
 {
     public TypeName TypeName { get; set; } = typeName;
 
-    public override SymbolType GenerateType(SymbolTable table)
-    {
-        var result = TypeName.ResolveType(table);
-
-        var tmp = (VectorType)result ?? throw new NotImplementedException();
-        foreach (var v in Values)
-        {
-            if (
-                v.Type is ScalarType st && tmp.BaseType != st
-                || (v.Type is VectorType vt && vt.BaseType != tmp.BaseType)
-                || (v.Type is VectorType vt2 && vt2.Size > tmp.Size)
-            )
-                table.Errors.Add(new(v.Info, SDSLErrorMessages.SDSL0106));
-        }
-
-        return result;
-    }
+    public override SymbolType GenerateType(SymbolTable table) => TypeName.ResolveType(table);
 
     public override string ToString()
     {
@@ -163,14 +192,11 @@ public class MatrixLiteral(TypeName typeName, int rows, int cols, TextLocation i
     public int Rows { get; set; } = rows;
     public int Cols { get; set; } = cols;
 
-    public override SymbolType GenerateType(SymbolTable table)
-    {
-        throw new NotImplementedException();
-    }
+    public override SymbolType GenerateType(SymbolTable table) => TypeName.ResolveType(table);
 
     public override string ToString()
     {
-        return $"{TypeName}{Values.Count}({string.Join(", ", Values.Select(x => x.ToString()))})";
+        return $"{TypeName}({string.Join(", ", Values.Select(x => x.ToString()))})";
     }
 }
 

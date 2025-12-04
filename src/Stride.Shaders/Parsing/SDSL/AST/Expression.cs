@@ -183,6 +183,21 @@ public class CastExpression(TypeName typeName, Operator op, Expression expressio
     }
 }
 
+
+public class IndexerExpression(Expression index, TextLocation info) : Expression(info)
+{
+    public Expression Index { get; set; } = index;
+
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    {
+        throw new NotImplementedException();
+    }
+    public override string ToString()
+    {
+        return $"[{Index}]";
+    }
+}
+
 public class PostfixIncrement(Operator op, TextLocation info) : Expression(info)
 {
     public Operator Operator { get; set; } = op;
@@ -407,6 +422,17 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             accessor.Type = currentValueType;
                         }
                         break;
+                    // Array indexer
+                    case (PointerType { BaseType: VectorType or MatrixType } p, IndexerExpression indexer):
+                        var indexerValue = indexer.Index.CompileAsValue(table, shader, compiler);
+                        PushAccessChainId(accessChainIds, indexerValue.Id);
+
+                        accessor.Type = new PointerType(p.BaseType switch
+                        {
+                            MatrixType m => new VectorType(m.BaseType, m.Rows),
+                            VectorType v => v.BaseType,
+                        }, p.StorageClass);
+                        break;
                     default:
                         throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
                 }
@@ -435,8 +461,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     {
         var builder = new StringBuilder().Append(Source);
         foreach (var a in Accessors)
-            if (a is NumberLiteral)
-                builder.Append('[').Append(a).Append(']');
+            if (a is IndexerExpression)
+                builder.Append(a);
             else if (a is PostfixIncrement)
                 builder.Append(a);
             else

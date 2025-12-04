@@ -382,10 +382,7 @@ public record struct MatrixParser : IParser<MatrixLiteral>
             Parsers.Spaces0(ref scanner, result, out _);
             if (Tokens.Char('(', ref scanner, advance: true))
             {
-                var p = new MatrixLiteral(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner[position..tnPos], isArray: false), rows, cols, scanner[..])
-                {
-                    TypeName = new(baseType, scanner[(tnPos - baseType.Length)..(tnPos - 1)], isArray: false)
-                };
+                var p = new MatrixLiteral(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner[position..tnPos], isArray: false), rows, cols, scanner[..]);
                 while (!scanner.IsEof)
                 {
                     Parsers.Spaces0(ref scanner, result, out _);

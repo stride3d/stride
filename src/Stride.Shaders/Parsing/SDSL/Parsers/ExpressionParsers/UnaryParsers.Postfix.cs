@@ -26,7 +26,7 @@ public record struct PostfixParser : IParser<Expression>
                         && Parsers.FollowedBy(ref scanner, Tokens.Char(']'), withSpaces: true, advance: true)
                     )
                     {
-                        ((AccessorChainExpression)parsed).Accessors.Add(indexer);
+                        ((AccessorChainExpression)parsed).Accessors.Add(new IndexerExpression(indexer, indexer.Info));
                     }
                     else if (
                         matched == "."
