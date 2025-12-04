@@ -830,6 +830,29 @@ public class CrossCall(ShaderExpressionList parameters, TextLocation info) : Met
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
+
+public class DotCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("dot", info), parameters, info)
+{
+    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler));
+        
+        var xType = Parameters.Values[0].ValueType;
+        var yType = Parameters.Values[0].ValueType;
+
+        if (xType != yType)
+            throw new NotImplementedException("dot needs to be applied on same types");
+
+        if (!xType.GetElementType().IsFloating())
+            throw new NotImplementedException("dot: only implemented for floating types");
+
+        var resultType = xType.GetElementType();
+
+        var instruction = builder.Insert(new OpDot(context.GetOrRegister(resultType), context.Bound++, x.Id, y.Id));
+        return new(instruction.ResultId, instruction.ResultType);
+    }
+}
 public class NormalizeCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("normalize", info), parameters, info)
 {
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
