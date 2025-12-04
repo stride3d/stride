@@ -21,7 +21,7 @@ public class StringLiteral(string value, TextLocation info) : Literal(info)
 {
     public string Value { get; set; } = value;
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var i = context.Add(new OpConstantStringSDSL(context.Bound++, Value));
@@ -32,7 +32,7 @@ public class StringLiteral(string value, TextLocation info) : Literal(info)
     public override SpirvValue CompileAsValue(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         // Since we use type 0, CompileAsValue won't work
-        return Compile(table, shader, compiler);
+        return CompileImpl(table, shader, compiler);
     }
 
     public override string ToString()
@@ -66,7 +66,7 @@ public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info
 
 public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, value, info)
 {
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         return compiler.Context.CompileConstantLiteral(this);
     }
@@ -77,7 +77,7 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
     public int? Exponent { get; set; } = exponent;
     public static implicit operator FloatLiteral(double v) => new(new(), v, null, new());
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         return compiler.Context.CompileConstantLiteral(this);
     }
@@ -94,7 +94,7 @@ public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
     public bool Value { get; set; } = value;
     public override SymbolType? Type => ScalarType.From("bool");
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         return compiler.Context.CompileConstantLiteral(this);
     }
@@ -114,7 +114,7 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
 
     public abstract SymbolType GenerateType(SymbolTable table);
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         // TODO: avoid duplicates
         var (builder, context) = compiler;
@@ -191,7 +191,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public static implicit operator string(Identifier identifier) => identifier.Name;
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
@@ -334,7 +334,7 @@ public class TypeName(string name, TextLocation info, bool isArray) : Literal(in
         return result;
     }
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }

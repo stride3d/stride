@@ -16,7 +16,15 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 /// </summary>
 public abstract class Expression(TextLocation info) : ValueNode(info)
 {
-    public abstract SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler);
+    public SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    {
+        var result = CompileImpl(table, shader, compiler);
+        // In case type is not computed yet, make sure it is using SpirvValue.TypeId
+        Type ??= compiler.Context.ReverseTypes[result.TypeId];
+        return result;
+    }
+
+    public abstract SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler);
 
     public SymbolType? ValueType => Type is PointerType pointerType ? pointerType.BaseType : Type;
 
@@ -35,7 +43,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
     public SpirvValue? MemberCall { get; set; }
     public bool IsBaseCall { get; set; } = false;
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
@@ -117,7 +125,7 @@ public class MixinAccess(Mixin mixin, TextLocation info) : Expression(info)
 {
     public Mixin Mixin { get; set; } = mixin;
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -136,7 +144,7 @@ public abstract class UnaryExpression(Expression expression, Operator op, TextLo
 
 public class PrefixExpression(Operator op, Expression expression, TextLocation info) : UnaryExpression(expression, op, info)
 {
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var expression = Expression.CompileAsValue(table, shader, compiler);
@@ -163,7 +171,7 @@ public class CastExpression(TypeName typeName, Operator op, Expression expressio
 {
     public TypeName TypeName { get; set; } = typeName;
 
-    public unsafe override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public unsafe override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var castType = TypeName.ResolveType(table);
@@ -179,7 +187,7 @@ public class PostfixIncrement(Operator op, TextLocation info) : Expression(info)
 {
     public Operator Operator { get; set; } = op;
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -194,7 +202,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     public Expression Source { get; set; } = source;
     public List<Expression> Accessors { get; set; } = [];
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         SpirvValue result;
@@ -443,7 +451,7 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var left = Left.CompileAsValue(table, shader, compiler);
         var right = Right.CompileAsValue(table, shader, compiler);
@@ -466,7 +474,7 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         Condition.CompileAsValue(table, shader, compiler);
         Left.CompileAsValue(table, shader, compiler);
