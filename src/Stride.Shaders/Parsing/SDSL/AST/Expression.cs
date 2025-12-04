@@ -147,18 +147,60 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
     public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var expression = Expression.CompileAsValue(table, shader, compiler);
-        Type = Expression.Type;
-        if (Expression.Type is PointerType pointerType && pointerType.BaseType is ScalarType { TypeName: "int" or "long" })
+        var expression = Expression.Compile(table, shader, compiler);
+        var type = Expression.Type;
+
+        // Depending on the operator, we might need the pointer type
+        var isPointer = Expression.Type is PointerType;
+
+        var valueType = (Expression.Type is PointerType pointerType)
+            ? pointerType.BaseType
+            : type;
+
+        var valueExpression = isPointer
+            ? compiler.Builder.AsValue(compiler.Context, expression)
+            : expression;
+
+        if (valueType is ScalarType or VectorType)
         {
-            var constant1 = context.CompileConstant(1);
-            var result = builder.BinaryOperation(context, expression, Operator.Plus, constant1);
+            switch (Operator)
+            {
+                case Operator.Inc:
+                case Operator.Dec:
+                    {
+                        if (!isPointer)
+                            throw new InvalidOperationException($"Can't use increment/decrement expression on non-pointer expression {Expression}");
 
-            builder.Insert(new OpStore(expression.Id, result.Id, null));
+                        // Use integer so that it gets converted to proper type according to expression type
+                        var constant1 = context.CompileConstant(1);
+                        var result = builder.BinaryOperation(context, valueExpression, Operator switch
+                        {
+                            Operator.Inc => Operator.Plus,
+                            Operator.Dec => Operator.Minus,
+                        }, constant1);
 
-            // Note: should we fetch the value again? (new OpLoad)
-            // return Expression.Compile(table, shader, compiler);
-            return result;
+                        // We store the modified value back in the variable
+                        builder.Insert(new OpStore(expression.Id, result.Id, null));
+
+                        Type = type;
+                        return expression;
+                    }
+                case Operator.Plus:
+                    // Nothing to do
+                    return expression;
+                case Operator.Minus:
+                    {
+                        var result = valueType.GetElementType() switch
+                        {
+                            var elementType when elementType.IsFloating() => builder.InsertData(new OpFNegate(valueExpression.TypeId, context.Bound++, valueExpression.Id)),
+                            var elementType when elementType.IsInteger() => builder.InsertData(new OpSNegate(valueExpression.TypeId, context.Bound++, valueExpression.Id)),
+                        };
+                        Type = valueType;
+                        return new(result);
+                    }
+                default:
+                    throw new NotImplementedException($"unary operator {Operator} is not implemented");
+            }
         }
         else
         {
