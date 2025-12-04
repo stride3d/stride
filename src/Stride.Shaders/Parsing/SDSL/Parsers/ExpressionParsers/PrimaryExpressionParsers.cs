@@ -124,7 +124,7 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("isnan", _) => throw new NotImplementedException(),
                     ("ldexp", _) => throw new NotImplementedException(),
                     ("length", 1) => new LengthCall(parameters, scanner[position..scanner.Position]),
-                    ("lerp", _) => throw new NotImplementedException(),
+                    ("lerp", _) => new LerpCall(parameters, scanner[position..scanner.Position]),
                     ("lit", _) => throw new NotImplementedException(),
                     ("log", 1) => new LogCall(parameters, scanner[position..scanner.Position]),
                     ("log10", _) => throw new NotImplementedException(),

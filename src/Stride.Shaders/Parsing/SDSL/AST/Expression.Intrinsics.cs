@@ -7,6 +7,31 @@ using System;
 
 namespace Stride.Shaders.Parsing.SDSL;
 
+public static class IntrinsicHelper
+{
+    public static SymbolType FindCommonType(ScalarType baseType, params Span<SymbolType> types)
+    {
+        // Check if any vector type (and get the minimum size)
+        int vectorTypeMinSize = 0;
+        foreach (var type in types)
+        {
+            if (type is VectorType v)
+                vectorTypeMinSize = vectorTypeMinSize == 0 ? v.Size : Math.Min(vectorTypeMinSize, v.Size);
+        }
+
+        if (vectorTypeMinSize != 0)
+            return new VectorType(baseType, vectorTypeMinSize);
+
+        // Otherwise, ensure it's all ScalarType
+        foreach (var type in types)
+        {
+            if (type is not ScalarType)
+                throw new InvalidOperationException($"Can't find a common type between {string.Join(",", types)}");
+        }
+
+        return baseType;
+    }
+}
 
 public class RoundCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("round", info), parameters, info)
 {
@@ -553,7 +578,7 @@ public class SClampCall(ShaderExpressionList parameters, TextLocation info) : Me
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
-public class FMixCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fmix", info), parameters, info)
+public class LerpCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("lerp", info), parameters, info)
 {
     public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -561,7 +586,19 @@ public class FMixCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var (x, y, a) = (Parameters.Values[0].CompileAsValue(table, shader, compiler), Parameters.Values[1].CompileAsValue(table, shader, compiler), Parameters.Values[2].CompileAsValue(table, shader, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFMix(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id, a.Id));
+
+        // Ensure all vectors have the same size
+        var xType = Parameters.Values[0].ValueType;
+        var yType = Parameters.Values[1].ValueType;
+        var aType = Parameters.Values[2].ValueType;
+
+        var resultType = IntrinsicHelper.FindCommonType(ScalarType.From("float"), xType, yType, aType);
+
+        x = builder.Convert(context, x, resultType);
+        y = builder.Convert(context, y, resultType);
+        a = builder.Convert(context, a, resultType);
+
+        var instruction = builder.Insert(new GLSLFMix(context.GetOrRegister(resultType), context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id, a.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
