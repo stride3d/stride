@@ -35,7 +35,7 @@ public static class TestHeaderParser
         foreach (var line in lines)
         {
             var m = HeaderRegex.Match(line);
-            if (!m.Success) continue;
+            if (!m.Success) break;
 
             var name = m.Groups["name"].Value.Trim();
             var args = m.Groups["args"].Value;

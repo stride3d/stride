@@ -242,7 +242,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         return $"{Name}";
     }
 
-    public bool IsSwizzle()
+    public bool IsVectorSwizzle()
     {
         if (Name.Length > 4)
             return false;

@@ -254,31 +254,36 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         }
         else
         {
-            int lastCreatedChainStart = firstIndex;
-            void EmitOpAccessChain(int currentIndex, int nextStart, Span<int> indexes)
+            int accessChainIdCount = 0;
+            void PushAccessChainId(Span<int> accessChainIds, int accessChainIndex)
+            {
+                accessChainIds[accessChainIdCount++] = accessChainIndex;
+            }
+            void EmitOpAccessChain(Span<int> accessChainIds)
             {
                 // Do we need to issue an OpAccessChain?
-                if (currentIndex > lastCreatedChainStart)
+                if (accessChainIdCount > 0)
                 {
                     var resultType = context.GetOrRegister(currentValueType);
-                    var test = new LiteralArray<int>(indexes);
-                    var accessChain = builder.Insert(new OpAccessChain(resultType, context.Bound++, result.Id, [.. indexes.Slice(lastCreatedChainStart, currentIndex - lastCreatedChainStart)]));
+                    var test = new LiteralArray<int>(accessChainIds);
+                    var accessChain = builder.Insert(new OpAccessChain(resultType, context.Bound++, result.Id, [.. accessChainIds.Slice(0, accessChainIdCount)]));
                     result = new SpirvValue(accessChain.ResultId, resultType);
                 }
 
-                lastCreatedChainStart = nextStart;
+                accessChainIdCount = 0;
             }
 
-            Span<int> indexes = stackalloc int[Accessors.Count];
+            Span<int> accessChainIds = stackalloc int[Accessors.Count];
             for (var i = firstIndex; i < Accessors.Count; i++)
             {
                 var accessor = Accessors[i];
+            ProcessAgain:
                 switch (currentValueType, accessor)
                 {
                     case (PointerType { BaseType: ShaderSymbol s }, MethodCall methodCall2):
                         // Emit OpAccessChain with everything so far
                         // next start is i + 1 because current value doesn't add a call
-                        EmitOpAccessChain(i, i + 1, indexes);
+                        EmitOpAccessChain(accessChainIds);
 
                         methodCall2.MemberCall = result;
                         result = methodCall2.Compile(table, shader, compiler);
@@ -286,7 +291,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     case (PointerType { BaseType: ShaderSymbol s }, Identifier field):
                         // Emit OpAccessChain with everything so far
                         // next start is i + 1 because current value doesn't add a call
-                        EmitOpAccessChain(i, i + 1, indexes);
+                        EmitOpAccessChain(accessChainIds);
 
                         if (!s.TryResolveSymbol(field.Name, out var matchingComponent))
                             throw new InvalidOperationException();
@@ -297,14 +302,103 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
                         break;
                     case (PointerType { BaseType: StructType s } p, Identifier field):
+
                         var index = s.TryGetFieldIndex(field);
                         if (index == -1)
                             throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
                         //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
-                        indexes[i] = context.CompileConstant(index).Id;
+                        PushAccessChainId(accessChainIds, context.CompileConstant(index).Id);
                         accessor.Type = new PointerType(s.Members[index].Type, p.StorageClass);
                         break;
-                    // TODO: Swizzle, etc.
+                    // Swizzles
+                    case (PointerType { BaseType: VectorType s } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                        if (swizzle.Length > 1)
+                        {
+                            // For swizzle larger than one element, we need to do a OpLoad then do a OpVectorShuffle/OpCompositeExtract (next switch case)
+
+                            // Emit OpAccessChain with everything so far
+                            EmitOpAccessChain(accessChainIds);
+
+                            var load = builder.InsertData(new OpLoad(context.GetOrRegister(s), context.Bound++, result.Id, null));
+                            result = new(load);
+
+                            currentValueType = s;
+
+                            goto ProcessAgain;
+                        }
+                        else
+                        {
+                            PushAccessChainId(accessChainIds, context.CompileConstant(ConvertSwizzle(swizzle[0])).Id);
+                            accessor.Type = new PointerType(s.BaseType, p.StorageClass);
+                        }
+                        break;
+                    case (VectorType v, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+
+                        Span<int> swizzleIndices = stackalloc int[swizzle.Length];
+                        for (int j = 0; j < swizzle.Length; ++j)
+                            swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
+
+                        if (swizzle.Length > 1)
+                        {
+                            // Apply swizzle
+                            var resultType = new VectorType(v.BaseType, swizzle.Length);
+                            var shuffle = builder.InsertData(new OpVectorShuffle(context.GetOrRegister(resultType), context.Bound++, result.Id, result.Id, new(swizzleIndices)));
+                            result = new(shuffle);
+
+                            accessor.Type = resultType;
+                        }
+                        else if (swizzle.Length == 1)
+                        {
+                            // Apply swizzle
+                            var resultType = v.BaseType;
+                            var extract = builder.InsertData(new OpCompositeExtract(context.GetOrRegister(resultType), context.Bound++, result.Id, [context.CompileConstant(swizzleIndices[0]).Id]));
+                            result = new(extract);
+
+                            accessor.Type = resultType;
+                        }
+                        else
+                            throw new InvalidOperationException();
+
+                        break;
+                    case (PointerType { BaseType: ScalarType s } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                        if (swizzle.Length > 1)
+                        {
+                            // For swizzle larger than one element, we need to do a OpLoad then do a OpVectorShuffle/OpCompositeExtract (next switch case)
+
+                            // Emit OpAccessChain with everything so far
+                            EmitOpAccessChain(accessChainIds);
+
+                            var load = builder.InsertData(new OpLoad(context.GetOrRegister(s), context.Bound++, result.Id, null));
+                            result = new(load);
+
+                            currentValueType = s;
+
+                            goto ProcessAgain;
+                        }
+                        else
+                        {
+                            // Do nothing
+                            accessor.Type = currentValueType;
+                        }
+                        break;
+                    case (ScalarType s, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                        if (swizzle.Length > 1)
+                        {
+                            var resultType = new VectorType(s, swizzle.Length);
+                            Span<int> constructIndices = stackalloc int[swizzle.Length];
+                            for (int j = 0; j < constructIndices.Length; ++j)
+                                constructIndices[j] = result.Id;
+                            var construct = builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(resultType), context.Bound++, new(constructIndices)));
+                            result = new(construct);
+
+                            accessor.Type = resultType;
+                        }
+                        else
+                        {
+                            // Do nothing
+                            accessor.Type = currentValueType;
+                        }
+                        break;
                     default:
                         throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
                 }
@@ -312,13 +406,22 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 currentValueType = accessor.Type;
             }
 
-            EmitOpAccessChain(Accessors.Count, Accessors.Count, indexes);
+            EmitOpAccessChain(accessChainIds);
         }
 
         Type = currentValueType;
 
         return result;
     }
+
+    private static int ConvertSwizzle(char c)
+        => c switch
+        {
+            'x' or 'r' => 0,
+            'y' or 'g' => 1,
+            'z' or 'b' => 2,
+            'w' or 'a' => 3,
+        };
 
     public override string ToString()
     {

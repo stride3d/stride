@@ -1,0 +1,46 @@
+// PSMain(ExpectedResult=#04040403, cbuffer.Test=(Test1=0))
+// PSMain(ExpectedResult=#01020101, cbuffer.Test=(Test1=1))
+// PSMain(ExpectedResult=#04030201, cbuffer.Test=(Test1=2))
+// PSMain(ExpectedResult=#04040302, cbuffer.Test=(Test1=3))
+// PSMain(ExpectedResult=#01010101, cbuffer.Test=(Test1=4))
+// PSMain(ExpectedResult=#02040608, cbuffer.Test=(Test1=5))
+// PSMain(ExpectedResult=#02020202, cbuffer.Test=(Test1=6))
+
+namespace Stride.Shaders.Tests;
+
+shader Swizzle
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(1.0 / 255.0, 2.0 / 255.0, 3.0 / 255.0, 4.0 / 255.0);
+        if (Test1 == 0)
+            streams.ColorTarget = streams.ColorTarget.wwwz;
+        if (Test1 == 1)
+            streams.ColorTarget = streams.ColorTarget.xyxx;
+        if (Test1 == 2)
+            streams.ColorTarget = streams.ColorTarget.wzyx;
+        if (Test1 == 3)
+            streams.ColorTarget = streams.ColorTarget.wzyx.xxyz;
+        if (Test1 == 4)
+            // Convert to scalar and back to vector
+            streams.ColorTarget = streams.ColorTarget.x.xxxx;
+        if (Test1 == 5)
+            // second swizzle is from a non-pointer value and will use OpVectorShuffle
+            streams.ColorTarget = (streams.ColorTarget.xyzw * 2).xyzw;
+        if (Test1 == 6)
+            // second swizzle is from a non-pointer value and will use OpCompositeExtract
+            streams.ColorTarget = (streams.ColorTarget.xyzw * 2).x.xxxx;
+        // TODO: swizzle target is not supported yet
+        //if (Test1 == 7)
+        //    streams.ColorTarget.wxyz = streams.ColorTarget;
+        //if (Test1 == 8)
+        //    streams.ColorTarget.wxyz.wyxz = streams.ColorTarget;
+    }
+}
