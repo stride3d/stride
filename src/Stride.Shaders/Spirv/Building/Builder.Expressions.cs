@@ -338,7 +338,7 @@ public partial class SpirvBuilder
                 result = Insert(new OpCompositeConstruct(context.GetOrRegister(m2), context.Bound++, new LiteralArray<int>(Enumerable.Repeat(result, m2.Rows).ToArray())));
                 valueType = m2;
                 break;
-            case (MatrixType, MatrixType m2):
+            case (VectorType, MatrixType m2):
                 // rebuild type
                 result = Insert(new OpCompositeConstruct(context.GetOrRegister(m2), context.Bound++, new LiteralArray<int>(values)));
                 valueType = m2;
