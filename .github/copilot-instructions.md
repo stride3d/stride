@@ -25,7 +25,7 @@ Stride is a game engine project that requires careful code reviews to maintain q
 - When suggesting XML comments, ensure they are:
   - Accurate and describe the actual functionality
   - Consistent with existing documentation style in the codebase
-  - Include `<summary>`, `<param>`, `<returns>`, and `<exception>` tags where appropriate
+  - Include `<summary>`, `<param>`, `<returns>`, `<exception>` and `<remarks>` tags where appropriate
   - Clear and helpful for API consumers
 
 The goal is to minimize noise and maximize helpful, actionable feedback.
