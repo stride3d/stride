@@ -22,6 +22,7 @@ Stride is a game engine project that requires careful code reviews to maintain q
 - Always consider the context and established patterns in the Stride codebase before making suggestions.
 - **Always check for missing, incomplete, or incorrect XML documentation comments** on public types, methods, properties, and fields.
 - **Provide XML comment suggestions as individual, separate items** so they can be reviewed and approved independently.
+- **Do not rewrite existing XML comments unless they contain errors** such as incorrect information, poor grammar, typos, or lack clarity. Preserve well-written documentation.
 - When suggesting XML comments, ensure they are:
   - Accurate and describe the actual functionality
   - Consistent with existing documentation style in the codebase
