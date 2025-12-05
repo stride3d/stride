@@ -116,23 +116,36 @@ public struct OpData : IDisposable, IComparable<OpData>
     public override string ToString()
     {
         var sb = new StringBuilder();
-        sb.Append(Op);
+        // Check for IdResult first
         foreach (var op in this)
         {
-            sb.Append(" ");
             switch (op.Kind)
             {
                 case OperandKind.IdResult:
+                    sb.Append("%");
+                    sb.Append(op.Words[0]);
+                    sb.Append(" = ");
+                    break;
+            }
+        }
+
+        sb.Append(Op);
+        foreach (var op in this)
+        {
+            if (op.Kind == OperandKind.IdResult)
+                continue;
+            sb.Append(" ");
+            switch (op.Kind)
+            {
+                case OperandKind.IdResultType:
                 case OperandKind.IdRef:
                     for (var index = 0; index < op.Words.Length; index++)
                     {
                         if (index > 0)
                             sb.Append(" ");
-                        var x = op.Words[index];
                         sb.Append("%");
-                        sb.Append(op.Words[0]);
+                        sb.Append(op.Words[index]);
                     }
-
                     break;
                 case OperandKind.LiteralInteger when op.Words.Length == 1:
                     foreach (var e in op.Words)
@@ -142,6 +155,14 @@ public struct OpData : IDisposable, IComparable<OpData>
                     sb.Append('"');
                     sb.Append(op.ToLiteral<string>());
                     sb.Append('"');
+                    break;
+                case OperandKind k when k.IsEnum():
+                    for (var index = 0; index < op.Words.Length; index++)
+                    {
+                        if (index > 0)
+                            sb.Append(" ");
+                        sb.Append(k.ConvertEnumValueToString(op.Words[index]));
+                    }
                     break;
                 default:
                     sb.Append($"unknown_{op.Kind}");

@@ -133,7 +133,7 @@ public static partial class Spv
         readonly DisWriter AppendEnums(OperandKind kind, SpvOperand operand)
         {
             foreach (ref var value in operand.Words)
-                Append(value.ToEnumValueString(kind), ConsoleColor.Yellow).Append(' ');
+                Append(kind.ConvertEnumValueToString(value), ConsoleColor.Yellow).Append(' ');
             return this;
         }
 
@@ -318,9 +318,9 @@ public static partial class Spv
                             },
                         OperandKind.LiteralFloat => AppendLiteralNumber(operand.ToLiteral<float>()),
                         OperandKind.LiteralString => AppendLiteralString(operand.ToLiteral<string>()),
-                        OperandKind k => (operand.Quantifier, operand.Words.Length) switch
+                        OperandKind k when k.IsEnum() => (operand.Quantifier, operand.Words.Length) switch
                         {
-                            (OperandQuantifier.One or OperandQuantifier.ZeroOrOne, 1) => Append(operand.Words[0].ToEnumValueString(k), ConsoleColor.Yellow).Append(' '),
+                            (OperandQuantifier.One or OperandQuantifier.ZeroOrOne, 1) => Append(k.ConvertEnumValueToString(operand.Words[0]), ConsoleColor.Yellow).Append(' '),
                             (OperandQuantifier.ZeroOrMore, > 0) => AppendEnums(k, operand).Append(' '),
                             (OperandQuantifier.ZeroOrOne or OperandQuantifier.ZeroOrMore, 0) => Append(""),
                             _ => throw new NotImplementedException("Unsupported image operands quantifier " + operand.Quantifier + " with length " + operand.Words.Length)

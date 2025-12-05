@@ -138,7 +138,16 @@ public partial class SPVGenerator
                     builder.AppendLine()
                     .AppendLine("public static class OperandKindExtensions")
                     .AppendLine("{")
-                    .AppendLine("public static string? ToEnumValueString(this int value, OperandKind kind)")
+                    .AppendLine("public static bool IsEnum(this OperandKind kind)")
+                    .AppendLine("{")
+                    .AppendLine("return kind switch")
+                    .AppendLine("{");
+                    foreach (var kind in dict.Values.Where(k => k.Category.EndsWith("Enum")))
+                        builder.AppendLine($"    OperandKind.{kind.Kind} => true,");
+                    builder.AppendLine("    _ => false")
+                    .AppendLine("};")
+                    .AppendLine("}")
+                    .AppendLine("public static string? ConvertEnumValueToString(this OperandKind kind, int value)")
                     .AppendLine("{")
                     .AppendLine("return kind switch")
                     .AppendLine("{");
