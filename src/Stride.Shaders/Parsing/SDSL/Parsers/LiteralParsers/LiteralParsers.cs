@@ -69,7 +69,7 @@ public record struct LiteralsParser : IParser<Literal>
         var position = scanner.Position;
         if (Tokens.Char('_', ref scanner) || Tokens.Letter(ref scanner))
         {
-            name = new TypeName("", new(), false);
+            name = new TypeName("", new());
             scanner.Advance(1);
             while (Tokens.LetterOrDigit(ref scanner) || Tokens.Char('_', ref scanner))
                 scanner.Advance(1);
@@ -99,7 +99,7 @@ public record struct LiteralsParser : IParser<Literal>
             {
                 ((TypeName)name).Name = scanner.Memory[position..scanner.Position].ToString().Trim();
                 name.Info = scanner[position..scanner.Position];
-                ((TypeName)name).IsArray = true;
+                throw new NotImplementedException();
                 return true;
             }
             else
@@ -107,7 +107,6 @@ public record struct LiteralsParser : IParser<Literal>
                 scanner.Position = intermediate;
                 ((TypeName)name).Name = identifier.Name;
                 name.Info = scanner[position..scanner.Position];
-                ((TypeName)name).IsArray = false;
                 return true;
             }
         }
@@ -124,7 +123,7 @@ public record struct LiteralsParser : IParser<Literal>
         }
         else if (Number(ref scanner, result, out var number))
         {
-            parsed = new TypeName(number.ToString() ?? "", number.Info, isArray: false);
+            parsed = new TypeName(number.ToString() ?? "", number.Info);
             return true;
         }
         else return Parsers.Exit(ref scanner, result, out parsed, scanner.Position, orError);
@@ -163,7 +162,7 @@ public record struct LiteralsParser : IParser<Literal>
                 Parsers.Spaces0(ref scanner, result, out _);
                 if (Tokens.Char('(', ref scanner, advance: true))
                 {
-                    var p = new VectorLiteral(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner[position..tnPos], isArray: false), scanner[..]);
+                    var p = new VectorLiteral(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner[position..tnPos]), scanner[..]);
                     while (!scanner.IsEof)
                     {
                         Parsers.Spaces0(ref scanner, result, out _);
@@ -192,7 +191,7 @@ public record struct LiteralsParser : IParser<Literal>
                 && Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true)
             )
             {
-                parsed = new VectorLiteral(new TypeName(baseType, scanner[position..tnPos], isArray: false), scanner[position..scanner.Position])
+                parsed = new VectorLiteral(new TypeName(baseType, scanner[position..tnPos]), scanner[position..scanner.Position])
                 {
                     Values = [value]
                 };
@@ -382,7 +381,7 @@ public record struct MatrixParser : IParser<MatrixLiteral>
             Parsers.Spaces0(ref scanner, result, out _);
             if (Tokens.Char('(', ref scanner, advance: true))
             {
-                var p = new MatrixLiteral(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner[position..tnPos], isArray: false), rows, cols, scanner[..]);
+                var p = new MatrixLiteral(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner[position..tnPos]), rows, cols, scanner[..]);
                 while (!scanner.IsEof)
                 {
                     Parsers.Spaces0(ref scanner, result, out _);

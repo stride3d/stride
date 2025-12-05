@@ -52,13 +52,23 @@ public class ForEach(TypeName typename, Identifier variable, Expression collecti
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        Collection.Compile(table, shader, compiler);
-        if (Collection.Type is ArrayType arrSym)
-        {
-            var btype = arrSym.BaseType;
-            TypeName.Compile(table, shader, compiler);
-        }
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+
+        var collection = Collection.Compile(table, shader, compiler);
+        if (!(Collection.Type is PointerType p && p.BaseType is ArrayType arrayType))
+            throw new InvalidOperationException("foreach: Array type is expected");
+
+        var variableType = new PointerType(arrayType.BaseType, Specification.StorageClass.Function);
+
+        // Since foreach need to be processed and expanded later, we use custom opcode
+        // (we could emit a "For" loop statement, but it would be too complex to write a general decompiler for a "for" loop when processing it later)
+        var variableId = builder.Insert(new OpForeachSDSL(context.GetOrRegister(variableType), context.Bound++, collection.Id));
+        table.Push();
+        var variableSymbol = new Symbol(new(Variable.Name, SymbolKind.Variable), variableType, variableId);
+        table.CurrentFrame.Add(Variable.Name, variableSymbol);
+        Body.Compile(table, shader, compiler);
+        table.Pop();
+        builder.Insert(new OpForeachEndSDSL());
     }
 
     public override string ToString()

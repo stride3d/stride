@@ -13,7 +13,7 @@ using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Building;
 
-public record class ShaderMixinInstantiation(List<ShaderClassInstantiation> Mixins, Dictionary<string, ShaderMixinInstantiation> Compositions);
+public record class ShaderMixinInstantiation(List<ShaderClassInstantiation> Mixins, Dictionary<string, ShaderMixinInstantiation[]> Compositions);
 
 public enum ResolveStep
 {
@@ -309,15 +309,16 @@ public partial class SpirvBuilder
         for (var index = shaderStart; index < buffer.Count; index++)
         {
             var i = buffer[index];
-            RemapIds(idRemapping, i);
+            RemapIds(idRemapping, i.Data);
         }
     }
 
-    public static void RemapIds(Dictionary<int, int> idRemapping, OpDataIndex i)
+    public static void RemapIds(Dictionary<int, int> idRemapping, OpData i)
     {
-        foreach (var op in i.Data)
+        foreach (var op in i)
         {
             if ((op.Kind == OperandKind.IdRef
+                 || op.Kind == OperandKind.IdResult
                  || op.Kind == OperandKind.IdResultType
                  || op.Kind == OperandKind.PairIdRefLiteralInteger
                  || op.Kind == OperandKind.PairIdRefIdRef)

@@ -39,7 +39,7 @@ public partial class ShaderMixer
             SpirvBuilder.BuildInheritanceList(ShaderLoader, mixinToMerge2, mixinList, ResolveStep.Mix);
         }
 
-        var compositions = new Dictionary<string, ShaderMixinInstantiation>();
+        var compositions = new Dictionary<string, ShaderMixinInstantiation[]>();
         var result = new ShaderMixinInstantiation(mixinList, compositions);
 
         foreach (var shaderName in mixinList.ToArray())
@@ -53,17 +53,33 @@ public partial class ShaderMixer
                 if (i.Op == Op.OpVariable && (OpVariable)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
                 {
                     var variableType = types[variable.ResultType];
-                    if (variableType is PointerType pointer && pointer.BaseType is ShaderSymbol shaderSymbol)
+                    if (variableType is PointerType pointer && pointer.BaseType is ShaderSymbol or ArrayType { BaseType: ShaderSymbol })
                     {
                         var variableName = names[variable.ResultId];
                         // Make sure we have a ShaderMixinSource
                         // If composition is not specified, use default class
                         if (!shaderMixinSource.Compositions.TryGetValue(variableName, out var compositionMixin))
                         {
-                            compositionMixin = new ShaderMixinSource { Mixins = { new ShaderClassSource(shaderSymbol.Name) } };
+                            if (pointer.BaseType is ShaderSymbol shaderSymbol)
+                                compositionMixin = new ShaderMixinSource { Mixins = { new ShaderClassSource(shaderSymbol.Name) } };
+                            else if (pointer.BaseType is ArrayType { BaseType: ShaderSymbol })
+                                compositionMixin = new ShaderArraySource();
+                            else
+                                throw new NotImplementedException();
                         }
-                        var composition = EvaluateInheritanceAndCompositions(compositionMixin, root ?? result);
-                        compositions[variableName] = composition;
+
+                        if (compositionMixin is ShaderArraySource shaderArraySource)
+                        {
+                            var variableCompositions = new List<ShaderMixinInstantiation>();
+                            foreach (var value in shaderArraySource.Values)
+                                variableCompositions.Add(EvaluateInheritanceAndCompositions(value, root ?? result));
+                            compositions[variableName] = [..variableCompositions];
+                        }
+                        else
+                        {
+                            var variableComposition = EvaluateInheritanceAndCompositions(compositionMixin, root ?? result);
+                            compositions[variableName] = [variableComposition];
+                        }
                     }
                 }
 

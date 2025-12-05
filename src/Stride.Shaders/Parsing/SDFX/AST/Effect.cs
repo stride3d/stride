@@ -134,14 +134,14 @@ public abstract class Composable();
 
 public abstract class ComposeValue(TextLocation info) : Node(info)
 {
-    public abstract void Compile(CompilerUnit compiler, Identifier identifier);
+    public abstract void Compile(CompilerUnit compiler, Identifier identifier, AssignOperator @operator);
 }
 
 public class ComposePathValue(string path, TextLocation info) : ComposeValue(info)
 {
     public string Path { get; set; } = path;
 
-    public override void Compile(CompilerUnit compiler, Identifier identifier)
+    public override void Compile(CompilerUnit compiler, Identifier identifier, AssignOperator @operator)
     {
         throw new NotImplementedException();
     }
@@ -155,13 +155,22 @@ public class ComposeMixinValue(Mixin mixin, TextLocation info) : ComposeValue(in
 {
     public Mixin Mixin { get; set; } = mixin;
 
-    public override void Compile(CompilerUnit compiler, Identifier identifier)
+    public override void Compile(CompilerUnit compiler, Identifier identifier, AssignOperator @operator)
     {
         if (Mixin.Generics != null || Mixin.Path.Count > 0)
             throw new NotImplementedException();
 
-
-        compiler.Builder.Insert(new OpSDSLMixinCompose(identifier.Name, Mixin.Name.Name));
+        switch (@operator)
+        {
+            case AssignOperator.Simple:
+                compiler.Builder.Insert(new OpSDSLMixinCompose(identifier.Name, Mixin.Name.Name));
+                break;
+            case AssignOperator.Plus:
+                compiler.Builder.Insert(new OpSDSLMixinComposeArray(identifier.Name, Mixin.Name.Name));
+                break;
+            default:
+                throw new ArgumentException(null, nameof(@operator));
+        }
     }
 
 
@@ -179,13 +188,13 @@ public class MixinCompose(Identifier identifier, AssignOperator op, ComposeValue
 
     public override void Compile(CompilerUnit compiler)
     {
-        ComposeValue.Compile(compiler, Identifier);
+        ComposeValue.Compile(compiler, Identifier, Operator);
     }
 
 
     public override string ToString()
     {
-        return $"mixin compose {Identifier} = {ComposeValue}";
+        return $"mixin compose {Identifier} {Operator.ToAssignSymbol()} {ComposeValue}";
     }
 }
 public class MixinComposeAdd(Identifier identifier, Identifier source, TextLocation info) : EffectStatement(info)

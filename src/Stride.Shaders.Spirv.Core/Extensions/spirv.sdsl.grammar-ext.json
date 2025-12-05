@@ -207,6 +207,20 @@
       ]
     },
     {
+      "opname": "OpSDSLMixinComposeArray",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "identifier"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "mixin"
+        }
+      ]
+    },
+    {
       "opname": "OpSDSLGenericParameter",
       "class": "Miscellaneous",
       "operands": [
@@ -235,6 +249,22 @@
       "operands": [
         { "kind": "IdResult" }
       ]
+    },
+    {
+      "opname": "OpForeachSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        { "kind": "IdResultType" },
+        {
+          "kind": "IdRef",
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "opname": "OpForeachEndSDSL",
+      "class": "Miscellaneous"
     }
   ],
   "operand_kinds": [

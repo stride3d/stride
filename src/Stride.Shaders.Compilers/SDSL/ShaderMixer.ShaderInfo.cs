@@ -30,11 +30,12 @@ public partial class ShaderMixer
         /// </summary>
         public string? CompositionPath { get; set; }
 
-        public int StartInstruction { get; } = startInstruction;
-        public int EndInstruction { get; } = endInstruction;
+        public int StartInstruction { get; internal set; } = startInstruction;
+        public int EndInstruction { get; internal set; } = endInstruction;
         public Dictionary<int, string> Names { get; } = new();
         public Dictionary<string, int> Functions { get; } = new();
         public Dictionary<string, (int Id, SymbolType Type)> Variables { get; } = new();
+
         public Dictionary<string, int> StructTypes { get; } = new();
 
         public override string ToString() => $"{ShaderName} ({(CompositionPath != null ? $" {CompositionPath} " : "")}{StartInstruction}..{EndInstruction})";
@@ -64,20 +65,39 @@ public partial class ShaderMixer
                 shaderInfo!.Variables.Add(variableName, (variable.ResultId, variableType));
 
                 // Remove SPIR-V variables to other shaders (already stored in ShaderInfo and not valid SPIR-V)
-                if (variableType is PointerType pointer && pointer.BaseType is ShaderSymbol shaderSymbol)
+                if (variableType is PointerType pointer && pointer.BaseType is (ShaderSymbol or ArrayType { BaseType: ShaderSymbol }))
                 {
                     SetOpNop(i.Data.Memory.Span);
                     removedIds.Add(variable.ResultId);
                 }
             }
+            // Remove SPIR-V about pointer types to other shaders (variable and types themselves are removed as well)
             else if (i.Data.Op == Op.OpTypePointer && (OpTypePointer)i is { } typePointer)
             {
-                // Remove SPIR-V about pointer types to other shaders (variable and types themselves are removed as well)
                 var pointedType = types[typePointer.Type];
-                if (pointedType is ShaderSymbol)
+                if (pointedType is ShaderSymbol || pointedType is ArrayType { BaseType: ShaderSymbol })
                 {
                     SetOpNop(i.Data.Memory.Span);
                     removedIds.Add(typePointer.ResultId);
+                }
+            }
+            // Also remove arrays of shaders (used in composition arrays)
+            else if (i.Data.Op == Op.OpTypeArray && (OpTypeArray)i is { } typeArray)
+            {
+                var innerType = types[typeArray.ElementType];
+                if (innerType is ShaderSymbol)
+                {
+                    SetOpNop(i.Data.Memory.Span);
+                    removedIds.Add(typeArray.ResultId);
+                }
+            }
+            else if (i.Data.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)i is { } typeRuntimeArray)
+            {
+                var innerType = types[typeRuntimeArray.ElementType];
+                if (innerType is ShaderSymbol)
+                {
+                    SetOpNop(i.Data.Memory.Span);
+                    removedIds.Add(typeRuntimeArray.ResultId);
                 }
             }
             else if (i.Data.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStruct)

@@ -191,6 +191,8 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
     // internal ref OpData this[int index] => ref CollectionsMarshal.AsSpan(Instructions)[index];
     public OpDataIndex this[int index] => new(index, this);
 
+    public List<OpData> Slice(int start, int length) => Instructions.Slice(start, length);
+
 
     public ref OpData GetRef(int index) => ref CollectionsMarshal.AsSpan(Instructions)[index];
 
@@ -308,6 +310,23 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         return true;
     }
 
+    public void RemoveRange(int index, int count, bool dispose)
+    {
+        if (dispose)
+        {
+            for (int i = index; i < index + count; ++i)
+                Instructions[i].Dispose();
+        }
+        Instructions.RemoveRange(index, count);
+    }
+
+    public void InsertRange(int index, ReadOnlySpan<OpData> source)
+    {
+        Instructions.InsertRange(index, source);
+        for (int i = index; i < index + source.Length; ++i)
+            UpdateBound(Instructions[i]);
+    }
+
     public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction
     {
         if (index < 0 || index >= Instructions.Count)
@@ -422,7 +441,6 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         return GetEnumerator();
     }
 }
-
 
 public static class IMemoryInstructionExtensions
 {

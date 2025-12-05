@@ -35,6 +35,16 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
     }
 }
 
+/// <summary>
+/// Used only for <see cref="TypeName.ArraySize"/> when size is not explicitly defined.
+/// </summary>
+/// <param name="info"></param>
+public class EmptyExpression(TextLocation info) : Expression(info)
+{
+    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler) => throw new NotImplementedException();
+    public override string ToString() => string.Empty;
+}
+
 public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLocation info) : Expression(info)
 {
     public Identifier Name = name;
@@ -464,7 +474,11 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             accessor.Type = currentValueType;
                         }
                         break;
-                    // Array indexer
+                    // Array indexer for shader compositions
+                    case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol s } }, IndexerExpression { Index: IntegerLiteral { Value: var compositionIndex } }):
+                        
+                        break;
+                    // Array indexer for vector/matrix
                     case (PointerType { BaseType: VectorType or MatrixType } p, IndexerExpression indexer):
                         var indexerValue = indexer.Index.CompileAsValue(table, shader, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);

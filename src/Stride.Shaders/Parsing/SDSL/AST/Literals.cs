@@ -303,54 +303,56 @@ public class Identifier(string name, TextLocation info) : Literal(info)
     }
 }
 
-public class TypeName(string name, TextLocation info, bool isArray) : Literal(info)
+public class TypeName(string name, TextLocation info) : Literal(info)
 {
     public string Name { get; set; } = name;
-    public bool IsArray { get; set; } = isArray;
+    public bool IsArray => ArraySize != null && ArraySize.Count > 0;
     public List<Expression>? ArraySize { get; set; }
     public List<TypeName> Generics { get; set; } = [];
 
     public bool TryResolveType(SymbolTable table, [MaybeNullWhen(false)] out SymbolType symbolType)
     {
-        if (!IsArray)
+        if (Name == "LinkType")
         {
-            if (Name == "LinkType")
-            {
-                symbolType = new GenericLinkType();
-                return true;
-            }
-            if (table.DeclaredTypes.TryGetValue(Name, out symbolType))
-                return true;
-            else if (SymbolType.TryGetNumeric(Name, out var numeric))
-            {
-                table.DeclaredTypes.Add(numeric.ToString(), numeric);
-                symbolType = numeric;
-                return true;
-            }
-            else if (!IsArray && Generics.Count == 0 && SymbolType.TryGetBufferType(Name, null, out var bufferType))
-            {
-                table.DeclaredTypes.Add(bufferType.ToString(), bufferType);
-                symbolType = bufferType;
-                return true;
-            }
-            else if (Generics.Count == 1 && SymbolType.TryGetBufferType(Name, Generics[0].Name, out var genericBufferType))
-            {
-                table.DeclaredTypes.Add(genericBufferType.ToString(), genericBufferType);
-                symbolType = genericBufferType;
-                return true;
-            }
-            return false;
+            symbolType = new GenericLinkType();
         }
-        // else if (IsArray && Generics.Count == 0)
-        // {
-        //     if (table.DeclaredTypes.TryGetValue(Name, out var type) && )
-        //     {
-        //         Type = new Core.Array(type, )
-        //     }
-        //     else table.Errors.Add(new(Info, "type not found"));
-        // }
-        symbolType = null;
-        return false;
+        else if (table.DeclaredTypes.TryGetValue(Name, out symbolType))
+        {
+
+        }
+        else if (SymbolType.TryGetNumeric(Name, out var numeric))
+        {
+            table.DeclaredTypes.Add(numeric.ToString(), numeric);
+            symbolType = numeric;
+        }
+        else if (!IsArray && Generics.Count == 0 && SymbolType.TryGetBufferType(Name, null, out var bufferType))
+        {
+            table.DeclaredTypes.Add(bufferType.ToString(), bufferType);
+            symbolType = bufferType;
+        }
+        else if (Generics.Count == 1 && SymbolType.TryGetBufferType(Name, Generics[0].Name, out var genericBufferType))
+        {
+            table.DeclaredTypes.Add(genericBufferType.ToString(), genericBufferType);
+            symbolType = genericBufferType;
+        }
+
+        if (symbolType == null)
+            return false;
+
+        if (IsArray)
+        {
+            foreach (var arraySize in ArraySize)
+            {
+                if (arraySize is EmptyExpression)
+                    symbolType = new ArrayType(symbolType, -1);
+                else if (arraySize is IntegerLiteral i)
+                    symbolType = new ArrayType(symbolType, (int)i.Value);
+                else
+                    throw new NotImplementedException();
+            }
+        }
+
+        return true;
     }
 
     public SymbolType ResolveType(SymbolTable table)

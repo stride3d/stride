@@ -82,7 +82,7 @@ public class DeclaredVariableAssign(Identifier variable, bool isConst, TextLocat
     public AssignOperator? Operator { get; set; } = op;
     public Expression? Value { get; set; } = value;
     public bool IsConst { get; set; } = isConst;
-    public TypeName TypeName { get; set; } = new("void", info, false);
+    public TypeName TypeName { get; set; } = new("void", info);
     public List<Expression>? ArraySizes
     {
         get => TypeName.ArraySize;

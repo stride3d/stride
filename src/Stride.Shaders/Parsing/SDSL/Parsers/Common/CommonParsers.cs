@@ -385,8 +385,10 @@ public static class Parsers
         {
             if (FollowedBy(ref scanner, Tokens.Char('['), withSpaces: true, advance: true))
             {
-                if(FollowedBy(ref scanner, Tokens.Char(']'), withSpaces: true, advance: true))
-                    break;
+                if (FollowedBy(ref scanner, Tokens.Char(']'), withSpaces: true, advance: true))
+                {
+                    arraySizes.Add(new EmptyExpression(scanner[(scanner.Position - 1)..(scanner.Position - 1)]));
+                }
                 else if (FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression arraySize, withSpaces: true, advance: true))
                 {
                     arraySizes.Add(arraySize);

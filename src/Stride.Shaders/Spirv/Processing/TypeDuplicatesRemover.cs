@@ -58,6 +58,7 @@ public struct TypeDuplicateRemover : INanoPass
             // Only process types that we care about
             if (x.Op == Op.OpTypeVoid || x.Op == Op.OpTypeInt || x.Op == Op.OpTypeFloat || x.Op == Op.OpTypeBool
                 || x.Op == Op.OpTypeVector || x.Op == Op.OpTypeMatrix || x.Op == Op.OpTypePointer || x.Op == Op.OpTypeFunction
+                || x.Op == Op.OpTypeArray || x.Op == Op.OpTypeRuntimeArray
                 || x.Op == Op.OpSDSLImportShader || x.Op == Op.OpSDSLImportFunction || x.Op == Op.OpSDSLImportVariable || x.Op == Op.OpSDSLImportStruct)
             {
                 comparison = MemoryExtensions.SequenceCompareTo(x.Memory.Span[2..], y.Memory.Span[2..]);
@@ -90,6 +91,8 @@ public struct TypeDuplicateRemover : INanoPass
         ProcessInstructions(buffer, instructionsByOp, Op.OpTypeVoid, Op.OpTypeFloat, false);
         // Covers OpTypeVector, OpTypeMatrix at the same time
         ProcessInstructions(buffer, instructionsByOp, Op.OpTypeVector, Op.OpTypeMatrix, true);
+
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeArray, Op.OpTypeRuntimeArray, true);
 
         ProcessInstructions(buffer, instructionsByOp, Op.OpTypePointer, Op.OpTypePointer, true);
         ProcessInstructions(buffer, instructionsByOp, Op.OpTypeFunction, Op.OpTypeFunction, true);

@@ -120,6 +120,16 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     : new StructType(structName, fields);
                 types.Add(typeStructInstruction.ResultId, structType);
             }
+            else if (instruction.Op == Op.OpTypeArray && (OpTypeArray)instruction is { } typeArray)
+            {
+                var innerType = types[typeArray.ElementType];
+                types.Add(typeArray.ResultId, new ArrayType(innerType, typeArray.Length));
+            }
+            else if (instruction.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)instruction is { } typeRuntimeArray)
+            {
+                var innerType = types[typeRuntimeArray.ElementType];
+                types.Add(typeRuntimeArray.ResultId, new ArrayType(innerType, -1));
+            }
             else if (instruction.Op == Op.OpTypeFunction && new OpTypeFunction(instruction) is { } typeFunctionInstruction)
             {
                 var returnType = types[typeFunctionInstruction.ReturnType];
@@ -321,9 +331,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var classSource = new ShaderClassInstantiation(svar.TypeName.Name, []);
                     var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, ResolveStep.Compile, context.GetBuffer());
                     classSource.Buffer = shader;
-                    memberType = LoadExternalShaderType(table, classSource);
+                    var shaderType = LoadExternalShaderType(table, classSource);
+                    table.DeclaredTypes.TryAdd(shaderType.ToString(), shaderType);
 
-                    table.DeclaredTypes.TryAdd(memberType.ToString(), memberType);
+                    // Resolve again (we don't use shaderType direclty, because it might lack info such as ArrayType)
+                    memberType = svar.TypeName.ResolveType(table);
                 }
 
                 var storageClass = Specification.StorageClass.Private;

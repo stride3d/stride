@@ -4,6 +4,7 @@ using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using Stride.Shaders;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Text;
@@ -70,6 +71,12 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
 
     public EffectReflection EffectReflection { get; set; }
 
+    static unsafe void DebugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
+    {
+        var messageDecoded = Encoding.ASCII.GetString((byte*)message.ToPointer(), length);
+        Debug.WriteLine($"[{severity}] {messageDecoded}");
+    }
+
     public override unsafe void RenderFrame(Span<byte> result)
     {
         var options = WindowOptions.Default;
@@ -80,6 +87,10 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         window.Initialize();
         //Getting the opengl api for drawing to the screen.
         Gl = GL.GetApi(window);
+
+        Gl.Enable(EnableCap.DebugOutput);
+        Gl.Enable(EnableCap.DebugOutputSynchronous);
+        Gl.DebugMessageCallback(DebugCallback, null);
 
         // Generate a FBO
         Gl.GenFramebuffers(1, out Fbo);

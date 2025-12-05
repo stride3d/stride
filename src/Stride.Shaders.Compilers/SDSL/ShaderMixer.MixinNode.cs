@@ -40,7 +40,9 @@ public partial class ShaderMixer
         public Dictionary<string, ShaderInfo> ShadersByName { get; } = new();
         public Dictionary<string, int> MethodGroupsByName { get; } = new();
         public Dictionary<int, MethodGroup> MethodGroups { get; } = new();
+        
         public Dictionary<int, MixinNode> Compositions { get; } = new();
+        public Dictionary<int, MixinNode[]> CompositionArrays { get; } = new();
 
         public Dictionary<int, string> ExternalShaders { get; } = new();
         public Dictionary<int, (int ShaderId, string Name)> ExternalFunctions { get; } = new();

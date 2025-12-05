@@ -104,9 +104,14 @@ public sealed partial record MatrixType(ScalarType BaseType, int Rows, int Colum
 {
     public override string ToString() => $"{BaseType}{Rows}x{Columns}";
 }
+/// <summary>
+/// Array type.
+/// </summary>
+/// <param name="BaseType">The base type for the array.</param>
+/// <param name="Size">The size of the array. If -1, it means size is not defined, such as using [].</param>
 public sealed record ArrayType(SymbolType BaseType, int Size) : SymbolType()
 {
-    public override string ToString() => $"{BaseType}[{Size}]";
+    public override string ToString() => $"{BaseType}[{(Size != -1 ? Size : string.Empty)}]";
 }
 public record StructuredType(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : SymbolType()
 {
@@ -284,6 +289,24 @@ public sealed record ShaderSymbol(string Name, int[] GenericArguments) : SymbolT
 
         symbol = default;
         return false;
+    }
+
+    public override string ToString()
+    {
+        var builder = new StringBuilder();
+        builder.Append(Name);
+        if (GenericArguments.Length > 0)
+        {
+            builder.Append('<');
+            for (int i = 0; i < GenericArguments.Length; i++)
+            {
+                if (i > 0)
+                    builder.Append(',');
+                builder.Append(GenericArguments[i]);
+            }
+            builder.Append('>');
+        }
+        return builder.ToString();
     }
 }
 
