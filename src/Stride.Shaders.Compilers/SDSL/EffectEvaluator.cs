@@ -1,11 +1,12 @@
 ﻿using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core;
+using Stride.Shaders.Spirv.Core.Buffers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Stride.Shaders.Spirv.Core;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Compilers.SDSL
@@ -17,10 +18,8 @@ namespace Stride.Shaders.Compilers.SDSL
             switch (source)
             {
                 case ShaderClassSource classSource:
-                    if (classSource.GenericArguments != null && classSource.GenericArguments.Length > 0)
-                        throw new NotImplementedException();
+                    var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, classSource.ClassName, classSource.GenericArguments);
 
-                    var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, classSource.ClassName);
                     if (buffer[0].Op == Op.OpSDSLEffect)
                     {
                         var mixinTree = new ShaderMixinSource();
@@ -28,7 +27,14 @@ namespace Stride.Shaders.Compilers.SDSL
                         {
                             if (instruction.Op == Op.OpSDSLMixin && (OpSDSLMixin)instruction is { } mixinInstruction)
                             {
-                                var instSource = new ShaderClassSource(mixinInstruction.Mixin);
+                                // Resolve generics
+                                var genericArguments = new object[mixinInstruction.Values.Elements.Length];
+                                for (int i = 0; i < genericArguments.Length; i++)
+                                {
+                                    genericArguments[i] = SpirvBuilder.GetConstantValue(mixinInstruction.Values.Elements.Span[i], buffer);
+                                }
+
+                                var instSource = new ShaderClassSource(mixinInstruction.Mixin, genericArguments);
                                 var evaluatedSource = EvaluateEffects(instSource);
 
                                 Merge(mixinTree, evaluatedSource);

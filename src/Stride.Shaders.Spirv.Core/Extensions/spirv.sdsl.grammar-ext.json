@@ -189,6 +189,11 @@
         {
           "kind": "LiteralString",
           "name": "mixin"
+        },
+        {
+          "kind": "IdRef",
+          "quantifier": "*",
+          "name": "generics"
         }
       ]
     },
@@ -352,8 +357,12 @@
           "value": 0
         },
         {
-          "enumerant": "LinkType",
+          "enumerant": "Integer",
           "value": 1
+        },
+        {
+          "enumerant": "LinkType",
+          "value": 2
         }
       ]
     },

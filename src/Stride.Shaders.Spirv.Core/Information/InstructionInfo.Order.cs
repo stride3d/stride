@@ -26,6 +26,7 @@ public partial class InstructionInfo
         Span<Op> initSDSL = [
             Op.OpNop,
             Op.OpSDSLShader,
+            Op.OpSDSLEffect,
             Op.OpCapability,
             Op.OpSDSLMixinInherit,
             Op.OpSDSLCompose

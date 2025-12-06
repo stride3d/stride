@@ -21,14 +21,13 @@ public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : Sh
 
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        compiler.Builder.Insert(new OpSDSLEffect(Name.Name));
+        var (builder, context) = compiler;
+        context.GetBuffer().Add(new OpSDSLEffect(Name.Name));
 
         foreach (var statement in Members)
         {
             statement.Compile(table, compiler);
         }
-
-        compiler.Builder.Insert(new OpSDSLEffectEnd());
     }
 }
 
@@ -77,10 +76,25 @@ public class MixinUse(List<Mixin> mixin, TextLocation info) : EffectStatement(in
     {
         foreach (var mixinName in MixinName)
         {
-            if (mixinName.Generics != null || mixinName.Path.Count > 0)
+            if (mixinName.Path.Count > 0)
                 throw new NotImplementedException();
 
-            compiler.Builder.Insert(new OpSDSLMixin(mixinName.Name));
+            var genericCount = mixinName.Generics != null ? mixinName.Generics.Values.Count : 0;
+            var genericValues = new int[genericCount];
+            if (genericCount > 0)
+            {
+                int genericIndex = 0;
+                foreach (var generic in mixinName.Generics)
+                {
+                    if (generic is not Literal literal)
+                        throw new InvalidOperationException($"Generic value {generic} is not a literal");
+                    var compiledValue = generic.Compile(table, compiler);
+                    genericValues[genericIndex++] = compiledValue.Id;
+                }
+            }
+
+
+            compiler.Builder.Insert(new OpSDSLMixin(mixinName.Name, [..genericValues]));
         }
     }
 
