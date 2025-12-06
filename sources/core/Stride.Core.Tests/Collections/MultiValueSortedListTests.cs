@@ -24,7 +24,7 @@ public class MultiValueSortedListTests
         Assert.Single(list);
     }
 
-    [Fact(Skip = "Implementation has issues with retrieving all values for a key")]
+    [Fact]
     public void Add_MultipleValuesWithSameKey_AllAdded()
     {
         var list = new MultiValueSortedList<int, string>();
@@ -32,13 +32,15 @@ public class MultiValueSortedListTests
         list.Add(new KeyValuePair<int, string>(1, "second"));
         list.Add(new KeyValuePair<int, string>(1, "third"));
 
-        // All 3 values are properly added
         Assert.Equal(3, list.Count);
         var values = list[1].ToList();
-        Assert.Single(values);
+        Assert.Equal(3, values.Count);
+        Assert.Contains("first", values);
+        Assert.Contains("second", values);
+        Assert.Contains("third", values);
     }
 
-    [Fact(Skip = "Implementation has sorting issues")]
+    [Fact]
     public void Add_MaintainsSortedOrder()
     {
         var list = new MultiValueSortedList<int, string>();
@@ -62,8 +64,9 @@ public class MultiValueSortedListTests
         var valuesFor1 = list[1].ToList();
         var valuesFor2 = list[2].ToList();
 
-        // Note: Implementation has an issue with multiple values per key
-        Assert.Single(valuesFor1);
+        Assert.Equal(2, valuesFor1.Count);
+        Assert.Contains("a", valuesFor1);
+        Assert.Contains("b", valuesFor1);
         Assert.Single(valuesFor2);
         Assert.Contains("c", valuesFor2);
     }
@@ -142,7 +145,7 @@ public class MultiValueSortedListTests
         Assert.Single(list);
     }
 
-    [Fact(Skip = "Implementation has sorting issues")]
+    [Fact]
     public void Keys_ReturnsDistinctKeysInOrder()
     {
         var list = new MultiValueSortedList<int, string>();
@@ -172,7 +175,7 @@ public class MultiValueSortedListTests
         Assert.Contains("c", values);
     }
 
-    [Fact(Skip = "Implementation has grouping issues")]
+    [Fact]
     public void GetEnumerator_GroupsByKey()
     {
         var list = new MultiValueSortedList<int, string>();
@@ -227,7 +230,7 @@ public class MultiValueSortedListTests
         Assert.NotEqual(default, array[2]);
     }
 
-    [Fact(Skip = "Implementation has sorting issues")]
+    [Fact]
     public void MixedKeys_MaintainsSortOrder()
     {
         var list = new MultiValueSortedList<int, string>();
