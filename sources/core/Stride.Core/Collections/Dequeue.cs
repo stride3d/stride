@@ -169,19 +169,31 @@ public sealed class Deque<T> : IList<T>, System.Collections.IList
         return -1;
     }
 
-    public int BinarySearch(T item, IComparer<T>? comparer = null)
+    /// <summary>Perform a binary search over this <see cref="Deque{T}"/> to find <paramref name="value"/> using the default comparer.</summary>
+    /// <remarks>Result is undefined when the items in this <see cref="Deque{T}"/> are unordered.</remarks>
+    /// <returns>
+    /// The zero-based index of <paramref name="value" /> in this sorted <see cref="Deque{T}"/>, if <paramref name="value" /> is found; otherwise,
+    /// a negative number that is the bitwise complement of the index of the next element that is larger than <paramref name="value" /> or,
+    /// if there is no larger element, the bitwise complement of <see cref="Deque{T}.Count" />.
+    /// </returns>
+    public int BinarySearch(T value) => BinarySearch(value, Comparer<T>.Default);
+
+    /// <summary>Perform a binary search over this <see cref="Deque{T}"/> to find <paramref name="value"/> using <paramref name="comparer"/>.</summary>
+    /// <exception cref="T:System.ArgumentNullException">
+    /// <paramref name="comparer" /> is <see langword="null" />.</exception>
+    /// <inheritdoc cref="BinarySearch"/>
+    public int BinarySearch<TComparer>(T value, TComparer comparer) where TComparer : IComparer<T>, allows ref struct
     {
-        comparer ??= Comparer<T>.Default;
         if (WrapsAround(offset, Count, out var splitA, out var splitB))
         {
-            int i = splitA.BinarySearch(item, comparer);
+            int i = splitA.BinarySearch(value, comparer);
             if (i >= 0)
                 return i;
             if (~i < splitA.Length)
                 return i;
             
             int left = Count - (Capacity - offset);
-            i = splitB[..left].BinarySearch(item, comparer);
+            i = splitB[..left].BinarySearch(value, comparer);
             if (i >= 0)
                 return splitA.Length + i;
             
@@ -189,7 +201,7 @@ public sealed class Deque<T> : IList<T>, System.Collections.IList
         }
         else
         {
-            return splitA.BinarySearch(item, comparer);
+            return splitA.BinarySearch(value, comparer);
         }
     }
 

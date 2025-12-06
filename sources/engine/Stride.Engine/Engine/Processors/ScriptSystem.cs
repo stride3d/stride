@@ -18,7 +18,7 @@ namespace Stride.Engine.Processors
     /// </summary>
     public sealed class ScriptSystem : GameSystemBase
     {
-        internal const long UpdateBit = 1L << 32;
+        private const long UpdateBit = 1L << 32;
         internal static readonly Logger Log = GlobalLogger.GetLogger("ScriptSystem");
 
         /// <summary>

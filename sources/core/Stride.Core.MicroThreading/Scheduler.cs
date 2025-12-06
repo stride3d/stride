@@ -28,7 +28,7 @@ public class Scheduler : IDisposable
     private bool isDisposed;
     private int runRecursion;
     private readonly Lock bucketsLock = new();
-    private readonly PriorityQueue<ExecutionQueue> sortedPriorities = new(PrioritiesComparer.Shared);
+    private readonly PriorityQueue<ExecutionQueue> sortedPriorities = new(NonNullPrioritiesComparer.Shared);
     private readonly Dictionary<long, ExecutionQueue> buckets = new();
     private readonly Dictionary<long, ExecutionQueue> emptyBuckets = new();
     private readonly Stack<ExecutionQueue> bucketPool = new();
@@ -434,7 +434,7 @@ public class Scheduler : IDisposable
             if (schedulerEntry.CurrentQueue is { } deque)
             {
                 schedulerEntry.CurrentQueue = null;
-                deque.Deque.RemoveAt(deque.Deque.BinarySearch(schedulerEntry, DequeComparer.Shared));
+                deque.Deque.RemoveAt(deque.Deque.BinarySearch(schedulerEntry, new NonNullBinarySearchComparer()));
                 if (deque.Deque.Count == 0)
                 {
                     emptyBuckets.Add(deque.Priority, deque);
@@ -442,18 +442,6 @@ public class Scheduler : IDisposable
                     sortedPriorities.Remove(deque);
                 }
             }
-        }
-    }
-
-    private class DequeComparer : IComparer<SchedulerEntry>
-    {
-        public static DequeComparer Shared = new();
-        
-        public int Compare(SchedulerEntry? x, SchedulerEntry? y)
-        {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-            return x.BinarySearchHelper.CompareTo(y.BinarySearchHelper);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
     }
 
@@ -475,13 +463,27 @@ public class Scheduler : IDisposable
             return CallbackNodePool.TryPop(out var node) ? node : new MicroThreadCallbackNode();
     }
 
-    private class PrioritiesComparer : IComparer<ExecutionQueue>
+    private struct NonNullBinarySearchComparer : IComparer<SchedulerEntry>
     {
-        public static PrioritiesComparer Shared = new();
+        public int Compare(SchedulerEntry? x, SchedulerEntry? y)
+        {
+            // On purpose, nulls are not allowed in the collection
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+            return x.BinarySearchHelper.CompareTo(y.BinarySearchHelper);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+        }
+    }
+
+    private class NonNullPrioritiesComparer : IComparer<ExecutionQueue>
+    {
+        public static NonNullPrioritiesComparer Shared = new();
         
         public int Compare(ExecutionQueue? x, ExecutionQueue? y)
         {
+            // On purpose, nulls are not allowed in the collection
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             return x.Priority.CompareTo(y.Priority);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
     }
 
