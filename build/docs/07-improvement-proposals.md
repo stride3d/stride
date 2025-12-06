@@ -411,11 +411,11 @@ grep -r "StrideObsolete" build/ sources/targets/
 **Usage:**
 
 ```bash
-# Dev build (fast)
-dotnet build build\Stride.sln
+# Dev build (fast, use msbuild for full engine)
+msbuild build\Stride.sln
 
 # CI build (thorough)
-dotnet build build\Stride.sln -p:StrideBuildProfile=CI
+msbuild build\Stride.sln -p:StrideBuildProfile=CI
 ```
 
 **Benefits:**

@@ -2,6 +2,8 @@
 
 This document provides practical examples of common build scenarios in Stride.
 
+> **Important:** The Stride engine contains C++/CLI projects that require **`msbuild`** to build. Use `msbuild` for building the full engine/editor solutions (`build\Stride.sln`, etc.). You can use `dotnet build` for individual Core library projects or game projects.
+
 ## Table of Contents
 
 - [Quick Reference](#quick-reference)

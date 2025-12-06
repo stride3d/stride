@@ -21,9 +21,9 @@ Run these commands when encountering issues:
 # 1. Check configuration
 dotnet build MyProject.csproj -t:StrideDiagnostics
 
-# 2. Clean build
-dotnet clean build\Stride.sln
-dotnet build build\Stride.sln
+# 2. Clean build (use msbuild for full engine)
+msbuild build\Stride.sln -t:Clean
+msbuild build\Stride.sln
 
 # 3. Force restore
 dotnet restore build\Stride.sln --force
@@ -88,9 +88,11 @@ error MSB4126: The specified solution configuration "Release|Mixed Platforms" is
 **Solution:**
 
 ```bash
-# Use dotnet msbuild (recommended)
-dotnet --version  # Check .NET SDK version
-dotnet build build\Stride.sln
+# Check .NET SDK version
+dotnet --version
+
+# Use msbuild (required for C++/CLI projects)
+msbuild build\Stride.sln
 
 # Or use latest MSBuild
 "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" build\Stride.sln
@@ -123,8 +125,8 @@ grep -i "error" build.log | head -20
 
 ```bash
 # 1. Clean and rebuild
-dotnet clean build\Stride.sln
-dotnet build build\Stride.sln
+msbuild build\Stride.sln -t:Clean
+msbuild build\Stride.sln
 
 # 2. Disable assembly processor temporarily (for diagnosis)
 dotnet build MyProject.csproj -p:StrideAssemblyProcessor=false
@@ -386,8 +388,8 @@ sudo apt-get install libx11-dev libxrandr-dev libxi-dev
 # Fedora/RHEL
 sudo dnf install libX11-devel libXrandr-devel libXi-devel
 
-# Then rebuild
-dotnet build build/Stride.sln
+# Then rebuild (use msbuild for full engine)
+msbuild build/Stride.sln
 ```
 
 ## NuGet and Restore Issues
@@ -505,8 +507,8 @@ grep "Time Elapsed" build.log | sort -k3 -rn | head -10
 1. **Building all Graphics APIs:**
 
 ```bash
-# Build single API only
-dotnet build build\Stride.sln -p:StrideGraphicsApis=Direct3D11
+# Build single API only (use msbuild for full engine)
+msbuild build\Stride.sln -p:StrideGraphicsApis=Direct3D11
 # ~5x faster
 ```
 
@@ -514,14 +516,14 @@ dotnet build build\Stride.sln -p:StrideGraphicsApis=Direct3D11
 
 ```bash
 # Skip unit tests
-dotnet build build\Stride.sln -p:StrideSkipUnitTests=true
+msbuild build\Stride.sln -p:StrideSkipUnitTests=true
 ```
 
 3. **Building unnecessary projects:**
 
 ```bash
-# Use solution filter
-dotnet build build\Stride.Runtime.slnf  # Only runtime projects
+# Use solution filter (use msbuild for engine builds)
+msbuild build\Stride.Runtime.slnf
 ```
 
 4. **Antivirus scanning:**
@@ -591,8 +593,8 @@ dotnet restore build\Stride.sln
 rm -rf .vs  # or rmdir /s /q .vs on Windows
 
 # 2. Rebuild project
-dotnet clean build\Stride.sln
-dotnet build build\Stride.sln
+msbuild build\Stride.sln -t:Clean
+msbuild build\Stride.sln
 
 # 3. Reload solution in Visual Studio
 

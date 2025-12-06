@@ -3,6 +3,8 @@
 ## Introduction
 
 The Stride game engine uses a complex MSBuild-based build system designed to support:
+
+> **Important Note:** The Stride engine contains C++/CLI projects (for native library interop) that require **`msbuild`** to build. When building the full engine or editor solutions, you must use `msbuild`, not `dotnet build`. However, individual Core library projects and game projects can use `dotnet build`.
 - **6 platforms**: Windows, Linux, macOS, Android, iOS, and UWP
 - **5 graphics APIs**: Direct3D 11, Direct3D 12, OpenGL, OpenGLES, and Vulkan
 - **Cross-compilation**: Build for different platforms from a single host

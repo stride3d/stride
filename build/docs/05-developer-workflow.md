@@ -2,6 +2,8 @@
 
 Tips and best practices for efficient daily development on the Stride game engine.
 
+> **Important:** The Stride engine contains C++/CLI projects that require **`msbuild`** to build. Use `msbuild` for building the full engine/editor solutions (`build\Stride.sln`, etc.). You can use `dotnet build` for individual Core library projects or game projects.
+
 ## Table of Contents
 
 - [Initial Setup](#initial-setup)
@@ -25,8 +27,8 @@ cd stride
 dotnet restore build\Stride.sln
 
 # Initial build (choose fastest option for your platform)
-# Windows:
-dotnet build build\Stride.sln -p:StrideGraphicsApis=Direct3D11 -p:StrideSkipUnitTests=true
+# Windows (use msbuild due to C++/CLI projects):
+msbuild build\Stride.sln -p:StrideGraphicsApis=Direct3D11 -p:StrideSkipUnitTests=true
 
 # Linux:
 dotnet build build/Stride.sln -p:StrideGraphicsApis=OpenGL -p:StrideSkipUnitTests=true
@@ -73,8 +75,8 @@ git pull origin main
 # 2. Restore (only if .csproj changed)
 dotnet restore build\Stride.sln
 
-# 3. Build (incremental)
-dotnet build build\Stride.sln --no-restore
+# 3. Build (incremental, use msbuild for full engine)
+msbuild build\Stride.sln --no-restore
 ```
 
 ### Working on Specific Project
@@ -91,8 +93,8 @@ dotnet build sources\engine\Stride.Graphics\Stride.Graphics.csproj --no-dependen
 
 ```bash
 # Clean and rebuild
-dotnet clean build\Stride.sln
-dotnet build build\Stride.sln
+msbuild build\Stride.sln -t:Clean
+msbuild build\Stride.sln
 ```
 
 ### Update NuGet Packages
@@ -124,11 +126,11 @@ export StrideGraphicsApis=Vulkan
 ### Switch APIs Temporarily
 
 ```bash
-# Build with specific API
-dotnet build build\Stride.sln -p:StrideGraphicsApis=Direct3D12
+# Build with specific API (use msbuild for full engine)
+msbuild build\Stride.sln -p:StrideGraphicsApis=Direct3D12
 
 # Back to your default
-dotnet build build\Stride.sln
+msbuild build\Stride.sln
 ```
 
 ### Test Multiple APIs
@@ -140,7 +142,7 @@ dotnet build build\Stride.sln
 $apis = "Direct3D11", "Direct3D12", "Vulkan", "OpenGL"
 foreach ($api in $apis) {
     Write-Host "Testing $api..." -ForegroundColor Green
-    dotnet build build\Stride.sln -p:StrideGraphicsApis=$api
+    msbuild build\Stride.sln -p:StrideGraphicsApis=$api
     dotnet test build\Stride.sln -p:StrideGraphicsApis=$api --no-build
 }
 ```
@@ -166,7 +168,7 @@ Create `Directory.Build.props` as shown in [Initial Setup](#initial-setup).
 **Solution 3: Command line**
 
 ```bash
-dotnet build build\Stride.sln -p:StrideDefaultGraphicsApiDesignTime=Vulkan
+msbuild build\Stride.sln -p:StrideDefaultGraphicsApiDesignTime=Vulkan
 ```
 
 Then reload solution in Visual Studio.
@@ -254,7 +256,7 @@ git tag v4.3.0.2
 git push origin v4.3.0.2
 
 # Rebuild to update version
-dotnet build build\Stride.sln
+msbuild build\Stride.sln
 ```
 
 ### Create NuGet Package Locally
@@ -281,7 +283,7 @@ build.bat  # or build.sh on Linux
 copy lib\* ..\..\Bin\Windows\
 
 # Rebuild engine
-dotnet build build\Stride.sln
+msbuild build\Stride.sln
 ```
 
 ### Regenerate Solution Files
@@ -450,17 +452,17 @@ Console.WriteLine("Compiled with Direct3D 11 support");
 
 ```bash
 # Use all CPU cores
-dotnet build build\Stride.sln -m
+msbuild build\Stride.sln -m
 
 # Limit to 4 cores (if thermal throttling)
-dotnet build build\Stride.sln -m:4
+msbuild build\Stride.sln -m:4
 ```
 
 ### Incremental Builds
 
 ```bash
 # Skip restore if no package changes
-dotnet build build\Stride.sln --no-restore
+msbuild build\Stride.sln --no-restore
 
 # Skip dependency checks (dangerous!)
 dotnet build MyProject.csproj --no-dependencies
@@ -479,10 +481,10 @@ Use a persistent build cache:
 
 ```bash
 # Minimal output (faster, harder to debug)
-dotnet build build\Stride.sln -v:q
+msbuild build\Stride.sln -v:q
 
 # Normal (default)
-dotnet build build\Stride.sln -v:n
+msbuild build\Stride.sln -v:n
 ```
 
 ## Workflow Aliases (PowerShell)
@@ -491,8 +493,9 @@ Add to your PowerShell profile (`$PROFILE`):
 
 ```powershell
 # Stride build aliases
+# Note: Use msbuild due to C++/CLI projects
 function Stride-Build { 
-    dotnet build build\Stride.sln -p:StrideGraphicsApis=Direct3D11 -p:StrideSkipUnitTests=true 
+    msbuild build\Stride.sln -p:StrideGraphicsApis=Direct3D11 -p:StrideSkipUnitTests=true 
 }
 
 function Stride-Build-All { 
@@ -522,7 +525,8 @@ Add to `~/.bashrc` or `~/.zshrc`:
 
 ```bash
 # Stride build aliases
-alias stride-build='dotnet build build/Stride.sln -p:StrideGraphicsApis=OpenGL -p:StrideSkipUnitTests=true'
+# Note: Use msbuild due to C++/CLI projects
+alias stride-build='msbuild build/Stride.sln -p:StrideGraphicsApis=OpenGL -p:StrideSkipUnitTests=true'
 alias stride-build-all='msbuild build/Stride.build -t:BuildLinux'
 alias stride-clean='dotnet clean build/Stride.sln'
 alias stride-test='dotnet test build/Stride.sln --no-build'
@@ -564,8 +568,8 @@ dotnet restore build\Stride.sln --force
 
 ```bash
 # Clean build
-dotnet clean build\Stride.sln
-dotnet build build\Stride.sln
+msbuild build\Stride.sln -t:Clean
+msbuild build\Stride.sln
 ```
 
 ## Best Practices

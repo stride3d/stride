@@ -19,6 +19,8 @@ This directory contains comprehensive documentation about the Stride build syste
 
 ## Quick Start
 
+> **Important:** The Stride engine contains C++/CLI projects that require **`msbuild`** to build. Use `msbuild` for building the full engine/editor (`build\Stride.sln`). You can use `dotnet build` for individual Core library projects or game projects.
+
 ### Full Windows Build
 ```bash
 msbuild build\Stride.build -t:BuildWindows -m:1 -nr:false -v:m -p:StrideSkipUnitTests=true

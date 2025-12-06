@@ -141,7 +141,8 @@ dotnet build MyGame.Windows.csproj -p:StrideGraphicsApis=Vulkan
 
 ### Build engine with single API (fast development)
 ```bash
-dotnet build build\Stride.sln -p:StrideGraphicsApis=Direct3D11 -p:StrideSkipUnitTests=true
+# Note: Use msbuild (not dotnet build) as the engine contains C++/CLI projects
+msbuild build\Stride.sln -p:StrideGraphicsApis=Direct3D11 -p:StrideSkipUnitTests=true
 ```
 
 ### Full official build (all APIs)
@@ -171,6 +172,10 @@ dotnet build sources\core\Stride.Core\Stride.Core.csproj
 - `sources/targets/Stride.Core.targets` - Assembly processor, native deps
 - `sources/targets/Stride.targets` - Version replacement, shader generation
 - `sources/targets/Stride.GraphicsApi.Dev.targets` - Graphics API inner builds
+
+## Important: MSBuild vs dotnet build
+
+> **The Stride engine contains C++/CLI projects that require `msbuild` to build.** Use `msbuild` (not `dotnet build`) for building the full engine/editor solutions (`build\Stride.sln`). Individual Core library projects and game projects can use `dotnet build`.
 
 ## For New Contributors
 
@@ -219,14 +224,14 @@ Create `Directory.Build.props` in repository root:
 
 **Testing changes:**
 ```bash
-# Test all platforms (if possible)
-dotnet build build\Stride.sln -f:net10.0           # Desktop
-dotnet build build\Stride.sln -f:net10.0-android   # Android
-dotnet build build\Stride.sln -f:net10.0-ios       # iOS
+# Test all platforms (if possible) - use msbuild for full engine
+msbuild build\Stride.sln -f:net10.0           # Desktop
+msbuild build\Stride.sln -f:net10.0-android   # Android
+msbuild build\Stride.sln -f:net10.0-ios       # iOS
 
 # Test all Graphics APIs
-dotnet build build\Stride.sln -p:StrideGraphicsApis=Direct3D11
-dotnet build build\Stride.sln -p:StrideGraphicsApis=Vulkan
+msbuild build\Stride.sln -p:StrideGraphicsApis=Direct3D11
+msbuild build\Stride.sln -p:StrideGraphicsApis=Vulkan
 
 # Test full build
 msbuild build\Stride.build -t:BuildWindows
