@@ -30,6 +30,7 @@ SOFTWARE.
 #endregion
 
 using System.Diagnostics;
+using Stride.Core.Collections;
 
 namespace Stride.Core.Threading;
 
