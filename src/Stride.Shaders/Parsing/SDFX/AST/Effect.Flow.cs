@@ -5,7 +5,7 @@ namespace Stride.Shaders.Parsing.SDFX.AST;
 
 public class EffectFlow(TextLocation info) : EffectStatement(info)
 {
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(Analysis.SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }

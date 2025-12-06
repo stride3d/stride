@@ -1,4 +1,5 @@
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
@@ -18,13 +19,13 @@ public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : Sh
         return string.Join("", Members.Select(x => $"{x}\n"));
     }
 
-    public void Compile(CompilerUnit compiler)
+    public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         compiler.Builder.Insert(new OpSDSLEffect(Name.Name));
 
         foreach (var statement in Members)
         {
-            statement.Compile(compiler);
+            statement.Compile(table, compiler);
         }
 
         compiler.Builder.Insert(new OpSDSLEffectEnd());
@@ -33,7 +34,7 @@ public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : Sh
 
 public abstract class EffectStatement(TextLocation info) : Node(info)
 {
-    public abstract void Compile(CompilerUnit compiler);
+    public abstract void Compile(SymbolTable table, CompilerUnit compiler);
 }
 
 public class ShaderSourceDeclaration(Identifier name, TextLocation info, Expression? value = null) : EffectStatement(info)
@@ -42,7 +43,7 @@ public class ShaderSourceDeclaration(Identifier name, TextLocation info, Express
     public Expression? Value { get; set; } = value;
     public bool IsCollection => Name.Name.Contains("Collection");
 
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -57,7 +58,7 @@ public class EffectStatementBlock(TextLocation info) : EffectStatement(info)
 {
     public List<EffectStatement> Statements { get; set; } = [];
 
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -72,7 +73,7 @@ public class MixinUse(List<Mixin> mixin, TextLocation info) : EffectStatement(in
 {
     public List<Mixin> MixinName { get; set; } = mixin;
 
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         foreach (var mixinName in MixinName)
         {
@@ -92,7 +93,7 @@ public class MixinChild(Mixin mixin, TextLocation info) : EffectStatement(info)
 {
     public Mixin MixinName { get; set; } = mixin;
 
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -107,7 +108,7 @@ public class MixinClone(Mixin mixin, TextLocation info) : EffectStatement(info)
 {
     public Mixin MixinName { get; set; } = mixin;
 
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -122,7 +123,7 @@ public class MixinConst(string identifier, TextLocation info) : EffectStatement(
 {
     public string Identifier { get; set; } = identifier;
 
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -186,7 +187,7 @@ public class MixinCompose(Identifier identifier, AssignOperator op, ComposeValue
     AssignOperator Operator { get; set; } = op;
     public ComposeValue ComposeValue { get; set; } = value;
 
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         ComposeValue.Compile(compiler, Identifier, Operator);
     }
@@ -202,7 +203,7 @@ public class MixinComposeAdd(Identifier identifier, Identifier source, TextLocat
     public Identifier Identifier { get; set; } = identifier;
     public Identifier Source { get; set; } = source;
 
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -217,7 +218,7 @@ public class ComposeParams(Mixin mixin, TextLocation info) : EffectStatement(inf
 {
     public Mixin MixinName { get; set; } = mixin;
 
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -227,7 +228,7 @@ public class UsingParams(Identifier name, TextLocation info) : EffectStatement(i
 {
     public Identifier ParamsName { get; set; } = name;
 
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -243,7 +244,7 @@ public class EffectBlock(TextLocation info) : EffectStatement(info)
 {
     public List<EffectStatement> Statements { get; set; } = [];
 
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -255,7 +256,7 @@ public class EffectExpressionStatement(Statement statement, TextLocation info) :
 {
     public Statement Statement { get; set; } = statement;
 
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -263,7 +264,7 @@ public class EffectExpressionStatement(Statement statement, TextLocation info) :
 
 public class EffectDiscardStatement(TextLocation info) : EffectStatement(info)
 {
-    public override void Compile(CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }

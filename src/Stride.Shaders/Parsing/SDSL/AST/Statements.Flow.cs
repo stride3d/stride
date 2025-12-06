@@ -11,7 +11,7 @@ public abstract class Flow(TextLocation info) : Statement(info);
 public abstract class Loop(TextLocation info) : Flow(info);
 public class Break(TextLocation info) : Statement(info)
 {
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
@@ -23,14 +23,14 @@ public class Break(TextLocation info) : Statement(info)
 }
 public class Discard(TextLocation info) : Statement(info)
 {
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
 }
 public class Continue(TextLocation info) : Statement(info)
 {
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
@@ -50,11 +50,11 @@ public class ForEach(TypeName typename, Identifier variable, Expression collecti
     public Statement Body { get; set; } = body;
 
 
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
-        var collection = Collection.Compile(table, shader, compiler);
+        var collection = Collection.Compile(table, compiler);
         if (!(Collection.Type is PointerType p && p.BaseType is ArrayType arrayType))
             throw new InvalidOperationException("foreach: Array type is expected");
 
@@ -66,7 +66,7 @@ public class ForEach(TypeName typename, Identifier variable, Expression collecti
         table.Push();
         var variableSymbol = new Symbol(new(Variable.Name, SymbolKind.Variable), variableType, variableId);
         table.CurrentFrame.Add(Variable.Name, variableSymbol);
-        Body.Compile(table, shader, compiler);
+        Body.Compile(table, compiler);
         table.Pop();
         builder.Insert(new OpForeachEndSDSL());
     }
@@ -84,10 +84,10 @@ public class While(Expression condition, Statement body, TextLocation info, Shad
     public Statement Body { get; set; } = body;
     public ShaderAttribute? Attribute { get; internal set; } = attribute;
 
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        Condition.CompileAsValue(table, shader, compiler);
-        Body.Compile(table, shader, compiler);
+        Condition.CompileAsValue(table, compiler);
+        Body.Compile(table, compiler);
         if (Condition.ValueType != ScalarType.From("bool"))
             table.Errors.Add(new(Condition.Info, "not a boolean"));
         throw new NotImplementedException();
@@ -117,11 +117,11 @@ public class For(Statement initializer, Expression cond, List<Statement> update,
     public ShaderAttribute? Attribute = attribute;
     public List<ForAnnotation> Annotations { get; set; } = [];
 
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
-        Initializer.Compile(table, shader, compiler);
+        Initializer.Compile(table, compiler);
 
         // Prepare blocks ids
         var forCheckBlock = context.Bound++;
@@ -135,7 +135,7 @@ public class For(Statement initializer, Expression cond, List<Statement> update,
         // Check block
         builder.CreateBlock(context, forCheckBlock, $"for_check_{builder.ForBlockCount}");
 
-        var conditionValue = Condition.CompileAsValue(table, shader, compiler);
+        var conditionValue = Condition.CompileAsValue(table, compiler);
         if (Condition.ValueType != ScalarType.From("bool"))
             table.Errors.Add(new(Condition.Info, "not a boolean"));
 
@@ -144,14 +144,14 @@ public class For(Statement initializer, Expression cond, List<Statement> update,
 
         // Body block
         builder.CreateBlock(context, forBodyBlock, $"for_body_{builder.ForBlockCount}");
-        Body.Compile(table, shader, compiler);
+        Body.Compile(table, compiler);
         if (!SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
             builder.Insert(new OpBranch(currentEscapeBlocks.ContinueBlock));
 
         // Continue block
         builder.CreateBlock(context, currentEscapeBlocks.ContinueBlock, $"for_continue_{builder.ForBlockCount}");
         foreach (var update in Update)
-            update.Compile(table, shader, compiler);
+            update.Compile(table, compiler);
         if (!SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
             builder.Insert(new OpBranch(forCheckBlock));
 

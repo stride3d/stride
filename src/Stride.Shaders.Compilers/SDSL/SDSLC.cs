@@ -36,7 +36,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                         ShaderLoader = ShaderLoader
                     };
                     var compiler = new CompilerUnit();
-                    shader.Compile(compiler, table);
+                    shader.Compile(table, compiler);
 
                     if (table.Errors.Count > 0)
                         throw new Exception("Some parse errors");
@@ -51,8 +51,12 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 }
                 else if (declaration is ShaderEffect effect)
                 {
+                    SymbolTable table = new()
+                    {
+                        ShaderLoader = ShaderLoader
+                    };
                     var compiler = new CompilerUnit();
-                    effect.Compile(compiler);
+                    effect.Compile(table, compiler);
 
                     var merged = compiler.ToBuffer();
 #if DEBUG

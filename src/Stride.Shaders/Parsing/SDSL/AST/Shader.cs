@@ -253,7 +253,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         //table.DeclaredTypes.Add(shaderType.ToClassName(), shaderType);
     }
 
-    public void Compile(CompilerUnit compiler, SymbolTable table)
+    public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         context.PutShaderName(Name);
@@ -293,7 +293,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 for (int i = 0; i < mixin.Generics.Values.Count; i++)
                 {
-                    generics[i] = mixin.Generics.Values[i].CompileAsValue(table, this, compiler).Id;
+                    generics[i] = mixin.Generics.Values[i].CompileAsValue(table, compiler).Id;
                 }
             }
             var shaderClassSource = new ShaderClassInstantiation(mixin.Name, generics);

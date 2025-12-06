@@ -18,7 +18,7 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
     public Else? Else { get; set; }
     public ShaderAttributeList? Attributes { get; set; }
 
-    public override unsafe void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override unsafe void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
@@ -33,7 +33,7 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
             blockTrueIds[i] = context.Bound++;
             blockMergeIds[i] = context.Bound++;
 
-            var conditionValue = currentIf.Condition.CompileAsValue(table, shader, compiler);
+            var conditionValue = currentIf.Condition.CompileAsValue(table, compiler);
             if (currentIf.Condition.ValueType != ScalarType.From("bool"))
                 table.Errors.Add(new(currentIf.Condition.Info, "not a boolean"));
 
@@ -46,7 +46,7 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
             builder.Insert(new OpBranchConditional(conditionValue.Id, blockTrueIds[i], falseBlock ?? blockMergeIds[i], []));
 
             builder.CreateBlock(context, blockTrueIds[i], $"if_true_{builder.IfBlockCount + i}");
-            currentIf.Body.Compile(table, shader, compiler);
+            currentIf.Body.Compile(table, compiler);
 
             // Do we have a specific false block?
             if (falseBlock != null)
@@ -58,7 +58,7 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
 
                 // If there's an else without condition and we are at the last iteration, add the code now (otherwise it will happen next loop)
                 if (i + 1 == ElseIfs.Count + 1)
-                    Else!.Compile(table, shader, compiler);
+                    Else!.Compile(table, compiler);
             }
         }
 
@@ -83,7 +83,7 @@ public class If(Expression condition, Statement body, TextLocation info) : Flow(
     public Expression Condition { get; set; } = condition;
     public Statement Body { get; set; } = body;
 
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new InvalidOperationException("Handled by ConditionalFlow");
     }
@@ -96,11 +96,11 @@ public class If(Expression condition, Statement body, TextLocation info) : Flow(
 
 public class ElseIf(Expression condition, Statement body, TextLocation info) : If(condition, body, info)
 {
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new InvalidOperationException("Handled by ConditionalFlow");
-        Condition.CompileAsValue(table, shader, compiler);
-        Body.Compile(table, shader, compiler);
+        Condition.CompileAsValue(table, compiler);
+        Body.Compile(table, compiler);
         if (Condition.ValueType != ScalarType.From("bool"))
             table.Errors.Add(new(Condition.Info, "not a boolean"));
         throw new NotImplementedException();
@@ -115,9 +115,9 @@ public class Else(Statement body, TextLocation info) : Flow(info)
 {
     public Statement Body { get; set; } = body;
 
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        Body.Compile(table, shader, compiler);
+        Body.Compile(table, compiler);
     }
     public override string ToString()
     {

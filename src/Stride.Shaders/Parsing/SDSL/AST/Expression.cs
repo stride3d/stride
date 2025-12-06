@@ -16,21 +16,21 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 /// </summary>
 public abstract class Expression(TextLocation info) : ValueNode(info)
 {
-    public SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public SpirvValue Compile(SymbolTable table, CompilerUnit compiler)
     {
-        var result = CompileImpl(table, shader, compiler);
+        var result = CompileImpl(table, compiler);
         // In case type is not computed yet, make sure it is using SpirvValue.TypeId
         Type ??= compiler.Context.ReverseTypes[result.TypeId];
         return result;
     }
 
-    public abstract SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler);
+    public abstract SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler);
 
     public SymbolType? ValueType => Type is PointerType pointerType ? pointerType.BaseType : Type;
 
-    public virtual SpirvValue CompileAsValue(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public virtual SpirvValue CompileAsValue(SymbolTable table, CompilerUnit compiler)
     {
-        var result = Compile(table, shader, compiler);
+        var result = Compile(table, compiler);
         return compiler.Builder.AsValue(compiler.Context, result);
     }
 }
@@ -41,7 +41,7 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
 /// <param name="info"></param>
 public class EmptyExpression(TextLocation info) : Expression(info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler) => throw new NotImplementedException();
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler) => throw new NotImplementedException();
     public override string ToString() => string.Empty;
 }
 
@@ -53,7 +53,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
     public SpirvValue? MemberCall { get; set; }
     public bool IsBaseCall { get; set; } = false;
 
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
@@ -82,7 +82,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 
         foreach (var p in list)
         {
-            var paramSource = p.CompileAsValue(table, shader, compiler);
+            var paramSource = p.CompileAsValue(table, compiler);
             var paramType = functionType.ParameterTypes[tmp];
 
             // Wrap param in proper pointer type (function)
@@ -135,7 +135,7 @@ public class MixinAccess(Mixin mixin, TextLocation info) : Expression(info)
 {
     public Mixin Mixin { get; set; } = mixin;
 
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -154,10 +154,10 @@ public abstract class UnaryExpression(Expression expression, Operator op, TextLo
 
 public class PrefixExpression(Operator op, Expression expression, TextLocation info) : UnaryExpression(expression, op, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var expression = Expression.Compile(table, shader, compiler);
+        var expression = Expression.Compile(table, compiler);
         var type = Expression.Type;
 
         // Depending on the operator, we might need the pointer type
@@ -223,11 +223,11 @@ public class CastExpression(TypeName typeName, Operator op, Expression expressio
 {
     public TypeName TypeName { get; set; } = typeName;
 
-    public unsafe override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public unsafe override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var castType = TypeName.ResolveType(table);
-        var value = Expression.CompileAsValue(table, shader, compiler);
+        var value = Expression.CompileAsValue(table, compiler);
 
         Type = castType;
 
@@ -240,7 +240,7 @@ public class IndexerExpression(Expression index, TextLocation info) : Expression
 {
     public Expression Index { get; set; } = index;
 
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -254,7 +254,7 @@ public class PostfixIncrement(Operator op, TextLocation info) : Expression(info)
 {
     public Operator Operator { get; set; } = op;
 
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -269,7 +269,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     public Expression Source { get; set; } = source;
     public List<Expression> Accessors { get; set; } = [];
 
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         SpirvValue result;
@@ -278,7 +278,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         SymbolType currentValueType;
         if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
         {
-            result = streamVar.Compile(table, shader, compiler);
+            result = streamVar.Compile(table, compiler);
             currentValueType = streamVar.Type;
             firstIndex = 1;
         }
@@ -286,23 +286,23 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         {
             if (Source is Identifier { Name: "base" })
                 methodCall.IsBaseCall = true;
-            result = methodCall.Compile(table, shader, compiler);
+            result = methodCall.Compile(table, compiler);
             currentValueType = methodCall.Type;
             firstIndex = 1;
         }
         else
         {
-            result = Source.Compile(table, shader, compiler);
+            result = Source.Compile(table, compiler);
             currentValueType = Source.Type;
         }
         if (Source is Identifier { ValueType: TextureType or Texture2DType or Texture3DType } && Accessors is [MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 }])
         {
-            result = Source.CompileAsValue(table, shader, compiler);
+            result = Source.CompileAsValue(table, compiler);
             if (Accessors is [MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } implicitSampling])
             {
                 var textureValue = result;
-                var samplerValue = implicitSampling.Parameters.Values[0].CompileAsValue(table, shader, compiler);
-                var texCoordValue = implicitSampling.Parameters.Values[1].CompileAsValue(table, shader, compiler);
+                var samplerValue = implicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
+                var texCoordValue = implicitSampling.Parameters.Values[1].CompileAsValue(table, compiler);
                 var typeSampledImage = context.GetOrRegister(new SampledImage((TextureType)Source.ValueType));
                 var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
                 var returnType = context.GetOrRegister(new VectorType(((TextureType)Source.ValueType).ReturnType, 4));
@@ -313,9 +313,9 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             else if (Accessors is [MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 } explicitSampling])
             {
                 var textureValue = result;
-                var samplerValue = explicitSampling.Parameters.Values[0].CompileAsValue(table, shader, compiler);
-                var texCoordValue = explicitSampling.Parameters.Values[1].CompileAsValue(table, shader, compiler);
-                var levelValue = explicitSampling.Parameters.Values[2].CompileAsValue(table, shader, compiler);
+                var samplerValue = explicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
+                var texCoordValue = explicitSampling.Parameters.Values[1].CompileAsValue(table, compiler);
+                var levelValue = explicitSampling.Parameters.Values[2].CompileAsValue(table, compiler);
 
                 var typeSampledImage = context.GetOrRegister(new SampledImage((TextureType)Source.ValueType));
                 var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
@@ -361,7 +361,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         EmitOpAccessChain(accessChainIds);
 
                         methodCall2.MemberCall = result;
-                        result = methodCall2.Compile(table, shader, compiler);
+                        result = methodCall2.Compile(table, compiler);
                         break;
                     case (PointerType { BaseType: ShaderSymbol s }, Identifier field):
                         // Emit OpAccessChain with everything so far
@@ -480,7 +480,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         break;
                     // Array indexer for vector/matrix
                     case (PointerType { BaseType: VectorType or MatrixType } p, IndexerExpression indexer):
-                        var indexerValue = indexer.Index.CompileAsValue(table, shader, compiler);
+                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
 
                         accessor.Type = new PointerType(p.BaseType switch
@@ -533,10 +533,10 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
-        var left = Left.CompileAsValue(table, shader, compiler);
-        var right = Right.CompileAsValue(table, shader, compiler);
+        var left = Left.CompileAsValue(table, compiler);
+        var right = Right.CompileAsValue(table, compiler);
 
         var (builder, context) = compiler;
         var result = builder.BinaryOperation(context, left, Op, right);
@@ -556,11 +556,11 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override SpirvValue CompileImpl(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
-        Condition.CompileAsValue(table, shader, compiler);
-        Left.CompileAsValue(table, shader, compiler);
-        Right.CompileAsValue(table, shader, compiler);
+        Condition.CompileAsValue(table, compiler);
+        Left.CompileAsValue(table, compiler);
+        Right.CompileAsValue(table, compiler);
         if (Condition.ValueType is not ScalarType { TypeName: "bool" })
             table.Errors.Add(new(Condition.Info, SDSLErrorMessages.SDSL0106));
         if (Left.ValueType != Right.ValueType)

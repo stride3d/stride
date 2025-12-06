@@ -10,13 +10,13 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 
 public abstract class Statement(TextLocation info) : ValueNode(info)
 {
-    public abstract void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler);
+    public abstract void Compile(SymbolTable table, CompilerUnit compiler);
 }
 
 public class EmptyStatement(TextLocation info) : Statement(info)
 {
     public override SymbolType? Type { get => ScalarType.From("void"); set { } }
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler) { }
+    public override void Compile(SymbolTable table, CompilerUnit compiler) { }
     public override string ToString() => ";";
 }
 
@@ -25,9 +25,9 @@ public class ExpressionStatement(Expression expression, TextLocation info) : Sta
     public override SymbolType? Type { get => Expression.Type; set { } }
     public Expression Expression { get; set; } = expression;
 
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        Expression.Compile(table, shader, compiler);
+        Expression.Compile(table, compiler);
         Type = ScalarType.From("void");
     }
     public override string ToString()
@@ -41,10 +41,10 @@ public class Return(TextLocation info, Expression? expression = null) : Statemen
     public override SymbolType? Type { get => Value?.Type ?? ScalarType.From("void"); set { } }
     public Expression? Value { get; set; } = expression;
 
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, _) = compiler;
-        builder.Return(Value?.Compile(table, shader, compiler));
+        builder.Return(Value?.Compile(table, compiler));
         Type = Value?.Type ?? ScalarType.From("void");
     }
     public override string ToString()
@@ -65,7 +65,7 @@ public class VariableAssign(Expression variable, bool isConst, TextLocation info
     public Expression? Value { get; set; } = value;
     public bool IsConst { get; set; } = isConst;
 
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new NotImplementedException();
     }
@@ -89,10 +89,10 @@ public class DeclaredVariableAssign(Identifier variable, bool isConst, TextLocat
         set => TypeName.ArraySize = value;
     }
 
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         Variable.Type = TypeName.ResolveType(table);
-        var initialValue = Value?.Compile(table, shader, compiler);
+        var initialValue = Value?.Compile(table, compiler);
         if (Value is not null && Value.Type != Variable.Type)
             table.Errors.Add(new(TypeName.Info, "wrong type"));
 
@@ -117,7 +117,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
 {
     public List<DeclaredVariableAssign> Variables { get; set; } = [];
 
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
@@ -125,7 +125,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         for (var index = 0; index < Variables.Count; index++)
         {
             if (Variables[index].Value != null)
-                compiledValues[index] = Variables[index].Value!.CompileAsValue(table, shader, compiler);
+                compiledValues[index] = Variables[index].Value!.CompileAsValue(table, compiler);
         }
 
         // Compute type
@@ -185,13 +185,13 @@ public class Assign(TextLocation info) : Statement(info)
 {
     public List<VariableAssign> Variables { get; set; } = [];
 
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         foreach (var variable in Variables)
         {
-            var target = variable.Variable.Compile(table, shader, compiler);
-            var source = variable.Value!.CompileAsValue(table, shader, compiler);
+            var target = variable.Variable.Compile(table, compiler);
+            var source = variable.Value!.CompileAsValue(table, compiler);
             if (variable.Variable.Type is not PointerType)
                 throw new InvalidOperationException("can only assign to pointer type");
 
@@ -234,13 +234,13 @@ public class BlockStatement(TextLocation info) : Statement(info)
 {
     public List<Statement> Statements { get; set; } = [];
 
-    public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         table.Push();
         var (builder, context) = compiler;
         foreach (var s in Statements)
         {
-            s.Compile(table, shader, compiler);
+            s.Compile(table, compiler);
             if (SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
                 break;
         }

@@ -283,7 +283,7 @@ public class ShaderMethod(
                 table.Push();
                 builder.CreateBlock(context);
                 foreach (var s in body)
-                    s.Compile(table, shader, compiler);
+                    s.Compile(table, compiler);
                 table.Pop();
             }
             builder.EndFunction();
