@@ -55,10 +55,11 @@ internal class InternalNavigationMesh
         return tileRef != 0;
     }
 
-    public void RemoveTile(Point coord)
+    public bool RemoveTile(Point coord)
     {
         long tileRef = navMesh.GetTileRefAt(coord.X, coord.Y, 0);
-        navMesh.RemoveTile(tileRef);
+        var status = navMesh.RemoveTile(tileRef);
+        return status != 0;
     }
     
     public void DoPathFindQuery(PathFindQuery query, ref PathFindResult result)

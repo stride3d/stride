@@ -25,7 +25,7 @@ namespace Stride.Navigation.Processors
             var coord = new Point(data.header.x, data.header.y);
 
             // Remove old tile if it exists
-            RemoveTile(coord);
+            _ = RemoveTile(coord);
 
             tileCoordinates.Add(coord);
             return navmesh.LoadTile(data);
