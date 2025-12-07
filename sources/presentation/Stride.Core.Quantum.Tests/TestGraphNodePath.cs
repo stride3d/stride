@@ -366,6 +366,282 @@ public class TestGraphNodePath
         AssertAreEqual(parentPath, path.GetParent());
     }
 
+    [Fact]
+    public void TestFromMemberPath_SimpleMember()
+    {
+        var obj = new Class { IntMember = 42 };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        var memberPath = new Reflection.MemberPath();
+        memberPath.Push(rootNode.Descriptor.Members.First(m => m.Name == nameof(Class.IntMember)));
+
+        var path = GraphNodePath.From(rootNode, memberPath, out var index);
+
+        Assert.True(index.IsEmpty);
+        Assert.Equal(1, path.Count);
+        AssertAreEqual(rootNode[nameof(Class.IntMember)], path.GetNode());
+    }
+
+    [Fact]
+    public void TestFromMemberPath_NestedMember()
+    {
+        var nested = new Class { IntMember = 42 };
+        var obj = new Class { ClassMember = nested };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        var memberPath = new Reflection.MemberPath();
+        memberPath.Push(rootNode.Descriptor.Members.First(m => m.Name == nameof(Class.ClassMember)));
+        var nestedNode = nodeContainer.GetNode(nested);
+        memberPath.Push(nestedNode.Descriptor.Members.First(m => m.Name == nameof(Class.IntMember)));
+
+        var path = GraphNodePath.From(rootNode, memberPath, out var index);
+
+        Assert.True(index.IsEmpty);
+        Assert.Equal(3, path.Count); // ClassMember -> Target -> IntMember
+        AssertAreEqual(nestedNode[nameof(Class.IntMember)], path.GetNode());
+    }
+
+    [Fact]
+    public void TestFromMemberPath_ListIndex()
+    {
+        var obj = new Class { ListMember = { new Class(), new Class(), new Class() } };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        var memberPath = new Reflection.MemberPath();
+        memberPath.Push(rootNode.Descriptor.Members.First(m => m.Name == nameof(Class.ListMember)));
+        var listDescriptor = (Reflection.CollectionDescriptor)rootNode[nameof(Class.ListMember)].Target.Descriptor;
+        memberPath.Push(listDescriptor, 1);
+
+        var path = GraphNodePath.From(rootNode, memberPath, out var index);
+
+        Assert.Equal(1, index.Int);
+        Assert.Equal(2, path.Count); // ListMember -> Target
+        AssertAreEqual(rootNode[nameof(Class.ListMember)].Target, path.GetNode());
+    }
+
+    [Fact]
+    public void TestFromMemberPath_ListIndexWithMember()
+    {
+        var obj = new Class { ListMember = { new Class { IntMember = 10 }, new Class { IntMember = 20 }, new Class { IntMember = 30 } } };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        var memberPath = new Reflection.MemberPath();
+        memberPath.Push(rootNode.Descriptor.Members.First(m => m.Name == nameof(Class.ListMember)));
+        var listDescriptor = (Reflection.CollectionDescriptor)rootNode[nameof(Class.ListMember)].Target.Descriptor;
+        memberPath.Push(listDescriptor, 1);
+        var itemNode = nodeContainer.GetNode(obj.ListMember[1]);
+        memberPath.Push(itemNode.Descriptor.Members.First(m => m.Name == nameof(Class.IntMember)));
+
+        var path = GraphNodePath.From(rootNode, memberPath, out var index);
+
+        Assert.True(index.IsEmpty);
+        Assert.Equal(4, path.Count); // ListMember -> Target -> Index(1) -> IntMember
+        AssertAreEqual(itemNode[nameof(Class.IntMember)], path.GetNode());
+    }
+
+    [Fact]
+    public void TestToMemberPath_SimpleMember()
+    {
+        var obj = new Class { IntMember = 42 };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        var path = new GraphNodePath(rootNode);
+        path.PushMember(nameof(Class.IntMember));
+
+        var memberPath = path.ToMemberPath();
+
+        Assert.Single(memberPath.Decompose());
+        Assert.Equal(nameof(Class.IntMember), memberPath.Decompose()[0].MemberDescriptor.Name);
+    }
+
+    [Fact]
+    public void TestToMemberPath_NestedMember()
+    {
+        var nested = new Class { IntMember = 42 };
+        var obj = new Class { ClassMember = nested };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        var path = new GraphNodePath(rootNode);
+        path.PushMember(nameof(Class.ClassMember));
+        path.PushTarget();
+        path.PushMember(nameof(Class.IntMember));
+
+        var memberPath = path.ToMemberPath();
+
+        Assert.Equal(2, memberPath.Decompose().Count);
+        Assert.Equal(nameof(Class.ClassMember), memberPath.Decompose()[0].MemberDescriptor.Name);
+        Assert.Equal(nameof(Class.IntMember), memberPath.Decompose()[1].MemberDescriptor.Name);
+    }
+
+    [Fact]
+    public void TestToMemberPath_ListIndex()
+    {
+        var obj = new Class { ListMember = { new Class(), new Class(), new Class() } };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        var path = new GraphNodePath(rootNode);
+        path.PushMember(nameof(Class.ListMember));
+        path.PushTarget();
+        path.PushIndex(new NodeIndex(1));
+
+        var memberPath = path.ToMemberPath();
+
+        Assert.Equal(2, memberPath.Decompose().Count);
+        Assert.Equal(nameof(Class.ListMember), memberPath.Decompose()[0].MemberDescriptor.Name);
+        Assert.Equal(1, memberPath.Decompose()[1].GetIndex());
+    }
+
+    [Fact]
+    public void TestToMemberPath_ListIndexWithMember()
+    {
+        var obj = new Class { ListMember = { new Class { IntMember = 10 }, new Class { IntMember = 20 }, new Class { IntMember = 30 } } };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        var path = new GraphNodePath(rootNode);
+        path.PushMember(nameof(Class.ListMember));
+        path.PushTarget();
+        path.PushIndex(new NodeIndex(1));
+        path.PushMember(nameof(Class.IntMember));
+
+        var memberPath = path.ToMemberPath();
+
+        Assert.Equal(3, memberPath.Decompose().Count);
+        Assert.Equal(nameof(Class.ListMember), memberPath.Decompose()[0].MemberDescriptor.Name);
+        Assert.Equal(1, memberPath.Decompose()[1].GetIndex());
+        Assert.Equal(nameof(Class.IntMember), memberPath.Decompose()[2].MemberDescriptor.Name);
+    }
+
+    [Fact]
+    public void TestFromAndToMemberPath_RoundTrip()
+    {
+        var obj = new Class { ListMember = { new Class { IntMember = 10 }, new Class { IntMember = 20, ClassMember = new Class() } } };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        // Create a complex member path
+        var originalMemberPath = new Reflection.MemberPath();
+        originalMemberPath.Push(rootNode.Descriptor.Members.First(m => m.Name == nameof(Class.ListMember)));
+        var listDescriptor = (Reflection.CollectionDescriptor)rootNode[nameof(Class.ListMember)].Target.Descriptor;
+        originalMemberPath.Push(listDescriptor, 1);
+        var itemNode = nodeContainer.GetNode(obj.ListMember[1]);
+        originalMemberPath.Push(itemNode.Descriptor.Members.First(m => m.Name == nameof(Class.ClassMember)));
+
+        // Convert to GraphNodePath
+        var path = GraphNodePath.From(rootNode, originalMemberPath, out var index);
+
+        // Convert back to MemberPath
+        var resultMemberPath = path.ToMemberPath();
+
+        // Verify they match
+        var originalItems = originalMemberPath.Decompose();
+        var resultItems = resultMemberPath.Decompose();
+
+        Assert.Equal(originalItems.Count, resultItems.Count);
+        for (int i = 0; i < originalItems.Count; i++)
+        {
+            Assert.Equal(originalItems[i].MemberDescriptor?.Name, resultItems[i].MemberDescriptor?.Name);
+            Assert.Equal(originalItems[i].GetIndex(), resultItems[i].GetIndex());
+        }
+    }
+
+    [Fact]
+    public void TestGetAccessor_SimpleMember()
+    {
+        var obj = new Class { IntMember = 42 };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        var path = new GraphNodePath(rootNode);
+        path.PushMember(nameof(Class.IntMember));
+
+        var accessor = path.GetAccessor();
+
+        Assert.True(accessor.IsMember);
+        Assert.False(accessor.IsItem);
+        Assert.Equal(42, accessor.RetrieveValue());
+    }
+
+    [Fact]
+    public void TestGetAccessor_ListIndex()
+    {
+        var obj = new Class { ListMember = { new Class { IntMember = 10 }, new Class { IntMember = 20 } } };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        var path = new GraphNodePath(rootNode);
+        path.PushMember(nameof(Class.ListMember));
+        path.PushTarget();
+        path.PushIndex(new NodeIndex(1));
+
+        var accessor = path.GetAccessor();
+
+        Assert.False(accessor.IsMember);
+        Assert.True(accessor.IsItem);
+        Assert.Equal(obj.ListMember[1], accessor.RetrieveValue());
+    }
+
+    [Fact]
+    public void TestPop()
+    {
+        var obj = new Class { ClassMember = new Class { IntMember = 42 } };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        var path = new GraphNodePath(rootNode);
+        path.PushMember(nameof(Class.ClassMember));
+        path.PushTarget();
+        path.PushMember(nameof(Class.IntMember));
+
+        Assert.Equal(3, path.Count);
+
+        path.Pop();
+        Assert.Equal(2, path.Count);
+        AssertAreEqual(nodeContainer.GetNode(obj.ClassMember), path.GetNode());
+
+        path.Pop();
+        Assert.Equal(1, path.Count);
+        AssertAreEqual(rootNode[nameof(Class.ClassMember)], path.GetNode());
+
+        path.Pop();
+        Assert.Equal(0, path.Count);
+        Assert.True(path.IsEmpty);
+        AssertAreEqual(rootNode, path.GetNode());
+    }
+
+    [Fact]
+    public void TestToString()
+    {
+        var obj = new Class { ListMember = { new Class(), new Class() } };
+        var nodeContainer = new NodeContainer();
+        var rootNode = nodeContainer.GetOrCreateNode(obj);
+
+        var path = new GraphNodePath(rootNode);
+        var str = path.ToString();
+        Assert.Contains("(root)", str);
+
+        path.PushMember(nameof(Class.IntMember));
+        str = path.ToString();
+        Assert.Contains("(root)", str);
+        Assert.Contains(nameof(Class.IntMember), str);
+
+        path = new GraphNodePath(rootNode);
+        path.PushMember(nameof(Class.ListMember));
+        path.PushTarget();
+        path.PushIndex(new NodeIndex(1));
+        str = path.ToString();
+        Assert.Contains("(root)", str);
+        Assert.Contains(nameof(Class.ListMember), str);
+        Assert.Contains("[1]", str);
+    }
+
     // NUnit does not use the Equals method for objects that implement IEnumerable, but that's what we want to use for GraphNodePath
     // ReSharper disable UnusedParameter.Local
     private static void AssertAreEqual(object expected, object actual)
