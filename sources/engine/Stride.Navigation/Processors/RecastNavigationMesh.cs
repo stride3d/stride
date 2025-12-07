@@ -37,11 +37,7 @@ namespace Stride.Navigation.Processors
         /// <param name="coord">The tile coordinate</param>
         public bool RemoveTile(Point coord)
         {
-            if (!tileCoordinates.Contains(coord)) 
-                return false;
-
-            tileCoordinates.Remove(coord);
-            return navmesh.RemoveTile(coord);
+            return tileCoordinates.Remove(coord) && navmesh.RemoveTile(coord);
         }
 
         /// <summary>
