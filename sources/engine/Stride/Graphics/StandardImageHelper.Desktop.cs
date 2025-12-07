@@ -64,7 +64,7 @@ namespace Stride.Graphics
 
         public static void SaveJpgFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
         {
-            SaveFromMemory(pixelBuffers, description, imageStream, FREE_IMAGE_FORMAT.FIF_BMP);
+            SaveFromMemory(pixelBuffers, description, imageStream, FREE_IMAGE_FORMAT.FIF_JPEG);
         }
 
         public static void SavePngFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
