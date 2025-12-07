@@ -15,15 +15,23 @@ namespace Stride.Core.MicroThreading;
 /// </remarks>
 public class Scheduler : IDisposable
 {
+    /// <summary>
+    /// Note that this does not limit the maximum amount of supported priorities without allocating,
+    /// rather, this would be N different priorities that are used on every schedule
+    /// + <see cref="MaxPoolSize"/> priorities that are introduced just for this schedule.
+    /// </summary>
+    private const int MaxPoolSize = 32;
     internal static readonly Logger Log = GlobalLogger.GetLogger("Scheduler");
 
-    // An ever-increasing counter that will be used to have a "stable" microthread scheduling (first added is first scheduled)
-    internal long SchedulerCounter;
-
-    internal PriorityNodeQueue<SchedulerEntry> ScheduledEntries = new();
     internal LinkedList<MicroThread> AllMicroThreads = [];
-    internal List<MicroThreadCallbackNode> CallbackNodePool = [];
+    internal Stack<MicroThreadCallbackNode> CallbackNodePool = [];
     private bool isDisposed;
+    private int runRecursion;
+    private readonly Lock bucketsLock = new();
+    private readonly PriorityQueue<ExecutionQueue> sortedPriorities = new(NonNullPrioritiesComparer.Shared);
+    private readonly Dictionary<long, ExecutionQueue> buckets = new();
+    private readonly Dictionary<long, ExecutionQueue> emptyBuckets = new();
+    private readonly Stack<ExecutionQueue> bucketPool = new();
     private readonly ThreadLocal<MicroThread?> runningMicroThread = new();
 
     public event EventHandler<SchedulerThreadEventArgs>? MicroThreadStarted;
@@ -130,123 +138,159 @@ public class Scheduler : IDisposable
 
         MicroThreadCallbackList callbacks = default;
 
-        while (true)
+        try
         {
-            SchedulerEntry schedulerEntry;
-            MicroThread? microThread;
-            lock (ScheduledEntries)
+            runRecursion++;
+            if (runRecursion == 1)
             {
-                // Reclaim callbacks of previous microthread
-                while (callbacks.TakeFirst(out var callback))
+                lock (bucketsLock)
                 {
-                    callback.Clear();
-                    CallbackNodePool.Add(callback);
+                    foreach (var bucket in emptyBuckets)
+                    {
+                        bucket.Value.InBucketPool = true;
+                        if (bucketPool.Count >= MaxPoolSize)
+                            continue; // there are too many unused priorities, don't keep them in the pool
+
+                        bucketPool.Push(bucket.Value);
+                    }
+
+                    emptyBuckets.Clear();
+                }
+            }
+
+            while (true)
+            {
+                SchedulerEntry schedulerEntry;
+                MicroThread? microThread;
+                lock (bucketsLock)
+                {
+                    // Reclaim callbacks of previous microthread
+                    while (callbacks.TakeFirst(out var callback))
+                    {
+                        callback.Clear();
+                        CallbackNodePool.Push(callback);
+                    }
+
+                    if (sortedPriorities.Count == 0)
+                        break;
+
+                    var deque = sortedPriorities.Peek();
+                    if (deque.Deque.Count == 1)
+                    {
+                        emptyBuckets.Add(deque.Priority, deque);
+                        buckets.Remove(deque.Priority);
+                        sortedPriorities.Dequeue();
+                    }
+
+                    schedulerEntry = deque.Deque.RemoveFromFront();
+                    schedulerEntry.CurrentQueue = null;
+
+                    microThread = schedulerEntry.MicroThread;
+                    if (microThread != null)
+                    {
+                        callbacks = microThread.Callbacks;
+                        microThread.Callbacks = default;
+                    }
                 }
 
-                if (ScheduledEntries.Count == 0)
-                    break;
-                schedulerEntry = ScheduledEntries.Dequeue();
-                microThread = schedulerEntry.MicroThread;
+                // Since it can be reentrant, it should be restored after running the callback.
+                var previousRunningMicrothread = runningMicroThread.Value;
+                if (previousRunningMicrothread != null)
+                {
+                    MicroThreadCallbackEnd?.Invoke(this, new SchedulerThreadEventArgs(previousRunningMicrothread, managedThreadId));
+                }
+
+                runningMicroThread.Value = microThread;
+
                 if (microThread != null)
                 {
-                    callbacks = microThread.Callbacks;
-                    microThread.Callbacks = default;
-                }
-            }
+                    var previousSyncContext = SynchronizationContext.Current;
+                    SynchronizationContext.SetSynchronizationContext(microThread.SynchronizationContext);
 
-            // Since it can be reentrant, it should be restored after running the callback.
-            var previousRunningMicrothread = runningMicroThread.Value;
-            if (previousRunningMicrothread != null)
-            {
-                MicroThreadCallbackEnd?.Invoke(this, new SchedulerThreadEventArgs(previousRunningMicrothread, managedThreadId));
-            }
-
-            runningMicroThread.Value = microThread;
-
-            if (microThread != null)
-            {
-                var previousSyncContext = SynchronizationContext.Current;
-                SynchronizationContext.SetSynchronizationContext(microThread.SynchronizationContext);
-
-                // TODO: Do we still need to try/catch here? Everything should be caught in the continuation wrapper and put into MicroThread.Exception
-                try
-                {
-                    if (microThread.State == MicroThreadState.Starting)
-                        MicroThreadStarted?.Invoke(this, new SchedulerThreadEventArgs(microThread, managedThreadId));
-
-                    MicroThreadCallbackStart?.Invoke(this, new SchedulerThreadEventArgs(microThread, managedThreadId));
-
-                    var profilingKey = microThread.ProfilingKey ?? schedulerEntry.ProfilingKey ?? MicroThreadProfilingKeys.ProfilingKey;
-                    using (Profiler.Begin(profilingKey))
+                    // TODO: Do we still need to try/catch here? Everything should be caught in the continuation wrapper and put into MicroThread.Exception
+                    try
                     {
-                        var callback = callbacks.First;
-                        while (callback != null)
+                        if (microThread.State == MicroThreadState.Starting)
+                            MicroThreadStarted?.Invoke(this, new SchedulerThreadEventArgs(microThread, managedThreadId));
+
+                        MicroThreadCallbackStart?.Invoke(this, new SchedulerThreadEventArgs(microThread, managedThreadId));
+
+                        var profilingKey = microThread.ProfilingKey ?? schedulerEntry.ProfilingKey ?? MicroThreadProfilingKeys.ProfilingKey;
+                        using (Profiler.Begin(profilingKey))
                         {
-                            callback.Invoke();
-                            callback = callback.Next;
+                            var callback = callbacks.First;
+                            while (callback != null)
+                            {
+                                callback.Invoke();
+                                callback = callback.Next;
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error("Unexpected exception while executing a micro-thread", e);
+                        microThread.SetException(e);
+                    }
+                    finally
+                    {
+                        MicroThreadCallbackEnd?.Invoke(this, new SchedulerThreadEventArgs(microThread, managedThreadId));
+
+                        SynchronizationContext.SetSynchronizationContext(previousSyncContext);
+                        if (microThread.IsOver)
+                        {
+                            lock (microThread.AllLinkedListNode)
+                            {
+                                if (microThread.CompletionTask != null)
+                                {
+                                    if (microThread.State is MicroThreadState.Failed or MicroThreadState.Canceled)
+                                        microThread.CompletionTask.TrySetException(microThread.Exception!);
+                                    else
+                                        microThread.CompletionTask.TrySetResult(1);
+                                }
+                                else if (microThread is { State: MicroThreadState.Failed, Exception: not null })
+                                {
+                                    // Nothing was listening on the micro thread and it crashed
+                                    // Let's treat it as unhandled exception and propagate it
+                                    // Use ExceptionDispatchInfo.Capture to not overwrite callstack
+                                    if (PropagateExceptions && (microThread.Flags & MicroThreadFlags.IgnoreExceptions) != MicroThreadFlags.IgnoreExceptions)
+                                        ExceptionDispatchInfo.Capture(microThread.Exception).Throw();
+                                }
+
+                                MicroThreadEnded?.Invoke(this, new SchedulerThreadEventArgs(microThread, managedThreadId));
+                            }
+                        }
+
+                        runningMicroThread.Value = previousRunningMicrothread;
+                        if (previousRunningMicrothread != null)
+                        {
+                            MicroThreadCallbackStart?.Invoke(this, new SchedulerThreadEventArgs(previousRunningMicrothread, managedThreadId));
                         }
                     }
                 }
-                catch (Exception e)
+                else
                 {
-                    Log.Error("Unexpected exception while executing a micro-thread", e);
-                    microThread.SetException(e);
-                }
-                finally
-                {
-                    MicroThreadCallbackEnd?.Invoke(this, new SchedulerThreadEventArgs(microThread, managedThreadId));
-
-                    SynchronizationContext.SetSynchronizationContext(previousSyncContext);
-                    if (microThread.IsOver)
+                    try
                     {
-                        lock (microThread.AllLinkedListNode)
+                        var profilingKey = schedulerEntry.ProfilingKey ?? MicroThreadProfilingKeys.ProfilingKey;
+                        using (Profiler.Begin(profilingKey))
                         {
-                            if (microThread.CompletionTask != null)
-                            {
-                                if (microThread.State is MicroThreadState.Failed or MicroThreadState.Canceled)
-                                    microThread.CompletionTask.TrySetException(microThread.Exception!);
-                                else
-                                    microThread.CompletionTask.TrySetResult(1);
-                            }
-                            else if (microThread is { State: MicroThreadState.Failed, Exception: not null })
-                            {
-                                // Nothing was listening on the micro thread and it crashed
-                                // Let's treat it as unhandled exception and propagate it
-                                // Use ExceptionDispatchInfo.Capture to not overwrite callstack
-                                if (PropagateExceptions && (microThread.Flags & MicroThreadFlags.IgnoreExceptions) != MicroThreadFlags.IgnoreExceptions)
-                                    ExceptionDispatchInfo.Capture(microThread.Exception).Throw();
-                            }
-
-                            MicroThreadEnded?.Invoke(this, new SchedulerThreadEventArgs(microThread, managedThreadId));
+                            schedulerEntry.Action!();
                         }
                     }
+                    catch (Exception e)
+                    {
+                        ActionException?.Invoke(this, schedulerEntry, e);
+                    }
+                }
+            }
 
-                    runningMicroThread.Value = previousRunningMicrothread;
-                    if (previousRunningMicrothread != null)
-                    {
-                        MicroThreadCallbackStart?.Invoke(this, new SchedulerThreadEventArgs(previousRunningMicrothread, managedThreadId));
-                    }
-                }
-            }
-            else
-            {
-                try
-                {
-                    var profilingKey = schedulerEntry.ProfilingKey ?? MicroThreadProfilingKeys.ProfilingKey;
-                    using (Profiler.Begin(profilingKey))
-                    {
-                        schedulerEntry.Action!();
-                    }
-                }
-                catch (Exception e)
-                {
-                    ActionException?.Invoke(this, schedulerEntry, e);
-                }
-            }
+            while (FrameChannel.Balance < 0)
+                FrameChannel.Send(0);
         }
-
-        while (FrameChannel.Balance < 0)
-            FrameChannel.Send(0);
+        finally
+        {
+            runRecursion--;
+        }
     }
 
     /// <summary>
@@ -279,9 +323,7 @@ public class Scheduler : IDisposable
     /// <returns>A task that will complete when all micro threads are complete.</returns>
     public async Task WhenAll(params MicroThread[] microThreads)
     {
-        var currentMicroThread = CurrentMicroThread;
         Task<int>[] continuationTasks;
-        var tcs = new TaskCompletionSource<int>();
 
         // Need additional checks: Not sure if we should switch to return a Task and set it before returning it.
         // It should continue execution right away (no execution flow yielding).
@@ -312,42 +354,144 @@ public class Scheduler : IDisposable
         await Task.WhenAll(continuationTasks);
     }
 
-    // TODO: We will need a better API than exposing PriorityQueueNode<SchedulerEntry> before we can make this public.
-    internal PriorityQueueNode<SchedulerEntry> Add(Action simpleAction, int priority = 0, object? token = null, ProfilingKey? profilingKey = null)
+    internal bool HasNoEntriesScheduled()
     {
-        var schedulerEntryNode = new PriorityQueueNode<SchedulerEntry>(new SchedulerEntry(simpleAction, priority) { Token = token, ProfilingKey = profilingKey });
-        Schedule(schedulerEntryNode, ScheduleMode.Last);
-        return schedulerEntryNode;
-    }
-
-    internal static PriorityQueueNode<SchedulerEntry> Create(Action simpleAction, long priority)
-    {
-        return new PriorityQueueNode<SchedulerEntry>(new SchedulerEntry(simpleAction, priority));
-    }
-
-    internal void Schedule(PriorityQueueNode<SchedulerEntry> schedulerEntry, ScheduleMode scheduleMode)
-    {
-        lock (ScheduledEntries)
+        lock (bucketsLock)
         {
-            var nextCounter = SchedulerCounter++;
-            if (scheduleMode == ScheduleMode.First)
-                nextCounter = -nextCounter;
-
-            schedulerEntry.Value.SchedulerCounter = nextCounter;
-
-            ScheduledEntries.Enqueue(schedulerEntry);
+            return buckets.Count == 0;
         }
     }
 
-    internal void Unschedule(PriorityQueueNode<SchedulerEntry> schedulerEntry)
+    internal void Schedule(ref MicroThreadCallbackList callbackList, MicroThreadCallbackNode node, SchedulerEntry schedulerEntry, long priority, ScheduleMode scheduleMode)
     {
-        lock (ScheduledEntries)
+        lock (bucketsLock)
         {
-            if (schedulerEntry.Index != -1)
-                ScheduledEntries.Remove(schedulerEntry);
+            callbackList.Add(node);
+            if (schedulerEntry.CurrentQueue == null)
+                Schedule(schedulerEntry, priority, scheduleMode);
         }
     }
 
-    // TODO: Currently kept as a struct, but maybe a class would make more sense?
-    // Ideally it should be merged with PriorityQueueNode so that we need to allocate only one object?
+    internal void Schedule(SchedulerEntry newEntry, long priority, ScheduleMode scheduleMode)
+    {
+        lock (bucketsLock)
+        {
+            ScheduleUnsafe(newEntry, priority, scheduleMode);
+        }
+    }
+
+    private void ScheduleUnsafe(SchedulerEntry newEntry, long priority, ScheduleMode scheduleMode)
+    {
+        if (newEntry.CurrentQueue != null)
+            throw new InvalidOperationException($"Already scheduled, call {nameof(Unschedule)} before running this method");
+
+        if (newEntry.PreviousQueue is { } previousQueue 
+            && previousQueue.Owner == this
+            && previousQueue.Priority == priority
+            && previousQueue.InBucketPool == false)
+        {
+            if (previousQueue.Deque.Count == 0)
+                emptyBuckets.Remove(previousQueue.Priority);
+
+            newEntry.CurrentQueue = previousQueue;
+        }
+        // Edge case: this entry has never been scheduled, or its priority changed, or the priority was unused last schedule
+        else if (buckets.TryGetValue(priority, out newEntry.CurrentQueue) == false 
+                 && emptyBuckets.Remove(priority, out newEntry.CurrentQueue) == false)
+        {
+            if (bucketPool.TryPop(out newEntry.CurrentQueue))
+                newEntry.CurrentQueue.InBucketPool = false;
+            else
+                newEntry.CurrentQueue = new(this);
+            newEntry.CurrentQueue.Priority = priority;
+        }
+            
+        newEntry.PreviousQueue = newEntry.CurrentQueue;
+
+        var deque = newEntry.CurrentQueue.Deque;
+        if (deque.Count == 0)
+        {
+            buckets.Add(newEntry.CurrentQueue.Priority, newEntry.CurrentQueue);
+            sortedPriorities.Enqueue(newEntry.CurrentQueue);
+        }
+
+        if (scheduleMode == ScheduleMode.First)
+        {
+            newEntry.BinarySearchHelper = deque.Count > 0 ? deque[0].BinarySearchHelper - 1 : 0;
+            deque.AddToFront(newEntry);
+        }
+        else
+        {
+            newEntry.BinarySearchHelper = deque.Count > 0 ? deque[^1].BinarySearchHelper + 1 : 0;
+            deque.AddToBack(newEntry);
+        }
+    }
+
+    internal void Unschedule(SchedulerEntry schedulerEntry)
+    {
+        lock (bucketsLock)
+        {
+            if (schedulerEntry.CurrentQueue is { } deque)
+            {
+                schedulerEntry.CurrentQueue = null;
+                deque.Deque.RemoveAt(deque.Deque.BinarySearch(schedulerEntry, new NonNullBinarySearchComparer()));
+                if (deque.Deque.Count == 0)
+                {
+                    emptyBuckets.Add(deque.Priority, deque);
+                    buckets.Remove(deque.Priority);
+                    sortedPriorities.Remove(deque);
+                }
+            }
+        }
+    }
+
+    internal void Reschedule(SchedulerEntry scheduledEntry, long newPriority, ScheduleMode scheduleMode)
+    {
+        lock (bucketsLock)
+        {
+            if (scheduledEntry.CurrentQueue != null)
+            {
+                Unschedule(scheduledEntry);
+                Schedule(scheduledEntry, newPriority, scheduleMode);
+            }
+        }
+    }
+
+    internal MicroThreadCallbackNode NewCallback()
+    {
+        lock (bucketsLock)
+            return CallbackNodePool.TryPop(out var node) ? node : new MicroThreadCallbackNode();
+    }
+
+    private struct NonNullBinarySearchComparer : IComparer<SchedulerEntry>
+    {
+        public int Compare(SchedulerEntry? x, SchedulerEntry? y)
+        {
+            // On purpose, nulls are not allowed in the collection
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+            return x.BinarySearchHelper.CompareTo(y.BinarySearchHelper);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+        }
+    }
+
+    private class NonNullPrioritiesComparer : IComparer<ExecutionQueue>
+    {
+        public static NonNullPrioritiesComparer Shared = new();
+        
+        public int Compare(ExecutionQueue? x, ExecutionQueue? y)
+        {
+            // On purpose, nulls are not allowed in the collection
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+            return x.Priority.CompareTo(y.Priority);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+        }
+    }
+
+    internal class ExecutionQueue(Scheduler owner)
+    {
+        public long Priority;
+        public bool InBucketPool;
+        public readonly Scheduler Owner = owner;
+        public readonly Deque<SchedulerEntry> Deque = new();
+    }
 }

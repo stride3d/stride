@@ -30,8 +30,11 @@ SOFTWARE.
 #endregion
 
 using System.Diagnostics;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
-namespace Stride.Core.Threading;
+namespace Stride.Core.Collections;
 
 /// <summary>
 /// A double-ended queue (deque), which provides O(1) indexed access, O(1) removals from the front and back, amortized O(1) insertions to the front and back, and O(N) insertions and removals anywhere else (with the operations getting slower as the index approaches the middle).
@@ -39,8 +42,7 @@ namespace Stride.Core.Threading;
 /// <typeparam name="T">The type of elements contained in the deque.</typeparam>
 [DebuggerDisplay("Count = {Count}, Capacity = {Capacity}")]
 [DebuggerTypeProxy(typeof(Deque<>.DebugView))]
-[Obsolete]
-internal sealed class Deque<T> : IList<T>, System.Collections.IList
+public sealed class Deque<T> : IList<T>, System.Collections.IList
 {
     /// <summary>
     /// The default capacity.
@@ -58,14 +60,24 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
     private int offset;
 
     /// <summary>
+    /// Used to wrap around indices when incrementing outside buffer range
+    /// </summary>
+    private int mask;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Deque&lt;T&gt;"/> class with the specified capacity.
     /// </summary>
-    /// <param name="capacity">The initial capacity. Must be greater than <c>0</c>.</param>
+    /// <param name="capacity">The initial capacity. Must be a power of two greater than <c>0</c>.</param>
     public Deque(int capacity)
     {
         if (capacity < 1)
             throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be greater than 0.");
+
+        if (int.IsPow2(capacity) == false)
+            throw new InvalidOperationException("Capacity must be a power of two");
+
         buffer = new T[capacity];
+        mask = buffer.Length - 1;
     }
 
     /// <summary>
@@ -155,6 +167,42 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
         }
 
         return -1;
+    }
+
+    /// <summary>Perform a binary search over this <see cref="Deque{T}"/> to find <paramref name="value"/> using the default comparer.</summary>
+    /// <remarks>Result is undefined when the items in this <see cref="Deque{T}"/> are unordered.</remarks>
+    /// <returns>
+    /// The zero-based index of <paramref name="value" /> in this sorted <see cref="Deque{T}"/>, if <paramref name="value" /> is found; otherwise,
+    /// a negative number that is the bitwise complement of the index of the next element that is larger than <paramref name="value" /> or,
+    /// if there is no larger element, the bitwise complement of <see cref="Deque{T}.Count" />.
+    /// </returns>
+    public int BinarySearch(T value) => BinarySearch(value, Comparer<T>.Default);
+
+    /// <summary>Perform a binary search over this <see cref="Deque{T}"/> to find <paramref name="value"/> using <paramref name="comparer"/>.</summary>
+    /// <exception cref="T:System.ArgumentNullException">
+    /// <paramref name="comparer" /> is <see langword="null" />.</exception>
+    /// <inheritdoc cref="BinarySearch"/>
+    public int BinarySearch<TComparer>(T value, TComparer comparer) where TComparer : IComparer<T>, allows ref struct
+    {
+        if (WrapsAround(offset, Count, out var splitA, out var splitB))
+        {
+            int i = splitA.BinarySearch(value, comparer);
+            if (i >= 0)
+                return i;
+            if (~i < splitA.Length)
+                return i;
+            
+            int left = Count - (Capacity - offset);
+            i = splitB[..left].BinarySearch(value, comparer);
+            if (i >= 0)
+                return splitA.Length + i;
+            
+            return ~(splitA.Length + ~i);
+        }
+        else
+        {
+            return splitA.BinarySearch(value, comparer);
+        }
     }
 
     /// <summary>
@@ -420,27 +468,31 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
             if (value < Count)
                 throw new InvalidOperationException("Capacity cannot be set to a value less than Count");
 
+            if (int.IsPow2(value) == false)
+                throw new InvalidOperationException("Capacity must be a power of two");
+
             if (value == buffer.Length)
                 return;
 
             // Create the new buffer and copy our existing range.
             T[] newBuffer = new T[value];
-            if (IsSplit)
+            var newSpan = newBuffer.AsSpan();
+            if (WrapsAround(offset, Count, out var splitA, out var splitB))
             {
                 // The existing buffer is split, so we have to copy it in parts
-                int length = Capacity - offset;
-                Array.Copy(buffer, offset, newBuffer, 0, length);
-                Array.Copy(buffer, 0, newBuffer, length, Count - length);
+                splitA.CopyTo(newSpan[.. splitA.Length]);
+                splitB.CopyTo(newSpan[splitA.Length .. (splitA.Length + splitB.Length)]);
             }
             else
             {
                 // The existing buffer is whole
-                Array.Copy(buffer, offset, newBuffer, 0, Count);
+                splitA.CopyTo(newSpan[.. splitA.Length]);
             }
 
             // Set up to use the new buffer.
             buffer = newBuffer;
             offset = 0;
+            mask = newBuffer.Length - 1;
         }
     }
 
@@ -451,13 +503,43 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
     public int Count { get; private set; }
 
     /// <summary>
-    /// Applies the offset to <paramref name="index"/>, resulting in a buffer index.
+    /// Returns whether reading the buffer at <paramref name="index"/> for <paramref name="count"/>
+    /// would go past the end and wrap around to the start of the buffer
     /// </summary>
-    /// <param name="index">The deque index.</param>
-    /// <returns>The buffer index.</returns>
-    private int DequeIndexToBufferIndex(int index)
+    /// <param name="index">The start of the read</param>
+    /// <param name="count">The amount of items to read</param>
+    /// <param name="splitA">
+    /// The span of the buffer from <paramref name="index"/> to the end of the buffer when true,
+    /// or the end of <paramref name="count"/> when false
+    /// </param>
+    /// <param name="splitB">The span of the buffer from the start to the end of <paramref name="count"/></param>
+    /// <returns></returns>
+    private bool WrapsAround(int index, int count, out Span<T> splitA, out Span<T> splitB)
     {
-        return (index + offset) % Capacity;
+        var span = buffer.AsSpan();
+        index &= mask;
+        int countToEnd = span.Length - index;
+        int countAfterEnd = (count - (countToEnd));
+        if (countAfterEnd > 0)
+        {
+            splitA = span[index ..];
+            splitB = span[.. countAfterEnd];
+            return true;
+        }
+
+        splitA = span.Slice(index, count);
+        splitB = Span<T>.Empty;
+        return false;
+    }
+
+    /// <summary>
+    /// Retrieve the value in the buffer from a deque index
+    /// </summary>
+    private ref T DequeIndexToBufferRef(int index)
+    {
+        // Can use unsafe, this cannot compute a value outside buffer range
+        index = (index + offset) & mask;
+        return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(buffer), index);
     }
 
     /// <summary>
@@ -467,7 +549,8 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
     /// <returns>The element at the specified index.</returns>
     private T DoGetItem(int index)
     {
-        return buffer[DequeIndexToBufferIndex(index)];
+        // Can use unsafe, DequeIndexToBufferIndex cannot return a value outside buffer range
+        return DequeIndexToBufferRef(index);
     }
 
     /// <summary>
@@ -477,7 +560,7 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
     /// <param name="item">The element to store in the list.</param>
     private void DoSetItem(int index, T item)
     {
-        buffer[DequeIndexToBufferIndex(index)] = item;
+        DequeIndexToBufferRef(index) = item;
     }
 
     /// <summary>
@@ -524,29 +607,12 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
     }
 
     /// <summary>
-    /// Increments <see cref="offset"/> by <paramref name="value"/> using modulo-<see cref="Capacity"/> arithmetic.
+    /// Increments <see cref="offset"/> by <paramref name="value"/> using mask.
     /// </summary>
-    /// <param name="value">The value by which to increase <see cref="offset"/>. May not be negative.</param>
-    /// <returns>The value of <see cref="offset"/> after it was incremented.</returns>
-    private int PostIncrement(int value)
+    /// <param name="value">The value by which to increase/decrease <see cref="offset"/></param>
+    private void MoveOffsetBy(int value)
     {
-        int ret = offset;
-        offset += value;
-        offset %= Capacity;
-        return ret;
-    }
-
-    /// <summary>
-    /// Decrements <see cref="offset"/> by <paramref name="value"/> using modulo-<see cref="Capacity"/> arithmetic.
-    /// </summary>
-    /// <param name="value">The value by which to reduce <see cref="offset"/>. May not be negative or greater than <see cref="Capacity"/>.</param>
-    /// <returns>The value of <see cref="offset"/> before it was decremented.</returns>
-    private int PreDecrement(int value)
-    {
-        offset -= value;
-        if (offset < 0)
-            offset += Capacity;
-        return offset;
+        offset = (offset + value) & mask;
     }
 
     /// <summary>
@@ -555,7 +621,7 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
     /// <param name="value">The element to insert.</param>
     private void DoAddToBack(T value)
     {
-        buffer[DequeIndexToBufferIndex(Count)] = value;
+        DequeIndexToBufferRef(Count) = value;
         ++Count;
     }
 
@@ -565,7 +631,9 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
     /// <param name="value">The element to insert.</param>
     private void DoAddToFront(T value)
     {
-        buffer[PreDecrement(1)] = value;
+        MoveOffsetBy(-1);
+        // Offset's only write is in MoveOffsetBy which is guaranteed to stay in range
+        Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(buffer), offset) = value;
         ++Count;
     }
 
@@ -575,7 +643,7 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
     /// <returns>The former last element.</returns>
     private T DoRemoveFromBack()
     {
-        T ret = buffer[DequeIndexToBufferIndex(Count - 1)];
+        T ret = DequeIndexToBufferRef(Count - 1);
         --Count;
         return ret;
     }
@@ -587,7 +655,11 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
     private T DoRemoveFromFront()
     {
         --Count;
-        return buffer[PostIncrement(1)];
+        int ret = offset;
+        MoveOffsetBy(1);
+        
+        // Offset's only write is in MoveOffsetBy which is guaranteed to stay in range
+        return Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(buffer), ret);
     }
 
     /// <summary>
@@ -609,10 +681,10 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
             int copyCount = index;
             int writeIndex = Capacity - collectionCount;
             for (int j = 0; j != copyCount; ++j)
-                buffer[DequeIndexToBufferIndex(writeIndex + j)] = buffer[DequeIndexToBufferIndex(j)];
+                DequeIndexToBufferRef(writeIndex + j) = DequeIndexToBufferRef(j);
 
             // Rotate to the new view
-            PreDecrement(collectionCount);
+            MoveOffsetBy(-collectionCount);
         }
         else
         {
@@ -622,19 +694,52 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
             int copyCount = Count - index;
             int writeIndex = index + collectionCount;
             for (int j = copyCount - 1; j != -1; --j)
-                buffer[DequeIndexToBufferIndex(writeIndex + j)] = buffer[DequeIndexToBufferIndex(index + j)];
+                DequeIndexToBufferRef(writeIndex + j) = DequeIndexToBufferRef(index + j);
         }
 
         // Copy new items into place
-        int i = index;
-        foreach (T item in collection)
+        if (TryGetSpan(collection, out var spanToCopy))
         {
-            buffer[DequeIndexToBufferIndex(i)] = item;
-            ++i;
+            if (WrapsAround(index + offset, spanToCopy.Length, out var firstSplit, out var secondSplit))
+            {
+                spanToCopy[..firstSplit.Length].CopyTo(firstSplit);
+                spanToCopy[firstSplit.Length..].CopyTo(secondSplit);
+            }
+            else
+            {
+                spanToCopy.CopyTo(firstSplit);
+            }
+        }
+        else
+        {
+            int i = index;
+            foreach (T item in collection)
+            {
+                DequeIndexToBufferRef(i) = item;
+                ++i;
+            }
         }
 
         // Adjust valid count
         Count += collectionCount;
+
+        static bool TryGetSpan(IEnumerable<T> collection, out ReadOnlySpan<T> span)
+        {
+            if (collection is List<T> list)
+            {
+                span = CollectionsMarshal.AsSpan(list);
+                return true;
+            }
+
+            if (collection is T[] array)
+            {
+                span = array.AsSpan();
+                return true;
+            }
+
+            span = default;
+            return false;
+        }
     }
 
     /// <summary>
@@ -647,7 +752,7 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
         if (index == 0)
         {
             // Removing from the beginning: rotate to the new view
-            PostIncrement(collectionCount);
+            MoveOffsetBy(collectionCount);
             Count -= collectionCount;
             return;
         }
@@ -666,10 +771,10 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
             int copyCount = index;
             int writeIndex = collectionCount;
             for (int j = copyCount - 1; j != -1; --j)
-                buffer[DequeIndexToBufferIndex(writeIndex + j)] = buffer[DequeIndexToBufferIndex(j)];
+                DequeIndexToBufferRef(writeIndex + j) = DequeIndexToBufferRef(j);
 
             // Rotate to new view
-            PostIncrement(collectionCount);
+            MoveOffsetBy(collectionCount);
         }
         else
         {
@@ -679,7 +784,7 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
             int copyCount = Count - collectionCount - index;
             int readIndex = index + collectionCount;
             for (int j = 0; j != copyCount; ++j)
-                buffer[DequeIndexToBufferIndex(index + j)] = buffer[DequeIndexToBufferIndex(readIndex + j)];
+                DequeIndexToBufferRef(index + j) = DequeIndexToBufferRef(readIndex + j);
         }
 
         // Adjust valid count
@@ -728,15 +833,16 @@ internal sealed class Deque<T> : IList<T>, System.Collections.IList
         int collectionCount = collection.Count();
         CheckNewIndexArgument(Count, index);
 
-        // Overflow-safe check for "this.Count + collectionCount > this.Capacity"
-        if (collectionCount > Capacity - Count)
-        {
-            Capacity = checked(Count + collectionCount);
-        }
-
         if (collectionCount == 0)
         {
             return;
+        }
+
+        // Overflow-safe check for "this.Count + collectionCount > this.Capacity"
+        if (collectionCount > Capacity - Count)
+        {
+            var c = checked(Count + collectionCount);
+            Capacity = checked((int)BitOperations.RoundUpToPowerOf2((uint)c));
         }
 
         DoInsertRange(index, collection, collectionCount);
