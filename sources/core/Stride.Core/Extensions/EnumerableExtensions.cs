@@ -14,7 +14,7 @@ public static class EnumerableExtensions
     /// <param name="source">The source sequence.</param>
     /// <returns>Returns true if the sequence is null or empty, false if it is not null and contains at least one element.</returns>
     [Pure]
-    public static bool IsNullOrEmpty(this IEnumerable source)
+    public static bool IsNullOrEmpty(this IEnumerable? source)
     {
         if (source == null)
             return true;
