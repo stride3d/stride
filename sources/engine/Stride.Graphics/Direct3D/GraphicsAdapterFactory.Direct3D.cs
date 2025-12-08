@@ -4,6 +4,7 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D
 
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
@@ -52,35 +53,17 @@ namespace Stride.Graphics
         {
             staticCollector.Dispose();
 
-            var dxgi = DXGI.GetApi(window: null);
-
             CreateDxgiFactory();
 
             staticCollector.Add(ComPtrHelpers.ToComPtr(dxgiFactory));  // To avoid circular references and stack overflow on Initialize()
 
-            uint adapterIndex = 0;
-            var adapterList = new List<GraphicsAdapter>();
-            bool foundValidAdapter;
-            ComPtr<IDXGIAdapter1> dxgiAdapter = default;
+            var adapterList = dxgiFactoryVersion >= 6
+                ? EnumerateAdaptersPrefer(GpuPreference.HighPerformance)  // TODO: Make GPU preference configurable?
+                : EnumerateAdapters();
 
-            do
-            {
-                HResult result = dxgiFactory->EnumAdapters1(adapterIndex, ref dxgiAdapter);
-
-                foundValidAdapter = result.IsSuccess && result.Code != DxgiConstants.ErrorNotFound;
-                if (!foundValidAdapter)
-                    break;
-
-                var adapter = new GraphicsAdapter(dxgiAdapter, adapterIndex);
-                staticCollector.Add(adapter);
-                adapterList.Add(adapter);
-
-                adapterIndex++;
-
-            } while (foundValidAdapter);
-
-            defaultAdapter = adapterList.Count > 0 ? adapterList[0] : null;
             adapters = adapterList.ToArray();
+            defaultAdapter = adapterList.Count > 0 ? adapterList[0] : null;
+
 
             //
             // Creates the DXGI factory.
@@ -89,78 +72,132 @@ namespace Stride.Graphics
             {
                 var dxgi = DXGI.GetApi(window: null);
 
-                HResult result = default;
-                IDXGIFactory1* dxgiFactory = null;
-                uint dxgiFactoryVersion = 0;
+                HResult result;
+                IDXGIFactory1* factory = null;
 #if DEBUG
-                uint factoryFlags = DxgiConstants.CreateFactoryDebug;
+                const uint FactoryFlags = DxgiConstants.CreateFactoryDebug;
 #else
-                uint factoryFlags = 0;
+                const uint FactoryFlags = 0;
 #endif
-                if ((result = dxgi.CreateDXGIFactory2<IDXGIFactory2>(factoryFlags, out var dxgiFactory2)).IsSuccess)
+                if (((HResult) dxgi.CreateDXGIFactory2<IDXGIFactory2>(FactoryFlags, out var dxgiFactory2)).IsSuccess)
                 {
-                    dxgiFactory = (IDXGIFactory1*) dxgiFactory2.Handle;
-                    dxgiFactoryVersion = 2;
+                    factory = (IDXGIFactory1*) dxgiFactory2.Handle;
                 }
                 else if ((result = dxgi.CreateDXGIFactory1<IDXGIFactory1>(out var dxgiFactory1)).IsSuccess)
                 {
-                    dxgiFactory = (IDXGIFactory1*) dxgiFactory1.Handle;
-                    dxgiFactoryVersion = 1;
+                    factory = dxgiFactory1.Handle;
                 }
                 else result.Throw(); // No valid DXGI factory found
 
                 // Determine the latest DXGI factory version supported
-                dxgiFactoryVersion = GetLatestDxgiFactoryVersion(dxgiFactory);
+                uint factoryVersion = GetLatestDxgiFactoryVersion(factory);
 
-                GraphicsAdapterFactory.dxgiFactory = (IDXGIFactory1*) dxgiFactory;
-                GraphicsAdapterFactory.dxgiFactoryVersion = dxgiFactoryVersion;
+                dxgiFactory = factory;
+                dxgiFactoryVersion = factoryVersion;
             }
 
             //
             // Queries the latest DXGI adapter version supported.
             //
-            static uint GetLatestDxgiFactoryVersion(IDXGIFactory1* dxgiFactory)
+            static uint GetLatestDxgiFactoryVersion(IDXGIFactory1* factory)
             {
-                HResult result;
-                uint dxgiFactoryVersion;
+                uint factoryVersion;
 
-                if ((result = dxgiFactory->QueryInterface<IDXGIFactory7>(out _)).IsSuccess)
+                if (((HResult) factory->QueryInterface<IDXGIFactory7>(out _)).IsSuccess)
                 {
-                    dxgiFactoryVersion = 7;
-                    dxgiFactory->Release();
+                    factoryVersion = 7;
+                    factory->Release();
                 }
-                else if ((result = dxgiFactory->QueryInterface<IDXGIFactory6>(out _)).IsSuccess)
+                else if (((HResult) factory->QueryInterface<IDXGIFactory6>(out _)).IsSuccess)
                 {
-                    dxgiFactoryVersion = 6;
-                    dxgiFactory->Release();
+                    factoryVersion = 6;
+                    factory->Release();
                 }
-                else if ((result = dxgiFactory->QueryInterface<IDXGIFactory5>(out _)).IsSuccess)
+                else if (((HResult) factory->QueryInterface<IDXGIFactory5>(out _)).IsSuccess)
                 {
-                    dxgiFactoryVersion = 5;
-                    dxgiFactory->Release();
+                    factoryVersion = 5;
+                    factory->Release();
                 }
-                else if ((result = dxgiFactory->QueryInterface<IDXGIFactory4>(out _)).IsSuccess)
+                else if (((HResult) factory->QueryInterface<IDXGIFactory4>(out _)).IsSuccess)
                 {
-                    dxgiFactoryVersion = 4;
-                    dxgiFactory->Release();
+                    factoryVersion = 4;
+                    factory->Release();
                 }
-                else if ((result = dxgiFactory->QueryInterface<IDXGIFactory3>(out _)).IsSuccess)
+                else if (((HResult) factory->QueryInterface<IDXGIFactory3>(out _)).IsSuccess)
                 {
-                    dxgiFactoryVersion = 3;
-                    dxgiFactory->Release();
+                    factoryVersion = 3;
+                    factory->Release();
                 }
-                else if ((result = dxgiFactory->QueryInterface<IDXGIFactory2>(out _)).IsSuccess)
+                else if (((HResult) factory->QueryInterface<IDXGIFactory2>(out _)).IsSuccess)
                 {
-                    dxgiFactoryVersion = 2;
-                    dxgiFactory->Release();
+                    factoryVersion = 2;
+                    factory->Release();
                 }
                 else
                 {
                     // We are assuming a minimum of IDXGIFactory1 support (Windows 7+)
-                    dxgiFactoryVersion = 1;
+                    factoryVersion = 1;
                 }
 
-                return dxgiFactoryVersion;
+                return factoryVersion;
+            }
+
+            //
+            // Enumerates all the Graphics Adapters in the system.
+            //
+            static List<GraphicsAdapter> EnumerateAdapters()
+            {
+                uint adapterIndex = 0;
+                var adapterList = new List<GraphicsAdapter>();
+                ComPtr<IDXGIAdapter1> dxgiAdapter = default;
+
+                do
+                {
+                    HResult result = dxgiFactory->EnumAdapters1(adapterIndex, ref dxgiAdapter);
+
+                    bool foundValidAdapter = result.IsSuccess && result.Code != DxgiConstants.ErrorNotFound;
+                    if (!foundValidAdapter)
+                        break;
+
+                    var adapter = new GraphicsAdapter(dxgiAdapter, adapterIndex);
+                    staticCollector.Add(adapter);
+                    adapterList.Add(adapter);
+
+                    adapterIndex++;
+
+                } while (true);
+
+                return adapterList;
+            }
+
+            //
+            // Enumerates all the Graphics Adapters in the system, using GPU preference (DXGI 1.6+).
+            //
+            static List<GraphicsAdapter> EnumerateAdaptersPrefer(GpuPreference gpuPreference)
+            {
+                Debug.Assert(dxgiFactoryVersion >= 6);
+                var dxgiFactory6 = (IDXGIFactory6*) dxgiFactory;
+
+                uint adapterIndex = 0;
+                var adapterList = new List<GraphicsAdapter>();
+
+                do
+                {
+                    HResult result = dxgiFactory6->EnumAdapterByGpuPreference(adapterIndex, gpuPreference, out ComPtr<IDXGIAdapter1> dxgiAdapter);
+
+                    bool foundValidAdapter = result.IsSuccess && result.Code != DxgiConstants.ErrorNotFound;
+                    if (!foundValidAdapter)
+                        break;
+
+                    var adapter = new GraphicsAdapter(dxgiAdapter, adapterIndex);
+                    staticCollector.Add(adapter);
+                    adapterList.Add(adapter);
+
+                    adapterIndex++;
+
+                } while (true);
+
+                return adapterList;
             }
         }
     }
