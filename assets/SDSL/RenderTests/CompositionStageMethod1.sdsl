@@ -74,7 +74,7 @@ shader CompositionTest : CompositionBase
 	}
 };
 
-effect CompositionTestStage1
+effect CompositionStageMethod1
 {
 	mixin CompositionTest;
 	mixin compose Comp0 = CompositionShaderA;

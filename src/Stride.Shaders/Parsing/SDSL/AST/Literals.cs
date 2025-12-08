@@ -225,14 +225,20 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         {
             // Maybe it's a static variable? try to resolve by loading file
             var classSource = new ShaderClassInstantiation(Name, []);
-            classSource.Buffer = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, Name);
-            var shaderType = ShaderClass.LoadExternalShaderType(table, classSource);
 
             // Shader is inherited (TODO: do we want to do something more "selective", i.e. import only the required variable if it's a cbuffer?)
-            ShaderClass.Inherit(table, context, shaderType, false);
+            var inheritedShaderCount = table.InheritedShaders.Count;
+            classSource = SpirvBuilder.BuildInheritanceList(table.ShaderLoader, classSource, table.InheritedShaders, ResolveStep.Compile, builder.GetBuffer());
 
-            var @this = builder.Insert(new OpThisSDSL(context.Bound++));
-            return new(@this.ResultId, context.GetOrRegister(new PointerType(shaderType, Spirv.Specification.StorageClass.Private)));
+            for (int i = inheritedShaderCount; i < table.InheritedShaders.Count; ++i)
+            {
+                table.InheritedShaders[i].Symbol = ShaderClass.LoadExternalShaderType(table, table.InheritedShaders[i]);
+                ShaderClass.Inherit(table, context, table.InheritedShaders[i].Symbol, false);
+            }
+
+            symbol = table.ResolveSymbol(Name);
+            Type = symbol.Type;
+            return EmitSymbol(compiler, builder, context, symbol);
         }
         Type = symbol.Type;
 
@@ -244,9 +250,18 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         var resultType = context.GetOrRegister(symbol.Type);
         var result = new SpirvValue(symbol.IdRef, resultType, symbol.Id.Name);
 
-        if (symbol.ImplicitThisType is { } thisType)
+        // Shader symbols are treated separately (we want to return only the shader instance (or this if not specified))
+        if (symbol.Id.Kind == SymbolKind.Shader)
         {
-            var isStage = (symbol.Id.FunctionFlags & Spirv.Specification.FunctionFlagsMask.Stage) != 0;
+            if (instance == null)
+                instance = builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
+            result.Id = instance.Value;
+            return result;
+        }
+
+        if (symbol.MemberAccessWithImplicitThis is { } thisType)
+        {
+            var isStage = symbol.Id.IsStage;
             if (instance == null)
             {
                 instance = isStage

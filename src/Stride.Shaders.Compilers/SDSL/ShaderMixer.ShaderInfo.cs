@@ -33,10 +33,19 @@ public partial class ShaderMixer
         public int StartInstruction { get; internal set; } = startInstruction;
         public int EndInstruction { get; internal set; } = endInstruction;
         public Dictionary<int, string> Names { get; } = new();
-        public Dictionary<string, int> Functions { get; } = new();
+        public Dictionary<string, (int Id, FunctionType Type)> Functions { get; } = new();
         public Dictionary<string, (int Id, SymbolType Type)> Variables { get; } = new();
 
         public Dictionary<string, int> StructTypes { get; } = new();
+
+        public (int Id, SymbolType Type) FindMember(string name)
+        {
+            if (Functions.TryGetValue(name, out var function))
+                return (function.Id, function.Type);
+            if (Variables.TryGetValue(name, out var variable))
+                return (variable.Id, variable.Type);
+            throw new KeyNotFoundException($"Member {name} was not found in shader {ShaderName}");
+        }
 
         public override string ToString() => $"{ShaderName} ({(CompositionPath != null ? $" {CompositionPath} " : "")}{StartInstruction}..{EndInstruction})";
     }
@@ -56,9 +65,10 @@ public partial class ShaderMixer
             else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
                 var functionName = shaderInfo.Names[function.ResultId];
-                shaderInfo!.Functions.Add(functionName, function.ResultId);
+                var functionType = (FunctionType)types[function.FunctionType];
+                shaderInfo!.Functions.Add(functionName, (function.ResultId, functionType));
             }
-            else if (i.Data.Op == Op.OpVariable && (OpVariable)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
+            else if (i.Data.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
             {
                 var variableName = shaderInfo.Names[variable.ResultId];
                 var variableType = types[variable.ResultType];

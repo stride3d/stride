@@ -147,8 +147,8 @@ namespace Stride.Shaders.Spirv.Processing
                     {
                         blockPointerTypes.Add(pointerType, bufferType2);
                     }
-                    else if (instruction.Op == Op.OpVariable
-                        && ((OpVariable)instruction) is { Storageclass: StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
+                    else if (instruction.Op == Op.OpVariableSDSL
+                        && ((OpVariableSDSL)instruction) is { Storageclass: StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
                         && blockPointerTypes.TryGetValue(pointerType2, out var bufferType3))
                     {
                         blockIds.Add(bufferId);
@@ -178,7 +178,7 @@ namespace Stride.Shaders.Spirv.Processing
             // Analyze streams
             foreach (var instruction in buffer)
             {
-                if (instruction.Op == Op.OpVariable && ((OpVariable)instruction) is
+                if (instruction.Op == Op.OpVariableSDSL && ((OpVariableSDSL)instruction) is
                     {
                         Storageclass: StorageClass.Private,
                         ResultId: int
@@ -192,7 +192,7 @@ namespace Stride.Shaders.Spirv.Processing
                     streams.Add(variable.ResultId, (new StreamInfo(semantic, name, type, variable.ResultId), true));
                 }
 
-                if (instruction.Op == Op.OpVariable && ((OpVariable)instruction) is
+                if (instruction.Op == Op.OpVariableSDSL && ((OpVariableSDSL)instruction) is
                     {
                         Storageclass: StorageClass.UniformConstant,
                         ResultId: int

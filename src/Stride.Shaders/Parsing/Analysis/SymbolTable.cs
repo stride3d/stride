@@ -21,7 +21,10 @@ public partial class SymbolTable : ISymbolProvider
     // Used by Identifier.ResolveSymbol
     public List<SymbolFrame> CurrentSymbols { get; } = new();
 
+    // Only valid during compilation (not during ShaderMixin phase)
     public ShaderSymbol? CurrentShader { get; set; }
+    // Only valid during compilation (not during ShaderMixin phase)
+    public List<ShaderClassInstantiation> InheritedShaders { get; set; }
 
     public SymbolTable()
     {

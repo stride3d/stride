@@ -61,7 +61,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         if (MemberCall != null)
         {
             var type = (ShaderSymbol)((PointerType)context.ReverseTypes[MemberCall.Value.TypeId]).BaseType;
-            functionSymbol = type.Components.Single(x => x.Id.Name == Name);
+            functionSymbol = type.Methods.Single(x => x.Symbol.Id.Name == Name).Symbol;
         }
         else
         {
@@ -109,9 +109,9 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         {
             instance = builder.Insert(new OpBaseSDSL(context.Bound++)).ResultId;
         }
-        else if (functionSymbol.ImplicitThisType is { } thisType)
+        else if (functionSymbol.MemberAccessWithImplicitThis is { } thisType)
         {
-            var isStage = (functionSymbol.Id.FunctionFlags & Spirv.Specification.FunctionFlagsMask.Stage) != 0;
+            var isStage = functionSymbol.Id.IsStage;
             instance = isStage
                 ? builder.Insert(new OpStageSDSL(context.Bound++)).ResultId
                 : builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;

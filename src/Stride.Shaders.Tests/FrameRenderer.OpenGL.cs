@@ -243,11 +243,23 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
                 foreach (var cbufferParameter in TestHeaderParser.ParseParameters(param.Value))
                 {
                     var cbMemberReflection = cbReflection.Members.Single(x => x.RawName == cbufferParameter.Key);
-                    if (cbMemberReflection.Type.Class != EffectParameterClass.Scalar || cbMemberReflection.Type.Type != EffectParameterType.Int)
+                    if (cbMemberReflection.Type.Class != EffectParameterClass.Scalar)
                         throw new NotImplementedException();
 
                     fixed (byte* cbufferDataPtr = cbufferData)
-                        *((int*)&cbufferDataPtr[cbMemberReflection.Offset]) = int.Parse(cbufferParameter.Value);
+                    {
+                        switch (cbMemberReflection.Type.Type)
+                        {
+                            case EffectParameterType.Int:
+                                *((int*)&cbufferDataPtr[cbMemberReflection.Offset]) = int.Parse(cbufferParameter.Value);
+                                break;
+                            case EffectParameterType.Float:
+                                *((float*)&cbufferDataPtr[cbMemberReflection.Offset]) = float.Parse(cbufferParameter.Value);
+                                break;
+                            default:
+                                throw new NotImplementedException();
+                        }
+                    }
                 }
 
                 Gl.GenBuffers(1, out uint ubo);

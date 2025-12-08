@@ -81,8 +81,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     private void MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
     {
         var cbuffersByNames = buffer
-            .Where(x => x.Op == Op.OpVariable)
-            .Select(x => (OpVariable)x)
+            .Where(x => x.Op == Op.OpVariableSDSL)
+            .Select(x => (OpVariableSDSL)x)
             // Note: MemberOffset is simply a shift in Members index, not something like a byte offset
             .Select(x => (
                 Variable: x,
@@ -182,8 +182,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     private void ComputeCBufferOffsets(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
     {
         var cbuffers = buffer
-            .Where(x => x.Op == Op.OpVariable)
-            .Select(x => (OpVariable)x)
+            .Where(x => x.Op == Op.OpVariableSDSL)
+            .Select(x => (OpVariableSDSL)x)
             // Note: MemberOffset is simply a shift in Members index, not something like a byte offset
             .Select(x => (
                 Variable: x,
@@ -276,9 +276,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Merge all classes from mixinSource.Mixins in main buffer
         ProcessMixinClasses(context, buffer, mixinSource, mixinNode);
 
-        //Console.WriteLine("Done SDSL importing");
-        //Spv.Dis(buffer, true);
-
+        Console.WriteLine("Done SDSL importing");
         Spv.Dis(buffer, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
         // Import struct types
@@ -326,6 +324,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         ExpandForeach(globalContext, context, buffer, mixinNode);
 
+        Spv.Dis(buffer, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+
         // Patch method calls (virtual calls & base calls)
         PatchMethodCalls(globalContext, context, buffer, mixinNode);
 
@@ -355,7 +355,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 else if (decoration.Decoration.Value == Decoration.LogicalGroupSDSL)
                     linkInfo.LogicalGroup = n.Value;
             }
-            else if (i.Op == Op.OpVariable && (OpVariable)i is { } variable)
+            else if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
             {
                 var type = context.ReverseTypes[variable.ResultType];
                 if (type is PointerType pointerType)
@@ -394,15 +394,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
 
-        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
-        {
-            var i = buffer[index];
-            if (i.Op == Op.OpSDSLImportShader || i.Op == Op.OpSDSLImportFunction || i.Op == Op.OpSDSLImportVariable)
-            {
-                SetOpNop(i.Data.Memory.Span);
-            }
-        }
-
         if (currentCompositionPath != null)
             buffer.Add(new OpSDSLEffectEnd());
 
@@ -411,7 +402,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     private void ProcessMixinClasses(SpirvContext context, NewSpirvBuffer temp, ShaderMixinInstantiation mixinSource, MixinNode mixinNode)
     {
-        var isRoot = mixinNode.Stage == null;
+        var isRootMixin = mixinNode.Stage == null;
+        var stage = mixinNode.Stage;
         var offset = context.Bound;
         var nextOffset = 0;
 
@@ -420,6 +412,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         mixinNode.StartInstruction = temp.Count;
         foreach (var shaderClass in mixinSource.Mixins)
         {
+            if (shaderClass.ImportStageOnly)
+            {
+                if (!isRootMixin)
+                    throw new InvalidOperationException("importing stage-only methods/variables is only possible at the root mixin");
+            }
+
             var shader = shaderClass.Buffer;
             offset += nextOffset;
             nextOffset = 0;
@@ -429,6 +427,38 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             bool skipFunction = false;
 
+            var forbiddenIds = new HashSet<int>();
+            var remapIds = new Dictionary<int, int>();
+            var names = new Dictionary<int, OpName>();
+
+            bool ProcessStageMember(int memberId, bool isStage)
+            {
+                var include = isStage switch
+                {
+                    // Import stage members only if at root level
+                    true => isRootMixin,
+                    // Import non-stage members only if allowed, i.e. not a "stage-only inherit"
+                    // ("stage-only inherit" only happen when a class with stage members is inherited in a composition, and the stage-only version is added to the root mixin)
+                    false => !shaderClass.ImportStageOnly,
+                };
+
+                // If a stage member is skipped in a composition mixin, we want to remap to the version in the root mixin
+                if (isStage && !isRootMixin)
+                {
+                    var stageShader = stage.ShadersByName[shaderClass.ToClassName()];
+                    var memberName = names[memberId].Name;
+                    var stageMember = stageShader.FindMember(memberName);
+                    remapIds.Add(offset + memberId, stageMember.Id);
+                }
+                // Otherwise, if not included, it means we need to forbid this IDs (which could only happen if referencing non-stage member from a stage method)
+                else if (!include)
+                {
+                    forbiddenIds.Add(offset + memberId);
+                }
+
+                return include;
+            }
+
             // Copy instructions to main buffer
             for (var index = 0; index < shader.Count; index++)
             {
@@ -437,22 +467,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 // Do we need to skip variable/functions? (depending on stage/non-stage)
                 {
                     var include = true;
-                    if (i.Op == Op.OpFunction && shader[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shader[index + 1] is { } functionInfo)
+                    if (i.Op == Op.OpFunction && (OpFunction)i is { } function && shader[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shader[index + 1] is { } functionInfo)
                     {
                         var isStage = (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
-                        include = isStage switch
-                        {
-                            // Import stage members only if root level
-                            true => isRoot || shaderClass.ImportStageOnly,
-                            // Import non-stage members only if import stage only is not specified
-                            false => !shaderClass.ImportStageOnly,
-                        };
+                        include = ProcessStageMember(function.ResultId, isStage);
                     }
-                    if (i.Op == Op.OpVariable)
+                    if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variableInstruction)
                     {
-                        // TODO
+                        var isStage = (variableInstruction.Flags & VariableFlagsMask.Stage) != 0;
+                        include = ProcessStageMember(variableInstruction.ResultId, isStage);
                     }
-
 
                     if (!include)
                     {
@@ -466,6 +490,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                             }
                         }
 
+                        // Also clear the name (note: this will happen in the copied new buffer
+                        if (names.TryGetValue(i.Data.IdResult!.Value, out var name))
+                            SetOpNop(name.DataIndex!.Value.Data.Memory.Span);
+
                         // Go to next instruction
                         continue;
                     }
@@ -477,8 +505,21 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (i.Data.IdResult != null && i.Data.IdResult.Value > nextOffset)
                     nextOffset = i.Data.IdResult.Value;
 
+                // Note: We add the instruction here (instead of previous loop over source shader) so that if it gets turned into OpNop, we don't do that in the source buffer but in the new copied buffer
+                //       Also, we do that before the offset since we want dictionary key IDs to match source buffer
+                if (temp[^1].Op == Op.OpName)
+                {
+                    OpName nameInstruction = temp[^1];
+                    names.Add(nameInstruction.Target, nameInstruction);
+                }
+
                 if (offset > 0)
                     OffsetIds(i2, offset);
+
+                if (SpirvBuilder.ContainIds(forbiddenIds, i2))
+                    throw new InvalidOperationException($"Stage instruction {i.Data} references a non-stage ID");
+
+                SpirvBuilder.RemapIds(remapIds, i2);
             }
 
             shaderClass.Start = shaderStart;
@@ -561,7 +602,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         if (mixinNode.ExternalFunctions.TryGetValue(functionInfo.Parent, out var parentFunctionInfo))
                         {
                             var shaderName = mixinNode.ExternalShaders[parentFunctionInfo.ShaderId];
-                            functionInfo.Parent = mixinNode.ShadersByName[shaderName].Functions[parentFunctionInfo.Name];
+                            functionInfo.Parent = mixinNode.ShadersByName[shaderName].Functions[parentFunctionInfo.Name].Id;
                         }
                     }
 
@@ -777,7 +818,19 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                     var shaderInfo = instanceMixinGroup.ShadersByName[shaderName];
                     if (!shaderInfo.Variables.TryGetValue(variable.Name, out var variableInfo))
-                        throw new InvalidOperationException($"External variable {variable.Name} not found");
+                    {
+                        // Try as a stage variable
+                        if (instanceMixinGroup.Stage != null
+                            && instanceMixinGroup.Stage.ShadersByName.TryGetValue(shaderName, out shaderInfo)
+                            && shaderInfo.Variables.TryGetValue(variable.Name, out variableInfo))
+                        {
+
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException($"External variable {variable.Name} not found");
+                        }
+                    }
                     memberAccesses.Add(memberAccess.ResultId, variableInfo.Id);
                 }
                 else if (globalContext.Types[memberAccess.ResultType] is FunctionType)
@@ -897,6 +950,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     {
         for (int i = 0; i < temp.Count; i++)
         {
+            // Transform OpVariableSDSL into OpVariable (we don't need extra info anymore)
+            if (temp[i].Op == Op.OpVariableSDSL && (OpVariableSDSL)temp[i] is { } variable)
+                temp.Replace(i, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, variable.Initializer));
+
             // Remove Nop
             if (temp[i].Op == Op.OpNop)
                 temp.RemoveAt(i--);

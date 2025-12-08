@@ -31,7 +31,7 @@ public record class ShaderClassInstantiation(string ClassName, int[] GenericArgu
 
     public int[] GenericArguments { get; set; } = GenericArguments;
 
-    public Dictionary<int, ShaderClassInstantiation> ShaderReferences { get; set; } = new();
+    public ShaderSymbol Symbol { get; set; }
 
     public int Start { get; set; }
     public int End { get; set; }
@@ -54,6 +54,8 @@ public record class ShaderClassInstantiation(string ClassName, int[] GenericArgu
 
         return result.ToString();
     }
+
+    public override string ToString() => $"{(ImportStageOnly ? "stage " : string.Empty)}{ToClassName()} Symbol: {Symbol} Buffer: {(Buffer != null ? "set" : "empty")} Start: {Start} End: {End} OffsetId: {OffsetId}";
 
     public virtual bool Equals(ShaderClassInstantiation? shaderClassSource)
     {
@@ -82,10 +84,10 @@ public record class ShaderClassInstantiation(string ClassName, int[] GenericArgu
 
 public partial class SpirvBuilder
 {
-    private static void BuildInheritanceList(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, NewSpirvBuffer buffer, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
+    private static void BuildInheritanceListHelper(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, NewSpirvBuffer buffer, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
     {
         // Build shader name mapping
-        var shaderMapping = classSource.ShaderReferences;
+        var shaderMapping = new Dictionary<int, ShaderClassInstantiation>();
         foreach (var i in buffer)
         {
             if (i.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)
@@ -112,10 +114,11 @@ public partial class SpirvBuilder
         return new ShaderClassInstantiation(importShader.ShaderName, importShader.Values.Elements.Memory.ToArray());
     }
 
-    public static void BuildInheritanceList(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep, NewSpirvBuffer? parentBuffer = null)
+    public static ShaderClassInstantiation BuildInheritanceList(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep, NewSpirvBuffer? parentBuffer = null)
     {
         // TODO: cache same instantiations within context?
-        if (!inheritanceList.Contains(classSource))
+        var index = inheritanceList.IndexOf(classSource);
+        if (index == -1)
         {
             if (classSource.Buffer == null)
             {
@@ -123,12 +126,17 @@ public partial class SpirvBuilder
                 classSource.Buffer = shader;
             }
 
-            if (!inheritanceList.Contains(classSource))
+            // Note: since shader instantiation might mutate classSource, perform a search again
+            index = inheritanceList.IndexOf(classSource);
+            if (index == -1)
             {
-                BuildInheritanceList(shaderLoader, classSource, classSource.Buffer, inheritanceList, resolveStep);
+                BuildInheritanceListHelper(shaderLoader, classSource, classSource.Buffer, inheritanceList, resolveStep);
+                index = inheritanceList.Count;
                 inheritanceList.Add(classSource);
             }
         }
+
+        return inheritanceList[index];
     }
 
     public static object GetConstantValue(int constantId, NewSpirvBuffer buffer)
@@ -339,6 +347,32 @@ public partial class SpirvBuilder
     {
         words[0] = words.Length << 16;
         words[1..].Clear();
+    }
+
+    public static bool ContainIds(HashSet<int> ids, OpData i)
+    {
+        foreach (var op in i)
+        {
+            if ((op.Kind == OperandKind.IdRef
+                 || op.Kind == OperandKind.IdResult
+                 || op.Kind == OperandKind.IdResultType
+                 || op.Kind == OperandKind.PairIdRefLiteralInteger
+                 || op.Kind == OperandKind.PairIdRefIdRef)
+                && op.Words.Length > 0
+                && ids.Contains(op.Words[0]))
+            {
+                return true;
+            }
+
+            if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
+                 || op.Kind == OperandKind.PairIdRefIdRef)
+                && ids.Contains(op.Words[1]))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static void RemapIds(NewSpirvBuffer buffer, int shaderStart, int shaderEnd, Dictionary<int, int> idRemapping)

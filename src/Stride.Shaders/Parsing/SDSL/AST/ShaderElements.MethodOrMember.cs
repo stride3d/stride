@@ -52,12 +52,12 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
         if (!table.RootSymbols.TryGetValue(Name, out _))
         {
             context
-            .FluentAdd(new OpVariable(registeredType, context.Bound++, Specification.StorageClass.UniformConstant, null), out var register)
+            .FluentAdd(new OpVariableSDSL(registeredType, context.Bound++, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null), out var register)
             .FluentAdd(new OpName(register.ResultId, Name), out _);
 
             var sid = new SymbolID(Name, SymbolKind.SamplerState);
             var symbol = new Symbol(sid, Type, register.ResultId);
-            table.CurrentShader.Components.Add(symbol);
+            table.CurrentShader.Variables.Add((symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
             table.CurrentFrame.Add(Name, symbol);
         }
         else throw new Exception($"SamplerState {Name} already defined");
@@ -123,7 +123,9 @@ public sealed class ShaderMember(
         if (Type is PointerType pointerType)
             storageClass = pointerType.StorageClass;
 
-        context.Add(new OpVariable(registeredType, variable, storageClass, null));
+        var variableFlags = IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None;
+
+        context.Add(new OpVariableSDSL(registeredType, variable, storageClass, variableFlags, null));
         if (Semantic != null)
             context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(Semantic.Name)));
         context.AddName(variable, Name);
@@ -139,10 +141,11 @@ public sealed class ShaderMember(
                 {
                     StreamKind.Stream or StreamKind.PatchStream => Storage.Stream,
                     _ => Storage.None
-                }
+                },
+                IsStage: IsStaged
             );
         var symbol = new Symbol(sid, Type, variable);
-        table.CurrentShader.Components.Add(symbol);
+        table.CurrentShader.Variables.Add((symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
         table.CurrentFrame.Add(Name, symbol);
     }
 
@@ -228,8 +231,8 @@ public class ShaderMethod(
         if (IsStaged)
             functionFlags |= Specification.FunctionFlagsMask.Stage;
 
-        var symbol = new Symbol(new(Name, SymbolKind.Method, FunctionFlags: functionFlags), Type, function.Id, ImplicitThisType: Type);
-        table.CurrentShader.Components.Add(symbol);
+        var symbol = new Symbol(new(Name, SymbolKind.Method, IsStage: IsStaged), Type, function.Id, MemberAccessWithImplicitThis: Type);
+        table.CurrentShader.Methods.Add((symbol, functionFlags));
         table.CurrentFrame.Add(Name, symbol);
     }
 

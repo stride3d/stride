@@ -48,8 +48,10 @@ public partial class ShaderMixer
             bool hasStage = false;
             foreach (var i in shader)
             {
-                if (i.Op == Op.OpVariable && (OpVariable)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
+                if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
                 {
+                    hasStage |= (variable.Flags & VariableFlagsMask.Stage) != 0;
+
                     var variableType = types[variable.ResultType];
                     if (variableType is PointerType pointer && pointer.BaseType is ShaderSymbol or ArrayType { BaseType: ShaderSymbol })
                     {
@@ -90,7 +92,7 @@ public partial class ShaderMixer
             // If there are any stage variables, add class to root
             if (!isRoot && hasStage)
             {
-                var shaderNameStageOnly = new ShaderClassInstantiation(shaderName.ClassName, shaderName.GenericArguments, ImportStageOnly: true) { Buffer = shaderName.Buffer, ShaderReferences = shaderName.ShaderReferences };
+                var shaderNameStageOnly = new ShaderClassInstantiation(shaderName.ClassName, shaderName.GenericArguments, ImportStageOnly: true) { Buffer = shaderName.Buffer, Symbol = shaderName.Symbol };
                 // Make sure it's not already added yet (either standard or stage only)
                 if (!root!.Mixins.Contains(shaderName) && !root!.Mixins.Contains(shaderNameStageOnly))
                     root!.Mixins.Add(shaderNameStageOnly);

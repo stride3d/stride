@@ -262,13 +262,20 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
         context.DeclareCBuffer((ConstantBufferSymbol)Type);
         var pointerType = context.GetOrRegister(new PointerType(Type, Specification.StorageClass.Uniform));
         var variable = context.Bound++;
-        // TODO: Add a StreamSDSL storage class?
-        context.Add(new OpVariable(pointerType, variable, Specification.StorageClass.Uniform, null));
-        context.AddName(variable, Name);
+
+        bool? isStaged = null;
 
         for (var index = 0; index < Members.Count; index++)
         {
             var member = Members[index];
+
+            // Use first member as reference
+            if (isStaged == null)
+                isStaged = member.IsStaged;
+            // Make sure IsStaged for all members match the first member (they're all the same)
+            if (isStaged != member.IsStaged)
+                throw new InvalidOperationException($"cbuffer {Name} have a mix of stage and non-stage members");
+
             var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
             var symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), variable, AccessChain: index);
             table.CurrentFrame.Add(member.Name, symbol);
@@ -287,6 +294,10 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
                     context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkSDSL(linkInfo.LinkName ?? $"{shaderClass.Name}.{member.Name}")));
             }
         }
+
+        // TODO: Add a StreamSDSL storage class?
+        context.Add(new OpVariableSDSL(pointerType, variable, Specification.StorageClass.Uniform, isStaged == true ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
+        context.AddName(variable, Name);
     }
 }
 

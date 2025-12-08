@@ -228,23 +228,27 @@ public class SpirvContext
         }
 
         // Import variables/functions
-        var components = CollectionsMarshal.AsSpan(shaderSymbol.Components);
-        foreach (ref var c in components)
+        var methods = CollectionsMarshal.AsSpan(shaderSymbol.Methods);
+        foreach (ref var c in methods)
         {
-            if (c.Id.Kind == SymbolKind.Method)
+            if (c.Symbol.Id.Kind == SymbolKind.Method)
             {
-                var functionType = (FunctionType)c.Type;
+                var functionType = (FunctionType)c.Symbol.Type;
                 var functionReturnTypeId = GetOrRegister(functionType.ReturnType);
 
-                c.IdRef = Bound++;
-                Add(new OpSDSLImportFunction(c.IdRef, functionReturnTypeId, c.Id.Name, shader.ResultId, c.Id.FunctionFlags));
-                AddName(c.IdRef, c.Id.Name);
+                c.Symbol.IdRef = Bound++;
+                Add(new OpSDSLImportFunction(c.Symbol.IdRef, functionReturnTypeId, c.Symbol.Id.Name, shader.ResultId, c.Flags));
+                AddName(c.Symbol.IdRef, c.Symbol.Id.Name);
             }
-            else if (c.Id.Kind == SymbolKind.Variable)
+        }
+        var variables = CollectionsMarshal.AsSpan(shaderSymbol.Variables);
+        foreach (ref var c in variables)
+        {
+            if (c.Symbol.Id.Kind == SymbolKind.Variable)
             {
-                c.IdRef = Bound++;
-                Add(new OpSDSLImportVariable(c.IdRef, GetOrRegister(c.Type), c.Id.Name, shader.ResultId));
-                AddName(c.IdRef, c.Id.Name);
+                c.Symbol.IdRef = Bound++;
+                Add(new OpSDSLImportVariable(c.Symbol.IdRef, GetOrRegister(c.Symbol.Type), c.Symbol.Id.Name, shader.ResultId, c.Flags));
+                AddName(c.Symbol.IdRef, c.Symbol.Id.Name);
             }
         }
 

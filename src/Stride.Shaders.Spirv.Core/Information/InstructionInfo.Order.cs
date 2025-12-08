@@ -75,6 +75,8 @@ public partial class InstructionInfo
         group++;
         foreach (var e in Enum.GetValues<StorageClass>().Where(x => x != StorageClass.Function))
             OrderGroup[(Op.OpVariable, e)] = group;
+        foreach (var e in Enum.GetValues<StorageClass>().Where(x => x != StorageClass.Function))
+            OrderGroup[(Op.OpVariableSDSL, e)] = group;
 
         OrderGroup[(Op.OpUndef, null)] = group;
 
@@ -97,11 +99,11 @@ public partial class InstructionInfo
     /// <returns></returns>
     public static int GetGroupOrder(Instruction instruction)
     {
-        return GetGroupOrder(instruction.OpCode, instruction.OpCode == Op.OpVariable ? (StorageClass)instruction.Words[3] : null);
+        return GetGroupOrder(instruction.OpCode, instruction.OpCode == Op.OpVariable || instruction.OpCode == Op.OpVariableSDSL ? (StorageClass)instruction.Words[3] : null);
     }
     public static int GetGroupOrder(Buffers.OpData instruction)
     {
-        return GetGroupOrder(instruction.Op, instruction.Op == Op.OpVariable ? (StorageClass)instruction.Memory.Span[3] : null);
+        return GetGroupOrder(instruction.Op, instruction.Op == Op.OpVariable || instruction.Op == Op.OpVariableSDSL ? (StorageClass)instruction.Memory.Span[3] : null);
     }
 
     /// <summary>

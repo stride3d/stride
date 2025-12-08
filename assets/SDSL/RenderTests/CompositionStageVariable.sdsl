@@ -1,56 +1,48 @@
-// PSMain(ExpectedResult=#0D0D0D0D)
+// PSMain(ExpectedResult=#1E1E1E1E)
 
 namespace Stride.Shaders.Tests;
 
-shader CompositionBase
+shader CompositionBase2
 {
-	float A;
-	void SetupA()
-	{
-		A = 1.0;
-	}
+	stage float A;
+}
+
+shader CompositionBase : CompositionBase2
+{
+	stage float B;
+	stage float C;
 
 	float Compute()
 	{
-		return A;
+		return A + B + C;
 	}
 };
  
 shader CompositionShaderA : CompositionBase
 {
-	override void SetupA()
-	{
-		A = 3.0;
-	}
 };
  
 shader CompositionShaderB : CompositionBase
 {
-	override void SetupA()
-	{
-		A = 7.0;
-	}
 };
  
-shader CompositionTest
+shader CompositionTest : CompositionBase2
 {
     stream float4 ColorTarget : SV_Target0;
 
 	CompositionBase Comp0;
 	CompositionBase Comp1;
-	CompositionBase Comp2;
  
 	void PSMain()
 	{
-		Comp0.SetupA();
-		Comp0.A = 5.0;
-		Comp1.SetupA();
-		Comp2.SetupA();
-		streams.ColorTarget = (Comp0.A + Comp1.A + Comp2.Compute()) / 255.0;
+		A = 3.0;
+		Comp0.B = 5.0;
+		Comp1.C = 7.0;
+		streams.ColorTarget = (Comp0.Compute() + Comp1.Compute()) / 255.0;
 	}
 };
 
-effect CompositionVariable
+effect CompositionStageVariable
 {
 	mixin CompositionTest;
 	mixin compose Comp0 = CompositionShaderA;

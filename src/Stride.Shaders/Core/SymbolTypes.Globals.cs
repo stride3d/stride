@@ -47,10 +47,10 @@ public partial record VectorType
 
     internal static FrozenDictionary<string, VectorType> Init()
     {
-        var arr = new KeyValuePair<string, VectorType>[ScalarType.names.Length * 4];
+        var arr = new KeyValuePair<string, VectorType>[ScalarType.names.Length * 3];
         for(int i = 0; i < ScalarType.names.Length; i++)
-            for(int x = 1; x < 5; x++)
-                arr[i * 4 + (x - 1)] = new($"{ScalarType.names[i]}{x}", new(ScalarType.From(ScalarType.names[i]),x));
+            for(int x = 2; x < 5; x++)
+                arr[i * 3 + (x - 2)] = new($"{ScalarType.names[i]}{x}", new(ScalarType.From(ScalarType.names[i]),x));
         return arr.ToFrozenDictionary();
     }
 }
@@ -62,10 +62,10 @@ public partial record MatrixType
     public static FrozenDictionary<string, MatrixType> Types { get; } = Init();
     internal static FrozenDictionary<string, MatrixType> Init()
     {
-        var arr = new List<KeyValuePair<string, MatrixType>>(ScalarType.names.Length * 4 * 4);
+        var arr = new List<KeyValuePair<string, MatrixType>>(ScalarType.names.Length * 3 * 3);
         for(int i = 0; i < ScalarType.names.Length; i++)
-            for(int x = 1; x < 5; x++)
-            for(int y = 1; y < 5; y++)
+            for(int x = 2; x < 5; x++)
+            for(int y = 2; y < 5; y++)
                 arr.Add(new($"{ScalarType.names[i]}{x}x{y}", new(ScalarType.From(ScalarType.names[i]),x,y)));
         return arr.ToFrozenDictionary(); 
     }

@@ -98,10 +98,15 @@ public sealed partial record ScalarType(string TypeName) : SymbolType()
 }
 public sealed partial record VectorType(ScalarType BaseType, int Size) : SymbolType()
 {
+    public int Size { get; } = Size >= 2 ? Size : throw new ArgumentException("Argument must be at least 2.", nameof(Size));
+
     public override string ToString() => $"{BaseType}{Size}";
 }
 public sealed partial record MatrixType(ScalarType BaseType, int Rows, int Columns) : SymbolType()
 {
+    public int Rows { get; } = Rows >= 2 ? Rows : throw new ArgumentException("Argument must be at least 2.", nameof(Rows));
+    public int Columns { get; } = Columns >= 2 ? Columns : throw new ArgumentException("Argument must be at least 2.", nameof(Columns));
+
     public override string ToString() => $"{BaseType}{Rows}x{Columns}";
 }
 /// <summary>
@@ -250,7 +255,10 @@ public sealed record EffectSymbol(string Name, List<(string Name, SymbolType Typ
 
 public sealed record ShaderSymbol(string Name, int[] GenericArguments) : SymbolType
 {
-    public List<Symbol> Components { get; init; } = [];
+    public List<(Symbol Symbol, VariableFlagsMask Flags)> Variables { get; init; } = [];
+
+    public List<(Symbol Symbol, FunctionFlagsMask Flags)> Methods { get; init; } = [];
+
     public List<(StructuredType Type, int ImportedId)> StructTypes { get; init; } = [];
 
     public string ToClassName()
@@ -264,15 +272,24 @@ public sealed record ShaderSymbol(string Name, int[] GenericArguments) : SymbolT
 
     internal bool TryResolveSymbol(string name, out Symbol symbol)
     {
-        foreach (var c in Components)
+        foreach (var c in Methods)
         {
-            if (c.Id.Name == name)
+            if (c.Symbol.Id.Name == name)
             {
-                symbol = c with { ImplicitThisType = c.Type };
+                symbol = c.Symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+                return true;
+            }
+        }
+        foreach (var c in Variables)
+        {
+            if (c.Symbol.Id.Name == name)
+            {
+                symbol = c.Symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
                 return true;
             }
 
-            if (c.Type is PointerType { StorageClass: Specification.StorageClass.Uniform } p && p.BaseType is ConstantBufferSymbol cb)
+            // For cbuffer, all their members are visible directly at the top-level without referencing the cbuffer
+            if (c.Symbol.Type is PointerType { StorageClass: Specification.StorageClass.Uniform } p && p.BaseType is ConstantBufferSymbol cb)
             {
                 for (int index = 0; index < cb.Members.Count; index++)
                 {
@@ -280,7 +297,7 @@ public sealed record ShaderSymbol(string Name, int[] GenericArguments) : SymbolT
                     if (member.Name == name)
                     {
                         var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
-                        symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.IdRef, ImplicitThisType: c.Type, AccessChain: index);
+                        symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.Symbol.IdRef, MemberAccessWithImplicitThis: c.Symbol.Type, AccessChain: index);
                         return true;
                     }
                 }

@@ -113,6 +113,10 @@
         {
           "kind": "IdRef",
           "name": "shader"
+        },
+        {
+          "kind": "VariableFlags",
+          "name": "flags"
         }
       ]
     },
@@ -128,6 +132,24 @@
         {
           "kind": "IdRef",
           "name": "shader"
+        }
+      ]
+    },
+    {
+      "opname": "OpVariableSDSL",
+      "class": "Memory",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        { "kind": "StorageClass" },
+        {
+          "kind": "VariableFlags",
+          "name": "flags"
+        },
+        {
+          "kind": "IdRef",
+          "quantifier": "?",
+          "name": "'Initializer'"
         }
       ]
     },
@@ -296,6 +318,20 @@
         {
           "enumerant": "Override",
           "value": "0x0040"
+        }
+      ]
+    },
+    {
+      "category": "BitEnum",
+      "kind": "VariableFlags",
+      "enumerants": [
+        {
+          "enumerant": "None",
+          "value": "0x0000"
+        },
+        {
+          "enumerant": "Stage",
+          "value": "0x0001"
         }
       ]
     },

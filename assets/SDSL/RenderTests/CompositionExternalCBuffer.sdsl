@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#0A0A0A0A)
+// PSMain(ExpectedResult=#24242424, cbuffer.PerView=(Eye=7.0, Eye2=12.0))
 
 namespace Stride.Shaders.Tests;
 
@@ -6,7 +6,7 @@ shader ExternalClass
 {
     cbuffer PerView
     {
-        stage float4 Eye;
+        stage float Eye;
     };
 }
 
@@ -14,7 +14,7 @@ shader CompositionBase
 {
 	float4 Compute()
 	{
-		return float4(10.0, 10.0, 10.0, 10.0) / 255.0 + ExternalClass.Eye;
+		return float4(10.0, 10.0, 10.0, 10.0) / 255.0 + ExternalClass.Eye / 255.0;
 	}
 };
 
@@ -22,11 +22,16 @@ shader CompositionExternalCBuffer
 {
     stream float4 ColorTarget : SV_Target0;
 
+	cbuffer PerView
+    {
+        stage float Eye2;
+    };
+
 	compose CompositionBase ShadingColor0;
 
 	stage float4 Shading()
     {
-        return ShadingColor0.Compute() + ExternalClass.Eye;
+        return ShadingColor0.Compute() + Eye2 / 255.0 + ExternalClass.Eye / 255.0;
     }
  
 	void PSMain()

@@ -199,20 +199,21 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     {
         ProcessNameAndTypes(buffer, 0, buffer.Count, out var names, out var types);
 
-        var symbols = new List<Symbol>();
+        var variables = new List<(Symbol Symbol, VariableFlagsMask Flags)>();
+        var methods = new List<(Symbol Symbol, FunctionFlagsMask Flags)>();
         var structTypes = new List<(StructuredType Type, int ImportedId)>();
         for (var index = 0; index < buffer.Count; index++)
         {
             var instruction = buffer[index];
-            if (instruction.Op == Op.OpVariable && (OpVariable)instruction is { } variable &&
+            if (instruction.Op == Op.OpVariableSDSL && (OpVariableSDSL)instruction is { } variable &&
                 variable.Storageclass != Specification.StorageClass.Function)
             {
                 if (!names.TryGetValue(variable.ResultId, out var variableName))
                     variableName = $"_{variable.ResultId}";
                 var variableType = types[variable.ResultType];
 
-                var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream);
-                symbols.Add(new(sid, variableType, variable.ResultId));
+                var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream, IsStage: (variable.Flags & VariableFlagsMask.Stage) != 0);
+                variables.Add((new(sid, variableType, variable.ResultId), variable.Flags));
             }
 
             if (instruction.Op == Op.OpFunction)
@@ -225,8 +226,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var functionName = names[functionInstruction.ResultId];
                 var functionType = types[functionInstruction.FunctionType];
 
-                var sid = new SymbolID(functionName, SymbolKind.Method, FunctionFlags: functionFlags);
-                symbols.Add(new(sid, functionType, functionInstruction.ResultId));
+                var sid = new SymbolID(functionName, SymbolKind.Method, IsStage: (functionFlags & FunctionFlagsMask.Stage) != 0);
+                methods.Add((new(sid, functionType, functionInstruction.ResultId), functionFlags));
             }
 
             if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
@@ -242,7 +243,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         var shaderType = new ShaderSymbol(classSource.ClassName, classSource.GenericArguments)
         {
-            Components = symbols,
+            Variables = variables,
+            Methods = methods,
             StructTypes = structTypes,
         };
         return shaderType;
@@ -304,7 +306,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         var shaderSymbols = new List<ShaderSymbol>();
         foreach (var mixin in inheritanceList)
         {
-            shaderSymbols.Add(LoadExternalShaderType(table, mixin));
+            shaderSymbols.Add(mixin.Symbol = LoadExternalShaderType(table, mixin));
         }
 
         foreach (var member in Elements)
@@ -366,6 +368,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         RegisterShaderType(table, currentShader);
 
         table.CurrentShader = currentShader;
+        table.InheritedShaders = inheritanceList;
         foreach (var member in Elements)
         {
             member.ProcessSymbol(table);
@@ -392,6 +395,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         foreach (var method in Elements.OfType<ShaderMethod>())
             method.Compile(table, this, compiler);
 
+        table.InheritedShaders = null;
         table.CurrentShader = null;
         table.Pop();
     }
@@ -408,35 +412,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         if (addToRoot)
             table.CurrentFrame.AddImplicitShader(shaderType);
-        /*foreach (var c in shaderType.Components)
-        {
-            if (c.Id.Kind == SymbolKind.Variable)
-            {
-                if (addToRoot)
-                {
-                    table.CurrentFrame.Add(c.Id.Name, c with { ImplicitThisType = c.Type });
-
-                    // cbuffer: add members
-                    if (c.Type is PointerType { StorageClass: Specification.StorageClass.Uniform } p && p.BaseType is ConstantBufferSymbol cb)
-                    {
-                        for (int index = 0; index < cb.Members.Count; index++)
-                        {
-                            var member = cb.Members[index];
-
-                            var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
-                            var symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.IdRef, ImplicitThisType: c.Type, AccessChain: index);
-
-                            table.CurrentFrame.Add(member.Name, symbol);
-                        }
-                    }
-                }
-            }
-            else if (c.Id.Kind == SymbolKind.Method)
-            {
-                if (addToRoot)
-                    table.CurrentFrame.Add(c.Id.Name, c with { ImplicitThisType = c.Type });
-            }
-        }*/
 
         if (!addToRoot)
         {
