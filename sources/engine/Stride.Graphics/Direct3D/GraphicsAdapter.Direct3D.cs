@@ -42,7 +42,6 @@ namespace Stride.Graphics
         private readonly uint dxgiAdapterVersion;
 
         private readonly uint adapterOrdinal;
-        private readonly AdapterDesc1 adapterDesc;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
         private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile) int.MaxValue;
@@ -75,7 +74,42 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets the vendor identifier of this adapter.
         /// </summary>
-        public int VendorId => (int) adapterDesc.VendorId;
+        public int VendorId  { get; }
+
+
+        /// <summary>
+        ///   Gets the amount of memory, in bytes, on the graphics card (GPU) that is
+        ///   exclusively reserved for graphics operations.
+        ///   This is physical video memory dedicated to the adapter.
+        /// </summary>
+        /// <remarks>
+        ///   Typically used for storing Textures, Frame Buffers, and other GPU-specific resources.
+        ///   High-performance discrete GPUs usually have a large amount of dedicated video memory.
+        /// </remarks>
+        public ulong DedicatedVideoMemory { get; }
+
+        /// <summary>
+        ///   Gets the amount of system RAM, in bytes, that is reserved exclusively for use
+        ///   by the adapter.
+        ///   This memory is not available to other applications.
+        /// </summary>
+        /// <remarks>
+        ///   Common in systems with integrated or hybrid graphics solutions.
+        ///   It provides the GPU with guaranteed access to a portion of system memory for graphics tasks.
+        /// </remarks>
+        public ulong DedicatedSystemMemory { get; }
+
+        /// <summary>
+        ///   Gets the amount of system RAM, in bytes, that can be shared between the adapter
+        ///   and the CPU.
+        ///   This memory is dynamically allocated and can be used by both graphics and general system tasks.
+        /// </summary>
+        /// <remarks>
+        ///   Used when the GPU needs additional memory beyond its dedicated resources.
+        ///   Integrated GPUs rely heavily on shared system memory, while discrete GPUs use it as a fallback.
+        /// </remarks>
+        public ulong SharedSystemMemory { get; }
+
 
         /// <summary>
         ///   Determines if this <see cref="GraphicsAdapter"/> is the default adapter.
@@ -102,20 +136,23 @@ namespace Stride.Graphics
             if (result.IsFailure)
                 result.Throw();
 
-            adapterDesc = dxgiAdapterDesc;
-            Name = Description = SilkMarshal.PtrToString((nint) dxgiAdapterDesc.Description, NativeStringEncoding.LPWStr);
+            Name = Description = SilkMarshal.PtrToString((nint) dxgiAdapterDesc.Description, NativeStringEncoding.LPWStr)!;
             AdapterUid = dxgiAdapterDesc.AdapterLuid.BitCast<Luid, long>();
+
+            VendorId = (int) dxgiAdapterDesc.VendorId;
+            DedicatedVideoMemory = dxgiAdapterDesc.DedicatedVideoMemory;
+            SharedSystemMemory = dxgiAdapterDesc.SharedSystemMemory;
+            DedicatedSystemMemory = dxgiAdapterDesc.DedicatedSystemMemory;
 
             uint outputIndex = 0;
             var outputsList = new List<GraphicsOutput>();
-            bool foundValidOutput;
             ComPtr<IDXGIOutput> output = default;
 
             do
             {
                 result = adapter.EnumOutputs(outputIndex, ref output);
 
-                foundValidOutput = result.IsSuccess && result.Code != DxgiConstants.ErrorNotFound;
+                bool foundValidOutput = result.IsSuccess && result.Code != DxgiConstants.ErrorNotFound;
                 if (!foundValidOutput)
                     break;
 
@@ -125,39 +162,38 @@ namespace Stride.Graphics
 
                 outputIndex++;
             }
-            while (foundValidOutput);
+            while (true);
 
             graphicsOutputs = outputsList.ToArray();
 
             //
             // Queries the latest DXGI adapter version supported.
             //
-            static uint GetLatestDxgiAdapterVersion(IDXGIAdapter1* dxgiAdapter)
+            static uint GetLatestDxgiAdapterVersion(IDXGIAdapter1* adapter)
             {
-                HResult result;
-                uint dxgiAdapterVersion;
+                uint adapterVersion;
 
-                if ((result = dxgiAdapter->QueryInterface<IDXGIAdapter4>(out _)).IsSuccess)
+                if (((HResult) adapter->QueryInterface<IDXGIAdapter4>(out _)).IsSuccess)
                 {
-                    dxgiAdapterVersion = 4;
-                    dxgiAdapter->Release();
+                    adapterVersion = 4;
+                    adapter->Release();
                 }
-                else if ((result = dxgiAdapter->QueryInterface<IDXGIAdapter3>(out _)).IsSuccess)
+                else if (((HResult) adapter->QueryInterface<IDXGIAdapter3>(out _)).IsSuccess)
                 {
-                    dxgiAdapterVersion = 3;
-                    dxgiAdapter->Release();
+                    adapterVersion = 3;
+                    adapter->Release();
                 }
-                else if ((result = dxgiAdapter->QueryInterface<IDXGIAdapter2>(out _)).IsSuccess)
+                else if (((HResult) adapter->QueryInterface<IDXGIAdapter2>(out _)).IsSuccess)
                 {
-                    dxgiAdapterVersion = 2;
-                    dxgiAdapter->Release();
+                    adapterVersion = 2;
+                    adapter->Release();
                 }
                 else
                 {
-                    dxgiAdapterVersion = 1;
+                    adapterVersion = 1;
                 }
 
-                return dxgiAdapterVersion;
+                return adapterVersion;
             }
         }
 
