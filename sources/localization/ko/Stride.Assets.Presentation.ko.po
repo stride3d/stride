@@ -1,126 +1,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2019-02-25 13:25:05+0900\n"
+"POT-Creation-Date: 2025-12-01 12:57:50+0100\n"
 "PO-Revision-Date: 2019-11-23 13:05+0000\n"
 "Last-Translator: hyeonzii <guswl9_9@naver.com>\n"
 "Language-Team: Korean <https://hosted.weblate.org/projects/stride/"
 "assetspresentation/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 3.10-dev\n"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
-msgctxt "Message"
-msgid ""
-"Unable to rename the folder '{0}' to '{1}'. A folder with the same name "
-"already exists."
-msgstr "폴더의 이름을 '{0}'에서 '{1}'로 변경할 수 없습니다. 이름이 같은 폴더가 이미 있습니다."
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:495
-msgctxt "Message"
-msgid "Are you sure you want to delete this entity?"
-msgstr "당신이 이 entity로 삭제하시겠습니까?"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:498
-msgctxt "Message"
-msgid "Are you sure you want to delete these {0} entities?"
-msgstr "이러한 {0}개 entity를 삭제하시겠습니까?"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:500
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
-msgctxt "Button"
-msgid "Delete"
-msgstr "삭제"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:500
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
-#: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:50
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:60
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:70
-#: ../editor/Stride.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:64
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:127
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:52
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:28
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:21
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:55
-msgctxt "Button"
-msgid "Cancel"
-msgstr "취소"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:16
-msgid "Use translation gizmo"
-msgstr "번역 장치를 사용하세요"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:22
-msgid "Use rotation gizmo"
-msgstr "회전 장치를 사용하세요"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:28
-msgid "Use scale gizmo"
-msgstr "규모 장치를 사용하세요"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:16
-msgid "Use world coordinates for transformations"
-msgstr "변환에 world 좌표를 사용하세요"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:22
-msgid "Use local coordinates for transformations"
-msgstr "변환에 local 좌표를 사용하세요"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:28
-msgid "Use current camera projection coordinates for transformations"
-msgstr "변환에 현재 카메라 투영 좌표를 사용합니다"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:11
-msgctxt "Settings"
-msgid "Script editor"
-msgstr "문자 편집기"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:18
-msgctxt "Settings"
-msgid "Font size"
-msgstr "글씨체 크기"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:162
-#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:185
-msgctxt "Message"
-msgid "Couldn't find the file"
-msgstr "파일을 찾을 수 없습니다"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:172
-msgctxt "Message"
-msgid "There was a problem while editing the image.{0}"
-msgstr "이미지를 편집하는 동안 문제가 발생했습니다. {0}"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:195
-msgctxt "Message"
-msgid "There was a problem opening Explorer.{0}"
-msgstr "탐색기를 여는 데 문제가 발생했습니다. {0}"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:11
-msgctxt "Settings"
-msgid "UI editor"
-msgstr "UI 편집기"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:18
-msgctxt "Settings"
-msgid "Ask before deleting UI elements"
-msgstr "UI 요소를 삭제하기 전에 묻기"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:426
-msgctxt "Message"
-msgid "Are you sure you want to delete this UI element?"
-msgstr "이 UI 요소를 삭제하시겠습니까?"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:428
-msgctxt "Message"
-msgid "Are you sure you want to delete these {0} UI elements?"
-msgstr "당신은 이러한 {0} UI 요소를 삭제하시겠습니까?"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:12
 msgctxt "Settings"
@@ -168,56 +59,84 @@ msgid "Move camera down"
 msgstr "카메라를 아래로 이동"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:45
+#, fuzzy
+msgctxt "Settings"
+msgid "Increase camera speed"
+msgstr "카메라 재설정"
+
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:49
+#, fuzzy
+msgctxt "Settings"
+msgid "Decrease camera speed"
+msgstr "카메라 재설정"
+
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:53
 msgctxt "Settings"
 msgid "Invert mouse panning axis"
 msgstr "마우스 패닝 축 반전"
 
-#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:49
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:57
 msgctxt "Settings"
 msgid "Center view on selection"
 msgstr "선택에 센터 보기"
 
-#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:53
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:61
 msgctxt "Settings"
 msgid "Snap selection to the grid"
 msgstr "그리드에 선택 스냅"
 
-#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:57
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:65
+msgctxt "Settings"
+msgid "Use snapping while selection is beeing manipulated"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:69
 msgctxt "Settings"
 msgid "Switch to translation mode"
 msgstr "번환 모드로 전환"
 
-#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:61
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:73
 msgctxt "Settings"
 msgid "Switch to rotation mode"
 msgstr "회전 모드로 전환"
 
-#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:65
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:77
 msgctxt "Settings"
 msgid "Switch to scale mode"
 msgstr "스케일 모드로 전환"
 
-#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:69
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:81
 msgctxt "Settings"
 msgid "Switch to next gizmo mode"
 msgstr "다음 기즈모 모드로 전환"
 
-#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:73
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:85
 msgctxt "Settings"
 msgid "Default snap distance for translation"
 msgstr "번역에 스냅 거리가 된 기본"
 
-#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:77
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:89
 msgctxt "Settings"
 msgid "Default snap angle for rotation"
 msgstr "회전을 위한 기본 스냅 각도"
 
-#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:81
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:93
 msgctxt "Settings"
 msgid "Default snap factor for scale"
 msgstr "축적에 대한 기본 스냅 계수"
 
-#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:85
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:97
+msgctxt "Settings"
+msgid "Display direction names instead of XYZ components"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:101
+#, fuzzy
+msgctxt "Settings"
+msgid "Use linear movement for the rotation gizmo"
+msgstr "회전 장치를 사용하세요"
+
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:105
 msgctxt "Settings"
 msgid "Ask before deleting entities"
 msgstr "엔터티를 삭제하기 전에 묻기"
@@ -231,6 +150,22 @@ msgstr "생성"
 msgctxt "Button"
 msgid "Select a source..."
 msgstr "소스 선택..."
+
+#: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:50
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:108
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:70
+#: ../editor/Stride.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:64
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:498
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:127
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:55
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:28
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:21
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:55
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
+msgctxt "Button"
+msgid "Cancel"
+msgstr "취소"
 
 #: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:53
 msgctxt "Message"
@@ -248,27 +183,27 @@ msgid "Select at least one platform."
 msgstr "플랫폼을 하나 이상 선택하세요."
 
 #: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:102
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:75
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:76
 msgctxt "Message"
 msgid "Type a valid namespace name. Error with {0}"
 msgstr "올바른 네임스페이스 이름을 입력하세요. {0} 오류"
 
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:69
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:70
 msgctxt "Message"
 msgid "Type a valid library name. Error with {0}"
 msgstr "올바른 라이브러리 이름을 입력하세요. {0} 오류"
 
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml.cs:62
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml.cs:78
 msgctxt "Message"
 msgid "The names you entered are invalid or empty."
 msgstr "입력한 이름이 잘못되었거나 비어 있음."
 
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:59
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:107
 msgctxt "Button"
 msgid "Save"
 msgstr "저장"
 
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:62
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:110
 msgctxt "Message"
 msgid "You can't use scripts until you save them. Do you want to save now?"
 msgstr "스크립트를 저장하기 전에는 사용할 수 없습니다. 지금 저장하시겠습니까?"
@@ -288,7 +223,7 @@ msgctxt "Message"
 msgid "Are you sure you want to remove these {0} platform(s) from the package?"
 msgstr "이러한 {0} 플랫폼을 패키지에서 제거하시겠습니까?"
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:209
+#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:202
 msgctxt "Message"
 msgid ""
 "Game Studio can't auto-reload the project file {0} because you have local "
@@ -296,24 +231,27 @@ msgid ""
 "\r\n"
 "Click OK to keep reloading or Cancel to keep the current version."
 msgstr ""
-"새 스크립트나 삭제된 스크립트와 같은 로컬 변경 사항이 있으므로 게임 스튜디오에서 프로젝트 파일 {0}을 자동으로 로드할 수 없음.\n"
+"새 스크립트나 삭제된 스크립트와 같은 로컬 변경 사항이 있으므로 게임 스튜디오"
+"에서 프로젝트 파일 {0}을 자동으로 로드할 수 없음.\n"
 "\n"
-"계속 다시 로드하려면 확인을 클릭하고 현재 버전을 유지하려면 취소를 클릭하십시오."
+"계속 다시 로드하려면 확인을 클릭하고 현재 버전을 유지하려면 취소를 클릭하십시"
+"오."
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:257
+#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:250
 msgctxt "Message"
 msgid ""
 "The following source files in the {0} project have been deleted externally, "
-"but have unsaved changes in Game Studio. Do you want to delete these files?\r\n"
+"but have unsaved changes in Game Studio. Do you want to delete these files?"
+"\r\n"
 "\r\n"
 "{1}"
 msgstr ""
-"{0} 프로젝트의 다음 소스 파일은 외부에서 삭제되었지만 게임 스튜디오에서 저자외지 않은 변경 사항을 가지고 있습니다. 이 파일을 "
-"삭제하시겠습니까?\n"
+"{0} 프로젝트의 다음 소스 파일은 외부에서 삭제되었지만 게임 스튜디오에서 저자"
+"외지 않은 변경 사항을 가지고 있습니다. 이 파일을 삭제하시겠습니까?\n"
 "\n"
 "{1}"
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:357
+#: ../editor/Stride.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:359
 msgctxt "Message"
 msgid ""
 "{0}\r\n"
@@ -322,14 +260,13 @@ msgid ""
 "editor.\r\n"
 "Do you want to reload it and lose your changes?"
 msgstr ""
-"{0}\\r\\n"
+"{0}\\r\\n\n"
 "\n"
-"\n"
-"이 파일은 외부적으로 변경이 되었고 편집기 내에서의 변화가 저장되지 않았습니다.\\r\\n"
-"\n"
+"이 파일은 외부적으로 변경이 되었고 편집기 내에서의 변화가 저장되지 않았습니"
+"다.\\r\\n\n"
 "새로고침을 하고 변경을 잃으시겠습니까?"
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:47
+#: ../editor/Stride.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:48
 msgctxt "Message"
 msgid ""
 "**Only static fonts can be precompiled.**\r\n"
@@ -345,382 +282,903 @@ msgctxt "Message"
 msgid "Which color space do you want to use?"
 msgstr "어떤 색 공간을 이용하시겠습니까?"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:64
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:108
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:187
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:787
+#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:16
+msgid "Use translation gizmo"
+msgstr "번역 장치를 사용하세요"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:22
+msgid "Use rotation gizmo"
+msgstr "회전 장치를 사용하세요"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:28
+msgid "Use scale gizmo"
+msgstr "규모 장치를 사용하세요"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:16
+msgid "Use world coordinates for transformations"
+msgstr "변환에 world 좌표를 사용하세요"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:22
+msgid "Use local coordinates for transformations"
+msgstr "변환에 local 좌표를 사용하세요"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:28
+msgid "Use current camera projection coordinates for transformations"
+msgstr "변환에 현재 카메라 투영 좌표를 사용합니다"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:11
+msgctxt "Settings"
+msgid "Script editor"
+msgstr "문자 편집기"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:18
+msgctxt "Settings"
+msgid "Font size"
+msgstr "글씨체 크기"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:11
+msgctxt "Settings"
+msgid "UI editor"
+msgstr "UI 편집기"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:18
+msgctxt "Settings"
+msgid "Ask before deleting UI elements"
+msgstr "UI 요소를 삭제하기 전에 묻기"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
+msgctxt "Message"
+msgid ""
+"Unable to rename the folder '{0}' to '{1}'. A folder with the same name "
+"already exists."
+msgstr ""
+"폴더의 이름을 '{0}'에서 '{1}'로 변경할 수 없습니다. 이름이 같은 폴더가 이미 "
+"있습니다."
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:493
+msgctxt "Message"
+msgid "Are you sure you want to delete this entity?"
+msgstr "당신이 이 entity로 삭제하시겠습니까?"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:496
+msgctxt "Message"
+msgid "Are you sure you want to delete these {0} entities?"
+msgstr "이러한 {0}개 entity를 삭제하시겠습니까?"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:498
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
+msgctxt "Button"
+msgid "Delete"
+msgstr "삭제"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:162
+#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:185
+msgctxt "Message"
+msgid "Couldn't find the file"
+msgstr "파일을 찾을 수 없습니다"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:172
+msgctxt "Message"
+msgid "There was a problem while editing the image.{0}"
+msgstr "이미지를 편집하는 동안 문제가 발생했습니다. {0}"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:195
+msgctxt "Message"
+msgid "There was a problem opening Explorer.{0}"
+msgstr "탐색기를 여는 데 문제가 발생했습니다. {0}"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:426
+msgctxt "Message"
+msgid "Are you sure you want to delete this UI element?"
+msgstr "이 UI 요소를 삭제하시겠습니까?"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:428
+msgctxt "Message"
+msgid "Are you sure you want to delete these {0} UI elements?"
+msgstr "당신은 이러한 {0} UI 요소를 삭제하시겠습니까?"
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:10
+msgid "Create a game..."
+msgstr "게임 생성..."
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:21
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:23
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:31
+msgid "Namespace:"
+msgstr "네임스페이스:"
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:26
+msgid "Platforms"
+msgstr "플랫폼"
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:48
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:45
+msgid "This machine doesn't meet the requirements to build for this platform."
+msgstr "이 기계는 이 플랫폼을 빌드하기 위한 요구사항들과 맞지 않습니다."
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:58
+msgid "Asset packs"
+msgstr "Asset 팩"
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:78
+msgid "Rendering"
+msgstr "랜더링"
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:90
+msgctxt "Button"
+msgid "High dynamic range (HDR)"
+msgstr "높은 동적 범위 (HDR)"
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:92
+msgctxt "Button"
+msgid "Low dynamic range (LDR)"
+msgstr "낮은 동적 범위 (LDR)"
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:126
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:54
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:27
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:54
+msgctxt "Button"
+msgid "OK"
+msgstr "확인"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:10
+msgid "Import from model"
+msgstr "모델으로 부터 불러오기"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:22
+msgid "Materials and textures"
+msgstr "재료 와 질감"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:26
+msgctxt "Button"
+msgid "Import materials"
+msgstr "재료 불러오기"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:27
+#, fuzzy
+msgctxt "Button"
+msgid "Deduplicate materials"
+msgstr "재료 불러오기"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:28
+msgid "Warning: Deduplicate materials is currently not supported for FBX files"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:29
+msgctxt "Button"
+msgid "Import textures"
+msgstr "질감 불러오기"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:30
+#, fuzzy
+msgctxt "Button"
+msgid "Import Animations"
+msgstr "재료 불러오기"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:34
+msgid "Skeleton"
+msgstr "뼈대"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:38
+msgctxt "Button"
+msgid "Import skeleton"
+msgstr "뼈대 불러오기"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:39
+msgctxt "Button"
+msgid "No skeleton"
+msgstr "뼈대 없음"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:40
+msgctxt "Button"
+msgid "Use another skeleton for this model:"
+msgstr "이 모델에 다른 뼈대 사용하기 :"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:10
+msgid "New code library"
+msgstr "새로운 코드 라이브러리"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:21
+msgid "Library name:"
+msgstr "라이브러리 이름:"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:9
+msgid "New script"
+msgstr "새로운 스크립트"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:20
+msgctxt "Button"
+msgid "Create script"
+msgstr "스크립트 생성"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:25
+msgid "Class:"
+msgstr "클래스:"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:28
+msgid "Template:"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:9
+msgid "Select platforms"
+msgstr "플랫폼 선택"
+
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:31
+msgid "(This will remove the project from the package and disk.)"
+msgstr "(이렇게 하면 패키지와 디스크에서 프로젝트가 제거됨)"
+
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:52
+msgctxt "Button"
+msgid "Force regeneration of all platform projects"
+msgstr "모든 프로젝트 플랫폼의 강제 재생성"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:28
+msgctxt "ToolTip"
+msgid "Play the animation"
+msgstr "애니메이션 재생"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:31
+msgctxt "ToolTip"
+msgid "Pause the animation"
+msgstr "애니메이션 중지"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:43
+msgid "Time scale:"
+msgstr "시간 규모:"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:117
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:136
+msgctxt "ToolTip"
+msgid "Reset the camera"
+msgstr "카메라 리셋"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:187
+msgid ""
+"Scenes can't be previewed. To see the scene, open it in the scene editor."
+msgstr ""
+"장면을 미리 볼 수 없음. 장면을 보기위해선, 장면 편집기에서 이 장면을 여시오."
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:201
+msgctxt "ToolTip"
+msgid "Play the sound"
+msgstr "소리 재생"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:204
+msgctxt "ToolTip"
+msgid "Pause the sound"
+msgstr "소리 중지"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:240
+msgid "Building preview sound asset..."
+msgstr "소리 asset 미리보기 생성.."
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:278
+msgctxt "ToolTip"
+msgid "Previous sprite"
+msgstr "이전의 스프라이트"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:280
+msgid "Sprite:"
+msgstr "스프라이트:"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:283
+msgctxt "ToolTip"
+msgid "Next sprite"
+msgstr "다음 스프라이트"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:311
+msgid "Preview text"
+msgstr "텍스트 미리보기"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:353
+msgctxt "ToolTip"
+msgid "Previous slice"
+msgstr "이전의 슬라이스"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:357
+msgctxt "ToolTip"
+msgid "Next slice"
+msgstr "다음 슬라이스"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:380
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:445
+msgid "W: {0}"
+msgstr "W: {0}"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:381
+msgid "H: {0}"
+msgstr "H: {0}"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:446
+#, fuzzy
+msgid "L: {0}"
+msgstr "W: {0}"
+
+#: ../editor/Stride.Assets.Presentation/View/AddEntityComponentUserControl.xaml:22
+msgid "Add component"
+msgstr "요소 추가"
+
+#: ../editor/Stride.Assets.Presentation/View/AddEntityComponentUserControl.xaml:35
+msgid "Search"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/AnimationPropertyTemplates.xaml:18
+msgctxt "ToolTip"
+msgid "Edit curve"
+msgstr "곡선 수정"
+
+#: ../editor/Stride.Assets.Presentation/View/AnimationPropertyTemplates.xaml:70
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:71
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:111
+#: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:63
+msgid "(Different values)"
+msgstr "(다른 값)"
+
+#: ../editor/Stride.Assets.Presentation/View/DebugEntityHierarchyEditorUserControl.xaml:13
+msgctxt "Button"
+msgid "Refresh"
+msgstr "원상복구"
+
+#: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:11
+msgid "Live scripting debugger"
+msgstr "실시간 스크립팅 디버거"
+
+#: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:21
+msgctxt "ToolTip"
+msgid "Select these assets"
+msgstr "이 asset들 선택"
+
+#: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:26
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
+msgctxt "ToolTip"
+msgid "Cancel (Esc)"
+msgstr "취소(Esc)"
+
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:44
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:84
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:182
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:209
+msgctxt "ToolTip"
+msgid "Select an asset"
+msgstr "asset 선택"
+
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:50
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:90
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:214
+msgctxt "ToolTip"
+msgid "Clear the reference"
+msgstr "레퍼런스 지우기"
+
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:56
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:96
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:168
+msgctxt "ToolTip"
+msgid "Select the referenced asset"
+msgstr "레퍼런스된 asset 선택"
+
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:205
+msgctxt "ToolTip"
+msgid "Highlight this material in the scene editor"
+msgstr "장면 편집기에서 이 자료 강조"
+
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:260
+msgid "Add configuration"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/MaterialPropertyTemplates.xaml:13
+msgid "Select shader..."
+msgstr "쉐이더 선택..."
+
+#: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:24
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:569
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:624
+msgctxt "Button"
+msgid "All"
+msgstr "모든"
+
+#: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:26
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:570
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:625
+msgctxt "Button"
+msgid "None"
+msgstr "없음"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:42
+msgctxt "ToolTip"
+msgid "Remove the selected curve"
+msgstr "선택된 곡선을 제거"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:44
+msgid "Curves:"
+msgstr "곡선:"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:74
+msgctxt "ToolTip"
+msgid "Show or hide the tracker"
+msgstr "추적기를 보여주기 혹은 숨기기"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:80
+msgctxt "ToolTip"
+msgid "Fit view to curve"
+msgstr "뷰를 곡선에 맞춤"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:83
+msgctxt "ToolTip"
+msgid "Fit view to curve height"
+msgstr "뷰를 곡선 높이에 맞춤"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:86
+msgctxt "ToolTip"
+msgid "Fit view to curve width"
+msgstr "곡선 넓이에 뷰를 맞춤"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:93
+msgctxt "ToolTip"
+msgid "Delete selected points"
+msgstr "선택된 포인트 삭제"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:102
+msgctxt "ToolTip"
+msgid "First key"
+msgstr "첫번째 키"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:105
+msgctxt "ToolTip"
+msgid "Previous key"
+msgstr "이전의 키"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:108
+msgctxt "ToolTip"
+msgid "Next key"
+msgstr "다음 키"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:111
+msgctxt "ToolTip"
+msgid "Last key"
+msgstr "마지막 키"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:118
+msgid "Key"
+msgstr "키"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:121
+msgid "Value"
+msgstr "값"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:168
+msgctxt "Menu"
+msgid "Curve"
+msgstr "곡선"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:170
+msgctxt "Menu"
+msgid "Add point"
+msgstr "포인트 더하기"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:173
+msgctxt "Menu"
+msgid "Delete selected points"
+msgstr "선택된 포인트 삭제"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:175
+msgctxt "Menu"
+msgid "Clear whole curve"
+msgstr "모든 곡선 지우기"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:178
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:187
+msgctxt "Menu"
+msgid "View"
+msgstr "뷰"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:179
+msgctxt "Menu"
+msgid "Fit to curve"
+msgstr "곡선에 맞추기"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:181
+msgctxt "Menu"
+msgid "Fit to curve height"
+msgstr "곡선 높이에 맞추기"
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:183
+msgctxt "Menu"
+msgid "Fit to curve width"
+msgstr "곡선 넓이에 맞추기"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:65
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:109
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:189
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:816
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:33
 msgctxt "Menu"
 msgid "Create"
 msgstr "생성"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:65
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:109
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:66
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:110
 msgctxt "Menu"
 msgid "Folder"
 msgstr "폴더"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:66
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:110
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:191
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:788
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:67
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:111
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:193
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:817
 msgctxt "Menu"
 msgid "Empty entity"
 msgstr "빈 엔터티"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:92
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:136
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:814
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:93
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:137
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:843
 msgctxt "Menu"
 msgid "Actions"
 msgstr "동작"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:93
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:139
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:94
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:140
 msgctxt "Menu"
 msgid "Open prefab in editor"
 msgstr "편집기에서 프리팹 열기"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:94
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:140
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:816
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:95
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:141
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:845
 msgctxt "Menu"
 msgid "Select prefab in asset view"
 msgstr "asset 뷰에서 프리팹 선택"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:95
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:141
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:817
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:96
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:142
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:846
 msgctxt "Menu"
 msgid "Break link to prefab"
 msgstr "프립팹 핑크를 돌파하기"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:96
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:142
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:818
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:97
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:143
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:847
 msgctxt "Menu"
 msgid "Create prefab from selection"
 msgstr "선택영역에서 프리팹 생성하기"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:98
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:144
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:820
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:99
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:145
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:849
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:137
 msgctxt "Menu"
 msgid "Duplicate"
 msgstr "동일"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:137
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:138
 msgctxt "Menu"
 msgid "Set as active scene"
 msgstr "활성 씬으로 설정"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:150
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:825
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:151
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:854
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:143
 msgctxt "Menu"
 msgid "Rename"
 msgstr "이름 바꾸기"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:167
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:168
 msgid "Loading scene..."
 msgstr "장면 로드중..."
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:168
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:169
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:212
 msgid "This might take a few minutes the first time."
 msgstr "이 작업은 처음 몇 분 정도 걸릴 수 있습니다."
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:182
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:184
 msgctxt "ToolTip"
 msgid "Create a new entity"
 msgstr "새로운 엔터티 생성하기"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:189
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:191
 msgctxt "Menu"
 msgid "New folder"
 msgstr "새로운 폴더"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:222
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:224
 msgctxt "ToolTip"
 msgid "Filter entities by name"
 msgstr "이름으로 엔터티 필터링"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:230
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:232
 msgctxt "ToolTip"
 msgid "Expand all entities"
 msgstr "모든 엔터티 확장"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:234
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:236
 msgctxt "ToolTip"
 msgid "Collapse all entities"
 msgstr "모든 엔터티 축소"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:258
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:263
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:211
 msgid "Loading..."
 msgstr "로딩중..."
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:262
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:267
 msgid "Unloading..."
 msgstr "언로드하는 중..."
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:330
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:336
 msgctxt "ToolTip"
 msgid "Focus on this entity (F)"
 msgstr "이 엔터티에 집중 (F)"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:337
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:343
 msgctxt "ToolTip"
 msgid "Lock/unlock this entity"
 msgstr "이 엔터티 잠금/잠금해제"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:338
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:344
 msgctxt "ToolTip"
 msgid "(Hold Ctrl to apply to child entities recursively)"
 msgstr "(Ctrl 키를 눌러 하위 엔터티에 다시 적용)"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:376
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:382
 msgctxt "ToolTip"
 msgid "Lock/unlock all entities"
 msgstr "모든 엔터티 잠금/잠금해제"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:377
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:386
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:383
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:392
 msgctxt "ToolTip"
 msgid "(Hold Ctrl to apply to child scenes recursively)"
 msgstr "(Ctrl 키를 눌러 하위 장면에 반복 적용)"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:385
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:391
 msgctxt "ToolTip"
 msgid "Load/unload all entities"
 msgstr "모든 엔터티 로드/언로드"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:406
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:412
 msgid "(Unloaded)"
 msgstr "(언로드)"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:473
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:479
+#, fuzzy
+msgctxt "ToolTip"
+msgid "Viewport grid settings..."
+msgstr "뷰포트 설정"
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:487
+msgid "Grid axis"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:490
+msgctxt "Button"
+msgid "X"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:491
+msgctxt "Button"
+msgid "Y"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:492
+msgctxt "Button"
+msgid "Z"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:495
+msgid "Grid opacity"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:503
 msgctxt "ToolTip"
 msgid "Light probes and cubemaps..."
 msgstr "라이트 프로브..."
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:483
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:513
 msgid "Light probes"
 msgstr "라이트 프로브"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:488
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:518
 msgid "Bounces:"
 msgstr "수익:"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:492
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:522
 msgctxt "ToolTip"
 msgid "Compute lighting using light probes"
 msgstr "광선 프로브를 사용하여 조명 계산"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:500
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:530
 msgctxt "ToolTip"
 msgid "Reset light probes"
 msgstr "광선 프로브 재설정"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:504
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:534
 msgid "Reset"
 msgstr "리셋"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:510
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:540
 msgid "Cubemap"
 msgstr "큐브맵"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:514
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:544
 msgctxt "ToolTip"
 msgid "Generate a cubemap from the scene view and save as a texture"
 msgstr "장면 보기에서 큐브맵 생성 및 텍스처로 저장"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:518
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:548
 msgid "Capture"
 msgstr "캡쳐"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:527
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:557
 msgctxt "ToolTip"
 msgid "Navigation visibility..."
 msgstr "가시성 탐색..."
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:537
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:567
 msgid "Show navigation meshes:"
 msgstr "탐색 메쉬 표시:"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:539
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:596
-#: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:25
-msgctxt "Button"
-msgid "All"
-msgstr "모든"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:540
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:597
-#: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:27
-msgctxt "Button"
-msgid "None"
-msgstr "없음"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:566
 msgctxt "ToolTip"
 msgid "Grid and gizmo options..."
 msgstr "그리즈 및 기즈모 옵션..."
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:576
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:606
 msgid "Transformation gizmo size:"
 msgstr "변환 기즈모 크기:"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:581
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:611
 msgid "Component gizmo size:"
 msgstr "구성 요소 기즈모 크기:"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:582
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:612
 msgctxt "Button"
 msgid "Fixed"
 msgstr "수정됨"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:590
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:618
 msgctxt "Button"
 msgid "Camera preview"
 msgstr "카메라 시사회"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:591
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:619
 msgctxt "Button"
 msgid "Light probe volumes"
 msgstr "라이트 프로브 볼륨"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:608
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:636
 msgctxt "Button"
 msgid "Other entities"
 msgstr "다른 엔터티들"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:616
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:644
 msgctxt "ToolTip"
 msgid "Editor camera options..."
 msgstr "카메라 편집 설정..."
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:626
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:654
 msgid "Projection"
 msgstr "투영"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:629
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:657
 msgctxt "Button"
 msgid "Perspective"
 msgstr "관점"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:630
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:658
 msgctxt "Button"
 msgid "Orthographic"
 msgstr "직교학"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:632
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:660
 msgid "Near plane:"
 msgstr "근방 평면:"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:634
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:662
 msgid "Far plane:"
 msgstr "원면:"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:636
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:664
 msgid "Field of view:"
 msgstr "필드:"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:642
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:670
 msgid "Orthographic size:"
 msgstr "직각 사이즈:"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:648
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:676
 msgid "Movement"
 msgstr "이동"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:652
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:679
 msgid "Speed:"
 msgstr "속도:"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:657
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:685
 msgid "Orientation"
 msgstr "방향"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:660
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:688
 msgctxt "Button"
 msgid "Front"
 msgstr "앞"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:662
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:690
 msgctxt "Button"
 msgid "Back"
 msgstr "뒤"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:664
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:692
 msgctxt "Button"
 msgid "Top"
 msgstr "상단"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:666
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:694
 msgctxt "Button"
 msgid "Bottom"
 msgstr "하단"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:668
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:696
 msgctxt "Button"
 msgid "Left"
 msgstr "왼쪽"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:670
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:698
 msgctxt "Button"
 msgid "Right"
 msgstr "오른쪽"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:729
 msgctxt "ToolTip"
 msgid "Snap translations to this value"
 msgstr "이 값으로 변환 스냅"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:710
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:738
 msgctxt "ToolTip"
 msgid "Snap rotations to this value"
 msgstr "회전 속도를 이 값으로 조정"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:719
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:747
 msgctxt "ToolTip"
 msgid "Snap scale to this factor"
 msgstr "이 요인에 맞게 확장"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:743
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:771
 msgctxt "ToolTip"
 msgid ""
 "Toggle material selection (click a selected asset to select its material)"
 msgstr "재료 선택 전환(선택한 자산을 클릭하여 재료 선택)"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:746
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:774
 msgctxt "ToolTip"
 msgid "Show or hide selection mask"
 msgstr "선택 마스크 표시 또는 숨기기"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:748
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:776
 msgid "Loading assets..."
 msgstr "자산을 로드하는 중..."
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:815
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:844
 msgctxt "Menu"
 msgid "Open in prefab editor"
 msgstr "프리패브 편집기에서 열기"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:857
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:886
 msgid ""
 "Before you resume, fix the failing asset (likely a graphics compositor or "
 "scene)."
-msgstr "다시 시작하기 전에 실패한 자산(예: 그래픽 편집기 또는 장면)을 수정하십시오."
+msgstr ""
+"다시 시작하기 전에 실패한 자산(예: 그래픽 편집기 또는 장면)을 수정하십시오."
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:859
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:888
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:516
 msgctxt "Button"
 msgid "Resume"
 msgstr "이력서"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:861
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:890
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:518
 msgctxt "Button"
 msgid "Copy error to clipboard"
@@ -734,12 +1192,6 @@ msgstr "엔터티 선택하기"
 msgctxt "ToolTip"
 msgid "Select the selected assets"
 msgstr "선택한 자산 선택"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
-#: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:26
-msgctxt "ToolTip"
-msgid "Cancel (Esc)"
-msgstr "취소(Esc)"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:37
 msgid "Select an entity:"
@@ -772,22 +1224,22 @@ msgstr "렌더 기능:"
 msgid "Camera slots:"
 msgstr "카메라 슬롯:"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:107
+#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:109
 msgctxt "ToolTip"
 msgid "Toggle between find and replace modes"
 msgstr "찾기 모드와 교체 모드 전환"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:167
+#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:169
 msgctxt "ToolTip"
 msgid "Replace next (Alt+R)"
 msgstr "다음 교체(Alt+R)"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:177
+#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:179
 msgctxt "ToolTip"
 msgid "Replace all (Alt+A)"
 msgstr "모두 교체(Alt+R)"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:253
+#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:255
 msgid "No suggestions"
 msgstr "제안 없음"
 
@@ -1108,12 +1560,6 @@ msgctxt "Menu"
 msgid "Create library from selection"
 msgstr "선택으로 라이브러리 생성"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:187
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:177
-msgctxt "Menu"
-msgid "View"
-msgstr "뷰"
-
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:188
 msgctxt "Menu"
 msgid "Zoom in"
@@ -1181,7 +1627,9 @@ msgstr "크기바꾸기"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:514
 msgid ""
 "Before you resume, fix the failing asset (likely a UI page or UI library)."
-msgstr "당신이 재개하기 전,  실패한 asset을 수정하시오 (UI 페이지 혹은 UI 라이브러리와 같은 것들)"
+msgstr ""
+"당신이 재개하기 전,  실패한 asset을 수정하시오 (UI 페이지 혹은 UI 라이브러리"
+"와 같은 것들)"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:213
 msgctxt "Menu"
@@ -1213,352 +1661,3 @@ msgstr "반환 타입..."
 #: ../editor/Stride.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:354
 msgid "Function parameters:"
 msgstr "기능 상수:"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:41
-msgctxt "ToolTip"
-msgid "Remove the selected curve"
-msgstr "선택된 곡선을 제거"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:43
-msgid "Curves:"
-msgstr "곡선:"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:73
-msgctxt "ToolTip"
-msgid "Show or hide the tracker"
-msgstr "추적기를 보여주기 혹은 숨기기"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:79
-msgctxt "ToolTip"
-msgid "Fit view to curve"
-msgstr "뷰를 곡선에 맞춤"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:82
-msgctxt "ToolTip"
-msgid "Fit view to curve height"
-msgstr "뷰를 곡선 높이에 맞춤"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:85
-msgctxt "ToolTip"
-msgid "Fit view to curve width"
-msgstr "곡선 넓이에 뷰를 맞춤"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:92
-msgctxt "ToolTip"
-msgid "Delete selected points"
-msgstr "선택된 포인트 삭제"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:101
-msgctxt "ToolTip"
-msgid "First key"
-msgstr "첫번째 키"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:104
-msgctxt "ToolTip"
-msgid "Previous key"
-msgstr "이전의 키"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:107
-msgctxt "ToolTip"
-msgid "Next key"
-msgstr "다음 키"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:110
-msgctxt "ToolTip"
-msgid "Last key"
-msgstr "마지막 키"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:117
-msgid "Key"
-msgstr "키"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:120
-msgid "Value"
-msgstr "값"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:167
-msgctxt "Menu"
-msgid "Curve"
-msgstr "곡선"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:169
-msgctxt "Menu"
-msgid "Add point"
-msgstr "포인트 더하기"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:172
-msgctxt "Menu"
-msgid "Delete selected points"
-msgstr "선택된 포인트 삭제"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:174
-msgctxt "Menu"
-msgid "Clear whole curve"
-msgstr "모든 곡선 지우기"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:178
-msgctxt "Menu"
-msgid "Fit to curve"
-msgstr "곡선에 맞추기"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:180
-msgctxt "Menu"
-msgid "Fit to curve height"
-msgstr "곡선 높이에 맞추기"
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:182
-msgctxt "Menu"
-msgid "Fit to curve width"
-msgstr "곡선 넓이에 맞추기"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:10
-msgid "Create a game..."
-msgstr "게임 생성..."
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:21
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:23
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:28
-msgid "Namespace:"
-msgstr "네임스페이스:"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:26
-msgid "Platforms"
-msgstr "플랫폼"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:48
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:45
-msgid "This machine doesn't meet the requirements to build for this platform."
-msgstr "이 기계는 이 플랫폼을 빌드하기 위한 요구사항들과 맞지 않습니다."
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:58
-msgid "Asset packs"
-msgstr "Asset 팩"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:78
-msgid "Rendering"
-msgstr "랜더링"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:90
-msgctxt "Button"
-msgid "High dynamic range (HDR)"
-msgstr "높은 동적 범위 (HDR)"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:92
-msgctxt "Button"
-msgid "Low dynamic range (LDR)"
-msgstr "낮은 동적 범위 (LDR)"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:126
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:51
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:27
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:54
-msgctxt "Button"
-msgid "OK"
-msgstr "확인"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:10
-msgid "Import from model"
-msgstr "모델으로 부터 불러오기"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:22
-msgid "Materials and textures"
-msgstr "재료 와 질감"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:26
-msgctxt "Button"
-msgid "Import materials"
-msgstr "재료 불러오기"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:27
-msgctxt "Button"
-msgid "Import textures"
-msgstr "질감 불러오기"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:31
-msgid "Skeleton"
-msgstr "뼈대"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:35
-msgctxt "Button"
-msgid "Import skeleton"
-msgstr "뼈대 불러오기"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:36
-msgctxt "Button"
-msgid "No skeleton"
-msgstr "뼈대 없음"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:37
-msgctxt "Button"
-msgid "Use another skeleton for this model:"
-msgstr "이 모델에 다른 뼈대 사용하기 :"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:10
-msgid "New code library"
-msgstr "새로운 코드 라이브러리"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:21
-msgid "Library name:"
-msgstr "라이브러리 이름:"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:9
-msgid "New script"
-msgstr "새로운 스크립트"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:20
-msgctxt "Button"
-msgid "Create script"
-msgstr "스크립트 생성"
-
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:25
-msgid "Class:"
-msgstr "클래스:"
-
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:9
-msgid "Select platforms"
-msgstr "플랫폼 선택"
-
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:31
-msgid "(This will remove the project from the package and disk.)"
-msgstr "(이렇게 하면 패키지와 디스크에서 프로젝트가 제거됨)"
-
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:52
-msgctxt "Button"
-msgid "Force regeneration of all platform projects"
-msgstr "모든 프로젝트 플랫폼의 강제 재생성"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:28
-msgctxt "ToolTip"
-msgid "Play the animation"
-msgstr "애니메이션 재생"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:31
-msgctxt "ToolTip"
-msgid "Pause the animation"
-msgstr "애니메이션 중지"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:43
-msgid "Time scale:"
-msgstr "시간 규모:"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:117
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:136
-msgctxt "ToolTip"
-msgid "Reset the camera"
-msgstr "카메라 리셋"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:187
-msgid ""
-"Scenes can't be previewed. To see the scene, open it in the scene editor."
-msgstr "장면을 미리 볼 수 없음. 장면을 보기위해선, 장면 편집기에서 이 장면을 여시오."
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:201
-msgctxt "ToolTip"
-msgid "Play the sound"
-msgstr "소리 재생"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:204
-msgctxt "ToolTip"
-msgid "Pause the sound"
-msgstr "소리 중지"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:240
-msgid "Building preview sound asset..."
-msgstr "소리 asset 미리보기 생성.."
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:278
-msgctxt "ToolTip"
-msgid "Previous sprite"
-msgstr "이전의 스프라이트"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:280
-msgid "Sprite:"
-msgstr "스프라이트:"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:283
-msgctxt "ToolTip"
-msgid "Next sprite"
-msgstr "다음 스프라이트"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:311
-msgid "Preview text"
-msgstr "텍스트 미리보기"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:353
-msgctxt "ToolTip"
-msgid "Previous slice"
-msgstr "이전의 슬라이스"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:357
-msgctxt "ToolTip"
-msgid "Next slice"
-msgstr "다음 슬라이스"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:380
-msgid "W: {0}"
-msgstr "W: {0}"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:381
-msgid "H: {0}"
-msgstr "H: {0}"
-
-#: ../editor/Stride.Assets.Presentation/View/AnimationPropertyTemplates.xaml:18
-msgctxt "ToolTip"
-msgid "Edit curve"
-msgstr "곡선 수정"
-
-#: ../editor/Stride.Assets.Presentation/View/AnimationPropertyTemplates.xaml:70
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:71
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:111
-#: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:64
-msgid "(Different values)"
-msgstr "(다른 값)"
-
-#: ../editor/Stride.Assets.Presentation/View/DebugEntityHierarchyEditorUserControl.xaml:13
-msgctxt "Button"
-msgid "Refresh"
-msgstr "원상복구"
-
-#: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:11
-msgid "Live scripting debugger"
-msgstr "실시간 스크립팅 디버거"
-
-#: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:21
-msgctxt "ToolTip"
-msgid "Select these assets"
-msgstr "이 asset들 선택"
-
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:44
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:84
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:235
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:262
-msgctxt "ToolTip"
-msgid "Select an asset"
-msgstr "asset 선택"
-
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:50
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:90
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:267
-msgctxt "ToolTip"
-msgid "Clear the reference"
-msgstr "레퍼런스 지우기"
-
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:56
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:96
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:221
-msgctxt "ToolTip"
-msgid "Select the referenced asset"
-msgstr "레퍼런스된 asset 선택"
-
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:133
-msgid "Add component"
-msgstr "요소 추가"
-
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:258
-msgctxt "ToolTip"
-msgid "Highlight this material in the scene editor"
-msgstr "장면 편집기에서 이 자료 강조"
-
-#: ../editor/Stride.Assets.Presentation/View/MaterialPropertyTemplates.xaml:13
-msgid "Select shader..."
-msgstr "쉐이더 선택..."
