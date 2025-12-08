@@ -40,7 +40,7 @@ shader CompositionTest
 	}
 };
 
-effect CompositionTest1
+effect CompositionMethodCall
 {
 	mixin CompositionTest;
 	mixin compose Comp0 = CompositionShaderA;

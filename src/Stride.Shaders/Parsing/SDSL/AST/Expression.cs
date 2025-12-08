@@ -372,7 +372,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             throw new InvalidOperationException();
 
                         // TODO: figure out instance (this vs composition)
-                        result = Identifier.EmitSymbol(compiler, builder, context, matchingComponent);
+                        result = Identifier.EmitSymbol(compiler, builder, context, matchingComponent, result.Id);
                         accessor.Type = matchingComponent.Type;
 
                         break;

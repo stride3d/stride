@@ -18,7 +18,7 @@ shader CompositionBase
 	}
 };
 
-shader CompositionTest2
+shader CompositionExternalCBuffer
 {
     stream float4 ColorTarget : SV_Target0;
 

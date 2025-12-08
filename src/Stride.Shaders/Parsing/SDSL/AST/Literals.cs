@@ -231,7 +231,8 @@ public class Identifier(string name, TextLocation info) : Literal(info)
             // Shader is inherited (TODO: do we want to do something more "selective", i.e. import only the required variable if it's a cbuffer?)
             ShaderClass.Inherit(table, context, shaderType, false);
 
-            symbol = table.ResolveSymbol(Name);
+            var @this = builder.Insert(new OpThisSDSL(context.Bound++));
+            return new(@this.ResultId, context.GetOrRegister(new PointerType(shaderType, Spirv.Specification.StorageClass.Private)));
         }
         Type = symbol.Type;
 
