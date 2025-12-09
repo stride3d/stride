@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#01020203, cbuffer.Test=(Test1=0))
+// PSMain(ExpectedResult=#08020203, cbuffer.Test=(Test1=0))
 // PSMain(ExpectedResult=#01040403, cbuffer.Test=(Test1=1))
 // PSMain(ExpectedResult=#01060606, cbuffer.Test=(Test1=2))
 // PSMain(ExpectedResult=#02020101, cbuffer.Test=(Test1=3))
@@ -19,6 +19,7 @@ shader CompositeCtor
     {
         float f1 = 1.0 / 255.0;
         float2 f2 = 2.0 / 255.0;
+        float f1b = float(7.0 / 255.0);
         float2x2 f2x2 = float2x2(f1, f2 * 2.0, f1 * 3.0);
         float3 f3 = float3(f1, f2 * 3.0);
         float4 f4 = float4(f3, f1);
@@ -26,7 +27,7 @@ shader CompositeCtor
         float3x3 m = float3x3(f3, f2, f4);
 
         if (Test1 == 0)
-            streams.ColorTarget = float4(f1, f2, f1 * 3.0);
+            streams.ColorTarget = float4(f1 + f1b, f2, f1 * 3.0);
         if (Test1 == 1)
             streams.ColorTarget = float4(f2x2);
         if (Test1 == 2)

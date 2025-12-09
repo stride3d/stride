@@ -101,6 +101,23 @@ public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
     }
 }
 
+public class ExpressionLiteral(Expression value, TypeName typeName, TextLocation info) : ValueLiteral(info)
+{
+    public Expression Value { get; set; } = value;
+    public TypeName TypeName { get; set; } = typeName;
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+        var castType = TypeName.ResolveType(table);
+        var value = Value.CompileAsValue(table, compiler);
+
+        Type = castType;
+
+        return builder.Convert(context, value, castType);
+    }
+}
+
 public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
 {
     public List<Expression> Values { get; set; } = [];

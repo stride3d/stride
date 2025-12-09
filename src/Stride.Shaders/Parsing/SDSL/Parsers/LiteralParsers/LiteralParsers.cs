@@ -191,10 +191,7 @@ public record struct LiteralsParser : IParser<Literal>
                 && Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true)
             )
             {
-                parsed = new VectorLiteral(new TypeName(baseType, scanner[position..tnPos]), scanner[position..scanner.Position])
-                {
-                    Values = [value]
-                };
+                parsed = new ExpressionLiteral(value, new TypeName(baseType, scanner[position..tnPos]), scanner[position..scanner.Position]);
                 return true;
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position);
