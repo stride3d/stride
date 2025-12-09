@@ -206,8 +206,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         EffectTypeDescription ConvertStructType(SpirvContext context, StructType s)
         {
             var structId = context.Types[s];
-            var hasOffsetDecorations = false;
 
+            var hasOffsetDecorations = false;
             foreach (var i in context.GetBuffer())
             {
                 if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.Offset } } memberDecorate && memberDecorate.StructType == structId)
@@ -234,7 +234,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 var memberSize = SpirvBuilder.ComputeCBufferOffset(s.Members[i].Type, s.Members[i].TypeModifier, ref offset);
                 offset += memberSize;
             }
-            return new EffectTypeDescription { Class = EffectParameterClass.Struct, RowCount = 1, ColumnCount = 1, Name = s.Name, Members = members };
+            return new EffectTypeDescription { Class = EffectParameterClass.Struct, RowCount = 1, ColumnCount = 1, Name = s.Name, Members = members, ElementSize = offset };
         }
 
 
@@ -242,13 +242,34 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         {
             return symbolType switch
             {
-                ScalarType { TypeName: "int" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Int, RowCount = 1, ColumnCount = 1 },
-                ScalarType { TypeName: "float" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Float, RowCount = 1, ColumnCount = 1 },
+                ScalarType { TypeName: "int" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Int, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ScalarType { TypeName: "float" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Float, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ArrayType a => ConvertArrayType(context, a),
                 StructType s => ConvertStructType(context, s),
                 // TODO: should we use RowCount instead? (need to update Stride)
                 VectorType v => ConvertType(context, v.BaseType) with { Class = EffectParameterClass.Vector, ColumnCount = v.Size },
                 MatrixType m => ConvertType(context, m.BaseType) with { Class = EffectParameterClass.Vector, RowCount = m.Rows, ColumnCount = m.Columns },
             };
+
+            EffectTypeDescription ConvertArrayType(SpirvContext context, ArrayType a)
+            {
+                var typeId = context.Types[a];
+                var elementType = ConvertType(context, a.BaseType);
+
+                var hasStrideDecoration = false;
+                foreach (var i in context.GetBuffer())
+                {
+                    if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: { Value: Decoration.ArrayStride } } arrayStrideDecoration && arrayStrideDecoration.Target == typeId)
+                    {
+                        hasStrideDecoration = true;
+                    }
+                }
+
+                var arrayStride = (elementType.ElementSize + 15) / 16 * 16;
+                context.Add(new OpDecorate(typeId, ParameterizedFlags.DecorationArrayStride(arrayStride)));
+
+                return elementType with { Elements = a.Size };
+            }
         }
 
         // Scan LinkSDSL decorations

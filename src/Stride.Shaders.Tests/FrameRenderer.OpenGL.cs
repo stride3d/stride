@@ -298,6 +298,15 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
     {
         switch (type)
         {
+            case { Elements: > 1 }:
+                int index = 0;
+                var arrayStride = (type.ElementSize + 15) / 16 * 16;
+                foreach (var elementValue in TestHeaderParser.SplitArgs(value))
+                {
+                    FillData(elementValue, type with { Elements = 1 }, offset + arrayStride * index, cbufferDataPtr);
+                    index++;
+                }
+                break;
             case { Class: EffectParameterClass.Struct }:
                 var structParameters = TestHeaderParser.ParseParameters(value);
                 foreach (var member in type.Members)

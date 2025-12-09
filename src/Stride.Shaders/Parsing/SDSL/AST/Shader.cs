@@ -123,7 +123,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             else if (instruction.Op == Op.OpTypeArray && (OpTypeArray)instruction is { } typeArray)
             {
                 var innerType = types[typeArray.ElementType];
-                types.Add(typeArray.ResultId, new ArrayType(innerType, typeArray.Length));
+                types.Add(typeArray.ResultId, new ArrayType(innerType, (int)SpirvBuilder.GetConstantValue(typeArray.Length, buffer)));
             }
             else if (instruction.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)instruction is { } typeRuntimeArray)
             {

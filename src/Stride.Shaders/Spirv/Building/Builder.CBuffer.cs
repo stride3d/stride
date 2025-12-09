@@ -12,6 +12,7 @@ partial class SpirvBuilder
     {
         // Helper to multiply size without changing alignment
         static (int Size, int Alignment) MultiplySize((int Size, int Alignment) current, int count) => (current.Size * count, current.Alignment);
+        static (int Size, int Alignment) Array((int Size, int Alignment) current, int count) => ((current.Size + 15) / 16 * 16 * (count - 1) + current.Size, 16);
         return (symbol) switch
         {
             ScalarType { TypeName: "sbyte" or "byte" } => (1, 1),
@@ -24,7 +25,7 @@ partial class SpirvBuilder
             MatrixType m when typeModifier == TypeModifier.ColumnMajor || typeModifier == TypeModifier.None => MultiplySize(TypeSizeInBuffer(m.BaseType, typeModifier), ((4 * m.Columns - 1) + m.Rows)),
             MatrixType m when typeModifier == TypeModifier.RowMajor => MultiplySize(TypeSizeInBuffer(m.BaseType, typeModifier), ((4 * m.Rows - 1) + m.Columns)),
             // Round up to 16 bytes (size of float4)
-            ArrayType a => ((TypeSizeInBuffer(a.BaseType, typeModifier).Size + 15) / 16 * 16 * a.Size, 16),
+            ArrayType a => Array(TypeSizeInBuffer(a.BaseType, typeModifier), a.Size),
             // TODO: StructureType
         };
     }

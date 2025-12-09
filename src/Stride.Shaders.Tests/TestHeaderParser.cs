@@ -86,7 +86,7 @@ public static class TestHeaderParser
     /// Splits by commas but ignores commas inside quotes.
     /// Accepts both single- and double-quoted values.
     /// </summary>
-    private static IEnumerable<string> SplitArgs(string args)
+    public static IEnumerable<string> SplitArgs(string args)
     {
         if (string.IsNullOrEmpty(args))
             yield break;
@@ -95,6 +95,10 @@ public static class TestHeaderParser
         bool inSingleQuote = false;
         bool inDoubleQuote = false;
         int parenthesisLevel = 0;
+
+        // Unwrap parenthesis
+        if (args[0] == '(' && args[^1] == ')')
+            args = args[1..^1];
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -117,12 +121,10 @@ public static class TestHeaderParser
             if (c == '(' && !inSingleQuote && !inDoubleQuote)
             {
                 parenthesisLevel++;
-                continue;
             }
             if (c == ')' && !inSingleQuote && !inDoubleQuote)
             {
                 parenthesisLevel--;
-                continue;
             }
 
             if (c == ',' && !inSingleQuote && !inDoubleQuote && parenthesisLevel == 0)

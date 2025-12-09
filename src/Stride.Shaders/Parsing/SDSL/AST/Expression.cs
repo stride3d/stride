@@ -476,19 +476,28 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         break;
                     // Array indexer for shader compositions
                     case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol s } }, IndexerExpression { Index: IntegerLiteral { Value: var compositionIndex } }):
-                        
                         break;
+                    // Array indexer for arrays
+                    case (PointerType { BaseType: ArrayType { BaseType: var t } } p, IndexerExpression indexer):
+                        {
+                            var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                            PushAccessChainId(accessChainIds, indexerValue.Id);
+                            accessor.Type = new PointerType(t, p.StorageClass);
+                            break;
+                        }
                     // Array indexer for vector/matrix
                     case (PointerType { BaseType: VectorType or MatrixType } p, IndexerExpression indexer):
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
-                        PushAccessChainId(accessChainIds, indexerValue.Id);
-
-                        accessor.Type = new PointerType(p.BaseType switch
                         {
-                            MatrixType m => new VectorType(m.BaseType, m.Rows),
-                            VectorType v => v.BaseType,
-                        }, p.StorageClass);
-                        break;
+                            var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                            PushAccessChainId(accessChainIds, indexerValue.Id);
+
+                            accessor.Type = new PointerType(p.BaseType switch
+                            {
+                                MatrixType m => new VectorType(m.BaseType, m.Rows),
+                                VectorType v => v.BaseType,
+                            }, p.StorageClass);
+                            break;
+                        }
                     default:
                         throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
                 }
