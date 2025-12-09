@@ -413,12 +413,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         if (addToRoot)
             table.CurrentFrame.AddImplicitShader(shaderType);
 
-        if (!addToRoot)
-        {
-            var symbol = new Symbol(new(shaderType.Name, SymbolKind.Shader), new PointerType(shaderType, Specification.StorageClass.Private), shaderId);
-            table.CurrentFrame.Add(shaderType.Name, symbol);
-        }
-
         // Mark inherit
         context.Add(new OpSDSLMixinInherit(shaderId));
     }

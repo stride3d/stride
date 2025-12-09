@@ -1,5 +1,6 @@
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -229,14 +230,17 @@ public class Identifier(string name, TextLocation info) : Literal(info)
             // Shader is inherited (TODO: do we want to do something more "selective", i.e. import only the required variable if it's a cbuffer?)
             var inheritedShaderCount = table.InheritedShaders.Count;
             classSource = SpirvBuilder.BuildInheritanceList(table.ShaderLoader, classSource, table.InheritedShaders, ResolveStep.Compile, builder.GetBuffer());
-
             for (int i = inheritedShaderCount; i < table.InheritedShaders.Count; ++i)
             {
                 table.InheritedShaders[i].Symbol = ShaderClass.LoadExternalShaderType(table, table.InheritedShaders[i]);
                 ShaderClass.Inherit(table, context, table.InheritedShaders[i].Symbol, false);
             }
 
-            symbol = table.ResolveSymbol(Name);
+            // We add the typename as a symbol (similar to static access in C#)
+            var shaderId = context.GetOrRegister(classSource.Symbol);
+            symbol = new Symbol(new(classSource.Symbol.Name, SymbolKind.Shader), new PointerType(classSource.Symbol, Specification.StorageClass.Private), shaderId);
+            table.CurrentFrame.Add(classSource.Symbol.Name, symbol);
+
             Type = symbol.Type;
             return EmitSymbol(compiler, builder, context, symbol);
         }
