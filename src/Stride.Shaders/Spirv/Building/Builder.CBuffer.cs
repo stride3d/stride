@@ -18,6 +18,7 @@ partial class SpirvBuilder
             ScalarType { TypeName: "short" or "ushort" } => (2, 2),
             ScalarType { TypeName: "int" or "uint" or "float" or "bool" } => (4, 4),
             ScalarType { TypeName: "long" or "ulong" or "double" } => (8, 8),
+            StructuredType s => StructSizeInBuffer(s),
             VectorType v => MultiplySize(TypeSizeInBuffer(v.BaseType, typeModifier), v.Size),
             // Note: HLSL default is ColumnMajor, review that for GLSL/Vulkan later
             MatrixType m when typeModifier == TypeModifier.ColumnMajor || typeModifier == TypeModifier.None => MultiplySize(TypeSizeInBuffer(m.BaseType, typeModifier), ((4 * m.Columns - 1) + m.Rows)),
@@ -26,6 +27,20 @@ partial class SpirvBuilder
             ArrayType a => ((TypeSizeInBuffer(a.BaseType, typeModifier).Size + 15) / 16 * 16 * a.Size, 16),
             // TODO: StructureType
         };
+    }
+
+    private static (int, int) StructSizeInBuffer(StructuredType s)
+    {
+        var offset = 0;
+
+        // Apply same rules as inside a cbuffer
+        foreach (var member in s.Members)
+        {
+            var memberSize = ComputeCBufferOffset(member.Type, member.TypeModifier, ref offset);
+            offset += memberSize;
+        }
+
+        return (offset, 16);
     }
 
     //

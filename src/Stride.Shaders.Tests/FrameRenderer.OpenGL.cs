@@ -242,23 +242,11 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
                 var cbufferData = new byte[cbReflection.Size];
                 foreach (var cbufferParameter in TestHeaderParser.ParseParameters(param.Value))
                 {
-                    var cbMemberReflection = cbReflection.Members.Single(x => x.RawName == cbufferParameter.Key);
-                    if (cbMemberReflection.Type.Class != EffectParameterClass.Scalar)
-                        throw new NotImplementedException();
+                    var cbMemberReflection = cbReflection.Members.Single(x => x.KeyInfo.KeyName == cbufferParameter.Key);
 
                     fixed (byte* cbufferDataPtr = cbufferData)
                     {
-                        switch (cbMemberReflection.Type.Type)
-                        {
-                            case EffectParameterType.Int:
-                                *((int*)&cbufferDataPtr[cbMemberReflection.Offset]) = int.Parse(cbufferParameter.Value);
-                                break;
-                            case EffectParameterType.Float:
-                                *((float*)&cbufferDataPtr[cbMemberReflection.Offset]) = float.Parse(cbufferParameter.Value);
-                                break;
-                            default:
-                                throw new NotImplementedException();
-                        }
+                        FillData(cbufferParameter.Value, cbMemberReflection.Type, cbMemberReflection.Offset, cbufferDataPtr);
                     }
                 }
 
@@ -304,5 +292,28 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         window.Close();
         window.Dispose();
 
+    }
+
+    private static unsafe void FillData(string value, EffectTypeDescription type, int offset, byte* cbufferDataPtr)
+    {
+        switch (type)
+        {
+            case { Class: EffectParameterClass.Struct }:
+                var structParameters = TestHeaderParser.ParseParameters(value);
+                foreach (var member in type.Members)
+                {
+                    if (structParameters.TryGetValue(member.Name, out var memberValue))
+                        FillData(memberValue, member.Type, offset + member.Offset, cbufferDataPtr);
+                }
+                break;
+            case { Type: EffectParameterType.Int }:
+                *((int*)&cbufferDataPtr[offset]) = int.Parse(value);
+                break;
+            case { Type: EffectParameterType.Float }:
+                *((float*)&cbufferDataPtr[offset]) = float.Parse(value);
+                break;
+            default:
+                throw new NotImplementedException();
+        }
     }
 }

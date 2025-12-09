@@ -309,6 +309,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             shaderSymbols.Add(mixin.Symbol = LoadExternalShaderType(table, mixin));
         }
 
+        foreach (var shaderType in shaderSymbols)
+        {
+            Inherit(table, context, shaderType, true);
+        }
+
         foreach (var member in Elements)
         {
             if (member is ShaderMethod func)
@@ -372,11 +377,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         foreach (var member in Elements)
         {
             member.ProcessSymbol(table);
-        }
-
-        foreach (var shaderType in shaderSymbols)
-        {
-            Inherit(table, context, shaderType, true);
         }
 
         foreach (var member in Elements.OfType<ShaderStruct>())

@@ -1,0 +1,41 @@
+// PSMain(ExpectedResult=#0A0A0A0A, cbuffer.PerView=(Comp0.Light=(A=3), Comp1.Light=(A=7)))
+
+namespace Stride.Shaders.Tests;
+
+shader CompositionStruct
+{
+	struct Test1
+	{
+		float A;
+	}
+}
+
+shader CompositionBase : CompositionStruct
+{
+	cbuffer PerView
+    {
+        Test1 Light;
+    }
+	float4 Compute()
+	{
+		return (Light.A / 255.0).xxxx;
+	}
+};
+
+shader CompositionExternalStruct
+{
+    stream float4 ColorTarget : SV_Target0;
+
+	compose CompositionBase Comp0;
+	compose CompositionBase Comp1;
+
+	stage float4 Shading()
+    {
+        return Comp0.Compute() + Comp1.Compute();
+    }
+ 
+	void PSMain()
+	{
+		streams.ColorTarget = Shading();
+	}
+};

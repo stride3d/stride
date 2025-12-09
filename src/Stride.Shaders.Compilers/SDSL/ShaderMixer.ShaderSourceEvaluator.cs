@@ -33,12 +33,11 @@ public partial class ShaderMixer
             var mixinToMerge2 = new ShaderClassInstantiation(mixinToMerge.ClassName, []);
             var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge2.ClassName, mixinToMerge.GenericArguments);
             mixinToMerge2.Buffer = buffer;
-            //SpirvBuilder.BuildInheritanceList(ShaderLoader, buffer, mixinList, ResolveStep.Mix);
             SpirvBuilder.BuildInheritanceList(ShaderLoader, mixinToMerge2, mixinList, ResolveStep.Mix);
         }
 
         var compositions = new Dictionary<string, ShaderMixinInstantiation[]>();
-        var result = new ShaderMixinInstantiation(mixinList, compositions);
+        var result = new ShaderMixinInstantiation(new(), compositions);
 
         foreach (var shaderName in mixinList.ToArray())
         {
@@ -87,6 +86,11 @@ public partial class ShaderMixer
                 {
                     hasStage |= (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
                 }
+
+                if (i.Op == Op.OpTypeStruct)
+                {
+                    hasStage = true;
+                }
             }
 
             // If there are any stage variables, add class to root
@@ -95,8 +99,15 @@ public partial class ShaderMixer
                 var shaderNameStageOnly = new ShaderClassInstantiation(shaderName.ClassName, shaderName.GenericArguments, ImportStageOnly: true) { Buffer = shaderName.Buffer, Symbol = shaderName.Symbol };
                 // Make sure it's not already added yet (either standard or stage only)
                 if (!root!.Mixins.Contains(shaderName) && !root!.Mixins.Contains(shaderNameStageOnly))
+                {
                     root!.Mixins.Add(shaderNameStageOnly);
+                }
             }
+
+            // Note: make sure to add only *after* compositions EvaluateInheritanceAndCompositions recursive call is done (a composition might add a "stage" inheritance with root!.Mixins.Add()
+            //       and this should be done before the composition mixin is added.
+            //       For example, a composition might import a struct, so if we import and mix the composition mixin before the "stage" one defining the struct, the struct is not defined before the composition using it.
+            result.Mixins.Add(shaderName);
         }
 
         return result;
