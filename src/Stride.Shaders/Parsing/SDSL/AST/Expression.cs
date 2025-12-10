@@ -198,6 +198,14 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
                         Type = type;
                         return expression;
                     }
+                case Operator.Not:
+                    {
+                        if (valueType.GetElementType() is not ScalarType { TypeName: "bool" })
+                            throw new InvalidOperationException();
+                        var result = builder.Insert(new OpLogicalNot(valueExpression.TypeId, context.Bound++, valueExpression.Id));
+                        Type = valueType;
+                        return new(result.ResultId, result.ResultType);
+                    }
                 case Operator.Plus:
                     // Nothing to do
                     return expression;
