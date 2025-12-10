@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#1124FFFF, cbuffer.Test=(Test1=17, Test2=19))
+// PSMain(ExpectedResult=#1129FFFF, cbuffer.Test=(Test1=17, Test2=19, Test3=3, Test4=2))
 
 namespace Stride.Shaders.Tests;
 
@@ -16,6 +16,10 @@ shader Compute2 : Compute
     {
         int Test1;
     }
+    cbuffer Test
+    {
+        int Test2;
+    }
 
     override float Compute()
     {
@@ -29,11 +33,15 @@ shader CBuffer : Compute2
 
     cbuffer Test
     { 
-        int Test2;
+        int Test3;
+    }
+    cbuffer Test
+    { 
+        int Test4;
     }
 
     void PSMain()
     {
-        streams.ColorTarget = float4(Compute(), (Test1 + Test2) / 255.0, 1.0, 1.0);
+        streams.ColorTarget = float4(Compute(), (Test1 + Test2 + Test3 + Test4) / 255.0, 1.0, 1.0);
     }
 }

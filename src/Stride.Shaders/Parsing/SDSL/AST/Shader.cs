@@ -419,6 +419,23 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         table.CurrentShader = currentShader;
         table.InheritedShaders = inheritanceList;
+
+        // If multiple cbuffer with same name, they will be merged
+        // Still, we rename them internally to avoid name clashes (in HLSL name is skipped so it's OK, but for example OpSDSLImportStruct/OpSDSLImportVariable would be ambiguous)
+        var cbuffersByNames = Elements.OfType<CBuffer>().GroupBy(x => x.Name);
+        foreach (var cbufferGroup in cbuffersByNames)
+        {
+            if (cbufferGroup.Count() > 1)
+            {
+                int index = 0;
+                foreach (var cbuffer in cbufferGroup)
+                {
+                    cbuffer.Name = $"{cbuffer.Name}.{index}";
+                    index++;
+                }
+            }
+        }
+
         foreach (var member in Elements)
         {
             member.ProcessSymbol(table);

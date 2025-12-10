@@ -50,6 +50,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         new StreamAnalyzer().Process(table, temp, context);
 
         // Merge cbuffers and rgroups
+        // TODO: remove unused cbuffers (before merging them)
         Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
         MergeCBuffers(globalContext, context, temp);
         Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
@@ -81,6 +82,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     private void MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
     {
+        // If multiple cbuffer with same name Test, they will be renamed Test.0 Test.1 etc.
+        string GetCBufferFinalName(string cbufferName)
+        {
+            var dotIndex = cbufferName.IndexOf('.');
+            if (dotIndex != -1)
+                return cbufferName.Substring(0, dotIndex);
+
+            return cbufferName;
+        }
+
         var mixinNodes = buffer
             .Where(x => x.Op == Op.OpSDSLEffect)
             .Select(x => (StartIndex: x.Index, Composition: ((OpSDSLEffect)x).EffectName))
@@ -98,7 +109,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 MemberOffset: 0))
             // TODO: Check Decoration.Block?
             .Where(x => x.StructType != null)
-            .GroupBy(x => globalContext.Names[x.Variable.ResultId]);
+            .GroupBy(x => GetCBufferFinalName(globalContext.Names[x.Variable.ResultId]));
 
         foreach (var cbuffersEntry in cbuffersByNames)
         {
@@ -166,6 +177,23 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                 // Update first variable to use new type
                 cbuffersSpan[0].Variable.ResultType = mergedCbufferPtrStructId;
+                // Update name
+                globalContext.Names[cbuffersSpan[0].Variable.ResultId] = cbuffersEntry.Key;
+                foreach (var i in buffer)
+                {
+                    if (i.Op == Op.OpName && (OpName)i is { } name)
+                    {
+                        // Ensure cbuffer variable name is correct (it might still have a pending number such as Test.0 if there was multiple buffers with same name)
+                        if (cbuffersSpan[0].Variable.ResultId == name.Target)
+                            name.Name = cbuffersEntry.Key;
+                        // Remove any other OpName (after remapping they would all point to the merged variable)
+                        foreach (var cbuffer in cbuffersSpan[1..])
+                        {
+                            if (cbuffer.Variable.ResultId == name.Target)
+                                SetOpNop(i.Data.Memory.Span);
+                        }
+                    }
+                }
 
                 var idRemapping = new Dictionary<int, int>();
                 foreach (ref var cbuffer in cbuffersSpan.Slice(1))
