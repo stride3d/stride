@@ -17,9 +17,74 @@ public partial class SpirvBuilder
         {
             type = pointerType.BaseType;
             var inst = Insert(new OpLoad(context.Types[type], context.Bound++, result.Id, null));
-            result = new(inst.ResultId, inst.ResultType);
+            result = new(inst.ResultId, inst.ResultType) { Swizzles = result.Swizzles };
         }
+
+        if (result.Swizzles != null)
+        {
+            (result, _) = ApplySwizzles(context, result, result.Swizzles);
+        }
+
         return result;
+    }
+
+    public (SpirvValue, SymbolType) ApplySwizzles(SpirvContext context, SpirvValue value, Span<int> swizzleIndices)
+    {
+        var valueType = context.ReverseTypes[value.TypeId];
+        return valueType switch
+        {
+            ScalarType s => ApplyScalarSwizzles(context, value, s, swizzleIndices),
+            VectorType v => ApplyVectorSwizzles(context, value, v, swizzleIndices),
+        };
+    }
+
+    public (SpirvValue, SymbolType) ApplyScalarSwizzles(SpirvContext context, SpirvValue value, ScalarType s, Span<int> swizzleIndices)
+    {
+        var resultType = new VectorType(s, swizzleIndices.Length);
+
+        Span<int> constructIndices = stackalloc int[swizzleIndices.Length];
+        for (int j = 0; j < constructIndices.Length; ++j)
+        {
+            if (swizzleIndices[j] != 0)
+                throw new InvalidOperationException("Invalid swizzle for scalar type");
+
+            constructIndices[j] = value.Id;
+        }
+
+        SpirvValue result;
+        var construct = InsertData(new OpCompositeConstruct(context.GetOrRegister(resultType), context.Bound++, new(constructIndices)));
+        result = new(construct);
+        return (result, resultType);
+    }
+
+    public (SpirvValue, SymbolType) ApplyVectorSwizzles(SpirvContext context, SpirvValue value, VectorType v, Span<int> swizzleIndices)
+    {
+        for (int j = 0; j < swizzleIndices.Length; ++j)
+        {
+            if (swizzleIndices[j] >= v.Size)
+                throw new InvalidOperationException("Invalid swizzle for vector type");
+        }
+
+        if (swizzleIndices.Length > 1)
+        {
+            // Apply swizzle
+            var resultType = new VectorType(v.BaseType, swizzleIndices.Length);
+            var shuffle = InsertData(new OpVectorShuffle(context.GetOrRegister(resultType), context.Bound++, value.Id, value.Id, new(swizzleIndices)));
+            value = new(shuffle);
+
+            return (value, resultType);
+        }
+        else if (swizzleIndices.Length == 1)
+        {
+            // Apply swizzle
+            var resultType = v.BaseType;
+            var extract = InsertData(new OpCompositeExtract(context.GetOrRegister(resultType), context.Bound++, value.Id, [context.CompileConstant(swizzleIndices[0]).Id]));
+            value = new(extract);
+
+            return (value, resultType);
+        }
+        else
+            throw new InvalidOperationException();
     }
 
     public static ScalarType FindCommonBaseTypeForBinaryOperation(SymbolType leftElementType, SymbolType rightElementType)

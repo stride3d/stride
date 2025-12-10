@@ -99,6 +99,12 @@ public class RenderingTests
             // Check output color value against expected result
             var expectedColor = StringToRgba(parameters["ExpectedResult"]);
             var pixel = pixels[0, 0].PackedValue;
+            // Swap endianess
+            pixel = ((pixel & 0x000000FF) << 24)
+               | (pixel & 0x0000FF00) << 8
+               | ((pixel & 0x00FF0000) >> 8)
+               | (pixel & 0xFF000000) >> 24;
+
             Assert.Equal(expectedColor.ToString("X8"), pixel.ToString("X8"));
         }
     }
@@ -121,13 +127,8 @@ public class RenderingTests
         var intValue = 0xFF000000;
         if (stringColor?.StartsWith('#') == true)
         {
-            if (stringColor.Length == "#00000000".Length && uint.TryParse(stringColor.AsSpan(1, 8), NumberStyles.HexNumber, null, out intValue))
-            {
-                intValue = ((intValue & 0x000000FF) << 24)
-                           | (intValue & 0x0000FF00) << 8
-                           | ((intValue & 0x00FF0000) >> 8)
-                           | (intValue & 0xFF000000) >> 24;
-            }
+            if (stringColor.Length == "#00000000".Length)
+                uint.TryParse(stringColor.AsSpan(1, 8), NumberStyles.HexNumber, null, out intValue);
         }
         return intValue;
     }

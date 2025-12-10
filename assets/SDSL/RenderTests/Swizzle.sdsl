@@ -5,6 +5,9 @@
 // PSMain(ExpectedResult=#01010101, cbuffer.Test=(Test1=4))
 // PSMain(ExpectedResult=#02040608, cbuffer.Test=(Test1=5))
 // PSMain(ExpectedResult=#02020202, cbuffer.Test=(Test1=6))
+// PSMain(ExpectedResult=#02030401, cbuffer.Test=(Test1=7))
+// PSMain(ExpectedResult=#02040103, cbuffer.Test=(Test1=8))
+// PSMain(ExpectedResult=#05060308, cbuffer.Test=(Test1=9))
 
 namespace Stride.Shaders.Tests;
 
@@ -37,10 +40,11 @@ shader Swizzle
         if (Test1 == 6)
             // second swizzle is from a non-pointer value and will use OpCompositeExtract
             streams.ColorTarget = (streams.ColorTarget.xyzw * 2).x.xxxx;
-        // TODO: swizzle target is not supported yet
-        //if (Test1 == 7)
-        //    streams.ColorTarget.wxyz = streams.ColorTarget;
-        //if (Test1 == 8)
-        //    streams.ColorTarget.wxyz.wyxz = streams.ColorTarget;
+        if (Test1 == 7)
+            streams.ColorTarget.wxyz = streams.ColorTarget;
+        if (Test1 == 8)
+            streams.ColorTarget.wxyz.wyxz = streams.ColorTarget;
+        if (Test1 == 9)
+            streams.ColorTarget.xyw += streams.ColorTarget.w;
     }
 }

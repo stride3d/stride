@@ -44,7 +44,7 @@ public class Return(TextLocation info, Expression? expression = null) : Statemen
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, _) = compiler;
-        builder.Return(Value?.Compile(table, compiler));
+        builder.Return(Value?.CompileAsValue(table, compiler));
         Type = Value?.Type ?? ScalarType.From("void");
     }
     public override string ToString()
@@ -92,7 +92,7 @@ public class DeclaredVariableAssign(Identifier variable, bool isConst, TextLocat
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         Variable.Type = TypeName.ResolveType(table);
-        var initialValue = Value?.Compile(table, compiler);
+        var initialValue = Value?.CompileAsValue(table, compiler);
         if (Value is not null && Value.Type != Variable.Type)
             table.Errors.Add(new(TypeName.Info, "wrong type"));
 
@@ -192,7 +192,7 @@ public class Assign(TextLocation info) : Statement(info)
         {
             var target = variable.Variable.Compile(table, compiler);
             var source = variable.Value!.CompileAsValue(table, compiler);
-            if (variable.Variable.Type is not PointerType)
+            if (variable.Variable.Type is not PointerType p)
                 throw new InvalidOperationException("can only assign to pointer type");
 
             if (variable.Operator != AssignOperator.Simple)
@@ -218,7 +218,30 @@ public class Assign(TextLocation info) : Statement(info)
             }
 
             // Make sure to convert to proper type
-            source = builder.Convert(context, source, variable.Variable.ValueType);
+            var resultType = target.GetValueType(context, true);
+            source = builder.Convert(context, source, resultType);
+
+            if (target.Swizzles != null)
+            {
+                var valueType = context.Types[p.BaseType];
+                var loadId = builder.Insert(new OpLoad(valueType, context.Bound++, target.Id, null)).ResultId;
+                // Shuffle with new data
+                switch (p.BaseType)
+                {
+                    case VectorType v:
+                        Span<int> shuffleIndices = stackalloc int[v.Size];
+                        // Default: source values
+                        for (int j = 0; j < v.Size; ++j)
+                            shuffleIndices[j] = j;
+                        // Update using swizzle target (from 2nd new value vector)
+                        for (int j = 0; j < target.Swizzles.Length; ++j)
+                            shuffleIndices[target.Swizzles[j]] = v.Size + j;
+                        source = new(builder.InsertData(new OpVectorShuffle(valueType, context.Bound++, loadId, source.Id, new(shuffleIndices))));
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
             builder.Insert(new OpStore(target.Id, source.Id, null));
         }
     }
