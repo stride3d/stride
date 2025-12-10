@@ -246,11 +246,6 @@ public static partial class Spv
                     }
                     data.NameTable[nameInst.Target] = name;
                 }
-                else if (instruction.Op == Op.OpMemberName)
-                {
-                    var memberInst = (OpMemberName)instruction;
-                    data.NameTable[memberInst.Type + memberInst.Member] = memberInst.Name;
-                }
             }
             foreach (var instruction in data)
             {
