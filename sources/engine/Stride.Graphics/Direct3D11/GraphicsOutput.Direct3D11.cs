@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if STRIDE_GRAPHICS_API_DIRECT3D12
+#if STRIDE_GRAPHICS_API_DIRECT3D11
 
 // Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
 //
@@ -31,7 +31,7 @@ using System.Runtime.InteropServices;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
-using Silk.NET.Direct3D12;
+using Silk.NET.Direct3D11;
 
 using Stride.Core.UnsafeExtensions;
 
@@ -40,7 +40,7 @@ namespace Stride.Graphics;
 // NOTE: This partial class is the Direct3D 11 implementation of GraphicsOutput.
 //       The part that is common with Direct3D12 is in GraphicsOutput.Direct3D.cs
 
-public unsafe partial class GraphicsOutput
+public sealed unsafe partial class GraphicsOutput
 {
     /// <summary>
     ///   Finds the display mode that most closely matches the requested display mode.
@@ -64,9 +64,6 @@ public unsafe partial class GraphicsOutput
     /// </param>
     /// <returns>Returns the mode that most closely matches <paramref name="modeToMatch"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="targetProfiles"/> is empty and does not specify any graphics profile to test.</exception>
-    /// <exception cref="InvalidOperationException">
-    ///   Coult not create a device with any of the profiles specified in <paramref name="targetProfiles"/>.
-    /// </exception>
     /// <remarks>
     ///   Direct3D devices require UNORM pixel formats.
     ///   <para>
@@ -93,48 +90,32 @@ public unsafe partial class GraphicsOutput
         if (targetProfiles.IsEmpty)
             throw new ArgumentNullException(nameof(targetProfiles));
 
-        var d3d12 = D3D12.GetApi();
+        var d3d11 = D3D11.GetApi(window: null);
 
         // NOTE: Assume the same underlying integer type
         Debug.Assert(sizeof(GraphicsProfile) == sizeof(D3DFeatureLevel));
         var featureLevels = targetProfiles.As<GraphicsProfile, D3DFeatureLevel>();
 
-        HResult result = default;
+        IDXGIAdapter* nativeAdapter = (IDXGIAdapter*) Adapter.NativeAdapter.Handle;
+        ID3D11Device* deviceTemp = null;
+        ID3D11DeviceContext* deviceContext = null;
+        D3DFeatureLevel createdFeatureLevel = default;
 
-        var nativeAdapter = Adapter.NativeAdapter.AsIUnknown();
-        ComPtr<ID3D12Device> deviceTemp = null;
+        d3d11.CreateDevice(nativeAdapter, D3DDriverType.Unknown, Software: 0, Flags: 0,
+                           in featureLevels.GetReference(), (uint) featureLevels.Length,
+                           D3D11.SdkVersion,
+                           ref deviceTemp, ref createdFeatureLevel, ref deviceContext);
 
-        for (int i = 0; i < featureLevels.Length; i++)
-        {
-            var featureLevelToTry = featureLevels[i];
-
-            // Create Device D3D12 with feature Level based on profile
-            result = d3d12.CreateDevice(nativeAdapter, featureLevelToTry, out deviceTemp);
-
-            if (result.IsSuccess)
-                break;
-        }
-
-        if (deviceTemp.IsNull() && result.IsFailure)
-            ThrowNoCompatibleProfile(result, Adapter, targetProfiles);
+        ModeDesc modeDescription = modeToMatch.ToDescription();
 
         Unsafe.SkipInit(out ModeDesc closestDescription);
-        ModeDesc modeDescription = new()
-        {
-            Width = (uint) modeToMatch.Width,
-            Height = (uint) modeToMatch.Height,
-            RefreshRate = modeToMatch.RefreshRate.ToSilk(),
-            Format = (Format) modeToMatch.Format,
-            Scaling = ModeScaling.Unspecified,
-            ScanlineOrdering = ModeScanlineOrder.Unspecified
-        };
-
-        result = dxgiOutput->FindClosestMatchingMode(in modeDescription, ref closestDescription, deviceTemp);
+        HResult result = dxgiOutput->FindClosestMatchingMode(in modeDescription, ref closestDescription, (IUnknown*) deviceTemp);
 
         if (result.IsFailure)
-            result.Throw();
+            ThrowNoCompatibleProfile(result, Adapter, targetProfiles);
 
-        deviceTemp.Release();
+        deviceContext->Release();
+        deviceTemp->Release();
 
         return DisplayMode.FromDescription(in closestDescription);
 
@@ -157,14 +138,18 @@ public unsafe partial class GraphicsOutput
     /// <returns>The current <see cref="DisplayMode"/> of the output, or <see langword="null"/> if couldn't be determined.</returns>
     private DisplayMode? GetCurrentDisplayMode()
     {
-        var d3d12 = D3D12.GetApi();
+        var d3d11 = D3D11.GetApi(null);
 
-        // Try to create a dummy ID3D12Device with no consideration to Graphics Profiles, etc.
+        // Try to create a dummy ID3D11Device with no consideration to Graphics Profiles, etc.
         // We only want to get missing information about the current display irrespective of graphics profiles
-        var unspecifiedAdapter = ComPtrHelpers.NullComPtr<IUnknown>();
-        D3DFeatureLevel selectedLevel = 0;
-        HResult result = d3d12.CreateDevice(unspecifiedAdapter, selectedLevel, out ComPtr<ID3D12Device> deviceTemp);
+        ID3D11Device* device = null;
+        ID3D11DeviceContext* deviceContext = null;
 
+        D3DFeatureLevel selectedLevel = 0;
+        HResult result = d3d11.CreateDevice(pAdapter: null, D3DDriverType.Unknown, Software: IntPtr.Zero, Flags: 0,
+                                            pFeatureLevels: null, FeatureLevels: 0,
+                                            D3D11.SdkVersion,
+                                            ref device, &selectedLevel, ref deviceContext);
         if (result.IsFailure)
         {
             var exception = Marshal.GetExceptionForHR(result.Value)!;
@@ -172,17 +157,19 @@ public unsafe partial class GraphicsOutput
             return null;
         }
 
+        using var d3dDevice = new ComPtr<ID3D11Device> { Handle = device };
+        using var d3dDeviceContext = new ComPtr<ID3D11DeviceContext> { Handle = deviceContext };
+
         Unsafe.SkipInit(out ModeDesc closestMatch);
         var modeDesc = new ModeDesc
         {
             Width = (uint) DesktopBounds.Width,
             Height = (uint) DesktopBounds.Height,
-            // Format and RefreshRate will be automatically filled if we pass reference to the Direct3D 12 device
+            // Format and RefreshRate will be automatically filled if we pass reference to the Direct3D 11 device
             Format = Format.FormatUnknown
         };
 
-        result = dxgiOutput->FindClosestMatchingMode(in modeDesc, ref closestMatch, deviceTemp);
-        deviceTemp.Release();
+        result = dxgiOutput->FindClosestMatchingMode(in modeDesc, ref closestMatch, (IUnknown*) device);
 
         if (result.IsFailure)
         {
