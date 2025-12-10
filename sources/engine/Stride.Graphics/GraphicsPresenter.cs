@@ -143,9 +143,13 @@ public abstract class GraphicsPresenter : ComponentBase
     ///   Gets or sets a value indicating if the Graphics Presenter is in full-screen mode.
     /// </summary>
     /// <value>
-    ///   <see langword="true"/> if the presentation will be in full screen; otherwise, <see langword="false"/>.
+    ///   A value indicating whether the presentation will be in full screen.
+    ///   <list type="bullet">
+    ///     <item><see langword="true"/> if the presentation will be in full screen.</item>
+    ///     <item><see langword="false"/> if the presentation will be in a window.</item>
+    ///   </list>
     /// </value>
-    /// <remarks>This property is only valid on Windows Desktop. It has no effect on Windows Metro.</remarks>
+    /// <remarks>This property is only valid on desktop Windows. It has no effect on UWP.</remarks>
     public abstract bool IsFullScreen { get; set; }
 
     /// <summary>

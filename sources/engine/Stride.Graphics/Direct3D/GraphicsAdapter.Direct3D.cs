@@ -156,7 +156,7 @@ namespace Stride.Graphics
                 if (!foundValidOutput)
                     break;
 
-                var gfxOutput = new GraphicsOutput(adapter: this, output, outputIndex);
+                var gfxOutput = new GraphicsOutput(adapter: this, output);
                 gfxOutput.DisposeBy(this);
                 outputsList.Add(gfxOutput);
 
