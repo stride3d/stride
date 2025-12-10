@@ -393,12 +393,16 @@
           "value": 0
         },
         {
-          "enumerant": "Integer",
+          "enumerant": "Int",
           "value": 1
         },
         {
-          "enumerant": "LinkType",
+          "enumerant": "Bool",
           "value": 2
+        },
+        {
+          "enumerant": "LinkType",
+          "value": 20
         }
       ]
     },

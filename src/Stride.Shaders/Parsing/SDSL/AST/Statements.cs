@@ -129,11 +129,12 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         }
 
         // Compute type
+        SymbolType valueType;
         if (TypeName == "var")
         {
             if (Variables.Count == 1 && Variables[0].Value is not null)
             {
-                Type = Variables[0].Value!.Type;
+                valueType = Variables[0].Value!.ValueType;
             }
             else
             {
@@ -143,12 +144,14 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         }
         else
         {
-            Type = TypeName.ResolveType(table);
-            table.DeclaredTypes.TryAdd(TypeName.ToString(), Type);
+            valueType = TypeName.ResolveType(table);
+            table.DeclaredTypes.TryAdd(TypeName.ToString(), valueType);
         }
 
-        var underlyingType = Type;
-        Type = new PointerType(Type, Specification.StorageClass.Function);
+        if (valueType is PointerType)
+            throw new InvalidOperationException();
+
+        Type = new PointerType(valueType, Specification.StorageClass.Function);
 
         var registeredType = context.GetOrRegister(Type);
         for (var index = 0; index < Variables.Count; index++)
@@ -169,7 +172,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
                 var source = compiledValues[index];
 
                 // Make sure type is correct
-                source = builder.Convert(context, source, underlyingType);
+                source = builder.Convert(context, source, valueType);
 
                 builder.Insert(new OpStore(variable, source.Id, null));
             }

@@ -319,7 +319,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var genericParameterKind = genericParameterType switch
                 {
                     ScalarType { TypeName: "float" } => GenericParameterKindSDSL.Float,
-                    ScalarType { TypeName: "int" } => GenericParameterKindSDSL.Integer,
+                    ScalarType { TypeName: "int" } => GenericParameterKindSDSL.Int,
+                    ScalarType { TypeName: "bool" } => GenericParameterKindSDSL.Bool,
                     GenericLinkType => GenericParameterKindSDSL.LinkType,
                 };
                 context.Add(new OpSDSLGenericParameter(genericParameterTypeId, context.Bound, genericParameterKind));

@@ -218,6 +218,15 @@ public partial class SpirvBuilder
                     case ScalarType { TypeName: "float" }:
                         shader.Replace(index, new OpConstant<float>(genericParameter.ResultType, genericParameter.ResultId, float.Parse(genericValue)));
                         break;
+                    case ScalarType { TypeName: "bool" }:
+                        if (bool.Parse(genericValue))
+                            shader.Replace(index, new OpConstantTrue(genericParameter.ResultType, genericParameter.ResultId));
+                        else
+                            shader.Replace(index, new OpConstantFalse(genericParameter.ResultType, genericParameter.ResultId));
+                        break;
+                    case GenericLinkType:
+                        shader.Replace(index, new OpConstantStringSDSL(genericParameter.ResultId, genericValue));
+                        break;
                     default:
                         throw new NotImplementedException();
                 }
@@ -277,11 +286,16 @@ public partial class SpirvBuilder
             for (var index = 0; index < instantiatingBuffer.Count; index++)
             {
                 var i = instantiatingBuffer[index];
-                if (i.Op == Op.OpConstant)
+                if (i.Op == Op.OpConstant || i.Op == Op.OpConstantTrue || i.Op == Op.OpConstantFalse)
                 {
                     if (targets.TryGetValue(i.Data.IdResult!.Value, out var parameters))
                     {
-                        var value = GetConstantValue(i.Data, instantiatingBuffer);
+                        var value = i.Op switch
+                        {
+                            Op.OpConstant => GetConstantValue(i.Data, instantiatingBuffer),
+                            Op.OpConstantTrue => bool.TrueString.ToLowerInvariant(),
+                            Op.OpConstantFalse => bool.FalseString.ToLowerInvariant(),
+                        };
 
                         // import constant in current shader
                         foreach (var parameter in parameters)
