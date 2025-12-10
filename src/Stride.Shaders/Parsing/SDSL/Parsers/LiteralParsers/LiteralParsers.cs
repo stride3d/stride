@@ -311,7 +311,7 @@ public readonly record struct IntegerSuffixParser() : ILiteralParser<Suffix>
         where TScanner : struct, IScanner
     {
         suffix = new(32, false, false);
-        if (Tokens.AnyOf(["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "U", "L"], ref scanner, out var matched, advance: true))
+        if (Tokens.AnyOf(["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "u", "U", "l", "L"], ref scanner, out var matched, advance: true))
         {
             suffix = matched switch
             {
@@ -323,8 +323,8 @@ public readonly record struct IntegerSuffixParser() : ILiteralParser<Suffix>
                 "i16" => new(16, false, true),
                 "i32" => new(32, false, true),
                 "i64" => new(64, false, true),
-                "U" => new(32, false, false),
-                "L" => new(32, false, true),
+                "u" or "U" => new(32, false, false),
+                "l" or "L" => new(32, false, true),
                 _ => throw new NotImplementedException()
             };
             return true;

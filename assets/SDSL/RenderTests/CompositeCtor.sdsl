@@ -3,6 +3,7 @@
 // PSMain(ExpectedResult=#01060606, cbuffer.Test=(Test1=2))
 // PSMain(ExpectedResult=#02020101, cbuffer.Test=(Test1=3))
 // PSMain(ExpectedResult=#06060101, cbuffer.Test=(Test1=4))
+// PSMain(ExpectedResult=#08131103, cbuffer.Test=(Test1=5))
 
 namespace Stride.Shaders.Tests;
 
@@ -26,6 +27,11 @@ shader CompositeCtor
 
         float3x3 m = float3x3(f3, f2, f4);
 
+        uint i1 = uint(0x0008);
+        float i2 = float(0x0013);
+        int i3 = int(-17) * -1;
+        int i4 = 3u;
+
         if (Test1 == 0)
             streams.ColorTarget = float4(f1 + f1b, f2, f1 * 3.0);
         if (Test1 == 1)
@@ -36,5 +42,7 @@ shader CompositeCtor
             streams.ColorTarget = m[1].xyzz;
         if (Test1 == 4)
             streams.ColorTarget = m[2].xyzz;
+        if (Test1 == 5)
+            streams.ColorTarget = float4(i1, i2, i3, i4) / 255.0;
     }
 }

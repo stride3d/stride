@@ -28,7 +28,7 @@ public partial class SpirvBuilder
         {
             (ScalarType { TypeName: "long" }, _) or (_, ScalarType { TypeName: "long" }) => throw new NotImplementedException("64bit integers"),
             // Matching types
-            (ScalarType { TypeName: "int" or "uint" or "float" or "double" } l, ScalarType r) when l == r => l,
+            (ScalarType { TypeName: "int" or "uint" or "float" or "double" or "bool" } l, ScalarType r) when l == r => l,
             // If one side is float and other is non-floating, promote to floating
             (ScalarType { TypeName: "int" or "uint" } l, ScalarType { TypeName: "float" or "double" } r) => r,
             (ScalarType { TypeName: "float" or "double" } l, ScalarType { TypeName: "int" or "uint" } r) => l,
@@ -331,11 +331,13 @@ public partial class SpirvBuilder
                 {
                     // https://learn.microsoft.com/en-us/windows/win32/direct3d9/casting-and-conversion
                     (ScalarType { TypeName: "float" }, ScalarType { TypeName: "int" }) => InsertData(new OpConvertFToS(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { TypeName: "float" }, ScalarType { TypeName: "uint" }) => InsertData(new OpConvertFToU(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
 
                     (ScalarType { TypeName: "float" }, ScalarType { TypeName: "bool" }) => InsertData(new OpFOrdNotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 0.0, null, new()), elementSize).Id)),
                     (ScalarType { TypeName: "int" }, ScalarType { TypeName: "bool" }) => InsertData(new OpINotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 0, new()), elementSize).Id)),
 
                     (ScalarType { TypeName: "int" }, ScalarType { TypeName: "float" }) => InsertData(new OpConvertSToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { TypeName: "uint" }, ScalarType { TypeName: "float" }) => InsertData(new OpConvertUToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
 
                     (ScalarType { TypeName: "bool" }, ScalarType { TypeName: "int" }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 1, new()), elementSize).Id, context.CompileConstant(0).Id)),
                     (ScalarType { TypeName: "bool" }, ScalarType { TypeName: "float" }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 1.0, null, new()), elementSize).Id, context.CompileConstant(0.0).Id)),

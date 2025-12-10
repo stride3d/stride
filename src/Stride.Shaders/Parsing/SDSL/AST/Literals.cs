@@ -84,9 +84,9 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
     }
 }
 
-public sealed class HexLiteral(ulong value, TextLocation info) : IntegerLiteral(new(32, false, false), (long)value, info)
+public sealed class HexLiteral(ulong value, TextLocation info) : IntegerLiteral(new(value > uint.MaxValue ? 64 : 32, false, false), (long)value, info)
 {
-    public override SymbolType? Type => ScalarType.From("long");
+    public override SymbolType? Type => Suffix.Size > 32 ? ScalarType.From("ulong") : ScalarType.From("uint");
 }
 
 

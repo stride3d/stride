@@ -77,7 +77,13 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             else if (instruction.Op == Op.OpTypeInt)
             {
                 OpTypeInt intInstruction = instruction;
-                types.Add(intInstruction.ResultId, ScalarType.From("int"));
+                types.Add(intInstruction.ResultId, (intInstruction.Width, intInstruction.Signedness == 1) switch
+                {
+                    (32, true) => ScalarType.From("int"),
+                    (32, false) => ScalarType.From("uint"),
+                    (64, true) => ScalarType.From("long"),
+                    (64, false) => ScalarType.From("ulong"),
+                });
             }
             else if (instruction.Op == Op.OpTypeBool)
             {

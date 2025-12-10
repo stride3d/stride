@@ -116,15 +116,18 @@ public struct NumberParser : IParser<Literal>
 
             ulong sum = 0;
 
-            for (int i = 0; i < scanner.Position - position - 2; i += 1)
+            for (int i = position + 2; i < scanner.Position; i++)
             {
-                var v = Hex2int(scanner.Span[i]);
-                var add = v * Math.Pow(16, i);
-                if (ulong.MaxValue - sum < add)
+                // Check if multiplying by 16 would not overflow ulong
+                if ((sum & ~(ulong)long.MaxValue) != 0)
                 {
-                    result.Errors.Add(new ParseError("Hex value bigger than ulong.", scanner[position], scanner.Memory));
+                    result.Errors.Add(new ParseError("Hex value bigger than ulong.", scanner[i], scanner.Memory));
                     return false;
                 }
+
+                sum <<= 4;
+                var v = Hex2int(scanner.Span[i]);
+                sum += (uint)v;
             }
             parsed = new HexLiteral(sum, scanner[position..scanner.Position]);
             return true;
