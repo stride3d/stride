@@ -8,7 +8,7 @@ public class SymbolFrame()
 {
     readonly Dictionary<string, Symbol> symbols = [];
 
-    readonly List<ShaderSymbol> implicitShaders = [];
+    readonly List<LoadedShaderSymbol> implicitShaders = [];
 
     public Symbol this[string name]
     {
@@ -16,7 +16,7 @@ public class SymbolFrame()
         set => symbols[name] = value;
     }
 
-    public void AddImplicitShader(ShaderSymbol shaderSymbol)
+    public void AddImplicitShader(LoadedShaderSymbol shaderSymbol)
     {
         implicitShaders.Add(shaderSymbol);
     }

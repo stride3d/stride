@@ -31,7 +31,7 @@ public record class ShaderClassInstantiation(string ClassName, int[] GenericArgu
 
     public int[] GenericArguments { get; set; } = GenericArguments;
 
-    public ShaderSymbol Symbol { get; set; }
+    public LoadedShaderSymbol Symbol { get; set; }
 
     public int Start { get; set; }
     public int End { get; set; }
@@ -139,15 +139,20 @@ public partial class SpirvBuilder
         return inheritanceList[index];
     }
 
-    public static object GetConstantValue(int constantId, NewSpirvBuffer buffer)
+    public static object GetConstantValue(int constantId, params ReadOnlySpan<NewSpirvBuffer> buffers)
     {
-        if (!buffer.TryGetInstructionById(constantId, out var constant))
-            throw new Exception("Cannot find constant instruction for id " + constantId);
+        foreach (var buffer in buffers)
+        {
+            if (buffer.TryGetInstructionById(constantId, out var constant))
+            {
+                return GetConstantValue(constant.Data, buffers);
+            }
+        }
 
-        return GetConstantValue(constant.Data, buffer);
+        throw new Exception("Cannot find constant instruction for id " + constantId);
     }
 
-    public static object GetConstantValue(OpData data, NewSpirvBuffer buffer)
+    public static object GetConstantValue(OpData data, params ReadOnlySpan<NewSpirvBuffer> buffers)
     {
         int typeId = data.Op switch
         {
@@ -155,40 +160,44 @@ public partial class SpirvBuilder
             _ => throw new Exception("Unsupported context dependent number in instruction " + data.Op)
         };
         var operand = data.Get("value");
-        if (buffer.TryGetInstructionById(typeId, out var typeInst))
+        foreach (var buffer in buffers)
         {
-            if (typeInst.Op == Op.OpTypeInt)
+            if (buffer.TryGetInstructionById(typeId, out var typeInst))
             {
-                var type = (OpTypeInt)typeInst;
-                return type switch
+                if (typeInst.Op == Op.OpTypeInt)
                 {
-                    { Width: <= 32, Signedness: 0 } => operand.ToLiteral<uint>(),
-                    { Width: <= 32, Signedness: 1 } => operand.ToLiteral<int>(),
-                    { Width: 64, Signedness: 0 } => operand.ToLiteral<ulong>(),
-                    { Width: 64, Signedness: 1 } => operand.ToLiteral<long>(),
-                    _ => throw new NotImplementedException("Unsupported int width " + type.Width),
-                };
-            }
-            else if (typeInst.Op == Op.OpTypeFloat)
-            {
-                var type = new OpTypeFloat(typeInst);
-                return type switch
+                    var type = (OpTypeInt)typeInst;
+                    return type switch
+                    {
+                        { Width: <= 32, Signedness: 0 } => operand.ToLiteral<uint>(),
+                        { Width: <= 32, Signedness: 1 } => operand.ToLiteral<int>(),
+                        { Width: 64, Signedness: 0 } => operand.ToLiteral<ulong>(),
+                        { Width: 64, Signedness: 1 } => operand.ToLiteral<long>(),
+                        _ => throw new NotImplementedException("Unsupported int width " + type.Width),
+                    };
+                }
+                else if (typeInst.Op == Op.OpTypeFloat)
                 {
-                    { Width: 16 } => operand.ToLiteral<Half>(),
-                    { Width: 32 } => operand.ToLiteral<float>(),
-                    { Width: 64 } => operand.ToLiteral<double>(),
-                    _ => throw new NotImplementedException("Unsupported float width " + type.Width),
-                };
+                    var type = new OpTypeFloat(typeInst);
+                    return type switch
+                    {
+                        { Width: 16 } => operand.ToLiteral<Half>(),
+                        { Width: 32 } => operand.ToLiteral<float>(),
+                        { Width: 64 } => operand.ToLiteral<double>(),
+                        _ => throw new NotImplementedException("Unsupported float width " + type.Width),
+                    };
+                }
+                else
+                    throw new NotImplementedException("Unsupported context dependent number with type " + typeInst.Op);
             }
-            else
-                throw new NotImplementedException("Unsupported context dependent number with type " + typeInst.Op);
         }
-        else
-            throw new Exception("Cannot find type instruction for id " + typeId);
+        throw new Exception("Cannot find type instruction for id " + typeId);
     }
 
-    private static void InstantiateGenericShaderUsingGenericValues(NewSpirvBuffer shader, string[] genericValues)
+    private static void InstantiateGenericShaderUsingGenericValues(NewSpirvBuffer shader, string className, string[] genericValues)
     {
+        Console.WriteLine($"[Shader] Instantiating {className} with values {string.Join(",", genericValues)}");
+
         ShaderClass.ProcessNameAndTypes(shader, 0, shader.Count, out var names, out var types);
 
         var bound = shader.Header.Bound;
@@ -225,8 +234,8 @@ public partial class SpirvBuilder
 
     private static void InstantiateGenericShaderUsingParentBuffer(NewSpirvBuffer shader, ShaderClassInstantiation classSource, ResolveStep resolveStep, NewSpirvBuffer instantiatingBuffer)
     {
-        Console.WriteLine($"Instantiating {classSource.ClassName} with parameters {string.Join(",", classSource.GenericArguments.Select(x => $"%{x}"))}");
-        Console.WriteLine($"Instantiating from buffer generics {instantiatingBuffer[0].Data}:");
+        Console.WriteLine($"[Shader] Instantiating {classSource.ClassName} with parameters {string.Join(",", classSource.GenericArguments.Select(x => $"%{x}"))}");
+        Console.WriteLine($"[Shader] Instantiating from buffer generics {instantiatingBuffer[0].Data}:");
         foreach (var i in instantiatingBuffer)
         {
             if (i.Data.IdResult is int id && classSource.GenericArguments.Contains(id))
@@ -418,9 +427,10 @@ public partial class SpirvBuilder
     /// <returns></returns>
     public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, ResolveStep resolveStep, NewSpirvBuffer parentBuffer)
     {
-        var shader = GetOrLoadShader(shaderLoader, classSource.ClassName);
+        var shader = GetOrLoadShader(shaderLoader, classSource.ClassName, out var isFromCache);
 
-        Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        if (!isFromCache)
+            Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
         if (classSource.GenericArguments.Length > 0)
         {
@@ -436,16 +446,17 @@ public partial class SpirvBuilder
 
     public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, string[] genericValues)
     {
-        var shader = GetOrLoadShader(shaderLoader, className);
+        var shader = GetOrLoadShader(shaderLoader, className, out var isFromCache);
 
-        Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        if (!isFromCache)
+            Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
         if (genericValues != null && genericValues.Length > 0)
         {
             // Copy shader
             shader = CopyShader(shader);
 
-            InstantiateGenericShaderUsingGenericValues(shader, genericValues);
+            InstantiateGenericShaderUsingGenericValues(shader, className, genericValues);
             Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
         }
 
@@ -481,10 +492,15 @@ public partial class SpirvBuilder
         return generics;
     }
 
-    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className)
+    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, out bool isFromCache)
     {
-        if (!shaderLoader.LoadExternalBuffer(className, out var buffer))
+        Console.WriteLine($"[Shader] Requesting non-generic class {className}");
+
+        if (!shaderLoader.LoadExternalBuffer(className, out var buffer, out isFromCache))
             throw new InvalidOperationException($"Could not load shader [{className}]");
+
+        if (!isFromCache)
+            Console.WriteLine($"[Shader] Loading non-generic class {className} for 1st time");
 
         return buffer;
     }

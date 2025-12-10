@@ -253,14 +253,8 @@ public sealed record ConstantBufferSymbol(string Name, List<(string Name, Symbol
 public sealed record ParamsSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
 public sealed record EffectSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
 
-public sealed record ShaderSymbol(string Name, int[] GenericArguments) : SymbolType
+public record ShaderSymbol(string Name, int[] GenericArguments) : SymbolType
 {
-    public List<(Symbol Symbol, VariableFlagsMask Flags)> Variables { get; init; } = [];
-
-    public List<(Symbol Symbol, FunctionFlagsMask Flags)> Methods { get; init; } = [];
-
-    public List<(StructuredType Type, int ImportedId)> StructTypes { get; init; } = [];
-
     public string ToClassName()
     {
         if (GenericArguments.Length == 0)
@@ -269,6 +263,34 @@ public sealed record ShaderSymbol(string Name, int[] GenericArguments) : SymbolT
         var className = new ShaderClassInstantiation(Name, GenericArguments);
         return className.ToClassName();
     }
+
+    public override string ToString()
+    {
+        var builder = new StringBuilder();
+        builder.Append(Name);
+        if (GenericArguments.Length > 0)
+        {
+            builder.Append('<');
+            for (int i = 0; i < GenericArguments.Length; i++)
+            {
+                if (i > 0)
+                    builder.Append(',');
+                builder.Append(GenericArguments[i]);
+            }
+            builder.Append('>');
+        }
+        return builder.ToString();
+    }
+}
+
+public sealed record LoadedShaderSymbol(string Name, int[] GenericArguments) : ShaderSymbol(Name, GenericArguments)
+{
+    public List<(Symbol Symbol, VariableFlagsMask Flags)> Variables { get; init; } = [];
+
+    public List<(Symbol Symbol, FunctionFlagsMask Flags)> Methods { get; init; } = [];
+
+    public List<(StructuredType Type, int ImportedId)> StructTypes { get; init; } = [];
+
 
     internal bool TryResolveSymbol(string name, out Symbol symbol)
     {
@@ -308,23 +330,7 @@ public sealed record ShaderSymbol(string Name, int[] GenericArguments) : SymbolT
         return false;
     }
 
-    public override string ToString()
-    {
-        var builder = new StringBuilder();
-        builder.Append(Name);
-        if (GenericArguments.Length > 0)
-        {
-            builder.Append('<');
-            for (int i = 0; i < GenericArguments.Length; i++)
-            {
-                if (i > 0)
-                    builder.Append(',');
-                builder.Append(GenericArguments[i]);
-            }
-            builder.Append('>');
-        }
-        return builder.ToString();
-    }
+    public override string ToString() => base.ToString();
 }
 
 public sealed record GenericLinkType : SymbolType;

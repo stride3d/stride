@@ -22,7 +22,7 @@ public partial class SymbolTable : ISymbolProvider
     public List<SymbolFrame> CurrentSymbols { get; } = new();
 
     // Only valid during compilation (not during ShaderMixin phase)
-    public ShaderSymbol? CurrentShader { get; set; }
+    public LoadedShaderSymbol? CurrentShader { get; set; }
     // Only valid during compilation (not during ShaderMixin phase)
     public List<ShaderClassInstantiation> InheritedShaders { get; set; }
 

@@ -30,7 +30,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var temp = new NewSpirvBuffer();
 
         var context = new SpirvContext();
-        var table = new SymbolTable();
+        var table = new SymbolTable { ShaderLoader = ShaderLoader };
 
         var effectEvaluator = new EffectEvaluator(ShaderLoader);
         shaderSource = effectEvaluator.EvaluateEffects(shaderSource);
@@ -406,12 +406,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
 
-        ExpandForeach(globalContext, context, buffer, mixinNode);
-
         Spv.Dis(buffer, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
         // Patch method calls (virtual calls & base calls)
-        PatchMethodCalls(globalContext, context, buffer, mixinNode);
+        ProcessMemberAccessAndForeach(globalContext, context, buffer, mixinNode);
 
         // Process reflection
         Dictionary<int, LinkInfo> linkInfos = new();
@@ -772,66 +770,60 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         SpirvBuilder.RemapIds(buffer, mixinNode.StartInstruction, mixinNode.EndInstruction, idRemapping);
     }
 
-    private static void ExpandForeach(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp, MixinNode mixinNode)
+    private static void ExpandForeach(SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, int index, OpForeachSDSL @foreach)
     {
-        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
+        // Find matching ForeachEnd (taking into account nested foreach)
+        var depth = 1;
+        var endIndex = index;
+        while (depth > 0 && ++endIndex < buffer.Count - 1)
         {
-            var i = temp[index];
+            if (buffer[endIndex].Op == Op.OpForeachSDSL)
+                depth++;
+            else if (buffer[endIndex].Op == Op.OpForeachEndSDSL)
+                depth--;
+        }
+        endIndex++;
 
-            if (i.Data.Op == Op.OpForeachSDSL && (OpForeachSDSL)i is { } @foreach)
+        if (depth > 0)
+            throw new InvalidOperationException("Could not find end of foreach instruction");
+
+        // Check the variable
+        if (!mixinNode.CompositionArrays.TryGetValue(@foreach.Collection, out var compositions))
+            throw new InvalidOperationException($"Could not find compositions for expression [{@foreach.Collection}]");
+
+        // Extract foreach buffer (with the foreach start/end)
+        var foreachBuffer = buffer[index..endIndex];
+        buffer.RemoveRange(index, endIndex - index, false);
+
+        var foreachBufferCopy = new List<OpData>();
+        // Note: Make sure we replace the OpForeachSDSL with a first OpNop, so that if a for() loop works fine and don't miss an instruction without having to do index--
+        foreachBufferCopy.Add(new OpData(new OpNop().InstructionMemory));
+        for (int j = 0; j < compositions.Length; ++j)
+        {
+            var idRemapping = new Dictionary<int, int>();
+
+            // Setup variable for iterator access
+            var accessChain = new OpAccessChain(0, context.Bound++, @foreach.Collection, [context.CompileConstant(j).Id]);
+            foreachBufferCopy.Add(new(accessChain.InstructionMemory));
+            idRemapping.Add(@foreach.ResultId, accessChain);
+
+            // Build a buffer with all foreach instructions (with new ids)
+            foreach (var i2 in foreachBuffer[1..^1]) // skip start/end
             {
-                // Find matching ForeachEnd (taking into account nested foreach)
-                var depth = 1;
-                var endIndex = index;
-                while (depth > 0 && ++endIndex < temp.Count - 1)
-                {
-                    if (temp[endIndex].Op == Op.OpForeachSDSL)
-                        depth++;
-                    else if (temp[endIndex].Op == Op.OpForeachEndSDSL)
-                        depth--;
-                }
-                endIndex++;
+                var i3 = new OpData(i2.Memory.Span);
+                // All result ids are remapped to new ids
+                if (i3.IdResult is int result)
+                    idRemapping.Add(result, context.Bound++);
+                SpirvBuilder.RemapIds(idRemapping, i3);
 
-                if (depth > 0)
-                    throw new InvalidOperationException("Could not find end of foreach instruction");
-
-                // Check the variable
-                if (!mixinNode.CompositionArrays.TryGetValue(@foreach.Collection, out var compositions))
-                    throw new InvalidOperationException($"Could not find compositions for expression [{@foreach.Collection}]");
-
-                // Extract foreach buffer (with the foreach start/end)
-                var foreachBuffer = temp[index..endIndex];
-                temp.RemoveRange(index, endIndex - index, false);
-
-                var foreachBufferCopy = new List<OpData>();
-                for (int j = 0; j < compositions.Length; ++j)
-                {
-                    var idRemapping = new Dictionary<int, int>();
-
-                    // Setup variable for iterator access
-                    var accessChain = new OpAccessChain(0, context.Bound++, @foreach.Collection, [context.CompileConstant(j).Id]);
-                    foreachBufferCopy.Add(new(accessChain.InstructionMemory));
-                    idRemapping.Add(@foreach.ResultId, accessChain);
-
-                    // Build a buffer with all foreach instructions (with new ids)
-                    foreach (var i2 in foreachBuffer[1..^1]) // skip start/end
-                    {
-                        var i3 = new OpData(i2.Memory.Span);
-                        // All result ids are remapped to new ids
-                        if (i3.IdResult is int result)
-                            idRemapping.Add(result, context.Bound++);
-                        SpirvBuilder.RemapIds(idRemapping, i3);
-
-                        foreachBufferCopy.Add(i3);
-                    }
-                }
-                temp.InsertRange(index, foreachBufferCopy.AsSpan());
-                AdjustIndicesAfterAddingInstructions(mixinNode, index, foreachBufferCopy.Count);
-
-                foreach (var inst in foreachBuffer)
-                    inst.Dispose();
+                foreachBufferCopy.Add(i3);
             }
         }
+        buffer.InsertRange(index, foreachBufferCopy.AsSpan());
+        AdjustIndicesAfterAddingInstructions(mixinNode, index, foreachBufferCopy.Count - foreachBuffer.Count);
+
+        foreach (var inst in foreachBuffer)
+            inst.Dispose();
     }
 
     private static void AdjustIndicesAfterAddingInstructions(MixinNode mixinNode, int insertIndex, int insertCount)
@@ -849,7 +841,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
-    private static void PatchMethodCalls(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp, MixinNode mixinNode)
+    private static void ProcessMemberAccessAndForeach(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp, MixinNode mixinNode)
     {
         var memberAccesses = new Dictionary<int, int>();
         var thisInstructions = new HashSet<int>();
@@ -866,7 +858,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             if (memberAccesses.Count > 0)
                 SpirvBuilder.RemapIds(memberAccesses, i.Data);
 
-            if (i.Data.Op == Op.OpThisSDSL && (OpThisSDSL)i is { } thisInstruction)
+            if (i.Data.Op == Op.OpForeachSDSL && (OpForeachSDSL)i is { } @foreach)
+            {
+                ExpandForeach(context, temp, mixinNode, index, @foreach);
+            }
+            else if (i.Data.Op == Op.OpThisSDSL && (OpThisSDSL)i is { } thisInstruction)
             {
                 thisInstructions.Add(thisInstruction.ResultId);
                 SetOpNop(i.Data.Memory.Span);
@@ -885,7 +881,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 if (mixinNode.CompositionArrays.TryGetValue(accessChain.BaseId, out var compositions))
                 {
-                    var compositionIndex = (int)SpirvBuilder.GetConstantValue(accessChain.Values.Elements.Span[0], context.GetBuffer());
+                    var compositionIndex = (int)SpirvBuilder.GetConstantValue(accessChain.Values.Elements.Span[0], context.GetBuffer(), temp);
                     compositionArrayAccesses.Add(accessChain.ResultId, compositions[compositionIndex]);
 
                     SetOpNop(i.Data.Memory.Span);
@@ -1062,7 +1058,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || temp[i].Op == Op.OpSDSLEffect
                 || temp[i].Op == Op.OpSDSLEffectEnd
                 || temp[i].Op == Op.OpConstantStringSDSL
-                || temp[i].Op == Op.OpTypeGenericLinkSDSL)
+                || temp[i].Op == Op.OpTypeGenericLinkSDSL
+                || temp[i].Op == Op.OpSDSLImportShader
+                || temp[i].Op == Op.OpSDSLImportFunction
+                || temp[i].Op == Op.OpSDSLImportVariable)
                 temp.RemoveAt(i--);
             else if (temp[i].Op == Op.OpDecorateString && ((OpDecorateString)temp[i]).Decoration.Value == Decoration.LinkSDSL)
                 temp.RemoveAt(i--);

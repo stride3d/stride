@@ -62,7 +62,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         Symbol functionSymbol;
         if (MemberCall != null)
         {
-            var type = (ShaderSymbol)((PointerType)context.ReverseTypes[MemberCall.Value.TypeId]).BaseType;
+            var type = (LoadedShaderSymbol)((PointerType)context.ReverseTypes[MemberCall.Value.TypeId]).BaseType;
             functionSymbol = type.Methods.Single(x => x.Symbol.Id.Name == Name).Symbol;
         }
         else
@@ -180,6 +180,7 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
                 case Operator.Inc:
                 case Operator.Dec:
                     {
+                        // Not supported yet
                         expression.ThrowIfSwizzle();
                         if (!isPointer)
                             throw new InvalidOperationException($"Can't use increment/decrement expression on non-pointer expression {Expression}");
@@ -369,15 +370,13 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 {
                     case (PointerType { BaseType: ShaderSymbol s }, MethodCall methodCall2):
                         // Emit OpAccessChain with everything so far
-                        // next start is i + 1 because current value doesn't add a call
                         EmitOpAccessChain(accessChainIds);
 
                         methodCall2.MemberCall = result;
                         result = methodCall2.Compile(table, compiler);
                         break;
-                    case (PointerType { BaseType: ShaderSymbol s }, Identifier field):
+                    case (PointerType { BaseType: LoadedShaderSymbol s }, Identifier field):
                         // Emit OpAccessChain with everything so far
-                        // next start is i + 1 because current value doesn't add a call
                         EmitOpAccessChain(accessChainIds);
 
                         if (!s.TryResolveSymbol(field.Name, out var matchingComponent))
@@ -492,6 +491,32 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                                 MatrixType m => new VectorType(m.BaseType, m.Rows),
                                 VectorType v => v.BaseType,
                             }, p.StorageClass);
+                            break;
+                        }
+                    case (PointerType { BaseType: var type }, PostfixIncrement postfix):
+                        {
+                            // Emit OpAccessChain with everything so far
+                            EmitOpAccessChain(accessChainIds);
+
+                            // Not supported yet
+                            result.ThrowIfSwizzle();
+
+                            var resultPointer = result;
+
+                            // This is what this chain return (value before modification)
+                            result = builder.AsValue(context, result);
+
+                            // Use integer so that it gets converted to proper type according to expression type
+                            var constant1 = context.CompileConstant(1);
+                            var modifiedValue = builder.BinaryOperation(context, result, postfix.Operator switch
+                            {
+                                Operator.Inc => Operator.Plus,
+                                Operator.Dec => Operator.Minus,
+                            }, constant1);
+
+                            // We store the modified value back in the variable
+                            builder.Insert(new OpStore(resultPointer.Id, modifiedValue.Id, null));
+
                             break;
                         }
                     default:

@@ -18,6 +18,18 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 
 
 
+public interface IShaderImporter
+{
+    ShaderSymbol Import(ShaderClassInstantiation classSource, NewSpirvBuffer buffer);
+}
+
+public class EmptyShaderImporter : IShaderImporter
+{
+    public ShaderSymbol Import(ShaderClassInstantiation classSource, NewSpirvBuffer buffer)
+    {
+        return new ShaderSymbol(classSource.ClassName, classSource.GenericArguments);
+    }
+}
 
 public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration(info)
 {
@@ -29,16 +41,18 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     // Note: We should make this method incremental (called many times in ShaderMixer)
     //       And possibly do the type deduplicating at the same time? (TypeDuplicateRemover)
 
-    public static void ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end, out Dictionary<int, string> names, out Dictionary<int, SymbolType> types)
+    public static void ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end, out Dictionary<int, string> names, out Dictionary<int, SymbolType> types, IShaderImporter? shaderImporter = null)
     {
         names = [];
         types = [];
 
-        ProcessNameAndTypes(buffer, start, end, names, types);
+        ProcessNameAndTypes(buffer, start, end, names, types, shaderImporter);
     }
 
-    public static void ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end, Dictionary<int, string> names, Dictionary<int, SymbolType> types)
+    public static void ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end, Dictionary<int, string> names, Dictionary<int, SymbolType> types, IShaderImporter? shaderImporter = null)
     {
+        var realShaderImporter = shaderImporter ?? new EmptyShaderImporter();
+
         var memberNames = new Dictionary<(int, int), string>();
         var blocks = new HashSet<int>();
         for (var i = start; i < end; i++)
@@ -172,11 +186,18 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 types.Add(typeSampler.ResultId, new SamplerType());
             }
+            else if (instruction.Op == Op.OpTypeGenericLinkSDSL && (OpTypeGenericLinkSDSL)instruction is { } typeGenericLink)
+            {
+                types.Add(typeGenericLink.ResultId, new GenericLinkType());
+            }
             // Unresolved content
             // This only happens during EvaluateInheritanceAndCompositions so it's not important to have all information valid
             else if (instruction.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)instruction is { } importShader)
             {
-                types.Add(importShader.ResultId, new ShaderSymbol(importShader.ShaderName, importShader.Values.Elements.Memory.ToArray()));
+                var classSource = new ShaderClassInstantiation(importShader.ShaderName, importShader.Values.Elements.Memory.ToArray());
+                var shaderSymbol = realShaderImporter.Import(classSource, buffer);
+
+                types.Add(importShader.ResultId, shaderSymbol);
             }
             else if (instruction.Op == Op.OpSDSLImportStruct && (OpSDSLImportStruct)instruction is { } importStruct)
             {
@@ -201,9 +222,26 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         }
     }
 
-    private static ShaderSymbol CreateShaderType(NewSpirvBuffer buffer, ShaderClassInstantiation classSource)
+    public class ShaderImporter(SymbolTable table) : IShaderImporter
     {
-        ProcessNameAndTypes(buffer, 0, buffer.Count, out var names, out var types);
+        public ShaderSymbol Import(ShaderClassInstantiation classSource, NewSpirvBuffer buffer)
+        {
+            // Already processed?
+            if (table.DeclaredTypes.TryGetValue(classSource.ToClassName(), out var symbolType))
+                return (ShaderSymbol)symbolType;
+
+            var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, ResolveStep.Compile, buffer);
+            classSource.Buffer = shader;
+            var shaderType = LoadExternalShaderType(table, classSource);
+            table.DeclaredTypes.TryAdd(shaderType.ToClassName(), shaderType);
+
+            return shaderType;
+        }
+    }
+
+    private static LoadedShaderSymbol CreateShaderType(SymbolTable table, NewSpirvBuffer buffer, ShaderClassInstantiation classSource)
+    {
+        ProcessNameAndTypes(buffer, 0, buffer.Count, out var names, out var types, new ShaderImporter(table));
 
         var variables = new List<(Symbol Symbol, VariableFlagsMask Flags)>();
         var methods = new List<(Symbol Symbol, FunctionFlagsMask Flags)>();
@@ -247,7 +285,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
         }
 
-        var shaderType = new ShaderSymbol(classSource.ClassName, classSource.GenericArguments)
+        var shaderType = new LoadedShaderSymbol(classSource.ClassName, classSource.GenericArguments)
         {
             Variables = variables,
             Methods = methods,
@@ -309,7 +347,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             SpirvBuilder.BuildInheritanceList(table.ShaderLoader, shaderClassSource, inheritanceList, ResolveStep.Compile, context.GetBuffer());
         }
 
-        var shaderSymbols = new List<ShaderSymbol>();
+        var shaderSymbols = new List<LoadedShaderSymbol>();
         foreach (var mixin in inheritanceList)
         {
             shaderSymbols.Add(mixin.Symbol = LoadExternalShaderType(table, mixin));
@@ -346,7 +384,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, ResolveStep.Compile, context.GetBuffer());
                     classSource.Buffer = shader;
                     var shaderType = LoadExternalShaderType(table, classSource);
-                    table.DeclaredTypes.TryAdd(shaderType.ToString(), shaderType);
+                    table.DeclaredTypes.TryAdd(shaderType.ToClassName(), shaderType);
 
                     // Resolve again (we don't use shaderType direclty, because it might lack info such as ArrayType)
                     memberType = svar.TypeName.ResolveType(table);
@@ -375,7 +413,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
         }
 
-        var currentShader = new ShaderSymbol(Name, openGenerics);
+        var currentShader = new LoadedShaderSymbol(Name, openGenerics);
         RegisterShaderType(table, currentShader);
 
         table.CurrentShader = currentShader;
@@ -406,7 +444,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         table.Pop();
     }
 
-    public static void Inherit(SymbolTable table, SpirvContext context, ShaderSymbol shaderType, bool addToRoot)
+    public static void Inherit(SymbolTable table, SpirvContext context, LoadedShaderSymbol shaderType, bool addToRoot)
     {
         var shaderId = context.GetOrRegister(shaderType);
 
@@ -423,11 +461,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         context.Add(new OpSDSLMixinInherit(shaderId));
     }
 
-    public static ShaderSymbol LoadExternalShaderType(SymbolTable table, ShaderClassInstantiation classSource)
+    public static LoadedShaderSymbol LoadExternalShaderType(SymbolTable table, ShaderClassInstantiation classSource)
     {
         var shaderBuffer = classSource.Buffer;
 
-        var shaderType = CreateShaderType(shaderBuffer, classSource);
+        var shaderType = CreateShaderType(table, shaderBuffer, classSource);
 
         RegisterShaderType(table, shaderType);
 

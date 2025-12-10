@@ -16,7 +16,7 @@ namespace Stride.Shaders.Spirv.Building;
 public interface IExternalShaderLoader
 {
     public void RegisterShader(string name, NewSpirvBuffer buffer);
-    public bool LoadExternalBuffer(string name, [MaybeNullWhen(false)] out NewSpirvBuffer bytecode);
+    public bool LoadExternalBuffer(string name, [MaybeNullWhen(false)] out NewSpirvBuffer bytecode, out bool isFromCache);
 }
 
 public abstract class ShaderLoaderBase : IExternalShaderLoader
@@ -30,14 +30,20 @@ public abstract class ShaderLoaderBase : IExternalShaderLoader
 
     public abstract bool LoadExternalFile(string name, [MaybeNullWhen(false)] out NewSpirvBuffer buffer);
 
-    public bool LoadExternalBuffer(string name, [MaybeNullWhen(false)] out NewSpirvBuffer buffer)
+    public bool LoadExternalBuffer(string name, [MaybeNullWhen(false)] out NewSpirvBuffer buffer, out bool isFromCache)
     {
-        if (!loadedShaders.ContainsKey(name) && !LoadExternalFile(name, out buffer))
+        if (loadedShaders.TryGetValue(name, out buffer))
+        {
+            isFromCache = true;
+            return true;
+        }
+
+        isFromCache = false;
+        if (!LoadExternalFile(name, out buffer))
         {
             throw new InvalidOperationException($"Shader {name} could not be found");
         }
 
-        buffer = loadedShaders[name];
         return true;
     }
 }
@@ -192,7 +198,7 @@ public class SpirvContext
                 StructType st => RegisterStructuredType(st.ToId(), st),
                 FunctionType f => RegisterFunctionType(f),
                 PointerType p => RegisterPointerType(p),
-                ShaderSymbol s => ImportShaderType(s),
+                LoadedShaderSymbol s => ImportShaderType(s),
                 Texture1DType t => Buffer.Add(new OpTypeImage(Bound++, GetOrRegister(t.ReturnType), t.Dimension, t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
                 Texture2DType t => Buffer.Add(new OpTypeImage(Bound++, GetOrRegister(t.ReturnType), t.Dimension, t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
                 Texture3DType t => Buffer.Add(new OpTypeImage(Bound++, GetOrRegister(t.ReturnType), t.Dimension, t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
@@ -217,7 +223,7 @@ public class SpirvContext
         return Buffer.Add(new OpTypeArray(Bound++, GetOrRegister(a.BaseType), sizeId)).IdResult;
     }
 
-    public int ImportShaderType(ShaderSymbol shaderSymbol)
+    public int ImportShaderType(LoadedShaderSymbol shaderSymbol)
     {
         FluentAdd(new OpSDSLImportShader(Bound++, new(shaderSymbol.Name), new(shaderSymbol.GenericArguments.AsSpan())), out var shader);
         AddName(shader.ResultId, shaderSymbol.Name);
