@@ -75,6 +75,14 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         if (cross.ContextCreateCompiler(context, backend, ir, CaptureMode.Copy, &compiler) != Result.Success)
             throw new Exception($"{cross.ContextCreateCompiler(context, backend, ir, CaptureMode.Copy, &compiler)} : could not create compiler");
 
+        if (backend == Backend.Hlsl)
+        {
+            CompilerOptions* compilerOptions = null;
+            cross.CompilerCreateCompilerOptions(compiler, ref compilerOptions);
+            cross.CompilerOptionsSetUint(compilerOptions, CompilerOption.HlslShaderModel, 50);
+            cross.CompilerInstallCompilerOptions(compiler, compilerOptions);
+        }
+
         if (entryPoint != null)
         {
             if (cross.CompilerSetEntryPoint(compiler, entryPoint.Value.RealName, entryPoint.Value.ExecutionModel) != Result.Success)
@@ -86,6 +94,24 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
 
         if (cross.CompilerBuildCombinedImageSamplers(compiler) != Result.Success)
             throw new Exception($"{cross.CompilerBuildCombinedImageSamplers(compiler)} : Could not enable combined image samplers");
+
+        // HLSL: remove type_ prefix from cbuffer (they get names from struct instead of cbuffer variable itself)
+        if (backend == Backend.Hlsl)
+        {
+            ReflectedResource* resourcesList;
+            nuint resourcesCount;
+            cross.ResourcesGetResourceListForType(resources, ResourceType.UniformBuffer, &resourcesList, &resourcesCount);
+            for (uint i = 0; i < resourcesCount; ++i)
+            {
+                var resource = resourcesList[i];
+                var cbufferName = Marshal.PtrToStringAnsi((IntPtr)resource.Name);
+                if (cbufferName.StartsWith("type."))
+                {
+                    cbufferName = cbufferName.Substring("type.".Length);
+                    cross.CompilerSetName(compiler, resource.BaseTypeId, cbufferName);
+                }
+            }
+        }
 
         nuint numSamplers = 0;
         CombinedImageSampler* combinedImageSamplers = null;
