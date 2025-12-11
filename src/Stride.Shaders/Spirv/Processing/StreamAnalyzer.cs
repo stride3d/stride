@@ -42,16 +42,25 @@ namespace Stride.Shaders.Spirv.Processing
         {
             table.TryResolveSymbol("VSMain", out var entryPointVS);
             var entryPointPS = table.ResolveSymbol("PSMain");
+
+            if (entryPointVS.Type is FunctionGroupType)
+                entryPointVS = entryPointVS.GroupMembers[^1];
+            if (entryPointPS.Type is FunctionGroupType)
+                entryPointPS = entryPointPS.GroupMembers[^1];
+
             if (entryPointPS.IdRef == 0)
                 throw new InvalidOperationException($"{nameof(StreamAnalyzer)}: At least a pixel shader is expected");
 
             var analysisResult = Analyze(buffer, context);
             var streams = analysisResult.Streams;
 
-            // Expected at the end of pixel shader
+            AnalyzeStreamReadWrites(buffer, [], entryPointPS.IdRef, streams);
+
+            // If written to, they are expected at the end of pixel shader
             foreach (var stream in streams)
             {
-                if (stream.Value.Stream.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_TARGET") || semantic.ToUpperInvariant() == "SV_DEPTH"))
+                if (stream.Value.Stream.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_TARGET") || semantic.ToUpperInvariant() == "SV_DEPTH")
+                    && stream.Value.Stream.Write)
                     stream.Value.Stream.Output = true;
             }
 
@@ -66,10 +75,14 @@ namespace Stride.Shaders.Spirv.Processing
             PropagateStreamsFromPreviousStage(streams);
             if (entryPointVS.IdRef != 0)
             {
+                AnalyzeStreamReadWrites(buffer, [], entryPointVS.IdRef, streams);
+
                 // Expected at the end of vertex shader
                 foreach (var stream in streams)
                 {
-                    if (stream.Value.Stream.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_POSITION")))
+                    // If written to, they are expected at the end of pixel shader
+                    if (stream.Value.Stream.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_POSITION"))
+                        && stream.Value.Stream.Write)
                         stream.Value.Stream.Output = true;
                 }
 
@@ -214,8 +227,6 @@ namespace Stride.Shaders.Spirv.Processing
         {
             var streams = analysisResult.Streams;
 
-            ProcessMethod(buffer, [], entryPointId, streams);
-
             var stage = executionModel switch
             {
                 ExecutionModel.Fragment => "PS",
@@ -351,7 +362,7 @@ namespace Stride.Shaders.Spirv.Processing
         /// <summary>
         /// Figure out (recursively) which streams are being read from and written to.
         /// </summary>
-        private void ProcessMethod(NewSpirvBuffer buffer, List<int> callStack, int functionId, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
+        private void AnalyzeStreamReadWrites(NewSpirvBuffer buffer, List<int> callStack, int functionId, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
         {
             var methodStart = FindMethodStart(buffer, functionId);
             for (var index = methodStart; index < buffer.Count; index++)
@@ -386,7 +397,7 @@ namespace Stride.Shaders.Spirv.Processing
                     if (callStack.Contains(functionId))
                         throw new InvalidOperationException($"Recursive call with method id {functionId}");
                     callStack.Add(functionId);
-                    ProcessMethod(buffer, callStack, call.Function, streams);
+                    AnalyzeStreamReadWrites(buffer, callStack, call.Function, streams);
                     callStack.RemoveAt(callStack.Count - 1);
                 }
             }
