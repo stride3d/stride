@@ -13,7 +13,7 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
 {
     static readonly Cross cross = Cross.GetApi();
 
-    public List<(string Name, ExecutionModel ExecutionModel)> GetEntryPoints(Backend backend = Backend.Hlsl)
+    public List<(string RealName, string TranslatedName, ExecutionModel ExecutionModel)> GetEntryPoints(Backend backend = Backend.Hlsl)
     {
         Context* context = null;
         ParsedIr* ir = null;
@@ -33,7 +33,7 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         if (cross.ContextCreateCompiler(context, backend, ir, CaptureMode.Copy, &compiler) != Result.Success)
             throw new Exception($"{cross.ContextCreateCompiler(context, backend, ir, CaptureMode.Copy, &compiler)} : could not create compiler");
 
-        var result = new List<(string Name, ExecutionModel ExecutionModel)>();
+        var result = new List<(string RealName, string TranslatedName, ExecutionModel ExecutionModel)>();
         EntryPoint * entry_points = null;
         nuint num_entry_points = 0;
         bool entryPointFound = false;
@@ -42,7 +42,7 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         {
             var entryPointModel = entry_points[i].ExecutionModel;
             var entryPointName = Marshal.PtrToStringAnsi((IntPtr)entry_points[i].Name)!;
-            result.Add((entryPointName, entryPointModel));
+            result.Add((entryPointName, "main", entryPointModel));
         }
 
 
@@ -52,7 +52,7 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         return result;
     }
 
-    public readonly string Translate(Backend backend = Backend.Hlsl, (string Name, ExecutionModel ExecutionModel)? entryPoint = null)
+    public readonly string Translate(Backend backend = Backend.Hlsl, (string RealName, string TranslatedName, ExecutionModel ExecutionModel)? entryPoint = null)
     {
         string? translatedCode = null;
         Context* context = null;
@@ -77,8 +77,8 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
 
         if (entryPoint != null)
         {
-            if (cross.CompilerSetEntryPoint(compiler, entryPoint.Value.Name, entryPoint.Value.ExecutionModel) != Result.Success)
-                throw new Exception($"{cross.CompilerSetEntryPoint(compiler, entryPoint.Value.Name, entryPoint.Value.ExecutionModel)} : could not set entry point");
+            if (cross.CompilerSetEntryPoint(compiler, entryPoint.Value.RealName, entryPoint.Value.ExecutionModel) != Result.Success)
+                throw new Exception($"{cross.CompilerSetEntryPoint(compiler, entryPoint.Value.RealName, entryPoint.Value.ExecutionModel)} : could not set entry point");
         }
 
         if (cross.CompilerCreateShaderResources(compiler, &resources) != Result.Success)
