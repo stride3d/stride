@@ -176,8 +176,8 @@ public struct TypeDuplicateRemover : INanoPass
 
         // Covers OpTypeVoid, OpTypeBool, OpTypeInt, OpTypeFloat at the same time (no interdependencies)
         ProcessInstructions(buffer, instructionsByOp, Op.OpTypeVoid, Op.OpTypeFloat, false, comparer);
-        // Covers OpTypeVector, OpTypeMatrix at the same time
-        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeVector, Op.OpTypeMatrix, true, comparer);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeVector, Op.OpTypeVector, true, comparer);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeMatrix, Op.OpTypeMatrix, true, comparer);
 
         ProcessInstructions(buffer, instructionsByOp, Op.OpTypeArray, Op.OpTypeRuntimeArray, true, comparer);
 
