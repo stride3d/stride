@@ -371,8 +371,8 @@ public partial class SpirvBuilder
         for (var index = 0; index < shader.Count; index++)
         {
             var i = shader[index];
-            if (i.Op == Op.OpMemberDecorateString
-                && ((OpMemberDecorateString)i) is { Decoration: { Value: Decoration.LinkIdSDSL, Parameters: { } m } } linkDecorate)
+            if (i.Op == Op.OpMemberDecorate
+                && ((OpMemberDecorate)i) is { Decoration: { Value: Decoration.LinkIdSDSL, Parameters: { } m } } linkDecorate)
             {
                 using var n = new LiteralValue<int>(m.Span);
                 if (resolvedParameters.TryGetValue(n.Value, out var resolvedValue))

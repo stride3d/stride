@@ -69,7 +69,7 @@ public partial class InstructionInfo
             OrderGroup[(e, null)] = group;
 
         group++;
-        foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpType") || x.ToString().StartsWith("OpConstant") || x.ToString().StartsWith("OpSpec")))
+        foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpType") || x.ToString().StartsWith("OpConstant") || x.ToString().StartsWith("OpSpec") || x == Op.OpSDSLGenericParameter))
             OrderGroup[(e, null)] = group;
 
         group++;

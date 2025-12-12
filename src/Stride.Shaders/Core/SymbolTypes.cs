@@ -116,6 +116,7 @@ public sealed partial record MatrixType(ScalarType BaseType, int Rows, int Colum
 /// <param name="Size">The size of the array. If -1, it means size is not defined, such as using [].</param>
 public sealed record ArrayType(SymbolType BaseType, int Size, int? SizeExpressionId = null) : SymbolType()
 {
+    public override string ToId() => $"{BaseType.ToId()}[{(Size != -1 ? Size : string.Empty)}]";
     public override string ToString() => $"{BaseType}[{(Size != -1 ? Size : string.Empty)}]";
 }
 public record StructuredType(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : SymbolType()
@@ -151,7 +152,11 @@ public record StructuredType(string Name, List<(string Name, SymbolType Type, Ty
 
 }
 
-public sealed record StructType(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : StructuredType(Name, Members);
+public sealed record StructType(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : StructuredType(Name, Members)
+{
+    public override string ToString() => $"struct {base.ToString()}";
+}
+
 public sealed record BufferType(SymbolType BaseType, int Size) : SymbolType()
 {
     public override string ToString() => $"Buffer<{BaseType}, {Size}>";
@@ -249,6 +254,7 @@ public sealed record StreamsSymbol : SymbolType;
 public sealed record ConstantBufferSymbol(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : StructuredType(Name, Members)
 {
     public override string ToId() => $"type.{Name}";
+    public override string ToString() => $"cbuffer {base.ToString()}";
 }
 public sealed record ParamsSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
 public sealed record EffectSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;

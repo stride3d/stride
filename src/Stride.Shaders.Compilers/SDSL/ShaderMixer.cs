@@ -59,12 +59,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Process reflection
         ProcessReflection(globalContext, context, temp, rootMixin);
 
-        temp.Sort();
+        foreach (var inst in context)
+            temp.Add(inst.Data);
 
         CleanupUnnecessaryInstructions(temp);
 
-        foreach (var inst in context)
-            temp.Add(inst.Data);
+        temp.Sort();
 
         // Final processing
         SpirvProcessor.Process(temp);
@@ -1222,9 +1222,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || temp[i].Op == Op.OpSDSLImportFunction
                 || temp[i].Op == Op.OpSDSLImportVariable)
                 temp.RemoveAt(i--);
-            else if (temp[i].Op == Op.OpDecorateString && ((OpDecorateString)temp[i]).Decoration.Value == Decoration.LinkSDSL)
+            else if (temp[i].Op == Op.OpDecorate && ((OpDecorate)temp[i]).Decoration.Value is Decoration.LinkIdSDSL)
                 temp.RemoveAt(i--);
-            else if (temp[i].Op == Op.OpMemberDecorateString && ((OpMemberDecorateString)temp[i]).Decoration.Value == Decoration.LinkSDSL)
+            else if (temp[i].Op == Op.OpMemberDecorate && ((OpMemberDecorate)temp[i]).Decoration.Value == Decoration.LinkIdSDSL)
+                temp.RemoveAt(i--);
+            else if (temp[i].Op == Op.OpDecorateString && ((OpDecorateString)temp[i]).Decoration.Value is Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
+                temp.RemoveAt(i--);
+            else if (temp[i].Op == Op.OpMemberDecorateString && ((OpMemberDecorateString)temp[i]).Decoration.Value is Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
                 temp.RemoveAt(i--);
         }
     }

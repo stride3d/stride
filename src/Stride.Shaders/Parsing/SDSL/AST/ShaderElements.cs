@@ -291,7 +291,7 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
             {
                 var linkInfo = ProcessLinkAttributes(table, Info, member.Attributes);
                 if (linkInfo.LinkId is int linkId)
-                    context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkIdSDSL(linkId)));
+                    context.Add(new OpMemberDecorate(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkIdSDSL(linkId)));
                 else if (linkInfo.LinkName != null)
                     context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkSDSL(linkInfo.LinkName)));
             }
@@ -345,7 +345,7 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
     {
         var linkInfo = CBuffer.ProcessLinkAttributes(table, info, attributes);
         if (linkInfo.LinkId is int linkId)
-            context.Add(new OpDecorateString(variableId, ParameterizedFlags.DecorationLinkIdSDSL(linkId)));
+            context.Add(new OpDecorate(variableId, ParameterizedFlags.DecorationLinkIdSDSL(linkId)));
         else
             context.Add(new OpDecorateString(variableId, ParameterizedFlags.DecorationLinkSDSL(linkInfo.LinkName ?? $"{shaderClass.Name}.{memberName}")));
     }
