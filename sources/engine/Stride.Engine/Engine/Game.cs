@@ -443,7 +443,7 @@ namespace Stride.Engine
                     if (InputSourceWindowsXInput.IsSupported())
                         inputManager.Sources.Add(new InputSourceWindowsXInput());
 #if STRIDE_INPUT_RAWINPUT
-                    if (rawInputEnabled && context is GameContextWinforms gameContextWinforms)
+                    if (rawInputEnabled && Context is GameContextWinforms gameContextWinforms)
                         inputManager.Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));
 #endif
 #endif
