@@ -787,7 +787,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         SpirvBuilder.RemapIds(buffer, mixinNode.StartInstruction, mixinNode.EndInstruction, idRemapping);
     }
 
-    private static void ExpandForeach(SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, int index, OpForeachSDSL @foreach)
+    private static void ExpandForeach(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, int index, OpForeachSDSL @foreach)
     {
         // Find matching ForeachEnd (taking into account nested foreach)
         var depth = 1;
@@ -826,16 +826,25 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             foreachBufferCopy.Add(new(accessChain.InstructionMemory));
             idRemapping.Add(@foreach.ResultId, accessChain);
 
-            // Build a buffer with all foreach instructions (with new ids)
-            foreach (var i2 in foreachBuffer[1..^1]) // skip start/end
+            // Do a first pass to find all IDs (OpBranch might point to OpLabel which are defined further)
+            foreach (var i in foreachBuffer[1..^1])
             {
-                var i3 = new OpData(i2.Memory.Span);
-                // All result ids are remapped to new ids
-                if (i3.IdResult is int result)
+                if (i.IdResult is int result)
+                {
+                    // Also duplicate name (if any)
+                    if (globalContext.Names.TryGetValue(result, out var name))
+                        context.AddName(context.Bound, name);
                     idRemapping.Add(result, context.Bound++);
-                SpirvBuilder.RemapIds(idRemapping, i3);
+                }
+            }
+            // Build a buffer with all foreach instructions (with new ids)
+            foreach (var i in foreachBuffer[1..^1]) // skip start/end
+            {
+                var i2 = new OpData(i.Memory.Span);
+                // All result ids are remapped to new ids
+                SpirvBuilder.RemapIds(idRemapping, i2);
 
-                foreachBufferCopy.Add(i3);
+                foreachBufferCopy.Add(i2);
             }
         }
         buffer.InsertRange(index, foreachBufferCopy.AsSpan());
@@ -879,7 +888,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             if (i.Data.Op == Op.OpForeachSDSL && (OpForeachSDSL)i is { } @foreach)
             {
-                ExpandForeach(context, temp, mixinNode, index, @foreach);
+                ExpandForeach(globalContext, context, temp, mixinNode, index, @foreach);
             }
             else if (i.Data.Op == Op.OpThisSDSL && (OpThisSDSL)i is { } thisInstruction)
             {

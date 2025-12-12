@@ -37,7 +37,7 @@ shader CompositionTest : CompositionTestArray
     stream float4 ColorTarget : SV_Target0;
 
 	stage compose CompositionBase CompsStage[];
-	stage compose CompositionBase Comps[];
+	compose CompositionBase Comps[];
 
 	void PSMain()
 	{
