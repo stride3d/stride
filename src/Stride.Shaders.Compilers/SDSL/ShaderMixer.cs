@@ -148,7 +148,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     var member = cbuffer.StructType.Members[memberIndex];
 
-                    var link = $"{cbuffer.ShaderName}.{member.Name}";
+                    var link = $"{TypeName.GetTypeNameWithoutGenerics(cbuffer.ShaderName)}.{member.Name}";
                     if (!compositionPath.IsNullOrEmpty())
                         link = $"{link}.{compositionPath}";
 
@@ -1065,7 +1065,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     var name = globalContext.Names[variable.ResultId];
                     linkInfos.TryGetValue(variable.ResultId, out var linkInfo);
-                    var linkName = linkInfo.LinkName ?? $"{currentShaderName}.{name}";
+                    var linkName = linkInfo.LinkName ?? $"{TypeName.GetTypeNameWithoutGenerics(currentShaderName)}.{name}";
                     if (mixinNode.CompositionPath != null)
                         linkName = $"{linkName}.{mixinNode.CompositionPath}";
 

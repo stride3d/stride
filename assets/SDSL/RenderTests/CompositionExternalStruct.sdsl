@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#0A0A0A0A, cbuffer.PerView=(Comp0.Light=(A=3), Comp1.Light=(A=7)))
+// PSMain(ExpectedResult=#0A0A0A0A, cbuffer.PerView=(Light.Comp0=(A=3), Light.Comp1=(A=7)))
 
 namespace Stride.Shaders.Tests;
 

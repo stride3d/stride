@@ -242,7 +242,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
                 var cbufferData = new byte[cbReflection.Size];
                 foreach (var cbufferParameter in TestHeaderParser.ParseParameters(param.Value))
                 {
-                    var cbMemberReflection = cbReflection.Members.Single(x => x.KeyInfo.KeyName == cbufferParameter.Key);
+                    var cbMemberReflection = cbReflection.Members.Single(x => x.KeyInfo.KeyName.EndsWith(cbufferParameter.Key));
 
                     fixed (byte* cbufferDataPtr = cbufferData)
                     {

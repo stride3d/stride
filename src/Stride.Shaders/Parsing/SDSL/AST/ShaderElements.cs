@@ -230,7 +230,8 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
                         if (table.TryResolveSymbol(linkLiteral.Value, out var linkLiteralSymbol))
                         {
                             // TODO: make it a warning only?
-                            table.Errors.Add(new(info, "LinkType generics should be passed without quotes"));
+                            //table.Errors.Add(new(info, "LinkType generics should be passed without quotes"));
+                            return (null, linkLiteralSymbol.IdRef);
                         }
 
                         return (linkLiteral.Value, null);
@@ -248,8 +249,6 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
                         throw new NotImplementedException($"Attribute {attribute} is not supported");
                     }
                 }
-                else
-                    throw new NotImplementedException($"Attribute {attribute} is not supported");
             }
         }
 
@@ -293,8 +292,8 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
                 var linkInfo = ProcessLinkAttributes(table, Info, member.Attributes);
                 if (linkInfo.LinkId is int linkId)
                     context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkIdSDSL(linkId)));
-                else
-                    context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkSDSL(linkInfo.LinkName ?? $"{shaderClass.Name}.{member.Name}")));
+                else if (linkInfo.LinkName != null)
+                    context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkSDSL(linkInfo.LinkName)));
             }
         }
 
