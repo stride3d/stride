@@ -51,7 +51,7 @@ namespace Stride.Shaders.Compilers.SDSL
                                 var instSource = new ShaderClassSource(mixinComposeArray.Mixin);
                                 var evaluatedSource = EvaluateEffects(instSource);
 
-                                MergeCompositionArray(mixinTree, mixinComposeArray.Identifier, evaluatedSource);
+                                MergeCompositionArrayItem(mixinTree, mixinComposeArray.Identifier, evaluatedSource);
                             }
                         }
 
@@ -62,6 +62,10 @@ namespace Stride.Shaders.Compilers.SDSL
                 case ShaderMixinSource mixinSource:
                     {
                         var result = new ShaderMixinSource();
+                        foreach (var macro in mixinSource.Macros)
+                        {
+                            result.Macros.Add(macro);
+                        }
                         foreach (var mixin in mixinSource.Mixins)
                         {
                             var evaluatedMixin = EvaluateEffects(mixin);
@@ -71,7 +75,14 @@ namespace Stride.Shaders.Compilers.SDSL
                         foreach (var composition in mixinSource.Compositions)
                         {
                             var evaluatedMixin = EvaluateEffects(composition.Value);
-                            MergeComposition(result, composition.Key, evaluatedMixin);
+                            if (evaluatedMixin is ShaderArraySource shaderArraySource)
+                            {
+                                MergeCompositionArray(result, composition.Key, shaderArraySource);
+                            }
+                            else
+                            {
+                                MergeComposition(result, composition.Key, evaluatedMixin);
+                            }
                         }
 
                         return result;
@@ -82,7 +93,7 @@ namespace Stride.Shaders.Compilers.SDSL
                         foreach (var mixin in arraySource.Values)
                         {
                             var evaluatedMixin = EvaluateEffects(mixin);
-                            result.Add(result);
+                            result.Add(evaluatedMixin);
                         }
                         return result;
                     }
@@ -123,13 +134,21 @@ namespace Stride.Shaders.Compilers.SDSL
             Merge((ShaderMixinSource)composition, evaluatedSource);
         }
 
-        public void MergeCompositionArray(ShaderMixinSource mixinTree, string compositionName, ShaderSource evaluatedSource)
+        public void MergeCompositionArray(ShaderMixinSource mixinTree, string compositionName, ShaderArraySource evaluatedSource)
         {
-            if (!mixinTree.Compositions.TryGetValue(compositionName, out var source))
-                mixinTree.Compositions.Add(compositionName, source = new ShaderArraySource());
+            if (!mixinTree.Compositions.TryGetValue(compositionName, out var composition))
+                mixinTree.Compositions.Add(compositionName, composition = new ShaderArraySource());
 
-            var arraySource = (ShaderArraySource)source;
+            var arraySource = (ShaderArraySource)composition;
+            arraySource.Values.AddRange(evaluatedSource.Values);
+        }
 
+        public void MergeCompositionArrayItem(ShaderMixinSource mixinTree, string compositionName, ShaderSource evaluatedSource)
+        {
+            if (!mixinTree.Compositions.TryGetValue(compositionName, out var composition))
+                mixinTree.Compositions.Add(compositionName, composition = new ShaderArraySource());
+
+            var arraySource = (ShaderArraySource)composition;
             arraySource.Add(evaluatedSource);
         }
     }
