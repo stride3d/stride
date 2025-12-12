@@ -13,7 +13,7 @@ public abstract class ShaderElement(TextLocation info) : Node(info)
 {
     public SymbolType? Type { get; set; }
 
-    public virtual void ProcessSymbol(SymbolTable table)
+    public virtual void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
     }
 }
@@ -136,12 +136,12 @@ public abstract class ShaderBuffer(string name, TextLocation info) : ShaderEleme
     public string Name { get; set; } = name;
     public List<ShaderMember> Members { get; set; } = [];
 
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         var fields = new List<(string Name, SymbolType Type, TypeModifier TypeModifier)>();
         foreach (var smem in Members)
         {
-            smem.Type = smem.TypeName.ResolveType(table);
+            smem.Type = smem.TypeName.ResolveType(table, context);
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
 
             fields.Add((smem.Name, smem.Type, smem.TypeModifier));
@@ -185,12 +185,12 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
     public Identifier TypeName { get; set; } = typename;
     public List<ShaderStructMember> Members { get; set; } = [];
 
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         var fields = new List<(string Name, SymbolType Type, TypeModifier TypeModifier)>();
         foreach (var smem in Members)
         {
-            smem.Type = smem.TypeName.ResolveType(table);
+            smem.Type = smem.TypeName.ResolveType(table, context);
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
 
             fields.Add((smem.Name, smem.Type, smem.TypeModifier));

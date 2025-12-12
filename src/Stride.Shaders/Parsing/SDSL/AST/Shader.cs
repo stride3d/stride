@@ -143,7 +143,14 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             else if (instruction.Op == Op.OpTypeArray && (OpTypeArray)instruction is { } typeArray)
             {
                 var innerType = types[typeArray.ElementType];
-                types.Add(typeArray.ResultId, new ArrayType(innerType, (int)SpirvBuilder.GetConstantValue(typeArray.Length, buffer)));
+                if (SpirvBuilder.TryGetConstantValue(typeArray.Length, out var arraySizeObject, buffer))
+                {
+                    types.Add(typeArray.ResultId, new ArrayType(innerType, (int)arraySizeObject));
+                }
+                else
+                {
+                    types.Add(typeArray.ResultId, new ArrayType(innerType, -1, typeArray.Length));
+                }
             }
             else if (instruction.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)instruction is { } typeRuntimeArray)
             {
@@ -312,7 +319,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             for (int i = 0; i < Generics.Parameters.Count; i++)
             {
                 var genericParameter = Generics.Parameters[i];
-                var genericParameterType = genericParameter.TypeName.ResolveType(table);
+                var genericParameterType = genericParameter.TypeName.ResolveType(table, context);
                 table.DeclaredTypes.TryAdd(genericParameterType.ToString(), genericParameterType);
 
                 var genericParameterTypeId = context.GetOrRegister(genericParameterType);
@@ -363,10 +370,10 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         {
             if (member is ShaderMethod func)
             {
-                var ftype = new FunctionType(func.ReturnTypeName.ResolveType(table), []);
+                var ftype = new FunctionType(func.ReturnTypeName.ResolveType(table, context), []);
                 foreach (var arg in func.Parameters)
                 {
-                    var argSym = arg.TypeName.ResolveType(table);
+                    var argSym = arg.TypeName.ResolveType(table, context);
                     table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
                     arg.Type = new PointerType(argSym, Specification.StorageClass.Function);
                     ftype.ParameterTypes.Add(arg.Type);
@@ -377,7 +384,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (member is ShaderMember svar)
             {
-                if (!svar.TypeName.TryResolveType(table, out var memberType))
+                if (!svar.TypeName.TryResolveType(table, context, out var memberType))
                 {
                     if (svar.TypeName.Name.Contains("<"))
                         throw new NotImplementedException("Can't have member variables with generic shader types");
@@ -388,7 +395,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     table.DeclaredTypes.TryAdd(shaderType.ToClassName(), shaderType);
 
                     // Resolve again (we don't use shaderType direclty, because it might lack info such as ArrayType)
-                    memberType = svar.TypeName.ResolveType(table);
+                    memberType = svar.TypeName.ResolveType(table, context);
                 }
 
                 var storageClass = Specification.StorageClass.Private;
@@ -402,7 +409,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 foreach (var cbMember in cb.Members)
                 {
-                    cbMember.Type = cbMember.TypeName.ResolveType(table);
+                    cbMember.Type = cbMember.TypeName.ResolveType(table, context);
                     //var symbol = new Symbol(new(cbMember.Name, SymbolKind.CBuffer), cbMember.Type);
                     //symbols.Add(symbol);
                 }
@@ -438,7 +445,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         foreach (var member in Elements)
         {
-            member.ProcessSymbol(table);
+            member.ProcessSymbol(table, context);
         }
 
         foreach (var member in Elements.OfType<ShaderStruct>())

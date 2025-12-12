@@ -26,6 +26,12 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
 
     public abstract SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler);
 
+    // Only used for constant expression which should stay in the context buffer (not compiled inside a OpFunction)
+    public virtual SpirvValue CompileConstantValue(SymbolTable table, SpirvContext context)
+    {
+        throw new NotImplementedException();
+    }
+
     public SymbolType? ValueType { get => field ?? throw new InvalidOperationException($"Can't query {nameof(ValueType)} before calling {nameof(CompileAsValue)}"); private set; }
 
     public virtual SpirvValue CompileAsValue(SymbolTable table, CompilerUnit compiler)
@@ -238,7 +244,7 @@ public class CastExpression(TypeName typeName, Operator op, Expression expressio
     public unsafe override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var castType = TypeName.ResolveType(table);
+        var castType = TypeName.ResolveType(table, context);
         var value = Expression.CompileAsValue(table, compiler);
 
         Type = castType;
@@ -383,7 +389,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             throw new InvalidOperationException();
 
                         // TODO: figure out instance (this vs composition)
-                        result = Identifier.EmitSymbol(compiler, builder, context, matchingComponent, result.Id);
+                        result = Identifier.EmitSymbol(builder.GetBuffer(), ref builder.Position, context, matchingComponent, false, result.Id);
                         accessor.Type = matchingComponent.Type;
 
                         break;

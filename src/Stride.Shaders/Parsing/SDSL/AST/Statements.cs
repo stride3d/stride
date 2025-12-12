@@ -91,7 +91,8 @@ public class DeclaredVariableAssign(Identifier variable, bool isConst, TextLocat
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        Variable.Type = TypeName.ResolveType(table);
+        var (builder, context) = compiler;
+        Variable.Type = TypeName.ResolveType(table, context);
         var initialValue = Value?.CompileAsValue(table, compiler);
         if (Value is not null && Value.Type != Variable.Type)
             table.Errors.Add(new(TypeName.Info, "wrong type"));
@@ -144,7 +145,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         }
         else
         {
-            valueType = TypeName.ResolveType(table);
+            valueType = TypeName.ResolveType(table, context);
             table.DeclaredTypes.TryAdd(TypeName.ToString(), valueType);
         }
 

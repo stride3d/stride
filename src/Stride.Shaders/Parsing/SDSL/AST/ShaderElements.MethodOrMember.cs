@@ -238,15 +238,16 @@ public class ShaderMethod(
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
+        var (builder, context) = compiler;
+
         table.Push();
         foreach (var arg in Parameters)
         {
-            var argSym = arg.TypeName.ResolveType(table);
+            var argSym = arg.TypeName.ResolveType(table, context);
             table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
             arg.Type = argSym;
         }
 
-        var (builder, context) = compiler;
         if (Type is FunctionType ftype)
         {
             builder.BeginFunction(context, function);

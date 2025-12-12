@@ -139,6 +139,18 @@ public partial class SpirvBuilder
         return inheritanceList[index];
     }
 
+    public static bool TryGetInstructionById(int constantId, out OpDataIndex instruction, params ReadOnlySpan<NewSpirvBuffer> buffers)
+    {
+        foreach (var buffer in buffers)
+        {
+            if (buffer.TryGetInstructionById(constantId, out instruction))
+                return true;
+        }
+
+        instruction = default;
+        return false;
+    }
+
     public static object GetConstantValue(int constantId, params ReadOnlySpan<NewSpirvBuffer> buffers)
     {
         foreach (var buffer in buffers)
@@ -152,12 +164,41 @@ public partial class SpirvBuilder
         throw new Exception("Cannot find constant instruction for id " + constantId);
     }
 
+    public static bool TryGetConstantValue(int constantId, out object value, params ReadOnlySpan<NewSpirvBuffer> buffers)
+    {
+        foreach (var buffer in buffers)
+        {
+            if (buffer.TryGetInstructionById(constantId, out var constant))
+            {
+                return TryGetConstantValue(constant.Data, out value, buffers);
+            }
+        }
+
+        value = default;
+        return false;
+    }
+
     public static object GetConstantValue(OpData data, params ReadOnlySpan<NewSpirvBuffer> buffers)
     {
+        if (!TryGetConstantValue(data, out var value, buffers))
+            throw new InvalidOperationException($"Can't process constant {data.IdResult}");
+
+        return value;
+    }
+
+    // Note: this will return false if constant can't be resolved yet (i.e. due to unresolved generics). If it is not meant to become a constant (even later), behavior is undefined.
+    public static bool TryGetConstantValue(OpData data, out object value, params ReadOnlySpan<NewSpirvBuffer> buffers)
+    {
+        // Check for unresolved values
+        if (data.Op == Op.OpSDSLGenericParameter)
+        {
+            value = default;
+            return false;
+        }
+
         int typeId = data.Op switch
         {
             Op.OpConstant or Op.OpSpecConstant => data.Memory.Span[1],
-            _ => throw new Exception("Unsupported context dependent number in instruction " + data.Op)
         };
         var operand = data.Get("value");
         foreach (var buffer in buffers)
@@ -167,28 +208,30 @@ public partial class SpirvBuilder
                 if (typeInst.Op == Op.OpTypeInt)
                 {
                     var type = (OpTypeInt)typeInst;
-                    return type switch
+                    value = type switch
                     {
                         { Width: <= 32, Signedness: 0 } => operand.ToLiteral<uint>(),
                         { Width: <= 32, Signedness: 1 } => operand.ToLiteral<int>(),
                         { Width: 64, Signedness: 0 } => operand.ToLiteral<ulong>(),
                         { Width: 64, Signedness: 1 } => operand.ToLiteral<long>(),
-                        _ => throw new NotImplementedException("Unsupported int width " + type.Width),
+                        _ => throw new NotImplementedException($"Unsupported int width {type.Width}"),
                     };
+                    return true;
                 }
                 else if (typeInst.Op == Op.OpTypeFloat)
                 {
                     var type = new OpTypeFloat(typeInst);
-                    return type switch
+                    value = type switch
                     {
                         { Width: 16 } => operand.ToLiteral<Half>(),
                         { Width: 32 } => operand.ToLiteral<float>(),
                         { Width: 64 } => operand.ToLiteral<double>(),
-                        _ => throw new NotImplementedException("Unsupported float width " + type.Width),
+                        _ => throw new NotImplementedException($"Unsupported float width {type.Width}"),
                     };
+                    return true;
                 }
                 else
-                    throw new NotImplementedException("Unsupported context dependent number with type " + typeInst.Op);
+                    throw new NotImplementedException($"Unsupported context dependent number with type {typeInst.Op}");
             }
         }
         throw new Exception("Cannot find type instruction for id " + typeId);

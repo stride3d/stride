@@ -114,7 +114,7 @@ public sealed partial record MatrixType(ScalarType BaseType, int Rows, int Colum
 /// </summary>
 /// <param name="BaseType">The base type for the array.</param>
 /// <param name="Size">The size of the array. If -1, it means size is not defined, such as using [].</param>
-public sealed record ArrayType(SymbolType BaseType, int Size) : SymbolType()
+public sealed record ArrayType(SymbolType BaseType, int Size, int? SizeExpressionId = null) : SymbolType()
 {
     public override string ToString() => $"{BaseType}[{(Size != -1 ? Size : string.Empty)}]";
 }

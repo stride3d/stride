@@ -193,8 +193,8 @@ public class SpirvContext
                     },
                 VectorType v => Buffer.Add(new OpTypeVector(Bound++, GetOrRegister(v.BaseType), v.Size)).IdResult,
                 MatrixType m => Buffer.Add(new OpTypeMatrix(Bound++, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns)).IdResult,
-                ArrayType a when a.Size != -1 => RegisterArrayType(a),
-                ArrayType a when a.Size == -1 => Buffer.Add(new OpTypeRuntimeArray(Bound++, GetOrRegister(a.BaseType))).IdResult,
+                ArrayType a when a.Size != -1 || a.SizeExpressionId != null => RegisterArrayType(a),
+                ArrayType a when a.Size == -1 && a.SizeExpressionId == null => Buffer.Add(new OpTypeRuntimeArray(Bound++, GetOrRegister(a.BaseType))).IdResult,
                 StructType st => RegisterStructuredType(st.ToId(), st),
                 FunctionType f => RegisterFunctionType(f),
                 PointerType p => RegisterPointerType(p),
@@ -218,7 +218,7 @@ public class SpirvContext
     {
         var sizeId = a.Size != -1
             ? CompileConstant((int)a.Size).Id
-            : throw new NotImplementedException();
+            : a.SizeExpressionId ?? throw new InvalidOperationException();
 
         return Buffer.Add(new OpTypeArray(Bound++, GetOrRegister(a.BaseType), sizeId)).IdResult;
     }
