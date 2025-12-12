@@ -268,7 +268,7 @@ namespace Stride.Games
             throw new PlatformNotSupportedException();
         }
 
-        internal IServiceRegistry Services { get; set; }
+        //internal IServiceRegistry Services { get; set; }
 
         protected internal abstract void SetSupportedOrientations(DisplayOrientation orientations);
 

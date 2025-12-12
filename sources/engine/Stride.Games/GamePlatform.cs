@@ -34,7 +34,7 @@ namespace Stride.Games
     {
         private bool hasExitRan = false;
 
-        protected readonly IServiceRegistry Services;
+        //protected readonly IServiceRegistry Services;
 
         protected GameBase game => context.CurrentGame;
 
@@ -46,7 +46,7 @@ namespace Stride.Games
 
         protected GamePlatform(GameContext context)
         {
-            Services = context.Services;
+            //Services = context.Services;
             this.context = context;
             this.context.GamePlatform = this;
         }
@@ -98,7 +98,7 @@ namespace Stride.Games
             var window = GetSupportedGameWindow(gameContext.ContextType);
             if (window != null)
             {
-                window.Services = Services;
+                //window.Services = Services;
 
                 // Pass initial size
                 var requestedSize = new Int2(gameContext.RequestedWidth, gameContext.RequestedHeight);
