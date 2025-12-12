@@ -27,6 +27,7 @@ public class MinimalGame : GameBase, IHostedService
     {
         Context = gameContext ?? GetDefaultContext();
         Context.CurrentGame = this;
+        Context.Services = Services;
 
         // Create Platform
         Context.GamePlatform = GamePlatform.Create(Context);
