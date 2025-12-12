@@ -270,12 +270,21 @@ namespace Stride.Shaders.Spirv.Processing
                     context.FluentAdd(new OpTypePointer(context.Bound++, StorageClass.Input, context.Types[baseType]), out var pointerType);
                     context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Input, null), out var variable);
                     context.AddName(variable, $"in_{stage}_{stream.Value.Stream.Name}");
-                    if (stream.Value.Stream.InputLayoutLocation == null)
-                        stream.Value.Stream.InputLayoutLocation = inputLayoutLocationCount++;
-                    context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.Stream.InputLayoutLocation.Value)));
 
-                    if (stream.Value.Stream.Semantic != null)
-                        context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Stream.Semantic)));
+                    switch (stream.Value.Stream.Semantic?.ToUpperInvariant())
+                    {
+                        case "SV_ISFRONTFACE":
+                            context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.FrontFacing)));
+                            context.Add(new OpDecorate(variable, Decoration.Flat));
+                            break;
+                        default:
+                            if (stream.Value.Stream.InputLayoutLocation == null)
+                                stream.Value.Stream.InputLayoutLocation = inputLayoutLocationCount++;
+                            context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.Stream.InputLayoutLocation.Value)));
+                            if (stream.Value.Stream.Semantic != null)
+                                context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Stream.Semantic)));
+                            break;
+                    }
 
                     inputStreams.Add((stream.Value.Stream, variable.ResultId));
                 }
@@ -286,24 +295,25 @@ namespace Stride.Shaders.Spirv.Processing
                     context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Output, null), out var variable);
                     context.AddName(variable, $"out_{stage}_{stream.Value.Stream.Name}");
 
-                    if (stream.Value.Stream.Semantic?.ToUpperInvariant() == "SV_POSITION")
+                    switch (stream.Value.Stream.Semantic?.ToUpperInvariant())
                     {
-                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.Position)));
-                    }
-                    else
-                    {
-                        // TODO: this shouldn't be necessary if we allocated layout during first forward pass for any SV_ semantic
-                        if (stream.Value.Stream.OutputLayoutLocation == null)
-                        {
-                            if (stream.Value.Stream.Semantic?.ToUpperInvariant().StartsWith("SV_") ?? false)
-                                stream.Value.Stream.OutputLayoutLocation = outputLayoutLocationCount++;
-                            else
-                                throw new InvalidOperationException($"Can't find output layout location for variable [{stream.Value.Stream.Name}]");
-                        }
+                        case "SV_POSITION":
+                            context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.Position)));
+                            break;
+                        default:
+                            // TODO: this shouldn't be necessary if we allocated layout during first forward pass for any SV_ semantic
+                            if (stream.Value.Stream.OutputLayoutLocation == null)
+                            {
+                                if (stream.Value.Stream.Semantic?.ToUpperInvariant().StartsWith("SV_") ?? false)
+                                    stream.Value.Stream.OutputLayoutLocation = outputLayoutLocationCount++;
+                                else
+                                    throw new InvalidOperationException($"Can't find output layout location for variable [{stream.Value.Stream.Name}]");
+                            }
 
-                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.Stream.OutputLayoutLocation.Value)));
-                        if (stream.Value.Stream.Semantic != null)
-                            context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Stream.Semantic)));
+                            context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.Stream.OutputLayoutLocation.Value)));
+                            if (stream.Value.Stream.Semantic != null)
+                                context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Stream.Semantic)));
+                            break;
                     }
 
                     outputStreams.Add((stream.Value.Stream, variable.ResultId));
