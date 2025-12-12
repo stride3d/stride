@@ -804,8 +804,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         if (depth > 0)
             throw new InvalidOperationException("Could not find end of foreach instruction");
 
-        // Check the variable
-        if (!mixinNode.CompositionArrays.TryGetValue(@foreach.Collection, out var compositions))
+        // Check the variable (both in current mixin node or in stage)
+        // TODO: should we register Compositions by ID in the global context instead, to avoid having to check Stage all the time?)
+        if (!mixinNode.CompositionArrays.TryGetValue(@foreach.Collection, out var compositions)
+            && (mixinNode.Stage == null || !mixinNode.Stage.CompositionArrays.TryGetValue(@foreach.Collection, out compositions)))
             throw new InvalidOperationException($"Could not find compositions for expression [{@foreach.Collection}]");
 
         // Extract foreach buffer (with the foreach start/end)
@@ -896,7 +898,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
             else if (i.Data.Op == Op.OpAccessChain && (OpAccessChain)i is { } accessChain)
             {
-                if (mixinNode.CompositionArrays.TryGetValue(accessChain.BaseId, out var compositions))
+                if (mixinNode.CompositionArrays.TryGetValue(accessChain.BaseId, out var compositions)
+                    || (mixinNode.Stage != null && mixinNode.Stage.CompositionArrays.TryGetValue(accessChain.BaseId, out compositions)))
                 {
                     var compositionIndex = (int)SpirvBuilder.GetConstantValue(accessChain.Values.Elements.Span[0], context.GetBuffer(), temp);
                     compositionArrayAccesses.Add(accessChain.ResultId, compositions[compositionIndex]);
