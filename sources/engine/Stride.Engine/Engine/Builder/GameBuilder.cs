@@ -29,7 +29,7 @@ public class GameBuilder : IGameBuilder
     public GameSystemCollection GameSystems { get; internal set; }
 
     /// <summary>
-    /// Adds log listeners to the game on <see cref="Build"/>. This is registered first so it will log build errors if they occur."/>
+    /// Adds log listeners to the game on <see cref="Build"/>. This is registered first so it will log build errors if they occur.
     /// </summary>
     public List<LogListener> LogListeners { get; internal set; } = [];
 
