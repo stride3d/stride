@@ -150,14 +150,12 @@ public partial class ShaderMixer
             if (i.Data.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)
             {
                 mixinNode.ExternalShaders.Add(importShader.ResultId, importShader.ShaderName);
-                SetOpNop(i.Data.Memory.Span);
             }
             else if (i.Data.Op == Op.OpSDSLImportFunction && (OpSDSLImportFunction)i is { } importFunction)
             {
                 if (mixinNode.ExternalShaders.ContainsKey(importFunction.Shader))
                 {
                     mixinNode.ExternalFunctions.Add(importFunction.ResultId, (importFunction.Shader, importFunction.FunctionName));
-                    SetOpNop(i.Data.Memory.Span);
                 }
             }
             else if (i.Data.Op == Op.OpSDSLImportVariable && (OpSDSLImportVariable)i is { } importVariable)
@@ -165,17 +163,6 @@ public partial class ShaderMixer
                 if (mixinNode.ExternalShaders.ContainsKey(importVariable.Shader))
                 {
                     mixinNode.ExternalVariables.Add(importVariable.ResultId, (importVariable.Shader, importVariable.VariableName));
-                    SetOpNop(i.Data.Memory.Span);
-                }
-            }
-            // Removing OpName for OpSDSLImportShader and OpSDSLImportFunction (they are always located after, so no problem to do it in a single pass)
-            else if (i.Data.Op == Op.OpName && (OpName)i is { } nameInstruction)
-            {
-                if (mixinNode.ExternalShaders.ContainsKey(nameInstruction.Target)
-                    || mixinNode.ExternalFunctions.ContainsKey(nameInstruction.Target)
-                    || mixinNode.ExternalVariables.ContainsKey(nameInstruction.Target))
-                {
-                    SetOpNop(i.Data.Memory.Span);
                 }
             }
         }

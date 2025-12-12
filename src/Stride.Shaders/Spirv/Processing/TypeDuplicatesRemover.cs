@@ -186,11 +186,6 @@ public struct TypeDuplicateRemover : INanoPass
         ProcessInstructions(buffer, instructionsByOp, Op.OpTypePointer, Op.OpTypePointer, true, comparer);
         ProcessInstructions(buffer, instructionsByOp, Op.OpTypeFunction, Op.OpTypeFunction, true, comparer);
 
-        ProcessInstructions(buffer, instructionsByOp, Op.OpSDSLImportShader, Op.OpSDSLImportShader, true, comparer);
-        ProcessInstructions(buffer, instructionsByOp, Op.OpSDSLImportStruct, Op.OpSDSLImportStruct, true, comparer);
-        // Covers OpSDSLImportFunction and OpSDSLImportVariable at the same time
-        ProcessInstructions(buffer, instructionsByOp, Op.OpSDSLImportFunction, Op.OpSDSLImportVariable, true, comparer);
-
         // Note: due to RemapOp, this will also cover OpMemberDecorate and OpMemberName
         ProcessInstructions(buffer, namesByOp, Op.OpName, Op.OpName, true, comparer);
     }

@@ -658,6 +658,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Setup types in context
         foreach (var type in globalContext.Types)
         {
+            // Ignore ShaderSymbol which are not fully loaded (they are likely just OpSDSLImportShader)
+            if (type.Value is ShaderSymbol && type.Value is not LoadedShaderSymbol)
+                continue;
             if (!context.ReverseTypes.ContainsKey(type.Key))
             {
                 context.Types.Add(type.Value, type.Key);
