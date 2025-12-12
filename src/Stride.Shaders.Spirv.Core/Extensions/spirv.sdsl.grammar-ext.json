@@ -281,8 +281,8 @@
       "opname": "OpForeachSDSL",
       "class": "Miscellaneous",
       "operands": [
-        { "kind": "IdResult" },
         { "kind": "IdResultType" },
+        { "kind": "IdResult" },
         {
           "kind": "IdRef",
           "name": "collection"
