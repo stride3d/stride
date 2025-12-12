@@ -75,14 +75,7 @@ namespace Stride.Shaders.Compilers.SDSL
                         foreach (var composition in mixinSource.Compositions)
                         {
                             var evaluatedMixin = EvaluateEffects(composition.Value);
-                            if (evaluatedMixin is ShaderArraySource shaderArraySource)
-                            {
-                                MergeCompositionArray(result, composition.Key, shaderArraySource);
-                            }
-                            else
-                            {
-                                MergeComposition(result, composition.Key, evaluatedMixin);
-                            }
+                            MergeComposition(result, composition.Key, evaluatedMixin);
                         }
 
                         return result;
@@ -117,30 +110,29 @@ namespace Stride.Shaders.Compilers.SDSL
 
                     foreach (var composition in mixinSource.Compositions)
                     {
-                        if (mixinTree.Compositions.TryGetValue(composition.Key, out var mixinTreeComposition))
-                            mixinTree.Compositions.Add(composition.Key, mixinTreeComposition = new ShaderMixinSource());
-                        Merge((ShaderMixinSource)mixinTreeComposition, composition.Value);
+                        MergeComposition(mixinTree, composition.Key, composition.Value);
                     }
 
                     break;
+                default:
+                    throw new InvalidOperationException();
             }
         }
 
-        public void MergeComposition(ShaderMixinSource mixinTree, string compositionName, ShaderSource evaluatedSource)
+        public void MergeComposition(ShaderMixinSource mixinTree, string compositionName, ShaderSource compositionToAdd)
         {
             if (!mixinTree.Compositions.TryGetValue(compositionName, out var composition))
-                mixinTree.Compositions.Add(compositionName, composition = new ShaderMixinSource());
+                mixinTree.Compositions.Add(compositionName, composition = compositionToAdd is ShaderArraySource ? new ShaderArraySource() : new ShaderMixinSource());
 
-            Merge((ShaderMixinSource)composition, evaluatedSource);
-        }
-
-        public void MergeCompositionArray(ShaderMixinSource mixinTree, string compositionName, ShaderArraySource evaluatedSource)
-        {
-            if (!mixinTree.Compositions.TryGetValue(compositionName, out var composition))
-                mixinTree.Compositions.Add(compositionName, composition = new ShaderArraySource());
-
-            var arraySource = (ShaderArraySource)composition;
-            arraySource.Values.AddRange(evaluatedSource.Values);
+            if (compositionToAdd is ShaderArraySource compositionArrayToAdd)
+            {
+                var compositionArray = (ShaderArraySource)composition;
+                compositionArray.Values.AddRange(compositionArrayToAdd);
+            }
+            else
+            {
+                Merge((ShaderMixinSource)composition, compositionToAdd);
+            }
         }
 
         public void MergeCompositionArrayItem(ShaderMixinSource mixinTree, string compositionName, ShaderSource evaluatedSource)
