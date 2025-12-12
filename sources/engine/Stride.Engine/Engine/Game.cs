@@ -192,6 +192,7 @@ namespace Stride.Engine
         {
             Context = context ?? GetDefaultContext();
             Context.CurrentGame = this;
+            Context.Services = Services;
 
             // Create Platform
             Context.GamePlatform = GamePlatform.Create(Context);
