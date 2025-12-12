@@ -297,7 +297,7 @@ namespace Stride.Games
                                 IsFullScreen = preferredParameters.IsFullScreen,
                                 PreferredFullScreenOutputIndex = preferredParameters.PreferredFullScreenOutputIndex,
                                 PresentationInterval = preferredParameters.SynchronizeWithVerticalRetrace ? PresentInterval.One : PresentInterval.Immediate,
-                                DeviceWindowHandle = context.GameWindow != null ? context.GameWindow.NativeWindow : IntPtr.Zero,
+                                DeviceWindowHandle = context.GameWindow.NativeWindow,
                                 ColorSpace = preferredParameters.ColorSpace,
                             },
                         };
