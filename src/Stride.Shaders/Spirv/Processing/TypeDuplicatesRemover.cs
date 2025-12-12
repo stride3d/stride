@@ -89,6 +89,7 @@ public struct TypeDuplicateRemover : INanoPass
                 || x.Op == Op.OpTypeVector || x.Op == Op.OpTypeMatrix || x.Op == Op.OpTypePointer || x.Op == Op.OpTypeFunction
                 || x.Op == Op.OpTypeArray || x.Op == Op.OpTypeRuntimeArray
                 || x.Op == Op.OpTypeStruct
+                || x.Op == Op.OpTypeGenericLinkSDSL
                 || x.Op == Op.OpSDSLImportShader || x.Op == Op.OpSDSLImportFunction || x.Op == Op.OpSDSLImportVariable || x.Op == Op.OpSDSLImportStruct)
             {
                 comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[2..], y.Data.Memory.Span[2..]);
@@ -185,6 +186,8 @@ public struct TypeDuplicateRemover : INanoPass
 
         ProcessInstructions(buffer, instructionsByOp, Op.OpTypePointer, Op.OpTypePointer, true, comparer);
         ProcessInstructions(buffer, instructionsByOp, Op.OpTypeFunction, Op.OpTypeFunction, true, comparer);
+
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeGenericLinkSDSL, Op.OpTypeGenericLinkSDSL, true, comparer);
 
         // Note: due to RemapOp, this will also cover OpMemberDecorate and OpMemberName
         ProcessInstructions(buffer, namesByOp, Op.OpName, Op.OpName, true, comparer);

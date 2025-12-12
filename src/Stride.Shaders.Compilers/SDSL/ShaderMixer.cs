@@ -566,6 +566,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                     if (!include)
                     {
+                        // We store removed IDs for further OpName removals
                         if (i.Data.IdResult is int id)
                             removedIds.Add(offset + id);
 
@@ -576,6 +577,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                             // Skip until end of function
                             while (shader[++index].Op != Op.OpFunctionEnd)
                             {
+                                // We store removed IDs for further OpName removals
+                                if (shader[index].Data.IdResult is int id2)
+                                    removedIds.Add(offset + id2);
                             }
                         }
 
