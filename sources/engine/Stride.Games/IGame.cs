@@ -4,7 +4,6 @@ using System;
 
 using Stride.Core;
 using Stride.Core.Serialization.Contents;
-using Stride.Games.Time;
 using Stride.Graphics;
 
 namespace Stride.Games
@@ -140,5 +139,11 @@ namespace Stride.Games
         /// </summary>
         /// <value>The window.</value>
         GameWindow Window { get; }
+
+        /// <summary>
+        /// Sets the game context.
+        /// </summary>
+        /// <param name="context"></param>
+        public void SetGameContext(GameContext context);
     }
 }
