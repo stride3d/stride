@@ -29,7 +29,7 @@ public class RenderingTests
 
     class ShaderLoader : ShaderLoaderBase
     {
-        public override bool LoadExternalFile(string name, [MaybeNullWhen(false)] out NewSpirvBuffer buffer)
+        public override bool LoadExternalFile(string name, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out NewSpirvBuffer buffer)
         {
             var filename = $"./assets/SDSL/RenderTests/{name}.sdsl";
             if (!File.Exists(filename))
@@ -37,11 +37,16 @@ public class RenderingTests
                 buffer = null;
                 return false;
             }
-            var text = MonoGamePreProcessor.OpenAndRun(filename);
+
+            var defines = new (string Name, string Definition)[macros.Length];
+            for (int i = 0; i < macros.Length; ++i)
+                defines[i] = (macros[i].Name, macros[i].Definition);
+
+            var text = MonoGamePreProcessor.OpenAndRun(filename, defines);
             var sdslc = new SDSLC();
             sdslc.ShaderLoader = this;
 
-            var result = sdslc.Compile(text, out buffer);
+            var result = sdslc.Compile(text, macros, out buffer);
 #if DEBUG
             if (result)
             {

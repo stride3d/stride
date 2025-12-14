@@ -237,7 +237,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             if (table.DeclaredTypes.TryGetValue(classSource.ToClassName(), out var symbolType))
                 return (ShaderSymbol)symbolType;
 
-            var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, ResolveStep.Compile, buffer);
+            var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), ResolveStep.Compile, buffer);
             classSource.Buffer = shader;
             var shaderType = LoadExternalShaderType(table, classSource);
             table.DeclaredTypes.TryAdd(shaderType.ToClassName(), shaderType);
@@ -352,7 +352,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 }
             }
             var shaderClassSource = new ShaderClassInstantiation(mixin.Name, generics);
-            SpirvBuilder.BuildInheritanceList(table.ShaderLoader, shaderClassSource, inheritanceList, ResolveStep.Compile, context.GetBuffer());
+            SpirvBuilder.BuildInheritanceList(table.ShaderLoader, shaderClassSource, table.CurrentMacros.AsSpan(), inheritanceList, ResolveStep.Compile, context.GetBuffer());
         }
 
         var shaderSymbols = new List<LoadedShaderSymbol>();
@@ -389,7 +389,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     if (svar.TypeName.Name.Contains("<"))
                         throw new NotImplementedException("Can't have member variables with generic shader types");
                     var classSource = new ShaderClassInstantiation(svar.TypeName.Name, []);
-                    var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, ResolveStep.Compile, context.GetBuffer());
+                    var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), ResolveStep.Compile, context.GetBuffer());
                     classSource.Buffer = shader;
                     var shaderType = LoadExternalShaderType(table, classSource);
                     table.DeclaredTypes.TryAdd(shaderType.ToClassName(), shaderType);

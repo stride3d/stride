@@ -1,4 +1,5 @@
-﻿using Stride.Shaders.Core;
+﻿using CommunityToolkit.HighPerformance;
+using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
@@ -31,9 +32,9 @@ public partial class ShaderMixer
         foreach (var mixinToMerge in shaderMixinSource.Mixins)
         {
             var mixinToMerge2 = new ShaderClassInstantiation(mixinToMerge.ClassName, []);
-            var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge2.ClassName, mixinToMerge.GenericArguments);
+            var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge2.ClassName, mixinToMerge.GenericArguments, shaderMixinSource.Macros.AsSpan());
             mixinToMerge2.Buffer = buffer;
-            SpirvBuilder.BuildInheritanceList(ShaderLoader, mixinToMerge2, mixinList, ResolveStep.Mix);
+            SpirvBuilder.BuildInheritanceList(ShaderLoader, mixinToMerge2, shaderMixinSource.Macros.AsSpan(), mixinList, ResolveStep.Mix);
         }
 
         var compositions = new Dictionary<string, ShaderMixinInstantiation[]>();

@@ -1,4 +1,5 @@
-﻿using Stride.Shaders.Parsing.SDSL;
+﻿using CommunityToolkit.HighPerformance;
+using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -13,12 +14,15 @@ namespace Stride.Shaders.Compilers.SDSL
 {
     internal class EffectEvaluator(IExternalShaderLoader ShaderLoader)
     {
+        private Stack<ShaderMixinSource> mixinSources = new();
+
         public ShaderSource EvaluateEffects(ShaderSource source)
         {
             switch (source)
             {
                 case ShaderClassSource classSource:
-                    var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, classSource.ClassName, classSource.GenericArguments);
+                    var macros = mixinSources.Count > 0 ? mixinSources.Peek().Macros : [];
+                    var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, classSource.ClassName, classSource.GenericArguments, macros.AsSpan());
 
                     if (buffer[0].Op == Op.OpSDSLEffect)
                     {
@@ -63,21 +67,30 @@ namespace Stride.Shaders.Compilers.SDSL
                     {
                         var result = new ShaderMixinSource();
                         foreach (var macro in mixinSource.Macros)
-                        {
                             result.Macros.Add(macro);
-                        }
-                        foreach (var mixin in mixinSource.Mixins)
-                        {
-                            var evaluatedMixin = EvaluateEffects(mixin);
-                            Merge(result, evaluatedMixin);
-                        }
 
-                        foreach (var composition in mixinSource.Compositions)
-                        {
-                            var evaluatedMixin = EvaluateEffects(composition.Value);
-                            MergeComposition(result, composition.Key, evaluatedMixin);
-                        }
+                        if (mixinSources.Count > 0)
+                            PropagateMacrosFromParent(mixinSources.Peek(), result);
 
+                        mixinSources.Push(result);
+                        try
+                        {
+                            foreach (var mixin in mixinSource.Mixins)
+                            {
+                                var evaluatedMixin = EvaluateEffects(mixin);
+                                Merge(result, evaluatedMixin);
+                            }
+
+                            foreach (var composition in mixinSource.Compositions)
+                            {
+                                var evaluatedMixin = EvaluateEffects(composition.Value);
+                                MergeComposition(result, composition.Key, evaluatedMixin);
+                            }
+                        }
+                        finally
+                        {
+                            mixinSources.Pop();
+                        }
                         return result;
                     }
                 case ShaderArraySource arraySource:
@@ -95,6 +108,20 @@ namespace Stride.Shaders.Compilers.SDSL
             }
         }
 
+        private void PropagateMacrosFromParent(ShaderMixinSource parent, ShaderMixinSource child)
+        {
+            var existingMacros = new HashSet<string>();
+            foreach (var macro in child.Macros)
+            {
+                existingMacros.Add(macro.Name);
+            }
+            foreach (var macro in parent.Macros)
+            {
+                if (!existingMacros.Contains(macro.Name))
+                    child.AddMacro(macro.Name, macro.Definition);
+            }
+        }
+
         public void Merge(ShaderMixinSource mixinTree, ShaderSource source)
         {
             switch (source)
@@ -103,10 +130,8 @@ namespace Stride.Shaders.Compilers.SDSL
                     mixinTree.Mixins.Add(classSource);
                     break;
                 case ShaderMixinSource mixinSource:
-                    foreach (var mixin in mixinSource.Mixins)
-                    {
-                        mixinTree.Mixins.Add(mixin);
-                    }
+                    mixinTree.Macros.AddRange(mixinSource.Macros);
+                    mixinTree.Mixins.AddRange(mixinSource.Mixins);
 
                     foreach (var composition in mixinSource.Compositions)
                     {

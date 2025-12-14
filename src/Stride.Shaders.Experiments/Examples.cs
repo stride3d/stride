@@ -210,7 +210,7 @@ public static partial class Examples
 
     public class ShaderLoader : ShaderLoaderBase
     {
-        public override bool LoadExternalFile(string name, [MaybeNullWhen(false)] out NewSpirvBuffer buffer)
+        public override bool LoadExternalFile(string name, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out NewSpirvBuffer buffer)
         {
             var filename = $"./assets/SDSL/{name}.sdsl";
             if (!File.Exists(filename))
@@ -218,12 +218,17 @@ public static partial class Examples
                 buffer = null;
                 return false;
             }
-            var text = MonoGamePreProcessor.OpenAndRun(filename);
+
+            var defines = new (string Name, string Definition)[macros.Length];
+            for (int i = 0; i < macros.Length; ++i)
+                defines[i] = (macros[i].Name, macros[i].Definition);
+
+            var text = MonoGamePreProcessor.OpenAndRun(filename, defines);
             var sdslc = new SDSLC
             {
                 ShaderLoader = this
             };
-            return sdslc.Compile(text, out buffer);
+            return sdslc.Compile(text, macros, out buffer);
         }
     }
 
@@ -242,7 +247,7 @@ public static partial class Examples
         {
             ShaderLoader = new ShaderLoader()
         };
-        if (sdslc.Compile(text, out var buffer) && buffer is not null)
+        if (sdslc.Compile(text, [], out var buffer) && buffer is not null)
         {
             Spirv.Tools.Spv.Dis(buffer, writeToConsole: true);
             var bytecode = buffer.ToBytecode();

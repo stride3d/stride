@@ -1,4 +1,5 @@
-﻿using Stride.Shaders.Core;
+﻿using CommunityToolkit.HighPerformance;
+using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
@@ -84,7 +85,7 @@ public record class ShaderClassInstantiation(string ClassName, int[] GenericArgu
 
 public partial class SpirvBuilder
 {
-    private static void BuildInheritanceListHelper(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, NewSpirvBuffer buffer, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
+    private static void BuildInheritanceListHelper(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, NewSpirvBuffer buffer, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
     {
         // Build shader name mapping
         var shaderMapping = new Dictionary<int, ShaderClassInstantiation>();
@@ -104,7 +105,7 @@ public partial class SpirvBuilder
             if (i.Op == Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)i is { } inherit)
             {
                 var shaderName = shaderMapping[inherit.Shader];
-                BuildInheritanceList(shaderLoader, shaderName, inheritanceList, resolveStep, buffer);
+                BuildInheritanceList(shaderLoader, shaderName, macros, inheritanceList, resolveStep, buffer);
             }
         }
     }
@@ -114,7 +115,7 @@ public partial class SpirvBuilder
         return new ShaderClassInstantiation(importShader.ShaderName, importShader.Values.Elements.Memory.ToArray());
     }
 
-    public static ShaderClassInstantiation BuildInheritanceList(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep, NewSpirvBuffer? parentBuffer = null)
+    public static ShaderClassInstantiation BuildInheritanceList(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep, NewSpirvBuffer? parentBuffer = null)
     {
         // TODO: cache same instantiations within context?
         var index = inheritanceList.IndexOf(classSource);
@@ -122,7 +123,7 @@ public partial class SpirvBuilder
         {
             if (classSource.Buffer == null)
             {
-                var shader = GetOrLoadShader(shaderLoader, classSource, resolveStep, parentBuffer);
+                var shader = GetOrLoadShader(shaderLoader, classSource, macros, resolveStep, parentBuffer);
                 classSource.Buffer = shader;
             }
 
@@ -130,7 +131,7 @@ public partial class SpirvBuilder
             index = inheritanceList.IndexOf(classSource);
             if (index == -1)
             {
-                BuildInheritanceListHelper(shaderLoader, classSource, classSource.Buffer, inheritanceList, resolveStep);
+                BuildInheritanceListHelper(shaderLoader, classSource, macros, classSource.Buffer, inheritanceList, resolveStep);
                 index = inheritanceList.Count;
                 inheritanceList.Add(classSource);
             }
@@ -479,12 +480,13 @@ public partial class SpirvBuilder
     /// </summary>
     /// <param name="shaderLoader"></param>
     /// <param name="classSource">The generics parameters should be in <see cref="parentBuffer"/>.</param>
+    /// <param name="macros"></param>
     /// <param name="resolveStep"></param>
-    /// <param name="parentBuffer"></param>
     /// <returns></returns>
-    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, ResolveStep resolveStep, NewSpirvBuffer parentBuffer)
+    /// <param name="parentBuffer"></param>
+    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, ResolveStep resolveStep, NewSpirvBuffer parentBuffer)
     {
-        var shader = GetOrLoadShader(shaderLoader, classSource.ClassName, out var isFromCache);
+        var shader = GetOrLoadShader(shaderLoader, classSource.ClassName, macros, out var isFromCache);
 
         if (!isFromCache)
             Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
@@ -501,9 +503,9 @@ public partial class SpirvBuilder
         return shader;
     }
 
-    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, string[] genericValues)
+    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, string[] genericValues, ReadOnlySpan<ShaderMacro> defines)
     {
-        var shader = GetOrLoadShader(shaderLoader, className, out var isFromCache);
+        var shader = GetOrLoadShader(shaderLoader, className, defines, out var isFromCache);
 
         if (!isFromCache)
             Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
@@ -549,11 +551,11 @@ public partial class SpirvBuilder
         return generics;
     }
 
-    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, out bool isFromCache)
+    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, ReadOnlySpan<ShaderMacro> defines, out bool isFromCache)
     {
         Console.WriteLine($"[Shader] Requesting non-generic class {className}");
 
-        if (!shaderLoader.LoadExternalBuffer(className, out var buffer, out isFromCache))
+        if (!shaderLoader.LoadExternalBuffer(className, defines, out var buffer, out isFromCache))
             throw new InvalidOperationException($"Could not load shader [{className}]");
 
         if (!isFromCache)

@@ -23,6 +23,7 @@ public partial class SymbolTable : ISymbolProvider
 
     // Only valid during compilation (not during ShaderMixin phase)
     public LoadedShaderSymbol? CurrentShader { get; set; }
+    public List<ShaderMacro> CurrentMacros { get; set; }
     // Only valid during compilation (not during ShaderMixin phase)
     public List<ShaderClassInstantiation> InheritedShaders { get; set; }
 

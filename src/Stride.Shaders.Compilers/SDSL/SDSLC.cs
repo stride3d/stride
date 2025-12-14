@@ -15,7 +15,7 @@ namespace Stride.Shaders.Compilers.SDSL;
 
 public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 {
-    public readonly bool Compile(string code, [MaybeNullWhen(false)] out NewSpirvBuffer lastBuffer)
+    public readonly bool Compile(string code, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out NewSpirvBuffer lastBuffer)
     {
         var parsed = SDSLParser.Parse(code);
         lastBuffer = null;
@@ -33,9 +33,11 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 {
                     SymbolTable table = new()
                     {
-                        ShaderLoader = ShaderLoader
+                        ShaderLoader = ShaderLoader,
+                        CurrentMacros = [..macros],
                     };
                     var compiler = new CompilerUnit();
+                    compiler.Macros.AddRange(macros);
                     shader.Compile(table, compiler);
 
                     if (table.Errors.Count > 0)
@@ -47,15 +49,17 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 #endif
                     lastBuffer = merged;
 
-                    ShaderLoader.RegisterShader(shader.Name, merged);
+                    ShaderLoader.RegisterShader(shader.Name, macros, merged);
                 }
                 else if (declaration is ShaderEffect effect)
                 {
                     SymbolTable table = new()
                     {
-                        ShaderLoader = ShaderLoader
+                        ShaderLoader = ShaderLoader,
+                        CurrentMacros = [..macros],
                     };
                     var compiler = new CompilerUnit();
+                    compiler.Macros.AddRange(macros);
                     effect.Compile(table, compiler);
 
                     var merged = compiler.ToBuffer();
@@ -64,7 +68,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 #endif
                     lastBuffer = merged;
 
-                    ShaderLoader.RegisterShader(effect.Name, merged);
+                    ShaderLoader.RegisterShader(effect.Name, macros, merged);
                 }
                 else
                 {
