@@ -1,7 +1,9 @@
 ﻿using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
+using Silk.NET.Direct3D.Compilers;
 using Silk.NET.SPIRV.Cross;
 using Stride.Core.Extensions;
+using Stride.Shaders.Compilers.Direct3D;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
@@ -46,15 +48,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         context.Insert(1, new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
         context.Insert(2, new OpExtension("SPV_GOOGLE_hlsl_functionality1"));
 
-        Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        Spv.Dis(NewSpirvBuffer.Merge(context.GetBuffer(), temp), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
         new StreamAnalyzer().Process(table, temp, context);
 
         // Merge cbuffers and rgroups
         // TODO: remove unused cbuffers (before merging them)
-        Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        Spv.Dis(NewSpirvBuffer.Merge(context.GetBuffer(), temp), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
         MergeCBuffers(globalContext, context, temp);
-        Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        Spv.Dis(NewSpirvBuffer.Merge(context.GetBuffer(), temp), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
         ComputeCBufferOffsets(globalContext, context, temp);
 
         // Process reflection
@@ -63,7 +65,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         foreach (var inst in context)
             temp.Add(inst.Data);
 
-        CleanupUnnecessaryInstructions(temp);
+        CleanupUnnecessaryInstructions(globalContext, temp);
 
         temp.Sort();
 
@@ -135,7 +137,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var cbufferStructTypes = cbuffersByNames.SelectMany(x => x).Select(x => context.Types[x.StructType]).ToHashSet();
 
         Dictionary<(int StructType, int Member), (Dictionary<Decoration, string> StringDecorations, Dictionary<Decoration, MemoryOwner<int>> Decorations)> decorations = new();
-        foreach (var i in buffer)
+        foreach (var i in context)
         {
             if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Parameters: var m } } memberDecorate)
             {
@@ -222,7 +224,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                 var mergedCbufferStruct = new ConstantBufferSymbol(cbuffersEntry.Key, structTypes.SelectMany(x => x.Members).ToList());
                 var mergedCbufferStructId = context.DeclareCBuffer(mergedCbufferStruct);
-                var mergedCbufferPtrStructId = context.GetOrRegister(new PointerType(mergedCbufferStruct, Specification.StorageClass.Uniform));
+                var mergedCbufferPtrStruct = new PointerType(mergedCbufferStruct, Specification.StorageClass.Uniform);
+                var mergedCbufferPtrStructId = context.GetOrRegister(mergedCbufferPtrStruct);
+
+                globalContext.Types.Add(mergedCbufferStructId, mergedCbufferStruct);
+                globalContext.Types.Add(mergedCbufferPtrStructId, mergedCbufferPtrStruct);
 
                 ProcessDecorations(cbuffersSpan, mergedCbufferStructId, true);
 
@@ -236,7 +242,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                             // According to spec, this must be a OpConstant (and we only create them with int)
                             var indexes = accessChain.Values.Elements.Span;
                             var constantId = indexes[0];
-                            var index = cbuffer.MemberIndexOffset + (int)SpirvBuilder.GetConstantValue(constantId, buffer);
+                            var index = cbuffer.MemberIndexOffset + (int)SpirvBuilder.GetConstantValue(constantId, context.GetBuffer());
                             indexes[0] = context.CompileConstant(index).Id;
 
                             // Regenerate buffer (since we modify accessChain.Values, it doesn't get rebuilt automatically)
@@ -383,20 +389,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Scan LinkSDSL and LogicalGroupSDSL decorations
         Dictionary<(int StructType, int Member), string> links = new();
         Dictionary<(int StructType, int Member), string> logicalGroups = new();
-        foreach (var temp in new[] { context.GetBuffer(), buffer })
+        foreach (var i in context)
         {
-            foreach (var i in temp)
+            if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LinkSDSL, Parameters: { } m } } memberDecorate)
             {
-                if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LinkSDSL, Parameters: { } m } } memberDecorate)
-                {
-                    using var n = new LiteralValue<string>(m.Span);
-                    links.Add((memberDecorate.StructType, memberDecorate.Member), n.Value);
-                }
-                else if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LogicalGroupSDSL, Parameters: { } m2 } } memberDecorate2)
-                {
-                    using var n = new LiteralValue<string>(m2.Span);
-                    logicalGroups.Add((memberDecorate2.StructType, memberDecorate2.Member), n.Value);
-                }
+                using var n = new LiteralValue<string>(m.Span);
+                links.Add((memberDecorate.StructType, memberDecorate.Member), n.Value);
+            }
+            else if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LogicalGroupSDSL, Parameters: { } m2 } } memberDecorate2)
+            {
+                using var n = new LiteralValue<string>(m2.Span);
+                logicalGroups.Add((memberDecorate2.StructType, memberDecorate2.Member), n.Value);
             }
         }
 
@@ -452,6 +455,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         public Dictionary<int, SymbolType> Types { get; } = [];
 
         public EffectReflection Reflection { get; } = new();
+
+        public Dictionary<int, string> ExternalShaders { get; } = new();
+        public Dictionary<int, (int ShaderId, string Name)> ExternalFunctions { get; } = new();
+        public Dictionary<int, (int ShaderId, string Name)> ExternalVariables { get; } = new();
     }
 
     class MixinNodeContext
@@ -473,20 +480,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             buffer.Add(new OpSDSLEffect(currentCompositionPath));
 
         var mixinNode = new MixinNode(stage, currentCompositionPath);
-
-        // Step: expand "for"
-        // TODO
+        var contextStart = context.GetBuffer().Count;
 
         // Merge all classes from mixinSource.Mixins in main buffer
-        ProcessMixinClasses(context, buffer, mixinSource, mixinNode);
+        ProcessMixinClasses(globalContext, context, buffer, mixinSource, mixinNode);
 
-        // Import struct types
-        ImportStructTypes(globalContext, buffer, mixinNode);
-
-        new TypeDuplicateRemover().Apply(buffer);
-
-        // Build names and types mappings
-        ShaderClass.ProcessNameAndTypes(buffer, mixinNode.StartInstruction, mixinNode.EndInstruction, globalContext.Names, globalContext.Types);
+        Spv.Dis(NewSpirvBuffer.Merge(context.GetBuffer(), buffer), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
         BuildTypesAndMethodGroups(globalContext, context, table, buffer, mixinNode);
 
@@ -529,181 +528,262 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         return mixinNode;
     }
 
-    private void ProcessMixinClasses(SpirvContext context, NewSpirvBuffer temp, ShaderMixinInstantiation mixinSource, MixinNode mixinNode)
+    private void ProcessMixinClasses(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode mixinNode)
     {
-        var isRootMixin = mixinNode.Stage == null;
-        var stage = mixinNode.Stage;
-        var offset = context.Bound;
-        var nextOffset = 0;
-
-        var shaders = mixinNode.Shaders;
-
-        mixinNode.StartInstruction = temp.Count;
+        mixinNode.StartInstruction = buffer.Count;
         foreach (var shaderClass in mixinSource.Mixins)
         {
-            if (shaderClass.ImportStageOnly)
-            {
-                if (!isRootMixin)
-                    throw new InvalidOperationException("importing stage-only methods/variables is only possible at the root mixin");
-            }
+            var contextStart = context.GetBuffer().Count;
 
-            var shader = shaderClass.Buffer;
-            offset += nextOffset;
-            nextOffset = 0;
-            shader.Header = shader.Header with { Bound = shader.Header.Bound + offset };
-
-            var shaderStart = temp.Count;
-
-            bool skipFunction = false;
-
-            var forbiddenIds = new HashSet<int>();
-            var remapIds = new Dictionary<int, int>();
-            var names = new Dictionary<int, string>();
-            var removedIds = new HashSet<int>();
-
-            bool ProcessStageMember(int memberId, bool isStage)
-            {
-                var include = isStage switch
-                {
-                    // Import stage members only if at root level
-                    true => isRootMixin,
-                    // Import non-stage members only if allowed, i.e. not a "stage-only inherit"
-                    // ("stage-only inherit" only happen when a class with stage members is inherited in a composition, and the stage-only version is added to the root mixin)
-                    false => !shaderClass.ImportStageOnly,
-                };
-
-                // If a stage member is skipped in a composition mixin, we want to remap to the version in the root mixin
-                if (isStage && !isRootMixin)
-                {
-                    var stageShader = stage.ShadersByName[shaderClass.ToClassName()];
-                    var memberName = names[memberId];
-                    var stageMember = stageShader.FindMember(memberName);
-                    remapIds.Add(offset + memberId, stageMember.Id);
-                }
-                // Otherwise, if not included, it means we need to forbid this IDs (which could only happen if referencing non-stage member from a stage method)
-                else if (!include)
-                {
-                    forbiddenIds.Add(offset + memberId);
-                }
-
-                return include;
-            }
-
-            // Copy instructions to main buffer
-            for (var index = 0; index < shader.Count; index++)
-            {
-                var i = shader[index];
-
-                // Do we need to skip variable/functions? (depending on stage/non-stage)
-                {
-                    var include = true;
-                    if (i.Op == Op.OpName)
-                    {
-                        OpName nameInstruction = i;
-                        names.Add(nameInstruction.Target, nameInstruction.Name);
-                    }
-                    if (i.Op == Op.OpFunction && (OpFunction)i is { } function && shader[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shader[index + 1] is { } functionInfo)
-                    {
-                        var isStage = (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
-                        include = ProcessStageMember(function.ResultId, isStage);
-                    }
-                    if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variableInstruction)
-                    {
-                        var isStage = (variableInstruction.Flags & VariableFlagsMask.Stage) != 0;
-                        include = ProcessStageMember(variableInstruction.ResultId, isStage);
-                    }
-
-                    if (!include)
-                    {
-                        // We store removed IDs for further OpName removals
-                        if (i.Data.IdResult is int id)
-                            removedIds.Add(offset + id);
-
-                        // Special case for function: skip until function end
-                        // (for other cases such as variable, skipping only current instruction is enough)
-                        if (i.Op == Op.OpFunction)
-                        {
-                            // Skip until end of function
-                            while (shader[++index].Op != Op.OpFunctionEnd)
-                            {
-                                // We store removed IDs for further OpName removals
-                                if (shader[index].Data.IdResult is int id2)
-                                    removedIds.Add(offset + id2);
-                            }
-                        }
-
-                        // Go to next instruction
-                        continue;
-                    }
-                }
-
-                var i2 = new OpData(i.Data.Memory.Span);
-                temp.Add(i2);
-
-                if (i.Data.IdResult != null && i.Data.IdResult.Value > nextOffset)
-                    nextOffset = i.Data.IdResult.Value;
-
-                if (offset > 0)
-                    OffsetIds(i2, offset);
-
-                if (SpirvBuilder.ContainIds(forbiddenIds, i2))
-                    throw new InvalidOperationException($"Stage instruction {i.Data} references a non-stage ID");
-
-                SpirvBuilder.RemapIds(remapIds, i2);
-            }
-
-            for (var index = shaderStart; index < temp.Count; index++)
-            {
-                // Second pass: remove OpName/OpMember referencing to removed IDs
-                var i = temp[index];
-                if (i.Op == Op.OpName && (OpName)i is { } name)
-                {
-                    if (removedIds.Contains(name.Target))
-                        SetOpNop(i.Data.Memory.Span);
-                }
-                else if (i.Op == Op.OpMemberName || i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString)
-                {
-                    // Structure ID is always stored in first operand
-                    var target = i.Data.Memory.Span[1];
-                    if (removedIds.Contains(target))
-                        SetOpNop(i.Data.Memory.Span);
-                }
-            }
-
-            // Link attribute: postfix with composition path
-            if (mixinNode.CompositionPath != null)
-            {
-                foreach (var i in temp)
-                {
-                    if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LinkSDSL, Parameters: { } m } } memberDecorate)
-                    {
-                        var n = new LiteralValue<string>(m.Span);
-                        n.Value = $"{n.Value}.{mixinNode.CompositionPath}";
-                        n.Dispose();
-                    }
-                }
-            }
-
-            shaderClass.Start = shaderStart;
-            shaderClass.End = temp.Count;
-            shaderClass.OffsetId = offset;
-
-            // Build ShaderInfo
-            var shaderInfo = new ShaderInfo(shaders.Count, shaderClass.ClassName, shaderStart, temp.Count);
-            shaderInfo.CompositionPath = mixinNode.CompositionPath;
-            if (mixinNode.Stage != null && mixinNode.Stage.ShadersByName.TryGetValue(shaderClass.ClassName, out var stageShaderInfo))
-                shaderInfo.Stage = stageShaderInfo;
-
-            PopulateShaderInfo(temp, shaderStart, temp.Count, shaderInfo, mixinNode);
+            var shaderInfo = MergeClassInBuffers(globalContext, context, buffer, mixinNode, shaderClass);
 
             mixinNode.ShadersByName.Add(shaderClass.ToClassName(), shaderInfo);
-            shaders.Add(shaderInfo);
+            mixinNode.Shaders.Add(shaderInfo);
 
-            BuildImportInfo(temp, shaderStart, temp.Count, shaderClass, shaderInfo, mixinNode);
+            // Note: we process name, types and struct right away, as they might be needed by the next Shader
+            ShaderClass.ProcessNameAndTypes(context.GetBuffer(), contextStart, context.GetBuffer().Count, globalContext.Names, globalContext.Types);
+            PopulateShaderInfo(globalContext, context.GetBuffer(), contextStart, context.GetBuffer().Count, buffer, shaderInfo.StartInstruction, shaderInfo.EndInstruction, shaderInfo, mixinNode);
         }
 
-        mixinNode.EndInstruction = temp.Count;
-        context.Bound = offset + nextOffset + 1;
+        mixinNode.EndInstruction = buffer.Count;
+    }
+
+    private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass)
+    {
+        var isRootMixin = mixinNode.Stage == null;
+        if (shaderClass.ImportStageOnly)
+        {
+            if (!isRootMixin)
+                throw new InvalidOperationException("importing stage-only methods/variables is only possible at the root mixin");
+        }
+
+        var shader = shaderClass.Buffer;
+        var offset = context.Bound;
+
+        // Remember when we started to add instructions in both context and main buffer
+        var shaderStart = buffer.Count;
+        var contextStart = context.GetBuffer().Count;
+        var names = new Dictionary<int, string>();
+
+        var forbiddenIds = new HashSet<int>();
+        var remapIds = new Dictionary<int, int>();
+        var removedIds = new HashSet<int>();
+
+        bool isContext = true;
+
+        bool ProcessStageMember(int memberId, bool isStage)
+        {
+            var include = isStage switch
+            {
+                // Import stage members only if at root level
+                true => isRootMixin,
+                // Import non-stage members only if allowed, i.e. not a "stage-only inherit"
+                // ("stage-only inherit" only happen when a class with stage members is inherited in a composition, and the stage-only version is added to the root mixin)
+                false => !shaderClass.ImportStageOnly,
+            };
+
+            // If a stage member is skipped in a composition mixin, we want to remap to the version in the root mixin
+            if (isStage && !isRootMixin)
+            {
+                var stageShader = mixinNode.Stage.ShadersByName[shaderClass.ToClassName()];
+                var memberName = names[memberId];
+                var stageMember = stageShader.FindMember(memberName);
+                remapIds.Add(offset + memberId, stageMember.Id);
+                removedIds.Add(stageMember.Id);
+            }
+            // Otherwise, if not included, it means we need to forbid this IDs (which could only happen if referencing non-stage member from a stage method)
+            else if (!include)
+            {
+                forbiddenIds.Add(offset + memberId);
+            }
+
+            return include;
+        }
+
+        var typeDuplicateInserter = new TypeDuplicateHelper(context.GetBuffer());
+
+        // Copy instructions to main buffer
+        for (var index = 0; index < shader.Count; index++)
+        {
+            var i = shader[index];
+
+            // Do we need to skip variable/functions? (depending on stage/non-stage)
+            {
+                var include = true;
+                if (i.Op == Op.OpName)
+                {
+                    OpName nameInstruction = i;
+                    names.Add(nameInstruction.Target, nameInstruction.Name);
+                }
+                if (i.Op == Op.OpFunction && (OpFunction)i is { } function && shader[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shader[index + 1] is { } functionInfo)
+                {
+                    var isStage = (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
+                    include = ProcessStageMember(function.ResultId, isStage);
+                }
+                if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variableInstruction)
+                {
+                    var isStage = (variableInstruction.Flags & VariableFlagsMask.Stage) != 0;
+                    include = ProcessStageMember(variableInstruction.ResultId, isStage);
+                }
+
+                if (!include)
+                {
+                    // We store removed IDs for further OpName removals
+                    if (i.Data.IdResult is int id)
+                        removedIds.Add(offset + id);
+
+                    // Special case for function: skip until function end
+                    // (for other cases such as variable, skipping only current instruction is enough)
+                    if (i.Op == Op.OpFunction)
+                    {
+                        // Skip until end of function
+                        while (shader[++index].Op != Op.OpFunctionEnd)
+                        {
+                            // We store removed IDs for further OpName removals
+                            if (shader[index].Data.IdResult is int id2)
+                                removedIds.Add(offset + id2);
+                        }
+                    }
+
+                    // Go to next instruction
+                    continue;
+                }
+            }
+
+            var i2 = new OpData(i.Data.Memory.Span);
+
+            if (offset > 0)
+                OffsetIds(i2, offset);
+
+            if (i2.IdResult != null)
+                context.Bound = Math.Max(context.Bound, i2.IdResult.Value + 1);
+
+            if (SpirvBuilder.ContainIds(forbiddenIds, i2))
+                throw new InvalidOperationException($"Stage instruction {i.Data} references a non-stage ID");
+
+            SpirvBuilder.RemapIds(remapIds, i2);
+
+            // Detect when we switch from context to main buffer
+            if (i2.Op == Op.OpSDSLShader)
+            {
+                isContext = false;
+            }
+
+            // Specific type instructions in context gets deduplicated before adding
+            bool addToContext = false;
+            if (
+                // Types
+                i2.Op == Op.OpTypeVoid
+                || i2.Op == Op.OpTypeInt
+                || i2.Op == Op.OpTypeFloat
+                || i2.Op == Op.OpTypeBool
+                || i2.Op == Op.OpTypeVector
+                || i2.Op == Op.OpTypeMatrix
+                || i2.Op == Op.OpTypeArray
+                || i2.Op == Op.OpTypeRuntimeArray
+                || i2.Op == Op.OpTypeStruct
+                || i2.Op == Op.OpTypePointer
+                || i2.Op == Op.OpTypeFunction
+                || i2.Op == Op.OpTypeGenericLinkSDSL
+                || i2.Op == Op.OpSDSLImportShader
+                || i2.Op == Op.OpSDSLImportVariable
+                || i2.Op == Op.OpSDSLImportFunction
+                || i2.Op == Op.OpSDSLImportStruct)
+            {
+                // We need to replace those right now (otherwise further types depending on this struct won't get properly translated)
+                if (i2.Op == Op.OpSDSLImportStruct && (OpSDSLImportStruct)i2 is { } importStruct)
+                {
+                    var shaderName = globalContext.ExternalShaders[importStruct.Shader];
+                    var shader2 = mixinNode.ShadersByName[shaderName];
+                    var structId = shader2.StructTypes[importStruct.StructName];
+                    remapIds.Add(importStruct.ResultId, structId);
+                    removedIds.Add(structId);
+                }
+                // Check if type already exists in context (deduplicate them)
+                else if (typeDuplicateInserter.CheckForDuplicates(i2, out var existingInstruction))
+                {
+                    if (i2.IdResult is int id)
+                    {
+                        remapIds.Add(id, existingInstruction.IdResult.Value);
+                        removedIds.Add(existingInstruction.IdResult.Value);
+                    }
+                }
+                else
+                {
+                    addToContext = true;
+                }
+            }
+            // Does this belong in context or buffer?
+            else if (isContext)
+            {
+                addToContext = true;
+            }
+            else
+            {
+                buffer.Add(i2);
+            }
+
+            // Process OpSDSLImport
+            ProcessImportInfo(globalContext, mixinNode, i2, context.GetBuffer());
+
+            if (addToContext)
+            {
+                // OpName and such: check if associated instruction has not been removed
+                if (i2.Op == Op.OpName || i2.Op == Op.OpDecorate || i2.Op == Op.OpDecorateString
+                    || i2.Op == Op.OpMemberName || i2.Op == Op.OpMemberDecorate || i2.Op == Op.OpMemberDecorateString)
+                {
+                    // Target/Structure ID is always stored in first operand for all those instructions
+                    var target = i2.Memory.Span[1];
+                    if (removedIds.Contains(target))
+                        addToContext = false;
+                }
+
+                if (addToContext)
+                    context.GetBuffer().Add(i2);
+            }
+        }
+
+        // Reprocess OpName/OpDecorate (they are defined before the OpType that was remapped, so we need to reprocess them)
+        for (int index = contextStart; index < context.GetBuffer().Count; ++index)
+        {
+            var i = context.GetBuffer()[index];
+
+            if (i.Op == Op.OpName
+                || i.Op == Op.OpMemberName
+                || i.Op == Op.OpDecorate
+                || i.Op == Op.OpDecorateString
+                || i.Op == Op.OpMemberDecorate
+                || i.Op == Op.OpMemberDecorateString)
+            {
+                SpirvBuilder.RemapIds(remapIds, i.Data);
+
+                var target = i.Data.Memory.Span[1];
+                if (removedIds.Contains(target))
+                    SetOpNop(i.Data.Memory.Span);
+            }
+        }
+
+        // Link attribute: postfix with composition path
+        if (mixinNode.CompositionPath != null)
+        {
+            foreach (var i in buffer)
+            {
+                if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LinkSDSL, Parameters: { } m } } memberDecorate)
+                {
+                    var n = new LiteralValue<string>(m.Span);
+                    n.Value = $"{n.Value}.{mixinNode.CompositionPath}";
+                    n.Dispose();
+                }
+            }
+        }
+
+        // Build ShaderInfo
+        var shaderInfo = new ShaderInfo(mixinNode.Shaders.Count, shaderClass.ClassName, shaderStart, buffer.Count);
+        shaderInfo.CompositionPath = mixinNode.CompositionPath;
+        if (mixinNode.Stage != null && mixinNode.Stage.ShadersByName.TryGetValue(shaderClass.ClassName, out var stageShaderInfo))
+            shaderInfo.Stage = stageShaderInfo;
+
+        return shaderInfo;
     }
 
     private static void BuildTypesAndMethodGroups(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, NewSpirvBuffer temp, MixinNode mixinNode)
@@ -762,9 +842,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     // If OpSDSLFunctionInfo.Parent is coming from a OpSDSLImportFunction, find the real ID
                     if (functionInfo.Parent != 0)
                     {
-                        if (mixinNode.ExternalFunctions.TryGetValue(functionInfo.Parent, out var parentFunctionInfo))
+                        if (globalContext.ExternalFunctions.TryGetValue(functionInfo.Parent, out var parentFunctionInfo))
                         {
-                            var shaderName = mixinNode.ExternalShaders[parentFunctionInfo.ShaderId];
+                            var shaderName = globalContext.ExternalShaders[parentFunctionInfo.ShaderId];
                             functionInfo.Parent = mixinNode.ShadersByName[shaderName].Functions[parentFunctionInfo.Name].Id;
                         }
                     }
@@ -800,40 +880,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 }
             }
         }
-    }
-
-    private void ImportStructTypes(MixinGlobalContext globalContext, NewSpirvBuffer buffer, MixinNode mixinNode)
-    {
-        var idRemapping = new Dictionary<int, int>();
-        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
-        {
-            var i = buffer[index];
-
-            if (i.Data.Op == Op.OpSDSLImportStruct && (OpSDSLImportStruct)i is { } importStruct)
-            {
-                var shaderName = mixinNode.ExternalShaders[importStruct.Shader];
-                var shader = mixinNode.ShadersByName[shaderName];
-                var structId = shader.StructTypes[importStruct.StructName];
-                idRemapping.Add(importStruct.ResultId, structId);
-                SetOpNop(i.Data.Memory.Span);
-            }
-        }
-
-        // Remove associated OpName
-        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
-        {
-            var i = buffer[index];
-
-            if (i.Data.Op == Op.OpName && (OpName)i is { } name)
-            {
-                if (idRemapping.ContainsKey(name.Target))
-                {
-                    SetOpNop(i.Data.Memory.Span);
-                }
-            }
-        }
-
-        SpirvBuilder.RemapIds(buffer, mixinNode.StartInstruction, mixinNode.EndInstruction, idRemapping);
     }
 
     private static void ExpandForeach(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, int index, OpForeachSDSL @foreach)
@@ -983,9 +1029,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         throw new InvalidOperationException();
                 }
 
-                if (mixinNode.ExternalVariables.TryGetValue(memberAccess.Member, out var variable))
+                if (globalContext.ExternalVariables.TryGetValue(memberAccess.Member, out var variable))
                 {
-                    var shaderName = mixinNode.ExternalShaders[variable.ShaderId];
+                    var shaderName = globalContext.ExternalShaders[variable.ShaderId];
 
                     var shaderInfo = instanceMixinGroup.ShadersByName[shaderName];
                     if (!shaderInfo.Variables.TryGetValue(variable.Name, out var variableInfo))
@@ -1008,7 +1054,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     // In case of functions, OpMemberAccessSDSL.Member could either be a OpFunction or a OpImportFunctionSDSL
                     var functionId = memberAccess.Member;
-                    if (mixinNode.ExternalFunctions.TryGetValue(memberAccess.Member, out var function))
+                    if (globalContext.ExternalFunctions.TryGetValue(memberAccess.Member, out var function))
                         // Process member call (composition)
                         functionId = instanceMixinGroup.MethodGroupsByName[function.Name];
 
@@ -1258,37 +1304,61 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
-    private static void CleanupUnnecessaryInstructions(NewSpirvBuffer temp)
+    private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, NewSpirvBuffer temp)
     {
-        for (int i = 0; i < temp.Count; i++)
+        for (int index = 0; index < temp.Count; index++)
         {
+            var i = temp[index];
+
             // Transform OpVariableSDSL into OpVariable (we don't need extra info anymore)
             // Note: we ignore initializer as we store a method which is already processed during StreamAnalyzer (as opposed to a const for OpVariable)
-            if (temp[i].Op == Op.OpVariableSDSL && (OpVariableSDSL)temp[i] is { } variable)
-                temp.Replace(i, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
+            if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
+                temp.Replace(index, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
 
             // Remove Nop
-            if (temp[i].Op == Op.OpNop)
-                temp.RemoveAt(i--);
+            if (i.Op == Op.OpNop)
+                temp.RemoveAt(index--);
             // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
-            else if (temp[i].Op == Op.OpSDSLShader
-                || temp[i].Op == Op.OpSDSLShaderEnd
-                || temp[i].Op == Op.OpSDSLEffect
-                || temp[i].Op == Op.OpSDSLEffectEnd
-                || temp[i].Op == Op.OpConstantStringSDSL
-                || temp[i].Op == Op.OpTypeGenericLinkSDSL
-                || temp[i].Op == Op.OpSDSLImportShader
-                || temp[i].Op == Op.OpSDSLImportFunction
-                || temp[i].Op == Op.OpSDSLImportVariable)
-                temp.RemoveAt(i--);
-            else if (temp[i].Op == Op.OpDecorate && ((OpDecorate)temp[i]).Decoration.Value is Decoration.LinkIdSDSL)
-                temp.RemoveAt(i--);
-            else if (temp[i].Op == Op.OpMemberDecorate && ((OpMemberDecorate)temp[i]).Decoration.Value == Decoration.LinkIdSDSL)
-                temp.RemoveAt(i--);
-            else if (temp[i].Op == Op.OpDecorateString && ((OpDecorateString)temp[i]).Decoration.Value is Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
-                temp.RemoveAt(i--);
-            else if (temp[i].Op == Op.OpMemberDecorateString && ((OpMemberDecorateString)temp[i]).Decoration.Value is Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
-                temp.RemoveAt(i--);
+            else if (i.Op == Op.OpSDSLShader
+                || i.Op == Op.OpSDSLShaderEnd
+                || i.Op == Op.OpSDSLEffect
+                || i.Op == Op.OpSDSLEffectEnd
+                || i.Op == Op.OpSDSLMixinInherit
+                || i.Op == Op.OpConstantStringSDSL
+                || i.Op == Op.OpTypeGenericLinkSDSL
+                || i.Op == Op.OpSDSLImportShader
+                || i.Op == Op.OpSDSLImportFunction
+                || i.Op == Op.OpSDSLImportVariable)
+                temp.RemoveAt(index--);
+            else if (i.Op == Op.OpDecorate && ((OpDecorate)i).Decoration.Value is Decoration.LinkIdSDSL)
+                temp.RemoveAt(index--);
+            else if (i.Op == Op.OpMemberDecorate && ((OpMemberDecorate)i).Decoration.Value == Decoration.LinkIdSDSL)
+                temp.RemoveAt(index--);
+            else if (i.Op == Op.OpDecorateString && ((OpDecorateString)i).Decoration.Value is Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
+                temp.RemoveAt(index--);
+            else if (i.Op == Op.OpMemberDecorateString && ((OpMemberDecorateString)i).Decoration.Value is Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
+                temp.RemoveAt(index--);
+
+            // Remove SPIR-V about pointer types to other shaders (variable and types themselves are removed as well)
+            else if (i.Op == Op.OpTypePointer && (OpTypePointer)i is { } typePointer)
+            {
+                var pointedType = globalContext.Types[typePointer.Type];
+                if (pointedType is ShaderSymbol || pointedType is ArrayType { BaseType: ShaderSymbol })
+                    temp.RemoveAt(index--);
+            }
+            // Also remove arrays of shaders (used in composition arrays)
+            else if (i.Op == Op.OpTypeArray && (OpTypeArray)i is { } typeArray)
+            {
+                var innerType = globalContext.Types[typeArray.ElementType];
+                if (innerType is ShaderSymbol)
+                    temp.RemoveAt(index--);
+            }
+            else if (i.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)i is { } typeRuntimeArray)
+            {
+                var innerType = globalContext.Types[typeRuntimeArray.ElementType];
+                if (innerType is ShaderSymbol)
+                    temp.RemoveAt(index--);
+            }
         }
     }
 }

@@ -34,11 +34,6 @@ public record class ShaderClassInstantiation(string ClassName, int[] GenericArgu
 
     public LoadedShaderSymbol Symbol { get; set; }
 
-    public int Start { get; set; }
-    public int End { get; set; }
-
-    public int OffsetId { get; set; }
-
     public string ToClassName()
     {
         if ((GenericArguments == null || GenericArguments.Length == 0) && !ImportStageOnly)
@@ -56,7 +51,7 @@ public record class ShaderClassInstantiation(string ClassName, int[] GenericArgu
         return result.ToString();
     }
 
-    public override string ToString() => $"{(ImportStageOnly ? "stage " : string.Empty)}{ToClassName()} Symbol: {Symbol} Buffer: {(Buffer != null ? "set" : "empty")} Start: {Start} End: {End} OffsetId: {OffsetId}";
+    public override string ToString() => $"{(ImportStageOnly ? "stage " : string.Empty)}{ToClassName()} Symbol: {Symbol} Buffer: {(Buffer != null ? "set" : "empty")}";
 
     public virtual bool Equals(ShaderClassInstantiation? shaderClassSource)
     {
@@ -310,7 +305,7 @@ public partial class SpirvBuilder
         }
 
         // Map classSource.GenericArguments ids to OpSDSLGenericParameter.ResultId (in the order OpSDSLGenericParameter appears)
-        Dictionary<int, List<int>> targets = new();
+        Dictionary<int, List<(int ResultId, int Index)>> targets = new();
 
         // Collect OpSDSLGenericParameter
         List<int> generics = new();
@@ -323,7 +318,7 @@ public partial class SpirvBuilder
                 generics.Add(genericParameter.ResultId);
                 if (!targets.TryGetValue(classSource.GenericArguments[genericArgumentIndex], out var genericParametersForThisArgument))
                     targets.Add(classSource.GenericArguments[genericArgumentIndex], genericParametersForThisArgument = new());
-                genericParametersForThisArgument.Add(genericParameter.ResultId);
+                genericParametersForThisArgument.Add((genericParameter.ResultId, index));
                 genericArgumentIndex++;
                 SetOpNop(i.Data.Memory.Span);
             }
@@ -356,10 +351,10 @@ public partial class SpirvBuilder
                         // import constant in current shader
                         foreach (var parameter in parameters)
                         {
-                            resolvedParameters.Add(parameter, value.ToString());
+                            resolvedParameters.Add(parameter.ResultId, value.ToString());
                             var i2 = new OpData(i.Data.Memory.Span);
-                            i2.IdResult = parameter;
-                            shader.Add(i2);
+                            i2.IdResult = parameter.ResultId;
+                            shader.Replace(parameter.Index, i2);
                         }
                     }
                 }
@@ -370,7 +365,7 @@ public partial class SpirvBuilder
                         var value = constantString.LiteralString;
                         // This will be used later for resolving LinkType generics
                         foreach (var parameter in parameters)
-                            resolvedParameters.Add(parameter, value);
+                            resolvedParameters.Add(parameter.ResultId, value);
                     }
                 }
                 else if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)

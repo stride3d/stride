@@ -309,7 +309,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        context.PutShaderName(Name);
+        builder.Insert(new OpSDSLShader(name));
 
         table.Push();
 

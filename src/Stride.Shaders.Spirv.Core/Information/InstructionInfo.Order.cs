@@ -28,15 +28,12 @@ public partial class InstructionInfo
             Op.OpSDSLShader,
             Op.OpSDSLEffect,
             Op.OpCapability,
-            Op.OpSDSLMixinInherit,
             Op.OpSDSLCompose
         ];
         foreach (var e in initSDSL)
             OrderGroup[(e, null)] = group;
 
         group++;
-        foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpSDSLImport")))
-            OrderGroup[(e, null)] = group;
         OrderGroup[(Op.OpExtension, null)] = group;
 
         group++;
@@ -69,8 +66,11 @@ public partial class InstructionInfo
             OrderGroup[(e, null)] = group;
 
         group++;
-        foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpType") || x.ToString().StartsWith("OpConstant") || x.ToString().StartsWith("OpSpec") || x == Op.OpSDSLGenericParameter))
+        foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpType") || x.ToString().StartsWith("OpConstant") || x.ToString().StartsWith("OpSpec") || x.ToString().StartsWith("OpSDSLImport") || x == Op.OpSDSLGenericParameter))
             OrderGroup[(e, null)] = group;
+
+        group++;
+        OrderGroup[(Op.OpSDSLMixinInherit, null)] = group;
 
         group++;
         foreach (var e in Enum.GetValues<StorageClass>().Where(x => x != StorageClass.Function))

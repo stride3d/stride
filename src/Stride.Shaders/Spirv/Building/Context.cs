@@ -53,7 +53,6 @@ public abstract class ShaderLoaderBase : IExternalShaderLoader
 public class SpirvContext
 {
     public int Bound { get; set; } = 1;
-    public string? Name { get; private set; }
     public Dictionary<SymbolType, int> Types { get; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; } = [];
     public Dictionary<(SymbolType Type, object Value), SpirvValue> LiteralConstants { get; } = [];
@@ -61,15 +60,6 @@ public class SpirvContext
 
     public int? GLSLSet { get; private set; }
 
-    public void PutShaderName(string name)
-    {
-        if (Name is null)
-        {
-            Name = name;
-            Buffer.Insert(0, new OpSDSLShader(name));
-        }
-        else throw new NotImplementedException();
-    }
     public void ImportGLSL()
     {
         foreach(var i in Buffer)
@@ -301,9 +291,9 @@ public class SpirvContext
             if (member.Type is MatrixType)
             {
                 if (member.TypeModifier != TypeModifier.ColumnMajor)
-                    Add(new OpMemberDecorate(id, index, new ParameterizedFlag<Specification.Decoration>(Specification.Decoration.ColMajor, [])));
+                    Add(new OpMemberDecorate(id, index, new ParameterizedFlag<Decoration>(Decoration.ColMajor, [])));
                 else if (member.TypeModifier != TypeModifier.RowMajor)
-                    Add(new OpMemberDecorate(id, index, new ParameterizedFlag<Specification.Decoration>(Specification.Decoration.RowMajor, [])));
+                    Add(new OpMemberDecorate(id, index, new ParameterizedFlag<Decoration>(Decoration.RowMajor, [])));
             }
 
         }

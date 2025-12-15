@@ -217,10 +217,11 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
             Header = Header with { Bound = index + 1 };
     }
 
-    public void Add(OpData data)
+    public OpDataIndex Add(OpData data)
     {
         Instructions.Add(data);
         UpdateBound(data);
+        return new OpDataIndex(Instructions.Count - 1, this);
     }
 
     public OpData Add<T>(in T instruction) where T : struct, IMemoryInstruction
@@ -325,6 +326,17 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         Instructions.InsertRange(index, source);
         for (int i = index; i < index + source.Length; ++i)
             UpdateBound(Instructions[i]);
+    }
+
+    public OpData Replace(int index, OpData i)
+    {
+        if (index < 0 || index >= Instructions.Count)
+            throw new InvalidOperationException();
+
+        Instructions[index].Dispose();
+        Instructions[index] = i;
+        UpdateBound(Instructions[index]);
+        return Instructions[index];
     }
 
     public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction

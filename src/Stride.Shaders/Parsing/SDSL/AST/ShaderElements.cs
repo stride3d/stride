@@ -279,14 +279,6 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
             var symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), variable, AccessChain: index);
             table.CurrentFrame.Add(member.Name, symbol);
 
-            if (member.Type is MatrixType)
-            {
-                if (member.TypeModifier != TypeModifier.ColumnMajor)
-                    context.Add(new OpMemberDecorate(context.GetOrRegister(Type), index, new ParameterizedFlag<Specification.Decoration>(Specification.Decoration.ColMajor, [])));
-                else if (member.TypeModifier != TypeModifier.RowMajor)
-                    context.Add(new OpMemberDecorate(context.GetOrRegister(Type), index, new ParameterizedFlag<Specification.Decoration>(Specification.Decoration.RowMajor, [])));
-            }
-
             if (member.Attributes != null && member.Attributes.Count > 0)
             {
                 var linkInfo = ProcessLinkAttributes(table, Info, member.Attributes);

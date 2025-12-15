@@ -18,7 +18,7 @@ namespace Stride.Shaders.Spirv.Processing;
 /// Remove duplicate simple types.
 /// Should be applied after the IdRefOffsetter.
 /// </summary>
-public struct TypeDuplicateRemover : INanoPass
+public struct TypeDuplicateHelper
 {
     public int[] FindItemsWithTypes(NewSpirvBuffer buffer, params Span<Op> ops)
     {
@@ -51,7 +51,7 @@ public struct TypeDuplicateRemover : INanoPass
         public override string ToString() => Data.Memory != null ? Data.ToString() : $"{Op} Target:{TargetOverride}";
     }
 
-    class OperationComparer(List<InstructionSortHelper> NameInstructions) : IComparer<InstructionSortHelper>
+    class OperationComparer(List<InstructionSortHelper> NameInstructions, bool UseIndices) : IComparer<InstructionSortHelper>
     {
         private static int RemapOp(Op op)
         {
@@ -70,13 +70,16 @@ public struct TypeDuplicateRemover : INanoPass
                 return comparison;
 
             // Special values for searching bounds
-            if (x.Index == -1 || y.Index == int.MaxValue)
-                return -1;
-            if (y.Index == -1 || x.Index == int.MaxValue)
-                return 1;
+            if (UseIndices)
+            {
+                if (x.Index == -1 || y.Index == int.MaxValue)
+                    return -1;
+                if (y.Index == -1 || x.Index == int.MaxValue)
+                    return 1;
+            }
 
             // Only for OpName and OpMember
-            if (x.Op == Op.OpName || x.Op == Op.OpMemberName || x.Op == Op.OpMemberDecorate || x.Op == Op.OpMemberDecorateString)
+            if (x.Op == Op.OpName || x.Op == Op.OpDecorate || x.Op == Op.OpDecorateString || x.Op == Op.OpMemberName || x.Op == Op.OpMemberDecorate || x.Op == Op.OpMemberDecorateString)
             {
                 // Use TargetOverride if defined, otherwise Memory.Span[1] (where target would be stored)
                 comparison = (x.TargetOverride ?? x.Data.Memory.Span[1]).CompareTo(y.TargetOverride ?? y.Data.Memory.Span[1]);
@@ -104,7 +107,7 @@ public struct TypeDuplicateRemover : INanoPass
                         return comparison;
                 }
             }
-            else if (x.Op == Op.OpName || x.Op == Op.OpMemberName || x.Op == Op.OpMemberDecorate || x.Op == Op.OpMemberDecorateString)
+            else if (x.Op == Op.OpName || x.Op == Op.OpDecorate || x.Op == Op.OpDecorateString || x.Op == Op.OpMemberName || x.Op == Op.OpMemberDecorate || x.Op == Op.OpMemberDecorateString)
             {
                 // Use actual op (they were all remapped to same ID in RemapOp() to be grouped by TargetId first)
                 comparison = x.Op.CompareTo(y.Op);
@@ -116,7 +119,7 @@ public struct TypeDuplicateRemover : INanoPass
                     return comparison;
             }
 
-            comparison = x.Index.CompareTo(y.Index);
+            comparison = UseIndices ? x.Index.CompareTo(y.Index) : 0;
             return comparison;
         }
 
@@ -149,10 +152,17 @@ public struct TypeDuplicateRemover : INanoPass
         }
     }
 
-    public readonly void Apply(NewSpirvBuffer buffer)
+    private NewSpirvBuffer buffer;
+    private List<InstructionSortHelper> instructionsByOp;
+    private List<InstructionSortHelper> namesByOp;
+    private OperationComparer comparerSort;
+    private OperationComparer comparerInsert;
+
+    public TypeDuplicateHelper(NewSpirvBuffer buffer)
     {
-        var instructionsByOp = new List<InstructionSortHelper>();
-        var namesByOp = new List<InstructionSortHelper>();
+        this.buffer = buffer;
+        instructionsByOp = new();
+        namesByOp = new();
         foreach (var i in buffer)
         {
             switch (i.Op)
@@ -167,30 +177,49 @@ public struct TypeDuplicateRemover : INanoPass
             }
         }
 
-        var comparer = new OperationComparer(namesByOp);
+        comparerSort = new OperationComparer(namesByOp, true);
         // Note: since it contains no OpTypeStruct, it should not access OperationComparer.NameInstructions
-        namesByOp.Sort(comparer);
-        instructionsByOp.Sort(comparer);
+        namesByOp.Sort(comparerSort);
+        instructionsByOp.Sort(comparerSort);
 
+        comparerInsert = new OperationComparer(namesByOp, false);
+    }
+
+    public bool CheckForDuplicates(OpData data, out OpData foundData)
+    {
+        var index = instructionsByOp.BinarySearch(new InstructionSortHelper { Op = data.Op, Index = -1, Data = data }, comparerInsert);
+
+        if (index >= 0)
+        {
+            foundData = instructionsByOp[index].Data;
+            return true;
+        }
+
+        foundData = data;
+        return false;
+    }
+
+    public void RemoveDuplicates()
+    {
         // Note: We process instruction by types depending on their dependencies
         // i.e. a OpTypeFloat being unified means a OpTypeVector depending on it might too
 
         // Covers OpTypeVoid, OpTypeBool, OpTypeInt, OpTypeFloat at the same time (no interdependencies)
-        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeVoid, Op.OpTypeFloat, false, comparer);
-        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeVector, Op.OpTypeVector, true, comparer);
-        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeMatrix, Op.OpTypeMatrix, true, comparer);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeVoid, Op.OpTypeFloat, false, comparerSort);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeVector, Op.OpTypeVector, true, comparerSort);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeMatrix, Op.OpTypeMatrix, true, comparerSort);
 
-        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeArray, Op.OpTypeRuntimeArray, true, comparer);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeArray, Op.OpTypeRuntimeArray, true, comparerSort);
 
-        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeStruct, Op.OpTypeStruct, true, comparer);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeStruct, Op.OpTypeStruct, true, comparerSort);
 
-        ProcessInstructions(buffer, instructionsByOp, Op.OpTypePointer, Op.OpTypePointer, true, comparer);
-        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeFunction, Op.OpTypeFunction, true, comparer);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypePointer, Op.OpTypePointer, true, comparerSort);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeFunction, Op.OpTypeFunction, true, comparerSort);
 
-        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeGenericLinkSDSL, Op.OpTypeGenericLinkSDSL, true, comparer);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeGenericLinkSDSL, Op.OpTypeGenericLinkSDSL, true, comparerSort);
 
         // Note: due to RemapOp, this will also cover OpMemberDecorate and OpMemberName
-        ProcessInstructions(buffer, namesByOp, Op.OpName, Op.OpName, true, comparer);
+        ProcessInstructions(buffer, namesByOp, Op.OpName, Op.OpName, true, comparerSort);
     }
 
     private static void ProcessInstructions(NewSpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, Op startOp, Op endOp, bool sort, OperationComparer comparer)
@@ -288,5 +317,13 @@ public struct TypeDuplicateRemover : INanoPass
     {
         words[0] = words.Length << 16;
         words[1..].Clear();
+    }
+}
+
+public struct TypeDuplicateRemover : INanoPass
+{
+    public void Apply(NewSpirvBuffer buffer)
+    {
+        new TypeDuplicateHelper(buffer).RemoveDuplicates();
     }
 }

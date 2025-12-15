@@ -117,115 +117,121 @@ namespace Stride.Shaders.Spirv.Processing
             // Build name table
             SortedList<int, string> nameTable = [];
             SortedList<int, string> semanticTable = [];
-            foreach (var instruction in buffer)
+            foreach (var temp in new[] { context.GetBuffer(), buffer })
             {
-                // Names
+                foreach (var instruction in temp)
                 {
-                    if (instruction.Op == Op.OpName
-                        && ((OpName)instruction) is
-                        {
-                            Target: int t,
-                            Name: string n
-                        }
-                       )
+                    // Names
                     {
-                        nameTable[t] = new(n);
-                    }
-                    else if (instruction.Op == Op.OpMemberName
-                        && ((OpMemberName)instruction) is
-                        {
-                            Type: int t2,
-                            Member: int m,
-                            Name: string n2
-                        }
-                       )
-                    {
-                        nameTable[t2] = new(n2);
-                    }
-                }
-
-                // CBuffer
-                // Encoded in this format:
-                // OpDecorate %type_CBuffer1 Block
-                // %_ptr_Uniform_type_CBuffer1 = OpTypePointer Uniform %type_CBuffer1
-                // %CBuffer1 = OpVariable %_ptr_Uniform_type_CBuffer1 Uniform
-                {
-                    if (instruction.Op == Op.OpDecorate
-                        && ((OpDecorate)instruction) is { Decoration: { Value: Decoration.Block }, Target: var bufferType })
-                    {
-                        blockTypes.Add(bufferType);
-                    }
-                    else if (instruction.Op == Op.OpTypePointer
-                        && ((OpTypePointer)instruction) is { Storageclass: StorageClass.Uniform, ResultId: var pointerType, Type: var bufferType2 }
-                        && blockTypes.Contains(bufferType2))
-                    {
-                        blockPointerTypes.Add(pointerType, bufferType2);
-                    }
-                    else if (instruction.Op == Op.OpVariableSDSL
-                        && ((OpVariableSDSL)instruction) is { Storageclass: StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
-                        && blockPointerTypes.TryGetValue(pointerType2, out var bufferType3))
-                    {
-                        blockIds.Add(bufferId);
-                    }
-                }
-
-                // Semantic
-                {
-                    if (instruction.Op == Op.OpDecorateString
-                        && ((OpDecorateString)instruction) is
-                        {
-                            Target: int t,
-                            Decoration:
+                        if (instruction.Op == Op.OpName
+                            && ((OpName)instruction) is
                             {
-                                Value: Decoration.UserSemantic,
-                                Parameters: { } m
+                                Target: int t,
+                                Name: string n
                             }
+                           )
+                        {
+                            nameTable[t] = new(n);
                         }
-                       )
+                        else if (instruction.Op == Op.OpMemberName
+                            && ((OpMemberName)instruction) is
+                            {
+                                Type: int t2,
+                                Member: int m,
+                                Name: string n2
+                            }
+                           )
+                        {
+                            nameTable[t2] = new(n2);
+                        }
+                    }
+
+                    // CBuffer
+                    // Encoded in this format:
+                    // OpDecorate %type_CBuffer1 Block
+                    // %_ptr_Uniform_type_CBuffer1 = OpTypePointer Uniform %type_CBuffer1
+                    // %CBuffer1 = OpVariable %_ptr_Uniform_type_CBuffer1 Uniform
                     {
-                        using var n = new LiteralValue<string>(m.Span);
-                        semanticTable[t] = n.Value;
+                        if (instruction.Op == Op.OpDecorate
+                            && ((OpDecorate)instruction) is { Decoration: { Value: Decoration.Block }, Target: var bufferType })
+                        {
+                            blockTypes.Add(bufferType);
+                        }
+                        else if (instruction.Op == Op.OpTypePointer
+                            && ((OpTypePointer)instruction) is { Storageclass: StorageClass.Uniform, ResultId: var pointerType, Type: var bufferType2 }
+                            && blockTypes.Contains(bufferType2))
+                        {
+                            blockPointerTypes.Add(pointerType, bufferType2);
+                        }
+                        else if (instruction.Op == Op.OpVariableSDSL
+                            && ((OpVariableSDSL)instruction) is { Storageclass: StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
+                            && blockPointerTypes.TryGetValue(pointerType2, out var bufferType3))
+                        {
+                            blockIds.Add(bufferId);
+                        }
+                    }
+
+                    // Semantic
+                    {
+                        if (instruction.Op == Op.OpDecorateString
+                            && ((OpDecorateString)instruction) is
+                            {
+                                Target: int t,
+                                Decoration:
+                                {
+                                    Value: Decoration.UserSemantic,
+                                    Parameters: { } m
+                                }
+                            }
+                           )
+                        {
+                            using var n = new LiteralValue<string>(m.Span);
+                            semanticTable[t] = n.Value;
+                        }
                     }
                 }
             }
 
             // Analyze streams
-            foreach (var instruction in buffer)
+            foreach (var temp in new[] { context.GetBuffer(), buffer })
             {
-                if (instruction.Op == Op.OpVariableSDSL && ((OpVariableSDSL)instruction) is
-                    {
-                        Storageclass: StorageClass.Private,
-                        ResultId: int
-                    } variable)
+                foreach (var instruction in temp)
                 {
-                    var name = nameTable.TryGetValue(variable.ResultId, out var nameId)
-                        ? nameId
-                        : $"unnamed_{variable.ResultId}";
-                    var type = context.ReverseTypes[variable.ResultType];
-                    semanticTable.TryGetValue(variable.ResultId, out var semantic);
-
-                    var stream = (new StreamInfo(semantic, name, type, variable.ResultId)
+                    if (instruction.Op == Op.OpVariableSDSL && ((OpVariableSDSL)instruction) is
+                        {
+                            Storageclass: StorageClass.Private,
+                            ResultId: int
+                        } variable)
                     {
-                        // Does it have an initializer? if yes, mark it as a value written in this stage
-                        Write = variable.MethodInitializer != null,
-                        VariableMethodInitializerId = variable.MethodInitializer,
-                    }, true);
+                        var name = nameTable.TryGetValue(variable.ResultId, out var nameId)
+                            ? nameId
+                            : $"unnamed_{variable.ResultId}";
+                        var type = context.ReverseTypes[variable.ResultType];
+                        semanticTable.TryGetValue(variable.ResultId, out var semantic);
 
-                    streams.Add(variable.ResultId, stream);
-                }
+                        var stream = (new StreamInfo(semantic, name, type, variable.ResultId)
+                        {
+                            // Does it have an initializer? if yes, mark it as a value written in this stage
+                            Write = variable.MethodInitializer != null,
+                            VariableMethodInitializerId = variable.MethodInitializer,
+                        }, true);
 
-                if (instruction.Op == Op.OpVariableSDSL && ((OpVariableSDSL)instruction) is
+                        streams.Add(variable.ResultId, stream);
+                    }
+
+                    if (instruction.Op == Op.OpVariableSDSL && ((OpVariableSDSL)instruction) is
+                        {
+                            Storageclass: StorageClass.UniformConstant,
+                            ResultId: int
+                        } resource)
                     {
-                        Storageclass: StorageClass.UniformConstant,
-                        ResultId: int
-                    } resource)
-                {
-                    var name = nameTable.TryGetValue(resource.ResultId, out var nameId)
-                        ? nameId
-                        : $"unnamed_{resource.ResultId}";
-                    var type = context.ReverseTypes[resource.ResultType];
+                        var name = nameTable.TryGetValue(resource.ResultId, out var nameId)
+                            ? nameId
+                            : $"unnamed_{resource.ResultId}";
+                        var type = context.ReverseTypes[resource.ResultType];
 
-                    resources.Add(resource.ResultId);
+                        resources.Add(resource.ResultId);
+                    }
                 }
             }
 
