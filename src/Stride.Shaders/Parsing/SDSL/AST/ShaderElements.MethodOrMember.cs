@@ -46,14 +46,13 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
         if (Parameters.Count > 0)
             table.Errors.Add(new SemanticErrors(Info, "Sampler states with parameters are not supported in SPIR-V generation."));
 
-        (_, var context) = compiler;
+        (var builder, var context) = compiler;
         Type = new PointerType(new SamplerType(), Specification.StorageClass.UniformConstant);
         var registeredType = context.GetOrRegister(Type);
         if (!table.RootSymbols.TryGetValue(Name, out _))
         {
-            context
-            .FluentAdd(new OpVariableSDSL(registeredType, context.Bound++, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null), out var register)
-            .FluentAdd(new OpName(register.ResultId, Name), out _);
+            var register = builder.Insert(new OpVariableSDSL(registeredType, context.Bound++, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
+            context.AddName(register.ResultId, Name);
 
             var sid = new SymbolID(Name, SymbolKind.SamplerState);
             var symbol = new Symbol(sid, Type, register.ResultId);
@@ -145,7 +144,7 @@ public sealed class ShaderMember(
             context.AddName(initializerMethod.Value, $"{Name}_Initializer");
         }
 
-        context.Add(new OpVariableSDSL(registeredType, variable, storageClass, variableFlags, initializerMethod));
+        builder.Insert(new OpVariableSDSL(registeredType, variable, storageClass, variableFlags, initializerMethod));
         if (Semantic != null)
             context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(Semantic.Name)));
         context.AddName(variable, Name);

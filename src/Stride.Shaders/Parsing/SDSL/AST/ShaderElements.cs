@@ -298,7 +298,7 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
         }
 
         // TODO: Add a StreamSDSL storage class?
-        context.Add(new OpVariableSDSL(pointerType, variable, Specification.StorageClass.Uniform, isStaged == true ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
+        builder.Insert(new OpVariableSDSL(pointerType, variable, Specification.StorageClass.Uniform, isStaged == true ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
         context.AddName(variable, Name);
     }
 }
@@ -326,7 +326,7 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
 
             var type = new PointerType(member.Type, storageClass);
             var typeId = context.GetOrRegister(type);
-            context.FluentAdd(new OpVariable(typeId, context.Bound++, storageClass, null), out var variable);
+            var variable = builder.Insert(new OpVariable(typeId, context.Bound++, storageClass, null));
             context.AddName(variable.ResultId, member.Name);
 
             DecorateVariableLinkInfo(table, shaderClass, context, Info, member.Name, member.Attributes, variable.ResultId);
