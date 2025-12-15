@@ -253,6 +253,8 @@ public partial class SpirvBuilder
 
         var bound = shader.Header.Bound;
 
+        var resolvedLinks = new Dictionary<int, string>();
+
         var genericValueIndex = 0;
         for (var index = 0; index < shader.Count; index++)
         {
@@ -277,6 +279,7 @@ public partial class SpirvBuilder
                         break;
                     case GenericLinkType:
                         shader.Replace(index, new OpConstantStringSDSL(genericParameter.ResultId, genericValue));
+                        resolvedLinks.Add(genericParameter.ResultId, genericValue);
                         break;
                     default:
                         throw new NotImplementedException();
@@ -287,6 +290,8 @@ public partial class SpirvBuilder
                 shaderDeclaration.ShaderName += $"<{string.Join(',', genericValues)}>";
             }
         }
+
+        TransformResolvedLinkIdIntoLinkString(shader, resolvedLinks);
 
         // In case we had to increase bound (new instructions), update header
         shader.Header = shader.Header with { Bound = bound };
@@ -375,20 +380,7 @@ public partial class SpirvBuilder
             }
         }
 
-        // Try to resolve LinkType generics
-        for (var index = 0; index < shader.Count; index++)
-        {
-            var i = shader[index];
-            if (i.Op == Op.OpMemberDecorate
-                && ((OpMemberDecorate)i) is { Decoration: { Value: Decoration.LinkIdSDSL, Parameters: { } m } } linkDecorate)
-            {
-                using var n = new LiteralValue<int>(m.Span);
-                if (resolvedParameters.TryGetValue(n.Value, out var resolvedValue))
-                {
-                    shader.Replace(index, new OpMemberDecorateString(linkDecorate.StructureType, linkDecorate.Member, new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words])));
-                }
-            }
-        }
+        TransformResolvedLinkIdIntoLinkString(shader, resolvedParameters);
 
         // Fully resolved?
         if (resolvedParameters.Count == generics.Count)
@@ -414,6 +406,24 @@ public partial class SpirvBuilder
         else if (resolveStep == ResolveStep.Mix)
         {
             throw new InvalidOperationException("During mix phase, shaders generics are expected to be fully resolved");
+        }
+    }
+
+    private static void TransformResolvedLinkIdIntoLinkString(NewSpirvBuffer shader, Dictionary<int, string> resolvedLinks)
+    {
+        // Try to resolve LinkType generics
+        for (var index = 0; index < shader.Count; index++)
+        {
+            var i = shader[index];
+            if (i.Op == Op.OpMemberDecorate
+                && ((OpMemberDecorate)i) is { Decoration: { Value: Decoration.LinkIdSDSL, Parameters: { } m } } linkDecorate)
+            {
+                using var n = new LiteralValue<int>(m.Span);
+                if (resolvedLinks.TryGetValue(n.Value, out var resolvedValue))
+                {
+                    shader.Replace(index, new OpMemberDecorateString(linkDecorate.StructureType, linkDecorate.Member, new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words])));
+                }
+            }
         }
     }
 
