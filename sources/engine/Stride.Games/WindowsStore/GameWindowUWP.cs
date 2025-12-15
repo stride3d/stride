@@ -356,7 +356,7 @@ namespace Stride.Games
             }
         }
 
-        internal override void Resize(int width, int height)
+        public override void Resize(int width, int height)
         {
             currentWidth = width;
             currentHeight = height;
@@ -374,7 +374,7 @@ namespace Stride.Games
             RunCallback();
         }
 
-        internal override void Run()
+        public override void Run()
         {
             if (swapChainPanel != null)
             {

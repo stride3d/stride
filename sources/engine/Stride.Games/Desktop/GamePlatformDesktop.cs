@@ -51,7 +51,7 @@ namespace Stride.Games
             }
         }
 
-        internal override GameWindow GetSupportedGameWindow(AppContextType type)
+        public override GameWindow GetSupportedGameWindow(AppContextType type)
         {
             switch (type)
             {

@@ -64,5 +64,10 @@ namespace Stride.Games
         /// </summary>
         iOS,
 #pragma warning restore SA1300 // Element must begin with upper-case letter
+
+        /// <summary>
+        /// Custom context.
+        /// </summary>
+        Custom
     }
 }
