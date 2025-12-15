@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.HighPerformance;
+using CommunityToolkit.HighPerformance.Buffers;
 using Silk.NET.SPIRV.Cross;
 using Stride.Core.Extensions;
 using Stride.Shaders.Core;
@@ -133,21 +134,25 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         var cbufferStructTypes = cbuffersByNames.SelectMany(x => x).Select(x => context.Types[x.StructType]).ToHashSet();
 
-        Dictionary<(int StructType, int Member), string> links = new();
+        Dictionary<(int StructType, int Member), (Dictionary<Decoration, string> StringDecorations, Dictionary<Decoration, MemoryOwner<int>> Decorations)> decorations = new();
         foreach (var i in buffer)
         {
-            if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LinkSDSL, Parameters: { } m } } memberDecorate)
+            if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Parameters: var m } } memberDecorate)
             {
-                if (cbufferStructTypes.Contains(memberDecorate.StructType))
-                {
-                    using var n = new LiteralValue<string>(m.Span);
-                    links.Add((memberDecorate.StructType, memberDecorate.Member), n.Value);
-                    SetOpNop(i.Data.Memory.Span);
-                }
+                using var n = new LiteralValue<string>(m.Span);
+                if (!decorations.TryGetValue((memberDecorate.StructType, memberDecorate.Member), out var decorationsForThisMember))
+                    decorations.Add((memberDecorate.StructType, memberDecorate.Member), decorationsForThisMember = new(new(), new()));
+                decorationsForThisMember.StringDecorations.Add(memberDecorate.Decoration.Value, n.Value);
+            }
+            else if (i.Op == Op.OpMemberDecorate && (OpMemberDecorate)i is { Decoration: { Parameters: var m2 } } memberDecorate2)
+            {
+                if (!decorations.TryGetValue((memberDecorate2.StructureType, memberDecorate2.Member), out var decorationsForThisMember))
+                    decorations.Add((memberDecorate2.StructureType, memberDecorate2.Member), decorationsForThisMember = new(new(), new()));
+                decorationsForThisMember.Decorations.Add(memberDecorate2.Decoration.Value, m2);
             }
         }
 
-        void DecorateLinks(Span<(OpVariableSDSL Variable, string CompositionPath, string ShaderName, int StructTypePtrId, StructuredType? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, int cbufferStructId)
+        void ProcessDecorations(Span<(OpVariableSDSL Variable, string CompositionPath, string ShaderName, int StructTypePtrId, StructuredType? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, int cbufferStructId, bool newStructure)
         {
             int mergedMemberIndex = 0;
             foreach (ref var cbuffer in cbuffersSpan)
@@ -158,17 +163,37 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     var member = cbuffer.StructType.Members[memberIndex];
 
-                    var link = $"{TypeName.GetTypeNameWithoutGenerics(cbuffer.ShaderName)}.{member.Name}";
-                    if (!compositionPath.IsNullOrEmpty())
-                        link = $"{link}.{compositionPath}";
+                    if (!decorations.TryGetValue((context.Types[cbuffer.StructType], memberIndex), out var decorationsForThisMember))
+                        decorations.Add((context.Types[cbuffer.StructType], memberIndex), decorationsForThisMember = new(new(), new()));
 
-                    // Check if there is already a decoration (i.e. from an explicit "Link")
-                    if (links.TryGetValue((context.Types[cbuffer.StructType], memberIndex), out var linkValue))
-                        link = linkValue;
+                    decorationsForThisMember.StringDecorations.TryGetValue(Decoration.LinkSDSL, out var linkValue);
 
-                    context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, ParameterizedFlags.DecorationLinkSDSL(link)));
+                    if (!newStructure)
+                    {
+                        // If not a new structure, we restart from 0 and add only what's necessary
+                        // Note: we made sure to query linkValue before
+                        decorationsForThisMember.StringDecorations.Clear();
+                        decorationsForThisMember.Decorations.Clear();
+                    }
+
+                    // If not specified, add default Link info
+                    if (linkValue == null)
+                    {
+                        var link = $"{TypeName.GetTypeNameWithoutGenerics(cbuffer.ShaderName)}.{member.Name}";
+                        if (!compositionPath.IsNullOrEmpty())
+                            link = $"{link}.{compositionPath}";
+
+                        decorationsForThisMember.StringDecorations.Add(Decoration.LinkSDSL, link);
+                    }
+
+                    // Also transfer LogicalGroup (from name)
                     if (cbuffer.LogicalGroup != null)
-                        context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, ParameterizedFlags.DecorationLogicalGroupSDSL(cbuffer.LogicalGroup)));
+                        decorationsForThisMember.StringDecorations.Add(Decoration.LogicalGroupSDSL, cbuffer.LogicalGroup);
+
+                    foreach (var stringDecoration in decorationsForThisMember.StringDecorations)
+                        context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, new ParameterizedFlag<Decoration>(stringDecoration.Key, [.. stringDecoration.Value.AsDisposableLiteralValue().Words])));
+                    foreach (var decoration in decorationsForThisMember.Decorations)
+                        context.Add(new OpMemberDecorate(cbufferStructId, mergedMemberIndex, new ParameterizedFlag<Decoration>(decoration.Key, decoration.Value)));
                 }
             }
         }
@@ -180,7 +205,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             if (cbuffersEntry.Count() == 1)
             {
-                DecorateLinks(cbuffersSpan, context.Types[cbuffersEntry.First().StructType]);
+                ProcessDecorations(cbuffersSpan, context.Types[cbuffersEntry.First().StructType], false);
             }
             // More than 1 cbuffers with same name
             else
@@ -199,7 +224,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 var mergedCbufferStructId = context.DeclareCBuffer(mergedCbufferStruct);
                 var mergedCbufferPtrStructId = context.GetOrRegister(new PointerType(mergedCbufferStruct, Specification.StorageClass.Uniform));
 
-                DecorateLinks(cbuffersSpan, mergedCbufferStructId);
+                ProcessDecorations(cbuffersSpan, mergedCbufferStructId, true);
 
                 // Remap member ids
                 foreach (var i in buffer)
@@ -358,17 +383,20 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Scan LinkSDSL and LogicalGroupSDSL decorations
         Dictionary<(int StructType, int Member), string> links = new();
         Dictionary<(int StructType, int Member), string> logicalGroups = new();
-        foreach (var i in context.GetBuffer())
+        foreach (var temp in new[] { context.GetBuffer(), buffer })
         {
-            if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LinkSDSL, Parameters: { } m } } memberDecorate)
+            foreach (var i in temp)
             {
-                using var n = new LiteralValue<string>(m.Span);
-                links.Add((memberDecorate.StructType, memberDecorate.Member), n.Value);
-            }
-            else if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LogicalGroupSDSL, Parameters: { } m2 } } memberDecorate2)
-            {
-                using var n = new LiteralValue<string>(m2.Span);
-                logicalGroups.Add((memberDecorate2.StructType, memberDecorate2.Member), n.Value);
+                if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LinkSDSL, Parameters: { } m } } memberDecorate)
+                {
+                    using var n = new LiteralValue<string>(m.Span);
+                    links.Add((memberDecorate.StructType, memberDecorate.Member), n.Value);
+                }
+                else if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LogicalGroupSDSL, Parameters: { } m2 } } memberDecorate2)
+                {
+                    using var n = new LiteralValue<string>(m2.Span);
+                    logicalGroups.Add((memberDecorate2.StructType, memberDecorate2.Member), n.Value);
+                }
             }
         }
 
