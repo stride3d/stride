@@ -193,12 +193,6 @@ msgctxt "Settings"
 msgid "X Display"
 msgstr ""
 
-#. Ask if we want to execute remotely using CoreCLR.
-#: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:54
-msgctxt "Settings"
-msgid "Use CoreCLR"
-msgstr ""
-
 #. Confirmation message when everything is correct while testing credentials.
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:74
 msgctxt "Credentials"

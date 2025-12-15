@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2019-01-11 23:17:07+0900\n"
+"POT-Creation-Date: 2025-12-01 12:57:50+0100\n"
 "PO-Revision-Date: 2019-01-13 02:38+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11,115 +11,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 2.2\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
-msgctxt "Message"
-msgid ""
-"Unable to rename the folder '{0}' to '{1}'. A folder with the same name "
-"already exists."
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:495
-msgctxt "Message"
-msgid "Are you sure you want to delete this entity?"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:498
-msgctxt "Message"
-msgid "Are you sure you want to delete these {0} entities?"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:500
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
-msgctxt "Button"
-msgid "Delete"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:500
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
-#: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:50
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:60
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:70
-#: ../editor/Stride.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:64
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:127
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:52
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:28
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:21
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:55
-msgctxt "Button"
-msgid "Cancel"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:16
-msgid "Use translation gizmo"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:22
-msgid "Use rotation gizmo"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:28
-msgid "Use scale gizmo"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:16
-msgid "Use world coordinates for transformations"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:22
-msgid "Use local coordinates for transformations"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:28
-msgid "Use current camera projection coordinates for transformations"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:11
-msgctxt "Settings"
-msgid "Script editor"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:18
-msgctxt "Settings"
-msgid "Font size"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:162
-#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:185
-msgctxt "Message"
-msgid "Couldn't find the file"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:172
-msgctxt "Message"
-msgid "There was a problem while editing the image.{0}"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:195
-msgctxt "Message"
-msgid "There was a problem opening Explorer.{0}"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:11
-msgctxt "Settings"
-msgid "UI editor"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:18
-msgctxt "Settings"
-msgid "Ask before deleting UI elements"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:426
-msgctxt "Message"
-msgid "Are you sure you want to delete this UI element?"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:428
-msgctxt "Message"
-msgid "Are you sure you want to delete these {0} UI elements?"
-msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:12
 msgctxt "Settings"
@@ -168,55 +59,80 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:45
 msgctxt "Settings"
-msgid "Invert mouse panning axis"
+msgid "Increase camera speed"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:49
 msgctxt "Settings"
-msgid "Center view on selection"
+msgid "Decrease camera speed"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:53
 msgctxt "Settings"
-msgid "Snap selection to the grid"
+msgid "Invert mouse panning axis"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:57
 msgctxt "Settings"
-msgid "Switch to translation mode"
+msgid "Center view on selection"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:61
 msgctxt "Settings"
-msgid "Switch to rotation mode"
+msgid "Snap selection to the grid"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:65
 msgctxt "Settings"
-msgid "Switch to scale mode"
+msgid "Use snapping while selection is beeing manipulated"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:69
 msgctxt "Settings"
-msgid "Switch to next gizmo mode"
+msgid "Switch to translation mode"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:73
 msgctxt "Settings"
-msgid "Default snap distance for translation"
+msgid "Switch to rotation mode"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:77
 msgctxt "Settings"
-msgid "Default snap angle for rotation"
+msgid "Switch to scale mode"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:81
 msgctxt "Settings"
-msgid "Default snap factor for scale"
+msgid "Switch to next gizmo mode"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:85
+msgctxt "Settings"
+msgid "Default snap distance for translation"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:89
+msgctxt "Settings"
+msgid "Default snap angle for rotation"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:93
+msgctxt "Settings"
+msgid "Default snap factor for scale"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:97
+msgctxt "Settings"
+msgid "Display direction names instead of XYZ components"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:101
+msgctxt "Settings"
+msgid "Use linear movement for the rotation gizmo"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:105
 msgctxt "Settings"
 msgid "Ask before deleting entities"
 msgstr ""
@@ -229,6 +145,22 @@ msgstr ""
 #: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:49
 msgctxt "Button"
 msgid "Select a source..."
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:50
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:108
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:70
+#: ../editor/Stride.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:64
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:498
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:127
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:55
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:28
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:21
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:55
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
+msgctxt "Button"
+msgid "Cancel"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:53
@@ -247,27 +179,27 @@ msgid "Select at least one platform."
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:102
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:75
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:76
 msgctxt "Message"
 msgid "Type a valid namespace name. Error with {0}"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:69
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:70
 msgctxt "Message"
 msgid "Type a valid library name. Error with {0}"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml.cs:62
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml.cs:78
 msgctxt "Message"
 msgid "The names you entered are invalid or empty."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:59
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:107
 msgctxt "Button"
 msgid "Save"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:62
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:110
 msgctxt "Message"
 msgid "You can't use scripts until you save them. Do you want to save now?"
 msgstr ""
@@ -287,7 +219,7 @@ msgctxt "Message"
 msgid "Are you sure you want to remove these {0} platform(s) from the package?"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:209
+#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:202
 msgctxt "Message"
 msgid ""
 "Game Studio can't auto-reload the project file {0} because you have local "
@@ -296,7 +228,7 @@ msgid ""
 "Click OK to keep reloading or Cancel to keep the current version."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:257
+#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:250
 msgctxt "Message"
 msgid ""
 "The following source files in the {0} project have been deleted externally, "
@@ -306,7 +238,7 @@ msgid ""
 "{1}"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:357
+#: ../editor/Stride.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:359
 msgctxt "Message"
 msgid ""
 "{0}\r\n"
@@ -316,7 +248,7 @@ msgid ""
 "Do you want to reload it and lose your changes?"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:47
+#: ../editor/Stride.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:48
 msgctxt "Message"
 msgid ""
 "**Only static fonts can be precompiled.**\r\n"
@@ -329,382 +261,895 @@ msgctxt "Message"
 msgid "Which color space do you want to use?"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:64
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:108
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:187
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:787
+#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:16
+msgid "Use translation gizmo"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:22
+msgid "Use rotation gizmo"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:28
+msgid "Use scale gizmo"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:16
+msgid "Use world coordinates for transformations"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:22
+msgid "Use local coordinates for transformations"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:28
+msgid "Use current camera projection coordinates for transformations"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:11
+msgctxt "Settings"
+msgid "Script editor"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:18
+msgctxt "Settings"
+msgid "Font size"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:11
+msgctxt "Settings"
+msgid "UI editor"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:18
+msgctxt "Settings"
+msgid "Ask before deleting UI elements"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
+msgctxt "Message"
+msgid ""
+"Unable to rename the folder '{0}' to '{1}'. A folder with the same name "
+"already exists."
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:493
+msgctxt "Message"
+msgid "Are you sure you want to delete this entity?"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:496
+msgctxt "Message"
+msgid "Are you sure you want to delete these {0} entities?"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:498
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
+msgctxt "Button"
+msgid "Delete"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:162
+#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:185
+msgctxt "Message"
+msgid "Couldn't find the file"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:172
+msgctxt "Message"
+msgid "There was a problem while editing the image.{0}"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:195
+msgctxt "Message"
+msgid "There was a problem opening Explorer.{0}"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:426
+msgctxt "Message"
+msgid "Are you sure you want to delete this UI element?"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:428
+msgctxt "Message"
+msgid "Are you sure you want to delete these {0} UI elements?"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:10
+msgid "Create a game..."
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:21
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:23
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:31
+msgid "Namespace:"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:26
+msgid "Platforms"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:48
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:45
+msgid "This machine doesn't meet the requirements to build for this platform."
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:58
+msgid "Asset packs"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:78
+msgid "Rendering"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:90
+msgctxt "Button"
+msgid "High dynamic range (HDR)"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:92
+msgctxt "Button"
+msgid "Low dynamic range (LDR)"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:126
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:54
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:27
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:54
+msgctxt "Button"
+msgid "OK"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:10
+msgid "Import from model"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:22
+msgid "Materials and textures"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:26
+msgctxt "Button"
+msgid "Import materials"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:27
+msgctxt "Button"
+msgid "Deduplicate materials"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:28
+msgid "Warning: Deduplicate materials is currently not supported for FBX files"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:29
+msgctxt "Button"
+msgid "Import textures"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:30
+msgctxt "Button"
+msgid "Import Animations"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:34
+msgid "Skeleton"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:38
+msgctxt "Button"
+msgid "Import skeleton"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:39
+msgctxt "Button"
+msgid "No skeleton"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:40
+msgctxt "Button"
+msgid "Use another skeleton for this model:"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:10
+msgid "New code library"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:21
+msgid "Library name:"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:9
+msgid "New script"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:20
+msgctxt "Button"
+msgid "Create script"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:25
+msgid "Class:"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:28
+msgid "Template:"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:9
+msgid "Select platforms"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:31
+msgid "(This will remove the project from the package and disk.)"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:52
+msgctxt "Button"
+msgid "Force regeneration of all platform projects"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:28
+msgctxt "ToolTip"
+msgid "Play the animation"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:31
+msgctxt "ToolTip"
+msgid "Pause the animation"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:43
+msgid "Time scale:"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:117
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:136
+msgctxt "ToolTip"
+msgid "Reset the camera"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:187
+msgid ""
+"Scenes can't be previewed. To see the scene, open it in the scene editor."
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:201
+msgctxt "ToolTip"
+msgid "Play the sound"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:204
+msgctxt "ToolTip"
+msgid "Pause the sound"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:240
+msgid "Building preview sound asset..."
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:278
+msgctxt "ToolTip"
+msgid "Previous sprite"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:280
+msgid "Sprite:"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:283
+msgctxt "ToolTip"
+msgid "Next sprite"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:311
+msgid "Preview text"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:353
+msgctxt "ToolTip"
+msgid "Previous slice"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:357
+msgctxt "ToolTip"
+msgid "Next slice"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:380
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:445
+msgid "W: {0}"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:381
+msgid "H: {0}"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:446
+msgid "L: {0}"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/AddEntityComponentUserControl.xaml:22
+msgid "Add component"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/AddEntityComponentUserControl.xaml:35
+msgid "Search"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/AnimationPropertyTemplates.xaml:18
+msgctxt "ToolTip"
+msgid "Edit curve"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/AnimationPropertyTemplates.xaml:70
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:71
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:111
+#: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:63
+msgid "(Different values)"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/DebugEntityHierarchyEditorUserControl.xaml:13
+msgctxt "Button"
+msgid "Refresh"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:11
+msgid "Live scripting debugger"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:21
+msgctxt "ToolTip"
+msgid "Select these assets"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:26
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
+msgctxt "ToolTip"
+msgid "Cancel (Esc)"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:44
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:84
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:182
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:209
+msgctxt "ToolTip"
+msgid "Select an asset"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:50
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:90
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:214
+msgctxt "ToolTip"
+msgid "Clear the reference"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:56
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:96
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:168
+msgctxt "ToolTip"
+msgid "Select the referenced asset"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:205
+msgctxt "ToolTip"
+msgid "Highlight this material in the scene editor"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:260
+msgid "Add configuration"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/MaterialPropertyTemplates.xaml:13
+msgid "Select shader..."
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:24
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:569
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:624
+msgctxt "Button"
+msgid "All"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:26
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:570
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:625
+msgctxt "Button"
+msgid "None"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:42
+msgctxt "ToolTip"
+msgid "Remove the selected curve"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:44
+msgid "Curves:"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:74
+msgctxt "ToolTip"
+msgid "Show or hide the tracker"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:80
+msgctxt "ToolTip"
+msgid "Fit view to curve"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:83
+msgctxt "ToolTip"
+msgid "Fit view to curve height"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:86
+msgctxt "ToolTip"
+msgid "Fit view to curve width"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:93
+msgctxt "ToolTip"
+msgid "Delete selected points"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:102
+msgctxt "ToolTip"
+msgid "First key"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:105
+msgctxt "ToolTip"
+msgid "Previous key"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:108
+msgctxt "ToolTip"
+msgid "Next key"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:111
+msgctxt "ToolTip"
+msgid "Last key"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:118
+msgid "Key"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:121
+msgid "Value"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:168
+msgctxt "Menu"
+msgid "Curve"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:170
+msgctxt "Menu"
+msgid "Add point"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:173
+msgctxt "Menu"
+msgid "Delete selected points"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:175
+msgctxt "Menu"
+msgid "Clear whole curve"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:178
+#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:187
+msgctxt "Menu"
+msgid "View"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:179
+msgctxt "Menu"
+msgid "Fit to curve"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:181
+msgctxt "Menu"
+msgid "Fit to curve height"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:183
+msgctxt "Menu"
+msgid "Fit to curve width"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:65
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:109
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:189
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:816
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:33
 msgctxt "Menu"
 msgid "Create"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:65
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:109
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:66
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:110
 msgctxt "Menu"
 msgid "Folder"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:66
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:110
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:191
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:788
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:67
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:111
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:193
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:817
 msgctxt "Menu"
 msgid "Empty entity"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:92
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:136
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:814
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:93
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:137
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:843
 msgctxt "Menu"
 msgid "Actions"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:93
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:139
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:94
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:140
 msgctxt "Menu"
 msgid "Open prefab in editor"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:94
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:140
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:816
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:95
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:141
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:845
 msgctxt "Menu"
 msgid "Select prefab in asset view"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:95
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:141
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:817
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:96
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:142
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:846
 msgctxt "Menu"
 msgid "Break link to prefab"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:96
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:142
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:818
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:97
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:143
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:847
 msgctxt "Menu"
 msgid "Create prefab from selection"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:98
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:144
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:820
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:99
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:145
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:849
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:137
 msgctxt "Menu"
 msgid "Duplicate"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:137
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:138
 msgctxt "Menu"
 msgid "Set as active scene"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:150
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:825
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:151
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:854
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:143
 msgctxt "Menu"
 msgid "Rename"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:167
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:168
 msgid "Loading scene..."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:168
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:169
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:212
 msgid "This might take a few minutes the first time."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:182
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:184
 msgctxt "ToolTip"
 msgid "Create a new entity"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:189
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:191
 msgctxt "Menu"
 msgid "New folder"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:222
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:224
 msgctxt "ToolTip"
 msgid "Filter entities by name"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:230
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:232
 msgctxt "ToolTip"
 msgid "Expand all entities"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:234
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:236
 msgctxt "ToolTip"
 msgid "Collapse all entities"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:258
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:263
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:211
 msgid "Loading..."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:262
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:267
 msgid "Unloading..."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:330
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:336
 msgctxt "ToolTip"
 msgid "Focus on this entity (F)"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:337
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:343
 msgctxt "ToolTip"
 msgid "Lock/unlock this entity"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:338
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:344
 msgctxt "ToolTip"
 msgid "(Hold Ctrl to apply to child entities recursively)"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:376
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:382
 msgctxt "ToolTip"
 msgid "Lock/unlock all entities"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:377
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:386
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:383
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:392
 msgctxt "ToolTip"
 msgid "(Hold Ctrl to apply to child scenes recursively)"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:385
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:391
 msgctxt "ToolTip"
 msgid "Load/unload all entities"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:406
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:412
 msgid "(Unloaded)"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:473
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:479
+msgctxt "ToolTip"
+msgid "Viewport grid settings..."
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:487
+msgid "Grid axis"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:490
+msgctxt "Button"
+msgid "X"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:491
+msgctxt "Button"
+msgid "Y"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:492
+msgctxt "Button"
+msgid "Z"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:495
+msgid "Grid opacity"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:503
 msgctxt "ToolTip"
 msgid "Light probes and cubemaps..."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:483
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:513
 msgid "Light probes"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:488
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:518
 msgid "Bounces:"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:492
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:522
 msgctxt "ToolTip"
 msgid "Compute lighting using light probes"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:500
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:530
 msgctxt "ToolTip"
 msgid "Reset light probes"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:504
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:534
 msgid "Reset"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:510
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:540
 msgid "Cubemap"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:514
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:544
 msgctxt "ToolTip"
 msgid "Generate a cubemap from the scene view and save as a texture"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:518
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:548
 msgid "Capture"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:527
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:557
 msgctxt "ToolTip"
 msgid "Navigation visibility..."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:537
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:567
 msgid "Show navigation meshes:"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:539
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:596
-#: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:25
-msgctxt "Button"
-msgid "All"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:540
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:597
-#: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:27
-msgctxt "Button"
-msgid "None"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:566
 msgctxt "ToolTip"
 msgid "Grid and gizmo options..."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:576
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:606
 msgid "Transformation gizmo size:"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:581
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:611
 msgid "Component gizmo size:"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:582
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:612
 msgctxt "Button"
 msgid "Fixed"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:590
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:618
 msgctxt "Button"
 msgid "Camera preview"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:591
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:619
 msgctxt "Button"
 msgid "Light probe volumes"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:608
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:636
 msgctxt "Button"
 msgid "Other entities"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:616
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:644
 msgctxt "ToolTip"
 msgid "Editor camera options..."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:626
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:654
 msgid "Projection"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:629
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:657
 msgctxt "Button"
 msgid "Perspective"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:630
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:658
 msgctxt "Button"
 msgid "Orthographic"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:632
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:660
 msgid "Near plane:"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:634
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:662
 msgid "Far plane:"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:636
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:664
 msgid "Field of view:"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:642
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:670
 msgid "Orthographic size:"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:648
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:676
 msgid "Movement"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:652
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:679
 msgid "Speed:"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:657
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:685
 msgid "Orientation"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:660
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:688
 msgctxt "Button"
 msgid "Front"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:662
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:690
 msgctxt "Button"
 msgid "Back"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:664
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:692
 msgctxt "Button"
 msgid "Top"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:666
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:694
 msgctxt "Button"
 msgid "Bottom"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:668
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:696
 msgctxt "Button"
 msgid "Left"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:670
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:698
 msgctxt "Button"
 msgid "Right"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:729
 msgctxt "ToolTip"
 msgid "Snap translations to this value"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:710
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:738
 msgctxt "ToolTip"
 msgid "Snap rotations to this value"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:719
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:747
 msgctxt "ToolTip"
 msgid "Snap scale to this factor"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:743
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:771
 msgctxt "ToolTip"
 msgid ""
 "Toggle material selection (click a selected asset to select its material)"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:746
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:774
 msgctxt "ToolTip"
 msgid "Show or hide selection mask"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:748
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:776
 msgid "Loading assets..."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:815
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:844
 msgctxt "Menu"
 msgid "Open in prefab editor"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:857
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:886
 msgid ""
 "Before you resume, fix the failing asset (likely a graphics compositor or "
 "scene)."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:859
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:888
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:516
 msgctxt "Button"
 msgid "Resume"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:861
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:890
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:518
 msgctxt "Button"
 msgid "Copy error to clipboard"
@@ -717,12 +1162,6 @@ msgstr ""
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:23
 msgctxt "ToolTip"
 msgid "Select the selected assets"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
-#: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:26
-msgctxt "ToolTip"
-msgid "Cancel (Esc)"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:37
@@ -756,22 +1195,22 @@ msgstr ""
 msgid "Camera slots:"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:107
+#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:109
 msgctxt "ToolTip"
 msgid "Toggle between find and replace modes"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:167
+#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:169
 msgctxt "ToolTip"
 msgid "Replace next (Alt+R)"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:177
+#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:179
 msgctxt "ToolTip"
 msgid "Replace all (Alt+A)"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:253
+#: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:255
 msgid "No suggestions"
 msgstr ""
 
@@ -1092,12 +1531,6 @@ msgctxt "Menu"
 msgid "Create library from selection"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:187
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:177
-msgctxt "Menu"
-msgid "View"
-msgstr ""
-
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:188
 msgctxt "Menu"
 msgid "Zoom in"
@@ -1196,353 +1629,4 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:354
 msgid "Function parameters:"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:41
-msgctxt "ToolTip"
-msgid "Remove the selected curve"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:43
-msgid "Curves:"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:73
-msgctxt "ToolTip"
-msgid "Show or hide the tracker"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:79
-msgctxt "ToolTip"
-msgid "Fit view to curve"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:82
-msgctxt "ToolTip"
-msgid "Fit view to curve height"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:85
-msgctxt "ToolTip"
-msgid "Fit view to curve width"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:92
-msgctxt "ToolTip"
-msgid "Delete selected points"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:101
-msgctxt "ToolTip"
-msgid "First key"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:104
-msgctxt "ToolTip"
-msgid "Previous key"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:107
-msgctxt "ToolTip"
-msgid "Next key"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:110
-msgctxt "ToolTip"
-msgid "Last key"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:117
-msgid "Key"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:120
-msgid "Value"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:167
-msgctxt "Menu"
-msgid "Curve"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:169
-msgctxt "Menu"
-msgid "Add point"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:172
-msgctxt "Menu"
-msgid "Delete selected points"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:174
-msgctxt "Menu"
-msgid "Clear whole curve"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:178
-msgctxt "Menu"
-msgid "Fit to curve"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:180
-msgctxt "Menu"
-msgid "Fit to curve height"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:182
-msgctxt "Menu"
-msgid "Fit to curve width"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:10
-msgid "Create a game..."
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:21
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:23
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:28
-msgid "Namespace:"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:26
-msgid "Platforms"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:48
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:45
-msgid "This machine doesn't meet the requirements to build for this platform."
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:58
-msgid "Asset packs"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:78
-msgid "Rendering"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:90
-msgctxt "Button"
-msgid "High dynamic range (HDR)"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:92
-msgctxt "Button"
-msgid "Low dynamic range (LDR)"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:126
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:51
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:27
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:54
-msgctxt "Button"
-msgid "OK"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:10
-msgid "Import from model"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:22
-msgid "Materials and textures"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:26
-msgctxt "Button"
-msgid "Import materials"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:27
-msgctxt "Button"
-msgid "Import textures"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:31
-msgid "Skeleton"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:35
-msgctxt "Button"
-msgid "Import skeleton"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:36
-msgctxt "Button"
-msgid "No skeleton"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:37
-msgctxt "Button"
-msgid "Use another skeleton for this model:"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:10
-msgid "New code library"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:21
-msgid "Library name:"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:9
-msgid "New script"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:20
-msgctxt "Button"
-msgid "Create script"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:25
-msgid "Class:"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:9
-msgid "Select platforms"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:31
-msgid "(This will remove the project from the package and disk.)"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:52
-msgctxt "Button"
-msgid "Force regeneration of all platform projects"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:28
-msgctxt "ToolTip"
-msgid "Play the animation"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:31
-msgctxt "ToolTip"
-msgid "Pause the animation"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:43
-msgid "Time scale:"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:117
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:136
-msgctxt "ToolTip"
-msgid "Reset the camera"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:187
-msgid ""
-"Scenes can't be previewed. To see the scene, open it in the scene editor."
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:201
-msgctxt "ToolTip"
-msgid "Play the sound"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:204
-msgctxt "ToolTip"
-msgid "Pause the sound"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:240
-msgid "Building preview sound asset..."
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:278
-msgctxt "ToolTip"
-msgid "Previous sprite"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:280
-msgid "Sprite:"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:283
-msgctxt "ToolTip"
-msgid "Next sprite"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:311
-msgid "Preview text"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:353
-msgctxt "ToolTip"
-msgid "Previous slice"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:357
-msgctxt "ToolTip"
-msgid "Next slice"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:380
-msgid "W: {0}"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:381
-msgid "H: {0}"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/View/AnimationPropertyTemplates.xaml:18
-msgctxt "ToolTip"
-msgid "Edit curve"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/View/AnimationPropertyTemplates.xaml:70
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:71
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:111
-#: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:64
-msgid "(Different values)"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/View/DebugEntityHierarchyEditorUserControl.xaml:13
-msgctxt "Button"
-msgid "Refresh"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:11
-msgid "Live scripting debugger"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:21
-msgctxt "ToolTip"
-msgid "Select these assets"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:44
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:84
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:235
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:262
-msgctxt "ToolTip"
-msgid "Select an asset"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:50
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:90
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:267
-msgctxt "ToolTip"
-msgid "Clear the reference"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:56
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:96
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:221
-msgctxt "ToolTip"
-msgid "Select the referenced asset"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:133
-msgid "Add component"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:258
-msgctxt "ToolTip"
-msgid "Highlight this material in the scene editor"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/View/MaterialPropertyTemplates.xaml:13
-msgid "Select shader..."
 msgstr ""
