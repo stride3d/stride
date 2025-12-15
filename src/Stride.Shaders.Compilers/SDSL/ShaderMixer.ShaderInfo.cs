@@ -149,7 +149,19 @@ public partial class ShaderMixer
 
             if (i.Data.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)
             {
-                mixinNode.ExternalShaders.Add(importShader.ResultId, importShader.ShaderName);
+                // TODO: some common code to generate name, so that it doesn't deviate from ToClassName() called later when doing ShadersByName lookups
+                var shaderName = importShader.ShaderName;
+                if (importShader.Values.Elements.Length > 0)
+                {
+                    var genericArguments = new object[importShader.Values.Elements.Length];
+                    for (int j = 0; j < genericArguments.Length; j++)
+                    {
+                        genericArguments[j] = SpirvBuilder.GetConstantValue(importShader.Values.Elements.Span[j], temp);
+                    }
+                    shaderName += $"<{string.Join(",", genericArguments)}>";
+                }
+
+                mixinNode.ExternalShaders.Add(importShader.ResultId, shaderName);
             }
             else if (i.Data.Op == Op.OpSDSLImportFunction && (OpSDSLImportFunction)i is { } importFunction)
             {

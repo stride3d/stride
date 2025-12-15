@@ -197,6 +197,13 @@ public partial class SpirvBuilder
             return false;
         }
 
+        if (data.Op == Op.OpConstantStringSDSL)
+        {
+            var operand2 = data.Get("literalString");
+            value = operand2.ToLiteral<string>();
+            return true;
+        }
+
         int typeId = data.Op switch
         {
             Op.OpConstant or Op.OpSpecConstant => data.Memory.Span[1],
@@ -378,7 +385,7 @@ public partial class SpirvBuilder
                 using var n = new LiteralValue<int>(m.Span);
                 if (resolvedParameters.TryGetValue(n.Value, out var resolvedValue))
                 {
-                    linkDecorate.Decoration = new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words]);
+                    shader.Replace(index, new OpMemberDecorateString(linkDecorate.StructureType, linkDecorate.Member, new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words])));
                 }
             }
         }
