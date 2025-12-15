@@ -125,7 +125,27 @@ public sealed class ShaderMember(
 
         var variableFlags = IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None;
 
-        context.Add(new OpVariableSDSL(registeredType, variable, storageClass, variableFlags, null));
+        int? initializerMethod = null;
+        if (Value != null)
+        {
+            var valueType = ((PointerType)Type).BaseType;
+
+            // TODO: differentiate const from code that needs to go in entry point?
+            // TODO: move to entry point
+            var functionType = new FunctionType(valueType, []);
+            initializerMethod = builder.Insert(new OpFunction(context.GetOrRegister(valueType), context.Bound++, Specification.FunctionControlMask.Const, context.GetOrRegister(functionType))).ResultId;
+            builder.Insert(new OpLabel(context.Bound++));
+
+            var initialValue = Value.CompileAsValue(table, compiler);
+            initialValue = builder.Convert(context, initialValue, ((PointerType)Type).BaseType);
+
+            builder.Return(initialValue);
+            builder.Insert(new OpFunctionEnd());
+
+            context.AddName(initializerMethod.Value, $"{Name}_Initializer");
+        }
+
+        context.Add(new OpVariableSDSL(registeredType, variable, storageClass, variableFlags, initializerMethod));
         if (Semantic != null)
             context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(Semantic.Name)));
         context.AddName(variable, Name);

@@ -1060,7 +1060,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                 SetOpNop(i.Data.Memory.Span);
             }
-            else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
+            else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function && temp[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)temp[index + 1] is { } functionInfo)
             {
                 if (!mixinNode.MethodGroups.TryGetValue(function.ResultId, out var methodGroupEntry))
                     throw new InvalidOperationException($"Can't find method group info for {globalContext.Names[function.ResultId]}");
@@ -1263,8 +1263,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         for (int i = 0; i < temp.Count; i++)
         {
             // Transform OpVariableSDSL into OpVariable (we don't need extra info anymore)
+            // Note: we ignore initializer as we store a method which is already processed during StreamAnalyzer (as opposed to a const for OpVariable)
             if (temp[i].Op == Op.OpVariableSDSL && (OpVariableSDSL)temp[i] is { } variable)
-                temp.Replace(i, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, variable.Initializer));
+                temp.Replace(i, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
 
             // Remove Nop
             if (temp[i].Op == Op.OpNop)

@@ -198,7 +198,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                     body2.AppendLine($"{fieldName} = o.To{typename}();");
                 else if (operand.Class is string s && s.Contains("Enum"))
                     body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
-                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename}>();");
+                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename.TrimEnd('?')}>();");
 
                 if (needCloseBrace)
                     body2.AppendLine("}");
@@ -351,7 +351,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                     body2.AppendLine($"{fieldName} = o.To{typename}();");
                 else if (operand.Class is string s && s.Contains("Enum"))
                     body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
-                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename}>();");
+                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename.TrimEnd('?')}>();");
                 // Body 3
                 if (typename.StartsWith("LiteralArray"))
                     body3.AppendLine($"{fieldName}.Assign({operandName});");
@@ -469,7 +469,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                 }
                 else if (operand.Class is string s && s.Contains("Enum"))
                     body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
-                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename}>();");
+                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename.TrimEnd('?')}>();");
                 // Body 3
                 if (typename.StartsWith("LiteralArray"))
                     body3.AppendLine($"{fieldName}.Assign({operandName});");
@@ -582,7 +582,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                     body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
                 else if (typename.StartsWith("LiteralValue"))
                     body2.AppendLine($"{fieldName} = o.ToLiteral<T>();");
-                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename}>();");
+                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename.TrimEnd('?')}>();");
                 // Body 3
                 if (typename.StartsWith("LiteralArray"))
                     body3.AppendLine($"{fieldName}.Assign({operandName});");

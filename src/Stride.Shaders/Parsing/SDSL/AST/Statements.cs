@@ -38,14 +38,20 @@ public class ExpressionStatement(Expression expression, TextLocation info) : Sta
 
 public class Return(TextLocation info, Expression? expression = null) : Statement(info)
 {
-    public override SymbolType? Type { get => Value?.Type ?? ScalarType.From("void"); set { } }
     public Expression? Value { get; set; } = expression;
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        var (builder, _) = compiler;
-        builder.Return(Value?.CompileAsValue(table, compiler));
-        Type = Value?.Type ?? ScalarType.From("void");
+        var (builder, context) = compiler;
+        SpirvValue? returnValue = null;
+
+        Type = builder.CurrentFunction!.Value.FunctionType.ReturnType;
+        if (Value != null)
+        {
+            var value = Value.CompileAsValue(table, compiler);
+            returnValue = builder.Convert(context, value, Type);
+        }
+        builder.Return(returnValue);
     }
     public override string ToString()
     {

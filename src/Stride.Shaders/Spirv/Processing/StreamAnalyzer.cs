@@ -19,6 +19,7 @@ namespace Stride.Shaders.Spirv.Processing
             public SymbolType Type { get; } = type;
 
             public int VariableId { get; } = variableId;
+            public int? VariableMethodInitializerId { get; set; }
 
             public int? InputLayoutLocation { get; set; }
             public int? OutputLayoutLocation { get; set; }
@@ -202,7 +203,15 @@ namespace Stride.Shaders.Spirv.Processing
                         : $"unnamed_{variable.ResultId}";
                     var type = context.ReverseTypes[variable.ResultType];
                     semanticTable.TryGetValue(variable.ResultId, out var semantic);
-                    streams.Add(variable.ResultId, (new StreamInfo(semantic, name, type, variable.ResultId), true));
+
+                    var stream = (new StreamInfo(semantic, name, type, variable.ResultId)
+                    {
+                        // Does it have an initializer? if yes, mark it as a value written in this stage
+                        Write = variable.MethodInitializer != null,
+                        VariableMethodInitializerId = variable.MethodInitializer,
+                    }, true);
+
+                    streams.Add(variable.ResultId, stream);
                 }
 
                 if (instruction.Op == Op.OpVariableSDSL && ((OpVariableSDSL)instruction) is
@@ -329,6 +338,19 @@ namespace Stride.Shaders.Spirv.Processing
             context.AddName(newEntryPointFunction, $"{entryPointName}_Wrapper");
 
             {
+                // Variable initializers
+                foreach (var stream in streams)
+                {
+                    // Note: we check Private to make sure variable is actually used in the shader (otherwise it won't be emitted if not part of all used variables in OpEntryPoint)
+                    if (stream.Value.Stream.Private
+                        && stream.Value.Stream.VariableMethodInitializerId is int methodInitializerId)
+                    {
+                        var variableValueType = ((PointerType)stream.Value.Stream.Type).BaseType;
+                        buffer.FluentAdd(new OpFunctionCall(context.GetOrRegister(variableValueType), context.Bound++, methodInitializerId, []), out var methodInitializerCall);
+                        buffer.Add(new OpStore(stream.Value.Stream.VariableId, methodInitializerCall.ResultId, null));
+                    }
+                }
+
                 // Copy read variables from streams
                 foreach (var stream in inputStreams)
                 {
