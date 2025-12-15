@@ -95,6 +95,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             return cbufferName;
         }
 
+        string GetCBufferLogicalGroup(string cbufferName)
+        {
+            var dotIndex = cbufferName.IndexOf('.');
+            if (dotIndex != -1)
+                return cbufferName.Substring(dotIndex + 1);
+
+            return null;
+        }
+
         // OpSDSLEffect is emitted for any non-root composition
         var compositionNodes = buffer
             .Where(x => x.Op == Op.OpSDSLEffect)
@@ -116,7 +125,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 ShaderName: shaders.LastOrDefault(shader => x.Index >= shader.StartIndex).ShaderName,
                 StructTypePtrId: x.Variable.ResultType,
                 StructType: context.ReverseTypes[x.Variable.ResultType] is PointerType p && p.StorageClass == Specification.StorageClass.Uniform && p.BaseType is StructuredType s ? s : null,
-                MemberIndexOffset: 0))
+                MemberIndexOffset: 0,
+                LogicalGroup: GetCBufferLogicalGroup(globalContext.Names[x.Variable.ResultId])))
             // TODO: Check Decoration.Block?
             .Where(x => x.StructType != null)
             .GroupBy(x => GetCBufferFinalName(globalContext.Names[x.Variable.ResultId]));
@@ -137,7 +147,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
 
-        void DecorateLinks(Span<(OpVariableSDSL Variable, string CompositionPath, string ShaderName, int StructTypePtrId, StructuredType? StructType, int MemberIndexOffset)> cbuffersSpan, int cbufferStructId)
+        void DecorateLinks(Span<(OpVariableSDSL Variable, string CompositionPath, string ShaderName, int StructTypePtrId, StructuredType? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, int cbufferStructId)
         {
             int mergedMemberIndex = 0;
             foreach (ref var cbuffer in cbuffersSpan)
@@ -157,6 +167,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         link = linkValue;
 
                     context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, ParameterizedFlags.DecorationLinkSDSL(link)));
+                    if (cbuffer.LogicalGroup != null)
+                        context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, ParameterizedFlags.DecorationLogicalGroupSDSL(cbuffer.LogicalGroup)));
                 }
             }
         }
@@ -343,14 +355,20 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
 
-        // Scan LinkSDSL decorations
+        // Scan LinkSDSL and LogicalGroupSDSL decorations
         Dictionary<(int StructType, int Member), string> links = new();
+        Dictionary<(int StructType, int Member), string> logicalGroups = new();
         foreach (var i in context.GetBuffer())
         {
             if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LinkSDSL, Parameters: { } m } } memberDecorate)
             {
                 using var n = new LiteralValue<string>(m.Span);
                 links.Add((memberDecorate.StructType, memberDecorate.Member), n.Value);
+            }
+            else if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LogicalGroupSDSL, Parameters: { } m2 } } memberDecorate2)
+            {
+                using var n = new LiteralValue<string>(m2.Span);
+                logicalGroups.Add((memberDecorate2.StructType, memberDecorate2.Member), n.Value);
             }
         }
 
@@ -371,6 +389,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                 if (!links.TryGetValue((structTypeId, index), out var linkName))
                     throw new InvalidOperationException($"Could not find cbuffer member link info; it should have been generated during {MergeCBuffers}");
+                // Allowed to be not set (in which case logicalGroup == null)
+                logicalGroups.TryGetValue((structTypeId, index), out var logicalGroup);
 
                 memberInfos[index] = new EffectValueDescription
                 {
@@ -379,6 +399,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     KeyInfo = new EffectParameterKeyInfo { KeyName = linkName },
                     Offset = constantBufferOffset,
                     Size = memberSize,
+                    LogicalGroup = logicalGroup,
                 };
 
                 // Adjust offset for next item
