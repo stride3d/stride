@@ -111,6 +111,23 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
                     cross.CompilerSetName(compiler, resource.BaseTypeId, cbufferName);
                 }
             }
+
+            // Inputs: Apply UserSemantic (instead of TEXCOORD)
+            // This is a workaround until SPIRV-Cross supports UserSemantic
+            cross.ResourcesGetResourceListForType(resources, ResourceType.StageInput, &resourcesList, &resourcesCount);
+            var vertexInputRemap = stackalloc HlslVertexAttributeRemap[(int)resourcesCount];
+            var vertexInputRemapCount = 0;
+            for (uint i = 0; i < resourcesCount; ++i)
+            {
+                if (cross.CompilerHasDecoration(compiler, resourcesList[i].Id, Decoration.Location) != 0
+                    && cross.CompilerHasDecoration(compiler, resourcesList[i].Id, Decoration.UserSemantic) != 0)
+                {
+                    vertexInputRemap[vertexInputRemapCount].Location = cross.CompilerGetDecoration(compiler, resourcesList[i].Id, Decoration.Location);
+                    vertexInputRemap[vertexInputRemapCount].Semantic = cross.CompilerGetDecorationString(compiler, resourcesList[i].Id, Decoration.UserSemantic);
+                    vertexInputRemapCount++;
+                }
+            }
+            cross.CompilerHlslAddVertexAttributeRemap(compiler, vertexInputRemap, (nuint)vertexInputRemapCount);
         }
 
         nuint numSamplers = 0;
