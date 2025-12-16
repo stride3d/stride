@@ -151,11 +151,22 @@ public partial class SPVGenerator : IIncrementalGenerator
     static void WriteOtherInstructions(SpirvGrammar grammar, in InstructionData instruction, StringBuilder builder, StringBuilder body1, StringBuilder body2, StringBuilder body3, StringBuilder body4)
     {
         body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
-                                .AppendLine("{");
+                .AppendLine("{")
+                .AppendLine("InitializeProperties(index.Data);")
+                .AppendLine("DataIndex = index;")
+                .AppendLine("}");
+
+        body2.AppendLine($"public {instruction.OpName}(OpData data)")
+                .AppendLine("{")
+                .AppendLine("InitializeProperties(data);")
+                .AppendLine("}");
+
+        body2.AppendLine($"private void InitializeProperties(OpData data)")
+                .AppendLine("{");
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
         {
-            body2.AppendLine("foreach (var o in index.Data)")
+            body2.AppendLine("foreach (var o in data)")
             .AppendLine("{");
 
             body3.Append($"public {instruction.OpName}(")
@@ -254,7 +265,7 @@ public partial class SPVGenerator : IIncrementalGenerator
         }
         else
             body4.AppendLine("public void UpdateInstructionMemory(){}");
-        body2.AppendLine("DataIndex = index;").AppendLine("}");
+        body2.AppendLine("}");
 
         builder.AppendLine($@"
             public struct {instruction.OpName} : IMemoryInstruction
@@ -292,13 +303,25 @@ public partial class SPVGenerator : IIncrementalGenerator
                 {body4}
 
                 public static implicit operator {instruction.OpName}(OpDataIndex odi) => new(odi);
+                public static implicit operator {instruction.OpName}(OpData data) => new(data);
             }}
         ");
     }
     static void WriteDecorateInstructions(SpirvGrammar grammar, in InstructionData instruction, StringBuilder builder, StringBuilder body1, StringBuilder body2, StringBuilder body3, StringBuilder body4)
     {
         body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
-                                .AppendLine("{");
+                .AppendLine("{")
+                .AppendLine("InitializeProperties(index.Data);")
+                .AppendLine("DataIndex = index;")
+                .AppendLine("}");
+
+        body2.AppendLine($"public {instruction.OpName}(OpData data)")
+                .AppendLine("{")
+                .AppendLine("InitializeProperties(data);")
+                .AppendLine("}");
+
+        body2.AppendLine($"private void InitializeProperties(OpData data)")
+                .AppendLine("{");
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
         {
@@ -314,7 +337,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                 operands.Add(new() { Name = "additionalInteger2", Kind = "LiteralInteger", Quantifier = "?" });
             }
 
-            body2.AppendLine("foreach (var o in index.Data)")
+            body2.AppendLine("foreach (var o in data)")
             .AppendLine("{");
 
             body3.Append($"public {instruction.OpName}(")
@@ -388,7 +411,7 @@ public partial class SPVGenerator : IIncrementalGenerator
         }
         else
             body4.AppendLine("public void UpdateInstructionMemory(){}");
-        body2.AppendLine("DataIndex = index;").AppendLine("}");
+        body2.AppendLine("}");
 
         builder.AppendLine($@"
             public struct {instruction.OpName} : IMemoryInstruction
@@ -420,6 +443,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                 {body4}
 
                 public static implicit operator {instruction.OpName}(OpDataIndex odi) => new(odi);
+                public static implicit operator {instruction.OpName}(OpData data) => new(data);
             }}
         ");
     }
@@ -429,11 +453,22 @@ public partial class SPVGenerator : IIncrementalGenerator
         var extinst = grammar.Instructions?.AsList().First(x => x.OpName == "OpExtInst") ?? throw new Exception("Could not find OpExtInst instruction");
 
         body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
-            .AppendLine("{");
+                .AppendLine("{")
+                .AppendLine("InitializeProperties(index.Data);")
+                .AppendLine("DataIndex = index;")
+                .AppendLine("}");
+
+        body2.AppendLine($"public {instruction.OpName}(OpData data)")
+                .AppendLine("{")
+                .AppendLine("InitializeProperties(data);")
+                .AppendLine("}");
+
+        body2.AppendLine($"private void InitializeProperties(OpData data)")
+                .AppendLine("{");
         if (instruction.Operands?.AsList() is List<OperandData> operands && extinst.Operands?.AsList() is List<OperandData> extOperands)
         {
             var allOperands = extOperands.Concat(operands).Where(x => x is not { Kind: "IdRef", Quantifier: "*" } and not { Kind: "LiteralExtInstInteger" });
-            body2.AppendLine("foreach (var o in index.Data)")
+            body2.AppendLine("foreach (var o in data)")
             .AppendLine("{");
 
             body3.Append($"public {instruction.OpName}(")
@@ -503,7 +538,7 @@ public partial class SPVGenerator : IIncrementalGenerator
             .AppendLine("}");
 
         }
-        body2.AppendLine("DataIndex = index;").AppendLine("}");
+        body2.AppendLine("}");
         builder.AppendLine($@"
             public struct {instruction.OpName} : IMemoryInstruction
             {{
@@ -534,6 +569,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                 {body4}
 
                 public static implicit operator {instruction.OpName}(OpDataIndex odi) => new(odi);
+                public static implicit operator {instruction.OpName}(OpData data) => new(data);
             }}
         ");
 
@@ -542,11 +578,22 @@ public partial class SPVGenerator : IIncrementalGenerator
     static void WriteConstantInstructions(SpirvGrammar grammar, in InstructionData instruction, StringBuilder builder, StringBuilder body1, StringBuilder body2, StringBuilder body3, StringBuilder body4)
     {
         body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
-                                .AppendLine("{");
+                .AppendLine("{")
+                .AppendLine("InitializeProperties(index.Data);")
+                .AppendLine("DataIndex = index;")
+                .AppendLine("}");
+
+        body2.AppendLine($"public {instruction.OpName}(OpData data)")
+                .AppendLine("{")
+                .AppendLine("InitializeProperties(data);")
+                .AppendLine("}");
+
+        body2.AppendLine($"private void InitializeProperties(OpData data)")
+                .AppendLine("{");
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
         {
-            body2.AppendLine("foreach (var o in index.Data)")
+            body2.AppendLine("foreach (var o in data)")
             .AppendLine("{");
 
             body3.Append($"public {instruction.OpName}(")
@@ -622,7 +669,7 @@ public partial class SPVGenerator : IIncrementalGenerator
         }
         else
             body4.AppendLine("public void UpdateInstructionMemory(){}");
-        body2.AppendLine("DataIndex = index;").AppendLine("}");
+        body2.AppendLine("}");
 
         builder.AppendLine($@"
         // {string.Join(", ", instruction.Operands?.AsList().Select(x => $"{x.Name}:{x.Kind}"))}
@@ -656,6 +703,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                 {body4}
 
                 public static implicit operator {instruction.OpName}<T>(OpDataIndex odi) => new(odi);
+                public static implicit operator {instruction.OpName}<T>(OpData data) => new(data);
             }}
         ");
     }
