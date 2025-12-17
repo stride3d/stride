@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using Stride.Core;
 using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -169,7 +168,7 @@ namespace Stride.Graphics
                     pSignalSemaphores = &submitSemaphore,
                 };
 
-                GraphicsDevice.CheckResult(vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, frameFences[currentFrameIndex]));
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, frameFences[currentFrameIndex]));
 
                 var currentBufferIndexCopy = currentBufferIndex;
                 var swapChainCopy = swapChain;
@@ -184,7 +183,7 @@ namespace Stride.Graphics
                 };
 
                 // Present
-                var presentResult = vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo);
+                var presentResult = GraphicsDevice.NativeDeviceApi.vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo);
                 if (presentResult == VkResult.ErrorOutOfDateKHR)
                 {
                     // Likely a window resize; wait for WM_SIZE to be processed next frame
@@ -198,7 +197,7 @@ namespace Stride.Graphics
             currentFrameIndex = (currentFrameIndex + 1) % kNumberOfFramesInFlight;
 
             // Wait for frame fence to be available
-            GraphicsDevice.CheckResult(vkWaitForFences(GraphicsDevice.NativeDevice, frameFences[currentFrameIndex], VkBool32.True, ulong.MaxValue));
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkWaitForFences(GraphicsDevice.NativeDevice, frameFences[currentFrameIndex], VkBool32.True, ulong.MaxValue));
             vkResetFences(GraphicsDevice.NativeDevice, frameFences[currentFrameIndex]);
 
             AcquireNextImage(true);
@@ -207,7 +206,7 @@ namespace Stride.Graphics
         private unsafe void AcquireNextImage(bool recreateIfFails)
         {
             // Get next image
-            var result = vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, acquireSemaphores[currentFrameIndex], VkFence.Null, out currentBufferIndex);
+            var result = GraphicsDevice.NativeDeviceApi.vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, acquireSemaphores[currentFrameIndex], VkFence.Null, out currentBufferIndex);
             if (result == VkResult.ErrorOutOfDateKHR)
             {
                 if (recreateIfFails)
@@ -279,7 +278,7 @@ namespace Stride.Graphics
         {
             DestroySwapchain();
 
-            vkDestroySurfaceKHR(GraphicsDevice.NativeInstance, surface, null);
+            GraphicsDevice.NativeInstanceApi.vkDestroySurfaceKHR(GraphicsDevice.NativeInstance, surface, null);
             surface = VkSurfaceKHR.Null;
 
             base.OnDestroyed(immediately);
@@ -347,7 +346,7 @@ namespace Stride.Graphics
             if (swapChain == VkSwapchainKHR.Null)
                 return;
 
-            GraphicsDevice.CheckResult(vkDeviceWaitIdle(GraphicsDevice.NativeDevice));
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkDeviceWaitIdle(GraphicsDevice.NativeDevice));
 
             backBuffer.OnDestroyed(true);
 
@@ -359,19 +358,19 @@ namespace Stride.Graphics
 
             foreach (var swapchainImage in swapchainImages)
             {
-                vkDestroyImageView(GraphicsDevice.NativeDevice, swapchainImage.NativeColorAttachmentView, null);
+                GraphicsDevice.NativeDeviceApi.vkDestroyImageView(GraphicsDevice.NativeDevice, swapchainImage.NativeColorAttachmentView, null);
             }
             swapchainImages = null;
 
             for (int i = 0; i < kNumberOfFramesInFlight; i++)
             {
-                vkDestroySemaphore(GraphicsDevice.NativeDevice, acquireSemaphores[i]);
-                vkDestroyFence(GraphicsDevice.NativeDevice, frameFences[i]);
+                GraphicsDevice.NativeDeviceApi.vkDestroySemaphore(GraphicsDevice.NativeDevice, acquireSemaphores[i]);
+                GraphicsDevice.NativeDeviceApi.vkDestroyFence(GraphicsDevice.NativeDevice, frameFences[i]);
             }
             acquireSemaphores = null;
             frameFences = null;
 
-            vkDestroySwapchainKHR(GraphicsDevice.NativeDevice, swapChain, null);
+            GraphicsDevice.NativeDeviceApi.vkDestroySwapchainKHR(GraphicsDevice.NativeDevice, swapChain, null);
             swapChain = VkSwapchainKHR.Null;
         }
 
@@ -383,7 +382,7 @@ namespace Stride.Graphics
             {
                 var nativeFromat = VulkanConvertExtensions.ConvertPixelFormat(format);
 
-                vkGetPhysicalDeviceFormatProperties(GraphicsDevice.NativePhysicalDevice, nativeFromat, out var formatProperties);
+                GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceFormatProperties(GraphicsDevice.NativePhysicalDevice, nativeFromat, out var formatProperties);
 
                 if ((formatProperties.optimalTilingFeatures & VkFormatFeatureFlags.ColorAttachment) != 0)
                 {
@@ -399,22 +398,27 @@ namespace Stride.Graphics
 
             // Queue
             // TODO VULKAN: Queue family is needed when creating the Device, so here we can just do a sanity check?
-            var queueNodeIndex = vkGetPhysicalDeviceQueueFamilyProperties(GraphicsDevice.NativePhysicalDevice).ToArray().
-                Where((properties, index) => (properties.queueFlags & VkQueueFlags.Graphics) != 0 && vkGetPhysicalDeviceSurfaceSupportKHR(GraphicsDevice.NativePhysicalDevice, (uint)index, surface, out var supported) == VkResult.Success && supported).
-                Select((properties, index) => index).First();
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceQueueFamilyProperties(GraphicsDevice.NativePhysicalDevice, out uint queueFamilyCount);
+            Span<VkQueueFamilyProperties> queueFamilies = stackalloc VkQueueFamilyProperties[(int)queueFamilyCount];
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceQueueFamilyProperties(GraphicsDevice.NativePhysicalDevice, queueFamilies);
+            var queueNodeIndex = queueFamilies.ToArray()
+                .Where((properties, index) => (properties.queueFlags & VkQueueFlags.Graphics) != 0 && GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceSupportKHR(GraphicsDevice.NativePhysicalDevice, (uint)index, surface, out var supported) == VkResult.Success && supported)
+                .Select((properties, index) => index).First();
 
             // Surface format
             var backBufferFormat = VulkanConvertExtensions.ConvertPixelFormat(Description.BackBufferFormat);
 
-            var surfaceFormats = vkGetPhysicalDeviceSurfaceFormatsKHR(GraphicsDevice.NativePhysicalDevice, surface).ToArray();
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceFormatsKHR(GraphicsDevice.NativePhysicalDevice, surface, out uint surfaceFormatCount);
+            Span<VkSurfaceFormatKHR> surfaceFormats = stackalloc VkSurfaceFormatKHR[(int)surfaceFormatCount];
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceFormatsKHR(GraphicsDevice.NativePhysicalDevice, surface, surfaceFormats);
             if ((surfaceFormats.Length != 1 || surfaceFormats[0].format != VkFormat.Undefined) &&
-                !surfaceFormats.Any(x => x.format == backBufferFormat))
+                !surfaceFormats.ToArray().Any(x => x.format == backBufferFormat))
             {
                 backBufferFormat = surfaceFormats[0].format;
             }
 
             // Create swapchain
-            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out var surfaceCapabilities);
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out var surfaceCapabilities);
 
             Description.BackBufferWidth = (int)surfaceCapabilities.currentExtent.width;
             Description.BackBufferHeight = (int)surfaceCapabilities.currentExtent.height;
@@ -438,7 +442,9 @@ namespace Stride.Graphics
             }
 
             // Find present mode
-            var presentModes = vkGetPhysicalDeviceSurfacePresentModesKHR(GraphicsDevice.NativePhysicalDevice, surface);
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfacePresentModesKHR(GraphicsDevice.NativePhysicalDevice, surface, out uint presentModeCount);
+            Span<VkPresentModeKHR> presentModes = stackalloc VkPresentModeKHR[(int)presentModeCount];
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfacePresentModesKHR(GraphicsDevice.NativePhysicalDevice, surface, presentModes);
             var swapChainPresentMode = VkPresentModeKHR.Fifo; // Always supported
             foreach (var presentMode in presentModes)
             {
@@ -476,7 +482,7 @@ namespace Stride.Graphics
                 oldSwapchain = swapChain,
                 clipped = true
             };
-            GraphicsDevice.CheckResult(vkCreateSwapchainKHR(GraphicsDevice.NativeDevice, &swapchainCreateInfo, null, out var newSwapChain));
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateSwapchainKHR(GraphicsDevice.NativeDevice, &swapchainCreateInfo, null, out var newSwapChain));
 
             DestroySwapchain();
 
@@ -575,24 +581,26 @@ namespace Stride.Graphics
             var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(0);
 
             var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo };
-            vkBeginCommandBuffer(commandBuffer, &beginInfo);
+            GraphicsDevice.NativeDeviceApi.vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-            var buffers = vkGetSwapchainImagesKHR(GraphicsDevice.NativeDevice, swapChain);
+            GraphicsDevice.NativeDeviceApi.vkGetSwapchainImagesKHR(GraphicsDevice.NativeDevice, swapChain, out uint swapchainImageCount);
+            Span<VkImage> buffers = stackalloc VkImage[(int)swapchainImageCount];
+            GraphicsDevice.NativeDeviceApi.vkGetSwapchainImagesKHR(GraphicsDevice.NativeDevice, swapChain, buffers);
             swapchainImages = new SwapChainImageInfo[buffers.Length];
 
-            for (int i = 0; i < buffers.Length; i++)
+            for (int index = 0; index < buffers.Length; index++)
             {
                 // Create image views
                 swapchainImages[i].NativeImage = createInfo.image = buffers[i];
-                GraphicsDevice.CheckResult(vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out swapchainImages[i].NativeColorAttachmentView));
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out swapchainImages[i].NativeColorAttachmentView));
 
                 // Transition to default layout
-                imageMemoryBarrier.image = buffers[i];
-                vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.AllCommands, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 0, null, 1, &imageMemoryBarrier);
+                imageMemoryBarrier.image = buffers[index];
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.AllCommands, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 0, null, 1, &imageMemoryBarrier);
             }
 
             // Close and submit
-            GraphicsDevice.CheckResult(vkEndCommandBuffer(commandBuffer));
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkEndCommandBuffer(commandBuffer));
 
             lock (GraphicsDevice.QueueLock)
             {
@@ -619,10 +627,10 @@ namespace Stride.Graphics
             var fenceCreateInfo = new VkFenceCreateInfo { sType = VkStructureType.FenceCreateInfo };
             for (int i = 0; i < kNumberOfFramesInFlight; i++)
             {
-                GraphicsDevice.CheckResult(vkCreateSemaphore(GraphicsDevice.NativeDevice, &semaphoreCreateInfo, null, out acquireSemaphores[i]));
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateSemaphore(GraphicsDevice.NativeDevice, &semaphoreCreateInfo, null, out acquireSemaphores[i]));
                 // Make all fence except 0 as signaled (so that next Present()=>vkWaitForFences is not blocked when fetching secondary buffers for first time)
                 fenceCreateInfo.flags = i == 0 ? VkFenceCreateFlags.None : VkFenceCreateFlags.Signaled;
-                GraphicsDevice.CheckResult(vkCreateFence(GraphicsDevice.NativeDevice, &fenceCreateInfo, null, out frameFences[i]));
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateFence(GraphicsDevice.NativeDevice, &fenceCreateInfo, null, out frameFences[i]));
             }
 
             // Get next image
