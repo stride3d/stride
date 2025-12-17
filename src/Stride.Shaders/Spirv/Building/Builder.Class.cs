@@ -476,18 +476,30 @@ public partial class SpirvBuilder
                  || op.Kind == OperandKind.IdResult
                  || op.Kind == OperandKind.IdResultType
                  || op.Kind == OperandKind.PairIdRefLiteralInteger
-                 || op.Kind == OperandKind.PairIdRefIdRef)
-                && op.Words.Length > 0
-                && idRemapping.TryGetValue(op.Words[0], out var to1))
+                 || op.Kind == OperandKind.PairIdRefIdRef))
             {
-                op.Words[0] = to1;
+                foreach (ref var word in op.Words)
+                {
+                    if (idRemapping.TryGetValue(word, out var to1))
+                        word = to1;
+                }
+            }
+
+            if ((op.Kind == OperandKind.PairIdRefLiteralInteger)
+                && idRemapping.TryGetValue(op.Words[0], out var to2))
+            {
+                if (op.Quantifier != OperandQuantifier.One)
+                    throw new NotImplementedException();
+                op.Words[0] = to2;
             }
 
             if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
                  || op.Kind == OperandKind.PairIdRefIdRef)
-                && idRemapping.TryGetValue(op.Words[1], out var to2))
+                && idRemapping.TryGetValue(op.Words[1], out var to3))
             {
-                op.Words[1] = to2;
+                if (op.Quantifier != OperandQuantifier.One)
+                    throw new NotImplementedException();
+                op.Words[1] = to3;
             }
         }
     }
