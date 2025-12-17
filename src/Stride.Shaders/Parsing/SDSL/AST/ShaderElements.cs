@@ -319,7 +319,7 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
 
             var type = new PointerType(member.Type, storageClass);
             var typeId = context.GetOrRegister(type);
-            var variable = builder.Insert(new OpVariable(typeId, context.Bound++, storageClass, null));
+            var variable = builder.Insert(new OpVariableSDSL(typeId, context.Bound++, storageClass, member.IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
             context.AddName(variable.ResultId, member.Name);
 
             DecorateVariableLinkInfo(table, shaderClass, context, Info, member.Name, member.Attributes, variable.ResultId);

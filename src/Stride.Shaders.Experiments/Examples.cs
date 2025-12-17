@@ -210,6 +210,12 @@ public static partial class Examples
 
     public class ShaderLoader : ShaderLoaderBase
     {
+        public override bool Exists(string name)
+        {
+            var filename = $"./assets/SDSL/{name}.sdsl";
+            return File.Exists(filename);
+        }
+
         public override bool LoadExternalFile(string name, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out NewSpirvBuffer buffer)
         {
             var filename = $"./assets/SDSL/{name}.sdsl";

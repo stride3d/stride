@@ -1,8 +1,16 @@
-// PSMain(ExpectedResult=#1357ABCD, texture.SPIRV_Cross_CombinedTexture1Sampler1=#1357ABCD)
+// PSMain(ExpectedResult=#12140000, texture.SPIRV_Cross_CombinedTexture1Sampler1=#12000000, texture.SPIRV_Cross_CombinedTexture2Sampler1=#00140000)
 
 namespace Stride.Shaders.Tests;
 
-shader Rgroups
+shader RgroupBase
+{
+    rgroup Group1
+    {
+        stage Texture2D<float4> Texture1;
+    }
+}
+
+shader Rgroups : RgroupBase
 {
     stream float4 ColorTarget : SV_Target0;
     stream float4 TexCoord : TEXCOORD;
@@ -11,11 +19,11 @@ shader Rgroups
 
     rgroup Group1
     {
-        stage Texture2D<float4> Texture1;
+        stage Texture2D<float4> Texture2;
     }
 
     void PSMain()
     {
-        streams.ColorTarget = Texture1.Sample(Sampler1, streams.TexCoord);
+        streams.ColorTarget = Texture1.Sample(Sampler1, streams.TexCoord) + Texture2.Sample(Sampler1, streams.TexCoord);
     }
 }

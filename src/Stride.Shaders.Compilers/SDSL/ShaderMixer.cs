@@ -323,6 +323,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i2.Op == Op.OpTypeStruct
                 || i2.Op == Op.OpTypePointer
                 || i2.Op == Op.OpTypeFunction
+                || i2.Op == Op.OpTypeImage
+                || i2.Op == Op.OpTypeSampler
                 || i2.Op == Op.OpTypeGenericLinkSDSL
                 || i2.Op == Op.OpSDSLImportShader
                 || i2.Op == Op.OpSDSLImportVariable

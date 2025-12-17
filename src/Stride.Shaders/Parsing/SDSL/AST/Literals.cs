@@ -256,6 +256,9 @@ public class Identifier(string name, TextLocation info) : Literal(info)
             if (constantOnly)
                 throw new NotImplementedException();
 
+            if (!table.ShaderLoader.Exists(Name))
+                throw new InvalidOperationException($"Symbol [{Name}] could not be found.");
+
             // Maybe it's a static variable? try to resolve by loading file
             var classSource = new ShaderClassInstantiation(Name, []);
 

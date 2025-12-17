@@ -16,6 +16,7 @@ namespace Stride.Shaders.Spirv.Building;
 public interface IExternalShaderLoader
 {
     public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, NewSpirvBuffer buffer);
+    public bool Exists(string name);
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer bytecode, out bool isFromCache);
 }
 
@@ -28,6 +29,7 @@ public abstract class ShaderLoaderBase : IExternalShaderLoader
         loadedShaders.Add(name, buffer);
     }
 
+    public abstract bool Exists(string name);
     public abstract bool LoadExternalFile(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer buffer);
 
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer buffer, out bool isFromCache)
