@@ -375,6 +375,9 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         foreach (var member in Elements)
         {
+            // Do this early: we want struct to be available for function parameters (same loop)
+            member.ProcessSymbol(table, context);
+
             if (member is ShaderMethod func)
             {
                 var ftype = new FunctionType(func.ReturnTypeName.ResolveType(table, context), []);
@@ -448,11 +451,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     index++;
                 }
             }
-        }
-
-        foreach (var member in Elements)
-        {
-            member.ProcessSymbol(table, context);
         }
 
         foreach (var member in Elements.OfType<ShaderStruct>())

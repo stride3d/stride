@@ -18,7 +18,7 @@ namespace Stride.Shaders.Spirv.Processing;
 /// Remove duplicate simple types.
 /// Should be applied after the IdRefOffsetter.
 /// </summary>
-public struct TypeDuplicateHelper
+public class TypeDuplicateHelper
 {
     public int[] FindItemsWithTypes(NewSpirvBuffer buffer, params Span<Op> ops)
     {
@@ -51,7 +51,7 @@ public struct TypeDuplicateHelper
         public override string ToString() => Data.Memory != null ? Data.ToString() : $"{Op} Target:{TargetOverride}";
     }
 
-    class OperationComparer(List<InstructionSortHelper> NameInstructions, bool UseIndices) : IComparer<InstructionSortHelper>
+    class OperationComparer(Func<List<InstructionSortHelper>> RequestNameInstructions, bool UseIndices) : IComparer<InstructionSortHelper>
     {
         private static int RemapOp(Op op)
         {
@@ -125,14 +125,16 @@ public struct TypeDuplicateHelper
 
         public int CompareStructMetadata(InstructionSortHelper x, InstructionSortHelper y)
         {
+            var nameInstructions = RequestNameInstructions();
+
             // Note: With RemapOp(), this will also find OpMember instructions
             var target1 = x.Data.Memory.Span[1];
-            var namesStart1 = ~NameInstructions.BinarySearch(new InstructionSortHelper { Op = Op.OpName, TargetOverride = target1 }, this);
-            var namesEnd1 = ~NameInstructions.BinarySearch(new InstructionSortHelper { Op = Op.OpName, TargetOverride = target1 + 1 }, this);
+            var namesStart1 = ~nameInstructions.BinarySearch(new InstructionSortHelper { Op = Op.OpName, TargetOverride = target1 }, this);
+            var namesEnd1 = ~nameInstructions.BinarySearch(new InstructionSortHelper { Op = Op.OpName, TargetOverride = target1 + 1 }, this);
 
             var target2 = y.Data.Memory.Span[1];
-            var namesStart2 = ~NameInstructions.BinarySearch(new InstructionSortHelper { Op = Op.OpName, TargetOverride = target2 }, this);
-            var namesEnd2 = ~NameInstructions.BinarySearch(new InstructionSortHelper { Op = Op.OpName, TargetOverride = target2 + 1 }, this);
+            var namesStart2 = ~nameInstructions.BinarySearch(new InstructionSortHelper { Op = Op.OpName, TargetOverride = target2 }, this);
+            var namesEnd2 = ~nameInstructions.BinarySearch(new InstructionSortHelper { Op = Op.OpName, TargetOverride = target2 + 1 }, this);
 
             // Compare sequences (they should be the same)
             for (int i = 0; i < Math.Max(namesEnd1 - namesStart1, namesEnd2 - namesStart2); ++i)
@@ -143,7 +145,7 @@ public struct TypeDuplicateHelper
                 if (i >= namesEnd2 - namesStart2)
                     return 1;
 
-                var comparison = Compare(NameInstructions[namesStart1 + i], NameInstructions[namesStart2 + i]);
+                var comparison = Compare(nameInstructions[namesStart1 + i], nameInstructions[namesStart2 + i] with { TargetOverride = target1 });
                 if (comparison != 0)
                     return comparison;
             }
@@ -157,12 +159,14 @@ public struct TypeDuplicateHelper
     private List<InstructionSortHelper> namesByOp;
     private OperationComparer comparerSort;
     private OperationComparer comparerInsert;
+    private bool namesSorted;
 
     public TypeDuplicateHelper(NewSpirvBuffer buffer)
     {
         this.buffer = buffer;
         instructionsByOp = new();
         namesByOp = new();
+        namesSorted = false;
         foreach (var i in buffer)
         {
             switch (i.Op)
@@ -177,12 +181,33 @@ public struct TypeDuplicateHelper
             }
         }
 
-        comparerSort = new OperationComparer(namesByOp, true);
-        // Note: since it contains no OpTypeStruct, it should not access OperationComparer.NameInstructions
-        namesByOp.Sort(comparerSort);
+        comparerSort = new OperationComparer(GetSortedNames, true);
         instructionsByOp.Sort(comparerSort);
 
-        comparerInsert = new OperationComparer(namesByOp, false);
+        comparerInsert = new OperationComparer(GetSortedNames, false);
+    }
+
+    public void AddNameInstruction(OpDataIndex i)
+    {
+        switch (i.Op)
+        {
+            case Op.OpName or Op.OpMemberName or Op.OpMemberDecorate or Op.OpMemberDecorateString:
+                // Target is always in operand 1 for all those instructions
+                namesByOp.Add(new InstructionSortHelper(i.Op, i.Index, i.Data));
+                namesSorted = false;
+                break;
+        }
+    }
+
+    private List<InstructionSortHelper> GetSortedNames()
+    {
+        // If any name was added, sort them
+        if (!namesSorted)
+        {
+            namesByOp.Sort(comparerSort);
+            namesSorted = true;
+        }
+        return namesByOp;
     }
 
     public bool CheckForDuplicates(OpData data, out OpData foundData)

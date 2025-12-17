@@ -239,6 +239,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         var typeDuplicateInserter = new TypeDuplicateHelper(context.GetBuffer());
 
+        var structTypes = new Dictionary<string, int>();
+
         // Copy instructions to main buffer
         for (var index = 0; index < shader.Count; index++)
         {
@@ -336,18 +338,31 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     remapIds.Add(importStruct.ResultId, structId);
                     removedIds.Add(structId);
                 }
-                // Check if type already exists in context (deduplicate them)
-                else if (typeDuplicateInserter.CheckForDuplicates(i2, out var existingInstruction))
-                {
-                    if (i2.IdResult is int id)
-                    {
-                        remapIds.Add(id, existingInstruction.IdResult.Value);
-                        removedIds.Add(existingInstruction.IdResult.Value);
-                    }
-                }
                 else
                 {
-                    addToContext = true;
+                    // Check if type already exists in context (deduplicate them)
+                    if (typeDuplicateInserter.CheckForDuplicates(i2, out var existingInstruction))
+                    {
+                        if (i2.IdResult is int id)
+                        {
+                            remapIds.Add(id, existingInstruction.IdResult.Value);
+                            removedIds.Add(existingInstruction.IdResult.Value);
+                        }
+                    }
+                    else
+                    {
+                        addToContext = true;
+                    }
+
+                    // OpTypeStruct is the only type that can be defined by the shader.
+                    // In case it's deduplicated (i.e. used in two separate mixin nodes), we still want to have it in shaderInfo.StructTypes, so let's save it aside now.
+                    if (i2.Op == Op.OpTypeStruct && (OpTypeStruct)i2 is { } typeStruct)
+                    {
+                        var structName = names[typeStruct.ResultId - offset];
+                        if (!remapIds.TryGetValue(typeStruct.ResultId, out var structId))
+                            structId = typeStruct.ResultId;
+                        structTypes.Add(structName, structId);
+                    }
                 }
             }
             // Does this belong in context or buffer?
@@ -376,7 +391,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 }
 
                 if (addToContext)
-                    context.GetBuffer().Add(i2);
+                {
+                    var i2Index = context.GetBuffer().Add(i2);
+
+                    // Add latest OpName/OpMemberName so that OpTypeStruct can be properly deduplicated
+                    typeDuplicateInserter.AddNameInstruction(i2Index);
+                }
             }
         }
 
@@ -416,6 +436,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         // Build ShaderInfo
         var shaderInfo = new ShaderInfo(mixinNode.Shaders.Count, shaderClass.ClassName, shaderStart, buffer.Count);
+        foreach (var structType in structTypes)
+            shaderInfo.StructTypes.Add(structType.Key, structType.Value);
         shaderInfo.CompositionPath = mixinNode.CompositionPath;
         if (mixinNode.Stage != null && mixinNode.Stage.ShadersByName.TryGetValue(shaderClass.ClassName, out var stageShaderInfo))
             shaderInfo.Stage = stageShaderInfo;

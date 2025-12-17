@@ -108,6 +108,9 @@ namespace Stride.Shaders.Compilers.SDSL
                             decorationsForThisMember.Decorations.Clear();
                         }
 
+                        // Note: We don't mutate decorationsForThisMember because multiple cbuffer might share the same struct
+                        //       We emit OpMemberDecorateString directly on the resulting cbufferStructId
+
                         // If not specified, add default Link info
                         if (linkValue == null)
                         {
@@ -115,12 +118,12 @@ namespace Stride.Shaders.Compilers.SDSL
                             if (!compositionPath.IsNullOrEmpty())
                                 link = $"{link}.{compositionPath}";
 
-                            decorationsForThisMember.StringDecorations.Add(Decoration.LinkSDSL, link);
+                            context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, ParameterizedFlags.DecorationLinkSDSL(link)));
                         }
 
                         // Also transfer LogicalGroup (from name)
                         if (cbuffer.LogicalGroup != null)
-                            decorationsForThisMember.StringDecorations.Add(Decoration.LogicalGroupSDSL, cbuffer.LogicalGroup);
+                            context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, ParameterizedFlags.DecorationLogicalGroupSDSL(cbuffer.LogicalGroup)));
 
                         foreach (var stringDecoration in decorationsForThisMember.StringDecorations)
                             context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, new ParameterizedFlag<Decoration>(stringDecoration.Key, [.. stringDecoration.Value.AsDisposableLiteralValue().Words])));

@@ -53,16 +53,6 @@ public partial class ShaderMixer
     private void PopulateShaderInfo(MixinGlobalContext globalContext, NewSpirvBuffer context, int contextStart, int contextEnd, NewSpirvBuffer buffer, int shaderStart, int shaderEnd, ShaderInfo shaderInfo, MixinNode mixinNode)
     {
         var removedIds = new HashSet<int>();
-        for (var index = contextStart; index < contextEnd; index++)
-        {
-            var i = context[index];
-
-            if (i.Data.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStruct)
-            {
-                var structName = globalContext.Names[typeStruct];
-                shaderInfo!.StructTypes.Add(structName, typeStruct.ResultId);
-            }
-        }
         for (var index = shaderStart; index < shaderEnd; index++)
         {
             var i = buffer[index];

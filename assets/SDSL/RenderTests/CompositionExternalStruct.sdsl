@@ -8,6 +8,12 @@ shader CompositionStruct
 	{
 		float A;
 	}
+
+	// Use struct as a parameter
+	float ExtractValue(Test1 t)
+	{
+		return t.A;
+	}
 }
 
 shader CompositionBase : CompositionStruct
@@ -16,9 +22,16 @@ shader CompositionBase : CompositionStruct
     {
         Test1 Light;
     }
+
+	// Use struct as a parameter
+	float ExtractValue2(Test1 t)
+	{
+		return t.A;
+	}
+
 	float4 Compute()
 	{
-		return (Light.A / 255.0).xxxx;
+		return float2(ExtractValue(Light) / 255.0, ExtractValue2(Light) / 255.0).xyxy;
 	}
 };
 
