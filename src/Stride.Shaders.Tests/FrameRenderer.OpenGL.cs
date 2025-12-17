@@ -228,6 +228,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         Gl.BindVertexArray(Vao);
         Gl.UseProgram(Shader);
 
+        int bufferCount = 0;
         foreach (var param in Parameters)
         {
             if (param.Key.StartsWith("cbuffer."))
@@ -263,6 +264,12 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
                     throw new NotSupportedException();
 
                 var textureName = param.Key.Substring("texture.".Length);
+
+                var index = Gl.GetProgramResourceIndex(Shader, GLEnum.Uniform, textureName);
+                GLEnum type;
+                var requestedProps = GLEnum.Type;
+                Gl.GetProgramResource(Shader, GLEnum.Uniform, 0, 1, &requestedProps, 1, null, (int*)&type);
+
                 var location = Gl.GetProgramResourceLocation(Shader, GLEnum.Uniform, textureName);
                 if (location == -1)
                     throw new InvalidOperationException($"Could not find resource {textureName}");
@@ -281,6 +288,46 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
 
                 Gl.ProgramUniform1(Shader, location, texture);
             }
+            else if (param.Key.StartsWith("buffer."))
+            {
+                if (!param.Value.StartsWith("#"))
+                    throw new NotSupportedException();
+
+                var bufferName = param.Key.Substring("buffer.".Length);
+                var location = Gl.GetProgramResourceLocation(Shader, GLEnum.Uniform, bufferName);
+                if (location == -1)
+                    throw new InvalidOperationException($"Could not find resource {bufferName}");
+
+                var buffer = Gl.GenBuffer();
+                Gl.BindBuffer(BufferTargetARB.TextureBuffer, buffer);
+
+                var hexColor = param.Value.Substring(1);
+                uint color = uint.Parse(hexColor.Substring(0, 8), NumberStyles.HexNumber);
+                color = (((color << 24) & 0xff000000) |
+                    ((color << 8) & 0xff0000) |
+                    ((color >> 8) & 0xff00) |
+                    ((color >> 24) & 0xff));
+
+                Gl.BufferData(BufferTargetARB.TextureBuffer, sizeof(uint), (void*)&color, BufferUsageARB.StaticDraw);
+
+                var texture = Gl.GenTexture();
+                Gl.ActiveTexture(GLEnum.Texture0 + bufferCount);
+                Gl.BindTexture(GLEnum.TextureBuffer, texture);
+                // TODO: Check if this is really valid to cast PixelInternalFormat to SizedInternalFormat in all cases?
+                Gl.TexBuffer(TextureTarget.TextureBuffer, GLEnum.Rgba8ui, buffer);
+
+                Gl.ProgramUniform1(Shader, location, bufferCount);
+
+                bufferCount++;
+            }
+        }
+
+        Gl.ValidateProgram(Shader);
+        var validateStatus = Gl.GetProgram(Shader, GLEnum.ValidateStatus);
+        if (validateStatus != (int)GLEnum.True)
+        {
+            var validationLog = Gl.GetProgramInfoLog(Shader);
+            throw new InvalidOperationException($"Validation error: {validationLog}");
         }
 
         //Draw the geometry.

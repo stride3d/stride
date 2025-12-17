@@ -2,7 +2,7 @@
 
 namespace Stride.Shaders.Tests;
 
-shader Textures
+shader TextureSample
 {
     stream float4 ColorTarget : SV_Target0;
     stream float4 TexCoord : TEXCOORD;

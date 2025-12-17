@@ -1,0 +1,16 @@
+// PSMain(ExpectedResult=#1357ABCD, buffer.Buffer1=#1357ABCD)
+
+namespace Stride.Shaders.Tests;
+
+shader Buffers
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 TexCoord : TEXCOORD;
+
+    stage Buffer<float4> Buffer1;
+
+    void PSMain()
+    {
+        streams.ColorTarget = Buffer1.Load(0);
+    }
+}

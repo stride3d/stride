@@ -313,6 +313,7 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
             {
                 TextureType => (Specification.StorageClass.UniformConstant, SymbolKind.Variable),
                 SamplerType => (Specification.StorageClass.UniformConstant, SymbolKind.SamplerState),
+                BufferType => (Specification.StorageClass.UniformConstant, SymbolKind.TBuffer),
                 _ => throw new NotImplementedException(),
             };
 

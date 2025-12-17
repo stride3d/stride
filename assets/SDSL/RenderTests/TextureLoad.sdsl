@@ -1,0 +1,16 @@
+// PSMain(ExpectedResult=#1357ABCD, texture.Texture1=#1357ABCD)
+
+namespace Stride.Shaders.Tests;
+
+shader TextureLoad
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 TexCoord : TEXCOORD;
+
+    stage Texture2D<float4> Texture1;
+
+    void PSMain()
+    {
+        streams.ColorTarget = Texture1.Load(int3(0, 0, 0));
+    }
+}

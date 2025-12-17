@@ -315,37 +315,54 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             result = Source.Compile(table, compiler);
             currentValueType = Source.Type;
         }
-        if (Source is Identifier { Type: PointerType { BaseType: TextureType or Texture2DType or Texture3DType } } && Accessors is [MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 }])
+        if (Source is Identifier { Type: PointerType { BaseType: Texture1DType or Texture2DType or Texture3DType } } && Accessors is [MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 }])
         {
             result = Source.CompileAsValue(table, compiler);
+            var textureType = (TextureType)Source.ValueType;
             if (Accessors is [MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } implicitSampling])
             {
+                Type = new VectorType(textureType.ReturnType, 4);
+
                 var textureValue = result;
                 var samplerValue = implicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
                 var texCoordValue = implicitSampling.Parameters.Values[1].CompileAsValue(table, compiler);
-                var typeSampledImage = context.GetOrRegister(new SampledImage((TextureType)Source.ValueType));
+                var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                 var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
-                var returnType = context.GetOrRegister(new VectorType(((TextureType)Source.ValueType).ReturnType, 4));
+                var returnType = context.GetOrRegister(Type);
                 var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, Specification.ImageOperandsMask.None));
-                Type = ((TextureType)Source.ValueType).ReturnType;
                 return new(sample.ResultId, sample.ResultType);
             }
             else if (Accessors is [MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 } explicitSampling])
             {
+                Type = new VectorType(textureType.ReturnType, 4);
+
                 var textureValue = result;
                 var samplerValue = explicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
                 var texCoordValue = explicitSampling.Parameters.Values[1].CompileAsValue(table, compiler);
                 var levelValue = explicitSampling.Parameters.Values[2].CompileAsValue(table, compiler);
 
-                var typeSampledImage = context.GetOrRegister(new SampledImage((TextureType)Source.ValueType));
+                var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                 var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
-                var returnType = context.GetOrRegister(new VectorType(((TextureType)Source.ValueType).ReturnType, 4));
+                var returnType = context.GetOrRegister(Type);
                 var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, ParameterizedFlags.ImageOperandsLod(levelValue.Id)));
-                Type = ((TextureType)Source.ValueType).ReturnType;
                 return new(sample.ResultId, sample.ResultType);
             }
             else
                 throw new InvalidOperationException("Invalid Sample method call");
+        }
+        else if (Source is Identifier { Type: PointerType { BaseType: BufferType or TextureType } pointerType } && Accessors is [MethodCall { Name.Name: "Load", Parameters.Values.Count: 1 } load])
+        {
+            Type = new VectorType(pointerType.BaseType switch
+            {
+                BufferType b => b.BaseType,
+                TextureType t => t.ReturnType,
+            }, 4);
+
+            var returnType = context.GetOrRegister(Type);
+            var coords = load.Parameters.Values[0].CompileAsValue(table, compiler);
+            var resource = result;
+            var loadResult = builder.Insert(new OpImageFetch(returnType, context.Bound++, resource.Id, coords.Id, null));
+            return new(loadResult.ResultId, loadResult.ResultType);
         }
         else
         {

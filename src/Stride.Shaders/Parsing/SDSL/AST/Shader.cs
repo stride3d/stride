@@ -170,24 +170,31 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             else if (instruction.Op == Op.OpTypeImage && new OpTypeImage(instruction) is { } typeImage)
             {
                 var sampledType = (ScalarType)types[typeImage.SampledType];
-                TextureType textureType = typeImage.Dim switch
+                if (typeImage.Dim == Dim.Buffer)
                 {
-                    Dim.Dim1D => new Texture1DType(sampledType),
-                    Dim.Dim2D => new Texture2DType(sampledType),
-                    Dim.Dim3D => new Texture3DType(sampledType),
-                    Dim.Cube => new TextureCubeType(sampledType),
-                    _ => throw new NotImplementedException(),
-                };
-                textureType = textureType with
+                    types.Add(typeImage.ResultId, new BufferType(sampledType));
+                }
+                else
                 {
-                    Depth = typeImage.Depth,
-                    Arrayed = typeImage.Arrayed == 1 ? true : false,
-                    Multisampled = typeImage.MS == 1 ? true : false,
-                    Format = typeImage.Imageformat,
-                    Sampled = typeImage.Sampled,
-                };
+                    TextureType textureType = typeImage.Dim switch
+                    {
+                        Dim.Dim1D => new Texture1DType(sampledType),
+                        Dim.Dim2D => new Texture2DType(sampledType),
+                        Dim.Dim3D => new Texture3DType(sampledType),
+                        Dim.Cube => new TextureCubeType(sampledType),
+                        _ => throw new NotImplementedException(),
+                    };
+                    textureType = textureType with
+                    {
+                        Depth = typeImage.Depth,
+                        Arrayed = typeImage.Arrayed == 1 ? true : false,
+                        Multisampled = typeImage.MS == 1 ? true : false,
+                        Format = typeImage.Imageformat,
+                        Sampled = typeImage.Sampled,
+                    };
 
-                types.Add(typeImage.ResultId, textureType);
+                    types.Add(typeImage.ResultId, textureType);
+                }
             }
             else if (instruction.Op == Op.OpTypeSampler && new OpTypeSampler(instruction) is { } typeSampler)
             {
@@ -399,7 +406,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 }
 
                 var storageClass = Specification.StorageClass.Private;
-                if (memberType is TextureType)
+                if (memberType is TextureType || memberType is BufferType)
                     storageClass = Specification.StorageClass.UniformConstant;
 
                 svar.Type = new PointerType(memberType, storageClass);

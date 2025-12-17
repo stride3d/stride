@@ -46,31 +46,31 @@ public abstract record SymbolType()
             return false;
         }
     }
-    public static bool TryGetBufferType(string name, string? templateType, [MaybeNullWhen(false)] out SymbolType result)
+    public static bool TryGetBufferType(string name, string? templateTypeName, [MaybeNullWhen(false)] out SymbolType result)
     {
-        (result, bool found) = (name, templateType) switch
+        SymbolType? templateType = null;
+        if (templateTypeName != null && !SymbolType.TryGetNumeric(templateTypeName, out templateType))
         {
-            ("Buffer", "float") => (new BufferType(ScalarType.From("float"), -1) as SymbolType, true),
-            ("Buffer", "int") => (new BufferType(ScalarType.From("int"), -1), true),
-            ("Buffer", "uint") => (new BufferType(ScalarType.From("uint"), -1), true),
-            // TODO: Use scalar type instead of vector type as in SPIR-V spec?
-            ("Buffer", "float2") => (new BufferType(VectorType.From("float2"), -1), true),
-            ("Buffer", "float3") => (new BufferType(VectorType.From("float3"), -1), true),
-            ("Buffer", "float4") => (new BufferType(VectorType.From("float4"), -1), true),
-            ("Buffer", "int2") => (new BufferType(VectorType.From("int2"), -1), true),
-            ("Buffer", "int3") => (new BufferType(VectorType.From("int3"), -1), true),
-            ("Buffer", "int4") => (new BufferType(VectorType.From("int4"), -1), true),
-            ("Buffer", "uint2") => (new BufferType(VectorType.From("uint2"), -1), true),
-            ("Buffer", "uint3") => (new BufferType(VectorType.From("uint3"), -1), true),
-            ("Buffer", "uint4") => (new BufferType(VectorType.From("uint4"), -1), true),
-            ("Texture", null) => (new Texture1DType(ScalarType.From("float")), true),
-            ("Texture1D", null) => (new Texture1DType(ScalarType.From("float")), true),
-            ("Texture2D", null) => (new Texture2DType(ScalarType.From("float")), true),
-            ("Texture3D", null) => (new Texture3DType(ScalarType.From("float")), true),
-            ("Texture", "int4" or "uint4" or "float4") => (new Texture1DType(VectorType.From(templateType).BaseType), true),
-            ("Texture1D", "int4" or "uint4" or "float4") => (new Texture1DType(VectorType.From(templateType).BaseType), true),
-            ("Texture2D", "int4" or "uint4" or "float4") => (new Texture2DType(VectorType.From(templateType).BaseType), true),
-            ("Texture3D", "int4" or "uint4" or "float4") => (new Texture3DType(VectorType.From(templateType).BaseType), true),
+            result = null;
+            return false;
+        }
+
+        if (templateType == null)
+            templateType = ScalarType.From("float");
+
+        var scalarType = templateType switch
+        {
+            VectorType v => v.BaseType,
+            ScalarType s => s,
+        };
+
+        (result, bool found) = (name, scalarType) switch
+        {
+            ("Buffer", ScalarType { TypeName: "float" or "int" or "uint" }) => (new BufferType(scalarType) as SymbolType, true),
+            ("Texture", ScalarType { TypeName: "float" or "int" or "uint" }) => (new Texture1DType(scalarType) as SymbolType, true),
+            ("Texture1D", ScalarType { TypeName: "float" or "int" or "uint" }) => (new Texture1DType(scalarType) as SymbolType, true),
+            ("Texture2D", ScalarType { TypeName: "float" or "int" or "uint" }) => (new Texture2DType(scalarType) as SymbolType, true),
+            ("Texture3D", ScalarType { TypeName: "float" or "int" or "uint" }) => (new Texture3DType(scalarType) as SymbolType, true),
 
             _ => (null, false)
         };
@@ -157,9 +157,9 @@ public sealed record StructType(string Name, List<(string Name, SymbolType Type,
     public override string ToString() => $"struct {base.ToString()}";
 }
 
-public sealed record BufferType(SymbolType BaseType, int Size) : SymbolType()
+public sealed record BufferType(ScalarType BaseType) : SymbolType()
 {
-    public override string ToString() => $"Buffer<{BaseType}, {Size}>";
+    public override string ToString() => $"Buffer<{BaseType}>";
 }
 
 // TODO: Add sampler parameters
