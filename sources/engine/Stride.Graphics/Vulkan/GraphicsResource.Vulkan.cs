@@ -63,7 +63,7 @@ namespace Stride.Graphics
                 allocationSize = memoryRequirements.size,
             };
 
-            vkGetPhysicalDeviceMemoryProperties(GraphicsDevice.NativePhysicalDevice, out var physicalDeviceMemoryProperties);
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceMemoryProperties(GraphicsDevice.NativePhysicalDevice, out var physicalDeviceMemoryProperties);
             var typeBits = memoryRequirements.memoryTypeBits;
             for (uint i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; i++)
             {
@@ -80,7 +80,7 @@ namespace Stride.Graphics
                 typeBits >>= 1;
             }
 
-            vkAllocateMemory(GraphicsDevice.NativeDevice, &allocateInfo, null, out NativeMemory);
+            GraphicsDevice.NativeDeviceApi.vkAllocateMemory(GraphicsDevice.NativeDevice, &allocateInfo, null, out NativeMemory);
         }
     }
 }

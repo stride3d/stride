@@ -51,24 +51,24 @@ namespace Stride.Graphics
         /// <param name="shaderResourceView">The shader resource view.</param>
         public unsafe void SetShaderResourceView(int slot, GraphicsResource shaderResourceView)
         {
-            var write = new WriteDescriptorSet
+            var write = new VkWriteDescriptorSet
             {
                 sType = VkStructureType.WriteDescriptorSet,
-                DescriptorCount = 1,
-                DestinationSet = NativeDescriptorSet,
-                DestinationBinding = (uint)slot,
-                DestinationArrayElement = 0,
+                descriptorCount = 1,
+                dstSet = NativeDescriptorSet,
+                dstBinding = (uint)slot,
+                dstArrayElement = 0,
             };
 
             var texture = shaderResourceView as Texture;
             if (texture != null)
             {
-                var imageInfo = new DescriptorImageInfo { VkImageView = texture.NativeImageView, ImageLayout = VkImageLayout.ShaderReadOnlyOptimal };
+                var imageInfo = new VkDescriptorImageInfo { imageView = texture.NativeImageView, imageLayout = VkImageLayout.ShaderReadOnlyOptimal };
 
-                write.VkDescriptorType = VkDescriptorType.SampledImage;
-                write.ImageInfo = new IntPtr(&imageInfo);
+                write.descriptorType = VkDescriptorType.SampledImage;
+                write.pImageInfo = &imageInfo;
 
-                GraphicsDevice.NativeDevice.UpdateDescriptorSets(1, &write, 0, null);
+                GraphicsDevice.NativeDeviceApi.vkUpdateDescriptorSets(GraphicsDevice.NativeDevice, 1, &write, 0, null);
             }
             else
             {
@@ -77,10 +77,10 @@ namespace Stride.Graphics
                 {
                     var bufferViewCopy = buffer.NativeBufferView;
 
-                    write.VkDescriptorType = VkDescriptorType.UniformTexelBuffer;
-                    write.TexelBufferView = new IntPtr(&bufferViewCopy);
+                    write.descriptorType = VkDescriptorType.UniformTexelBuffer;
+                    write.pTexelBufferView = &bufferViewCopy;
 
-                    GraphicsDevice.NativeDevice.UpdateDescriptorSets(1, &write, 0, null);
+                    GraphicsDevice.NativeDeviceApi.vkUpdateDescriptorSets(GraphicsDevice.NativeDevice, 1, &write, 0, null);
                 }
                 else
                 {
@@ -96,20 +96,20 @@ namespace Stride.Graphics
         /// <param name="samplerState">The sampler state.</param>
         public unsafe void SetSamplerState(int slot, SamplerState samplerState)
         {
-            var imageInfo = new DescriptorImageInfo { Sampler = samplerState.NativeSampler };
+            var imageInfo = new VkDescriptorImageInfo { sampler = samplerState.NativeSampler };
 
-            var write = new WriteDescriptorSet
+            var write = new VkWriteDescriptorSet
             {
                 sType = VkStructureType.WriteDescriptorSet,
-                DescriptorCount = 1,
-                DestinationSet = NativeDescriptorSet,
-                DestinationBinding = (uint)slot,
-                DestinationArrayElement = 0,
-                VkDescriptorType = VkDescriptorType.Sampler,
-                ImageInfo = new IntPtr(&imageInfo),
+                descriptorCount = 1,
+                dstSet = NativeDescriptorSet,
+                dstBinding = (uint)slot,
+                dstArrayElement = 0,
+                descriptorType = VkDescriptorType.Sampler,
+                pImageInfo = &imageInfo,
             };
 
-            GraphicsDevice.NativeDevice.UpdateDescriptorSets(1, &write, 0, null);
+            GraphicsDevice.NativeDeviceApi.vkUpdateDescriptorSets(GraphicsDevice.NativeDevice, 1, &write, 0, null);
         }
 
         /// <summary>
@@ -121,20 +121,20 @@ namespace Stride.Graphics
         /// <param name="size">The constant buffer view size.</param>
         public unsafe void SetConstantBuffer(int slot, Buffer buffer, int offset, int size)
         {
-            var bufferInfo = new DescriptorBufferInfo { Buffer = buffer.NativeBuffer, Offset = (ulong)offset, Range = (ulong)size };
+            var bufferInfo = new VkDescriptorBufferInfo { buffer = buffer.NativeBuffer, offset = (ulong)offset, range = (ulong)size };
 
-            var write = new WriteDescriptorSet
+            var write = new VkWriteDescriptorSet
             {
                 sType = VkStructureType.WriteDescriptorSet,
-                DescriptorCount = 1,
-                DestinationSet = NativeDescriptorSet,
-                DestinationBinding = (uint)slot,
-                DestinationArrayElement = 0,
-                VkDescriptorType = VkDescriptorType.UniformBuffer,
-                BufferInfo = new IntPtr(&bufferInfo)
+                descriptorCount = 1,
+                dstSet = NativeDescriptorSet,
+                dstBinding = (uint)slot,
+                dstArrayElement = 0,
+                descriptorType = VkDescriptorType.UniformBuffer,
+                pBufferInfo = &bufferInfo
             };
             
-            GraphicsDevice.NativeDevice.UpdateDescriptorSets(1, &write, 0, null);
+            GraphicsDevice.NativeDeviceApi.vkUpdateDescriptorSets(GraphicsDevice.NativeDevice, 1, &write, 0, null);
         }
 
         /// <summary>

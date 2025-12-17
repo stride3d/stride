@@ -4,9 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Stride.Core;
-using Stride.Core.Diagnostics;
-using Stride.Core.Mathematics;
-using Stride.Rendering;
 
 namespace Stride.Graphics
 {

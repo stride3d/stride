@@ -3,7 +3,6 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
 
 using Stride.Core.Mathematics;
 
@@ -77,7 +76,7 @@ namespace Stride.Graphics
 
             ConvertMinFilter(Description.Filter, out createInfo.minFilter, out createInfo.magFilter, out createInfo.mipmapMode, out createInfo.compareEnable, out createInfo.anisotropyEnable);
 
-            vkCreateSampler(GraphicsDevice.NativeDevice, &createInfo, null, out NativeSampler);
+            GraphicsDevice.NativeDeviceApi.vkCreateSampler(GraphicsDevice.NativeDevice, &createInfo, null, out NativeSampler);
         }
 
         private static VkSamplerAddressMode ConvertAddressMode(TextureAddressMode addressMode)

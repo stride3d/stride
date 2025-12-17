@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <!-- NuGet resolved needed for StrideDefaultAssetsPlugin.LoadDefaultTemplates() -->
   <Import Project="..\..\sources\targets\Stride.UnitTests.props" />
   <PropertyGroup>
@@ -15,6 +15,8 @@
   <ItemGroup>
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="Microsoft.Build" Version="18.0.2" Culture="neutral" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="18.0.2" Culture="neutral" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\sources\shared\SharedAssemblyInfo.cs">

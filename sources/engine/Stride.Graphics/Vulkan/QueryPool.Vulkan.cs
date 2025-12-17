@@ -3,7 +3,6 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -16,7 +15,7 @@ namespace Stride.Graphics
             fixed (long* dataPointer = &dataArray[0])
             {
                 // Read back all results
-                var result = vkGetQueryPoolResults(GraphicsDevice.NativeDevice, NativeQueryPool, 0, (uint)QueryCount, (uint)QueryCount * 8, dataPointer, 8, VkQueryResultFlags.Bit64);
+                var result = GraphicsDevice.NativeDeviceApi.vkGetQueryPoolResults(GraphicsDevice.NativeDevice, NativeQueryPool, 0, (uint)QueryCount, (uint)QueryCount * 8, dataPointer, 8, VkQueryResultFlags.Bit64);
 
                 // Some queries are not ready yet
                 if (result == VkResult.NotReady)
@@ -44,7 +43,7 @@ namespace Stride.Graphics
                     throw new NotImplementedException();
             }
 
-            vkCreateQueryPool(GraphicsDevice.NativeDevice, &createInfo, null, out NativeQueryPool);
+            GraphicsDevice.NativeDeviceApi.vkCreateQueryPool(GraphicsDevice.NativeDevice, &createInfo, null, out NativeQueryPool);
         }
 
         /// <inheritdoc/>

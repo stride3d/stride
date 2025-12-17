@@ -6,11 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
 using Stride.Shaders;
 using Stride.Core.Serialization;
 using Encoding = System.Text.Encoding;
-using System.IO.IsolatedStorage;
 
 namespace Stride.Graphics
 {
@@ -78,7 +76,7 @@ namespace Stride.Graphics
                     };
 
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
-                        vkCreateComputePipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, 1, &createInfo, allocator: null, nativePipelinePtr);
+                        GraphicsDevice.NativeDeviceApi.vkCreateComputePipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, 1, &createInfo, allocator: null, nativePipelinePtr);
                 }
             }
             else
@@ -226,14 +224,14 @@ namespace Stride.Graphics
                         subpass = 0
                     };
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
-                        vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr);
+                        GraphicsDevice.NativeDeviceApi.vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr);
                 }
             }
 
             // Cleanup shader modules
             foreach (var stage in stages)
             {
-                vkDestroyShaderModule(GraphicsDevice.NativeDevice, stage.module, allocator: null);
+                GraphicsDevice.NativeDeviceApi.vkDestroyShaderModule(GraphicsDevice.NativeDevice, stage.module, allocator: null);
             }
         }
 
@@ -325,7 +323,7 @@ namespace Stride.Graphics
                     subpassCount = 1,
                     pSubpasses = &subpass
                 };
-                vkCreateRenderPass(GraphicsDevice.NativeDevice, &renderPassCreateInfo, allocator: null, out NativeRenderPass);
+                GraphicsDevice.NativeDeviceApi.vkCreateRenderPass(GraphicsDevice.NativeDevice, &renderPassCreateInfo, allocator: null, out NativeRenderPass);
             }
         }
 
@@ -334,11 +332,11 @@ namespace Stride.Graphics
         {
             if (NativePipeline != VkPipeline.Null)
             {
-                vkDestroyRenderPass(GraphicsDevice.NativeDevice, NativeRenderPass, allocator: null);
-                vkDestroyPipeline(GraphicsDevice.NativeDevice, NativePipeline, allocator: null);
-                vkDestroyPipelineLayout(GraphicsDevice.NativeDevice, NativeLayout, allocator: null);
+                GraphicsDevice.NativeDeviceApi.vkDestroyRenderPass(GraphicsDevice.NativeDevice, NativeRenderPass, allocator: null);
+                GraphicsDevice.NativeDeviceApi.vkDestroyPipeline(GraphicsDevice.NativeDevice, NativePipeline, allocator: null);
+                GraphicsDevice.NativeDeviceApi.vkDestroyPipelineLayout(GraphicsDevice.NativeDevice, NativeLayout, allocator: null);
 
-                vkDestroyDescriptorSetLayout(GraphicsDevice.NativeDevice, NativeDescriptorSetLayout, allocator: null);
+                GraphicsDevice.NativeDeviceApi.vkDestroyDescriptorSetLayout(GraphicsDevice.NativeDevice, NativeDescriptorSetLayout, allocator: null);
             }
 
             base.OnDestroyed();
@@ -432,7 +430,7 @@ namespace Stride.Graphics
                 setLayoutCount = 1,
                 pSetLayouts = &nativeDescriptorSetLayout
             };
-            vkCreatePipelineLayout(GraphicsDevice.NativeDevice, &pipelineLayoutCreateInfo, allocator: null, out NativeLayout);
+            GraphicsDevice.NativeDeviceApi.vkCreatePipelineLayout(GraphicsDevice.NativeDevice, &pipelineLayoutCreateInfo, allocator: null, out NativeLayout);
         }
 
         private unsafe VkPipelineShaderStageCreateInfo[] CreateShaderStages(PipelineStateDescription pipelineStateDescription, out Dictionary<int, string> inputAttributeNames)
@@ -461,7 +459,7 @@ namespace Stride.Graphics
                         stage = VulkanConvertExtensions.Convert(stages[i].Stage),
                         pName = entryPointPointer
                     };
-                    vkCreateShaderModule(GraphicsDevice.NativeDevice, shaderBytecode.Data, allocator: null, out nativeStages[i].module);
+                    GraphicsDevice.NativeDeviceApi.vkCreateShaderModule(GraphicsDevice.NativeDevice, shaderBytecode.Data, allocator: null, out nativeStages[i].module);
                 }
             }
 
