@@ -29,8 +29,16 @@ public abstract class ShaderLoaderBase : IExternalShaderLoader
         loadedShaders.Add(name, buffer);
     }
 
-    public abstract bool Exists(string name);
-    public abstract bool LoadExternalFile(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer buffer);
+    public bool Exists(string name)
+    {
+        if (loadedShaders.ContainsKey(name))
+            return true;
+
+        return ExternalFileExists(name);
+    }
+
+    protected abstract bool ExternalFileExists(string name);
+    protected abstract bool LoadExternalFile(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer buffer);
 
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer buffer, out bool isFromCache)
     {

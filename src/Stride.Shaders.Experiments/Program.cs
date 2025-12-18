@@ -13,7 +13,7 @@ Console.WriteLine(Spv2DXIL.spirv_to_dxil_get_version());
 
 //Examples.CompileSDSL();
 var loader = new Examples.ShaderLoader();
-loader.LoadExternalFile("Test", [], out var testBuffer);
+loader.LoadExternalBuffer("Test", [], out var testBuffer, out _);
 var shaderMixer = new ShaderMixer(loader);
 shaderMixer.MergeSDSL(new ShaderClassSource("If"), out var bytecode, out _);
 var buffer = new NewSpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode.AsSpan()));

@@ -29,13 +29,13 @@ public class RenderingTests
 
     class ShaderLoader : ShaderLoaderBase
     {
-        public override bool Exists(string name)
+        protected override bool ExternalFileExists(string name)
         {
             var filename = $"./assets/SDSL/RenderTests/{name}.sdsl";
             return File.Exists(filename);
         }
 
-        public override bool LoadExternalFile(string name, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out NewSpirvBuffer buffer)
+        protected override bool LoadExternalFile(string name, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out NewSpirvBuffer buffer)
         {
             var filename = $"./assets/SDSL/RenderTests/{name}.sdsl";
             if (!File.Exists(filename))
