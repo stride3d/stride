@@ -68,6 +68,11 @@ public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info
 
 public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, value, info)
 {
+    public override SpirvValue CompileConstantValue(SymbolTable table, SpirvContext context)
+    {
+        return context.CompileConstantLiteral(this);
+    }
+
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         return compiler.Context.CompileConstantLiteral(this);
@@ -409,12 +414,14 @@ public class TypeName(string name, TextLocation info) : Literal(info)
             {
                 if (arraySize is EmptyExpression)
                     symbolType = new ArrayType(symbolType, -1);
-                else if (arraySize is IntegerLiteral i)
-                    symbolType = new ArrayType(symbolType, (int)i.Value);
                 else
                 {
+                    var arrayComputedSize = -1;
+                    if (arraySize is IntegerLiteral i)
+                        arrayComputedSize = (int)i.Value;
+
                     var constantArraySize = arraySize.CompileConstantValue(table, context);
-                    symbolType = new ArrayType(symbolType, -1, constantArraySize.Id);
+                    symbolType = new ArrayType(symbolType, arrayComputedSize, constantArraySize.Id);
                 }
             }
         }
