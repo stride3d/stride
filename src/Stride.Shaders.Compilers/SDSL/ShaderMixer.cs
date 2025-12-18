@@ -208,7 +208,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         bool isContext = true;
 
-        bool ProcessStageMember(int memberId, bool isStage)
+        bool ProcessStageMemberOrType(int memberId, bool isStage)
         {
             var include = isStage switch
             {
@@ -223,10 +223,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             if (isStage && !isRootMixin)
             {
                 var stageShader = mixinNode.Stage.ShadersByName[shaderClass.ToClassName()];
-                var memberName = names[memberId];
-                var stageMember = stageShader.FindMember(memberName);
-                remapIds.Add(offset + memberId, stageMember.Id);
-                removedIds.Add(stageMember.Id);
+                var memberOrTypeName = names[memberId];
+                var stageMemberOrTypeId = stageShader.StructTypes.TryGetValue(memberOrTypeName, out var structTypeId)
+                    ? structTypeId
+                    : stageShader.FindMember(memberOrTypeName).Id;
+                remapIds.Add(offset + memberId, stageMemberOrTypeId);
+                removedIds.Add(stageMemberOrTypeId);
             }
             // Otherwise, if not included, it means we need to forbid this IDs (which could only happen if referencing non-stage member from a stage method)
             else if (!include)
@@ -257,12 +259,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (i.Op == Op.OpFunction && (OpFunction)i is { } function && shader[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shader[index + 1] is { } functionInfo)
                 {
                     var isStage = (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
-                    include = ProcessStageMember(function.ResultId, isStage);
+                    include = ProcessStageMemberOrType(function.ResultId, isStage);
                 }
                 if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variableInstruction)
                 {
                     var isStage = (variableInstruction.Flags & VariableFlagsMask.Stage) != 0;
-                    include = ProcessStageMember(variableInstruction.ResultId, isStage);
+                    include = ProcessStageMemberOrType(variableInstruction.ResultId, isStage);
+                }
+                if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStruct)
+                {
+                    include = ProcessStageMemberOrType(typeStruct.ResultId, true);
                 }
 
                 if (!include)
@@ -320,7 +326,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i2.Op == Op.OpTypeMatrix
                 || i2.Op == Op.OpTypeArray
                 || i2.Op == Op.OpTypeRuntimeArray
-                || i2.Op == Op.OpTypeStruct
                 || i2.Op == Op.OpTypePointer
                 || i2.Op == Op.OpTypeFunction
                 || i2.Op == Op.OpTypeImage
@@ -336,7 +341,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     var shaderName = globalContext.ExternalShaders[importStruct.Shader];
                     var shader2 = mixinNode.ShadersByName[shaderName];
-                    var structId = shader2.StructTypes[importStruct.StructName];
+                    if (!shader2.StructTypes.TryGetValue(importStruct.StructName, out var structId)
+                        && (shader2.Stage == null || !shader2.Stage.StructTypes.TryGetValue(importStruct.StructName, out structId)))
+                        throw new InvalidOperationException($"Struct {importStruct.StructName} not found in shader {shaderName}");
                     remapIds.Add(importStruct.ResultId, structId);
                     removedIds.Add(structId);
                 }
@@ -355,16 +362,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     {
                         addToContext = true;
                     }
-
-                    // OpTypeStruct is the only type that can be defined by the shader.
-                    // In case it's deduplicated (i.e. used in two separate mixin nodes), we still want to have it in shaderInfo.StructTypes, so let's save it aside now.
-                    if (i2.Op == Op.OpTypeStruct && (OpTypeStruct)i2 is { } typeStruct)
-                    {
-                        var structName = names[typeStruct.ResultId - offset];
-                        if (!remapIds.TryGetValue(typeStruct.ResultId, out var structId))
-                            structId = typeStruct.ResultId;
-                        structTypes.Add(structName, structId);
-                    }
                 }
             }
             // Does this belong in context or buffer?
@@ -375,6 +372,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             else
             {
                 buffer.Add(i2);
+            }
+
+            // OpTypeStruct is the only type that can be defined by the shader.
+            // In case it's deduplicated (i.e. used in two separate mixin nodes), we still want to have it in shaderInfo.StructTypes, so let's save it aside now.
+            if (i2.Op == Op.OpTypeStruct && (OpTypeStruct)i2 is { } typeStruct2)
+            {
+                var structName = names[typeStruct2.ResultId - offset];
+                if (!remapIds.TryGetValue(typeStruct2.ResultId, out var structId))
+                    structId = typeStruct2.ResultId;
+                structTypes.Add(structName, structId);
             }
 
             // Process OpSDSLImport
@@ -861,6 +868,22 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         {
                             Class = EffectParameterClass.ShaderResourceView,
                             Type = EffectParameterType.Texture,
+                            SlotStart = srvSlot,
+                            SlotCount = 1,
+                        });
+
+                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationDescriptorSet(0)));
+                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationBinding(srvSlot)));
+
+                        srvSlot++;
+                    }
+                    else if (pointerType.BaseType is BufferType)
+                    {
+                        var slot = globalContext.Reflection.ResourceBindings.Count;
+                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                        {
+                            Class = EffectParameterClass.ShaderResourceView,
+                            Type = EffectParameterType.Buffer,
                             SlotStart = srvSlot,
                             SlotCount = 1,
                         });

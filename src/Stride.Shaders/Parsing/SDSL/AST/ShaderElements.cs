@@ -5,6 +5,7 @@ using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using System;
+using System.Collections.Generic;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -196,8 +197,8 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
             fields.Add((smem.Name, smem.Type, smem.TypeModifier));
         }
 
-        Type = new StructType(TypeName.ToString() ?? "", fields);
-        table.DeclaredTypes.TryAdd(TypeName.ToString(), Type);
+        Type = new StructType(TypeName.ToString(), fields);
+        table.DeclaredTypes.Add(TypeName.ToString(), Type);
     }
 
     public void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
@@ -258,7 +259,20 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
     public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        context.DeclareCBuffer((ConstantBufferSymbol)Type);
+
+        var constantBufferType = (ConstantBufferSymbol)Type;
+
+        // We try to avoid clash in case multiple cbuffer with same name
+        int tryCount = 0;
+        var typeName = constantBufferType.Name;
+        while (!table.DeclaredTypes.TryAdd(constantBufferType.ToId(), Type))
+        {
+            typeName = $"{typeName}_{++tryCount}";
+            constantBufferType = constantBufferType with { Name = typeName };
+        }
+        Type = constantBufferType;
+
+        context.DeclareCBuffer(constantBufferType);
         var pointerType = context.GetOrRegister(new PointerType(Type, Specification.StorageClass.Uniform));
         var variable = context.Bound++;
 
