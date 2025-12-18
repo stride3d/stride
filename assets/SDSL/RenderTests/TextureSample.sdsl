@@ -1,11 +1,11 @@
-// PSMain(ExpectedResult=#1357ABCD, texture.SPIRV_Cross_CombinedTexture1Sampler1=#1357ABCD)
+// PSMain(ExpectedResult=#1357ABCD, texture.Texture1=#1357ABCD)
 
 namespace Stride.Shaders.Tests;
 
 shader TextureSample
 {
     stream float4 ColorTarget : SV_Target0;
-    stream float4 TexCoord : TEXCOORD;
+    stream float2 TexCoord : TEXCOORD;
 
     stage Texture2D<float4> Texture1;
     stage SamplerState Sampler1;

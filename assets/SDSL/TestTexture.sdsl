@@ -5,7 +5,7 @@ shader TestBasic : TestBase
     stream float4 InputPosition : POSITION;
     stream float4 Position : SV_POSITION;
     stream float4 ExtraColor : COLOR;
-    stream float4 TexCoord : TEXCOORD0;
+    stream float2 TexCoord : TEXCOORD;
 
     stage SamplerState Sampler;
     stage Texture2D Texture0;

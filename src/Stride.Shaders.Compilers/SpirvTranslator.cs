@@ -92,9 +92,6 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         if (cross.CompilerCreateShaderResources(compiler, &resources) != Result.Success)
             throw new Exception($"{cross.CompilerCreateShaderResources(compiler, &resources)} : could not create shader resources");
 
-        if (cross.CompilerBuildCombinedImageSamplers(compiler) != Result.Success)
-            throw new Exception($"{cross.CompilerBuildCombinedImageSamplers(compiler)} : Could not enable combined image samplers");
-
         // HLSL: remove type_ prefix from cbuffer (they get names from struct instead of cbuffer variable itself)
         if (backend == Backend.Hlsl)
         {
@@ -128,18 +125,26 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
                 }
             }
             cross.CompilerHlslAddVertexAttributeRemap(compiler, vertexInputRemap, (nuint)vertexInputRemapCount);
+
+            cross.CompilerHlslSetResourceBindingFlags(compiler, 0);
         }
 
-        nuint numSamplers = 0;
-        CombinedImageSampler* combinedImageSamplers = null;
-        if (cross.CompilerGetCombinedImageSamplers(compiler, &combinedImageSamplers, ref numSamplers) != Result.Success)
-            throw new Exception($"{cross.CompilerGetCombinedImageSamplers(compiler, &combinedImageSamplers, ref numSamplers)}");
-
-        for (uint i = 0; i < numSamplers; ++i)
+        if (backend == Backend.Glsl)
         {
-            var textureName = cross.CompilerGetNameS(compiler, combinedImageSamplers[i].ImageId);
-            var samplerName = cross.CompilerGetNameS(compiler, combinedImageSamplers[i].SamplerId);
-            cross.CompilerSetName(compiler, combinedImageSamplers[i].CombinedId, $"SPIRV_Cross_Combined{textureName}{samplerName}");
+            if (cross.CompilerBuildCombinedImageSamplers(compiler) != Result.Success)
+                throw new Exception($"{cross.CompilerBuildCombinedImageSamplers(compiler)} : Could not enable combined image samplers");
+
+            nuint numSamplers = 0;
+            CombinedImageSampler* combinedImageSamplers = null;
+            if (cross.CompilerGetCombinedImageSamplers(compiler, &combinedImageSamplers, ref numSamplers) != Result.Success)
+                throw new Exception($"{cross.CompilerGetCombinedImageSamplers(compiler, &combinedImageSamplers, ref numSamplers)}");
+
+            for (uint i = 0; i < numSamplers; ++i)
+            {
+                var textureName = cross.CompilerGetNameS(compiler, combinedImageSamplers[i].ImageId);
+                var samplerName = cross.CompilerGetNameS(compiler, combinedImageSamplers[i].SamplerId);
+                cross.CompilerSetName(compiler, combinedImageSamplers[i].CombinedId, $"SPIRV_Cross_Combined{textureName}{samplerName}");
+            }
         }
 
         if (cross.CompilerCompile(compiler, &translated) != Result.Success)

@@ -2,4 +2,4 @@
 
 [assembly: CaptureConsole]
 
-//new RenderingTests().RenderTest1("GenericsFloat", "PSMain", "ExpectedResult=#FFFFFFFF");
+//new RenderingTests().RenderTest1("SimpleInheritance");

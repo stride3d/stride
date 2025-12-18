@@ -75,9 +75,9 @@ public class RenderingTests
         // Convert to GLSL
         var translator = new SpirvTranslator(bytecode.AsMemory().Cast<byte, uint>());
         var entryPoints = translator.GetEntryPoints();
-        var codePS = translator.Translate(Backend.Glsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Fragment));
+        var codePS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Fragment));
         var codeVS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex))
-            ? translator.Translate(Backend.Glsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
+            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
             : null;
 
         if (codeVS != null)
@@ -85,7 +85,7 @@ public class RenderingTests
         Console.WriteLine(codePS);
 
         // Execute test
-        var renderer = new OpenGLFrameRenderer((uint)width, (uint)height);
+        var renderer = new D3D11FrameRenderer((uint)width, (uint)height);
 
         var code = File.ReadAllLines($"./assets/SDSL/RenderTests/{shaderName}.sdsl");
         foreach (var test in TestHeaderParser.ParseHeaders(code))
@@ -97,7 +97,7 @@ public class RenderingTests
             foreach (var param in parameters)
                 renderer.Parameters.Add(param.Key, param.Value);
 
-            renderer.FragmentShaderSource = codePS;
+            renderer.PixelShaderSource = codePS;
             if (codeVS != null)
                 renderer.VertexShaderSource = codeVS;
             using var frameBuffer = MemoryOwner<byte>.Allocate(width * height * 4);

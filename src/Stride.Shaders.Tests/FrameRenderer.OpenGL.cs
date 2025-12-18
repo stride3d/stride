@@ -42,7 +42,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         ";
 
     //Fragment shaders are run on each fragment/pixel of the geometry.
-    public string FragmentShaderSource = @"
+    public string PixelShaderSource = @"
         #version 330 core
         out vec4 FragColor;
 
@@ -112,7 +112,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         Gl.BindBuffer(BufferTargetARB.ArrayBuffer, Vbo); //Binding the buffer.
         fixed (void* v = &Vertices[0])
         {
-            Gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(Vertices.Length * sizeof(uint)), v, BufferUsageARB.StaticDraw); //Setting buffer data.
+            Gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(Vertices.Length * sizeof(float)), v, BufferUsageARB.StaticDraw); //Setting buffer data.
         }
 
         //Initializing a element buffer that holds the index data.
@@ -150,7 +150,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         }
         else
         {
-            Gl.ShaderSource(fragmentShader, FragmentShaderSource);
+            Gl.ShaderSource(fragmentShader, PixelShaderSource);
             Gl.CompileShader(fragmentShader);
         }
 
@@ -203,6 +203,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
                         continue;
 
                     var paramName = param.Key.Substring("stream.".Length);
+                    // TODO: need to scan for semantic name?
                     attribName = attribName.Substring("in_VS_".Length);
 
                     if (paramName == attribName)
@@ -231,15 +232,24 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         int bufferCount = 0;
         foreach (var param in Parameters)
         {
-            if (param.Key.StartsWith("cbuffer."))
+            var dotIndex = param.Key.IndexOf(".");
+            if (dotIndex == -1)
+                continue;
+
+            var resourceType = param.Key.Substring(0, dotIndex);
+            if (resourceType != "cbuffer" && resourceType != "texture" && resourceType != "buffer")
+                continue;
+
+            var resourceName = param.Key.Substring(dotIndex + 1);
+
+            if (resourceType == "cbuffer")
             {
-                var cbufferName = param.Key.Substring("cbuffer.".Length);
-                var blockIndex = Gl.GetUniformBlockIndex(Shader, $"type_{cbufferName}");
+                var blockIndex = Gl.GetUniformBlockIndex(Shader, $"type_{resourceName}");
                 if ((GLEnum)blockIndex == GLEnum.InvalidIndex)
                     continue;
                 Gl.UniformBlockBinding(Shader, blockIndex, 0);
 
-                var cbReflection = EffectReflection.ConstantBuffers.Single(x => x.Name == cbufferName);
+                var cbReflection = EffectReflection.ConstantBuffers.Single(x => x.Name == resourceName);
                 var cbufferData = new byte[cbReflection.Size];
                 foreach (var cbufferParameter in TestHeaderParser.ParseParameters(param.Value))
                 {
@@ -247,7 +257,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
 
                     fixed (byte* cbufferDataPtr = cbufferData)
                     {
-                        FillData(cbufferParameter.Value, cbMemberReflection.Type, cbMemberReflection.Offset, cbufferDataPtr);
+                        FillCBufferData(cbufferParameter.Value, cbMemberReflection.Type, cbMemberReflection.Offset, cbufferDataPtr);
                     }
                 }
 
@@ -258,55 +268,36 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
 
                 Gl.BindBufferRange(GLEnum.UniformBuffer, 0, ubo, 0, sizeof(uint));
             }
-            else if (param.Key.StartsWith("texture."))
+            else if (resourceType == "texture")
             {
-                if (!param.Value.StartsWith("#"))
-                    throw new NotSupportedException();
+                var color = ParseColor(param.Value);
 
-                var textureName = param.Key.Substring("texture.".Length);
-
-                var index = Gl.GetProgramResourceIndex(Shader, GLEnum.Uniform, textureName);
+                var index = Gl.GetProgramResourceIndex(Shader, GLEnum.Uniform, resourceName);
                 GLEnum type;
                 var requestedProps = GLEnum.Type;
                 Gl.GetProgramResource(Shader, GLEnum.Uniform, 0, 1, &requestedProps, 1, null, (int*)&type);
 
-                var location = Gl.GetProgramResourceLocation(Shader, GLEnum.Uniform, textureName);
+                var location = Gl.GetProgramResourceLocation(Shader, GLEnum.Uniform, resourceName);
                 if (location == -1)
-                    throw new InvalidOperationException($"Could not find resource {textureName}");
+                    throw new InvalidOperationException($"Could not find resource {resourceName}");
 
                 var texture = Gl.GenTexture();
                 Gl.BindTexture(GLEnum.Texture2D, texture);
-
-                var hexColor = param.Value.Substring(1);
-                uint color = uint.Parse(hexColor.Substring(0, 8), NumberStyles.HexNumber);
-                color = (((color << 24) & 0xff000000) |
-                    ((color << 8) & 0xff0000) |
-                    ((color >> 8) & 0xff00) |
-                    ((color >> 24) & 0xff));
 
                 Gl.TexImage2D(GLEnum.Texture2D, 0, (int)GLEnum.Rgba, 1, 1, 0, GLEnum.Rgba, GLEnum.UnsignedByte, (void*)&color);
 
                 Gl.ProgramUniform1(Shader, location, texture);
             }
-            else if (param.Key.StartsWith("buffer."))
+            else if (resourceType == "buffer")
             {
-                if (!param.Value.StartsWith("#"))
-                    throw new NotSupportedException();
+                var color = ParseColor(param.Value);
 
-                var bufferName = param.Key.Substring("buffer.".Length);
-                var location = Gl.GetProgramResourceLocation(Shader, GLEnum.Uniform, bufferName);
+                var location = Gl.GetProgramResourceLocation(Shader, GLEnum.Uniform, resourceName);
                 if (location == -1)
-                    throw new InvalidOperationException($"Could not find resource {bufferName}");
+                    throw new InvalidOperationException($"Could not find resource {resourceName}");
 
                 var buffer = Gl.GenBuffer();
                 Gl.BindBuffer(BufferTargetARB.TextureBuffer, buffer);
-
-                var hexColor = param.Value.Substring(1);
-                uint color = uint.Parse(hexColor.Substring(0, 8), NumberStyles.HexNumber);
-                color = (((color << 24) & 0xff000000) |
-                    ((color << 8) & 0xff0000) |
-                    ((color >> 8) & 0xff00) |
-                    ((color >> 24) & 0xff));
 
                 Gl.BufferData(BufferTargetARB.TextureBuffer, sizeof(uint), (void*)&color, BufferUsageARB.StaticDraw);
 
@@ -338,38 +329,5 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         window.SwapBuffers();
         window.Close();
         window.Dispose();
-
-    }
-
-    private static unsafe void FillData(string value, EffectTypeDescription type, int offset, byte* cbufferDataPtr)
-    {
-        switch (type)
-        {
-            case { Elements: > 1 }:
-                int index = 0;
-                var arrayStride = (type.ElementSize + 15) / 16 * 16;
-                foreach (var elementValue in TestHeaderParser.SplitArgs(value))
-                {
-                    FillData(elementValue, type with { Elements = 1 }, offset + arrayStride * index, cbufferDataPtr);
-                    index++;
-                }
-                break;
-            case { Class: EffectParameterClass.Struct }:
-                var structParameters = TestHeaderParser.ParseParameters(value);
-                foreach (var member in type.Members)
-                {
-                    if (structParameters.TryGetValue(member.Name, out var memberValue))
-                        FillData(memberValue, member.Type, offset + member.Offset, cbufferDataPtr);
-                }
-                break;
-            case { Type: EffectParameterType.Int }:
-                *((int*)&cbufferDataPtr[offset]) = int.Parse(value);
-                break;
-            case { Type: EffectParameterType.Float }:
-                *((float*)&cbufferDataPtr[offset]) = float.Parse(value);
-                break;
-            default:
-                throw new NotImplementedException();
-        }
     }
 }
