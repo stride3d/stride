@@ -272,7 +272,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
             classSource = SpirvBuilder.BuildInheritanceList(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile, buffer);
             for (int i = inheritedShaderCount; i < table.InheritedShaders.Count; ++i)
             {
-                table.InheritedShaders[i].Symbol = ShaderClass.LoadExternalShaderType(table, table.InheritedShaders[i]);
+                table.InheritedShaders[i].Symbol = ShaderClass.LoadAndCacheExternalShaderType(table, table.InheritedShaders[i]);
                 ShaderClass.Inherit(table, context, table.InheritedShaders[i].Symbol, false);
             }
 

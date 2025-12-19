@@ -8,7 +8,10 @@ shader CompositionStruct
 	{
 		float A;
 	}
+}
 
+shader CompositionBase2 : CompositionStruct
+{
 	// Use struct as a parameter
 	float ExtractValue(Test1 t)
 	{
@@ -16,7 +19,7 @@ shader CompositionStruct
 	}
 }
 
-shader CompositionBase : CompositionStruct
+shader CompositionBase : CompositionStruct, CompositionBase2
 {
 	cbuffer PerView
     {
