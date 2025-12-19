@@ -264,10 +264,10 @@ public class SpirvContext
     public void ImportShaderMethod(int shaderId, ref Symbol symbol, FunctionFlagsMask flags)
     {
         var functionType = (FunctionType)symbol.Type;
-        var functionReturnTypeId = GetOrRegister(functionType.ReturnType);
+        var functionTypeId = GetOrRegister(functionType);
 
         symbol.IdRef = Bound++;
-        Add(new OpSDSLImportFunction(symbol.IdRef, functionReturnTypeId, symbol.Id.Name, shaderId, flags));
+        Add(new OpSDSLImportFunction(symbol.IdRef, functionTypeId, symbol.Id.Name, shaderId, flags));
         AddName(symbol.IdRef, symbol.Id.Name);
     }
 

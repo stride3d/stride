@@ -48,15 +48,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         context.Insert(1, new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
         context.Insert(2, new OpExtension("SPV_GOOGLE_hlsl_functionality1"));
 
-        Spv.Dis(NewSpirvBuffer.Merge(context.GetBuffer(), temp), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
-
         new StreamAnalyzer().Process(table, temp, context);
 
         // Merge cbuffers and rgroups
         // TODO: remove unused cbuffers (before merging them)
-        Spv.Dis(NewSpirvBuffer.Merge(context.GetBuffer(), temp), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
         MergeCBuffers(globalContext, context, temp);
-        Spv.Dis(NewSpirvBuffer.Merge(context.GetBuffer(), temp), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
         ComputeCBufferOffsets(globalContext, context, temp);
 
         // Process reflection
@@ -94,7 +90,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         public EffectReflection Reflection { get; } = new();
 
         public Dictionary<int, string> ExternalShaders { get; } = new();
-        public Dictionary<int, (int ShaderId, string Name)> ExternalFunctions { get; } = new();
+        public Dictionary<int, (int ShaderId, string Name, int FunctionType)> ExternalFunctions { get; } = new();
         public Dictionary<int, (int ShaderId, string Name)> ExternalVariables { get; } = new();
     }
 
@@ -208,7 +204,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         bool isContext = true;
 
-        bool ProcessStageMemberOrType(int memberId, bool isStage)
+        // Note: FunctionType is only required when looking for stage function
+        bool ProcessStageMemberOrType(int memberId, FunctionType? functionType, bool isStage)
         {
             var include = isStage switch
             {
@@ -226,7 +223,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 var memberOrTypeName = names[memberId];
                 var stageMemberOrTypeId = stageShader.StructTypes.TryGetValue(memberOrTypeName, out var structTypeId)
                     ? structTypeId
-                    : stageShader.FindMember(memberOrTypeName).Id;
+                    : stageShader.FindMember(memberOrTypeName, functionType).Id;
                 remapIds.Add(offset + memberId, stageMemberOrTypeId);
                 removedIds.Add(stageMemberOrTypeId);
             }
@@ -259,16 +256,31 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (i.Op == Op.OpFunction && (OpFunction)i is { } function && shader[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shader[index + 1] is { } functionInfo)
                 {
                     var isStage = (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
-                    include = ProcessStageMemberOrType(function.ResultId, isStage);
+                    // Note: BuildTypesAndMethodGroups has not been called for this mixin so context.Types/ReverseTypes is not filled
+                    //       However:
+                    //        - FunctionType is only required when looking for stage function
+                    //        - In that case, root stage mixin MergeMixinNode => BuildTypesAndMethodGroups would have been called for this function type
+                    //        - function type is already deduplicated (in this loop)
+                    //       So the lookup will work when it is necessary
+
+                    FunctionType? functionType = default;
+                    // First, assuming FunctionType is a duplicate from a previous shader, we could find the already existing type by applying offset and remapIds
+                    if (remapIds.TryGetValue(function.FunctionType + offset, out var remappedFunctionTypeId)
+                        // Then, we can find the actual type in context.ReverseTypes
+                        && context.ReverseTypes.TryGetValue(remappedFunctionTypeId, out var functionType2))
+                        functionType = (FunctionType)functionType2;
+
+
+                    include = ProcessStageMemberOrType(function.ResultId, functionType, isStage);
                 }
                 if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variableInstruction)
                 {
                     var isStage = (variableInstruction.Flags & VariableFlagsMask.Stage) != 0;
-                    include = ProcessStageMemberOrType(variableInstruction.ResultId, isStage);
+                    include = ProcessStageMemberOrType(variableInstruction.ResultId, null, isStage);
                 }
                 if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStruct)
                 {
-                    include = ProcessStageMemberOrType(typeStruct.ResultId, true);
+                    include = ProcessStageMemberOrType(typeStruct.ResultId, null, true);
                 }
 
                 if (!include)
@@ -502,6 +514,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     (OpSDSLFunctionInfo)temp[index + 1] is { } functionInfo) 
                 {
                     var functionName = globalContext.Names[function.ResultId];
+                    var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
 
                     var methodMixinGroup = mixinNode;
                     if (!mixinNode.IsRoot && (functionInfo.Flags & FunctionFlagsMask.Stage) != 0)
@@ -513,13 +526,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         if (globalContext.ExternalFunctions.TryGetValue(functionInfo.Parent, out var parentFunctionInfo))
                         {
                             var shaderName = globalContext.ExternalShaders[parentFunctionInfo.ShaderId];
-                            functionInfo.Parent = mixinNode.ShadersByName[shaderName].Functions[parentFunctionInfo.Name].Id;
+                            var parentFunctionType = context.ReverseTypes[parentFunctionInfo.FunctionType];
+                            functionInfo.Parent = mixinNode.ShadersByName[shaderName].Functions[parentFunctionInfo.Name].First(x => x.Type == parentFunctionType).Id;
                         }
                     }
 
                     // Check if it has a parent (and if yes, share the MethodGroup)
                     if (!methodMixinGroup.MethodGroups.TryGetValue(functionInfo.Parent, out var methodGroup))
-                        methodGroup = new MethodGroup { Name = functionName };
+                        methodGroup = new MethodGroup { Name = functionName, FunctionType = functionType };
 
                     methodGroup.Shader = currentShader;
                     methodGroup.Methods.Add((Shader: currentShader, MethodId: function.ResultId));
@@ -527,8 +541,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     methodMixinGroup.MethodGroups[function.ResultId] = methodGroup;
 
                     // Also add lookup by name
-                    if (!methodMixinGroup.MethodGroupsByName.TryGetValue(functionName, out var methodGroups))
-                        methodMixinGroup.MethodGroupsByName.Add(functionName, function.ResultId);
+                    if (!methodMixinGroup.MethodGroupsByName.TryGetValue((functionName, functionType), out var methodGroups))
+                        methodMixinGroup.MethodGroupsByName.Add((functionName, functionType), function.ResultId);
 
                     // If abstract, let's erase the whole function
                     if ((functionInfo.Flags & FunctionFlagsMask.Abstract) != 0)
@@ -718,13 +732,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     }
                     memberAccesses.Add(memberAccess.ResultId, variableInfo.Id);
                 }
-                else if (globalContext.Types[memberAccess.ResultType] is FunctionType)
+                else if (globalContext.Types[memberAccess.ResultType] is FunctionType functionType)
                 {
                     // In case of functions, OpMemberAccessSDSL.Member could either be a OpFunction or a OpImportFunctionSDSL
                     var functionId = memberAccess.Member;
                     if (globalContext.ExternalFunctions.TryGetValue(memberAccess.Member, out var function))
                         // Process member call (composition)
-                        functionId = instanceMixinGroup.MethodGroupsByName[function.Name];
+                        functionId = instanceMixinGroup.MethodGroupsByName[(function.Name, functionType)];
 
                     bool foundInStage = false;
                     if (!instanceMixinGroup.MethodGroups.TryGetValue(functionId, out var methodGroupEntry))

@@ -1,4 +1,5 @@
-﻿using Stride.Shaders.Spirv.Building;
+﻿using Stride.Shaders.Core;
+using Stride.Shaders.Spirv.Building;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
@@ -38,7 +39,7 @@ public partial class ShaderMixer
         public List<ShaderInfo> Shaders { get; } = new();
 
         public Dictionary<string, ShaderInfo> ShadersByName { get; } = new();
-        public Dictionary<string, int> MethodGroupsByName { get; } = new();
+        public Dictionary<(string MethodName, FunctionType FunctionType), int> MethodGroupsByName { get; } = new();
         public Dictionary<int, MethodGroup> MethodGroups { get; } = new();
         
         public Dictionary<int, MixinNode> Compositions { get; } = new();
@@ -49,6 +50,7 @@ public partial class ShaderMixer
     {
         public string Name;
         public ShaderInfo Shader;
+        public FunctionType FunctionType;
         public List<(ShaderInfo Shader, int MethodId)> Methods { get; } = new();
 
         public override string ToString() => $"{Name} (shader: {Shader}, function Id: {string.Join(", ", Methods.Select(x => $"{x.Shader.ShaderName} {x.MethodId}"))})";

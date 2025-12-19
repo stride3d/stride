@@ -85,7 +85,10 @@
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResult" },
-        { "kind": "IdResultType" },
+        {
+          "kind": "IdResultType",
+          "name": "functionType"
+        },
         {
           "kind": "LiteralString",
           "name": "functionName"

@@ -33,15 +33,21 @@ public partial class ShaderMixer
 
         public int StartInstruction { get; internal set; } = startInstruction;
         public int EndInstruction { get; internal set; } = endInstruction;
-        public Dictionary<string, (int Id, FunctionType Type)> Functions { get; } = new();
+        public Dictionary<string, List<(int Id, FunctionType Type)>> Functions { get; } = new();
         public Dictionary<string, (int Id, SymbolType Type)> Variables { get; } = new();
 
         public Dictionary<string, int> StructTypes { get; } = new();
 
-        public (int Id, SymbolType Type) FindMember(string name)
+        public (int Id, SymbolType Type) FindMember(string name, FunctionType? functionType = null)
         {
-            if (Functions.TryGetValue(name, out var function))
-                return (function.Id, function.Type);
+            if (Functions.TryGetValue(name, out var functions))
+            {
+                foreach (var function in functions)
+                {
+                    if (function.Type == functionType)
+                        return (function.Id, function.Type);
+                }
+            }
             if (Variables.TryGetValue(name, out var variable))
                 return (variable.Id, variable.Type);
             throw new KeyNotFoundException($"Member {name} was not found in shader {ShaderName}");
@@ -61,7 +67,9 @@ public partial class ShaderMixer
             {
                 var functionName = globalContext.Names[function.ResultId];
                 var functionType = (FunctionType)globalContext.Types[function.FunctionType];
-                shaderInfo!.Functions.Add(functionName, (function.ResultId, functionType));
+                if (!shaderInfo!.Functions.TryGetValue(functionName, out var functions))
+                    shaderInfo.Functions.Add(functionName, functions = new());
+                functions.Add((function.ResultId, functionType));
             }
             else if (i.Data.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
             {
@@ -113,7 +121,7 @@ public partial class ShaderMixer
         {
             if (globalContext.ExternalShaders.ContainsKey(importFunction.Shader))
             {
-                globalContext.ExternalFunctions.Add(importFunction.ResultId, (importFunction.Shader, importFunction.FunctionName));
+                globalContext.ExternalFunctions.Add(importFunction.ResultId, (importFunction.Shader, importFunction.FunctionName, importFunction.FunctionType));
             }
         }
         else if (i.Op == Op.OpSDSLImportVariable && (OpSDSLImportVariable)i is { } importVariable)

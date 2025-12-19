@@ -301,6 +301,8 @@ public sealed record LoadedShaderSymbol(string Name, int[] GenericArguments) : S
 
     internal bool TryResolveSymbol(SpirvContext context, string name, out Symbol symbol)
     {
+        bool found = false;
+        symbol = default;
 
         var shaderId = context.GetOrRegister(this);
 
@@ -315,11 +317,19 @@ public sealed record LoadedShaderSymbol(string Name, int[] GenericArguments) : S
                     context.ImportShaderMethod(shaderId, ref c.Symbol, c.Flags);
                 }
 
-                symbol = c.Symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+                // Combine method symbols if multiple matches
+                var methodSymbol = c.Symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
 
-                return true;
+                symbol = found
+                    ? new Symbol(new(name, SymbolKind.MethodGroup, IsStage: symbol.Id.IsStage), new FunctionGroupType(), 0, GroupMembers: [symbol, methodSymbol])
+                    : methodSymbol;
+
+                found = true;
             }
         }
+        if (found)
+            return true;
+
         var variables = CollectionsMarshal.AsSpan(Variables);
         foreach (ref var c in variables)
         {

@@ -76,9 +76,15 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
             functionSymbol = table.ResolveSymbol(Name);
         }
 
-        // TODO: find proper overload
+        // Choose appropriate method to call
         if (functionSymbol.Type is FunctionGroupType)
-            functionSymbol = functionSymbol.GroupMembers.First();
+        {
+            // Find methods matching number of parameters
+            var matchingMethods = functionSymbol.GroupMembers.Where(x => ((FunctionType)x.Type).ParameterTypes.Count == parameters.Values.Count);
+
+            // TODO: find proper overload
+            functionSymbol = matchingMethods.First();
+        }
         var functionType = (FunctionType)functionSymbol.Type;
 
         Type = functionType.ReturnType;
