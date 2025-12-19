@@ -33,7 +33,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var temp = new NewSpirvBuffer();
 
         var context = new SpirvContext();
-        var table = new SymbolTable { ShaderLoader = ShaderLoader };
+        var table = new SymbolTable(context) { ShaderLoader = ShaderLoader };
 
         var effectEvaluator = new EffectEvaluator(ShaderLoader);
         shaderSource = effectEvaluator.EvaluateEffects(shaderSource);

@@ -1,10 +1,11 @@
 using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Spirv.Building;
 using System.Collections.Immutable;
 using System.Xml.Linq;
 
 namespace Stride.Shaders.Core;
 
-public class SymbolFrame()
+public class SymbolFrame(SpirvContext context)
 {
     readonly Dictionary<string, Symbol> symbols = [];
 
@@ -50,7 +51,7 @@ public class SymbolFrame()
 
         foreach (var implicitShader in implicitShaders)
         {
-            if (implicitShader.TryResolveSymbol(name, out symbol))
+            if (implicitShader.TryResolveSymbol(context, name, out symbol))
                 return true;
         }
 
@@ -60,6 +61,6 @@ public class SymbolFrame()
     public Dictionary<string, Symbol>.Enumerator GetEnumerator() => symbols.GetEnumerator();
 }
 
-public sealed class RootSymbolFrame : SymbolFrame
+public sealed class RootSymbolFrame(SpirvContext context) : SymbolFrame(context)
 {
 }

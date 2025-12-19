@@ -233,42 +233,42 @@ public class SpirvContext
         var structTypes = CollectionsMarshal.AsSpan(shaderSymbol.StructTypes);
         foreach (ref var structType in structTypes)
         {
-            FluentAdd(new OpSDSLImportStruct(Bound++, structType.Type.ToId(), shader.ResultId), out var @struct);
-            AddName(@struct.ResultId, structType.Type.Name);
-            // Fill the ID
-            structType.ImportedId = @struct.ResultId;
-
-            // Register it so that it can be used right after during OpVariable for cbuffer
-            Types.Add(structType.Type, structType.ImportedId);
-            ReverseTypes.Add(structType.ImportedId, structType.Type);
+            ImportShaderStruct(shader, structType.Type, out structType.ImportedId);
         }
 
-        // Import variables/functions
-        var methods = CollectionsMarshal.AsSpan(shaderSymbol.Methods);
-        foreach (ref var c in methods)
-        {
-            if (c.Symbol.Id.Kind == SymbolKind.Method)
-            {
-                var functionType = (FunctionType)c.Symbol.Type;
-                var functionReturnTypeId = GetOrRegister(functionType.ReturnType);
-
-                c.Symbol.IdRef = Bound++;
-                Add(new OpSDSLImportFunction(c.Symbol.IdRef, functionReturnTypeId, c.Symbol.Id.Name, shader.ResultId, c.Flags));
-                AddName(c.Symbol.IdRef, c.Symbol.Id.Name);
-            }
-        }
-        var variables = CollectionsMarshal.AsSpan(shaderSymbol.Variables);
-        foreach (ref var c in variables)
-        {
-            if (c.Symbol.Id.Kind == SymbolKind.Variable)
-            {
-                c.Symbol.IdRef = Bound++;
-                Add(new OpSDSLImportVariable(c.Symbol.IdRef, GetOrRegister(c.Symbol.Type), c.Symbol.Id.Name, shader.ResultId, c.Flags));
-                AddName(c.Symbol.IdRef, c.Symbol.Id.Name);
-            }
-        }
+        // Note: Variables and methods are imported lazily in LoadedShaderSymbol.TryResolveSymbol()
 
         return shader.ResultId;
+    }
+
+    private void ImportShaderStruct(int shaderId, StructuredType structType, out int structImportedId)
+    {
+        FluentAdd(new OpSDSLImportStruct(Bound++, structType.ToId(), shaderId), out var @struct);
+        AddName(@struct.ResultId, structType.Name);
+
+        // Fill the ID
+        structImportedId = @struct.ResultId;
+
+        // Register it so that it can be used right after during OpVariable for cbuffer
+        Types.Add(structType, structImportedId);
+        ReverseTypes.Add(structImportedId, structType);
+    }
+
+    public void ImportShaderVariable(int shaderId, ref Symbol symbol, VariableFlagsMask flags)
+    {
+        symbol.IdRef = Bound++;
+        Add(new OpSDSLImportVariable(symbol.IdRef, GetOrRegister(symbol.Type), symbol.Id.Name, shaderId, flags));
+        AddName(symbol.IdRef, symbol.Id.Name);
+    }
+
+    public void ImportShaderMethod(int shaderId, ref Symbol symbol, FunctionFlagsMask flags)
+    {
+        var functionType = (FunctionType)symbol.Type;
+        var functionReturnTypeId = GetOrRegister(functionType.ReturnType);
+
+        symbol.IdRef = Bound++;
+        Add(new OpSDSLImportFunction(symbol.IdRef, functionReturnTypeId, symbol.Id.Name, shaderId, flags));
+        AddName(symbol.IdRef, symbol.Id.Name);
     }
 
     public int DeclareCBuffer(ConstantBufferSymbol cb)

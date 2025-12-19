@@ -271,7 +271,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var variableType = types[variable.ResultType];
 
                 var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream, IsStage: (variable.Flags & VariableFlagsMask.Stage) != 0);
-                variables.Add((new(sid, variableType, variable.ResultId), variable.Flags));
+                variables.Add((new(sid, variableType, 0), variable.Flags));
             }
 
             if (instruction.Op == Op.OpFunction)
@@ -285,7 +285,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var functionType = types[functionInstruction.FunctionType];
 
                 var sid = new SymbolID(functionName, SymbolKind.Method, IsStage: (functionFlags & FunctionFlagsMask.Stage) != 0);
-                methods.Add((new(sid, functionType, functionInstruction.ResultId), functionFlags));
+                methods.Add((new(sid, functionType, 0), functionFlags));
             }
 
             if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)

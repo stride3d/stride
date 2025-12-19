@@ -31,12 +31,12 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
             {
                 if (declaration is ShaderClass shader)
                 {
-                    SymbolTable table = new()
+                    var compiler = new CompilerUnit();
+                    SymbolTable table = new(compiler.Context)
                     {
                         ShaderLoader = ShaderLoader,
                         CurrentMacros = [..macros],
                     };
-                    var compiler = new CompilerUnit();
                     compiler.Macros.AddRange(macros);
                     shader.Compile(table, compiler);
 
@@ -53,12 +53,12 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 }
                 else if (declaration is ShaderEffect effect)
                 {
-                    SymbolTable table = new()
+                    var compiler = new CompilerUnit();
+                    SymbolTable table = new(compiler.Context)
                     {
                         ShaderLoader = ShaderLoader,
                         CurrentMacros = [..macros],
                     };
-                    var compiler = new CompilerUnit();
                     compiler.Macros.AddRange(macros);
                     effect.Compile(table, compiler);
 

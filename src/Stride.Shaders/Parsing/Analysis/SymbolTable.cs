@@ -13,7 +13,9 @@ public partial class SymbolTable : ISymbolProvider
 {
     public Dictionary<string, SymbolType> DeclaredTypes { get; } = [];
 
-    public RootSymbolFrame RootSymbols { get; } = new();
+    public SpirvContext Context { get; init; }
+
+    public RootSymbolFrame RootSymbols { get; }
     public List<SemanticErrors> Errors { get; } = [];
 
     // Used by Identifier.ResolveSymbol
@@ -27,12 +29,14 @@ public partial class SymbolTable : ISymbolProvider
     // Only valid during compilation (not during ShaderMixin phase)
     public List<ShaderClassInstantiation> InheritedShaders { get; set; }
 
-    public SymbolTable()
+    public SymbolTable(SpirvContext context)
     {
+        Context = context;
+        RootSymbols = new(context);
         Push(RootSymbols);
     }
 
-    public void Push() => CurrentSymbols.Add(new());
+    public void Push() => CurrentSymbols.Add(new(Context));
 
     public void Push(SymbolFrame symbolFrame) => CurrentSymbols.Add(symbolFrame);
 

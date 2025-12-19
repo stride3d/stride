@@ -3,6 +3,7 @@ using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Text;
 using static Stride.Shaders.Spirv.Specification;
 
@@ -298,20 +299,38 @@ public sealed record LoadedShaderSymbol(string Name, int[] GenericArguments) : S
     public List<(StructuredType Type, int ImportedId)> StructTypes { get; init; } = [];
 
 
-    internal bool TryResolveSymbol(string name, out Symbol symbol)
+    internal bool TryResolveSymbol(SpirvContext context, string name, out Symbol symbol)
     {
-        foreach (var c in Methods)
+
+        var shaderId = context.GetOrRegister(this);
+
+        var methods = CollectionsMarshal.AsSpan(Methods);
+        foreach (ref var c in methods)
         {
             if (c.Symbol.Id.Name == name)
             {
+                if (c.Symbol.IdRef == 0)
+                {
+                    // Emit symbol
+                    context.ImportShaderMethod(shaderId, ref c.Symbol, c.Flags);
+                }
+
                 symbol = c.Symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+
                 return true;
             }
         }
-        foreach (var c in Variables)
+        var variables = CollectionsMarshal.AsSpan(Variables);
+        foreach (ref var c in variables)
         {
             if (c.Symbol.Id.Name == name)
             {
+                if (c.Symbol.IdRef == 0)
+                {
+                    // Emit symbol
+                    context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
+                }
+
                 symbol = c.Symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
                 return true;
             }
@@ -324,6 +343,12 @@ public sealed record LoadedShaderSymbol(string Name, int[] GenericArguments) : S
                     var member = cb.Members[index];
                     if (member.Name == name)
                     {
+                        if (c.Symbol.IdRef == 0)
+                        {
+                            // Emit symbol
+                            context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
+                        }
+
                         var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
                         symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.Symbol.IdRef, MemberAccessWithImplicitThis: c.Symbol.Type, AccessChain: index);
                         return true;

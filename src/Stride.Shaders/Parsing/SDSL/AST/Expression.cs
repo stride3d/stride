@@ -69,7 +69,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         if (MemberCall != null)
         {
             var type = (LoadedShaderSymbol)((PointerType)context.ReverseTypes[MemberCall.Value.TypeId]).BaseType;
-            functionSymbol = type.Methods.Single(x => x.Symbol.Id.Name == Name).Symbol;
+            type.TryResolveSymbol(context, Name, out functionSymbol);
         }
         else
         {
@@ -402,7 +402,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds);
 
-                        if (!s.TryResolveSymbol(field.Name, out var matchingComponent))
+                        if (!s.TryResolveSymbol(context, field.Name, out var matchingComponent))
                             throw new InvalidOperationException();
 
                         // TODO: figure out instance (this vs composition)
