@@ -426,7 +426,7 @@ namespace Stride.Shaders.Spirv.Processing
                         // Map the pointer access as access to the underlying stream (if any)
                         // i.e., streams.A.B will share same streamInfo as streams.A
                         // TODO: what happens in case of partial write?
-                        streams.Add(accessChain.ResultId, (streamInfo.Stream, false));
+                        streams.TryAdd(accessChain.ResultId, (streamInfo.Stream, false));
                     }
                 }
                 else if (instruction.Op == Op.OpFunctionCall && (OpFunctionCall)instruction is { } call)
