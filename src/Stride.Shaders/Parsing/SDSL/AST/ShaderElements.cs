@@ -57,6 +57,17 @@ public enum StreamKind
     PatchStream
 }
 
+[Flags]
+public enum ParameterModifiers : int
+{
+    None = 0x0,
+    In = 0x1,
+    Out = 0x2,
+    InOut = In | Out,
+
+    Const = 0x10,
+}
+
 public static class ShaderVariableInformationExtensions
 {
     public static StreamKind ToStreamKind(this string str)
@@ -104,6 +115,17 @@ public static class ShaderVariableInformationExtensions
             "row_major" => TypeModifier.RowMajor,
             "column_major" => TypeModifier.ColumnMajor,
             _ => TypeModifier.None
+        };
+    }
+
+    public static ParameterModifiers ToParameterModifiers(this string str)
+    {
+        return str switch
+        {
+            "in" => ParameterModifiers.In,
+            "out" => ParameterModifiers.Out,
+            "inout" => ParameterModifiers.InOut,
+            "const" => ParameterModifiers.Const,
         };
     }
 }

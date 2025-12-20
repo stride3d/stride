@@ -13,7 +13,7 @@ public partial class SpirvBuilder
     {
         var func = context.Bound++;
         foreach (var t in ftype.ParameterTypes)
-            context.GetOrRegister(t);
+            context.GetOrRegister(t.Type);
         context.AddName(func, name);
         var result = new SpirvFunction(func, name, ftype) { IsStage = isStage };
         return result;

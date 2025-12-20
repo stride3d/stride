@@ -173,6 +173,22 @@
       ]
     },
     {
+      "opname": "OpTypeFunctionSDSL",
+      "class": "Type-Declaration",
+      "operands": [
+        { "kind": "IdResult" },
+        {
+          "kind": "IdRef",
+          "name": "'Return Type'"
+        },
+        {
+          "kind": "PairIdRefLiteralInteger",
+          "quantifier": "*",
+          "name": "'Parameter 0 Type', +\n'Parameter 1 Type', +\n..."
+        }
+      ]
+    },
+    {
       "opname": "OpSDSLFunctionInfo",
       "class": "Miscellaneous",
       "operands": [

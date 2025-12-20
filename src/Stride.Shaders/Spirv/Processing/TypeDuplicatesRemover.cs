@@ -89,7 +89,7 @@ public class TypeDuplicateHelper
 
             // Only process types that we care about
             if (x.Op == Op.OpTypeVoid || x.Op == Op.OpTypeInt || x.Op == Op.OpTypeFloat || x.Op == Op.OpTypeBool
-                || x.Op == Op.OpTypeVector || x.Op == Op.OpTypeMatrix || x.Op == Op.OpTypePointer || x.Op == Op.OpTypeFunction
+                || x.Op == Op.OpTypeVector || x.Op == Op.OpTypeMatrix || x.Op == Op.OpTypePointer || x.Op == Op.OpTypeFunction || x.Op == Op.OpTypeFunctionSDSL
                 || x.Op == Op.OpTypeArray || x.Op == Op.OpTypeRuntimeArray
                 //|| x.Op == Op.OpTypeStruct
                 || x.Op == Op.OpTypeImage || x.Op == Op.OpTypeSampler

@@ -27,7 +27,7 @@ public static partial class Examples
         var function = builder.DeclareFunction(
             context,
             "add",
-            new(ScalarType.From("int"), [ScalarType.From("int"), ScalarType.From("int")])
+            new(ScalarType.From("int"), [(ScalarType.From("int"), default), (ScalarType.From("int"), default)])
         );
         builder.BeginFunction(context, function);
         builder.AddFunctionParameter(context, "a", ScalarType.From("int"));

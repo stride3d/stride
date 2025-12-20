@@ -229,6 +229,23 @@ public static partial class Spv
 
         }
 
+        private DisWriter AppendPairIdRefLiteralIntegers(SpvOperand operand)
+        {
+            var count = operand.Quantifier switch
+            {
+                OperandQuantifier.One => 1,
+                OperandQuantifier.ZeroOrMore => operand.Words.Length / 2,
+                OperandQuantifier.ZeroOrOne => operand.Words.Length == 0 ? 0 : 1,
+            };
+
+            for (int i = 0; i < count; ++i)
+            {
+                AppendIdRef(operand.Words[i * 2]);
+                AppendLiteralNumber(operand.Words[i * 2 + 1]);
+            }
+            return this;
+        }
+
         public readonly void Disassemble()
         {
             DisHeader();
@@ -319,14 +336,13 @@ public static partial class Spv
                             (OperandQuantifier.ZeroOrMore, > 0) => AppendEnums(k, operand).Append(' '),
                             (OperandQuantifier.ZeroOrOne or OperandQuantifier.ZeroOrMore, 0) => Append(""),
                             _ => throw new NotImplementedException("Unsupported image operands quantifier " + operand.Quantifier + " with length " + operand.Words.Length)
-                        }
+                        },
+                        OperandKind.PairIdRefLiteralInteger => AppendPairIdRefLiteralIntegers(operand),
                     };
                 }
                 AppendLine("");
             }
         }
-
-
 
         public readonly override string ToString() => builder.ToString();
     }

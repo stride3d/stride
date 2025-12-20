@@ -338,7 +338,7 @@ namespace Stride.Shaders.Spirv.Processing
             context.FluentAdd(new OpTypeVoid(context.Bound++), out var voidType);
 
             // Add new entry point wrapper
-            context.FluentAdd(new OpTypeFunction(context.Bound++, voidType, []), out var newEntryPointFunctionType);
+            context.FluentAdd(new OpTypeFunctionSDSL(context.Bound++, voidType, []), out var newEntryPointFunctionType);
             buffer.FluentAdd(new OpFunction(voidType, context.Bound++, FunctionControlMask.None, newEntryPointFunctionType), out var newEntryPointFunction);
             buffer.Add(new OpLabel(context.Bound++));
             context.AddName(newEntryPointFunction, $"{entryPointName}_Wrapper");

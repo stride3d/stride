@@ -89,29 +89,31 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 
         Type = functionType.ReturnType;
 
-        var list = parameters.Values;
+        Span<int> compiledParams = stackalloc int[parameters.Values.Count];
 
-        Span<int> compiledParams = stackalloc int[list.Count];
-        var tmp = 0;
-
-        foreach (var p in list)
+        for (int i = 0; i < parameters.Values.Count; i++)
         {
-            var paramSource = p.CompileAsValue(table, compiler);
-            var paramType = functionType.ParameterTypes[tmp];
-
             // Wrap param in proper pointer type (function)
+            var paramDefinition = functionType.ParameterTypes[i];
             var paramVariable = context.Bound++;
-            builder.AddFunctionVariable(context.GetOrRegister(paramType), paramVariable);
+            builder.AddFunctionVariable(context.GetOrRegister(paramDefinition.Type), paramVariable);
 
-            // Convert type (if necessary)
-            var paramValueType = paramType;
-            if (paramValueType is PointerType pointerType)
-                paramValueType = pointerType.BaseType;
-            paramSource = builder.Convert(context, paramSource, paramValueType);
+            // Note: "in" is implicit, so we match in all cases except if out
+            var inOutFlags = paramDefinition.Modifiers & ParameterModifiers.InOut;
+            if (inOutFlags != ParameterModifiers.Out)
+            {
+                var paramSource = parameters.Values[i].CompileAsValue(table, compiler);
 
-            builder.Insert(new OpStore(paramVariable, paramSource.Id, null));
+                // Convert type (if necessary)
+                var paramExpectedValueType = paramDefinition.Type;
+                if (paramExpectedValueType is PointerType pointerType)
+                    paramExpectedValueType = pointerType.BaseType;
+                paramSource = builder.Convert(context, paramSource, paramExpectedValueType);
 
-            compiledParams[tmp++] = paramVariable;
+                builder.Insert(new OpStore(paramVariable, paramSource.Id, null));
+            }
+
+            compiledParams[i] = paramVariable;
         }
 
         int? instance = null;
@@ -134,7 +136,27 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         if (instance is int instanceId)
             functionSymbol.IdRef = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(functionType), context.Bound++, instanceId, functionSymbol.IdRef)).ResultId;
 
-        return builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
+        var result = builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
+
+        for (int i = 0; i < parameters.Values.Count; i++)
+        {
+            var paramDefinition = functionType.ParameterTypes[i];
+            if (paramDefinition.Modifiers.HasFlag(ParameterModifiers.Out))
+            {
+                var paramDefinitionType = (PointerType)paramDefinition.Type;
+                var paramVariable = compiledParams[i];
+                var paramTarget = parameters.Values[i].Compile(table, compiler);
+                var paramTargetType = (PointerType)context.ReverseTypes[paramTarget.TypeId];
+
+                if (paramTargetType.BaseType != paramDefinitionType.BaseType)
+                    throw new InvalidOperationException($"Value of type {paramTargetType.BaseType} can't be used as out parameter {i} of type {paramDefinitionType.BaseType} in method call [{this}]");
+
+                var loadedResult = builder.Insert(new OpLoad(context.GetOrRegister(paramTargetType.BaseType), context.Bound++, paramVariable, null)).ResultId;
+                builder.Insert(new OpStore(paramTarget.Id, loadedResult, null));
+            }
+        }
+
+        return result;
     }
     public override string ToString()
     {

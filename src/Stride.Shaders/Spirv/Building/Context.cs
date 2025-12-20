@@ -318,11 +318,14 @@ public class SpirvContext
 
     int RegisterFunctionType(FunctionType functionType)
     {
-        Span<int> types = stackalloc int[functionType.ParameterTypes.Count];
+        Span<(int, int)> types = stackalloc (int, int)[functionType.ParameterTypes.Count];
         for (int i = 0; i < functionType.ParameterTypes.Count; i++)
-            types[i] = GetOrRegister(functionType.ParameterTypes[i]);
+        {
+            types[i].Item1 = GetOrRegister(functionType.ParameterTypes[i].Type);
+            types[i].Item2 = (int)functionType.ParameterTypes[i].Modifiers;
+        }
 
-        var result = Buffer.Add(new OpTypeFunction(Bound++, GetOrRegister(functionType.ReturnType), [.. types]));
+        var result = Buffer.Add(new OpTypeFunctionSDSL(Bound++, GetOrRegister(functionType.ReturnType), [.. types]));
         // disabled for now: currently it generates name with {}, not working with most SPIRV tools
         // AddName(result, functionType.ToId());
         return result.IdResult ?? -1;

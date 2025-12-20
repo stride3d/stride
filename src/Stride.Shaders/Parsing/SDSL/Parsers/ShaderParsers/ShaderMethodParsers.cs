@@ -61,8 +61,15 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
     {
         var position = scanner.Position;
 
-        if (!(Tokens.AnyOf(["inout", "in", "out", "triangle", "point", "const"], ref scanner, out var storage, advance: true) && Parsers.Spaces1(ref scanner, result, out _)))
+        ParameterModifiers modifiers = ParameterModifiers.None;
+        if (Tokens.AnyOf(["inout", "in", "out", "triangle", "point", "const"], ref scanner, out var modifiersString, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
+        {
+            modifiers = modifiersString.ToParameterModifiers();
+        }
+        else
+        {
             scanner.Position = position;
+        }
         if (Parsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typename, out var identifier, out var value, advance: true)
         )
         {
@@ -72,12 +79,12 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
                 && Parsers.Spaces0(ref scanner, result, out _)
             )
             {
-                parsed = new(typename, identifier, scanner[position..scanner.Position], storage, semantic: semantic);
+                parsed = new(typename, identifier, scanner[position..scanner.Position], modifiers, semantic: semantic);
                 return true;
             }
             else
             {
-                parsed = new(typename, identifier, scanner[position..scanner.Position], storage);
+                parsed = new(typename, identifier, scanner[position..scanner.Position], modifiers);
                 return true;
             }
         }

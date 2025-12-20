@@ -200,7 +200,7 @@ public sealed record TextureCubeType(ScalarType ReturnType) : TextureType(Return
 
 public sealed record FunctionGroupType() : SymbolType();
 
-public sealed record FunctionType(SymbolType ReturnType, List<SymbolType> ParameterTypes) : SymbolType()
+public sealed record FunctionType(SymbolType ReturnType, List<(SymbolType Type, ParameterModifiers Modifiers)> ParameterTypes) : SymbolType()
 {
     public bool Equals(FunctionType? other)
     {
@@ -230,7 +230,21 @@ public sealed record FunctionType(SymbolType ReturnType, List<SymbolType> Parame
         builder.Append($"fn_");
         for (int i = 0; i < ParameterTypes.Count; i++)
         {
-            builder.Append(ParameterTypes[i].ToId());
+            if (ParameterTypes[i].Modifiers.HasFlag(ParameterModifiers.Const))
+                builder.Append("const ");
+            switch (ParameterTypes[i].Modifiers)
+            {
+                case var flag when flag.HasFlag(ParameterModifiers.InOut):
+                    builder.Append("inout ");
+                    break;
+                case var flag when flag.HasFlag(ParameterModifiers.Out):
+                    builder.Append("out ");
+                    break;
+                case var flag when flag.HasFlag(ParameterModifiers.In):
+                    builder.Append("in ");
+                    break;
+            }
+            builder.Append(ParameterTypes[i].Type.ToId());
             builder.Append('_');
         }
         return builder.Append(ReturnType.ToId()).ToString();

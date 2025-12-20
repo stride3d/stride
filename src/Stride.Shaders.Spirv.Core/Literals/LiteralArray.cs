@@ -140,20 +140,25 @@ public struct LiteralArray<T> : ISpirvElement, IFromSpirv<LiteralArray<T>>, IDis
             }
             return new(owner);
         }
-        else if (value is long or double && words.Length % 2 == 0)
+        else if (value is long or double or ValueTuple<int, int> && words.Length % 2 == 0)
         {
             var owner = MemoryOwner<T>.Allocate(words.Length / 2);
-            for (int i = 0; i < words.Length; i += 2)
+            for (int i = 0; i < owner.Length; i++)
             {
                 if (value is long)
                 {
-                    long b = words[i] << 32 | words[i + 1];
+                    long b = words[i * 2] << 32 | words[i * 2 + 1];
                     owner.Span[i] = Unsafe.As<long, T>(ref b);
                 }
                 else if (value is double)
                 {
-                    double b = BitConverter.Int64BitsToDouble(words[i] << 32 | words[i + 1]);
+                    double b = BitConverter.Int64BitsToDouble(words[i * 2] << 32 | words[i * 2 + 1]);
                     owner.Span[i] = Unsafe.As<double, T>(ref b);
+                }
+                else if (value is ValueTuple<int, int>)
+                {
+                    ValueTuple<int, int> t = (words[i * 2], words[i * 2 + 1]);
+                    owner.Span[i] = Unsafe.As<ValueTuple<int, int>, T>(ref t);
                 }
             }
             return new(owner);

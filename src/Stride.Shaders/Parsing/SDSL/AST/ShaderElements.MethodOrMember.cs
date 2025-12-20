@@ -177,14 +177,14 @@ public sealed class ShaderMember(
     }
 }
 
-public class MethodParameter(TypeName type, Identifier name, TextLocation info, string? storage = null, Expression? arraySize = null, Identifier? semantic = null) : Node(info)
+public class MethodParameter(TypeName type, Identifier name, TextLocation info, ParameterModifiers modifiers = ParameterModifiers.None, Expression? arraySize = null, Identifier? semantic = null) : Node(info)
 {
     public TypeName TypeName { get; set; } = type;
     public SymbolType? Type { get; set; }
     public Identifier Name { get; set; } = name;
     public Identifier? Semantic { get; set; } = semantic;
     public Expression? ArraySize { get; set; } = arraySize;
-    public string? Storage { get; set; } = storage;
+    public ParameterModifiers Modifiers { get; set; } = modifiers;
 
     public override string ToString()
     {

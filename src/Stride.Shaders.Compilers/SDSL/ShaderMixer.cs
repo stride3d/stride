@@ -118,8 +118,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Merge all classes from mixinSource.Mixins in main buffer
         ProcessMixinClasses(globalContext, context, buffer, mixinSource, mixinNode);
 
-        Spv.Dis(NewSpirvBuffer.Merge(context.GetBuffer(), buffer), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
-
         BuildTypesAndMethodGroups(globalContext, context, table, buffer, mixinNode);
 
         // Compositions (recursive)
@@ -340,6 +338,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i2.Op == Op.OpTypeRuntimeArray
                 || i2.Op == Op.OpTypePointer
                 || i2.Op == Op.OpTypeFunction
+                || i2.Op == Op.OpTypeFunctionSDSL
                 || i2.Op == Op.OpTypeImage
                 || i2.Op == Op.OpTypeSampler
                 || i2.Op == Op.OpTypeGenericLinkSDSL
@@ -988,14 +987,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     if (o.Kind == OperandKind.PairIdRefLiteralInteger || o.Kind == OperandKind.PairIdRefIdRef)
                     {
-                        if (o.Words[i * 2 + 0] != 0)
-                            o.Words[i * 2 + 0] += offset;
+                        if (o.Words[i + 0] != 0)
+                            o.Words[i + 0] += offset;
                     }
 
                     if (o.Kind == OperandKind.PairLiteralIntegerIdRef || o.Kind == OperandKind.PairIdRefIdRef)
                     {
-                        if (o.Words[i * 2 + 1] != 0)
-                            o.Words[i * 2 + 1] += offset;
+                        if (o.Words[i + 1] != 0)
+                            o.Words[i + 1] += offset;
                     }
                 }
             }
@@ -1012,6 +1011,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // Note: we ignore initializer as we store a method which is already processed during StreamAnalyzer (as opposed to a const for OpVariable)
             if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
                 temp.Replace(index, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
+
+            // Transform OpTypeFunctionSDSL into OpTypeFunction (we don't need extra info anymore)
+            if (i.Op == Op.OpTypeFunctionSDSL && (OpTypeFunctionSDSL)i is { } functionType)
+            {
+                Span<int> parameterTypes = stackalloc int[functionType.Values.Elements.Span.Length];
+                for (int j = 0; j < functionType.Values.Elements.Span.Length; ++j)
+                    parameterTypes[j] = functionType.Values.Elements.Span[j].Item1;
+                temp.Replace(index, new OpTypeFunction(functionType.ResultId, functionType.ReturnType, [..parameterTypes]));
+            }
 
             // Remove Nop
             if (i.Op == Op.OpNop)

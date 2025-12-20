@@ -158,13 +158,13 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var innerType = types[typeRuntimeArray.ElementType];
                 types.Add(typeRuntimeArray.ResultId, new ArrayType(innerType, -1));
             }
-            else if (instruction.Op == Op.OpTypeFunction && new OpTypeFunction(instruction) is { } typeFunctionInstruction)
+            else if (instruction.Op == Op.OpTypeFunctionSDSL && new OpTypeFunctionSDSL(instruction) is { } typeFunctionInstruction)
             {
                 var returnType = types[typeFunctionInstruction.ReturnType];
-                var parameterTypes = new List<SymbolType>();
+                var parameterTypes = new List<(SymbolType Type, ParameterModifiers Flags)>();
                 foreach (var operand in typeFunctionInstruction.Values)
                 {
-                    parameterTypes.Add(types[operand]);
+                    parameterTypes.Add((types[operand.Item1], (ParameterModifiers)operand.Item2));
                 }
                 types.Add(typeFunctionInstruction.ResultId, new FunctionType(returnType, parameterTypes));
             }
@@ -386,7 +386,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var argSym = arg.TypeName.ResolveType(table, context);
                     table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
                     arg.Type = new PointerType(argSym, Specification.StorageClass.Function);
-                    ftype.ParameterTypes.Add(arg.Type);
+                    ftype.ParameterTypes.Add((arg.Type, arg.Modifiers));
                 }
                 func.Type = ftype;
 
