@@ -78,7 +78,7 @@ public partial class SpirvBuilder
         {
             // Apply swizzle
             var resultType = v.BaseType;
-            var extract = InsertData(new OpCompositeExtract(context.GetOrRegister(resultType), context.Bound++, value.Id, [context.CompileConstant(swizzleIndices[0]).Id]));
+            var extract = InsertData(new OpCompositeExtract(context.GetOrRegister(resultType), context.Bound++, value.Id, [swizzleIndices[0]]));
             value = new(extract);
 
             return (value, resultType);
