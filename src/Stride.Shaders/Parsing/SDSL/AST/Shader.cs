@@ -292,11 +292,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 structTypes.Add(((StructuredType)types[typeStructInstruction.ResultId], -1));
             }
-
-            if (instruction.Op == Op.OpSDSLGenericParameter)
-            {
-                throw new NotImplementedException();
-            }
         }
 
         var shaderType = new LoadedShaderSymbol(classSource.ClassName, classSource.GenericArguments)

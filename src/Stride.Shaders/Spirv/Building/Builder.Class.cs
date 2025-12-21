@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
-using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -9,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -241,10 +239,88 @@ public partial class SpirvBuilder
         throw new Exception("Cannot find type instruction for id " + typeId);
     }
 
-    private static void InstantiateGenericShaderUsingGenericValues(NewSpirvBuffer shader, string className, string[] genericValues)
-    {
-        Console.WriteLine($"[Shader] Instantiating {className} with values {string.Join(",", genericValues)}");
+    record struct GenericParameter(SymbolType Type, int ResultId, int ResultType, int Index, string Name, bool Resolved, object Value);
 
+    abstract class GenericResolver
+    {
+        public abstract bool NeedsResolve();
+        public abstract bool TryResolveGenericValue(SymbolType genericParameterType, string genericParameterName, int index, out object value);
+
+        public virtual void PostProcess(string classNameWithGenerics, List<GenericParameter> genericParameters)
+        {
+        }
+    }
+
+    class GenericResolverFromValues(string[]? genericValues) : GenericResolver
+    {
+        public override bool NeedsResolve() => genericValues != null && genericValues.Length > 0;
+
+        public override bool TryResolveGenericValue(SymbolType genericParameterType, string genericParameterName, int index, out object value)
+        {
+            var genericValue = genericValues![index];
+            switch (genericParameterType)
+            {
+                case ScalarType { TypeName: "int" }:
+                    value = int.Parse(genericValue);
+                    return true;
+                case ScalarType { TypeName: "float" }:
+                    value = float.Parse(genericValue);
+                    return true;
+                case ScalarType { TypeName: "bool" }:
+                    value = bool.Parse(genericValue);
+                    return true;
+                case GenericParameterType g:
+                    value = genericValue;
+                    return true;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+    }
+
+    class GenericResolverFromClassInstantiation(ShaderClassInstantiation classSource, NewSpirvBuffer instantiatingBuffer, ResolveStep resolveStep) : GenericResolver
+    {
+        private Dictionary<int, string> names;
+
+        public override bool NeedsResolve() => classSource.GenericArguments.Length > 0;
+
+        public override bool TryResolveGenericValue(SymbolType genericParameterType, string genericParameterName, int index, out object value)
+        {
+            if (!TryGetConstantValue(classSource.GenericArguments[index], out value, instantiatingBuffer))
+            {
+                if (names == null)
+                    ShaderClass.ProcessNameAndTypes(instantiatingBuffer, 0, instantiatingBuffer.Count, out names, out _);
+
+                value = names.TryGetValue(classSource.GenericArguments[index], out var genericArgumentName)
+                    ? $"%{genericArgumentName}[{classSource.GenericArguments[index]}]"
+                    : $"%{classSource.GenericArguments[index]}";
+                return false;
+            }
+
+            return true;
+        }
+
+        public override void PostProcess(string classNameWithGenerics, List<GenericParameter> genericParameters)
+        {
+            // Fully resolved?
+            if (genericParameters.All(x => x.Resolved))
+            {
+                if (resolveStep == ResolveStep.Mix)
+                {
+                    classSource.ClassName = classNameWithGenerics;
+                    classSource.GenericArguments = [];
+                }
+            }
+            else if (resolveStep == ResolveStep.Mix)
+            {
+                throw new InvalidOperationException("During mix phase, shaders generics are expected to be fully resolved");
+            }
+        }
+    }
+
+
+    private static void InstantiateGenericShader(NewSpirvBuffer shader, string className, GenericResolver genericResolver, IExternalShaderLoader shaderLoader, ReadOnlySpan<ShaderMacro> macros)
+    {
         ShaderClass.ProcessNameAndTypes(shader, 0, shader.Count, out var names, out var types);
 
         var bound = shader.Header.Bound;
@@ -252,43 +328,68 @@ public partial class SpirvBuilder
         var resolvedLinks = new Dictionary<int, string>();
         var semantics = new Dictionary<string, string>();
 
-        var genericValueIndex = 0;
-        for (var index = 0; index < shader.Count; index++)
+        var genericParameters = new List<GenericParameter>();
+        foreach (var i in shader)
         {
-            var i = shader[index];
             if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
             {
-                var genericValue = genericValues[genericValueIndex++];
-                var type = types[genericParameter.ResultType];
-                switch (type)
-                {
-                    case ScalarType { TypeName: "int" }:
-                        shader.Replace(index, new OpConstant<int>(genericParameter.ResultType, genericParameter.ResultId, int.Parse(genericValue)));
-                        break;
-                    case ScalarType { TypeName: "float" }:
-                        shader.Replace(index, new OpConstant<float>(genericParameter.ResultType, genericParameter.ResultId, float.Parse(genericValue)));
-                        break;
-                    case ScalarType { TypeName: "bool" }:
-                        if (bool.Parse(genericValue))
-                            shader.Replace(index, new OpConstantTrue(genericParameter.ResultType, genericParameter.ResultId));
-                        else
-                            shader.Replace(index, new OpConstantFalse(genericParameter.ResultType, genericParameter.ResultId));
-                        break;
-                    case GenericParameterType g when g.Kind is GenericParameterKindSDSL.LinkType:
-                        shader.Replace(index, new OpConstantStringSDSL(genericParameter.ResultId, genericValue));
-                        resolvedLinks.Add(genericParameter.ResultId, genericValue);
-                        break;
-                    case GenericParameterType g when g.Kind is GenericParameterKindSDSL.Semantic:
-                        shader.Replace(index, new OpConstantStringSDSL(genericParameter.ResultId, genericValue));
-                        semantics.Add(names[genericParameter.ResultId], genericValue);
-                        break;
-                    default:
-                        throw new NotImplementedException();
-                }
+                var genericParameterType = types[genericParameter.ResultType];
+                var genericParameterName = names[genericParameter.ResultId];
+                var resolved = genericResolver.TryResolveGenericValue(genericParameterType, genericParameterName, genericParameters.Count, out var genericValue);
+                genericParameters.Add(new(genericParameterType, genericParameter.ResultId, genericParameter.ResultType, i.Index, genericParameterName, resolved, genericValue));
             }
-            else if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shaderDeclaration)
+        }
+
+        Console.WriteLine($"[Shader] Instantiating {className} with values {string.Join(",", genericParameters.Select(x => x.Value))}");
+
+        StringBuilder classNameWithGenericsBuilder = new();
+        classNameWithGenericsBuilder.Append(className).Append("<");
+
+        for (int i = 0; i < genericParameters.Count; i++)
+        {
+            var genericParameter = genericParameters[i];
+            var index = genericParameter.Index;
+            if (i > 0)
+                classNameWithGenericsBuilder.Append(",");
+            classNameWithGenericsBuilder.Append(genericParameter.Value.ToString());
+
+            if (!genericParameter.Resolved)
+                continue;
+
+            switch (genericParameter.Type)
             {
-                shaderDeclaration.ShaderName += $"<{string.Join(',', genericValues)}>";
+                case ScalarType { TypeName: "int" }:
+                    shader.Replace(index, new OpConstant<int>(genericParameter.ResultType, genericParameter.ResultId, (int)genericParameter.Value));
+                    break;
+                case ScalarType { TypeName: "float" }:
+                    shader.Replace(index, new OpConstant<float>(genericParameter.ResultType, genericParameter.ResultId, (float)genericParameter.Value));
+                    break;
+                case ScalarType { TypeName: "bool" }:
+                    if ((bool)genericParameter.Value)
+                        shader.Replace(index, new OpConstantTrue(genericParameter.ResultType, genericParameter.ResultId));
+                    else
+                        shader.Replace(index, new OpConstantFalse(genericParameter.ResultType, genericParameter.ResultId));
+                    break;
+                case GenericParameterType g when g.Kind is GenericParameterKindSDSL.LinkType:
+                    shader.Replace(index, new OpConstantStringSDSL(genericParameter.ResultId, (string)genericParameter.Value));
+                    resolvedLinks.Add(genericParameter.ResultId, (string)genericParameter.Value);
+                    break;
+                case GenericParameterType g when g.Kind is GenericParameterKindSDSL.Semantic:
+                    shader.Replace(index, new OpConstantStringSDSL(genericParameter.ResultId, (string)genericParameter.Value));
+                    semantics.Add(names[genericParameter.ResultId], (string)genericParameter.Value);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+        classNameWithGenericsBuilder.Append(">");
+        var classNameWithGenerics = classNameWithGenericsBuilder.ToString();
+
+        foreach (var i in shader)
+        {
+            if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shaderDeclaration)
+            {
+                shaderDeclaration.ShaderName = classNameWithGenerics;
             }
         }
 
@@ -297,6 +398,8 @@ public partial class SpirvBuilder
 
         // In case we had to increase bound (new instructions), update header
         shader.Header = shader.Header with { Bound = bound };
+
+        genericResolver.PostProcess(classNameWithGenerics, genericParameters);
     }
 
     private static void TransformResolvedSemantics(NewSpirvBuffer shader, Dictionary<string, string> semantics)
@@ -324,126 +427,6 @@ public partial class SpirvBuilder
                 }
                 n.Dispose();
             }
-        }
-    }
-
-    private static void InstantiateGenericShaderUsingParentBuffer(NewSpirvBuffer shader, ShaderClassInstantiation classSource, ResolveStep resolveStep, NewSpirvBuffer instantiatingBuffer)
-    {
-        Console.WriteLine($"[Shader] Instantiating {classSource.ClassName} with parameters {string.Join(",", classSource.GenericArguments.Select(x => $"%{x}"))}");
-        Console.WriteLine($"[Shader] Instantiating from buffer generics {instantiatingBuffer[0].Data}:");
-        foreach (var i in instantiatingBuffer)
-        {
-            if (i.Data.IdResult is int id && classSource.GenericArguments.Contains(id))
-            {
-                Console.WriteLine($" - [{classSource.GenericArguments.IndexOf(id)}] %{id} => {i.Data}");
-            }
-        }
-
-        ShaderClass.ProcessNameAndTypes(shader, 0, shader.Count, out var names, out var types);
-
-        // Map classSource.GenericArguments ids to OpSDSLGenericParameter.ResultId (in the order OpSDSLGenericParameter appears)
-        Dictionary<int, List<(int ResultId, SymbolType Type, int Index)>> targets = new();
-
-        // Collect OpSDSLGenericParameter
-        List<int> generics = new();
-        var genericArgumentIndex = 0;
-        for (var index = 0; index < shader.Count; index++)
-        {
-            var i = shader[index];
-            if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
-            {
-                generics.Add(genericParameter.ResultId);
-                if (!targets.TryGetValue(classSource.GenericArguments[genericArgumentIndex], out var genericParametersForThisArgument))
-                    targets.Add(classSource.GenericArguments[genericArgumentIndex], genericParametersForThisArgument = new());
-                genericParametersForThisArgument.Add((genericParameter.ResultId, types[genericParameter.ResultType], index));
-                genericArgumentIndex++;
-                SetOpNop(i.Data.Memory.Span);
-            }
-            else if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shaderDeclaration)
-            {
-                shaderDeclaration.ShaderName = classSource.ToClassName();
-            }
-        }
-
-        // Try to resolve fully the new generic parameter values
-        // Any parameter resolved will be stored in Dictionary<int, string> with the string version of the parameter value)
-        var resolvedParameters = new Dictionary<int, string>();
-        var semantics = new Dictionary<string, string>();
-        if (instantiatingBuffer != null)
-        {
-            for (var index = 0; index < instantiatingBuffer.Count; index++)
-            {
-                var i = instantiatingBuffer[index];
-                if (i.Op == Op.OpConstant || i.Op == Op.OpConstantTrue || i.Op == Op.OpConstantFalse)
-                {
-                    if (targets.TryGetValue(i.Data.IdResult!.Value, out var parameters))
-                    {
-                        var value = i.Op switch
-                        {
-                            Op.OpConstant => GetConstantValue(i.Data, instantiatingBuffer),
-                            Op.OpConstantTrue => bool.TrueString.ToLowerInvariant(),
-                            Op.OpConstantFalse => bool.FalseString.ToLowerInvariant(),
-                        };
-
-                        // import constant in current shader
-                        foreach (var parameter in parameters)
-                        {
-                            resolvedParameters.Add(parameter.ResultId, value.ToString());
-                            var i2 = new OpData(i.Data.Memory.Span);
-                            i2.IdResult = parameter.ResultId;
-                            shader.Replace(parameter.Index, i2);
-                        }
-                    }
-                }
-                else if (i.Op == Op.OpConstantStringSDSL && (OpConstantStringSDSL)i is { } constantString)
-                {
-                    if (targets.TryGetValue(i.Data.IdResult!.Value, out var parameters))
-                    {
-                        var value = constantString.LiteralString;
-                        // This will be used later for resolving LinkType generics
-                        foreach (var parameter in parameters)
-                        {
-                            resolvedParameters.Add(parameter.ResultId, value);
-
-                            if (parameter.Type is GenericParameterType { Kind: GenericParameterKindSDSL.Semantic })
-                                semantics.Add(names[parameter.ResultId], value);
-                        }
-                    }
-                }
-                else if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
-                {
-                    // Unresolved parameter, keep as is
-                }
-            }
-        }
-
-        TransformResolvedSemantics(shader, semantics);
-        TransformResolvedLinkIdIntoLinkString(shader, resolvedParameters);
-
-        // Fully resolved?
-        if (resolvedParameters.Count == generics.Count)
-        {
-            var parameters = string.Join(',', generics.Select(x => resolvedParameters[x]));
-            var className = classSource.ClassName + "<" + parameters + ">";
-
-            if (resolveStep == ResolveStep.Mix)
-            {
-                classSource.ClassName = className;
-                classSource.GenericArguments = [];
-            }
-
-            for (var index = 0; index < shader.Count; index++)
-            {
-                var i = shader[index];
-                if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shaderDeclaration)
-                {
-                    shaderDeclaration.ShaderName = className;
-                }
-            }
-        }
-        else if (resolveStep == ResolveStep.Mix)
-        {
-            throw new InvalidOperationException("During mix phase, shaders generics are expected to be fully resolved");
         }
     }
 
@@ -553,36 +536,28 @@ public partial class SpirvBuilder
     /// <param name="parentBuffer"></param>
     public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, ResolveStep resolveStep, NewSpirvBuffer parentBuffer)
     {
-        var shader = GetOrLoadShader(shaderLoader, classSource.ClassName, macros, out var isFromCache);
-
-        if (!isFromCache)
-            Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
-
-        if (classSource.GenericArguments.Length > 0)
-        {
-            // Copy shader
-            shader = CopyShader(shader);
-
-            InstantiateGenericShaderUsingParentBuffer(shader, classSource, resolveStep, parentBuffer);
-            Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
-        }
-
-        return shader;
+        return GetOrLoadShader(shaderLoader, classSource.ClassName, new GenericResolverFromClassInstantiation(classSource, parentBuffer, resolveStep), macros);
     }
 
-    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, string[] genericValues, ReadOnlySpan<ShaderMacro> defines)
+    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, string[] genericValues, ReadOnlySpan<ShaderMacro> macros)
     {
-        var shader = GetOrLoadShader(shaderLoader, className, defines, out var isFromCache);
+        return GetOrLoadShader(shaderLoader, className, new GenericResolverFromValues(genericValues), macros);
+    }
+
+
+    private static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, GenericResolver genericResolver, ReadOnlySpan<ShaderMacro> macros)
+    {
+        var shader = GetOrLoadShader(shaderLoader, className, macros, out var isFromCache);
 
         if (!isFromCache)
             Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
-        if (genericValues != null && genericValues.Length > 0)
+        if (genericResolver.NeedsResolve())
         {
             // Copy shader
             shader = CopyShader(shader);
 
-            InstantiateGenericShaderUsingGenericValues(shader, className, genericValues);
+            InstantiateGenericShader(shader, className, genericResolver, shaderLoader, macros);
             Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
         }
 
