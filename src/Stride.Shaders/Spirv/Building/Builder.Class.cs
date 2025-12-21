@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -249,6 +250,7 @@ public partial class SpirvBuilder
         var bound = shader.Header.Bound;
 
         var resolvedLinks = new Dictionary<int, string>();
+        var semantics = new Dictionary<string, string>();
 
         var genericValueIndex = 0;
         for (var index = 0; index < shader.Count; index++)
@@ -272,9 +274,13 @@ public partial class SpirvBuilder
                         else
                             shader.Replace(index, new OpConstantFalse(genericParameter.ResultType, genericParameter.ResultId));
                         break;
-                    case GenericLinkType:
+                    case GenericParameterType g when g.Kind is GenericParameterKindSDSL.LinkType:
                         shader.Replace(index, new OpConstantStringSDSL(genericParameter.ResultId, genericValue));
                         resolvedLinks.Add(genericParameter.ResultId, genericValue);
+                        break;
+                    case GenericParameterType g when g.Kind is GenericParameterKindSDSL.Semantic:
+                        shader.Replace(index, new OpConstantStringSDSL(genericParameter.ResultId, genericValue));
+                        semantics.Add(names[genericParameter.ResultId], genericValue);
                         break;
                     default:
                         throw new NotImplementedException();
@@ -286,10 +292,39 @@ public partial class SpirvBuilder
             }
         }
 
+        TransformResolvedSemantics(shader, semantics);
         TransformResolvedLinkIdIntoLinkString(shader, resolvedLinks);
 
         // In case we had to increase bound (new instructions), update header
         shader.Header = shader.Header with { Bound = bound };
+    }
+
+    private static void TransformResolvedSemantics(NewSpirvBuffer shader, Dictionary<string, string> semantics)
+    {
+        for (var index = 0; index < shader.Count; index++)
+        {
+            var i = shader[index];
+            if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: { Value: Decoration.UserSemantic, Parameters: { } m } } decorate)
+            {
+                var n = new LiteralValue<string>(m.Span);
+                if (semantics.TryGetValue(n.Value, out var newSemantic))
+                {
+                    n.Value = newSemantic;
+                    decorate.Decoration = new(decorate.Decoration.Value, n.Words);
+                }
+                n.Dispose();
+            }
+            else if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.UserSemantic, Parameters: { } m2 } } decorate2)
+            {
+                var n = new LiteralValue<string>(m2.Span);
+                if (semantics.TryGetValue(n.Value, out var newSemantic))
+                {
+                    n.Value = newSemantic;
+                    decorate2.Decoration = new(decorate2.Decoration.Value, n.Words);
+                }
+                n.Dispose();
+            }
+        }
     }
 
     private static void InstantiateGenericShaderUsingParentBuffer(NewSpirvBuffer shader, ShaderClassInstantiation classSource, ResolveStep resolveStep, NewSpirvBuffer instantiatingBuffer)
@@ -304,8 +339,10 @@ public partial class SpirvBuilder
             }
         }
 
+        ShaderClass.ProcessNameAndTypes(shader, 0, shader.Count, out var names, out var types);
+
         // Map classSource.GenericArguments ids to OpSDSLGenericParameter.ResultId (in the order OpSDSLGenericParameter appears)
-        Dictionary<int, List<(int ResultId, int Index)>> targets = new();
+        Dictionary<int, List<(int ResultId, SymbolType Type, int Index)>> targets = new();
 
         // Collect OpSDSLGenericParameter
         List<int> generics = new();
@@ -318,7 +355,7 @@ public partial class SpirvBuilder
                 generics.Add(genericParameter.ResultId);
                 if (!targets.TryGetValue(classSource.GenericArguments[genericArgumentIndex], out var genericParametersForThisArgument))
                     targets.Add(classSource.GenericArguments[genericArgumentIndex], genericParametersForThisArgument = new());
-                genericParametersForThisArgument.Add((genericParameter.ResultId, index));
+                genericParametersForThisArgument.Add((genericParameter.ResultId, types[genericParameter.ResultType], index));
                 genericArgumentIndex++;
                 SetOpNop(i.Data.Memory.Span);
             }
@@ -331,7 +368,7 @@ public partial class SpirvBuilder
         // Try to resolve fully the new generic parameter values
         // Any parameter resolved will be stored in Dictionary<int, string> with the string version of the parameter value)
         var resolvedParameters = new Dictionary<int, string>();
-
+        var semantics = new Dictionary<string, string>();
         if (instantiatingBuffer != null)
         {
             for (var index = 0; index < instantiatingBuffer.Count; index++)
@@ -365,7 +402,12 @@ public partial class SpirvBuilder
                         var value = constantString.LiteralString;
                         // This will be used later for resolving LinkType generics
                         foreach (var parameter in parameters)
+                        {
                             resolvedParameters.Add(parameter.ResultId, value);
+
+                            if (parameter.Type is GenericParameterType { Kind: GenericParameterKindSDSL.Semantic })
+                                semantics.Add(names[parameter.ResultId], value);
+                        }
                     }
                 }
                 else if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
@@ -375,6 +417,7 @@ public partial class SpirvBuilder
             }
         }
 
+        TransformResolvedSemantics(shader, semantics);
         TransformResolvedLinkIdIntoLinkString(shader, resolvedParameters);
 
         // Fully resolved?

@@ -201,9 +201,9 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 types.Add(typeSampler.ResultId, new SamplerType());
             }
-            else if (instruction.Op == Op.OpTypeGenericLinkSDSL && (OpTypeGenericLinkSDSL)instruction is { } typeGenericLink)
+            else if (instruction.Op == Op.OpTypeGenericSDSL && (OpTypeGenericSDSL)instruction is { } typeGeneric)
             {
-                types.Add(typeGenericLink.ResultId, new GenericLinkType());
+                types.Add(typeGeneric.ResultId, new GenericParameterType(typeGeneric.Kind));
             }
             // Unresolved content
             // This only happens during EvaluateInheritanceAndCompositions so it's not important to have all information valid
@@ -330,14 +330,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 table.DeclaredTypes.TryAdd(genericParameterType.ToString(), genericParameterType);
 
                 var genericParameterTypeId = context.GetOrRegister(genericParameterType);
-                var genericParameterKind = genericParameterType switch
-                {
-                    ScalarType { TypeName: "float" } => GenericParameterKindSDSL.Float,
-                    ScalarType { TypeName: "int" } => GenericParameterKindSDSL.Int,
-                    ScalarType { TypeName: "bool" } => GenericParameterKindSDSL.Bool,
-                    GenericLinkType => GenericParameterKindSDSL.LinkType,
-                };
-                context.Add(new OpSDSLGenericParameter(genericParameterTypeId, context.Bound, genericParameterKind));
+                context.Add(new OpSDSLGenericParameter(genericParameterTypeId, context.Bound));
                 context.AddName(context.Bound, genericParameter.Name);
                 table.CurrentFrame.Add(genericParameter.Name, new(new(genericParameter.Name, SymbolKind.ConstantGeneric), genericParameterType, context.Bound));
 

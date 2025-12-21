@@ -383,7 +383,15 @@ public class TypeName(string name, TextLocation info) : Literal(info)
     {
         if (Name == "LinkType")
         {
-            symbolType = new GenericLinkType();
+            symbolType = new GenericParameterType(Specification.GenericParameterKindSDSL.LinkType);
+        }
+        else if (Name == "Semantic")
+        {
+            symbolType = new GenericParameterType(Specification.GenericParameterKindSDSL.Semantic);
+        }
+        else if (Name == "MemberName")
+        {
+            symbolType = new GenericParameterType(Specification.GenericParameterKindSDSL.MemberName);
         }
         else if (table.DeclaredTypes.TryGetValue(Name, out symbolType))
         {

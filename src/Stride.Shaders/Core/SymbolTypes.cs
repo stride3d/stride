@@ -388,4 +388,4 @@ public sealed record LoadedShaderSymbol(string Name, int[] GenericArguments) : S
     public override string ToString() => base.ToString();
 }
 
-public sealed record GenericLinkType : SymbolType;
+public sealed record GenericParameterType(GenericParameterKindSDSL Kind) : SymbolType;

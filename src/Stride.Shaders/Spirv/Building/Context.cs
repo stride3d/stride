@@ -205,7 +205,7 @@ public class SpirvContext
                 SamplerType st => Buffer.Add(new OpTypeSampler(Bound++)).IdResult,
                 BufferType b => Buffer.Add(new OpTypeImage(Bound++, GetOrRegister(b.BaseType), Dim.Buffer, 2, 0, 0, 1, ImageFormat.Unknown, null)).IdResult,
                 SampledImage si => Buffer.Add(new OpTypeSampledImage(Bound++, GetOrRegister(si.ImageType))).IdResult,
-                GenericLinkType => Buffer.Add(new OpTypeGenericLinkSDSL(Bound++)).IdResult,
+                GenericParameterType g => Buffer.Add(new OpTypeGenericSDSL(Bound++, g.Kind)).IdResult,
                 // StructSymbol st => RegisterStruct(st),
                 _ => throw new NotImplementedException($"Can't add type {type}")
             };

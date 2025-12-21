@@ -271,11 +271,7 @@
       "class": "Miscellaneous",
       "operands": [
         { "kind": "IdResultType" },
-        { "kind": "IdResult" },
-        {
-          "kind": "GenericParameterKindSDSL",
-          "name": "kind"
-        }
+        { "kind": "IdResult" }
       ]
     },
     {
@@ -290,10 +286,14 @@
       ]
     },
     {
-      "opname": "OpTypeGenericLinkSDSL",
+      "opname": "OpTypeGenericSDSL",
       "class": "Miscellaneous",
       "operands": [
-        { "kind": "IdResult" }
+        { "kind": "IdResult" },
+        {
+          "kind": "GenericParameterKindSDSL",
+          "name": "kind"
+        }
       ]
     },
     {
@@ -408,20 +408,16 @@
       "kind": "GenericParameterKindSDSL",
       "enumerants": [
         {
-          "enumerant": "Float",
-          "value": 0
-        },
-        {
-          "enumerant": "Int",
+          "enumerant": "LinkType",
           "value": 1
         },
         {
-          "enumerant": "Bool",
+          "enumerant": "Semantic",
           "value": 2
         },
         {
-          "enumerant": "LinkType",
-          "value": 20
+          "enumerant": "MemberName",
+          "value": 3
         }
       ]
     },

@@ -341,7 +341,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i2.Op == Op.OpTypeFunctionSDSL
                 || i2.Op == Op.OpTypeImage
                 || i2.Op == Op.OpTypeSampler
-                || i2.Op == Op.OpTypeGenericLinkSDSL
+                || i2.Op == Op.OpTypeGenericSDSL
                 || i2.Op == Op.OpSDSLImportShader
                 || i2.Op == Op.OpSDSLImportVariable
                 || i2.Op == Op.OpSDSLImportFunction
@@ -449,6 +449,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     var n = new LiteralValue<string>(m.Span);
                     n.Value = $"{n.Value}.{mixinNode.CompositionPath}";
+                    memberDecorate.Decoration = new(memberDecorate.Decoration.Value, n.Words);
                     n.Dispose();
                 }
             }
@@ -1031,7 +1032,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpSDSLEffectEnd
                 || i.Op == Op.OpSDSLMixinInherit
                 || i.Op == Op.OpConstantStringSDSL
-                || i.Op == Op.OpTypeGenericLinkSDSL
+                || i.Op == Op.OpTypeGenericSDSL
                 || i.Op == Op.OpSDSLImportShader
                 || i.Op == Op.OpSDSLImportFunction
                 || i.Op == Op.OpSDSLImportVariable)

@@ -93,7 +93,7 @@ public class TypeDuplicateHelper
                 || x.Op == Op.OpTypeArray || x.Op == Op.OpTypeRuntimeArray
                 //|| x.Op == Op.OpTypeStruct
                 || x.Op == Op.OpTypeImage || x.Op == Op.OpTypeSampler
-                || x.Op == Op.OpTypeGenericLinkSDSL
+                || x.Op == Op.OpTypeGenericSDSL
                 || x.Op == Op.OpSDSLImportShader || x.Op == Op.OpSDSLImportFunction || x.Op == Op.OpSDSLImportVariable || x.Op == Op.OpSDSLImportStruct)
             {
                 comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[2..], y.Data.Memory.Span[2..]);
@@ -242,7 +242,7 @@ public class TypeDuplicateHelper
         ProcessInstructions(buffer, instructionsByOp, Op.OpTypePointer, Op.OpTypePointer, true, comparerSort);
         ProcessInstructions(buffer, instructionsByOp, Op.OpTypeFunction, Op.OpTypeFunction, true, comparerSort);
 
-        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeGenericLinkSDSL, Op.OpTypeGenericLinkSDSL, true, comparerSort);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeGenericSDSL, Op.OpTypeGenericSDSL, true, comparerSort);
 
         // Note: due to RemapOp, this will also cover OpMemberDecorate and OpMemberName
         ProcessInstructions(buffer, namesByOp, Op.OpName, Op.OpName, true, comparerSort);
