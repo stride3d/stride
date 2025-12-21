@@ -347,7 +347,22 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 for (int i = 0; i < mixin.Generics.Values.Count; i++)
                 {
-                    generics[i] = mixin.Generics.Values[i].CompileAsValue(table, compiler).Id;
+                    // Special case: if it's an identifier and can't be resolved, we'll consider it's a string instead
+                    if (mixin.Generics.Values[i] is Identifier identifier)
+                    {
+                        if (table.TryResolveSymbol(identifier.Name, out var symbol))
+                        {
+                            generics[i] = Identifier.EmitSymbol(builder.GetBuffer(), ref builder.Position, context, symbol, false).Id;
+                        }
+                        else
+                        {
+                            generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, identifier.Name)).IdResult.Value;
+                        }
+                    }
+                    else
+                    {
+                        generics[i] = mixin.Generics.Values[i].CompileAsValue(table, compiler).Id;
+                    }
                 }
             }
             var shaderClassSource = new ShaderClassInstantiation(mixin.Name, generics);

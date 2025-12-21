@@ -18,7 +18,7 @@ shader ComputeMember<MemberName TMember> : Compute
     }
 }
 
-shader GenericsMemberName : ComputeMember<"r">, ComputeMember<"g">
+shader GenericsMemberName : ComputeMember<"r">, ComputeMember<g>
 {
     stream float4 ColorTarget : SV_Target0;
 
