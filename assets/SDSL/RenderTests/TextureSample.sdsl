@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#1357ABCD, texture.Texture1=#1357ABCD)
+// PSMain(ExpectedResult=#5713CDAB, texture.Texture1=#1357ABCD)
 
 namespace Stride.Shaders.Tests;
 
@@ -12,6 +12,6 @@ shader TextureSample
 
     void PSMain()
     {
-        streams.ColorTarget = Texture1.Sample(Sampler1, streams.TexCoord);
+        streams.ColorTarget = Texture1.Sample(Sampler1, streams.TexCoord).yxwz;
     }
 }

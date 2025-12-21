@@ -343,242 +343,254 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             result = Source.Compile(table, compiler);
             currentValueType = Source.Type;
         }
-        if (Source is Identifier { Type: PointerType { BaseType: Texture1DType or Texture2DType or Texture3DType } } && Accessors is [MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 }])
+
+        int accessChainIdCount = 0;
+        void PushAccessChainId(Span<int> accessChainIds, int accessChainIndex)
         {
-            result = Source.CompileAsValue(table, compiler);
-            var textureType = (TextureType)Source.ValueType;
-            if (Accessors is [MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } implicitSampling])
-            {
-                Type = new VectorType(textureType.ReturnType, 4);
-
-                var textureValue = result;
-                var samplerValue = implicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
-                var texCoordValue = implicitSampling.Parameters.Values[1].CompileAsValue(table, compiler);
-                var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
-                var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
-                var returnType = context.GetOrRegister(Type);
-                var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, Specification.ImageOperandsMask.None));
-                return new(sample.ResultId, sample.ResultType);
-            }
-            else if (Accessors is [MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 } explicitSampling])
-            {
-                Type = new VectorType(textureType.ReturnType, 4);
-
-                var textureValue = result;
-                var samplerValue = explicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
-                var texCoordValue = explicitSampling.Parameters.Values[1].CompileAsValue(table, compiler);
-                var levelValue = explicitSampling.Parameters.Values[2].CompileAsValue(table, compiler);
-
-                var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
-                var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
-                var returnType = context.GetOrRegister(Type);
-                var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, ParameterizedFlags.ImageOperandsLod(levelValue.Id)));
-                return new(sample.ResultId, sample.ResultType);
-            }
-            else
-                throw new InvalidOperationException("Invalid Sample method call");
+            accessChainIds[accessChainIdCount++] = accessChainIndex;
         }
-        else if (Source is Identifier { Type: PointerType { BaseType: BufferType or TextureType } pointerType } && Accessors is [MethodCall { Name.Name: "Load", Parameters.Values.Count: 1 } load])
+        void EmitOpAccessChain(Span<int> accessChainIds)
         {
-            Type = new VectorType(pointerType.BaseType switch
+            // Do we need to issue an OpAccessChain?
+            if (accessChainIdCount > 0)
             {
-                BufferType b => b.BaseType,
-                TextureType t => t.ReturnType,
-            }, 4);
+                var resultType = context.GetOrRegister(currentValueType);
+                var test = new LiteralArray<int>(accessChainIds);
+                var accessChain = builder.Insert(new OpAccessChain(resultType, context.Bound++, result.Id, [.. accessChainIds.Slice(0, accessChainIdCount)]));
+                result = new SpirvValue(accessChain.ResultId, resultType) { Swizzles = result.Swizzles };
+            }
 
-            var returnType = context.GetOrRegister(Type);
-            var coords = load.Parameters.Values[0].CompileAsValue(table, compiler);
-            var resource = result;
-            var loadResult = builder.Insert(new OpImageFetch(returnType, context.Bound++, resource.Id, coords.Id, null));
-            return new(loadResult.ResultId, loadResult.ResultType);
+            accessChainIdCount = 0;
         }
-        else
+
+        Span<int> accessChainIds = stackalloc int[Accessors.Count];
+        for (var i = firstIndex; i < Accessors.Count; i++)
         {
-            int accessChainIdCount = 0;
-            void PushAccessChainId(Span<int> accessChainIds, int accessChainIndex)
+            var accessor = Accessors[i];
+            switch (currentValueType, accessor)
             {
-                accessChainIds[accessChainIdCount++] = accessChainIndex;
-            }
-            void EmitOpAccessChain(Span<int> accessChainIds)
-            {
-                // Do we need to issue an OpAccessChain?
-                if (accessChainIdCount > 0)
-                {
-                    var resultType = context.GetOrRegister(currentValueType);
-                    var test = new LiteralArray<int>(accessChainIds);
-                    var accessChain = builder.Insert(new OpAccessChain(resultType, context.Bound++, result.Id, [.. accessChainIds.Slice(0, accessChainIdCount)]));
-                    result = new SpirvValue(accessChain.ResultId, resultType) { Swizzles = result.Swizzles };
-                }
+                case (PointerType { BaseType: Texture1DType or Texture2DType or Texture3DType }, MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 }):
+                    {
+                        // Emit OpAccessChain with everything so far
+                        EmitOpAccessChain(accessChainIds);
+                        var textureValue = builder.AsValue(context, result);
 
-                accessChainIdCount = 0;
-            }
+                        // Load texture as value
+                        result = builder.AsValue(context, result);
 
-            Span<int> accessChainIds = stackalloc int[Accessors.Count];
-            for (var i = firstIndex; i < Accessors.Count; i++)
-            {
-                var accessor = Accessors[i];
-                switch (currentValueType, accessor)
-                {
-                    case (PointerType { BaseType: ShaderSymbol s }, MethodCall methodCall2):
+                        var textureType = (TextureType)context.ReverseTypes[result.TypeId];
+                        if (accessor is MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } implicitSampling)
+                        {
+                            var resultType = new VectorType(textureType.ReturnType, 4);
+
+                            var samplerValue = implicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
+                            var texCoordValue = implicitSampling.Parameters.Values[1].CompileAsValue(table, compiler);
+                            var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+                            var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
+                            var returnType = context.GetOrRegister(resultType);
+                            var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, Specification.ImageOperandsMask.None));
+
+                            result = new(sample.ResultId, sample.ResultType);
+                            accessor.Type = resultType;
+                        }
+                        else if (accessor is MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 } explicitSampling)
+                        {
+                            var resultType = new VectorType(textureType.ReturnType, 4);
+
+                            var samplerValue = explicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
+                            var texCoordValue = explicitSampling.Parameters.Values[1].CompileAsValue(table, compiler);
+                            var levelValue = explicitSampling.Parameters.Values[2].CompileAsValue(table, compiler);
+
+                            var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+                            var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
+                            var returnType = context.GetOrRegister(resultType);
+                            var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, ParameterizedFlags.ImageOperandsLod(levelValue.Id)));
+
+                            result = new(sample.ResultId, sample.ResultType);
+                            accessor.Type = resultType;
+                        }
+                        else
+                            throw new InvalidOperationException("Invalid Sample method call");
+                        break;
+                    }
+                case (PointerType { BaseType: BufferType or TextureType } pointerType, MethodCall { Name.Name: "Load", Parameters.Values.Count: 1 } load):
+                    {
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds);
 
-                        methodCall2.MemberCall = result;
-                        result = methodCall2.Compile(table, compiler);
+                        var resultType = new VectorType(pointerType.BaseType switch
+                        {
+                            BufferType b => b.BaseType,
+                            TextureType t => t.ReturnType,
+                        }, 4);
+
+                        var resource = builder.AsValue(context, result);
+                        var returnType = context.GetOrRegister(resultType);
+                        var coords = load.Parameters.Values[0].CompileAsValue(table, compiler);
+                        var loadResult = builder.Insert(new OpImageFetch(returnType, context.Bound++, resource.Id, coords.Id, null));
+                        result = new(loadResult.ResultId, loadResult.ResultType);
+                        accessor.Type = resultType;
                         break;
-                    case (PointerType { BaseType: LoadedShaderSymbol s }, Identifier field):
-                        // Emit OpAccessChain with everything so far
-                        EmitOpAccessChain(accessChainIds);
+                    }
+                case (PointerType { BaseType: ShaderSymbol s }, MethodCall methodCall2):
+                    // Emit OpAccessChain with everything so far
+                    EmitOpAccessChain(accessChainIds);
 
-                        if (!s.TryResolveSymbol(context, field.Name, out var matchingComponent))
-                            throw new InvalidOperationException();
+                    methodCall2.MemberCall = result;
+                    result = methodCall2.Compile(table, compiler);
+                    break;
+                case (PointerType { BaseType: LoadedShaderSymbol s }, Identifier field):
+                    // Emit OpAccessChain with everything so far
+                    EmitOpAccessChain(accessChainIds);
 
-                        // TODO: figure out instance (this vs composition)
-                        result = Identifier.EmitSymbol(builder.GetBuffer(), ref builder.Position, context, matchingComponent, false, result.Id);
-                        accessor.Type = matchingComponent.Type;
+                    if (!s.TryResolveSymbol(context, field.Name, out var matchingComponent))
+                        throw new InvalidOperationException();
 
-                        break;
-                    case (PointerType { BaseType: StructType s } p, Identifier field):
+                    // TODO: figure out instance (this vs composition)
+                    result = Identifier.EmitSymbol(builder.GetBuffer(), ref builder.Position, context, matchingComponent, false, result.Id);
+                    accessor.Type = matchingComponent.Type;
 
-                        var index = s.TryGetFieldIndex(field);
-                        if (index == -1)
-                            throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
-                        //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
-                        PushAccessChainId(accessChainIds, context.CompileConstant(index).Id);
-                        accessor.Type = new PointerType(s.Members[index].Type, p.StorageClass);
-                        break;
-                    // Swizzles
-                    case (PointerType { BaseType: VectorType s } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
-                        if (swizzle.Length > 1)
-                        {
-                            Span<int> swizzleIndices = stackalloc int[swizzle.Length];
-                            for (int j = 0; j < swizzle.Length; ++j)
-                                swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
+                    break;
+                case (PointerType { BaseType: StructType s } p, Identifier field):
 
-                            result.ApplySwizzles(swizzleIndices);
+                    var index = s.TryGetFieldIndex(field);
+                    if (index == -1)
+                        throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
+                    //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
+                    PushAccessChainId(accessChainIds, context.CompileConstant(index).Id);
+                    accessor.Type = new PointerType(s.Members[index].Type, p.StorageClass);
+                    break;
+                // Swizzles
+                case (PointerType { BaseType: VectorType s } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                    if (swizzle.Length > 1)
+                    {
+                        Span<int> swizzleIndices = stackalloc int[swizzle.Length];
+                        for (int j = 0; j < swizzle.Length; ++j)
+                            swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
 
-                            // Check resulting swizzles
-                            for (int j = 0; j < result.Swizzles.Length; ++j)
-                                if (swizzleIndices[j] >= s.Size)
-                                    throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
+                        result.ApplySwizzles(swizzleIndices);
 
-                            accessor.Type = currentValueType;
-                        }
-                        else
-                        {
-                            PushAccessChainId(accessChainIds, context.CompileConstant(ConvertSwizzle(swizzle[0])).Id);
-                            accessor.Type = new PointerType(s.BaseType, p.StorageClass);
-                        }
-                        break;
-                    case (VectorType v, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
-                        {
-                            Span<int> swizzleIndices = stackalloc int[swizzle.Length];
-                            for (int j = 0; j < swizzle.Length; ++j)
-                                swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
-
-                            (result, _) = builder.ApplyVectorSwizzles(context, result, v, swizzleIndices);
-                            accessor.Type = v;
-
-                            break;
-                        }
-                    case (PointerType { BaseType: ScalarType s } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
-                        if (swizzle.Length > 1)
-                        {
-                            Span<int> swizzleIndices = stackalloc int[swizzle.Length];
-                            for (int j = 0; j < swizzle.Length; ++j)
-                                swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
-
-                            result.ApplySwizzles(swizzleIndices);
-                            accessor.Type = currentValueType;
-                        }
-                        else
-                        {
-                            if (ConvertSwizzle(swizzle[0]) != 0)
+                        // Check resulting swizzles
+                        for (int j = 0; j < result.Swizzles.Length; ++j)
+                            if (swizzleIndices[j] >= s.Size)
                                 throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
 
-                            // Do nothing
-                            accessor.Type = currentValueType;
-                        }
+                        accessor.Type = currentValueType;
+                    }
+                    else
+                    {
+                        PushAccessChainId(accessChainIds, context.CompileConstant(ConvertSwizzle(swizzle[0])).Id);
+                        accessor.Type = new PointerType(s.BaseType, p.StorageClass);
+                    }
+                    break;
+                case (VectorType v, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                    {
+                        Span<int> swizzleIndices = stackalloc int[swizzle.Length];
+                        for (int j = 0; j < swizzle.Length; ++j)
+                            swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
+
+                        (result, _) = builder.ApplyVectorSwizzles(context, result, v, swizzleIndices);
+                        accessor.Type = v;
+
                         break;
-                    case (ScalarType s, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
-                        if (swizzle.Length > 1)
-                        {
-                            Span<int> swizzleIndices = stackalloc int[swizzle.Length];
-                            for (int j = 0; j < swizzle.Length; ++j)
-                            {
-                                swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
-                                if (swizzleIndices[j] != 0)
-                                    throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
-                            }
+                    }
+                case (PointerType { BaseType: ScalarType s } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                    if (swizzle.Length > 1)
+                    {
+                        Span<int> swizzleIndices = stackalloc int[swizzle.Length];
+                        for (int j = 0; j < swizzle.Length; ++j)
+                            swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
 
-                            (result, _) = builder.ApplyScalarSwizzles(context, result, s, swizzleIndices);
-                            accessor.Type = s;
-                        }
-                        else
+                        result.ApplySwizzles(swizzleIndices);
+                        accessor.Type = currentValueType;
+                    }
+                    else
+                    {
+                        if (ConvertSwizzle(swizzle[0]) != 0)
+                            throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
+
+                        // Do nothing
+                        accessor.Type = currentValueType;
+                    }
+                    break;
+                case (ScalarType s, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                    if (swizzle.Length > 1)
+                    {
+                        Span<int> swizzleIndices = stackalloc int[swizzle.Length];
+                        for (int j = 0; j < swizzle.Length; ++j)
                         {
-                            // Do nothing
-                            accessor.Type = currentValueType;
+                            swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
+                            if (swizzleIndices[j] != 0)
+                                throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
                         }
+
+                        (result, _) = builder.ApplyScalarSwizzles(context, result, s, swizzleIndices);
+                        accessor.Type = s;
+                    }
+                    else
+                    {
+                        // Do nothing
+                        accessor.Type = currentValueType;
+                    }
+                    break;
+                // Array indexer for shader compositions
+                case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol s } }, IndexerExpression { Index: IntegerLiteral { Value: var compositionIndex } }):
+                    break;
+                // Array indexer for arrays
+                case (PointerType { BaseType: ArrayType { BaseType: var t } } p, IndexerExpression indexer):
+                    {
+                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        PushAccessChainId(accessChainIds, indexerValue.Id);
+                        accessor.Type = new PointerType(t, p.StorageClass);
                         break;
-                    // Array indexer for shader compositions
-                    case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol s } }, IndexerExpression { Index: IntegerLiteral { Value: var compositionIndex } }):
+                    }
+                // Array indexer for vector/matrix
+                case (PointerType { BaseType: VectorType or MatrixType } p, IndexerExpression indexer):
+                    {
+                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        PushAccessChainId(accessChainIds, indexerValue.Id);
+
+                        accessor.Type = new PointerType(p.BaseType switch
+                        {
+                            MatrixType m => new VectorType(m.BaseType, m.Rows),
+                            VectorType v => v.BaseType,
+                        }, p.StorageClass);
                         break;
-                    // Array indexer for arrays
-                    case (PointerType { BaseType: ArrayType { BaseType: var t } } p, IndexerExpression indexer):
+                    }
+                case (PointerType { BaseType: var type }, PostfixIncrement postfix):
+                    {
+                        // Emit OpAccessChain with everything so far
+                        EmitOpAccessChain(accessChainIds);
+
+                        // Not supported yet
+                        result.ThrowIfSwizzle();
+
+                        var resultPointer = result;
+
+                        // This is what this chain return (value before modification)
+                        result = builder.AsValue(context, result);
+
+                        // Use integer so that it gets converted to proper type according to expression type
+                        var constant1 = context.CompileConstant(1);
+                        var modifiedValue = builder.BinaryOperation(context, result, postfix.Operator switch
                         {
-                            var indexerValue = indexer.Index.CompileAsValue(table, compiler);
-                            PushAccessChainId(accessChainIds, indexerValue.Id);
-                            accessor.Type = new PointerType(t, p.StorageClass);
-                            break;
-                        }
-                    // Array indexer for vector/matrix
-                    case (PointerType { BaseType: VectorType or MatrixType } p, IndexerExpression indexer):
-                        {
-                            var indexerValue = indexer.Index.CompileAsValue(table, compiler);
-                            PushAccessChainId(accessChainIds, indexerValue.Id);
+                            Operator.Inc => Operator.Plus,
+                            Operator.Dec => Operator.Minus,
+                        }, constant1);
 
-                            accessor.Type = new PointerType(p.BaseType switch
-                            {
-                                MatrixType m => new VectorType(m.BaseType, m.Rows),
-                                VectorType v => v.BaseType,
-                            }, p.StorageClass);
-                            break;
-                        }
-                    case (PointerType { BaseType: var type }, PostfixIncrement postfix):
-                        {
-                            // Emit OpAccessChain with everything so far
-                            EmitOpAccessChain(accessChainIds);
+                        // We store the modified value back in the variable
+                        builder.Insert(new OpStore(resultPointer.Id, modifiedValue.Id, null));
 
-                            // Not supported yet
-                            result.ThrowIfSwizzle();
-
-                            var resultPointer = result;
-
-                            // This is what this chain return (value before modification)
-                            result = builder.AsValue(context, result);
-
-                            // Use integer so that it gets converted to proper type according to expression type
-                            var constant1 = context.CompileConstant(1);
-                            var modifiedValue = builder.BinaryOperation(context, result, postfix.Operator switch
-                            {
-                                Operator.Inc => Operator.Plus,
-                                Operator.Dec => Operator.Minus,
-                            }, constant1);
-
-                            // We store the modified value back in the variable
-                            builder.Insert(new OpStore(resultPointer.Id, modifiedValue.Id, null));
-
-                            break;
-                        }
-                    default:
-                        throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
-                }
-
-                currentValueType = accessor.Type;
+                        break;
+                    }
+                default:
+                    throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
             }
 
-            EmitOpAccessChain(accessChainIds);
+            currentValueType = accessor.Type;
         }
+
+        EmitOpAccessChain(accessChainIds);
 
         Type = currentValueType;
 
