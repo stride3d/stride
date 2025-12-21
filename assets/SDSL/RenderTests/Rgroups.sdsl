@@ -15,11 +15,11 @@ shader Rgroups : RgroupBase
     stream float4 ColorTarget : SV_Target0;
     stream float2 TexCoord : TEXCOORD;
 
-    stage SamplerState Sampler1;
 
     rgroup Group1
     {
         stage Texture2D<float4> Texture2;
+        stage SamplerState Sampler1;
     }
 
     void PSMain()

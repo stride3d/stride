@@ -416,6 +416,10 @@ public class TypeName(string name, TextLocation info) : Literal(info)
             table.DeclaredTypes.Add(genericBufferType.ToString(), genericBufferType);
             symbolType = genericBufferType;
         }
+        else if (Name == "SamplerState")
+        {
+            symbolType = new SamplerType();
+        }
 
         if (symbolType == null)
             return false;
