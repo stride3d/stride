@@ -18,44 +18,7 @@ public interface IExternalShaderLoader
     public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, NewSpirvBuffer buffer);
     public bool Exists(string name);
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer bytecode, out bool isFromCache);
-}
-
-public abstract class ShaderLoaderBase : IExternalShaderLoader
-{
-    private Dictionary<string, NewSpirvBuffer> loadedShaders = [];
-
-    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, NewSpirvBuffer buffer)
-    {
-        loadedShaders.Add(name, buffer);
-    }
-
-    public bool Exists(string name)
-    {
-        if (loadedShaders.ContainsKey(name))
-            return true;
-
-        return ExternalFileExists(name);
-    }
-
-    protected abstract bool ExternalFileExists(string name);
-    protected abstract bool LoadExternalFile(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer buffer);
-
-    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer buffer, out bool isFromCache)
-    {
-        if (loadedShaders.TryGetValue(name, out buffer))
-        {
-            isFromCache = true;
-            return true;
-        }
-
-        isFromCache = false;
-        if (!LoadExternalFile(name, defines, out buffer))
-        {
-            throw new InvalidOperationException($"Shader {name} could not be found");
-        }
-
-        return true;
-    }
+    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer bytecode, out bool isFromCache);
 }
 
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 

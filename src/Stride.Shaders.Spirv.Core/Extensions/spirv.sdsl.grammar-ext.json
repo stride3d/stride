@@ -311,6 +311,20 @@
     {
       "opname": "OpForeachEndSDSL",
       "class": "Miscellaneous"
+    },
+    {
+      "opname": "OpUnresolvableShaderSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "shaderCode"
+        },
+        {
+          "kind": "LiteralInteger",
+          "name": "shaderCodeNameEnd"
+        }
+      ]
     }
   ],
   "operand_kinds": [
@@ -418,6 +432,10 @@
         {
           "enumerant": "MemberName",
           "value": 3
+        },
+        {
+          "enumerant": "MemberNameResolved",
+          "value": 4
         }
       ]
     },

@@ -296,6 +296,7 @@ public record ShaderSymbol(string Name, int[] GenericArguments) : SymbolType
             {
                 if (i > 0)
                     builder.Append(',');
+                builder.Append('%');
                 builder.Append(GenericArguments[i]);
             }
             builder.Append('>');

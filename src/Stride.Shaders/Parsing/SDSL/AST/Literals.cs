@@ -393,6 +393,10 @@ public class TypeName(string name, TextLocation info) : Literal(info)
         {
             symbolType = new GenericParameterType(Specification.GenericParameterKindSDSL.MemberName);
         }
+        else if (Name == "MemberNameResolved")
+        {
+            symbolType = new GenericParameterType(Specification.GenericParameterKindSDSL.MemberNameResolved);
+        }
         else if (table.DeclaredTypes.TryGetValue(Name, out symbolType))
         {
 

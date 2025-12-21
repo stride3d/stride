@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using static Stride.Shaders.Spirv.Specification;
@@ -43,7 +45,7 @@ public record class ShaderClassInstantiation(string ClassName, int[] GenericArgu
         if (GenericArguments != null && GenericArguments.Length > 0)
         {
             result.Append('<');
-            result.Append(string.Join(",", GenericArguments));
+            result.Append(string.Join(",", GenericArguments.Select(x => $"%{x}")));
             result.Append('>');
         }
 
@@ -378,6 +380,10 @@ public partial class SpirvBuilder
                     shader.Replace(index, new OpConstantStringSDSL(genericParameter.ResultId, (string)genericParameter.Value));
                     semantics.Add(names[genericParameter.ResultId], (string)genericParameter.Value);
                     break;
+                case GenericParameterType g when g.Kind is GenericParameterKindSDSL.MemberNameResolved:
+                    // There should be no more reference to this MemberName (it should have been resolved during InstantiateMemberNames())
+                    shader.Replace(index, new OpNop());
+                    break;
                 default:
                     throw new NotImplementedException();
             }
@@ -428,6 +434,65 @@ public partial class SpirvBuilder
                 n.Dispose();
             }
         }
+    }
+
+    private static NewSpirvBuffer InstantiateMemberNames(NewSpirvBuffer shader, string shaderName, GenericResolver genericResolver, IExternalShaderLoader shaderLoader, ReadOnlySpan<ShaderMacro> macros)
+    {
+        bool hasUnresolvableShader = false;
+        for (var index = 0; index < shader.Count; index++)
+        {
+            var i = shader[index];
+            if (i.Op == Op.OpUnresolvableShaderSDSL && (OpUnresolvableShaderSDSL)i is { } unresolvableShader)
+            {
+                hasUnresolvableShader = true;
+            }
+        }
+
+        if (!hasUnresolvableShader)
+            return shader;
+
+        var instantiatedGenericsMacros = new List<(string Name, string Definition)>();
+        var genericParameterIndex = 0;
+        ShaderClass.ProcessNameAndTypes(shader, 0, shader.Count, out var names, out var types);
+        for (var index = 0; index < shader.Count; index++)
+        {
+            var i = shader[index];
+            if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
+            {
+                var genericParameterName = names[genericParameter.ResultId];
+                var genericParameterType = types[genericParameter.ResultType];
+                if (genericParameterType is GenericParameterType { Kind: GenericParameterKindSDSL.MemberName })
+                {
+                    if (genericResolver.TryResolveGenericValue(genericParameterType, genericParameterName, genericParameterIndex, out var value))
+                        instantiatedGenericsMacros.Add((names[genericParameter], value.ToString()));
+                }
+                genericParameterIndex++;
+            }
+            else if (i.Op == Op.OpUnresolvableShaderSDSL && (OpUnresolvableShaderSDSL)i is { } unresolvableShader)
+            {
+                var code = unresolvableShader.ShaderCode;
+                if (instantiatedGenericsMacros.Count > 0)
+                {
+                    // Add something to shaderName (which is used as key in ShaderLoader cache)
+                    var originalShaderName = shaderName;
+                    shaderName += $"_{string.Join("_", instantiatedGenericsMacros.Select(x => x.Definition))}";
+
+                    // Note: we apply the preprocessor only the shader body to transform generics parameter into their actual value without touching the generic definition
+                    code = code.Substring(0, unresolvableShader.ShaderCodeNameEnd)
+                                // Update shader name for ShaderLoader cache
+                                .Replace(originalShaderName, shaderName)
+                                // Mark MemberName as resolved
+                                .Replace("MemberName ", "MemberNameResolved ")
+                        + MonoGamePreProcessor.Run(code.Substring(unresolvableShader.ShaderCodeNameEnd), $"{shaderName}.sdsl", CollectionsMarshal.AsSpan(instantiatedGenericsMacros));
+                }
+
+                if (!shaderLoader.LoadExternalBuffer(shaderName, code, macros, out shader, out _))
+                    throw new InvalidOperationException();
+                return shader;
+            }
+        }
+
+        return shader;
     }
 
     private static void TransformResolvedLinkIdIntoLinkString(NewSpirvBuffer shader, Dictionary<int, string> resolvedLinks)
@@ -554,6 +619,8 @@ public partial class SpirvBuilder
 
         if (genericResolver.NeedsResolve())
         {
+            shader = InstantiateMemberNames(shader, className, genericResolver, shaderLoader, macros);
+
             // Copy shader
             shader = CopyShader(shader);
 

@@ -255,7 +255,7 @@ public class ShaderMethod(
         table.CurrentFrame.Add(Name, symbol);
     }
 
-    public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler, bool hasUnresolvableGenerics)
     {
         var (builder, context) = compiler;
 
@@ -301,13 +301,17 @@ public class ShaderMethod(
                 table.CurrentFrame.Add(p.Name, new(new(p.Name, SymbolKind.Variable), parameterType, paramValue.Id));
             }
 
-            if (Body is BlockStatement body)
+            if (Body is BlockStatement body && !hasUnresolvableGenerics)
             {
                 table.Push();
                 builder.CreateBlock(context);
                 foreach (var s in body)
                     s.Compile(table, compiler);
                 table.Pop();
+            }
+            else
+            {
+                builder.Insert(new OpUnreachable());
             }
             builder.EndFunction();
         }

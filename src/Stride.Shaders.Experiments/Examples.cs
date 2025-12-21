@@ -216,25 +216,11 @@ public static partial class Examples
             return File.Exists(filename);
         }
 
-        protected override bool LoadExternalFile(string name, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out NewSpirvBuffer buffer)
+        protected override bool LoadExternalFileContent(string name, out string filename, out string code)
         {
-            var filename = $"./assets/SDSL/{name}.sdsl";
-            if (!File.Exists(filename))
-            {
-                buffer = null;
-                return false;
-            }
-
-            var defines = new (string Name, string Definition)[macros.Length];
-            for (int i = 0; i < macros.Length; ++i)
-                defines[i] = (macros[i].Name, macros[i].Definition);
-
-            var text = MonoGamePreProcessor.OpenAndRun(filename, defines);
-            var sdslc = new SDSLC
-            {
-                ShaderLoader = this
-            };
-            return sdslc.Compile(text, macros, out buffer);
+            filename = $"./assets/SDSL/{name}.sdsl";
+            code = File.ReadAllText(filename);
+            return true;
         }
     }
 

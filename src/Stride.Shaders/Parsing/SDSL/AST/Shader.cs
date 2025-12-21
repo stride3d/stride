@@ -316,6 +316,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         table.Push();
 
         var openGenerics = new int[Generics != null ? Generics.Parameters.Count : 0];
+        var hasUnresolvableGenerics = false;
         if (Generics != null)
         {
             for (int i = 0; i < Generics.Parameters.Count; i++)
@@ -332,6 +333,9 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 openGenerics[i] = context.Bound;
 
                 context.Bound++;
+
+                if (genericParameterType is GenericParameterType { Kind: GenericParameterKindSDSL.MemberName })
+                    hasUnresolvableGenerics = true;
             }
         }
 
@@ -453,8 +457,18 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         // (SPIR-V allow forward calling)
         foreach (var method in Elements.OfType<ShaderMethod>())
             method.Declare(table, this, compiler);
+
         foreach (var method in Elements.OfType<ShaderMethod>())
-            method.Compile(table, this, compiler);
+            method.Compile(table, this, compiler, hasUnresolvableGenerics);
+
+        if (hasUnresolvableGenerics)
+        {
+            var code = Info.Text.ToString();
+            // We also store end of name so that we can later easily use macro system to rename generics without changing the generics header
+            var nameInfo = Generics?.Parameters.LastOrDefault().Name.Info ?? Name.Info;
+            var endOfNameIndex = nameInfo.Range.End.Value - Info.Range.Start.Value;
+            builder.Insert(new OpUnresolvableShaderSDSL(Info.Text.ToString(), endOfNameIndex));
+        }
 
         table.InheritedShaders = null;
         table.CurrentShader = null;
