@@ -996,13 +996,20 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         LogicalGroup = linkInfo.LogicalGroup,
                     };
 
-                    if (pointerType.BaseType is TextureType)
+                    if (pointerType.BaseType is TextureType t)
                     {
                         var slot = globalContext.Reflection.ResourceBindings.Count;
                         globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
                         {
                             Class = EffectParameterClass.ShaderResourceView,
-                            Type = EffectParameterType.Texture,
+                            Type = (t, t.Multisampled) switch
+                            {
+                                (Texture1DType, false) => EffectParameterType.Texture1D,
+                                (Texture2DType, false) => EffectParameterType.Texture2D,
+                                (Texture2DType, true) => EffectParameterType.Texture2DMultisampled,
+                                (Texture3DType, false) => EffectParameterType.Texture3D,
+                                (TextureCubeType, false) => EffectParameterType.TextureCube,
+                            },
                             SlotStart = srvSlot,
                             SlotCount = 1,
                         });
