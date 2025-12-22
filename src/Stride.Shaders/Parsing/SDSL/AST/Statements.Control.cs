@@ -41,7 +41,7 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
                 ? context.Bound++
                 : null;
 
-            // OpSelectionMerge and OpBranchConditional (will be filled later)
+            // OpSelectionMerge and OpBranchConditional
             builder.Insert(new OpSelectionMerge(blockMergeIds[i], Specification.SelectionControlMask.None));
             builder.Insert(new OpBranchConditional(conditionValue.Id, blockTrueIds[i], falseBlock ?? blockMergeIds[i], []));
 

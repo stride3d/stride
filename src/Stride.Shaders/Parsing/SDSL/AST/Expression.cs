@@ -657,14 +657,88 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
-        Condition.CompileAsValue(table, compiler);
-        Left.CompileAsValue(table, compiler);
-        Right.CompileAsValue(table, compiler);
-        if (Condition.ValueType is not ScalarType { TypeName: "bool" })
+        var (builder, context) = compiler;
+
+        var conditionValue = Condition.CompileAsValue(table, compiler);
+
+        var leftValueBuffer = new NewSpirvBuffer();
+        var rightValueBuffer = new NewSpirvBuffer();
+
+        // We store left/right values in temporary buffer: we need to emit them now to know type but we don't want to actually insert them later in builder buffer
+        SpirvValue leftResult;
+        using (builder.UseTemporaryBuffer(leftValueBuffer))
+            leftResult = Left.CompileAsValue(table, compiler);
+        SpirvValue rightResult;
+        using (builder.UseTemporaryBuffer(rightValueBuffer))
+            rightResult = Right.CompileAsValue(table, compiler);
+
+        if (Condition.ValueType.GetElementType() is not ScalarType { TypeName: "bool" })
             table.Errors.Add(new(Condition.Info, SDSLErrorMessages.SDSL0106));
-        if (Left.ValueType != Right.ValueType)
-            table.Errors.Add(new(Condition.Info, SDSLErrorMessages.SDSL0106));
-        throw new NotImplementedException();
+
+        var scalarType = SpirvBuilder.FindCommonBaseTypeForBinaryOperation(Left.ValueType.GetElementType(), Right.ValueType.GetElementType());
+        var resultType = (Condition.ValueType, Left.ValueType, Right.ValueType) switch
+        {
+            // If condition is a vector, we need to use this vector size instead
+            (VectorType c, _, _) => new VectorType(scalarType, c.Size),
+            (ScalarType c, ScalarType, ScalarType) => scalarType,
+            (ScalarType c, VectorType v1, ScalarType s2) => v1.WithElementType(scalarType),
+            (ScalarType c, ScalarType s1, VectorType v2) => v2.WithElementType(scalarType),
+            (ScalarType c, VectorType v1, VectorType v2) => new VectorType(scalarType, Math.Min(v1.Size, v2.Size)),
+        };
+
+        // Convert type for Left/Right
+        using (builder.UseTemporaryBuffer(leftValueBuffer))
+            leftResult = builder.Convert(context, leftResult, resultType);
+        using (builder.UseTemporaryBuffer(rightValueBuffer))
+            rightResult = builder.Convert(context, rightResult, resultType);
+
+        // TODO: Review choice between if/else like branch (OpBranchConditional) which evaluate only one side, or select (OpSelect) which evaluate both side but can work per component but is limited to specific types
+        //       It seems HLSL 2021 changed the behavior to align it with C-style short-circuiting.
+        // For now, we use OpSelect only with per-component, otherwise we use if/else branching
+        bool isBranching = Condition.ValueType is ScalarType;
+
+        if (isBranching)
+        {
+            var resultVariable = context.Bound++;
+            builder.AddFunctionVariable(context.GetOrRegister(new PointerType(resultType, Specification.StorageClass.Function)), resultVariable);
+
+            var blockMergeId = context.Bound++;
+            var blockTrueId = context.Bound++;
+            var blockFalseId = context.Bound++;
+
+            // OpSelectionMerge and OpBranchConditional (will be filled later)
+            builder.Insert(new OpSelectionMerge(blockMergeId, Specification.SelectionControlMask.None));
+            builder.Insert(new OpBranchConditional(conditionValue.Id, blockTrueId, blockFalseId, []));
+
+            // Block when choosing left value
+            builder.CreateBlock(context, blockTrueId, $"ternary_true");
+            builder.Merge(leftValueBuffer);
+            builder.Insert(new OpStore(resultVariable, leftResult.Id, null));
+            builder.Insert(new OpBranch(blockMergeId));
+
+            // Block when choosing right value
+            builder.CreateBlock(context, blockFalseId, $"ternary_false");
+            builder.Merge(rightValueBuffer);
+            builder.Insert(new OpStore(resultVariable, rightResult.Id, null));
+            builder.Insert(new OpBranch(blockMergeId));
+
+            builder.CreateBlock(context, blockMergeId, "ternary_merge");
+            var result = builder.Insert(new OpLoad(context.GetOrRegister(resultType), context.Bound++, resultVariable, null));
+            return new(result.ResultId, result.ResultType);
+        }
+        else
+        {
+            if (resultType is VectorType v && Condition.ValueType is ScalarType conditionScalar)
+            {
+                conditionValue = builder.Convert(context, conditionValue, new VectorType(conditionScalar, v.Size));
+            }
+
+            builder.Merge(leftValueBuffer);
+            builder.Merge(rightValueBuffer);
+
+            var result = builder.Insert(new OpSelect(context.GetOrRegister(resultType), context.Bound++, conditionValue.Id, leftResult.Id, rightResult.Id));
+            return new(result.ResultId, result.ResultType);
+        }
     }
 
     public override string ToString()

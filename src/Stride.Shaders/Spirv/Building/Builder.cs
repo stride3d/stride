@@ -1,3 +1,4 @@
+using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -14,7 +15,8 @@ public partial class SpirvBuilder()
 {
     private int position;
 
-    NewSpirvBuffer Buffer { get; init; } = new();
+    NewSpirvBuffer buffer = new();
+    NewSpirvBuffer Buffer { get => buffer; init => buffer = value; }
     public SpirvFunction? CurrentFunction { get; internal set; }
     public SpirvBlock? CurrentBlock { get; internal set; }
     public ref int Position => ref position;
@@ -104,5 +106,32 @@ public partial class SpirvBuilder()
     public override string ToString()
     {
         return Spv.Dis(Buffer, writeToConsole: false);
+    }
+
+    public UseTemporaryBufferHelper UseTemporaryBuffer(NewSpirvBuffer buffer, int? position = null)
+    {
+        var result = new UseTemporaryBufferHelper(this, this.buffer, this.position);
+        this.buffer = buffer;
+        this.position = position ?? buffer.Count;
+        return result;
+    }
+
+    public void Merge(NewSpirvBuffer other)
+    {
+        var instructions = new List<OpData>();
+        foreach (var instruction in other)
+            instructions.Add(instruction.Data);
+        
+        buffer.InsertRange(Position, instructions.AsSpan());
+        Position += other.Count;
+    }
+
+    public struct UseTemporaryBufferHelper(SpirvBuilder builder, NewSpirvBuffer buffer, int position) : IDisposable
+    {
+        public void Dispose()
+        {
+            builder.buffer = buffer;
+            builder.position = position;
+        }
     }
 }
