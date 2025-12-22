@@ -369,7 +369,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             var accessor = Accessors[i];
             switch (currentValueType, accessor)
             {
-                case (PointerType { BaseType: Texture1DType or Texture2DType or Texture3DType }, MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 }):
+                case (PointerType { BaseType: TextureType textureType }, MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 }):
                     {
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds);
@@ -378,7 +378,6 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         // Load texture as value
                         result = builder.AsValue(context, result);
 
-                        var textureType = (TextureType)context.ReverseTypes[result.TypeId];
                         if (accessor is MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } implicitSampling)
                         {
                             var resultType = new VectorType(textureType.ReturnType, 4);

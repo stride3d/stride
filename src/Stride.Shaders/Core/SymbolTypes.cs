@@ -72,6 +72,7 @@ public abstract record SymbolType()
             ("Texture1D", ScalarType { TypeName: "float" or "int" or "uint" }) => (new Texture1DType(scalarType) as SymbolType, true),
             ("Texture2D", ScalarType { TypeName: "float" or "int" or "uint" }) => (new Texture2DType(scalarType) as SymbolType, true),
             ("Texture3D", ScalarType { TypeName: "float" or "int" or "uint" }) => (new Texture3DType(scalarType) as SymbolType, true),
+            ("TextureCube", ScalarType { TypeName: "float" or "int" or "uint" }) => (new TextureCubeType(scalarType) as SymbolType, true),
 
             _ => (null, false)
         };
