@@ -397,28 +397,33 @@ public class TypeName(string name, TextLocation info) : Literal(info)
         {
             symbolType = new GenericParameterType(Specification.GenericParameterKindSDSL.MemberNameResolved);
         }
-        else if (table.DeclaredTypes.TryGetValue(Name, out symbolType))
+        else
         {
+            var fullTypeName = GenerateTypeName(includeGenerics: true, includeArray: false);
 
-        }
-        else if (SymbolType.TryGetNumeric(Name, out var numeric))
-        {
-            table.DeclaredTypes.Add(numeric.ToString(), numeric);
-            symbolType = numeric;
-        }
-        else if (!IsArray && Generics.Count == 0 && SymbolType.TryGetBufferType(Name, null, out var bufferType))
-        {
-            table.DeclaredTypes.Add(bufferType.ToString(), bufferType);
-            symbolType = bufferType;
-        }
-        else if (Generics.Count == 1 && SymbolType.TryGetBufferType(Name, Generics[0].Name, out var genericBufferType))
-        {
-            table.DeclaredTypes.Add(genericBufferType.ToString(), genericBufferType);
-            symbolType = genericBufferType;
-        }
-        else if (Name == "SamplerState")
-        {
-            symbolType = new SamplerType();
+            if (table.DeclaredTypes.TryGetValue(fullTypeName, out symbolType))
+            {
+
+            }
+            else if (SymbolType.TryGetNumeric(Name, out var numeric))
+            {
+                table.DeclaredTypes.Add(fullTypeName, numeric);
+                symbolType = numeric;
+            }
+            else if (!IsArray && Generics.Count == 0 && SymbolType.TryGetBufferType(Name, null, out var bufferType))
+            {
+                table.DeclaredTypes.Add(fullTypeName, bufferType);
+                symbolType = bufferType;
+            }
+            else if (Generics.Count == 1 && SymbolType.TryGetBufferType(Name, Generics[0].Name, out var genericBufferType))
+            {
+                table.DeclaredTypes.Add(fullTypeName, genericBufferType);
+                symbolType = genericBufferType;
+            }
+            else if (Name == "SamplerState")
+            {
+                symbolType = new SamplerType();
+            }
         }
 
         if (symbolType == null)
@@ -457,18 +462,24 @@ public class TypeName(string name, TextLocation info) : Literal(info)
         throw new NotImplementedException();
     }
 
-    public override string ToString()
+    public override string ToString() => GenerateTypeName(includeGenerics: true, includeArray: true);
+
+    public string GenerateTypeName(bool includeGenerics = true, bool includeArray = true)
     {
+        // Fast path
+        if ((Generics.Count == 0 || !includeGenerics) && (!includeArray || ArraySize == null))
+            return Name;
+
         var builder = new StringBuilder();
         builder.Append(Name);
-        if (Generics.Count > 0)
+        if (includeGenerics && Generics.Count > 0)
         {
             builder.Append('<');
             foreach (var g in Generics)
                 builder.Append(g.ToString()).Append(", ");
             builder.Append('>');
         }
-        if (ArraySize != null)
+        if (includeArray && ArraySize != null)
             foreach (var s in ArraySize)
                 builder.Append('[').Append(s.ToString()).Append(']');
 
