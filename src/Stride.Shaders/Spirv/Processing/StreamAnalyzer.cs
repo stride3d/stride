@@ -37,7 +37,12 @@ namespace Stride.Shaders.Spirv.Processing
             public override string ToString() => $"{Type} {Name} {(Read ? "R" : "")} {(Write ? "W" : "")}";
         }
 
-        record struct AnalysisResult(SortedList<int, (StreamInfo Stream, bool IsDirect)> Streams, List<int> Blocks, List<int> Resources);
+        class ResourceInfo
+        {
+            public bool Used { get; set; }
+        }
+
+        record struct AnalysisResult(SortedList<int, (StreamInfo Stream, bool IsDirect)> Streams, List<int> Blocks, SortedList<int, ResourceInfo> Resources);
 
         public void Process(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context)
         {
@@ -55,7 +60,7 @@ namespace Stride.Shaders.Spirv.Processing
             var analysisResult = Analyze(buffer, context);
             var streams = analysisResult.Streams;
 
-            AnalyzeStreamReadWrites(buffer, [], entryPointPS.IdRef, streams);
+            AnalyzeStreamReadWrites(buffer, [], entryPointPS.IdRef, analysisResult);
 
             // If written to, they are expected at the end of pixel shader
             foreach (var stream in streams)
@@ -76,7 +81,7 @@ namespace Stride.Shaders.Spirv.Processing
             PropagateStreamsFromPreviousStage(streams);
             if (entryPointVS.IdRef != 0)
             {
-                AnalyzeStreamReadWrites(buffer, [], entryPointVS.IdRef, streams);
+                AnalyzeStreamReadWrites(buffer, [], entryPointVS.IdRef, analysisResult);
 
                 // Expected at the end of vertex shader
                 foreach (var stream in streams)
@@ -112,7 +117,7 @@ namespace Stride.Shaders.Spirv.Processing
             HashSet<int> blockTypes = [];
             Dictionary<int, int> blockPointerTypes = [];
             List<int> blockIds = [];
-            List<int> resources = [];
+            SortedList<int, ResourceInfo> resources = [];
 
             // Build name table
             SortedList<int, string> nameTable = [];
@@ -230,7 +235,7 @@ namespace Stride.Shaders.Spirv.Processing
                             : $"unnamed_{resource.ResultId}";
                         var type = context.ReverseTypes[resource.ResultType];
 
-                        resources.Add(resource.ResultId);
+                        resources.Add(resource.ResultId, new ResourceInfo());
                     }
                 }
             }
@@ -389,9 +394,12 @@ namespace Stride.Shaders.Spirv.Processing
                 foreach (var block in analysisResult.Blocks)
                     pvariables[pvariableIndex++] = block;
                 foreach (var resource in analysisResult.Resources)
-                    pvariables[pvariableIndex++] = resource;
+                {
+                    if (resource.Value.Used)
+                        pvariables[pvariableIndex++] = resource.Key;
+                }
 
-                context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [.. pvariables]));
+                context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [.. pvariables.Slice(0, pvariableIndex)]));
             }
 
             return newEntryPointFunction;
@@ -400,8 +408,9 @@ namespace Stride.Shaders.Spirv.Processing
         /// <summary>
         /// Figure out (recursively) which streams are being read from and written to.
         /// </summary>
-        private void AnalyzeStreamReadWrites(NewSpirvBuffer buffer, List<int> callStack, int functionId, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
+        private void AnalyzeStreamReadWrites(NewSpirvBuffer buffer, List<int> callStack, int functionId, AnalysisResult analysisResult)
         {
+            var streams = analysisResult.Streams;
             var methodStart = FindMethodStart(buffer, functionId);
             for (var index = methodStart; index < buffer.Count; index++)
             {
@@ -413,11 +422,15 @@ namespace Stride.Shaders.Spirv.Processing
                 {
                     if (streams.TryGetValue(load.Pointer, out var streamInfo) && !streamInfo.Stream.Write)
                         streamInfo.Stream.Read = true;
+                    if (analysisResult.Resources.TryGetValue(load.Pointer, out var resourceInfo))
+                        resourceInfo.Used = true;
                 }
                 else if (instruction.Op is Op.OpStore && (OpStore)instruction is { } store)
                 {
                     if (streams.TryGetValue(store.Pointer, out var streamInfo))
                         streamInfo.Stream.Write = true;
+                    if (analysisResult.Resources.TryGetValue(store.Pointer, out var resourceInfo))
+                        resourceInfo.Used = true;
                 }
                 else if (instruction is { Op: Op.OpAccessChain } && (OpAccessChain)instruction is { } accessChain)
                 {
@@ -435,7 +448,7 @@ namespace Stride.Shaders.Spirv.Processing
                     if (callStack.Contains(functionId))
                         throw new InvalidOperationException($"Recursive call with method id {functionId}");
                     callStack.Add(functionId);
-                    AnalyzeStreamReadWrites(buffer, callStack, call.Function, streams);
+                    AnalyzeStreamReadWrites(buffer, callStack, call.Function, analysisResult);
                     callStack.RemoveAt(callStack.Count - 1);
                 }
             }
