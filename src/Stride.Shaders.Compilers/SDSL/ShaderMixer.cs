@@ -977,7 +977,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         if (samplerStates.TryGetValue(variable.ResultId, out var samplerState))
                             globalContext.Reflection.SamplerStates.Add(new EffectSamplerStateBinding(linkName, samplerState));
 
-                        cbufferSlot++;
+                        samplerSlot++;
                     }
                     else if (pointerType.BaseType is ConstantBufferSymbol)
                     {
