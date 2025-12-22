@@ -304,6 +304,25 @@ namespace Stride.Shaders.Spirv.Processing
                 }
             }
 
+            bool ProcessBuiltinsDecoration(int variable, StreamInfo stream)
+            {
+                switch (stream.Semantic?.ToUpperInvariant())
+                {
+                    case "SV_POSITION" when executionModel is ExecutionModel.Geometry or ExecutionModel.TessellationControl or ExecutionModel.TessellationEvaluation or ExecutionModel.Vertex:
+                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.Position)));
+                        return true;
+                    case "SV_POSITION" when executionModel is ExecutionModel.Fragment:
+                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.FragCoord)));
+                        return true;
+                    case "SV_ISFRONTFACE":
+                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.FrontFacing)));
+                        context.Add(new OpDecorate(variable, Decoration.Flat));
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
             foreach (var stream in streams)
             {
                 var baseType = ((PointerType)stream.Value.Type).BaseType;
@@ -316,19 +335,13 @@ namespace Stride.Shaders.Spirv.Processing
                     context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Input, null), out var variable);
                     context.AddName(variable, $"in_{stage}_{stream.Value.Name}");
 
-                    switch (stream.Value.Semantic?.ToUpperInvariant())
+                    if (!ProcessBuiltinsDecoration(variable.ResultId, stream.Value))
                     {
-                        case "SV_ISFRONTFACE":
-                            context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.FrontFacing)));
-                            context.Add(new OpDecorate(variable, Decoration.Flat));
-                            break;
-                        default:
-                            if (stream.Value.InputLayoutLocation == null)
-                                stream.Value.InputLayoutLocation = inputLayoutLocationCount++;
-                            context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.InputLayoutLocation.Value)));
-                            if (stream.Value.Semantic != null)
-                                context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Semantic)));
-                            break;
+                        if (stream.Value.InputLayoutLocation == null)
+                            stream.Value.InputLayoutLocation = inputLayoutLocationCount++;
+                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.InputLayoutLocation.Value)));
+                        if (stream.Value.Semantic != null)
+                            context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Semantic)));
                     }
 
                     inputStreams.Add((stream.Value, variable.ResultId));
@@ -340,25 +353,20 @@ namespace Stride.Shaders.Spirv.Processing
                     context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Output, null), out var variable);
                     context.AddName(variable, $"out_{stage}_{stream.Value.Name}");
 
-                    switch (stream.Value.Semantic?.ToUpperInvariant())
+                    if (!ProcessBuiltinsDecoration(variable.ResultId, stream.Value))
                     {
-                        case "SV_POSITION":
-                            context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.Position)));
-                            break;
-                        default:
-                            // TODO: this shouldn't be necessary if we allocated layout during first forward pass for any SV_ semantic
-                            if (stream.Value.OutputLayoutLocation == null)
-                            {
-                                if (stream.Value.Semantic?.ToUpperInvariant().StartsWith("SV_") ?? false)
-                                    stream.Value.OutputLayoutLocation = outputLayoutLocationCount++;
-                                else
-                                    throw new InvalidOperationException($"Can't find output layout location for variable [{stream.Value.Name}]");
-                            }
+                        // TODO: this shouldn't be necessary if we allocated layout during first forward pass for any SV_ semantic
+                        if (stream.Value.OutputLayoutLocation == null)
+                        {
+                            if (stream.Value.Semantic?.ToUpperInvariant().StartsWith("SV_") ?? false)
+                                stream.Value.OutputLayoutLocation = outputLayoutLocationCount++;
+                            else
+                                throw new InvalidOperationException($"Can't find output layout location for variable [{stream.Value.Name}]");
+                        }
 
-                            context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.OutputLayoutLocation.Value)));
-                            if (stream.Value.Semantic != null)
-                                context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Semantic)));
-                            break;
+                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.OutputLayoutLocation.Value)));
+                        if (stream.Value.Semantic != null)
+                            context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Semantic)));
                     }
 
                     outputStreams.Add((stream.Value, variable.ResultId));
