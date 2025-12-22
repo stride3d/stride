@@ -58,6 +58,7 @@ namespace Stride.Shaders.Spirv.Processing
                 throw new InvalidOperationException($"{nameof(StreamAnalyzer)}: At least a pixel shader is expected");
 
             var analysisResult = Analyze(buffer, context);
+            MergeSameSemanticVariables(table, context, buffer, analysisResult);
             var streams = analysisResult.Streams;
 
             AnalyzeStreamReadWrites(buffer, [], entryPointPS.IdRef, analysisResult);
@@ -96,6 +97,38 @@ namespace Stride.Shaders.Spirv.Processing
             }
 
             buffer.FluentAdd(new OpExecutionMode(psWrapper.ResultId, ExecutionMode.OriginUpperLeft));
+        }
+
+        private void MergeSameSemanticVariables(SymbolTable table, SpirvContext context, NewSpirvBuffer buffer, AnalysisResult analysisResult)
+        {
+            Dictionary<int, int> remapIds = new();
+            foreach (var streamWithSameSemantic in analysisResult.Streams.Where(x => x.Value.Stream.Semantic != null).GroupBy(x => x.Value.Stream.Semantic))
+            {
+                // Make sure they all have the same type
+                var firstStream = streamWithSameSemantic.First();
+                foreach (var stream in streamWithSameSemantic.Skip(1))
+                {
+                    if (stream.Value.Stream.Type != firstStream.Value.Stream.Type)
+                        throw new InvalidOperationException($"Two variables with same semantic {stream.Value.Stream.Semantic} have different types {stream.Value.Stream.Type} and {firstStream.Value.Stream.Type}");
+
+                    // Remap variable
+                    remapIds.Add(stream.Key, firstStream.Key);
+                }
+            }
+
+            // Remove duplicate streams
+            foreach (var i in buffer)
+            {
+                if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is { } variable && remapIds.ContainsKey(variable.ResultId))
+                {
+                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                }
+            }
+
+            foreach (var remapId in remapIds)
+                analysisResult.Streams.Remove(remapId.Key);
+
+            SpirvBuilder.RemapIds(buffer, 0, buffer.Count, remapIds);
         }
 
         private static void PropagateStreamsFromPreviousStage(SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
