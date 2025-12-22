@@ -38,20 +38,74 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        // TODO: sampler states with paramters not implemented
-        // The main issue is that SPIR-V doesn't have a direct equivalent of sampler states with parameters.
-        // We can create a basic sampler, but handling parameters would require a more complex approach,
-        // potentially storing parameters in a new SDSL specific instruction or decorations
-
-        if (Parameters.Count > 0)
-            table.Errors.Add(new SemanticErrors(Info, "Sampler states with parameters are not supported in SPIR-V generation."));
-
         (var builder, var context) = compiler;
         Type = new PointerType(new SamplerType(), Specification.StorageClass.UniformConstant);
         var registeredType = context.GetOrRegister(Type);
         if (!table.RootSymbols.TryGetValue(Name, out _))
         {
-            var register = builder.Insert(new OpVariableSDSL(registeredType, context.Bound++, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
+            var variableId = context.Bound++;
+
+            // We store SamplerState as decoration for later processing during ShaderMixer.ProcessReflection()
+            // Note: we make sure to do it before the OpVariableSDSL as per SPIR-V spec so that it is correctly processed later
+            foreach (var parameter in Parameters)
+            {
+                switch (parameter.Name)
+                {
+                    case "Filter":
+                        {
+                            var filter = Enum.Parse<Specification.SamplerFilterSDSL>(((Identifier)parameter.Value).Name, true);
+                            builder.Insert(new OpDecorate(variableId, ParameterizedFlags.DecorationSamplerStateFilter(filter)));
+                            break;
+                        }
+                    case "AddressU":
+                        {
+                            var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
+                            builder.Insert(new OpDecorate(variableId, ParameterizedFlags.DecorationSamplerStateAddressU(addressMode)));
+                            break;
+                        }
+                    case "AddressV":
+                        {
+                            var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
+                            builder.Insert(new OpDecorate(variableId, ParameterizedFlags.DecorationSamplerStateAddressV(addressMode)));
+                            break;
+                        }
+                    case "AddressW":
+                        {
+                            var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
+                            builder.Insert(new OpDecorate(variableId, ParameterizedFlags.DecorationSamplerStateAddressW(addressMode)));
+                            break;
+                        }
+                    case "MipLODBias":
+                        {
+                            var mipLODBias = (float)((FloatLiteral)parameter.Value).Value;
+                            builder.Insert(new OpDecorateString(variableId, ParameterizedFlags.DecorationSamplerStateMipLODBias(mipLODBias.ToString())));
+                            break;
+                        }
+                    case "MaxAnisotropy":
+                        {
+                            var maxAnisotropy = ((IntegerLiteral)parameter.Value).IntValue;
+                            builder.Insert(new OpDecorate(variableId, ParameterizedFlags.DecorationSamplerStateMaxAnisotropy(maxAnisotropy)));
+                            break;
+                        }
+                    case "MinLOD":
+                        {
+                            var minLOD = (float)((FloatLiteral)parameter.Value).Value;
+                            builder.Insert(new OpDecorateString(variableId, ParameterizedFlags.DecorationSamplerStateMinLOD(minLOD.ToString())));
+                            break;
+                        }
+                    case "MaxLOD":
+                        {
+                            var maxLOD = (float)((FloatLiteral)parameter.Value).Value;
+                            builder.Insert(new OpDecorateString(variableId, ParameterizedFlags.DecorationSamplerStateMaxLOD(maxLOD.ToString())));
+                            break;
+                        }
+                    case "BorderColor":
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+
+            var register = builder.Insert(new OpVariableSDSL(registeredType, variableId, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
             context.AddName(register.ResultId, Name);
 
             var sid = new SymbolID(Name, SymbolKind.SamplerState);

@@ -20,6 +20,9 @@
     <Reference Include="Stride.Shaders" Condition="'$(StrideDirectory)' != ''">
       <HintPath>$(StrideDirectory)\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
     </Reference>
+    <Reference Include="Stride" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.dll</HintPath>
+    </Reference>
     <Content Include="./native/spirv_to_dxil.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -826,6 +826,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         Dictionary<int, LinkInfo> linkInfos = new();
         string currentShaderName = string.Empty;
+        var samplerStates = new Dictionary<int, Graphics.SamplerStateDescription>();
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
         {
             var i = buffer[index];
@@ -853,6 +854,59 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             else if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shader)
             {
                 currentShaderName = shader.ShaderName;
+            }
+            else if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && (OpDecorate)i is
+                {
+                    Decoration:
+                    {
+                        Value: Decoration.SamplerStateFilter or Decoration.SamplerStateAddressU or Decoration.SamplerStateAddressV or Decoration.SamplerStateAddressW
+                            or Decoration.SamplerStateMipLODBias or Decoration.SamplerStateMaxAnisotropy or Decoration.SamplerStateComparisonFunc or Decoration.SamplerStateMinLOD or Decoration.SamplerStateMaxLOD,
+                        Parameters: { } p
+                    }
+                } decorate)
+            {
+                ref var samplerState = ref CollectionsMarshal.GetValueRefOrAddDefault(samplerStates, decorate.Target, out var added);
+                if (added)
+                    samplerState = Graphics.SamplerStateDescription.Default;
+                switch (decorate.Decoration.Value)
+                {
+                    case Decoration.SamplerStateFilter:
+                        samplerState.Filter = (Graphics.TextureFilter)p.Span[0];
+                        break;
+                    case Decoration.SamplerStateAddressU:
+                        samplerState.AddressU = (Graphics.TextureAddressMode)p.Span[0];
+                        break;
+                    case Decoration.SamplerStateAddressV:
+                        samplerState.AddressV = (Graphics.TextureAddressMode)p.Span[0];
+                        break;
+                    case Decoration.SamplerStateAddressW:
+                        samplerState.AddressW = (Graphics.TextureAddressMode)p.Span[0];
+                        break;
+                    case Decoration.SamplerStateMipLODBias:
+                        {
+                            using var n = new LiteralValue<string>(p.Span);
+                            samplerState.MipMapLevelOfDetailBias = float.Parse(n.Value);
+                            break;
+                        }
+                    case Decoration.SamplerStateMaxAnisotropy:
+                        samplerState.MaxAnisotropy = p.Span[0];
+                        break;
+                    case Decoration.SamplerStateComparisonFunc:
+                        samplerState.CompareFunction = (Graphics.CompareFunction)p.Span[0];
+                        break;
+                    case Decoration.SamplerStateMinLOD:
+                        {
+                            using var n = new LiteralValue<string>(p.Span);
+                            samplerState.MinMipLevel = float.Parse(n.Value);
+                            break;
+                        }
+                    case Decoration.SamplerStateMaxLOD:
+                        {
+                            using var n = new LiteralValue<string>(p.Span);
+                            samplerState.MaxMipLevel = float.Parse(n.Value);
+                            break;
+                        }
+                }
             }
             else if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
             {
@@ -919,6 +973,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                         context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationDescriptorSet(0)));
                         context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationBinding(samplerSlot)));
+
+                        if (samplerStates.TryGetValue(variable.ResultId, out var samplerState))
+                            globalContext.Reflection.SamplerStates.Add(new EffectSamplerStateBinding(linkName, samplerState));
 
                         cbufferSlot++;
                     }
