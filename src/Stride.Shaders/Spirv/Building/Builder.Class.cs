@@ -501,13 +501,20 @@ public partial class SpirvBuilder
         for (var index = 0; index < shader.Count; index++)
         {
             var i = shader[index];
-            if (i.Op == Op.OpMemberDecorate
-                && ((OpMemberDecorate)i) is { Decoration: { Value: Decoration.LinkIdSDSL, Parameters: { } m } } linkDecorate)
+            if (i.Op == Op.OpDecorate && ((OpDecorate)i) is { Decoration: { Value: Decoration.LinkIdSDSL, Parameters: { } m } } linkDecorate)
             {
                 using var n = new LiteralValue<int>(m.Span);
                 if (resolvedLinks.TryGetValue(n.Value, out var resolvedValue))
                 {
-                    shader.Replace(index, new OpMemberDecorateString(linkDecorate.StructureType, linkDecorate.Member, new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words])));
+                    shader.Replace(index, new OpDecorateString(linkDecorate.Target, new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words])));
+                }
+            }
+            else if (i.Op == Op.OpMemberDecorate && ((OpMemberDecorate)i) is { Decoration: { Value: Decoration.LinkIdSDSL, Parameters: { } m2 } } linkDecorate2)
+            {
+                using var n = new LiteralValue<int>(m2.Span);
+                if (resolvedLinks.TryGetValue(n.Value, out var resolvedValue))
+                {
+                    shader.Replace(index, new OpMemberDecorateString(linkDecorate2.StructureType, linkDecorate2.Member, new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words])));
                 }
             }
         }

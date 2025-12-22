@@ -1,10 +1,10 @@
-// PSMain(ExpectedResult=#08FFFFFF, cbuffer.Test=(Test123=05, Test456=03))
+// PSMain(ExpectedResult=#08182838, cbuffer.Test=(Test123=05, Test456=03), texture.MyTex1=#00102030)
 
 namespace Stride.Shaders.Tests;
 
 shader Compute
 {
-    float Compute()
+    float4 Compute()
     {
         return 0.0;
     }
@@ -21,18 +21,32 @@ shader ComputeLink<LinkType Link1, LinkType Link2> : Compute
         int Test2;
     }
 
-    override float Compute()
+    override float4 Compute()
     {
-        return ((float)Test1 + (float)Test2) / 255.0;
+        return base.Compute() + ((float)Test1 + (float)Test2) / 255.0;
     }
 }
 
-shader GenericsLinkType : ComputeLink<"Test123", "Test456">
+shader ComputeTextureLink<LinkType Link1> : Compute
+{
+    rgroup TestR
+    {
+        [Link(Link1)]
+        stage Texture2D<float4> Texture1;
+    }
+
+    override float4 Compute()
+    {
+        return base.Compute() + Texture1.Load(int3(0, 0, 0));
+    }
+}
+
+shader GenericsLinkType : ComputeLink<"Test123", "Test456">, ComputeTextureLink<"MyTex1">
 {
     stream float4 ColorTarget : SV_Target0;
 
     void PSMain()
     {
-        streams.ColorTarget = float4(Compute(), 1.0, 1.0, 1.0);
+        streams.ColorTarget = Compute();
     }
 }
