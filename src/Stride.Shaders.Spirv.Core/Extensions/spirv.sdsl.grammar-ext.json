@@ -25,7 +25,17 @@
       ]
     },
     {
-      "opname": "OpSDSLEffectEnd",
+      "opname": "OpSDSLComposition",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "compositionPath"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLCompositionEnd",
       "class": "Miscellaneous"
     },
     {

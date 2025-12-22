@@ -55,6 +55,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         MergeCBuffers(globalContext, context, temp);
         ComputeCBufferOffsets(globalContext, context, temp);
 
+        // Try to give variables more sensible names
+        // Note: since we mutate OpName and globalContext.Names, try to do that as late as possible because some code earlier use names to match variables/types
+        RenameVariables(globalContext, context, temp);
+
         // Process reflection
         ProcessReflection(globalContext, context, temp, rootMixin);
 
@@ -110,7 +114,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     {
         // We emit OPSDSLEffect for any non-root composition
         if (currentCompositionPath != null)
-            buffer.Add(new OpSDSLEffect(currentCompositionPath));
+            buffer.Add(new OpSDSLComposition(currentCompositionPath));
 
         var mixinNode = new MixinNode(stage, currentCompositionPath);
         var contextStart = context.GetBuffer().Count;
@@ -154,7 +158,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         ProcessMemberAccessAndForeach(globalContext, context, buffer, mixinNode);
 
         if (currentCompositionPath != null)
-            buffer.Add(new OpSDSLEffectEnd());
+            buffer.Add(new OpSDSLCompositionEnd());
 
         return mixinNode;
     }
@@ -267,7 +271,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         // Then, we can find the actual type in context.ReverseTypes
                         && context.ReverseTypes.TryGetValue(remappedFunctionTypeId, out var functionType2))
                         functionType = (FunctionType)functionType2;
-
 
                     include = ProcessStageMemberOrType(function.ResultId, functionType, isStage);
                 }
@@ -802,6 +805,65 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
+    private void RenameVariables(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
+    {
+        // Collect variables by names
+        string? compositionPath = null;
+        var shaderNameWithComposition = string.Empty;
+        Dictionary<int, string> prefixes = new();
+        foreach (var i in temp)
+        {
+            if (i.Op == Op.OpSDSLComposition && (OpSDSLComposition)i is { } composition)
+            {
+                compositionPath = composition.CompositionPath;
+            }
+            else if (i.Op == Op.OpSDSLCompositionEnd)
+            {
+                compositionPath = null;
+            }
+            else if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shader)
+            {
+                shaderNameWithComposition = compositionPath != null
+                    ? $"{compositionPath}.{shader.ShaderName}"
+                    : shader.ShaderName;
+            }
+            else if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { Storageclass: Specification.StorageClass.UniformConstant } variable)
+            {
+                // Note: we don't rename cbuffer as they have been merged and don't belong to a specific shader/composition anymore
+                var type = globalContext.Types[variable.ResultType];
+                if (type is not ConstantBufferSymbol)
+                    prefixes[variable.ResultId] = shaderNameWithComposition;
+            }
+            else if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } structType)
+            {
+                prefixes[structType.ResultId] = shaderNameWithComposition;
+            }
+            else if (i.Op == Op.OpFunction && (OpFunction)i is { } function)
+            {
+                prefixes[function.ResultId] = shaderNameWithComposition;
+            }
+        }
+
+        // Now, reprocess context with those names
+        char[] invalidChars = { '<', '>', '[', ']', '.', ',', '-' };
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpName && (OpName)i is { } name)
+            {
+                if (prefixes.TryGetValue(name.Target, out var prefix))
+                {
+                    var updatedName = $"{prefix}.{name.Name}";
+                    name.Name = updatedName;
+
+                    // Now, make sure it's all valid HLSL/GLSL characters (this will replace multiple invalid characters with a single underscore)
+                    // Otherwise, EffectReflection RawName won't match
+                    updatedName = string.Join("_", updatedName.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
+                    globalContext.Names[name.Target] = updatedName;
+                }
+            }
+        }
+    }
+
     private static void ProcessReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode)
     {
         // First, figure out latest used bindings (assume they are filled in order)
@@ -859,8 +921,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     }
                 } decorate)
             {
-                ref var samplerState = ref CollectionsMarshal.GetValueRefOrAddDefault(samplerStates, decorate.Target, out var added);
-                if (added)
+                ref var samplerState = ref CollectionsMarshal.GetValueRefOrAddDefault(samplerStates, decorate.Target, out var exists);
+                if (!exists)
                     samplerState = Graphics.SamplerStateDescription.Default;
                 switch (decorate.Decoration.Value)
                 {
@@ -1090,8 +1152,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
             else if (i.Op == Op.OpSDSLShader
                 || i.Op == Op.OpSDSLShaderEnd
-                || i.Op == Op.OpSDSLEffect
-                || i.Op == Op.OpSDSLEffectEnd
+                || i.Op == Op.OpSDSLComposition
+                || i.Op == Op.OpSDSLCompositionEnd
                 || i.Op == Op.OpSDSLMixinInherit
                 || i.Op == Op.OpConstantStringSDSL
                 || i.Op == Op.OpTypeGenericSDSL

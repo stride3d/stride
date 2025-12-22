@@ -39,8 +39,8 @@ namespace Stride.Shaders.Compilers.SDSL
 
             // OpSDSLEffect is emitted for any non-root composition
             var compositionNodes = buffer
-                .Where(x => x.Op == Op.OpSDSLEffect)
-                .Select(x => (StartIndex: x.Index, CompositionPath: ((OpSDSLEffect)x).EffectName))
+                .Where(x => x.Op == Op.OpSDSLComposition)
+                .Select(x => (StartIndex: x.Index, CompositionPath: ((OpSDSLComposition)x).CompositionPath))
                 .ToList();
 
             var shaders = buffer
