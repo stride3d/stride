@@ -824,13 +824,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
 
+        // TODO: do this once at root level and reuse for child mixin
         Dictionary<int, LinkInfo> linkInfos = new();
-        string currentShaderName = string.Empty;
         var samplerStates = new Dictionary<int, Graphics.SamplerStateDescription>();
-        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
+        foreach (var i in context)
         {
-            var i = buffer[index];
-
             // Fill linkInfos
             if (i.Op == Op.OpDecorateString && (OpDecorateString)i is
                 {
@@ -850,10 +848,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     linkInfo.ResourceGroup = n.Value;
                 else if (decoration.Decoration.Value == Decoration.LogicalGroupSDSL)
                     linkInfo.LogicalGroup = n.Value;
-            }
-            else if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shader)
-            {
-                currentShaderName = shader.ShaderName;
             }
             else if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && (OpDecorate)i is
                 {
@@ -907,6 +901,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                             break;
                         }
                 }
+            }
+        }
+
+        string currentShaderName = string.Empty;
+        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
+        {
+            var i = buffer[index];
+
+            if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shader)
+            {
+                currentShaderName = shader.ShaderName;
             }
             else if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
             {

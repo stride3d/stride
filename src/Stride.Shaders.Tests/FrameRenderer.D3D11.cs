@@ -451,7 +451,7 @@ float4 main(vs_out input) : SV_TARGET {
                 continue;
 
             var resourceName = param.Key.Substring(dotIndex + 1);
-            var resourceReflection = EffectReflection.ResourceBindings.Single(x => x.RawName == resourceName);
+            var resourceReflection = EffectReflection.ResourceBindings.Single(x => x.KeyInfo.KeyName.EndsWith(resourceName));
 
             if (resourceType == "cbuffer")
             {
