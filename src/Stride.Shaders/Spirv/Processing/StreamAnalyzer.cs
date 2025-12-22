@@ -42,7 +42,7 @@ namespace Stride.Shaders.Spirv.Processing
             public bool Used { get; set; }
         }
 
-        record struct AnalysisResult(SortedList<int, (StreamInfo Stream, bool IsDirect)> Streams, List<int> Blocks, SortedList<int, ResourceInfo> Resources);
+        record struct AnalysisResult(SortedList<int, StreamInfo> Streams, List<int> Blocks, SortedList<int, ResourceInfo> Resources);
 
         public void Process(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context)
         {
@@ -66,9 +66,9 @@ namespace Stride.Shaders.Spirv.Processing
             // If written to, they are expected at the end of pixel shader
             foreach (var stream in streams)
             {
-                if (stream.Value.Stream.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_TARGET") || semantic.ToUpperInvariant() == "SV_DEPTH")
-                    && stream.Value.Stream.Write)
-                    stream.Value.Stream.Output = true;
+                if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_TARGET") || semantic.ToUpperInvariant() == "SV_DEPTH")
+                    && stream.Value.Write)
+                    stream.Value.Output = true;
             }
 
             var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult);
@@ -76,8 +76,8 @@ namespace Stride.Shaders.Spirv.Processing
             // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
             foreach (var stream in streams)
             {
-                if (stream.Value.Stream.Semantic is { } semantic && (semantic.ToUpperInvariant() == "SV_COVERAGE" || semantic.ToUpperInvariant() == "SV_ISFRONTFACE" || semantic.ToUpperInvariant() == "VFACE"))
-                    stream.Value.Stream.Read = false;
+                if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant() == "SV_COVERAGE" || semantic.ToUpperInvariant() == "SV_ISFRONTFACE" || semantic.ToUpperInvariant() == "VFACE"))
+                    stream.Value.Read = false;
             }
             PropagateStreamsFromPreviousStage(streams);
             if (entryPointVS.IdRef != 0)
@@ -88,9 +88,9 @@ namespace Stride.Shaders.Spirv.Processing
                 foreach (var stream in streams)
                 {
                     // If written to, they are expected at the end of pixel shader
-                    if (stream.Value.Stream.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_POSITION"))
-                        && stream.Value.Stream.Write)
-                        stream.Value.Stream.Output = true;
+                    if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_POSITION"))
+                        && stream.Value.Write)
+                        stream.Value.Output = true;
                 }
 
                 GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult);
@@ -102,14 +102,14 @@ namespace Stride.Shaders.Spirv.Processing
         private void MergeSameSemanticVariables(SymbolTable table, SpirvContext context, NewSpirvBuffer buffer, AnalysisResult analysisResult)
         {
             Dictionary<int, int> remapIds = new();
-            foreach (var streamWithSameSemantic in analysisResult.Streams.Where(x => x.Value.Stream.Semantic != null).GroupBy(x => x.Value.Stream.Semantic))
+            foreach (var streamWithSameSemantic in analysisResult.Streams.Where(x => x.Value.Semantic != null).GroupBy(x => x.Value.Semantic))
             {
                 // Make sure they all have the same type
                 var firstStream = streamWithSameSemantic.First();
                 foreach (var stream in streamWithSameSemantic.Skip(1))
                 {
-                    if (stream.Value.Stream.Type != firstStream.Value.Stream.Type)
-                        throw new InvalidOperationException($"Two variables with same semantic {stream.Value.Stream.Semantic} have different types {stream.Value.Stream.Type} and {firstStream.Value.Stream.Type}");
+                    if (stream.Value.Type != firstStream.Value.Type)
+                        throw new InvalidOperationException($"Two variables with same semantic {stream.Value.Semantic} have different types {stream.Value.Type} and {firstStream.Value.Type}");
 
                     // Remap variable
                     remapIds.Add(stream.Key, firstStream.Key);
@@ -131,21 +131,21 @@ namespace Stride.Shaders.Spirv.Processing
             SpirvBuilder.RemapIds(buffer, 0, buffer.Count, remapIds);
         }
 
-        private static void PropagateStreamsFromPreviousStage(SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
+        private static void PropagateStreamsFromPreviousStage(SortedList<int, StreamInfo> streams)
         {
             foreach (var stream in streams)
             {
-                stream.Value.Stream.OutputLayoutLocation = stream.Value.Stream.InputLayoutLocation;
-                stream.Value.Stream.InputLayoutLocation = null;
-                stream.Value.Stream.Output = stream.Value.Stream.Read;
-                stream.Value.Stream.Read = false;
-                stream.Value.Stream.Write = false;
+                stream.Value.OutputLayoutLocation = stream.Value.InputLayoutLocation;
+                stream.Value.InputLayoutLocation = null;
+                stream.Value.Output = stream.Value.Input;
+                stream.Value.Read = false;
+                stream.Value.Write = false;
             }
         }
 
         private AnalysisResult Analyze(NewSpirvBuffer buffer, SpirvContext context)
         {
-            var streams = new SortedList<int, (StreamInfo Stream, bool IsDirect)>();
+            var streams = new SortedList<int, StreamInfo>();
 
             HashSet<int> blockTypes = [];
             Dictionary<int, int> blockPointerTypes = [];
@@ -247,12 +247,12 @@ namespace Stride.Shaders.Spirv.Processing
                         var type = context.ReverseTypes[variable.ResultType];
                         semanticTable.TryGetValue(variable.ResultId, out var semantic);
 
-                        var stream = (new StreamInfo(semantic, name, type, variable.ResultId)
+                        var stream = new StreamInfo(semantic, name, type, variable.ResultId)
                         {
                             // Does it have an initializer? if yes, mark it as a value written in this stage
                             Write = variable.MethodInitializer != null,
                             VariableMethodInitializerId = variable.MethodInitializer,
-                        }, true);
+                        };
 
                         streams.Add(variable.ResultId, stream);
                     }
@@ -295,13 +295,9 @@ namespace Stride.Shaders.Spirv.Processing
 
             foreach (var stream in streams)
             {
-                // Only direct access to global variables (not temporary variables created within function)
-                if (!stream.Value.IsDirect)
-                    continue;
-
-                if (stream.Value.Stream.Output)
+                if (stream.Value.Output)
                 {
-                    if (stream.Value.Stream.OutputLayoutLocation is { } outputLayoutLocation)
+                    if (stream.Value.OutputLayoutLocation is { } outputLayoutLocation)
                     {
                         outputLayoutLocationCount = Math.Max(outputLayoutLocation + 1, outputLayoutLocationCount);
                     }
@@ -310,66 +306,62 @@ namespace Stride.Shaders.Spirv.Processing
 
             foreach (var stream in streams)
             {
-                // Only direct access to global variables (not temporary variables created within function)
-                if (!stream.Value.IsDirect)
-                    continue;
+                var baseType = ((PointerType)stream.Value.Type).BaseType;
+                if (stream.Value.Private)
+                    privateStreams.Add(stream.Value);
 
-                var baseType = ((PointerType)stream.Value.Stream.Type).BaseType;
-                if (stream.Value.Stream.Private)
-                    privateStreams.Add(stream.Value.Stream);
-
-                if (stream.Value.Stream.Input)
+                if (stream.Value.Input)
                 {
                     context.FluentAdd(new OpTypePointer(context.Bound++, StorageClass.Input, context.Types[baseType]), out var pointerType);
                     context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Input, null), out var variable);
-                    context.AddName(variable, $"in_{stage}_{stream.Value.Stream.Name}");
+                    context.AddName(variable, $"in_{stage}_{stream.Value.Name}");
 
-                    switch (stream.Value.Stream.Semantic?.ToUpperInvariant())
+                    switch (stream.Value.Semantic?.ToUpperInvariant())
                     {
                         case "SV_ISFRONTFACE":
                             context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.FrontFacing)));
                             context.Add(new OpDecorate(variable, Decoration.Flat));
                             break;
                         default:
-                            if (stream.Value.Stream.InputLayoutLocation == null)
-                                stream.Value.Stream.InputLayoutLocation = inputLayoutLocationCount++;
-                            context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.Stream.InputLayoutLocation.Value)));
-                            if (stream.Value.Stream.Semantic != null)
-                                context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Stream.Semantic)));
+                            if (stream.Value.InputLayoutLocation == null)
+                                stream.Value.InputLayoutLocation = inputLayoutLocationCount++;
+                            context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.InputLayoutLocation.Value)));
+                            if (stream.Value.Semantic != null)
+                                context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Semantic)));
                             break;
                     }
 
-                    inputStreams.Add((stream.Value.Stream, variable.ResultId));
+                    inputStreams.Add((stream.Value, variable.ResultId));
                 }
 
-                if (stream.Value.Stream.Output)
+                if (stream.Value.Output)
                 {
                     context.FluentAdd(new OpTypePointer(context.Bound++, StorageClass.Output, context.Types[baseType]), out var pointerType);
                     context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Output, null), out var variable);
-                    context.AddName(variable, $"out_{stage}_{stream.Value.Stream.Name}");
+                    context.AddName(variable, $"out_{stage}_{stream.Value.Name}");
 
-                    switch (stream.Value.Stream.Semantic?.ToUpperInvariant())
+                    switch (stream.Value.Semantic?.ToUpperInvariant())
                     {
                         case "SV_POSITION":
                             context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.Position)));
                             break;
                         default:
                             // TODO: this shouldn't be necessary if we allocated layout during first forward pass for any SV_ semantic
-                            if (stream.Value.Stream.OutputLayoutLocation == null)
+                            if (stream.Value.OutputLayoutLocation == null)
                             {
-                                if (stream.Value.Stream.Semantic?.ToUpperInvariant().StartsWith("SV_") ?? false)
-                                    stream.Value.Stream.OutputLayoutLocation = outputLayoutLocationCount++;
+                                if (stream.Value.Semantic?.ToUpperInvariant().StartsWith("SV_") ?? false)
+                                    stream.Value.OutputLayoutLocation = outputLayoutLocationCount++;
                                 else
-                                    throw new InvalidOperationException($"Can't find output layout location for variable [{stream.Value.Stream.Name}]");
+                                    throw new InvalidOperationException($"Can't find output layout location for variable [{stream.Value.Name}]");
                             }
 
-                            context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.Stream.OutputLayoutLocation.Value)));
-                            if (stream.Value.Stream.Semantic != null)
-                                context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Stream.Semantic)));
+                            context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.OutputLayoutLocation.Value)));
+                            if (stream.Value.Semantic != null)
+                                context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Semantic)));
                             break;
                     }
 
-                    outputStreams.Add((stream.Value.Stream, variable.ResultId));
+                    outputStreams.Add((stream.Value, variable.ResultId));
                 }
             }
 
@@ -386,12 +378,12 @@ namespace Stride.Shaders.Spirv.Processing
                 foreach (var stream in streams)
                 {
                     // Note: we check Private to make sure variable is actually used in the shader (otherwise it won't be emitted if not part of all used variables in OpEntryPoint)
-                    if (stream.Value.Stream.Private
-                        && stream.Value.Stream.VariableMethodInitializerId is int methodInitializerId)
+                    if (stream.Value.Private
+                        && stream.Value.VariableMethodInitializerId is int methodInitializerId)
                     {
-                        var variableValueType = ((PointerType)stream.Value.Stream.Type).BaseType;
+                        var variableValueType = ((PointerType)stream.Value.Type).BaseType;
                         buffer.FluentAdd(new OpFunctionCall(context.GetOrRegister(variableValueType), context.Bound++, methodInitializerId, []), out var methodInitializerCall);
-                        buffer.Add(new OpStore(stream.Value.Stream.VariableId, methodInitializerCall.ResultId, null));
+                        buffer.Add(new OpStore(stream.Value.VariableId, methodInitializerCall.ResultId, null));
                     }
                 }
 
@@ -444,6 +436,14 @@ namespace Stride.Shaders.Spirv.Processing
         private void AnalyzeStreamReadWrites(NewSpirvBuffer buffer, List<int> callStack, int functionId, AnalysisResult analysisResult)
         {
             var streams = analysisResult.Streams;
+            var streamsAccessChains = new Dictionary<int, StreamInfo>();
+
+            bool TryGetStream(int streamId, out StreamInfo streamInfo)
+            {
+                return streams.TryGetValue(streamId, out streamInfo)
+                    || streamsAccessChains.TryGetValue(streamId, out streamInfo);
+            }
+
             var methodStart = FindMethodStart(buffer, functionId);
             for (var index = methodStart; index < buffer.Count; index++)
             {
@@ -453,26 +453,26 @@ namespace Stride.Shaders.Spirv.Processing
 
                 if (instruction.Op is Op.OpLoad && (OpLoad)instruction is { } load)
                 {
-                    if (streams.TryGetValue(load.Pointer, out var streamInfo) && !streamInfo.Stream.Write)
-                        streamInfo.Stream.Read = true;
+                    if (TryGetStream(load.Pointer, out var streamInfo) && !streamInfo.Write)
+                        streamInfo.Read = true;
                     if (analysisResult.Resources.TryGetValue(load.Pointer, out var resourceInfo))
                         resourceInfo.Used = true;
                 }
                 else if (instruction.Op is Op.OpStore && (OpStore)instruction is { } store)
                 {
-                    if (streams.TryGetValue(store.Pointer, out var streamInfo))
-                        streamInfo.Stream.Write = true;
+                    if (TryGetStream(store.Pointer, out var streamInfo))
+                        streamInfo.Write = true;
                     if (analysisResult.Resources.TryGetValue(store.Pointer, out var resourceInfo))
                         resourceInfo.Used = true;
                 }
                 else if (instruction is { Op: Op.OpAccessChain } && (OpAccessChain)instruction is { } accessChain)
                 {
-                    if (streams.TryGetValue(accessChain.BaseId, out var streamInfo))
+                    if (TryGetStream(accessChain.BaseId, out var streamInfo))
                     {
                         // Map the pointer access as access to the underlying stream (if any)
                         // i.e., streams.A.B will share same streamInfo as streams.A
                         // TODO: what happens in case of partial write?
-                        streams.TryAdd(accessChain.ResultId, (streamInfo.Stream, false));
+                        streamsAccessChains.TryAdd(accessChain.ResultId, streamInfo);
                     }
                 }
                 else if (instruction.Op == Op.OpFunctionCall && (OpFunctionCall)instruction is { } call)
