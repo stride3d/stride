@@ -23,17 +23,13 @@ public class StringLiteral(string value, TextLocation info) : Literal(info)
 {
     public string Value { get; set; } = value;
 
-    public override SpirvValue CompileConstantValue(SymbolTable table, SpirvContext context)
-    {
-        var i = context.Add(new OpConstantStringSDSL(context.Bound++, Value));
-        // Note: we rely on undefined type (0); we assume those string literals will be used in only very specific cases where we expect them (i.e. generic instantiation parameters) and will be removed
-        return new SpirvValue(i.IdResult.Value, 0);
-    }
-
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        return CompileConstantValue(table, context);
+
+        var i = context.Add(new OpConstantStringSDSL(context.Bound++, Value));
+        // Note: we rely on undefined type (0); we assume those string literals will be used in only very specific cases where we expect them (i.e. generic instantiation parameters) and will be removed
+        return new SpirvValue(i.IdResult.Value, 0);
     }
 
     public override SpirvValue CompileAsValue(SymbolTable table, CompilerUnit compiler)
@@ -73,11 +69,6 @@ public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info
 
 public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, value, info)
 {
-    public override SpirvValue CompileConstantValue(SymbolTable table, SpirvContext context)
-    {
-        return context.CompileConstantLiteral(this);
-    }
-
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         return compiler.Context.CompileConstantLiteral(this);
@@ -88,11 +79,6 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
 {
     public int? Exponent { get; set; } = exponent;
     public static implicit operator FloatLiteral(double v) => new(new(), v, null, new());
-
-    public override SpirvValue CompileConstantValue(SymbolTable table, SpirvContext context)
-    {
-        return context.CompileConstantLiteral(this);
-    }
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
@@ -110,11 +96,6 @@ public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
 {
     public bool Value { get; set; } = value;
     public override SymbolType? Type => ScalarType.From("bool");
-
-    public override SpirvValue CompileConstantValue(SymbolTable table, SpirvContext context)
-    {
-        return context.CompileConstantLiteral(this);
-    }
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
@@ -256,20 +237,14 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public static implicit operator string(Identifier identifier) => identifier.Name;
 
-    public override SpirvValue CompileConstantValue(SymbolTable table, SpirvContext context)
-    {
-        int position = context.GetBuffer().Count;
-        return CompileSymbol(table, context.GetBuffer(), ref position, context, true);
-    }
-
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
-        return CompileSymbol(table, builder.GetBuffer(), ref builder.Position, context, false);
+        return CompileSymbol(table, builder.GetBuffer(), ref builder.Position, context, builder.CurrentFunction == null);
     }
 
-    private SpirvValue CompileSymbol(SymbolTable table, NewSpirvBuffer buffer, ref int position, SpirvContext context, bool constantOnly)
+    private SpirvValue CompileSymbol(SymbolTable table, NewSpirvBuffer? buffer, ref int position, SpirvContext context, bool constantOnly)
     {
         if (!table.TryResolveSymbol(Name, out var symbol))
         {
@@ -304,7 +279,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         return EmitSymbol(buffer, ref position, context, symbol, constantOnly);
     }
 
-    public static SpirvValue EmitSymbol(NewSpirvBuffer buffer, ref int position, SpirvContext context, Symbol symbol, bool constantOnly, int? instance = null)
+    public static SpirvValue EmitSymbol(NewSpirvBuffer? buffer, ref int position, SpirvContext context, Symbol symbol, bool constantOnly, int? instance = null)
     {
         var resultType = context.GetOrRegister(symbol.Type);
         var result = new SpirvValue(symbol.IdRef, resultType, symbol.Id.Name);

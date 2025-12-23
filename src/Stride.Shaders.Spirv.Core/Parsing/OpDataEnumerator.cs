@@ -22,6 +22,21 @@ public ref struct OpDataEnumerator
     {
         this.instruction = instruction;
         logicalOperands = InstructionInfo.GetInfo(instruction);
+        // If OpSpecConstantOp, there is an inner OpCode which will define additional inner operands
+        if (OpCode == Op.OpSpecConstantOp)
+        {
+            var combinedLogicalOperands = new List<LogicalOperand>();
+            foreach (var o in logicalOperands)
+                combinedLogicalOperands.Add(o);
+            var innerOpCode = (Op)instruction[3];
+            var innerLogicalOperands = InstructionInfo.GetInfo(innerOpCode);
+            // Start from third operand (skip ResultType/ResultId)
+            for (int i = 2; i < innerLogicalOperands.Count; ++i)
+            {
+                combinedLogicalOperands.Add(innerLogicalOperands[i]);
+            }
+            logicalOperands = new LogicalOperandArray(logicalOperands.ClassName, combinedLogicalOperands);
+        }            
         oid = -1;
         pid = -1;
         wid = 0;

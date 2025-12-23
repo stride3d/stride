@@ -20,17 +20,12 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
     {
         var result = CompileImpl(table, compiler);
         // In case type is not computed yet, make sure it is using SpirvValue.TypeId
-        Type ??= compiler.Context.ReverseTypes[result.TypeId];
+        if (result.TypeId != 0)
+            Type ??= compiler.Context.ReverseTypes[result.TypeId];
         return result;
     }
 
     public abstract SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler);
-
-    // Only used for constant expression which should stay in the context buffer (not compiled inside a OpFunction)
-    public virtual SpirvValue CompileConstantValue(SymbolTable table, SpirvContext context)
-    {
-        throw new NotImplementedException();
-    }
 
     public SymbolType? ValueType { get => field ?? throw new InvalidOperationException($"Can't query {nameof(ValueType)} before calling {nameof(CompileAsValue)}"); private set; }
 

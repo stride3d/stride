@@ -690,7 +690,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (mixinNode.CompositionArrays.TryGetValue(accessChain.BaseId, out var compositions)
                     || (mixinNode.Stage != null && mixinNode.Stage.CompositionArrays.TryGetValue(accessChain.BaseId, out compositions)))
                 {
-                    var compositionIndex = (int)SpirvBuilder.GetConstantValue(accessChain.Values.Elements.Span[0], context.GetBuffer(), temp);
+                    var compositionIndex = (int)SpirvBuilder.GetConstantValue(accessChain.Values.Elements.Span[0], context.GetBuffer());
                     compositionArrayAccesses.Add(accessChain.ResultId, compositions[compositionIndex]);
 
                     SetOpNop(i.Data.Memory.Span);

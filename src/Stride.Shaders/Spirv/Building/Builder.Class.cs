@@ -136,107 +136,113 @@ public partial class SpirvBuilder
         return inheritanceList[index];
     }
 
-    public static bool TryGetInstructionById(int constantId, out OpDataIndex instruction, params ReadOnlySpan<NewSpirvBuffer> buffers)
+    public static bool TryGetInstructionById(int constantId, out OpDataIndex instruction, NewSpirvBuffer buffer)
     {
-        foreach (var buffer in buffers)
-        {
-            if (buffer.TryGetInstructionById(constantId, out instruction))
-                return true;
-        }
+        if (buffer.TryGetInstructionById(constantId, out instruction))
+            return true;
 
         instruction = default;
         return false;
     }
 
-    public static object GetConstantValue(int constantId, params ReadOnlySpan<NewSpirvBuffer> buffers)
+    public static object GetConstantValue(int constantId, NewSpirvBuffer buffer)
     {
-        foreach (var buffer in buffers)
+        if (buffer.TryGetInstructionById(constantId, out var constant))
         {
-            if (buffer.TryGetInstructionById(constantId, out var constant))
-            {
-                return GetConstantValue(constant.Data, buffers);
-            }
+            return GetConstantValue(constant, buffer);
         }
 
         throw new Exception("Cannot find constant instruction for id " + constantId);
     }
 
-    public static bool TryGetConstantValue(int constantId, out object value, params ReadOnlySpan<NewSpirvBuffer> buffers)
+    public static bool TryGetConstantValue(int constantId, out object value, NewSpirvBuffer buffer)
     {
-        foreach (var buffer in buffers)
+        if (buffer.TryGetInstructionById(constantId, out var constant))
         {
-            if (buffer.TryGetInstructionById(constantId, out var constant))
-            {
-                return TryGetConstantValue(constant.Data, out value, buffers);
-            }
+            return TryGetConstantValue(constant, out value, buffer);
         }
 
         value = default;
         return false;
     }
 
-    public static object GetConstantValue(OpData data, params ReadOnlySpan<NewSpirvBuffer> buffers)
+    public static object GetConstantValue(OpDataIndex i, NewSpirvBuffer buffer)
     {
-        if (!TryGetConstantValue(data, out var value, buffers))
-            throw new InvalidOperationException($"Can't process constant {data.IdResult}");
+        if (!TryGetConstantValue(i, out var value, buffer))
+            throw new InvalidOperationException($"Can't process constant {i.Data.IdResult}");
 
         return value;
     }
 
     // Note: this will return false if constant can't be resolved yet (i.e. due to unresolved generics). If it is not meant to become a constant (even later), behavior is undefined.
-    public static bool TryGetConstantValue(OpData data, out object value, params ReadOnlySpan<NewSpirvBuffer> buffers)
+    public static bool TryGetConstantValue(OpDataIndex i, out object value, NewSpirvBuffer buffer)
     {
+        value = default;
+
         // Check for unresolved values
-        if (data.Op == Op.OpSDSLGenericParameter)
+        if (i.Op == Op.OpSDSLGenericParameter)
         {
-            value = default;
             return false;
         }
 
-        if (data.Op == Op.OpConstantStringSDSL)
+        if (i.Op == Op.OpConstantStringSDSL)
         {
-            var operand2 = data.Get("literalString");
+            var operand2 = i.Data.Get("literalString");
             value = operand2.ToLiteral<string>();
             return true;
         }
 
-        int typeId = data.Op switch
+        if (i.Op == Op.OpSpecConstantOp)
         {
-            Op.OpConstant or Op.OpSpecConstant => data.Memory.Span[1],
-        };
-        var operand = data.Get("value");
-        foreach (var buffer in buffers)
-        {
-            if (buffer.TryGetInstructionById(typeId, out var typeInst))
+            var op = (Op)i.Data.Memory.Span[3];
+            switch (op)
             {
-                if (typeInst.Op == Op.OpTypeInt)
-                {
-                    var type = (OpTypeInt)typeInst;
-                    value = type switch
-                    {
-                        { Width: <= 32, Signedness: 0 } => operand.ToLiteral<uint>(),
-                        { Width: <= 32, Signedness: 1 } => operand.ToLiteral<int>(),
-                        { Width: 64, Signedness: 0 } => operand.ToLiteral<ulong>(),
-                        { Width: 64, Signedness: 1 } => operand.ToLiteral<long>(),
-                        _ => throw new NotImplementedException($"Unsupported int width {type.Width}"),
-                    };
+                case Op.OpIMul:
+                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var left, buffer))
+                        return false;
+                    if (!TryGetConstantValue(i.Data.Memory.Span[5], out var right, buffer))
+                        return false;
+                    value = (int)left * (int)right;
                     return true;
-                }
-                else if (typeInst.Op == Op.OpTypeFloat)
-                {
-                    var type = new OpTypeFloat(typeInst);
-                    value = type switch
-                    {
-                        { Width: 16 } => operand.ToLiteral<Half>(),
-                        { Width: 32 } => operand.ToLiteral<float>(),
-                        { Width: 64 } => operand.ToLiteral<double>(),
-                        _ => throw new NotImplementedException($"Unsupported float width {type.Width}"),
-                    };
-                    return true;
-                }
-                else
-                    throw new NotImplementedException($"Unsupported context dependent number with type {typeInst.Op}");
+                default:
+                    throw new NotImplementedException();
             }
+        }
+
+        int typeId = i.Op switch
+        {
+            Op.OpConstant or Op.OpSpecConstant => i.Data.Memory.Span[1],
+        };
+        var operand = i.Data.Get("value");
+        if (buffer.TryGetInstructionById(typeId, out var typeInst))
+        {
+            if (typeInst.Op == Op.OpTypeInt)
+            {
+                var type = (OpTypeInt)typeInst;
+                value = type switch
+                {
+                    { Width: <= 32, Signedness: 0 } => operand.ToLiteral<uint>(),
+                    { Width: <= 32, Signedness: 1 } => operand.ToLiteral<int>(),
+                    { Width: 64, Signedness: 0 } => operand.ToLiteral<ulong>(),
+                    { Width: 64, Signedness: 1 } => operand.ToLiteral<long>(),
+                    _ => throw new NotImplementedException($"Unsupported int width {type.Width}"),
+                };
+                return true;
+            }
+            else if (typeInst.Op == Op.OpTypeFloat)
+            {
+                var type = new OpTypeFloat(typeInst);
+                value = type switch
+                {
+                    { Width: 16 } => operand.ToLiteral<Half>(),
+                    { Width: 32 } => operand.ToLiteral<float>(),
+                    { Width: 64 } => operand.ToLiteral<double>(),
+                    _ => throw new NotImplementedException($"Unsupported float width {type.Width}"),
+                };
+                return true;
+            }
+            else
+                throw new NotImplementedException($"Unsupported context dependent number with type {typeInst.Op}");
         }
         throw new Exception("Cannot find type instruction for id " + typeId);
     }
@@ -621,8 +627,8 @@ public partial class SpirvBuilder
     {
         var shader = GetOrLoadShader(shaderLoader, className, macros, out var isFromCache);
 
-        if (!isFromCache)
-            Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        //if (!isFromCache)
+        //    Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 
         if (genericResolver.NeedsResolve())
         {
@@ -632,7 +638,7 @@ public partial class SpirvBuilder
             shader = CopyShader(shader);
 
             InstantiateGenericShader(shader, className, genericResolver, shaderLoader, macros);
-            Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+            //Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
         }
 
         return shader;

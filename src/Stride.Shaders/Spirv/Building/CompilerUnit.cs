@@ -24,6 +24,13 @@ public class CompilerUnit
         Arguments = [];
     }
 
+    public CompilerUnit(SpirvContext context, SpirvBuilder builder)
+    {
+        Context = context;
+        Builder = builder;
+        Arguments = [];
+    }
+
     public void Deconstruct(out SpirvBuilder builder, out SpirvContext context)
     {
         builder = Builder;
