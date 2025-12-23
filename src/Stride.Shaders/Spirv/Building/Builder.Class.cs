@@ -481,7 +481,7 @@ public partial class SpirvBuilder
                 {
                     // Add something to shaderName (which is used as key in ShaderLoader cache)
                     var originalShaderName = shaderName;
-                    shaderName += $"_{string.Join("_", instantiatedGenericsMacros.Select(x => x.Definition))}";
+                    shaderName += $"_{string.Join("_", instantiatedGenericsMacros.Select(x => RemoveInvalidCharactersFromSymbol(x.Definition)))}";
 
                     // Note: we apply the preprocessor only the shader body to transform generics parameter into their actual value without touching the generic definition
                     code = code.Substring(0, unresolvableShader.ShaderCodeNameEnd)

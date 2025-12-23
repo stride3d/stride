@@ -857,7 +857,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                     // Now, make sure it's all valid HLSL/GLSL characters (this will replace multiple invalid characters with a single underscore)
                     // Otherwise, EffectReflection RawName won't match
-                    updatedName = string.Join("_", updatedName.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
+                    updatedName = SpirvBuilder.RemoveInvalidCharactersFromSymbol(updatedName);
                     globalContext.Names[name.Target] = updatedName;
                 }
             }

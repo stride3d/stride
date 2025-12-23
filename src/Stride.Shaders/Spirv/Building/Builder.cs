@@ -134,4 +134,10 @@ public partial class SpirvBuilder()
             builder.position = position;
         }
     }
+
+    static char[] invalidChars = { '<', '>', '[', ']', '.', ',', '-' };
+    public static string RemoveInvalidCharactersFromSymbol(string name)
+    {
+        return string.Join("_", name.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
+    }
 }
