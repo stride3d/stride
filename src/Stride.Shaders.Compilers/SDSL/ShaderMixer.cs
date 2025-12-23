@@ -38,10 +38,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var effectEvaluator = new EffectEvaluator(ShaderLoader);
         shaderSource = effectEvaluator.EvaluateEffects(shaderSource);
 
-        var shaderSource2 = EvaluateInheritanceAndCompositions(shaderSource);
+        var shaderSource2 = EvaluateInheritanceAndCompositions(context, shaderSource);
 
         // Root shader
         var globalContext = new MixinGlobalContext();
+
+        // Process name and types imported by constants due to generics instantiation
+        ShaderClass.ProcessNameAndTypes(context.GetBuffer(), 0, context.GetBuffer().Count, globalContext.Names, globalContext.Types);
+
         var rootMixin = MergeMixinNode(globalContext, context, table, temp, shaderSource2);
 
         context.Insert(0, new OpCapability(Capability.Shader));
@@ -79,8 +83,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         bytecode = temp.ToBytecode();
 
 #if DEBUG
-        File.WriteAllBytes("test.spv", bytecode);
-        File.WriteAllText("test.spvdis", Spv.Dis(temp));
+        //File.WriteAllBytes("test.spv", bytecode);
+        //File.WriteAllText("test.spvdis", Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
         Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 #endif
 
@@ -342,26 +346,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             // Specific type instructions in context gets deduplicated before adding
             bool addToContext = false;
-            if (
-                // Types
-                i2.Op == Op.OpTypeVoid
-                || i2.Op == Op.OpTypeInt
-                || i2.Op == Op.OpTypeFloat
-                || i2.Op == Op.OpTypeBool
-                || i2.Op == Op.OpTypeVector
-                || i2.Op == Op.OpTypeMatrix
-                || i2.Op == Op.OpTypeArray
-                || i2.Op == Op.OpTypeRuntimeArray
-                || i2.Op == Op.OpTypePointer
-                || i2.Op == Op.OpTypeFunction
-                || i2.Op == Op.OpTypeFunctionSDSL
-                || i2.Op == Op.OpTypeImage
-                || i2.Op == Op.OpTypeSampler
-                || i2.Op == Op.OpTypeGenericSDSL
-                || i2.Op == Op.OpSDSLImportShader
-                || i2.Op == Op.OpSDSLImportVariable
-                || i2.Op == Op.OpSDSLImportFunction
-                || i2.Op == Op.OpSDSLImportStruct)
+            if (TypeDuplicateHelper.OpCheckDuplicateForTypesAndImport(i2.Op))
             {
                 // We need to replace those right now (otherwise further types depending on this struct won't get properly translated)
                 if (i2.Op == Op.OpSDSLImportStruct && new OpSDSLImportStruct(ref i2) is { } importStruct)
@@ -381,8 +366,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     {
                         if (i2.IdResult is int id)
                         {
-                            remapIds.Add(id, existingInstruction.IdResult.Value);
-                            removedIds.Add(existingInstruction.IdResult.Value);
+                            remapIds.Add(id, existingInstruction.Data.IdResult.Value);
+                            removedIds.Add(existingInstruction.Data.IdResult.Value);
                         }
                     }
                     else

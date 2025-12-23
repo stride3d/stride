@@ -47,10 +47,7 @@ public class TypeDuplicateHelper
     {
         public InstructionSortHelper(OpDataIndex i) : this(i.Op, i.Index, i.Data) { }
 
-        // If it's a fake instruction for OpName/OpMember, we can also use Target instead of Memory.Span[1] 
-        public int? TargetOverride { get; init; }
-
-        public override string ToString() => Data.Memory != null ? Data.ToString() : $"{Op} Target:{TargetOverride}";
+        public override string ToString() => Data.Memory != null ? Data.ToString() : $"{Op} Index: {Index}";
     }
 
     class OperationComparer(NewSpirvBuffer Buffer, bool UseIndices) : IComparer<InstructionSortHelper>
@@ -80,35 +77,44 @@ public class TypeDuplicateHelper
                     return 1;
             }
 
-            // Only for OpName and OpMember
+            // Only for OpName and OpMember: we sort by target
+            // Note: RemapOp earlier made sure we sort first per Target then OpCode, i.e.:
+            // OpName %3 "Test"
+            // OpDecorate %3 ....
+            // OpName %4 "Test2"
             if (x.Op == Op.OpName || x.Op == Op.OpDecorate || x.Op == Op.OpDecorateString || x.Op == Op.OpMemberName || x.Op == Op.OpMemberDecorate || x.Op == Op.OpMemberDecorateString)
             {
-                // Use TargetOverride if defined, otherwise Memory.Span[1] (where target would be stored)
-                comparison = (x.TargetOverride ?? x.Data.Memory.Span[1]).CompareTo(y.TargetOverride ?? y.Data.Memory.Span[1]);
+                comparison = (x.Data.Memory.Span[1]).CompareTo(y.Data.Memory.Span[1]);
                 if (comparison != 0)
                     return comparison;
             }
 
             // Only process types that we care about
-            if (x.Op == Op.OpTypeVoid || x.Op == Op.OpTypeInt || x.Op == Op.OpTypeFloat || x.Op == Op.OpTypeBool
-                || x.Op == Op.OpTypeVector || x.Op == Op.OpTypeMatrix || x.Op == Op.OpTypePointer || x.Op == Op.OpTypeFunction || x.Op == Op.OpTypeFunctionSDSL
-                || x.Op == Op.OpTypeRuntimeArray
-                || x.Op == Op.OpTypeImage || x.Op == Op.OpTypeSampler
-                || x.Op == Op.OpTypeGenericSDSL
-                || x.Op == Op.OpSDSLImportShader || x.Op == Op.OpSDSLImportFunction || x.Op == Op.OpSDSLImportVariable || x.Op == Op.OpSDSLImportStruct)
-            {
-                comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[2..], y.Data.Memory.Span[2..]);
-                if (comparison != 0)
-                    return comparison;
-            }
             // For arrays, we have some additional checks: same name and member info
-            else if (x.Op == Op.OpTypeArray)
+            if (x.Op == Op.OpTypeArray)
             {
                 comparison = x.Data.Memory.Span[2].CompareTo(y.Data.Memory.Span[2]);
                 if (comparison != 0)
                     return comparison;
 
                 comparison = CompareIntConstant(Buffer, x.Data.Memory.Span[3], y.Data.Memory.Span[3]);
+                if (comparison != 0)
+                    return comparison;
+            }
+            // Standard ResultType/ResultId instructions: ignore ResultId (Span[2]) and compare the rest
+            else if (x.Op == Op.OpSDSLGenericParameter)
+            {
+                comparison = x.Data.Memory.Span[1].CompareTo(y.Data.Memory.Span[1]);
+                if (comparison != 0)
+                    return comparison;
+
+                comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[3..], y.Data.Memory.Span[3..]);
+                if (comparison != 0)
+                    return comparison;
+            }
+            else if (OpCheckDuplicateForTypesAndImport(x.Op) || OpCheckDuplicateForConstant(x.Op))
+            {
+                comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[2..], y.Data.Memory.Span[2..]);
                 if (comparison != 0)
                     return comparison;
             }
@@ -134,8 +140,8 @@ public class TypeDuplicateHelper
         if (id1 == id2)
             return 0;
 
-        var value1Success = SpirvBuilder.TryGetConstantValue(id1, out var value1, buffer);
-        var value2Success = SpirvBuilder.TryGetConstantValue(id2, out var value2, buffer);
+        var value1Success = SpirvBuilder.TryGetConstantValue(id1, out var value1, out _, buffer, false);
+        var value2Success = SpirvBuilder.TryGetConstantValue(id2, out var value2, out _, buffer, false);
 
         return (value1Success, value2Success) switch
         {
@@ -173,9 +179,9 @@ public class TypeDuplicateHelper
         comparerInsert = new OperationComparer(buffer, false);
     }
 
-    public void InsertInstruction(int index, OpData data)
+    public OpDataIndex InsertInstruction(int index, OpData data)
     {
-        buffer.Insert(index, data);
+        var result = buffer.Insert(index, data);
 
         // Adjust indices
         var namesByOpSpan = CollectionsMarshal.AsSpan(namesByOp);
@@ -201,6 +207,8 @@ public class TypeDuplicateHelper
         if (sortedInsertionIndex >= 0)
             throw new InvalidOperationException();
         targetList.Insert(~sortedInsertionIndex, newItem);
+
+        return result;
     }
 
     public void RemoveInstructionAt(int index, bool dispose)
@@ -251,17 +259,55 @@ public class TypeDuplicateHelper
         return namesByOp;
     }
 
-    public bool CheckForDuplicates(OpData data, out OpData foundData)
+    public static bool OpCheckDuplicateForTypesAndImport(Op op)
+    {
+        return op == Op.OpTypeVoid
+            || op == Op.OpTypeInt
+            || op == Op.OpTypeFloat
+            || op == Op.OpTypeBool
+            || op == Op.OpTypeVector
+            || op == Op.OpTypeMatrix
+            || op == Op.OpTypeArray
+            || op == Op.OpTypeRuntimeArray
+            || op == Op.OpTypePointer
+            || op == Op.OpTypeFunction
+            || op == Op.OpTypeFunctionSDSL
+            || op == Op.OpTypeImage
+            || op == Op.OpTypeSampler
+            || op == Op.OpTypeGenericSDSL
+            || op == Op.OpSDSLImportShader
+            || op == Op.OpSDSLImportVariable
+            || op == Op.OpSDSLImportFunction
+            || op == Op.OpSDSLImportStruct;
+    }
+
+    public static bool OpCheckDuplicateForConstant(Op op)
+    {
+        return op == Op.OpConstant
+            || op == Op.OpConstantTrue
+            || op == Op.OpConstantFalse
+            || op == Op.OpConstantNull
+            || op == Op.OpConstantSampler
+            || op == Op.OpConstantComposite
+            || op == Op.OpConstantStringSDSL
+            || op == Op.OpSpecConstant
+            || op == Op.OpSpecConstantComposite
+            || op == Op.OpSpecConstantTrue
+            || op == Op.OpSpecConstantFalse
+            || op == Op.OpSpecConstantOp;
+    }
+
+    public bool CheckForDuplicates(OpData data, out OpDataIndex foundData)
     {
         var index = instructionsByOp.BinarySearch(new InstructionSortHelper { Op = data.Op, Index = -1, Data = data }, comparerInsert);
 
         if (index >= 0)
         {
-            foundData = instructionsByOp[index].Data;
+            foundData = new(instructionsByOp[index].Index, buffer);
             return true;
         }
 
-        foundData = data;
+        foundData = default;
         return false;
     }
 

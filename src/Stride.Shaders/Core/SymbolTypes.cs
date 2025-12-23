@@ -1,6 +1,7 @@
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core.Buffers;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -116,7 +117,7 @@ public sealed partial record MatrixType(ScalarType BaseType, int Rows, int Colum
 /// </summary>
 /// <param name="BaseType">The base type for the array.</param>
 /// <param name="Size">The size of the array. If -1, it means size is not defined, such as using [].</param>
-public sealed record ArrayType(SymbolType BaseType, int Size, int? SizeExpressionId = null) : SymbolType()
+public sealed record ArrayType(SymbolType BaseType, int Size, (int Id, NewSpirvBuffer Buffer)? SizeExpression = null) : SymbolType()
 {
     public override string ToId() => $"{BaseType.ToId()}[{(Size != -1 ? Size : string.Empty)}]";
     public override string ToString() => $"{BaseType}[{(Size != -1 ? Size : string.Empty)}]";

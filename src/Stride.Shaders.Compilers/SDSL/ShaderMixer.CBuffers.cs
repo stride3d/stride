@@ -251,9 +251,10 @@ namespace Stride.Shaders.Compilers.SDSL
                 var hasOffsetDecorations = false;
                 foreach (var i in context.GetBuffer())
                 {
-                    if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.Offset } } memberDecorate && memberDecorate.StructType == structId)
+                    if (i.Op == Op.OpMemberDecorate && (OpMemberDecorate)i is { Decoration: { Value: Decoration.Offset } } memberDecorate && memberDecorate.StructureType == structId)
                     {
                         hasOffsetDecorations = true;
+                        break;
                     }
                 }
 
@@ -272,7 +273,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                     // Note: we assume if already added by another cbuffer using this type, the offsets were computed the same way
                     if (!hasOffsetDecorations)
-                        context.Add(new OpMemberDecorate(context.Types[s], i, ParameterizedFlags.DecorationOffset(offset)));
+                        context.Add(new OpMemberDecorate(structId, i, ParameterizedFlags.DecorationOffset(offset)));
 
                     offset += memberSize;
                 }

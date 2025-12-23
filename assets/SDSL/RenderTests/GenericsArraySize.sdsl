@@ -2,14 +2,17 @@
 
 namespace Stride.Shaders.Tests;
 
-shader GenericsArrayBase<int TArraySizeHalf>
+shader GenericsArrayBase2<int TIgnored1, int TIgnored2, int TArraySizeHalf2>
 {
-    stream float4 ColorTarget : SV_Target0;
-
     cbuffer Test
     { 
-        int Test2[TArraySizeHalf * 2];
+        int Test2[TArraySizeHalf2 * 2];
     }
+}
+
+shader GenericsArrayBase<int TArraySizeHalf> : GenericsArrayBase2<1, 2, TArraySizeHalf>
+{
+    stream float4 ColorTarget : SV_Target0;
 
     void PSMain()
     {

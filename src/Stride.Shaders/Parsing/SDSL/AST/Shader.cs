@@ -144,13 +144,15 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             else if (instruction.Op == Op.OpTypeArray && (OpTypeArray)instruction is { } typeArray)
             {
                 var innerType = types[typeArray.ElementType];
-                if (SpirvBuilder.TryGetConstantValue(typeArray.Length, out var arraySizeObject, buffer))
+                if (SpirvBuilder.TryGetConstantValue(typeArray.Length, out var arraySizeObject, out _, buffer, false))
                 {
-                    types.Add(typeArray.ResultId, new ArrayType(innerType, (int)arraySizeObject, typeArray.Length));
+                    types.Add(typeArray.ResultId, new ArrayType(innerType, (int)arraySizeObject));
                 }
                 else
                 {
-                    types.Add(typeArray.ResultId, new ArrayType(innerType, -1, typeArray.Length));
+                    // Constant can't be computed; we need to save aside all opcodes
+                    var bufferForConstant = SpirvBuilder.ExtractConstantAsSpirvBuffer(buffer, typeArray.Length);
+                    types.Add(typeArray.ResultId, new ArrayType(innerType, -1, (typeArray.Length, bufferForConstant)));
                 }
             }
             else if (instruction.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)instruction is { } typeRuntimeArray)
@@ -246,17 +248,17 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         }
     }
 
-    public class ShaderImporter(SymbolTable table) : IShaderImporter
+    public class ShaderImporter(SymbolTable table, SpirvContext context) : IShaderImporter
     {
         public ShaderSymbol Import(ShaderClassInstantiation classSource, NewSpirvBuffer buffer)
         {
-            return LoadAndCacheExternalShaderType(table, classSource, buffer);
+            return LoadAndCacheExternalShaderType(table, context, classSource, buffer);
         }
     }
 
-    private static LoadedShaderSymbol CreateShaderType(SymbolTable table, NewSpirvBuffer buffer, ShaderClassInstantiation classSource)
+    private static LoadedShaderSymbol CreateShaderType(SymbolTable table, SpirvContext context, NewSpirvBuffer buffer, ShaderClassInstantiation classSource)
     {
-        ProcessNameAndTypes(buffer, 0, buffer.Count, out var names, out var types, new ShaderImporter(table));
+        ProcessNameAndTypes(buffer, 0, buffer.Count, out var names, out var types, new ShaderImporter(table, context));
 
         var variables = new List<(Symbol Symbol, VariableFlagsMask Flags)>();
         var methods = new List<(Symbol Symbol, FunctionFlagsMask Flags)>();
@@ -327,7 +329,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 table.DeclaredTypes.TryAdd(genericParameterType.ToString(), genericParameterType);
 
                 var genericParameterTypeId = context.GetOrRegister(genericParameterType);
-                context.Add(new OpSDSLGenericParameter(genericParameterTypeId, context.Bound));
+                context.Add(new OpSDSLGenericParameter(genericParameterTypeId, context.Bound, i, Name.Name));
                 context.AddName(context.Bound, genericParameter.Name);
                 table.CurrentFrame.Add(genericParameter.Name, new(new(genericParameter.Name, SymbolKind.ConstantGeneric), genericParameterType, context.Bound));
 
@@ -371,13 +373,13 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 }
             }
             var shaderClassSource = new ShaderClassInstantiation(mixin.Name, generics);
-            SpirvBuilder.BuildInheritanceList(table.ShaderLoader, shaderClassSource, table.CurrentMacros.AsSpan(), inheritanceList, ResolveStep.Compile, context.GetBuffer());
+            SpirvBuilder.BuildInheritanceList(table.ShaderLoader, context, shaderClassSource, table.CurrentMacros.AsSpan(), inheritanceList, ResolveStep.Compile);
         }
 
         var shaderSymbols = new List<LoadedShaderSymbol>();
         foreach (var mixin in inheritanceList)
         {
-            shaderSymbols.Add(mixin.Symbol = LoadAndCacheExternalShaderType(table, mixin));
+            shaderSymbols.Add(mixin.Symbol = LoadAndCacheExternalShaderType(table, context, mixin));
         }
 
         foreach (var shaderType in shaderSymbols)
@@ -411,9 +413,9 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     if (svar.TypeName.Name.Contains("<"))
                         throw new NotImplementedException("Can't have member variables with generic shader types");
                     var classSource = new ShaderClassInstantiation(svar.TypeName.Name, []);
-                    var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), ResolveStep.Compile, context.GetBuffer());
+                    var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), ResolveStep.Compile, context);
                     classSource.Buffer = shader;
-                    var shaderType = LoadAndCacheExternalShaderType(table, classSource, context.GetBuffer());
+                    var shaderType = LoadAndCacheExternalShaderType(table, context, classSource);
 
                     // Resolve again (we don't use shaderType direclty, because it might lack info such as ArrayType)
                     memberType = svar.TypeName.ResolveType(table, context);
@@ -528,7 +530,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         context.Add(new OpSDSLMixinInherit(shaderId));
     }
 
-    public static LoadedShaderSymbol LoadAndCacheExternalShaderType(SymbolTable table, ShaderClassInstantiation classSource)
+    public static LoadedShaderSymbol LoadAndCacheExternalShaderType(SymbolTable table, SpirvContext context, ShaderClassInstantiation classSource)
     {
         // Already processed?
         if (table.DeclaredTypes.TryGetValue(classSource.ToClassName(), out var symbolType))
@@ -537,11 +539,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         if (classSource.Buffer == null)
             throw new InvalidOperationException($"{nameof(classSource)}.{nameof(classSource.Buffer)} need to be set");
 
-        var shaderType = LoadExternalShaderType(table, classSource);
+        var shaderType = LoadExternalShaderType(table, context, classSource);
         return shaderType;
     }
 
-    public static LoadedShaderSymbol LoadAndCacheExternalShaderType(SymbolTable table, ShaderClassInstantiation classSource, NewSpirvBuffer parentBuffer)
+    public static LoadedShaderSymbol LoadAndCacheExternalShaderType(SymbolTable table, SpirvContext context, ShaderClassInstantiation classSource, NewSpirvBuffer parentBuffer)
     {
         // Already processed?
         if (table.DeclaredTypes.TryGetValue(classSource.ToClassName(), out var symbolType))
@@ -552,15 +554,15 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), ResolveStep.Compile, parentBuffer);
             classSource.Buffer = shader;
         }
-        var shaderType = LoadExternalShaderType(table, classSource);
+        var shaderType = LoadExternalShaderType(table, context, classSource);
         return shaderType;
     }
 
-    public static LoadedShaderSymbol LoadExternalShaderType(SymbolTable table, ShaderClassInstantiation classSource)
+    public static LoadedShaderSymbol LoadExternalShaderType(SymbolTable table, SpirvContext context, ShaderClassInstantiation classSource)
     {
         var shaderBuffer = classSource.Buffer;
 
-        var shaderType = CreateShaderType(table, shaderBuffer, classSource);
+        var shaderType = CreateShaderType(table, context, shaderBuffer, classSource);
 
         RegisterShaderType(table, shaderType);
 

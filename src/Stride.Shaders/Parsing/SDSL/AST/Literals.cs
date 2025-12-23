@@ -259,10 +259,10 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
             // Shader is inherited (TODO: do we want to do something more "selective", i.e. import only the required variable if it's a cbuffer?)
             var inheritedShaderCount = table.InheritedShaders.Count;
-            classSource = SpirvBuilder.BuildInheritanceList(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile, buffer);
+            classSource = SpirvBuilder.BuildInheritanceList(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile);
             for (int i = inheritedShaderCount; i < table.InheritedShaders.Count; ++i)
             {
-                table.InheritedShaders[i].Symbol = ShaderClass.LoadAndCacheExternalShaderType(table, table.InheritedShaders[i]);
+                table.InheritedShaders[i].Symbol = ShaderClass.LoadAndCacheExternalShaderType(table, context, table.InheritedShaders[i]);
                 ShaderClass.Inherit(table, context, table.InheritedShaders[i].Symbol, false);
             }
 
@@ -421,19 +421,27 @@ public class TypeName(string name, TextLocation info) : Literal(info)
 
         if (IsArray)
         {
-            foreach (var arraySize in ArraySize)
-            {
-                if (arraySize is EmptyExpression)
-                    symbolType = new ArrayType(symbolType, -1);
-                else
-                {
-                    var arrayComputedSize = -1;
-                    if (arraySize is IntegerLiteral i)
-                        arrayComputedSize = (int)i.Value;
+            var fullTypeName = GenerateTypeName(includeGenerics: true, includeArray: true);
 
-                    var constantArraySize = arraySize.CompileConstantValue(table, context);
-                    symbolType = new ArrayType(symbolType, arrayComputedSize, constantArraySize.Id);
+            var arraySymbolType = symbolType;
+            if (!table.DeclaredTypes.TryGetValue(fullTypeName, out symbolType))
+            {
+                foreach (var arraySize in ArraySize)
+                {
+                    if (arraySize is EmptyExpression)
+                        arraySymbolType = new ArrayType(arraySymbolType, -1);
+                    else
+                    {
+                        var arrayComputedSize = -1;
+                        if (arraySize is IntegerLiteral i)
+                            arrayComputedSize = (int)i.Value;
+
+                        var constantArraySize = arraySize.CompileConstantValue(table, context);
+                        arraySymbolType = new ArrayType(arraySymbolType, arrayComputedSize, (constantArraySize.Id, context.GetBuffer()));
+                    }
                 }
+
+                table.DeclaredTypes.Add(fullTypeName, symbolType = arraySymbolType);
             }
         }
 

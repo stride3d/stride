@@ -157,8 +157,8 @@ public class SpirvContext
                     },
                 VectorType v => Buffer.Add(new OpTypeVector(Bound++, GetOrRegister(v.BaseType), v.Size)).IdResult,
                 MatrixType m => Buffer.Add(new OpTypeMatrix(Bound++, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns)).IdResult,
-                ArrayType a when a.Size != -1 || a.SizeExpressionId != null => RegisterArrayType(a),
-                ArrayType a when a.Size == -1 && a.SizeExpressionId == null => Buffer.Add(new OpTypeRuntimeArray(Bound++, GetOrRegister(a.BaseType))).IdResult,
+                ArrayType a when a.Size != -1 || a.SizeExpression != null => RegisterArrayType(a),
+                ArrayType a when a.Size == -1 && a.SizeExpression == null => Buffer.Add(new OpTypeRuntimeArray(Bound++, GetOrRegister(a.BaseType))).IdResult,
                 StructType st => RegisterStructuredType(st.ToId(), st),
                 FunctionType f => RegisterFunctionType(f),
                 PointerType p => RegisterPointerType(p),
@@ -182,9 +182,33 @@ public class SpirvContext
 
     private int? RegisterArrayType(ArrayType a)
     {
-        var sizeId = a.Size != -1
-            ? CompileConstant((int)a.Size).Id
-            : a.SizeExpressionId ?? throw new InvalidOperationException();
+        int sizeId;
+        if (a.Size != -1)
+        {
+            sizeId = CompileConstant((int)a.Size).Id;
+        }
+        else if (a.SizeExpression is { } sizeExpression)
+        {
+            // Import constants
+            var importBuffer = sizeExpression.Buffer;
+            if (importBuffer != Buffer)
+            {
+                var index = Buffer.Count;
+                var bound = Bound;
+                var resultId = SpirvBuilder.InsertBufferWithoutDuplicates(Buffer, ref index, ref bound, null, importBuffer);
+                Bound = bound;
+
+                sizeId = resultId;
+            }
+            else
+            {
+                sizeId = sizeExpression.Id;
+            }
+        }
+        else
+        {
+            throw new InvalidOperationException();
+        }
 
         return Buffer.Add(new OpTypeArray(Bound++, GetOrRegister(a.BaseType), sizeId)).IdResult;
     }

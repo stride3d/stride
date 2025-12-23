@@ -18,7 +18,7 @@ public partial class ShaderMixer
     /// <param name="root"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(ShaderSource shaderSource, ShaderMixinInstantiation? root = null)
+    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(SpirvContext context, ShaderSource shaderSource, ShaderMixinInstantiation? root = null)
     {
         bool isRoot = root == null;
         var mixinList = new List<ShaderClassInstantiation>();
@@ -44,7 +44,7 @@ public partial class ShaderMixer
                     break;
                 }
             }
-            SpirvBuilder.BuildInheritanceList(ShaderLoader, mixinToMerge2, shaderMixinSource.Macros.AsSpan(), mixinList, ResolveStep.Mix);
+            SpirvBuilder.BuildInheritanceList(ShaderLoader, context, mixinToMerge2, shaderMixinSource.Macros.AsSpan(), mixinList, ResolveStep.Mix);
         }
 
         var compositions = new Dictionary<string, ShaderMixinInstantiation[]>();
@@ -82,12 +82,12 @@ public partial class ShaderMixer
                         {
                             var variableCompositions = new List<ShaderMixinInstantiation>();
                             foreach (var value in shaderArraySource.Values)
-                                variableCompositions.Add(EvaluateInheritanceAndCompositions(value, root ?? result));
+                                variableCompositions.Add(EvaluateInheritanceAndCompositions(context, value, root ?? result));
                             compositions[variableName] = [..variableCompositions];
                         }
                         else
                         {
-                            var variableComposition = EvaluateInheritanceAndCompositions(compositionMixin, root ?? result);
+                            var variableComposition = EvaluateInheritanceAndCompositions(context, compositionMixin, root ?? result);
                             compositions[variableName] = [variableComposition];
                         }
                     }

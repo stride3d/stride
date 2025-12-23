@@ -1,0 +1,39 @@
+// PSMain(ExpectedResult=#02030804, cbuffer.Test=(Test123=02))
+
+namespace Stride.Shaders.Tests;
+
+shader Compute
+{
+    float4 Compute()
+    {
+        return 0.0;
+    }
+}
+
+shader A<int I1, LinkType Link1, int I2, int I3> : Compute
+{
+    cbuffer Test
+    {
+        [Link(Link1)]
+        int Test1;
+    }
+
+    override float4 Compute()
+    {
+        return float4(Test1, I1, I2, I3) / 255.0;
+    }
+}
+
+shader B<int I, LinkType Link2> : A<3, Link2, I, 4>
+{
+}
+
+shader GenericInheritance : B<8, "Test123">
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        streams.ColorTarget = Compute();
+    }
+}
