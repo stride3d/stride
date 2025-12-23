@@ -70,8 +70,14 @@ namespace Stride.Shaders.Spirv.Processing
                     && stream.Value.Write)
                     stream.Value.Output = true;
             }
-
-            var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult);
+            
+            // Check if there is any output
+            // (if PSMain has been overriden with an empty method, it means we don't want to output anything and remove the pixel shader, i.e. for shadow caster)
+            if (streams.Any(x => x.Value.Output))
+            {
+                var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult);
+                buffer.FluentAdd(new OpExecutionMode(psWrapper.ResultId, ExecutionMode.OriginUpperLeft));
+            }
 
             // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
             foreach (var stream in streams)
@@ -84,10 +90,9 @@ namespace Stride.Shaders.Spirv.Processing
             {
                 AnalyzeStreamReadWrites(buffer, [], entryPointVS.IdRef, analysisResult);
 
-                // Expected at the end of vertex shader
+                // If written to, they are expected at the end of vertex shader
                 foreach (var stream in streams)
                 {
-                    // If written to, they are expected at the end of pixel shader
                     if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_POSITION"))
                         && stream.Value.Write)
                         stream.Value.Output = true;
@@ -95,8 +100,6 @@ namespace Stride.Shaders.Spirv.Processing
 
                 GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult);
             }
-
-            buffer.FluentAdd(new OpExecutionMode(psWrapper.ResultId, ExecutionMode.OriginUpperLeft));
         }
 
         private void MergeSameSemanticVariables(SymbolTable table, SpirvContext context, NewSpirvBuffer buffer, AnalysisResult analysisResult)
