@@ -484,6 +484,9 @@ public class MinCall(ShaderExpressionList parameters, TextLocation info) : Metho
 
         var resultType = IntrinsicHelper.FindCommonType(SpirvBuilder.FindCommonBaseTypeForBinaryOperation(xType.GetElementType(), yType.GetElementType()), xType, yType);
 
+        x = builder.Convert(context, x, resultType);
+        y = builder.Convert(context, y, resultType);
+
         var instruction = resultType.GetElementType() switch
         {
             ScalarType { TypeName: "float" } => builder.InsertData(new GLSLFMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
@@ -506,6 +509,9 @@ public class MaxCall(ShaderExpressionList parameters, TextLocation info) : Metho
         var yType = Parameters.Values[1].ValueType;
 
         var resultType = IntrinsicHelper.FindCommonType(SpirvBuilder.FindCommonBaseTypeForBinaryOperation(xType.GetElementType(), yType.GetElementType()), xType, yType);
+
+        x = builder.Convert(context, x, resultType);
+        y = builder.Convert(context, y, resultType);
 
         var instruction = resultType.GetElementType() switch
         {
@@ -833,7 +839,11 @@ public class LengthCall(ShaderExpressionList parameters, TextLocation info) : Me
         var x = Parameters.Values[0].CompileAsValue(table, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var resultType = Parameters.Values[0].ValueType.GetElementType();
+
+        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.From("float"));
+        x = builder.Convert(context, x, parameterType);
+
+        var resultType = ScalarType.From("float");
         var instruction = builder.Insert(new GLSLLength(context.GetOrRegister(resultType), context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
@@ -843,10 +853,19 @@ public class DistanceCall(ShaderExpressionList parameters, TextLocation info) : 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var (p0, p1) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
+
+        var xType = Parameters.Values[0].ValueType;
+        var yType = Parameters.Values[1].ValueType;
+
+        var resultType = IntrinsicHelper.FindCommonType(ScalarType.From("float"), xType, yType);
+
+        x = builder.Convert(context, x, resultType);
+        y = builder.Convert(context, y, resultType);
+
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLDistance(p0.TypeId, context.Bound++, context.GLSLSet ?? -1, p0.Id, p1.Id));
+        var instruction = builder.Insert(new GLSLDistance(context.GetOrRegister(resultType), context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -871,7 +890,7 @@ public class DotCall(ShaderExpressionList parameters, TextLocation info) : Metho
         var (x, y) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
         
         var xType = Parameters.Values[0].ValueType;
-        var yType = Parameters.Values[0].ValueType;
+        var yType = Parameters.Values[1].ValueType;
 
         if (xType != yType)
             throw new NotImplementedException("dot needs to be applied on same types");

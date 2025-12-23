@@ -86,7 +86,7 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("determinant", 1) => new DeterminantCall(parameters, scanner[position..scanner.Position]),
                     ("DeviceMemoryBarrier", _) => throw new NotImplementedException(),
                     ("DeviceMemoryBarrierWithGroupSync", _) => throw new NotImplementedException(),
-                    ("distance", _) => throw new NotImplementedException(),
+                    ("distance", _) => new DistanceCall(parameters, scanner[position..scanner.Position]),
                     ("dot", _) => new DotCall(parameters, scanner[position..scanner.Position]),
                     ("dst", _) => throw new NotImplementedException(),
                     ("errorf", _) => throw new NotImplementedException(),
