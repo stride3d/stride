@@ -23,12 +23,17 @@ public class StringLiteral(string value, TextLocation info) : Literal(info)
 {
     public string Value { get; set; } = value;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileConstantValue(SymbolTable table, SpirvContext context)
     {
-        var (builder, context) = compiler;
         var i = context.Add(new OpConstantStringSDSL(context.Bound++, Value));
         // Note: we rely on undefined type (0); we assume those string literals will be used in only very specific cases where we expect them (i.e. generic instantiation parameters) and will be removed
         return new SpirvValue(i.IdResult.Value, 0);
+    }
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+        return CompileConstantValue(table, context);
     }
 
     public override SpirvValue CompileAsValue(SymbolTable table, CompilerUnit compiler)
@@ -84,6 +89,11 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
     public int? Exponent { get; set; } = exponent;
     public static implicit operator FloatLiteral(double v) => new(new(), v, null, new());
 
+    public override SpirvValue CompileConstantValue(SymbolTable table, SpirvContext context)
+    {
+        return context.CompileConstantLiteral(this);
+    }
+
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         return compiler.Context.CompileConstantLiteral(this);
@@ -100,6 +110,11 @@ public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
 {
     public bool Value { get; set; } = value;
     public override SymbolType? Type => ScalarType.From("bool");
+
+    public override SpirvValue CompileConstantValue(SymbolTable table, SpirvContext context)
+    {
+        return context.CompileConstantLiteral(this);
+    }
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {

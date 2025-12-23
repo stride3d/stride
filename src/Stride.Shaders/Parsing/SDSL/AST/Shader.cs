@@ -352,16 +352,20 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     {
                         if (table.TryResolveSymbol(identifier.Name, out var symbol))
                         {
-                            generics[i] = Identifier.EmitSymbol(builder.GetBuffer(), ref builder.Position, context, symbol, false).Id;
+                            generics[i] = mixin.Generics.Values[i].CompileConstantValue(table, context).Id;
                         }
                         else
                         {
                             generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, identifier.Name)).IdResult.Value;
                         }
                     }
+                    else if (mixin.Generics.Values[i] is AccessorChainExpression accessChain)
+                    {
+                        generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, accessChain.ToString())).IdResult.Value;
+                    }
                     else
                     {
-                        generics[i] = mixin.Generics.Values[i].CompileAsValue(table, compiler).Id;
+                        generics[i] = mixin.Generics.Values[i].CompileConstantValue(table, context).Id;
                     }
                 }
             }
