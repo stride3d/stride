@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.HighPerformance.Buffers;
+using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System;
@@ -52,7 +53,7 @@ public class TypeDuplicateHelper
         public override string ToString() => Data.Memory != null ? Data.ToString() : $"{Op} Target:{TargetOverride}";
     }
 
-    class OperationComparer(bool UseIndices) : IComparer<InstructionSortHelper>
+    class OperationComparer(NewSpirvBuffer Buffer, bool UseIndices) : IComparer<InstructionSortHelper>
     {
         private static int RemapOp(Op op)
         {
@@ -91,12 +92,23 @@ public class TypeDuplicateHelper
             // Only process types that we care about
             if (x.Op == Op.OpTypeVoid || x.Op == Op.OpTypeInt || x.Op == Op.OpTypeFloat || x.Op == Op.OpTypeBool
                 || x.Op == Op.OpTypeVector || x.Op == Op.OpTypeMatrix || x.Op == Op.OpTypePointer || x.Op == Op.OpTypeFunction || x.Op == Op.OpTypeFunctionSDSL
-                || x.Op == Op.OpTypeArray || x.Op == Op.OpTypeRuntimeArray
+                || x.Op == Op.OpTypeRuntimeArray
                 || x.Op == Op.OpTypeImage || x.Op == Op.OpTypeSampler
                 || x.Op == Op.OpTypeGenericSDSL
                 || x.Op == Op.OpSDSLImportShader || x.Op == Op.OpSDSLImportFunction || x.Op == Op.OpSDSLImportVariable || x.Op == Op.OpSDSLImportStruct)
             {
                 comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[2..], y.Data.Memory.Span[2..]);
+                if (comparison != 0)
+                    return comparison;
+            }
+            // For arrays, we have some additional checks: same name and member info
+            else if (x.Op == Op.OpTypeArray)
+            {
+                comparison = x.Data.Memory.Span[2].CompareTo(y.Data.Memory.Span[2]);
+                if (comparison != 0)
+                    return comparison;
+
+                comparison = CompareIntConstant(Buffer, x.Data.Memory.Span[3], y.Data.Memory.Span[3]);
                 if (comparison != 0)
                     return comparison;
             }
@@ -117,6 +129,25 @@ public class TypeDuplicateHelper
         }
     }
 
+    private static int CompareIntConstant(NewSpirvBuffer buffer, int id1, int id2)
+    {
+        if (id1 == id2)
+            return 0;
+
+        var value1Success = SpirvBuilder.TryGetConstantValue(id1, out var value1, buffer);
+        var value2Success = SpirvBuilder.TryGetConstantValue(id2, out var value2, buffer);
+
+        return (value1Success, value2Success) switch
+        {
+            // Both succeeds: compare values
+            (true, true) => ((int)value1).CompareTo((int)value2),
+            // Only one succeeds (use bool order)
+            (true, false) or (false, true) => value1Success.CompareTo(value2Success),
+            // Both fails: use ID
+            (false, false) => id1.CompareTo(id2),
+        };
+    }
+
     private NewSpirvBuffer buffer;
     private List<InstructionSortHelper> instructionsByOp;
     private List<InstructionSortHelper> namesByOp;
@@ -135,11 +166,11 @@ public class TypeDuplicateHelper
             GetTargetList(i.Data).Add(new InstructionSortHelper(i.Op, i.Index, i.Data));
         }
 
-        comparerSort = new OperationComparer(true);
+        comparerSort = new OperationComparer(buffer, true);
         namesByOp.Sort(comparerSort);
         instructionsByOp.Sort(comparerSort);
 
-        comparerInsert = new OperationComparer(false);
+        comparerInsert = new OperationComparer(buffer, false);
     }
 
     public void InsertInstruction(int index, OpData data)
