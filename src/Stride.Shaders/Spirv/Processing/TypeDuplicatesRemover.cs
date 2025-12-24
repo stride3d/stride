@@ -51,7 +51,7 @@ public class TypeDuplicateHelper
         public override string ToString() => Data.Memory != null ? Data.ToString() : $"{Op} Target:{TargetOverride}";
     }
 
-    class OperationComparer(Func<List<InstructionSortHelper>> RequestNameInstructions, bool UseIndices) : IComparer<InstructionSortHelper>
+    class OperationComparer(bool UseIndices) : IComparer<InstructionSortHelper>
     {
         private static int RemapOp(Op op)
         {
@@ -91,7 +91,6 @@ public class TypeDuplicateHelper
             if (x.Op == Op.OpTypeVoid || x.Op == Op.OpTypeInt || x.Op == Op.OpTypeFloat || x.Op == Op.OpTypeBool
                 || x.Op == Op.OpTypeVector || x.Op == Op.OpTypeMatrix || x.Op == Op.OpTypePointer || x.Op == Op.OpTypeFunction || x.Op == Op.OpTypeFunctionSDSL
                 || x.Op == Op.OpTypeArray || x.Op == Op.OpTypeRuntimeArray
-                //|| x.Op == Op.OpTypeStruct
                 || x.Op == Op.OpTypeImage || x.Op == Op.OpTypeSampler
                 || x.Op == Op.OpTypeGenericSDSL
                 || x.Op == Op.OpSDSLImportShader || x.Op == Op.OpSDSLImportFunction || x.Op == Op.OpSDSLImportVariable || x.Op == Op.OpSDSLImportStruct)
@@ -99,14 +98,6 @@ public class TypeDuplicateHelper
                 comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[2..], y.Data.Memory.Span[2..]);
                 if (comparison != 0)
                     return comparison;
-
-                // For struct, we have some additional checks: same name and member info
-                if (x.Op == Op.OpTypeStruct)
-                {
-                    comparison = CompareStructMetadata(x, y);
-                    if (comparison != 0)
-                        return comparison;
-                }
             }
             else if (x.Op == Op.OpName || x.Op == Op.OpDecorate || x.Op == Op.OpDecorateString || x.Op == Op.OpMemberName || x.Op == Op.OpMemberDecorate || x.Op == Op.OpMemberDecorateString)
             {
@@ -122,36 +113,6 @@ public class TypeDuplicateHelper
 
             comparison = UseIndices ? x.Index.CompareTo(y.Index) : 0;
             return comparison;
-        }
-
-        public int CompareStructMetadata(InstructionSortHelper x, InstructionSortHelper y)
-        {
-            var nameInstructions = RequestNameInstructions();
-
-            // Note: With RemapOp(), this will also find OpMember instructions
-            var target1 = x.Data.Memory.Span[1];
-            var namesStart1 = ~nameInstructions.BinarySearch(new InstructionSortHelper { Op = Op.OpName, TargetOverride = target1 }, this);
-            var namesEnd1 = ~nameInstructions.BinarySearch(new InstructionSortHelper { Op = Op.OpName, TargetOverride = target1 + 1 }, this);
-
-            var target2 = y.Data.Memory.Span[1];
-            var namesStart2 = ~nameInstructions.BinarySearch(new InstructionSortHelper { Op = Op.OpName, TargetOverride = target2 }, this);
-            var namesEnd2 = ~nameInstructions.BinarySearch(new InstructionSortHelper { Op = Op.OpName, TargetOverride = target2 + 1 }, this);
-
-            // Compare sequences (they should be the same)
-            for (int i = 0; i < Math.Max(namesEnd1 - namesStart1, namesEnd2 - namesStart2); ++i)
-            {
-                // If one sequence is longer than the other, define an ordering
-                if (i >= namesEnd1 - namesStart1)
-                    return -1;
-                if (i >= namesEnd2 - namesStart2)
-                    return 1;
-
-                var comparison = Compare(nameInstructions[namesStart1 + i], nameInstructions[namesStart2 + i] with { TargetOverride = target1 });
-                if (comparison != 0)
-                    return comparison;
-            }
-
-            return 0;
         }
     }
 
@@ -182,22 +143,11 @@ public class TypeDuplicateHelper
             }
         }
 
-        comparerSort = new OperationComparer(GetSortedNames, true);
+        comparerSort = new OperationComparer(true);
+        namesByOp.Sort(comparerSort);
         instructionsByOp.Sort(comparerSort);
 
-        comparerInsert = new OperationComparer(GetSortedNames, false);
-    }
-
-    public void AddNameInstruction(OpDataIndex i)
-    {
-        switch (i.Op)
-        {
-            case Op.OpName or Op.OpMemberName or Op.OpMemberDecorate or Op.OpMemberDecorateString:
-                // Target is always in operand 1 for all those instructions
-                namesByOp.Add(new InstructionSortHelper(i.Op, i.Index, i.Data));
-                namesSorted = false;
-                break;
-        }
+        comparerInsert = new OperationComparer(false);
     }
 
     private List<InstructionSortHelper> GetSortedNames()
@@ -276,12 +226,6 @@ public class TypeDuplicateHelper
                 var firstMemoryIndex = i.Op == Op.OpName ? 1 : 2;
                 if (!(i.Op == j.Op && MemoryExtensions.SequenceEqual(i.Data.Memory.Span[firstMemoryIndex..], j.Data.Memory.Span[firstMemoryIndex..])))
                     break;
-
-                if (i.Op == Op.OpTypeStruct)
-                {
-                    if (comparer.CompareStructMetadata(new InstructionSortHelper(i), j) != 0)
-                        break;
-                }
             }
 
             // At least 2 similar items?

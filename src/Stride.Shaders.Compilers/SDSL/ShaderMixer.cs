@@ -416,9 +416,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (addToContext)
                 {
                     var i2Index = context.GetBuffer().Add(i2);
-
-                    // Add latest OpName/OpMemberName so that OpTypeStruct can be properly deduplicated
-                    typeDuplicateInserter.AddNameInstruction(i2Index);
                 }
             }
         }
