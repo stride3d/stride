@@ -224,6 +224,13 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         return new OpDataIndex(Instructions.Count - 1, this);
     }
 
+    public OpDataIndex Insert(int index, OpData data)
+    {
+        Instructions.Insert(index, data);
+        UpdateBound(data);
+        return new OpDataIndex(index, this);
+    }
+
     public OpData Add<T>(in T instruction) where T : struct, IMemoryInstruction
     {
         if (instruction.DataIndex is OpDataIndex odi)
@@ -302,16 +309,16 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
     /// </summary>
     /// <param name="index"></param>
     /// <returns>true if the instruction was successfully removed</returns>
-    public bool RemoveAt(int index)
+    public void RemoveAt(int index, bool dispose = true)
     {
         if (index < 0 || index >= Instructions.Count)
-            return false;
-        Instructions[index].Dispose();
+            throw new ArgumentOutOfRangeException();
+        if (dispose)
+            Instructions[index].Dispose();
         Instructions.RemoveAt(index);
-        return true;
     }
 
-    public void RemoveRange(int index, int count, bool dispose)
+    public void RemoveRange(int index, int count, bool dispose = true)
     {
         if (dispose)
         {

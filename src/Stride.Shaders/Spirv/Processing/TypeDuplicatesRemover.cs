@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using static Stride.Shaders.Spirv.Specification;
@@ -131,16 +132,7 @@ public class TypeDuplicateHelper
         namesSorted = false;
         foreach (var i in buffer)
         {
-            switch (i.Op)
-            {
-                case Op.OpName or Op.OpMemberName or Op.OpMemberDecorate or Op.OpMemberDecorateString:
-                    // Target is always in operand 1 for all those instructions
-                    namesByOp.Add(new InstructionSortHelper(i.Op, i.Index, i.Data));
-                    break;
-                default:
-                    instructionsByOp.Add(new InstructionSortHelper(i.Op, i.Index, i.Data));
-                    break;
-            }
+            GetTargetList(i.Data).Add(new InstructionSortHelper(i.Op, i.Index, i.Data));
         }
 
         comparerSort = new OperationComparer(true);
@@ -148,6 +140,73 @@ public class TypeDuplicateHelper
         instructionsByOp.Sort(comparerSort);
 
         comparerInsert = new OperationComparer(false);
+    }
+
+    public void InsertInstruction(int index, OpData data)
+    {
+        buffer.Insert(index, data);
+
+        // Adjust indices
+        var namesByOpSpan = CollectionsMarshal.AsSpan(namesByOp);
+        for (int i = 0; i < namesByOp.Count; i++)
+        {
+            ref var inst = ref namesByOpSpan[i];
+            if (inst.Index >= index)
+                inst.Index++;
+        }
+        var instructionsByOpSpan = CollectionsMarshal.AsSpan(instructionsByOp);
+        for (int i = 0; i < instructionsByOp.Count; i++)
+        {
+            ref var inst = ref instructionsByOpSpan[i];
+            if (inst.Index >= index)
+                inst.Index++;
+        }
+
+        // Add new item
+        var targetList = GetTargetList(data);
+        var newItem = new InstructionSortHelper(data.Op, index, data);
+        var sortedInsertionIndex = targetList.BinarySearch(newItem, comparerSort);
+        // Since comparerSort uses Index as last key, it should never be an exact match
+        if (sortedInsertionIndex >= 0)
+            throw new InvalidOperationException();
+        targetList.Insert(~sortedInsertionIndex, newItem);
+    }
+
+    public void RemoveInstructionAt(int index, bool dispose)
+    {
+        buffer.RemoveAt(index, dispose);
+
+        // Adjust indices and remove at same time
+        var namesByOpSpan = CollectionsMarshal.AsSpan(namesByOp);
+        for (int i = 0; i < namesByOp.Count; i++)
+        {
+            ref var inst = ref namesByOpSpan[i];
+            if (inst.Index > index)
+                inst.Index--;
+            else if (inst.Index == index)
+                namesByOp.RemoveAt(i--);
+        }
+        var instructionsByOpSpan = CollectionsMarshal.AsSpan(instructionsByOp);
+        for (int i = 0; i < instructionsByOp.Count; i++)
+        {
+            ref var inst = ref instructionsByOpSpan[i];
+            if (inst.Index > index)
+                inst.Index--;
+            else if (inst.Index == index)
+                instructionsByOp.RemoveAt(i--);
+        }
+    }
+
+    private List<InstructionSortHelper> GetTargetList(OpData data)
+    {
+        switch (data.Op)
+        {
+            case Op.OpName or Op.OpMemberName or Op.OpMemberDecorate or Op.OpMemberDecorateString:
+                // Target is always in operand 1 for all those instructions
+                return namesByOp;
+            default:
+                return instructionsByOp;
+        }
     }
 
     private List<InstructionSortHelper> GetSortedNames()
