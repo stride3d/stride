@@ -471,16 +471,7 @@ namespace Stride.Rendering.Compositing
         private void ResolveMSAA(RenderDrawContext drawContext)
         {
             // Resolve render targets
-            if (currentRenderTargetsNonMSAA.Count < currentRenderTargets.Count)
-            {
-                currentRenderTargetsNonMSAA.EnsureCapacity(currentRenderTargets.Count);
-                while (currentRenderTargetsNonMSAA.Count != currentRenderTargets.Count)
-                    currentRenderTargetsNonMSAA.Add(null);
-            }
-            else if (currentRenderTargetsNonMSAA.Count > currentRenderTargets.Count)
-            {
-                currentRenderTargetsNonMSAA.RemoveRange(currentRenderTargets.Count, currentRenderTargetsNonMSAA.Count - currentRenderTargets.Count);
-            }
+            CollectionsMarshal.SetCount(currentRenderTargetsNonMSAA, currentRenderTargets.Count);
 
             for (int index = 0; index < currentRenderTargets.Count; index++)
             {
@@ -849,16 +840,7 @@ namespace Stride.Rendering.Compositing
 
             var renderTargets = OpaqueRenderStage.OutputValidator.RenderTargets;
 
-            if (currentRenderTargets.Count < renderTargets.Count)
-            {
-                currentRenderTargets.EnsureCapacity(renderTargets.Count);
-                while (currentRenderTargets.Count != renderTargets.Count)
-                    currentRenderTargets.Add(null);
-            }
-            else if (currentRenderTargets.Count > renderTargets.Count)
-            {
-                currentRenderTargets.RemoveRange(renderTargets.Count, currentRenderTargets.Count - renderTargets.Count);
-            }
+            CollectionsMarshal.SetCount(currentRenderTargets, renderTargets.Count);
 
             for (int index = 0; index < renderTargets.Count; index++)
             {

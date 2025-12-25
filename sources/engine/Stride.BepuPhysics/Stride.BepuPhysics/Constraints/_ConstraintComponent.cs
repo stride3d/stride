@@ -126,5 +126,26 @@ public abstract class ConstraintComponent<T> : ConstraintComponentBase where T :
         }
     }
 
+    /// <inheritdoc/>
+    public override float GetAccumulatedImpulseMagnitude()
+    {
+        if (_bepuSimulation != null && Attached)
+            return MathF.Sqrt(_bepuSimulation.Simulation.Solver.GetAccumulatedImpulseMagnitudeSquared(_cHandle));
+
+        return 0;
+    }
+
+    /// <inheritdoc/>
+    public override float GetAccumulatedForceMagnitude()
+    {
+        if (_bepuSimulation != null && Attached)
+        {
+            float impulses = GetAccumulatedImpulseMagnitude();
+            return 1f / (float)_bepuSimulation.FixedTimeStep.TotalSeconds * _bepuSimulation.SolverSubStep * impulses;
+        }
+
+        return 0;
+    }
+
     protected ConstraintComponent(int bodies) : base(bodies) { }
 }

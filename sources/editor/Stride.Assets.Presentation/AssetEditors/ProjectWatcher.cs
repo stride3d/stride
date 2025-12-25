@@ -12,14 +12,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
+using NuGet.Common;
+using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.IO;
-using Microsoft.CodeAnalysis.MSBuild;
 using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
-using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
+using Stride.Core.IO;
 using Project = Microsoft.CodeAnalysis.Project;
 
 namespace Stride.Assets.Presentation.AssetEditors
@@ -52,6 +54,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
     public class ProjectWatcher : IDisposable
     {
+        private readonly LoggerResult logger;
         private readonly TrackingCollection<TrackedAssembly> trackedAssemblies;
         private readonly BufferBlock<FileEvent> fileChanged = new BufferBlock<FileEvent>();
         private readonly IDisposable fileChangedLink1;
@@ -67,14 +70,31 @@ namespace Stride.Assets.Presentation.AssetEditors
 
         private MSBuildWorkspace msbuildWorkspace;
 
-        private Lazy<Task<RoslynHost>> roslynHost = new Lazy<Task<RoslynHost>>(() => Task.Factory.StartNew(() => new RoslynHost()));
+        private Lazy<Task<RoslynHost>> roslynHost;
 
-        public ProjectWatcher(SessionViewModel session, bool trackBinaries = true)
+        private RoslynHost CreateRoslynHost()
+        {
+            try
+            {
+                return new RoslynHost();
+            }
+            catch (Exception e)
+            {
+                logger.Error($"Could not create {nameof(RoslynHost)}", e);
+                throw;
+            }
+        }
+
+        public ProjectWatcher(SessionViewModel session, LoggerResult logger, bool trackBinaries = true)
         {
             trackedAssemblies = new TrackingCollection<TrackedAssembly>();
 
             this.trackBinaries = trackBinaries;
             this.session = session;
+            this.logger = logger;
+
+            roslynHost = AsyncLazy.New(CreateRoslynHost);
+
             session.LocalPackages.CollectionChanged += LocalPackagesChanged;
 
             directoryWatcher = new DirectoryWatcher();
@@ -109,7 +129,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                         foreach (var referenceProject in referencedProjects)
                         {
                             var foundProject = msbuildWorkspace.CurrentSolution.GetProject(referenceProject);
-                            if(foundProject is null)
+                            if (foundProject is null)
                                 continue;
                             var assemblyName = foundProject.AssemblyName;
                             var target = trackedAssemblies.FirstOrDefault(x => x.Project.AssemblyName == assemblyName);

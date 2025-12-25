@@ -47,7 +47,7 @@ public class HybridDictionary<TKey, TValue> : IDictionary<TKey, TValue>
 #if NET8_0_OR_GREATER
         ArgumentOutOfRangeException.ThrowIfNegative(capacity);
 #else
-        if (capacity <= 0) throw new ArgumentOutOfRangeException(nameof(capacity))
+        if (capacity < 0) throw new ArgumentOutOfRangeException(nameof(capacity));
 #endif
         keyComparer = comparer ?? EqualityComparer<TKey>.Default;
         if (capacity >= ConstructorCutoverPoint)
@@ -308,6 +308,7 @@ public class HybridDictionary<TKey, TValue> : IDictionary<TKey, TValue>
             }
             keyCollection = null;
             InternalAdd(new KeyValuePair<TKey, TValue>(key, value));
+            return;
         }
         keyCollection = null;
         dictionary![key] = value;
@@ -320,11 +321,16 @@ public class HybridDictionary<TKey, TValue> : IDictionary<TKey, TValue>
         if (list != null)
         {
             if (list.Count + 1 < CutoverPoint)
+            {
                 list.Add(item);
+                return;
+            }
             else
+            {
                 ChangeOver();
+            }
         }
-        dictionary?.Add(item.Key, item.Value);
+        dictionary!.Add(item.Key, item.Value);
     }
 
     private void ChangeOver()

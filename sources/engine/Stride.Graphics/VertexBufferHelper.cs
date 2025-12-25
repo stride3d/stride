@@ -51,7 +51,7 @@ public readonly struct VertexBufferHelper
     public VertexBufferHelper(VertexBufferBinding binding, byte[] dataOuter, out int count)
     {
         if (dataOuter.Length < binding.Offset + binding.Count * binding.Stride)
-            throw new ArgumentException($"{nameof(dataOuter)} does not fit the bindings provided. Make sure that the span provided contains the entirety of the vertex buffer");
+            throw new ArgumentException($"Binding describes an array larger than {nameof(dataOuter)} ({dataOuter.Length} < {binding.Offset} + {binding.Count} * {binding.Stride})");
 
         DataOuter = dataOuter;
         Binding = binding;
@@ -241,7 +241,7 @@ public readonly struct VertexBufferHelper
         IConverter<Color, TDest>,
         ISemantic 
         where TDest : unmanaged
-        where TReader : IReader<TDest>
+        where TReader : IReader<TDest>, allows ref struct
     {
         if (Binding.Declaration.TryGetElement(TSemantic.Name, semanticIndex, out var elementData))
         {
@@ -267,7 +267,7 @@ public readonly struct VertexBufferHelper
     private unsafe void InnerRead<TConverter, TReader, TSource, TDest>(Span<TDest> destination, TReader reader, VertexElementWithOffset element) 
         where TConverter : IConverter<TSource, TDest> 
         where TSource : unmanaged
-        where TReader : IReader<TDest>
+        where TReader : IReader<TDest>, allows ref struct
     {
         if (sizeof(TSource) != element.Size)
             throw new ArgumentException($"{typeof(TSource)} does not match element size ({sizeof(TSource)} != {element.Size})");

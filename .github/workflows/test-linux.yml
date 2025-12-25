@@ -44,17 +44,50 @@ jobs:
           lfs: true
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
+      - name: Install Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libbsd-dev clang llvm lld
+      - name: Patch NativePath for Linux
+        run: |
+          # Make strlcat_chk and strlcpy_chk non-fatal on Linux
+          sed -i 's/#if !__has_builtin(__builtin___strlcat_chk)/#if !__has_builtin(__builtin___strlcat_chk) \&\& !defined(__linux__)/' deps/NativePath/NativePath.h
+          sed -i 's/#if !__has_builtin(__builtin___strlcpy_chk)/#if !__has_builtin(__builtin___strlcpy_chk) \&\& !defined(__linux__)/' deps/NativePath/NativePath.h
+      # This step isn't needed, it adds another NuGet soruce
+      # - name: Configure NuGet Sources
+      #   run: |
+      #     # Get absolute path to local packages
+      #     LOCAL_PACKAGES_PATH="$(pwd)/bin/packages"
+
+      #     # Only add the local source (not the non-existent global one)
+      #     dotnet nuget add source "$LOCAL_PACKAGES_PATH" --name "StrideDev Local"
+
+      #     # List configured sources
+      #     echo "==== Configured NuGet Sources ===="
+      #     dotnet nuget list source
       - name: Build
         run: |
-          dotnet build build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
-            -restore -m:1 -nr:false `
-            -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
-            -p:StridePlatforms=Linux `
-            -p:StrideGraphicsApis=OpenGL
+          dotnet build build/Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf \
+            -restore -m:1 -nr:false \
+            -v:m -p:WarningLevel=0 \
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} \
+            -p:StridePlatforms=Linux \
+            -p:StrideGraphicsApis=OpenGL \
+      # This step isn't needed, it lists the NuGet sources again
+      # - name: Inspect NuGet Local Sources (always)
+      #   if: always()
+      #   run: |
+      #     echo "==== NuGet Sources (dotnet) ===="
+      #     dotnet nuget list source || true
+      #     echo
+      #     echo "==== Working Directory ===="
+      #     pwd
+      #     echo
+      #     echo "==== StrideDev Local ./bin/packages ===="
+      #     if [ -d ./bin/packages ]; then find ./bin/packages -maxdepth 2 -type f -printf '%P\n' | head -200; else echo "Directory not found"; fi
       - name: Test
         run: |
-          dotnet test build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
-            --no-build `
+          dotnet test build/Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf \
+            --no-build \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }}

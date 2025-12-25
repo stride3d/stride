@@ -1,0 +1,20 @@
+﻿<Project>
+    <Import Project="..\..\targets\Stride.props" />
+    <PropertyGroup>
+        <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>  
+        <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FreeImage\Release\**\*.dll">
+        <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+        </StrideNativeLib>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="System.Drawing.Common" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
+    </ItemGroup>
+    <Import Project="$(StrideSdkTargets)" />
+</Project>

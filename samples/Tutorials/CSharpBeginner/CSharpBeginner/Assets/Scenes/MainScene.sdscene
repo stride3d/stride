@@ -833,10 +833,10 @@ Hierarchy:
                     b6410438b41b6be62428102415f68a4e: !LightComponent
                         Id: 898ac491-95db-4eaf-a1a0-1bf55822ee69
                         Type: !LightSkybox
-                            Skybox: ae4fd991-6290-4c24-b73b-25d81a1a4837:Materials/Skybox
+                            Skybox: ae4fd991-6290-4c24-b73b-25d81a1a4838:Materials/Skybox
                     073131bbebf95a3cbbe2d431328d38b1: !BackgroundComponent
                         Id: 4040ddcb-77b9-4136-83d6-4a3f4fe4389c
-                        Texture: b7f73672-f9bf-44ae-8a04-0017010b4ca1:Materials/Skybox texture
+                        Texture: b7f73672-f9bf-44ae-8a04-0017010b4ca2:Materials/Skybox texture
         -   Entity:
                 Id: 8a05ccc8-d35d-4b27-bde5-4410e41e7ae4
                 Name: Wall0x2x2
@@ -1382,7 +1382,7 @@ Hierarchy:
                         Children: {}
                     a737bfefc47100a61444cbed755d4ce1: !UIComponent
                         Id: 09d22fc1-98d1-4248-bb8c-607c3ee88995
-                        Page: 5175f272-13da-45dd-9f7b-540e7121dd56:UI/LoadTutorialUI
+                        Page: 5175f272-13da-45dd-9f7b-540e7121dd57:UI/LoadTutorialUI
                         Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
                         Size: {X: 1.0, Y: 1.0, Z: 1.0}
                     8db3a892fd370f05a115389fa84d2ebf: !CSharpBeginner.Code.TutorialUI,CSharpBeginner.Game

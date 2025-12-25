@@ -37,6 +37,9 @@ namespace Stride.Engine.Design
                 }
                 else
                 {
+                    var dataSerializer = cloneContext.EntitySerializerSelector.GetSerializer<T>();
+                    if (dataSerializer != this)
+                        dataSerializer.PreSerialize(ref obj, mode, stream);
                     cloneContext.SerializedObjects.Add(obj);
                 }
             }
@@ -58,7 +61,9 @@ namespace Stride.Engine.Design
                 }
                 else
                 {
-                    base.PreSerialize(ref obj, mode, stream);
+                    var dataSerializer = cloneContext.EntitySerializerSelector.GetSerializer<T>();
+                    if (dataSerializer != this)
+                        dataSerializer.PreSerialize(ref obj, mode, stream);
                     cloneContext.SerializedObjects.Add(obj);
                 }
             }
@@ -75,7 +80,8 @@ namespace Stride.Engine.Design
 
                 // Serialize object
                 //stream.Context.Set(EntitySerializer.InsideEntityComponentProperty, false);
-                dataSerializer.Serialize(ref obj, mode, stream);
+                if (dataSerializer != this)
+                    dataSerializer.Serialize(ref obj, mode, stream);
 
                 if (obj is EntityComponent)
                 {

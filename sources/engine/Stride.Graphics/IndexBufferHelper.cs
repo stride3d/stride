@@ -31,9 +31,18 @@ public readonly struct IndexBufferHelper
     public Span<byte> DataInner => DataOuter.AsSpan(Binding.Offset, Binding.Count * (Binding.Is32Bit ? 4 : 2));
 
     /// <inheritdoc cref="MeshExtension.AsReadable(IndexBufferBinding, IServiceRegistry, out IndexBufferHelper, out int)"/>
-    public IndexBufferHelper(IndexBufferBinding binding, IServiceRegistry services, out int count)
+    public IndexBufferHelper(IndexBufferBinding binding, IServiceRegistry services, out int count) 
+        : this(binding, MeshExtension.FetchBufferContentOrThrow(binding.Buffer, services), out count)
     {
-        DataOuter = MeshExtension.FetchBufferContentOrThrow(binding.Buffer, services);
+    }
+
+    /// <inheritdoc cref="MeshExtension.AsReadable(IndexBufferBinding, IServiceRegistry, out IndexBufferHelper, out int)"/>
+    public IndexBufferHelper(IndexBufferBinding binding, byte[] dataOuter, out int count)
+    {
+        if (dataOuter.Length < binding.Offset + binding.Count * (binding.Is32Bit ? 4 : 2))
+            throw new ArgumentException($"Binding describes an array larger than {nameof(dataOuter)} ({dataOuter.Length} < {binding.Offset} + {binding.Count} * {(binding.Is32Bit ? 4 : 2)})");
+
+        DataOuter = dataOuter;
         Binding = binding;
         count = Binding.Count;
     }
