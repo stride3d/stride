@@ -1165,13 +1165,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpSDSLImportFunction
                 || i.Op == Op.OpSDSLImportVariable)
                 temp.RemoveAt(index--);
-            else if (i.Op == Op.OpDecorate && ((OpDecorate)i).Decoration.Value is Decoration.LinkIdSDSL)
+            else if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && ((OpDecorate)i).Decoration.Value is
+                    Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL
+                    or Decoration.SamplerStateFilter or Decoration.SamplerStateAddressU or Decoration.SamplerStateAddressV or Decoration.SamplerStateAddressW
+                    or Decoration.SamplerStateMipLODBias or Decoration.SamplerStateMaxAnisotropy or Decoration.SamplerStateComparisonFunc or Decoration.SamplerStateMinLOD or Decoration.SamplerStateMaxLOD)
                 temp.RemoveAt(index--);
-            else if (i.Op == Op.OpMemberDecorate && ((OpMemberDecorate)i).Decoration.Value == Decoration.LinkIdSDSL)
-                temp.RemoveAt(index--);
-            else if (i.Op == Op.OpDecorateString && ((OpDecorateString)i).Decoration.Value is Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
-                temp.RemoveAt(index--);
-            else if (i.Op == Op.OpMemberDecorateString && ((OpMemberDecorateString)i).Decoration.Value is Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
+            else if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && ((OpMemberDecorate)i).Decoration.Value is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
                 temp.RemoveAt(index--);
 
             // Remove SPIR-V about pointer types to other shaders (variable and types themselves are removed as well)
