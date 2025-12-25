@@ -135,7 +135,7 @@ public partial class SpirvBuilder()
         }
     }
 
-    static char[] invalidChars = { '<', '>', '[', ']', '.', ',', '-' };
+    static char[] invalidChars = { '<', '>', '[', ']', '.', ',', '-', '#' };
     public static string RemoveInvalidCharactersFromSymbol(string name)
     {
         return string.Join("_", name.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));

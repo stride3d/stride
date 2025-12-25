@@ -48,7 +48,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         context.Insert(1, new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
         context.Insert(2, new OpExtension("SPV_GOOGLE_hlsl_functionality1"));
 
-        new StreamAnalyzer().Process(table, temp, context);
+        // Process streams and remove unused code/cbuffer/variable/resources
+        new InterfaceProcessor().Process(table, temp, context);
 
         // Merge cbuffers and rgroups
         // TODO: remove unused cbuffers (before merging them)
@@ -194,6 +195,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         var shader = shaderClass.Buffer;
         var offset = context.Bound;
+        var resourceGroupOffset = context.ResourceGroupBound;
 
         // Remember when we started to add instructions in both context and main buffer
         var shaderStart = buffer.Count;
@@ -316,10 +318,19 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             if (i2.IdResult != null)
                 context.Bound = Math.Max(context.Bound, i2.IdResult.Value + 1);
 
+            // ResourceGroupId: adjust offsets too
+            if (i2.Op == Op.OpDecorate && (OpDecorate)i2 is { Decoration: { Value: Decoration.ResourceGroupIdSDSL, Parameters: { } m } } resourceGroupIdDecorate)
+            {
+                // Somehow data doesn't get mutated inside i2 if we update resourceGroupIdDecorate.Decoration, so we reference buffer directly
+                ref var resourceGroupId = ref i2.Memory.Span[3];
+                resourceGroupId += resourceGroupOffset;
+                context.ResourceGroupBound = Math.Max(context.ResourceGroupBound, resourceGroupId + 1);
+            }
+
             if (SpirvBuilder.ContainIds(forbiddenIds, i2))
                 throw new InvalidOperationException($"Stage instruction {i.Data} references a non-stage ID");
 
-            SpirvBuilder.RemapIds(remapIds, i2);
+            SpirvBuilder.RemapIds(remapIds, ref i2);
 
             // Detect when we switch from context to main buffer
             if (i2.Op == Op.OpSDSLShader)
@@ -432,7 +443,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpMemberDecorate
                 || i.Op == Op.OpMemberDecorateString)
             {
-                SpirvBuilder.RemapIds(remapIds, i.Data);
+                SpirvBuilder.RemapIds(remapIds, ref i.Data);
 
                 var target = i.Data.Memory.Span[1];
                 if (removedIds.Contains(target))
@@ -619,7 +630,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 var i2 = new OpData(i.Memory.Span);
                 // All result ids are remapped to new ids
-                SpirvBuilder.RemapIds(idRemapping, i2);
+                SpirvBuilder.RemapIds(idRemapping, ref i2);
 
                 foreachBufferCopy.Add(i2);
             }
@@ -661,7 +672,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             // Apply any OpMemberAccessSDSL remapping
             if (memberAccesses.Count > 0)
-                SpirvBuilder.RemapIds(memberAccesses, i.Data);
+                SpirvBuilder.RemapIds(memberAccesses, ref i.Data);
 
             if (i.Data.Op == Op.OpForeachSDSL && (OpForeachSDSL)i is { } @foreach)
             {
@@ -798,7 +809,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 memberAccesses.Clear();
             }
 
-            SpirvBuilder.RemapIds(memberAccesses, i.Data);
+            SpirvBuilder.RemapIds(memberAccesses, ref i.Data);
         }
     }
 
@@ -842,7 +853,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
 
         // Now, reprocess context with those names
-        char[] invalidChars = { '<', '>', '[', ']', '.', ',', '-' };
         foreach (var i in context)
         {
             if (i.Op == Op.OpName && (OpName)i is { } name)
@@ -1166,7 +1176,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpSDSLImportVariable)
                 temp.RemoveAt(index--);
             else if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && ((OpDecorate)i).Decoration.Value is
-                    Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL
+                    Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL or Decoration.ResourceGroupIdSDSL
                     or Decoration.SamplerStateFilter or Decoration.SamplerStateAddressU or Decoration.SamplerStateAddressV or Decoration.SamplerStateAddressW
                     or Decoration.SamplerStateMipLODBias or Decoration.SamplerStateMaxAnisotropy or Decoration.SamplerStateComparisonFunc or Decoration.SamplerStateMinLOD or Decoration.SamplerStateMaxLOD)
                 temp.RemoveAt(index--);

@@ -25,6 +25,7 @@ public interface IExternalShaderLoader
 // SPIR-V parameters
 public class SpirvContext
 {
+    public int ResourceGroupBound { get; set; } = 1;
     public int Bound { get; set; } = 1;
     public Dictionary<SymbolType, int> Types { get; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; } = [];

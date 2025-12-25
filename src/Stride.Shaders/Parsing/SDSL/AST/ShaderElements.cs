@@ -154,10 +154,18 @@ public class TypeDef(TypeName type, Identifier name, TextLocation info) : Shader
     }
 }
 
-public abstract class ShaderBuffer(string name, TextLocation info) : ShaderElement(info)
+public abstract class ShaderBuffer : ShaderElement
 {
-    public string Name { get; set; } = name;
+    public string Name { get; set; }
+    public string? LogicalGroup { get; } = null;
     public List<ShaderMember> Members { get; set; } = [];
+
+    public ShaderBuffer(string name, TextLocation info) : base(info)
+    {
+        var dotIndex = name.IndexOf('.');
+        Name = dotIndex != -1 ? name.Substring(0, dotIndex) : name;
+        LogicalGroup = dotIndex != -1 ? name.Substring(dotIndex + 1) : null;
+    }
 
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
@@ -284,7 +292,8 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
 
         var constantBufferType = (ConstantBufferSymbol)Type;
 
-        // We try to avoid clash in case multiple cbuffer with same name
+        // We try to avoid clash in case multiple cbuffer TYPE with same name
+        // The variable itself is handled by adding a .0 .1 etc. in Shader.RenameCBufferVariables()
         int tryCount = 0;
         var typeName = constantBufferType.Name;
         while (!table.DeclaredTypes.TryAdd(constantBufferType.ToId(), Type))
@@ -297,6 +306,10 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
         context.DeclareCBuffer(constantBufferType);
         var pointerType = context.GetOrRegister(new PointerType(Type, Specification.StorageClass.Uniform));
         var variable = context.Bound++;
+
+        context.AddName(variable, Name);
+        if (LogicalGroup != null)
+            context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationLogicalGroupSDSL(LogicalGroup)));
 
         bool? isStaged = null;
 
@@ -327,7 +340,6 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
 
         // TODO: Add a StreamSDSL storage class?
         builder.Insert(new OpVariableSDSL(pointerType, variable, Specification.StorageClass.Uniform, isStaged == true ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
-        context.AddName(variable, Name);
     }
 }
 
@@ -337,9 +349,7 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
     {
         var (builder, context) = compiler;
 
-        var splitDotIndex = Name.IndexOf('.');
-        var resourceGroupName = splitDotIndex != -1 ? Name.Substring(0, splitDotIndex) : Name;
-        var logicalGroupName = splitDotIndex != -1 ? Name.Substring(splitDotIndex + 1) : null;
+        var resourceGroupId = context.ResourceGroupBound++;
 
         for (var index = 0; index < Members.Count; index++)
         {
@@ -360,9 +370,12 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
 
             DecorateVariableLinkInfo(table, shaderClass, context, Info, member.Name, member.Attributes, variable.ResultId);
 
-            context.Add(new OpDecorateString(variable.ResultId, ParameterizedFlags.DecorationResourceGroupSDSL(resourceGroupName)));
-            if (logicalGroupName != null)
-                context.Add(new OpDecorateString(variable.ResultId, ParameterizedFlags.DecorationLogicalGroupSDSL(logicalGroupName)));
+            context.Add(new OpDecorateString(variable.ResultId, ParameterizedFlags.DecorationResourceGroupSDSL(Name)));
+            // We also store an ID because multiple rgroup might have the same name,
+            // but we still want to know which one was in the same "block" when we try to optimize them (we can only optimize a resource if all the resource in the same rgroup block can be optimized)
+            context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationResourceGroupIdSDSL(resourceGroupId)));
+            if (LogicalGroup != null)
+                context.Add(new OpDecorateString(variable.ResultId, ParameterizedFlags.DecorationLogicalGroupSDSL(LogicalGroup)));
 
             var sid = new SymbolID(member.Name, kind, Storage.Uniform);
             var symbol = new Symbol(sid, type, variable.ResultId);

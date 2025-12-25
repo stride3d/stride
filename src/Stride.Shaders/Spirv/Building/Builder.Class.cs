@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.HighPerformance;
+using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDSL.AST;
@@ -563,12 +564,23 @@ public partial class SpirvBuilder
         for (var index = shaderStart; index < buffer.Count; index++)
         {
             var i = buffer[index];
-            RemapIds(idRemapping, i.Data);
+            RemapIds(idRemapping, ref i.Data);
         }
     }
 
-    public static void RemapIds(Dictionary<int, int> idRemapping, OpData i)
+    public static void RemapIds(Dictionary<int, int> idRemapping, ref OpData i)
     {
+        // Special case: remove OpName and such
+        if (i.Op == Op.OpName || i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString
+            || i.Op == Op.OpMemberName || i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString)
+        {
+            // Target/Structure ID is always stored in first operand for all those instructions
+            var target = i.Memory.Span[1];
+            if (idRemapping.ContainsKey(target))
+                SetOpNop(i.Memory.Span);
+            return;
+        }
+
         foreach (var op in i)
         {
             if ((op.Kind == OperandKind.IdRef
@@ -581,6 +593,31 @@ public partial class SpirvBuilder
                 {
                     if (idRemapping.TryGetValue(word, out var to1))
                         word = to1;
+                }
+
+                // Special case: remove duplicates in OpEntryPoint
+                // TODO: It's a bit ugly but we could make it better later with some syntactic sugar helper
+                if (i.Op == Op.OpEntryPoint && op.Quantifier == OperandQuantifier.ZeroOrMore)
+                {
+                    var existing = new HashSet<int>();
+                    var target = 0;
+                    for (int index = 0; index < op.Words.Length; ++index)
+                    {
+                        if (existing.Add(op.Words[index]))
+                        {
+                            op.Words[target++] = op.Words[index];
+                        }
+                    }
+                    // Adjust new size
+                    var length = i.Memory.Span[0] >> 16;
+                    length -= op.Words.Length - target;
+                    i.Memory.Span[0] = ((int)i.Memory.Span[0] & 0xFFFF) | (length << 16);
+
+                    var tmp = MemoryOwner<int>.Allocate(length);
+                    i.Memory.Span.Slice(0, length).CopyTo(tmp.Span);
+                    i.Memory.Dispose();
+                    i = new(tmp);
+
                 }
             }
 

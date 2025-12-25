@@ -447,21 +447,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         table.CurrentShader = currentShader;
         table.InheritedShaders = inheritanceList;
 
-        // If multiple cbuffer with same name, they will be merged
-        // Still, we rename them internally to avoid name clashes (in HLSL name is skipped so it's OK, but for example OpSDSLImportStruct/OpSDSLImportVariable would be ambiguous)
-        var cbuffersByNames = Elements.OfType<CBuffer>().GroupBy(x => x.Name);
-        foreach (var cbufferGroup in cbuffersByNames)
-        {
-            if (cbufferGroup.Count() > 1)
-            {
-                int index = 0;
-                foreach (var cbuffer in cbufferGroup)
-                {
-                    cbuffer.Name = $"{cbuffer.Name}.{index}";
-                    index++;
-                }
-            }
-        }
+        RenameCBufferVariables();
 
         foreach (var member in Elements.OfType<ShaderStruct>())
             member.Compile(table, this, compiler);
@@ -493,6 +479,36 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         table.CurrentShader = null;
         table.Pop();
     }
+
+    // If multiple cbuffer with same name, they will be merged
+    // Still, we rename them internally to avoid name clashes (in HLSL name is skipped so it's OK, but for example OpSDSLImportStruct/OpSDSLImportVariable would be ambiguous)
+    private void RenameCBufferVariables()
+    {
+        var cbuffersByNames = Elements.OfType<CBuffer>().GroupBy(x => x.Name);
+        foreach (var cbufferGroup in cbuffersByNames)
+        {
+            if (cbufferGroup.Count() > 1)
+            {
+                int index = 0;
+                foreach (var cbuffer in cbufferGroup)
+                {
+                    cbuffer.Name = $"{cbuffer.Name}.{index}";
+                    index++;
+                }
+            }
+        }
+    }
+
+    // If multiple cbuffer with same name Test, they will be renamed Test.0 Test.1 etc.
+    public static string GetCBufferRealName(string cbufferName)
+    {
+        var dotIndex = cbufferName.IndexOf('.');
+        if (dotIndex != -1)
+            return cbufferName.Substring(0, dotIndex);
+
+        return cbufferName;
+    }
+
 
     public static void Inherit(SymbolTable table, SpirvContext context, LoadedShaderSymbol shaderType, bool addToRoot)
     {

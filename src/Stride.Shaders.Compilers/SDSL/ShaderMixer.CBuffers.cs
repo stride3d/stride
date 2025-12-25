@@ -18,23 +18,35 @@ namespace Stride.Shaders.Compilers.SDSL
     {
         private void MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
         {
-            // If multiple cbuffer with same name Test, they will be renamed Test.0 Test.1 etc.
-            string GetCBufferFinalName(string cbufferName)
+            // Collect Decorations
+            Dictionary<int, string> logicalGroups = new();
+            Dictionary<(int StructType, int Member), (Dictionary<Decoration, string> StringDecorations, Dictionary<Decoration, MemoryOwner<int>> Decorations)> decorations = new();
+            foreach (var i in context)
             {
-                var dotIndex = cbufferName.IndexOf('.');
-                if (dotIndex != -1)
-                    return cbufferName.Substring(0, dotIndex);
-
-                return cbufferName;
+                if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Parameters: var m } } memberDecorate)
+                {
+                    using var n = new LiteralValue<string>(m.Span);
+                    if (!decorations.TryGetValue((memberDecorate.StructType, memberDecorate.Member), out var decorationsForThisMember))
+                        decorations.Add((memberDecorate.StructType, memberDecorate.Member), decorationsForThisMember = new(new(), new()));
+                    decorationsForThisMember.StringDecorations.Add(memberDecorate.Decoration.Value, n.Value);
+                }
+                else if (i.Op == Op.OpMemberDecorate && (OpMemberDecorate)i is { Decoration: { Parameters: var m2 } } memberDecorate2)
+                {
+                    if (!decorations.TryGetValue((memberDecorate2.StructureType, memberDecorate2.Member), out var decorationsForThisMember))
+                        decorations.Add((memberDecorate2.StructureType, memberDecorate2.Member), decorationsForThisMember = new(new(), new()));
+                    decorationsForThisMember.Decorations.Add(memberDecorate2.Decoration.Value, m2);
+                }
+                else if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: { Value: Decoration.LogicalGroupSDSL, Parameters: var m3 } } decorateLogicalGroup)
+                {
+                    using var n = new LiteralValue<string>(m3.Span);
+                    logicalGroups.Add(decorateLogicalGroup.Target, n.Value);
+                }
             }
 
-            string GetCBufferLogicalGroup(string cbufferName)
+            string? GetCBufferLogicalGroup(int variableId)
             {
-                var dotIndex = cbufferName.IndexOf('.');
-                if (dotIndex != -1)
-                    return cbufferName.Substring(dotIndex + 1);
-
-                return null;
+                logicalGroups.TryGetValue(variableId, out var logicalGroup);
+                return logicalGroup;
             }
 
             // OpSDSLEffect is emitted for any non-root composition
@@ -59,30 +71,12 @@ namespace Stride.Shaders.Compilers.SDSL
                     StructTypePtrId: x.Variable.ResultType,
                     StructType: context.ReverseTypes[x.Variable.ResultType] is PointerType p && p.StorageClass == Specification.StorageClass.Uniform && p.BaseType is StructuredType s ? s : null,
                     MemberIndexOffset: 0,
-                    LogicalGroup: GetCBufferLogicalGroup(globalContext.Names[x.Variable.ResultId])))
+                    LogicalGroup: GetCBufferLogicalGroup(x.Variable.ResultId)))
                 // TODO: Check Decoration.Block?
                 .Where(x => x.StructType != null)
-                .GroupBy(x => GetCBufferFinalName(globalContext.Names[x.Variable.ResultId]));
+                .GroupBy(x => ShaderClass.GetCBufferRealName(globalContext.Names[x.Variable.ResultId]));
 
             var cbufferStructTypes = cbuffersByNames.SelectMany(x => x).Select(x => context.Types[x.StructType]).ToHashSet();
-
-            Dictionary<(int StructType, int Member), (Dictionary<Decoration, string> StringDecorations, Dictionary<Decoration, MemoryOwner<int>> Decorations)> decorations = new();
-            foreach (var i in context)
-            {
-                if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Parameters: var m } } memberDecorate)
-                {
-                    using var n = new LiteralValue<string>(m.Span);
-                    if (!decorations.TryGetValue((memberDecorate.StructType, memberDecorate.Member), out var decorationsForThisMember))
-                        decorations.Add((memberDecorate.StructType, memberDecorate.Member), decorationsForThisMember = new(new(), new()));
-                    decorationsForThisMember.StringDecorations.Add(memberDecorate.Decoration.Value, n.Value);
-                }
-                else if (i.Op == Op.OpMemberDecorate && (OpMemberDecorate)i is { Decoration: { Parameters: var m2 } } memberDecorate2)
-                {
-                    if (!decorations.TryGetValue((memberDecorate2.StructureType, memberDecorate2.Member), out var decorationsForThisMember))
-                        decorations.Add((memberDecorate2.StructureType, memberDecorate2.Member), decorationsForThisMember = new(new(), new()));
-                    decorationsForThisMember.Decorations.Add(memberDecorate2.Decoration.Value, m2);
-                }
-            }
 
             void ProcessDecorations(Span<(OpVariableSDSL Variable, string CompositionPath, string ShaderName, int StructTypePtrId, StructuredType? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, int cbufferStructId, bool newStructure)
             {
@@ -133,10 +127,16 @@ namespace Stride.Shaders.Compilers.SDSL
                 }
             }
 
+            var idRemapping = new Dictionary<int, int>();
+            var removedIds = new HashSet<int>();
             foreach (var cbuffersEntry in cbuffersByNames)
             {
                 var cbuffers = cbuffersEntry.ToList();
                 var cbuffersSpan = CollectionsMarshal.AsSpan(cbuffers);
+
+                // In all cases, we update name to one without .0 .1 suffix
+                // (we do it even for case count == 1 because all buffer except one might have been optimized away)
+                globalContext.Names[cbuffersSpan[0].Variable.ResultId] = cbuffersEntry.Key;
 
                 if (cbuffersEntry.Count() == 1)
                 {
@@ -197,8 +197,6 @@ namespace Stride.Shaders.Compilers.SDSL
 
                     // Update first variable to use new type
                     cbuffersSpan[0].Variable.ResultType = mergedCbufferPtrStructId;
-                    // Update name
-                    globalContext.Names[cbuffersSpan[0].Variable.ResultId] = cbuffersEntry.Key;
                     foreach (var i in buffer)
                     {
                         if (i.Op == Op.OpName && (OpName)i is { } name)
@@ -215,21 +213,22 @@ namespace Stride.Shaders.Compilers.SDSL
                         }
                     }
 
-                    var idRemapping = new Dictionary<int, int>();
                     foreach (ref var cbuffer in cbuffersSpan.Slice(1))
                     {
                         // Update all cbuffers access to be replaced with first variable (unified cbuffer)
                         idRemapping.Add(cbuffer.Variable.ResultId, cbuffersSpan[0].Variable.ResultId);
+                        removedIds.Add(cbuffer.Variable.ResultId);
                         // Remove other cbuffer variables
                         SetOpNop(cbuffer.Variable.InstructionMemory.Span);
                         // TODO: Do we want to remove unecessary types?
                         //       Maybe we don't care as they are not used anymore, they will be ignored.
                         //       Also, if we do so, maybe we could do it as part of a global pass at the end rather than now?
                     }
-
-                    SpirvBuilder.RemapIds(buffer, 0, buffer.Count, idRemapping);
                 }
             }
+
+            SpirvBuilder.RemapIds(buffer, 0, buffer.Count, idRemapping);
+            SpirvBuilder.RemapIds(context.GetBuffer(), 0, context.GetBuffer().Count, idRemapping);
         }
 
         private void ComputeCBufferOffsets(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
