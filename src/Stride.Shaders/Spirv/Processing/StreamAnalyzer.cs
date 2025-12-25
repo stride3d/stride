@@ -31,18 +31,31 @@ namespace Stride.Shaders.Spirv.Processing
             public bool Output { get; set; }
             public bool Private => Input || Output || Read || Write;
 
-            public bool Read { get; set; }
-            public bool Write { get; set; }
+            public bool Read { get => field; set { field = value; UsedAnyStage = true; } }
+            public bool Write { get => field; set { field = value; UsedAnyStage = true; } }
+            public bool UsedAnyStage { get; private set; }
 
             public override string ToString() => $"{Type} {Name} {(Read ? "R" : "")} {(Write ? "W" : "")}";
         }
 
         class ResourceInfo
         {
-            public bool Used { get; set; }
+            /// <summary>
+            /// Used during current stage being processed?
+            /// </summary>
+            public bool UsedThisStage { get => field; set { field = value; UsedAnyStage |= value; } }
+            /// <summary>
+            /// Used at all (in any stage)
+            /// </summary>
+            public bool UsedAnyStage { get; private set; }
         }
 
         record struct AnalysisResult(SortedList<int, StreamInfo> Streams, List<int> Blocks, SortedList<int, ResourceInfo> Resources);
+
+        class LiveAnalysis
+        {
+            public HashSet<int> ReferencedMethods { get; } = new();
+        }
 
         public void Process(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context)
         {
@@ -61,7 +74,8 @@ namespace Stride.Shaders.Spirv.Processing
             MergeSameSemanticVariables(table, context, buffer, analysisResult);
             var streams = analysisResult.Streams;
 
-            AnalyzeStreamReadWrites(buffer, [], entryPointPS.IdRef, analysisResult);
+            var liveAnalysis = new LiveAnalysis();
+            AnalyzeStreamReadWrites(buffer, [], entryPointPS.IdRef, analysisResult, liveAnalysis);
 
             // If written to, they are expected at the end of pixel shader
             foreach (var stream in streams)
@@ -75,7 +89,7 @@ namespace Stride.Shaders.Spirv.Processing
             // (if PSMain has been overriden with an empty method, it means we don't want to output anything and remove the pixel shader, i.e. for shadow caster)
             if (streams.Any(x => x.Value.Output))
             {
-                var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult);
+                var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult, liveAnalysis);
                 buffer.FluentAdd(new OpExecutionMode(psWrapper.ResultId, ExecutionMode.OriginUpperLeft));
             }
 
@@ -88,12 +102,12 @@ namespace Stride.Shaders.Spirv.Processing
             // Reset resource used for next stage
             foreach (var resource in analysisResult.Resources)
             {
-                resource.Value.Used = false;
+                resource.Value.UsedThisStage = false;
             }
             PropagateStreamsFromPreviousStage(streams);
             if (entryPointVS.IdRef != 0)
             {
-                AnalyzeStreamReadWrites(buffer, [], entryPointVS.IdRef, analysisResult);
+                AnalyzeStreamReadWrites(buffer, [], entryPointVS.IdRef, analysisResult, liveAnalysis);
 
                 // If written to, they are expected at the end of vertex shader
                 foreach (var stream in streams)
@@ -103,7 +117,76 @@ namespace Stride.Shaders.Spirv.Processing
                         stream.Value.Output = true;
                 }
 
-                GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult);
+                GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult, liveAnalysis);
+            }
+
+            // Remove unreferenced code
+            var removedIds = new HashSet<int>();
+            for (var index = 0; index < buffer.Count; index++)
+            {
+                var i = buffer[index];
+                if (i.Op == Op.OpFunction && (OpFunction)i is { } function)
+                {
+                    if (!liveAnalysis.ReferencedMethods.Contains(function.ResultId))
+                    {
+                        removedIds.Add(function.ResultId);
+                        while (buffer[index].Op != Op.OpFunctionEnd)
+                        {
+                            if (buffer[index].Data.IdResult is int resultId)
+                                removedIds.Add(resultId);
+                            SpirvBuilder.SetOpNop(buffer[index++].Data.Memory.Span);
+                        }
+
+                        SpirvBuilder.SetOpNop(buffer[index].Data.Memory.Span);
+                    }
+                }
+
+                if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
+                    {
+                        Storageclass: StorageClass.UniformConstant,
+                        ResultId: int
+                    } resource)
+                {
+                    var resourceInfo = analysisResult.Resources[resource.ResultId];
+                    if (!resourceInfo.UsedAnyStage)
+                    {
+                        removedIds.Add(resource.ResultId);
+                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    }
+                }
+
+                if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
+                    {
+                        Storageclass: StorageClass.Private,
+                        ResultId: int
+                    } stream
+                    && streams.TryGetValue(stream.ResultId, out var streamInfo))
+                {
+                    if (!streamInfo.UsedAnyStage)
+                    {
+                        removedIds.Add(stream.ResultId);
+                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    }
+                }
+            }
+
+            foreach (var i in context)
+            {
+                if (i.Op == Op.OpName && ((OpName)i) is { } name)
+                {
+                    if (removedIds.Contains(name.Target))
+                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                }
+                else if (i.Op == Op.OpDecorate && ((OpDecorate)i) is { } decorate)
+                {
+                    if (removedIds.Contains(decorate.Target))
+                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                }
+                else if (i.Op == Op.OpDecorateString && ((OpDecorateString)i) is { } decorateString)
+                {
+                    if (removedIds.Contains(decorateString.Target))
+                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                }
             }
         }
 
@@ -284,7 +367,7 @@ namespace Stride.Shaders.Spirv.Processing
             return new(streams, blockIds, resources);
         }
 
-        private OpFunction GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult)
+        private OpFunction GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
         {
             var streams = analysisResult.Streams;
 
@@ -397,6 +480,8 @@ namespace Stride.Shaders.Spirv.Processing
                     if (stream.Value.Private
                         && stream.Value.VariableMethodInitializerId is int methodInitializerId)
                     {
+                        liveAnalysis.ReferencedMethods.Add(methodInitializerId);
+
                         var variableValueType = ((PointerType)stream.Value.Type).BaseType;
                         buffer.FluentAdd(new OpFunctionCall(context.GetOrRegister(variableValueType), context.Bound++, methodInitializerId, []), out var methodInitializerCall);
                         buffer.Add(new OpStore(stream.Value.VariableId, methodInitializerCall.ResultId, null));
@@ -436,10 +521,11 @@ namespace Stride.Shaders.Spirv.Processing
                     pvariables[pvariableIndex++] = block;
                 foreach (var resource in analysisResult.Resources)
                 {
-                    if (resource.Value.Used)
+                    if (resource.Value.UsedThisStage)
                         pvariables[pvariableIndex++] = resource.Key;
                 }
 
+                liveAnalysis.ReferencedMethods.Add(newEntryPointFunction);
                 context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [.. pvariables.Slice(0, pvariableIndex)]));
             }
 
@@ -449,8 +535,10 @@ namespace Stride.Shaders.Spirv.Processing
         /// <summary>
         /// Figure out (recursively) which streams are being read from and written to.
         /// </summary>
-        private void AnalyzeStreamReadWrites(NewSpirvBuffer buffer, List<int> callStack, int functionId, AnalysisResult analysisResult)
+        private void AnalyzeStreamReadWrites(NewSpirvBuffer buffer, List<int> callStack, int functionId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
         {
+            liveAnalysis.ReferencedMethods.Add(functionId);
+
             var streams = analysisResult.Streams;
             var streamsAccessChains = new Dictionary<int, StreamInfo>();
 
@@ -472,14 +560,14 @@ namespace Stride.Shaders.Spirv.Processing
                     if (TryGetStream(load.Pointer, out var streamInfo) && !streamInfo.Write)
                         streamInfo.Read = true;
                     if (analysisResult.Resources.TryGetValue(load.Pointer, out var resourceInfo))
-                        resourceInfo.Used = true;
+                        resourceInfo.UsedThisStage = true;
                 }
                 else if (instruction.Op is Op.OpStore && (OpStore)instruction is { } store)
                 {
                     if (TryGetStream(store.Pointer, out var streamInfo))
                         streamInfo.Write = true;
                     if (analysisResult.Resources.TryGetValue(store.Pointer, out var resourceInfo))
-                        resourceInfo.Used = true;
+                        resourceInfo.UsedThisStage = true;
                 }
                 else if (instruction is { Op: Op.OpAccessChain } && (OpAccessChain)instruction is { } accessChain)
                 {
@@ -497,7 +585,7 @@ namespace Stride.Shaders.Spirv.Processing
                     if (callStack.Contains(functionId))
                         throw new InvalidOperationException($"Recursive call with method id {functionId}");
                     callStack.Add(functionId);
-                    AnalyzeStreamReadWrites(buffer, callStack, call.Function, analysisResult);
+                    AnalyzeStreamReadWrites(buffer, callStack, call.Function, analysisResult, liveAnalysis);
                     callStack.RemoveAt(callStack.Count - 1);
                 }
             }
