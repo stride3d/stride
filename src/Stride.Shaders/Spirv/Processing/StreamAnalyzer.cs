@@ -85,6 +85,11 @@ namespace Stride.Shaders.Spirv.Processing
                 if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant() == "SV_COVERAGE" || semantic.ToUpperInvariant() == "SV_ISFRONTFACE" || semantic.ToUpperInvariant() == "VFACE"))
                     stream.Value.Read = false;
             }
+            // Reset resource used for next stage
+            foreach (var resource in analysisResult.Resources)
+            {
+                resource.Value.Used = false;
+            }
             PropagateStreamsFromPreviousStage(streams);
             if (entryPointVS.IdRef != 0)
             {
