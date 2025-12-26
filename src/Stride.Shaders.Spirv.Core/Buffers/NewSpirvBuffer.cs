@@ -16,6 +16,7 @@ namespace Stride.Shaders.Spirv.Core.Buffers;
 public interface IMemoryInstruction
 {
     ref OpData OpData { get; }
+    void Attach(OpDataIndex dataIndex);
     MemoryOwner<int> InstructionMemory { get; }
     public void UpdateInstructionMemory();
 }
@@ -250,22 +251,25 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
     {
         result = instruction;
         Instructions.Add(new(instruction.InstructionMemory));
+        instruction.Attach(new(Instructions.Count - 1, this));
         UpdateBound(Instructions[^1]);
         return this;
     }
 
-    public T Insert<T>(int index, in T data)
+    public T Insert<T>(int index, in T instruction)
         where T : struct, IMemoryInstruction, allows ref struct
     {
-        Instructions.Insert(index, new(data.InstructionMemory));
-        UpdateBound(Instructions[^1]);
-        return data;
+        Instructions.Insert(index, new(instruction.InstructionMemory));
+        instruction.Attach(new(index, this));
+        UpdateBound(Instructions[index]);
+        return instruction;
     }
-    public OpData InsertData<T>(int index, in T data)
+    public OpData InsertData<T>(int index, in T instruction)
         where T : struct, IMemoryInstruction, allows ref struct
     {
-        var result = new OpData(data.InstructionMemory);
+        var result = new OpData(instruction.InstructionMemory);
         Instructions.Insert(index, result);
+        instruction.Attach(new(index, this));
         UpdateBound(result);
         return result;
     }

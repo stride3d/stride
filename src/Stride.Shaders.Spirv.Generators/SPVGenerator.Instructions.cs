@@ -163,6 +163,11 @@ public partial class SPVGenerator : IIncrementalGenerator
                 .AppendLine("opData = ref data;")
                 .AppendLine("}");
 
+        body2.AppendLine($"public void Attach(OpDataIndex index)")
+                .AppendLine("{")
+                .AppendLine("opData = ref index.Data;")
+                .AppendLine("}");
+
         body2.AppendLine($"private void InitializeProperties(ref OpData data)")
                 .AppendLine("{");
 
@@ -324,6 +329,11 @@ public partial class SPVGenerator : IIncrementalGenerator
                 .AppendLine("opData = ref data;")
                 .AppendLine("}");
 
+        body2.AppendLine($"public void Attach(OpDataIndex index)")
+                .AppendLine("{")
+                .AppendLine("opData = ref index.Data;")
+                .AppendLine("}");
+
         body2.AppendLine($"private void InitializeProperties(ref OpData data)")
                 .AppendLine("{");
 
@@ -469,6 +479,11 @@ public partial class SPVGenerator : IIncrementalGenerator
                 .AppendLine("opData = ref data;")
                 .AppendLine("}");
 
+        body2.AppendLine($"public void Attach(OpDataIndex index)")
+                .AppendLine("{")
+                .AppendLine("opData = ref index.Data;")
+                .AppendLine("}");
+
         body2.AppendLine($"private void InitializeProperties(ref OpData data)")
                 .AppendLine("{");
         if (instruction.Operands?.AsList() is List<OperandData> operands && extinst.Operands?.AsList() is List<OperandData> extOperands)
@@ -596,6 +611,11 @@ public partial class SPVGenerator : IIncrementalGenerator
                 .AppendLine("{")
                 .AppendLine("InitializeProperties(ref data);")
                 .AppendLine("opData = ref data;")
+                .AppendLine("}");
+
+        body2.AppendLine($"public void Attach(OpDataIndex index)")
+                .AppendLine("{")
+                .AppendLine("opData = ref index.Data;")
                 .AppendLine("}");
 
         body2.AppendLine($"private void InitializeProperties(ref OpData data)")
