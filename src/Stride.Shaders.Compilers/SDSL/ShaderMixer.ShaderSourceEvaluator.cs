@@ -31,9 +31,19 @@ public partial class ShaderMixer
 
         foreach (var mixinToMerge in shaderMixinSource.Mixins)
         {
+            var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge.ClassName, mixinToMerge.GenericArguments, shaderMixinSource.Macros.AsSpan());
+
             var mixinToMerge2 = new ShaderClassInstantiation(mixinToMerge.ClassName, []);
-            var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge2.ClassName, mixinToMerge.GenericArguments, shaderMixinSource.Macros.AsSpan());
             mixinToMerge2.Buffer = buffer;
+            // Copy back updated shader name (in case it had generic parameters)
+            foreach (var i in buffer)
+            {
+                if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shaderInstruction)
+                {
+                    mixinToMerge2.ClassName = shaderInstruction.ShaderName;
+                    break;
+                }
+            }
             SpirvBuilder.BuildInheritanceList(ShaderLoader, mixinToMerge2, shaderMixinSource.Macros.AsSpan(), mixinList, ResolveStep.Mix);
         }
 
