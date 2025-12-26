@@ -109,31 +109,6 @@ public static class GameBuilderExtensions
     }
 
     /// <summary>
-    /// Adds the Stride input system to the game with no sources.
-    /// </summary>
-    /// <param name="gameBuilder"></param>
-    /// <returns></returns>
-    public static IGameBuilder UseStrideInput(this IGameBuilder gameBuilder)
-    {
-        var services = gameBuilder.InternalServices[typeof(IServiceRegistry)] as IServiceRegistry;
-
-        var inputSystem = new InputSystem(services);
-
-        gameBuilder
-            .AddGameSystem(inputSystem)
-            .AddService(inputSystem)
-            .AddService(inputSystem.Manager);
-
-        return gameBuilder;
-    }
-
-    public static IGameBuilder SetGameContext(this IGameBuilder gameBuilder, GameContext context)
-    {
-        gameBuilder.Context = context;
-        return gameBuilder;
-    }
-
-    /// <summary>
     /// Add a custom database file provider to the game.
     /// </summary>
     /// <param name="gameBuilder"></param>
