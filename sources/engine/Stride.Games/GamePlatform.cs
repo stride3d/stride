@@ -30,35 +30,38 @@ using Stride.Graphics;
 
 namespace Stride.Games
 {
-    internal abstract class GamePlatform : ReferenceBase, IGraphicsDeviceFactory, IGamePlatform
+    public abstract class GamePlatform : ReferenceBase, IGraphicsDeviceFactory, IGamePlatform
     {
         private bool hasExitRan = false;
 
-        protected readonly GameBase game;
+        //protected readonly IServiceRegistry Services;
 
-        protected readonly IServiceRegistry Services;
+        protected GameBase game => context.CurrentGame;
 
-        protected GameWindow gameWindow;
+        protected GameWindow gameWindow => context.GameWindow;
+
+        protected GameContext context;
 
         public string FullName { get; protected set; } = string.Empty;
 
-        protected GamePlatform(GameBase game)
+        protected GamePlatform(GameContext context)
         {
-            this.game = game;
-            Services = game.Services;
+            //Services = context.Services;
+            this.context = context;
+            this.context.GamePlatform = this;
         }
 
-        public static GamePlatform Create(GameBase game)
+        public static GamePlatform Create(GameContext context)
         {
 #if STRIDE_PLATFORM_UWP
-            return new GamePlatformUWP(game);
+            return new GamePlatformUWP(context);
 #elif STRIDE_PLATFORM_ANDROID
-            return new GamePlatformAndroid(game);
+            return new GamePlatformAndroid(context);
 #elif STRIDE_PLATFORM_IOS
-            return new GamePlatformiOS(game);
+            return new GamePlatformiOS(context);
 #else
             // Here we cover all Desktop variants: OpenTK, SDL, Winforms,...
-            return new GamePlatformDesktop(game);
+            return new GamePlatformDesktop(context);
 #endif
         }
 
@@ -95,7 +98,7 @@ namespace Stride.Games
             var window = GetSupportedGameWindow(gameContext.ContextType);
             if (window != null)
             {
-                window.Services = Services;
+                //window.Services = Services;
 
                 // Pass initial size
                 var requestedSize = new Int2(gameContext.RequestedWidth, gameContext.RequestedHeight);
@@ -115,11 +118,12 @@ namespace Stride.Games
         /// </summary>
         public bool IsBlockingRun { get; protected set; }
 
-        public void Run(GameContext gameContext)
+        public void Run()
         {
-            IsBlockingRun = !gameContext.IsUserManagingRun;
+            IsBlockingRun = !context.IsUserManagingRun;
 
-            gameWindow = CreateWindow(gameContext);
+            // Create the game window if not already created manually
+            context.GameWindow ??= CreateWindow(context);
 
             // Register on Activated 
             gameWindow.Activated += OnActivated;
@@ -293,7 +297,7 @@ namespace Stride.Games
                                 IsFullScreen = preferredParameters.IsFullScreen,
                                 PreferredFullScreenOutputIndex = preferredParameters.PreferredFullScreenOutputIndex,
                                 PresentationInterval = preferredParameters.SynchronizeWithVerticalRetrace ? PresentInterval.One : PresentInterval.Immediate,
-                                DeviceWindowHandle = MainWindow.NativeWindow,
+                                DeviceWindowHandle = context.GameWindow.NativeWindow,
                                 ColorSpace = preferredParameters.ColorSpace,
                             },
                         };
@@ -380,7 +384,7 @@ namespace Stride.Games
             if (gameWindow != null)
             {
                 gameWindow.Dispose();
-                gameWindow = null;
+                context.GameWindow = null;
             }
 
             Activated = null;
