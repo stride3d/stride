@@ -88,7 +88,7 @@ public static class GameBuilderExtensions
     /// </summary>
     /// <param name="gameBuilder"></param>
     /// <returns></returns>
-    public static IGameBuilder UseStrideInput(this IGameBuilder gameBuilder)
+    public static IGameBuilder UseDefaultInput(this IGameBuilder gameBuilder)
     {
         var services = gameBuilder.InternalServices[typeof(IServiceRegistry)] as IServiceRegistry;
 
@@ -183,7 +183,7 @@ public static class GameBuilderExtensions
     /// <param name="gameBuilder"></param>
     /// <param name="inputSource"></param>
     /// <returns></returns>
-    public static IGameBuilder AddStrideInputSource(this IGameBuilder gameBuilder, IInputSource inputSource)
+    public static IGameBuilder AddInputSource(this IGameBuilder gameBuilder, IInputSource inputSource)
     {
         gameBuilder.InputSources.Add(inputSource);
         return gameBuilder;
