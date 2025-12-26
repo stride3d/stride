@@ -16,6 +16,8 @@ public static class GameBaseExtensions
     {
         var content = game.Services.GetService<IContentManager>();
         var settings = content.Load<GameSettings>("GameSettings");
+        var sceneSystem = game.Services.GetService<SceneSystem>();
+        sceneSystem.InitialSceneUrl = settings.DefaultSceneUrl;
         return game;
     }
 
@@ -24,7 +26,6 @@ public static class GameBaseExtensions
         var content = game.Services.GetService<IContentManager>();
         var settings = content.Load<GameSettings>("GameSettings");
         var sceneSystem = game.Services.GetService<SceneSystem>();
-        sceneSystem.InitialSceneUrl = settings.DefaultSceneUrl;
         sceneSystem.InitialGraphicsCompositorUrl = settings.DefaultGraphicsCompositorUrl;
 
         return game;
