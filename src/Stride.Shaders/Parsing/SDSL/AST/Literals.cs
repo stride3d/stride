@@ -132,18 +132,26 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
         return true;
     }
 
-    public abstract SymbolType GenerateType(SymbolTable table, SpirvContext context);
+    public abstract SymbolType GenerateType(SymbolTable table, SpirvContext context, (SpirvValue Value, SymbolType Type)[] sourceValues);
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
-        Type = GenerateType(table, context);
+        var sourceValues = new (SpirvValue Value, SymbolType Type)[Values.Count];
+        for (int i = 0; i < sourceValues.Length; ++i)
+        {
+            var sourceValue = Values[i].CompileAsValue(table, compiler);
+            sourceValues[i] = (sourceValue, Values[i].ValueType);
+        }
+
+        Type = GenerateType(table, context, sourceValues);
 
         (var compositeCount, var totalCount) = Type switch
         {
             VectorType v => (v.Size, v.Size),
             MatrixType m => (m.Rows, m.Columns * m.Rows),
+            ArrayType t => (t.Size, t.Size),
         };
 
         Span<int> values = stackalloc int[totalCount];
@@ -152,26 +160,33 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
         // Note: There are a lot of opportunity to optimize by working with vector-to-vector copy (if they align correctly) and/or OpVectorShuffle, but it can get quite complex to handle all cases
         //       However, it is probably optimized by SPIRV-Cross or the compiler/driver, so maybe not worth optimzing (due to increased code cases/complexity)
         var elementIndex = 0;
-        foreach (var sourceValue in Values)
+        foreach (var sourceValue in sourceValues)
         {
-            var value = sourceValue.CompileAsValue(table, compiler);
-            var valueType = sourceValue.ValueType;
+            var value = sourceValue.Value;
+            var valueType = sourceValue.Type;
 
             // We expand elements, because float4 can be created from (float, float2, float), or (float2x2)
-            var elementType = valueType.GetElementType();
-            for (int i = 0; i < valueType.GetElementCount(); ++i)
+            if (Type is ScalarType or VectorType or MatrixType)
             {
-                SpirvValue extractedValue = valueType switch
+                var elementType = valueType.GetElementType();
+                for (int i = 0; i < valueType.GetElementCount(); ++i)
                 {
-                    MatrixType m => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(elementType), context.Bound++, value.Id, [i / m.Rows, i % m.Rows]))),
-                    VectorType v => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(elementType), context.Bound++, value.Id, [i]))),
-                    ScalarType s => value,
-                };
-                // If too many elments, keep counting so that exception is still thrown a bit later, with total count
-                var currentElementIndex = elementIndex++;
-                if (currentElementIndex >= values.Length)
-                    continue;
-                values[currentElementIndex] = builder.Convert(context, extractedValue, elementType).Id;
+                    SpirvValue extractedValue = valueType switch
+                    {
+                        MatrixType m => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(elementType), context.Bound++, value.Id, [i / m.Rows, i % m.Rows]))),
+                        VectorType v => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(elementType), context.Bound++, value.Id, [i]))),
+                        ScalarType s => value,
+                    };
+                    // If too many elments, keep counting so that exception is still thrown a bit later, with total count
+                    var currentElementIndex = elementIndex++;
+                    if (currentElementIndex >= values.Length)
+                        continue;
+                    values[currentElementIndex] = builder.Convert(context, extractedValue, elementType).Id;
+                }
+            }
+            else if (Type is ArrayType arrayType)
+            {
+                values[elementIndex++] = builder.Convert(context, value, arrayType.BaseType).Id;
             }
         }
 
@@ -186,6 +201,7 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
             {
                 MatrixType m => builder.Insert(new OpCompositeConstruct(context.GetOrRegister(new VectorType(m.BaseType, compositeSize)), context.Bound++, [.. values.Slice(i * compositeSize, compositeSize)])).ResultId,
                 VectorType v => values[i],
+                ArrayType => values[i],
             };
         }
 
@@ -197,7 +213,7 @@ public class VectorLiteral(TypeName typeName, TextLocation info) : CompositeLite
 {
     public TypeName TypeName { get; set; } = typeName;
 
-    public override SymbolType GenerateType(SymbolTable table, SpirvContext context) => TypeName.ResolveType(table, context);
+    public override SymbolType GenerateType(SymbolTable table, SpirvContext context, (SpirvValue Value, SymbolType Type)[] sourceValues) => TypeName.ResolveType(table, context);
 
     public override string ToString()
     {
@@ -212,7 +228,7 @@ public class MatrixLiteral(TypeName typeName, int rows, int cols, TextLocation i
     public int Rows { get; set; } = rows;
     public int Cols { get; set; } = cols;
 
-    public override SymbolType GenerateType(SymbolTable table, SpirvContext context) => TypeName.ResolveType(table, context);
+    public override SymbolType GenerateType(SymbolTable table, SpirvContext context, (SpirvValue Value, SymbolType Type)[] sourceValues) => TypeName.ResolveType(table, context);
 
     public override string ToString()
     {
@@ -222,9 +238,19 @@ public class MatrixLiteral(TypeName typeName, int rows, int cols, TextLocation i
 
 public class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
 {
-    public override SymbolType GenerateType(SymbolTable table, SpirvContext context)
+    public override SymbolType GenerateType(SymbolTable table, SpirvContext context, (SpirvValue Value, SymbolType Type)[] sourceValues)
     {
-        throw new NotImplementedException();
+        // We might be able to remove those exceptions by having better type inference (checking assigned variable)
+        if (sourceValues.Length == 0)
+            throw new NotImplementedException("Array needs at least one element");
+
+        for (int i = 1; i < sourceValues.Length; ++i)
+        {
+            if (sourceValues[i].Type != sourceValues[0].Type)
+                throw new NotImplementedException("Arrays expect same type for all elements");
+        }
+
+        return new ArrayType(sourceValues[0].Type, sourceValues.Length);
     }
 
     public override string ToString()
@@ -426,26 +452,38 @@ public class TypeName(string name, TextLocation info) : Literal(info)
             var arraySymbolType = symbolType;
             if (!table.DeclaredTypes.TryGetValue(fullTypeName, out symbolType))
             {
-                foreach (var arraySize in ArraySize)
-                {
-                    if (arraySize is EmptyExpression)
-                        arraySymbolType = new ArrayType(arraySymbolType, -1);
-                    else
-                    {
-                        var arrayComputedSize = -1;
-                        if (arraySize is IntegerLiteral i)
-                            arrayComputedSize = (int)i.Value;
-
-                        var constantArraySize = arraySize.CompileConstantValue(table, context);
-                        arraySymbolType = new ArrayType(arraySymbolType, arrayComputedSize, (constantArraySize.Id, context.GetBuffer()));
-                    }
-                }
+                if (ArraySize != null)
+                    arraySymbolType = GenerateArrayType(table, context, arraySymbolType, ArraySize);
 
                 table.DeclaredTypes.Add(fullTypeName, symbolType = arraySymbolType);
             }
         }
 
         return true;
+    }
+
+    public static SymbolType GenerateArrayType(SymbolTable table, SpirvContext context, SymbolType arraySymbolType, List<Expression> arraySizes)
+    {
+        foreach (var arraySize in arraySizes)
+        {
+            if (arraySize is EmptyExpression)
+                arraySymbolType = new ArrayType(arraySymbolType, -1);
+            else
+            {
+                var arrayComputedSize = -1;
+                if (arraySize is IntegerLiteral i)
+                    arrayComputedSize = (int)i.Value;
+
+                var constantArraySize = arraySize.CompileConstantValue(table, context);
+                if (SpirvBuilder.TryGetConstantValue(constantArraySize.Id, out var value, out _, context.GetBuffer(), true))
+                    arrayComputedSize = (int)value;
+                arraySymbolType = arrayComputedSize != -1
+                    ? new ArrayType(arraySymbolType, arrayComputedSize)
+                    : new ArrayType(arraySymbolType, arrayComputedSize, (constantArraySize.Id, context.GetBuffer()));
+            }
+        }
+
+        return arraySymbolType;
     }
 
     public SymbolType ResolveType(SymbolTable table, SpirvContext context)

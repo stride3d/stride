@@ -160,26 +160,34 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
 
         Type = new PointerType(valueType, Specification.StorageClass.Function);
 
-        var registeredType = context.GetOrRegister(Type);
         for (var index = 0; index < Variables.Count; index++)
         {
             var d = Variables[index];
 
+            var variableValueType = valueType;
+            if (d.ArraySizes != null)
+                variableValueType = TypeName.GenerateArrayType(table, context, variableValueType, d.ArraySizes);
+
+            var variableType = new PointerType(variableValueType, Specification.StorageClass.Function);
+
+            // TODO: Check if any array is empty and fill with initializer info (if any, otherwise error)
+
             var variable = context.Bound++;
-            builder.AddFunctionVariable(registeredType, variable);
+            var variableTypeId = context.GetOrRegister(variableType);
+            builder.AddFunctionVariable(variableTypeId, variable);
             context.AddName(variable, d.Variable);
 
-            table.CurrentFrame.Add(d.Variable, new(new(d.Variable, SymbolKind.Variable), Type, variable));
+            table.CurrentFrame.Add(d.Variable, new(new(d.Variable, SymbolKind.Variable), variableType, variable));
 
             if (builder.CurrentFunction is SpirvFunction f)
-                f.Variables.Add(d.Variable, new(variable, registeredType, d.Variable));
+                f.Variables.Add(d.Variable, new(variable, variableTypeId, d.Variable));
 
             if (d.Value != null)
             {
                 var source = compiledValues[index];
 
                 // Make sure type is correct
-                source = builder.Convert(context, source, valueType);
+                source = builder.Convert(context, source, variableValueType);
 
                 builder.Insert(new OpStore(variable, source.Id, null));
             }
