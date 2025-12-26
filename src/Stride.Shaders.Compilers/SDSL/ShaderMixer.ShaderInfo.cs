@@ -99,9 +99,9 @@ public partial class ShaderMixer
         }
     }
 
-    private void ProcessImportInfo(MixinGlobalContext globalContext, MixinNode mixinNode, OpData i, NewSpirvBuffer contextBuffer)
+    private void ProcessImportInfo(MixinGlobalContext globalContext, MixinNode mixinNode, ref OpData i, NewSpirvBuffer contextBuffer)
     {
-        if (i.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)
+        if (i.Op == Op.OpSDSLImportShader && new OpSDSLImportShader(ref i) is { } importShader)
         {
             // TODO: some common code to generate name, so that it doesn't deviate from ToClassName() called later when doing ShadersByName lookups
             var shaderName = importShader.ShaderName;
@@ -117,14 +117,14 @@ public partial class ShaderMixer
 
             globalContext.ExternalShaders.Add(importShader.ResultId, shaderName);
         }
-        else if (i.Op == Op.OpSDSLImportFunction && (OpSDSLImportFunction)i is { } importFunction)
+        else if (i.Op == Op.OpSDSLImportFunction && new OpSDSLImportFunction(ref i) is { } importFunction)
         {
             if (globalContext.ExternalShaders.ContainsKey(importFunction.Shader))
             {
                 globalContext.ExternalFunctions.Add(importFunction.ResultId, (importFunction.Shader, importFunction.FunctionName, importFunction.FunctionType));
             }
         }
-        else if (i.Op == Op.OpSDSLImportVariable && (OpSDSLImportVariable)i is { } importVariable)
+        else if (i.Op == Op.OpSDSLImportVariable && new OpSDSLImportVariable(ref i) is { } importVariable)
         {
             if (globalContext.ExternalShaders.ContainsKey(importVariable.Shader))
             {

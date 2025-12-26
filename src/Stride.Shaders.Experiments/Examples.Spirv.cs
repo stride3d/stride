@@ -65,7 +65,7 @@ public static partial class Examples
 
         buffer.FluentAdd(new OpCapability(Capability.Shader));
         var extInstImport = new OpExtInstImport(id++, "GLSL.std.450");
-        buffer.AddRef(ref extInstImport);
+        buffer.Add(extInstImport);
         buffer.FluentAdd(new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
 
 

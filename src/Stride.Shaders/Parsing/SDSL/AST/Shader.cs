@@ -219,7 +219,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var shaderSymbol = (ShaderSymbol)types[importStruct.Shader];
                 if (shaderSymbol is LoadedShaderSymbol loadedShaderSymbol)
                 {
-                    types.Add(importStruct.ResultId, loadedShaderSymbol.StructTypes.Single(x => x.Type.ToId() == importStruct.StructName).Type);
+                    var structName = importStruct.StructName;
+                    types.Add(importStruct.ResultId, loadedShaderSymbol.StructTypes.Single(x => x.Type.ToId() == structName).Type);
                 }
                 else
                 {

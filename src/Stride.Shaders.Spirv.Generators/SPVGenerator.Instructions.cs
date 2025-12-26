@@ -30,6 +30,7 @@ public partial class SPVGenerator : IIncrementalGenerator
         .AppendLine("using CommunityToolkit.HighPerformance.Buffers;")
         .AppendLine("using Stride.Shaders.Spirv.Core.Buffers;")
         .AppendLine("using System.Numerics;")
+        .AppendLine("using System.Runtime.CompilerServices;")
         .AppendLine()
         .AppendLine("namespace Stride.Shaders.Spirv.Core;")
         .AppendLine()
@@ -152,16 +153,17 @@ public partial class SPVGenerator : IIncrementalGenerator
     {
         body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
                 .AppendLine("{")
-                .AppendLine("InitializeProperties(index.Data);")
-                .AppendLine("DataIndex = index;")
+                .AppendLine("InitializeProperties(ref index.Data);")
+                .AppendLine("opData = ref index.Data;")
                 .AppendLine("}");
 
-        body2.AppendLine($"public {instruction.OpName}(OpData data)")
+        body2.AppendLine($"public {instruction.OpName}(ref OpData data)")
                 .AppendLine("{")
-                .AppendLine("InitializeProperties(data);")
+                .AppendLine("InitializeProperties(ref data);")
+                .AppendLine("opData = ref data;")
                 .AppendLine("}");
 
-        body2.AppendLine($"private void InitializeProperties(OpData data)")
+        body2.AppendLine($"private void InitializeProperties(ref OpData data)")
                 .AppendLine("{");
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
@@ -238,6 +240,7 @@ public partial class SPVGenerator : IIncrementalGenerator
 
             body3
             .AppendLine("UpdateInstructionMemory();")
+            .AppendLine("opData = ref Unsafe.NullRef<OpData>();")
             .AppendLine("}");
 
             // Body 4
@@ -268,24 +271,25 @@ public partial class SPVGenerator : IIncrementalGenerator
         body2.AppendLine("}");
 
         builder.AppendLine($@"
-            public struct {instruction.OpName} : IMemoryInstruction
+            public ref partial struct {instruction.OpName} : IMemoryInstruction
             {{
-                public OpDataIndex? DataIndex {{ get; set; }}
+                private ref OpData opData;
+                public ref OpData OpData => ref opData;
                 public MemoryOwner<int> InstructionMemory
                 {{
-                    readonly get
+                    get
                     {{
-                        if (DataIndex is OpDataIndex odi)
-                            return odi.Data.Memory;
+                        if (!Unsafe.IsNullRef(ref OpData))
+                            return OpData.Memory;
                         else return field;
                     }}
 
                     private set
                     {{
-                        if (DataIndex is OpDataIndex odi)
+                        if (!Unsafe.IsNullRef(ref OpData))
                         {{
-                            odi.Data.Memory.Dispose();
-                            odi.Data.Memory = value;
+                            OpData.Memory.Dispose();
+                            OpData.Memory = value;
                         }}
                         else field = value;
                     }}
@@ -303,7 +307,6 @@ public partial class SPVGenerator : IIncrementalGenerator
                 {body4}
 
                 public static implicit operator {instruction.OpName}(OpDataIndex odi) => new(odi);
-                public static implicit operator {instruction.OpName}(OpData data) => new(data);
             }}
         ");
     }
@@ -311,16 +314,17 @@ public partial class SPVGenerator : IIncrementalGenerator
     {
         body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
                 .AppendLine("{")
-                .AppendLine("InitializeProperties(index.Data);")
-                .AppendLine("DataIndex = index;")
+                .AppendLine("InitializeProperties(ref index.Data);")
+                .AppendLine("opData = ref index.Data;")
                 .AppendLine("}");
 
-        body2.AppendLine($"public {instruction.OpName}(OpData data)")
+        body2.AppendLine($"public {instruction.OpName}(ref OpData data)")
                 .AppendLine("{")
-                .AppendLine("InitializeProperties(data);")
+                .AppendLine("InitializeProperties(ref data);")
+                .AppendLine("opData = ref data;")
                 .AppendLine("}");
 
-        body2.AppendLine($"private void InitializeProperties(OpData data)")
+        body2.AppendLine($"private void InitializeProperties(ref OpData data)")
                 .AppendLine("{");
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
@@ -384,6 +388,7 @@ public partial class SPVGenerator : IIncrementalGenerator
 
             body3
             .AppendLine("UpdateInstructionMemory();")
+            .AppendLine("opData = ref Unsafe.NullRef<OpData>();")
             .AppendLine("}");
 
             // Body 4
@@ -414,24 +419,25 @@ public partial class SPVGenerator : IIncrementalGenerator
         body2.AppendLine("}");
 
         builder.AppendLine($@"
-            public struct {instruction.OpName} : IMemoryInstruction
+            public ref struct {instruction.OpName} : IMemoryInstruction
             {{
-                public OpDataIndex? DataIndex {{ get; set; }}
+                private ref OpData opData;
+                public ref OpData OpData => ref opData;
                 public MemoryOwner<int> InstructionMemory
                 {{
-                    readonly get
+                    get
                     {{
-                        if (DataIndex is OpDataIndex odi)
-                            return odi.Data.Memory;
+                        if (!Unsafe.IsNullRef(ref OpData))
+                            return OpData.Memory;
                         else return field;
                     }}
 
                     private set
                     {{
-                        if (DataIndex is OpDataIndex odi)
+                        if (!Unsafe.IsNullRef(ref OpData))
                         {{
-                            odi.Data.Memory.Dispose();
-                            odi.Data.Memory = value;
+                            OpData.Memory.Dispose();
+                            OpData.Memory = value;
                         }}
                         else field = value;
                     }}
@@ -443,7 +449,6 @@ public partial class SPVGenerator : IIncrementalGenerator
                 {body4}
 
                 public static implicit operator {instruction.OpName}(OpDataIndex odi) => new(odi);
-                public static implicit operator {instruction.OpName}(OpData data) => new(data);
             }}
         ");
     }
@@ -454,16 +459,17 @@ public partial class SPVGenerator : IIncrementalGenerator
 
         body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
                 .AppendLine("{")
-                .AppendLine("InitializeProperties(index.Data);")
-                .AppendLine("DataIndex = index;")
+                .AppendLine("InitializeProperties(ref index.Data);")
+                .AppendLine("opData = ref index.Data;")
                 .AppendLine("}");
 
-        body2.AppendLine($"public {instruction.OpName}(OpData data)")
+        body2.AppendLine($"public {instruction.OpName}(ref OpData data)")
                 .AppendLine("{")
-                .AppendLine("InitializeProperties(data);")
+                .AppendLine("InitializeProperties(ref data);")
+                .AppendLine("opData = ref data;")
                 .AppendLine("}");
 
-        body2.AppendLine($"private void InitializeProperties(OpData data)")
+        body2.AppendLine($"private void InitializeProperties(ref OpData data)")
                 .AppendLine("{");
         if (instruction.Operands?.AsList() is List<OperandData> operands && extinst.Operands?.AsList() is List<OperandData> extOperands)
         {
@@ -512,8 +518,11 @@ public partial class SPVGenerator : IIncrementalGenerator
             }
             body2.AppendLine("}");
 
-            body3.AppendLine("UpdateInstructionMemory();")
+            body3
+            .AppendLine("UpdateInstructionMemory();")
+            .AppendLine("opData = ref Unsafe.NullRef<OpData>();")
             .AppendLine("}");
+
 
             // Body 4
 
@@ -540,24 +549,25 @@ public partial class SPVGenerator : IIncrementalGenerator
         }
         body2.AppendLine("}");
         builder.AppendLine($@"
-            public struct {instruction.OpName} : IMemoryInstruction
+            public ref struct {instruction.OpName} : IMemoryInstruction
             {{
-                public OpDataIndex? DataIndex {{ get; set; }}
+                private ref OpData opData;
+                public ref OpData OpData => ref opData;
                 public MemoryOwner<int> InstructionMemory
                 {{
-                    readonly get
+                    get
                     {{
-                        if (DataIndex is OpDataIndex odi)
-                            return odi.Data.Memory;
+                        if (!Unsafe.IsNullRef(ref OpData))
+                            return OpData.Memory;
                         else return field;
                     }}
 
                     private set
                     {{
-                        if (DataIndex is OpDataIndex odi)
+                        if (!Unsafe.IsNullRef(ref OpData))
                         {{
-                            odi.Data.Memory.Dispose();
-                            odi.Data.Memory = value;
+                            OpData.Memory.Dispose();
+                            OpData.Memory = value;
                         }}
                         else field = value;
                     }}
@@ -569,7 +579,6 @@ public partial class SPVGenerator : IIncrementalGenerator
                 {body4}
 
                 public static implicit operator {instruction.OpName}(OpDataIndex odi) => new(odi);
-                public static implicit operator {instruction.OpName}(OpData data) => new(data);
             }}
         ");
 
@@ -579,16 +588,17 @@ public partial class SPVGenerator : IIncrementalGenerator
     {
         body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
                 .AppendLine("{")
-                .AppendLine("InitializeProperties(index.Data);")
-                .AppendLine("DataIndex = index;")
+                .AppendLine("InitializeProperties(ref index.Data);")
+                .AppendLine("opData = ref index.Data;")
                 .AppendLine("}");
 
-        body2.AppendLine($"public {instruction.OpName}(OpData data)")
+        body2.AppendLine($"public {instruction.OpName}(ref OpData data)")
                 .AppendLine("{")
-                .AppendLine("InitializeProperties(data);")
+                .AppendLine("InitializeProperties(ref data);")
+                .AppendLine("opData = ref data;")
                 .AppendLine("}");
 
-        body2.AppendLine($"private void InitializeProperties(OpData data)")
+        body2.AppendLine($"private void InitializeProperties(ref OpData data)")
                 .AppendLine("{");
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
@@ -641,7 +651,9 @@ public partial class SPVGenerator : IIncrementalGenerator
                 .AppendLine($"public static implicit operator int({instruction.OpName}<T> inst) => inst.ResultId;");
             body2.AppendLine("}");
 
-            body3.AppendLine("UpdateInstructionMemory();")
+            body3
+            .AppendLine("UpdateInstructionMemory();")
+            .AppendLine("opData = ref Unsafe.NullRef<OpData>();")
             .AppendLine("}");
 
             // Body 4
@@ -673,25 +685,26 @@ public partial class SPVGenerator : IIncrementalGenerator
 
         builder.AppendLine($@"
         // {string.Join(", ", instruction.Operands?.AsList().Select(x => $"{x.Name}:{x.Kind}"))}
-            public struct {instruction.OpName}<T> : IMemoryInstruction
+            public ref struct {instruction.OpName}<T> : IMemoryInstruction
                 where T : struct, INumber<T>
             {{
-                public OpDataIndex? DataIndex {{ get; set; }}
+                private ref OpData opData;
+                public ref OpData OpData => ref opData;
                 public MemoryOwner<int> InstructionMemory
                 {{
-                    readonly get
+                    get
                     {{
-                        if (DataIndex is OpDataIndex odi)
-                            return odi.Data.Memory;
+                        if (!Unsafe.IsNullRef(ref OpData))
+                            return OpData.Memory;
                         else return field;
                     }}
 
                     private set
                     {{
-                        if (DataIndex is OpDataIndex odi)
+                        if (!Unsafe.IsNullRef(ref OpData))
                         {{
-                            odi.Data.Memory.Dispose();
-                            odi.Data.Memory = value;
+                            OpData.Memory.Dispose();
+                            OpData.Memory = value;
                         }}
                         else field = value;
                     }}
@@ -703,7 +716,6 @@ public partial class SPVGenerator : IIncrementalGenerator
                 {body4}
 
                 public static implicit operator {instruction.OpName}<T>(OpDataIndex odi) => new(odi);
-                public static implicit operator {instruction.OpName}<T>(OpData data) => new(data);
             }}
         ");
     }

@@ -149,8 +149,8 @@ namespace Stride.Shaders.Spirv.Processing
             // (if PSMain has been overriden with an empty method, it means we don't want to output anything and remove the pixel shader, i.e. for shadow caster)
             if (streams.Any(x => x.Value.Output))
             {
-                var psWrapper = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult, liveAnalysis);
-                buffer.FluentAdd(new OpExecutionMode(psWrapper.ResultId, ExecutionMode.OriginUpperLeft));
+                var psWrapperId = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult, liveAnalysis);
+                buffer.FluentAdd(new OpExecutionMode(psWrapperId, ExecutionMode.OriginUpperLeft));
             }
 
             // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
@@ -557,7 +557,7 @@ namespace Stride.Shaders.Spirv.Processing
             return new(streams, cbuffers, resourceGroups, resources);
         }
 
-        private OpFunction GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
+        private int GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
         {
             var streams = analysisResult.Streams;
 
@@ -721,7 +721,7 @@ namespace Stride.Shaders.Spirv.Processing
                 context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [.. pvariables.Slice(0, pvariableIndex)]));
             }
 
-            return newEntryPointFunction;
+            return newEntryPointFunction.ResultId;
         }
 
         /// <summary>

@@ -319,12 +319,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 context.Bound = Math.Max(context.Bound, i2.IdResult.Value + 1);
 
             // ResourceGroupId: adjust offsets too
-            if (i2.Op == Op.OpDecorate && (OpDecorate)i2 is { Decoration: { Value: Decoration.ResourceGroupIdSDSL, Parameters: { } m } } resourceGroupIdDecorate)
+            if (i2.Op == Op.OpDecorate && new OpDecorate(ref i2) is { Decoration: { Value: Decoration.ResourceGroupIdSDSL, Parameters: { } m } } resourceGroupIdDecorate)
             {
                 // Somehow data doesn't get mutated inside i2 if we update resourceGroupIdDecorate.Decoration, so we reference buffer directly
-                ref var resourceGroupId = ref i2.Memory.Span[3];
-                resourceGroupId += resourceGroupOffset;
-                context.ResourceGroupBound = Math.Max(context.ResourceGroupBound, resourceGroupId + 1);
+                var n = new LiteralValue<int>(m.Span);
+                n.Value += resourceGroupOffset;
+                resourceGroupIdDecorate.Decoration = new(resourceGroupIdDecorate.Decoration.Value, n.Words);
+                context.ResourceGroupBound = Math.Max(context.ResourceGroupBound, n.Value + 1);
+                n.Dispose();
             }
 
             if (SpirvBuilder.ContainIds(forbiddenIds, i2))
@@ -362,7 +364,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i2.Op == Op.OpSDSLImportStruct)
             {
                 // We need to replace those right now (otherwise further types depending on this struct won't get properly translated)
-                if (i2.Op == Op.OpSDSLImportStruct && (OpSDSLImportStruct)i2 is { } importStruct)
+                if (i2.Op == Op.OpSDSLImportStruct && new OpSDSLImportStruct(ref i2) is { } importStruct)
                 {
                     var shaderName = globalContext.ExternalShaders[importStruct.Shader];
                     var shader2 = mixinNode.ShadersByName[shaderName];
@@ -401,7 +403,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             // OpTypeStruct is the only type that can be defined by the shader.
             // In case it's deduplicated (i.e. used in two separate mixin nodes), we still want to have it in shaderInfo.StructTypes, so let's save it aside now.
-            if (i2.Op == Op.OpTypeStruct && (OpTypeStruct)i2 is { } typeStruct2)
+            if (i2.Op == Op.OpTypeStruct && new OpTypeStruct(ref i2) is { } typeStruct2)
             {
                 var structName = names[typeStruct2.ResultId - offset];
                 if (!remapIds.TryGetValue(typeStruct2.ResultId, out var structId))
@@ -410,7 +412,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
 
             // Process OpSDSLImport
-            ProcessImportInfo(globalContext, mixinNode, i2, context.GetBuffer());
+            ProcessImportInfo(globalContext, mixinNode, ref i2, context.GetBuffer());
 
             if (addToContext)
             {

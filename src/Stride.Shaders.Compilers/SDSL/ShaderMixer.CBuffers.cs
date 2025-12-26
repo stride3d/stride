@@ -62,23 +62,23 @@ namespace Stride.Shaders.Compilers.SDSL
 
             var cbuffersByNames = buffer
                 .Where(x => x.Op == Op.OpVariableSDSL)
-                .Select(x => (Index: x.Index, Variable: (OpVariableSDSL)x))
+                .Select(x => (Index: x.Index, Variable: x))
                 // Note: MemberIndexOffset is simply a shift in Members index, not something like a byte offset
                 .Select(x => (
                     Variable: x.Variable,
                     CompositionPath: compositionNodes.LastOrDefault(mixinNode => x.Index >= mixinNode.StartIndex).CompositionPath,
                     ShaderName: shaders.LastOrDefault(shader => x.Index >= shader.StartIndex).ShaderName,
-                    StructTypePtrId: x.Variable.ResultType,
-                    StructType: context.ReverseTypes[x.Variable.ResultType] is PointerType p && p.StorageClass == Specification.StorageClass.Uniform && p.BaseType is StructuredType s ? s : null,
+                    StructTypePtrId: x.Variable.Data.IdResultType.Value,
+                    StructType: context.ReverseTypes[x.Variable.Data.IdResultType.Value] is PointerType p && p.StorageClass == Specification.StorageClass.Uniform && p.BaseType is StructuredType s ? s : null,
                     MemberIndexOffset: 0,
-                    LogicalGroup: GetCBufferLogicalGroup(x.Variable.ResultId)))
+                    LogicalGroup: GetCBufferLogicalGroup(x.Variable.Data.IdResult.Value)))
                 // TODO: Check Decoration.Block?
                 .Where(x => x.StructType != null)
-                .GroupBy(x => ShaderClass.GetCBufferRealName(globalContext.Names[x.Variable.ResultId]));
+                .GroupBy(x => ShaderClass.GetCBufferRealName(globalContext.Names[x.Variable.Data.IdResult.Value]));
 
             var cbufferStructTypes = cbuffersByNames.SelectMany(x => x).Select(x => context.Types[x.StructType]).ToHashSet();
 
-            void ProcessDecorations(Span<(OpVariableSDSL Variable, string CompositionPath, string ShaderName, int StructTypePtrId, StructuredType? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, int cbufferStructId, bool newStructure)
+            void ProcessDecorations(Span<(OpDataIndex Variable, string CompositionPath, string ShaderName, int StructTypePtrId, StructuredType? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, int cbufferStructId, bool newStructure)
             {
                 int mergedMemberIndex = 0;
                 foreach (ref var cbuffer in cbuffersSpan)
@@ -136,7 +136,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                 // In all cases, we update name to one without .0 .1 suffix
                 // (we do it even for case count == 1 because all buffer except one might have been optimized away)
-                globalContext.Names[cbuffersSpan[0].Variable.ResultId] = cbuffersEntry.Key;
+                globalContext.Names[cbuffersSpan[0].Variable.Data.IdResult.Value] = cbuffersEntry.Key;
 
                 if (cbuffersEntry.Count() == 1)
                 {
@@ -152,7 +152,7 @@ namespace Stride.Shaders.Compilers.SDSL
                         cbuffer.MemberIndexOffset = offset;
                         offset += cbuffer.StructType.Members.Count;
                     }
-                    var variables = cbuffers.ToDictionary(x => x.Variable.ResultId, x => x);
+                    var variables = cbuffers.ToDictionary(x => x.Variable.Data.IdResult.Value, x => x);
                     var structTypes = cbuffers.Select(x => x.StructType);
 
                     var mergedCbufferStruct = new ConstantBufferSymbol(cbuffersEntry.Key, structTypes.SelectMany(x => x.Members).ToList());
@@ -196,18 +196,18 @@ namespace Stride.Shaders.Compilers.SDSL
                     }
 
                     // Update first variable to use new type
-                    cbuffersSpan[0].Variable.ResultType = mergedCbufferPtrStructId;
+                    cbuffersSpan[0].Variable.Data.IdResultType = mergedCbufferPtrStructId;
                     foreach (var i in buffer)
                     {
                         if (i.Op == Op.OpName && (OpName)i is { } name)
                         {
                             // Ensure cbuffer variable name is correct (it might still have a pending number such as Test.0 if there was multiple buffers with same name)
-                            if (cbuffersSpan[0].Variable.ResultId == name.Target)
+                            if (cbuffersSpan[0].Variable.Data.IdResult == name.Target)
                                 name.Name = cbuffersEntry.Key;
                             // Remove any other OpName (after remapping they would all point to the merged variable)
                             foreach (var cbuffer in cbuffersSpan[1..])
                             {
-                                if (cbuffer.Variable.ResultId == name.Target)
+                                if (cbuffer.Variable.Data.IdResult == name.Target)
                                     SetOpNop(i.Data.Memory.Span);
                             }
                         }
@@ -216,10 +216,10 @@ namespace Stride.Shaders.Compilers.SDSL
                     foreach (ref var cbuffer in cbuffersSpan.Slice(1))
                     {
                         // Update all cbuffers access to be replaced with first variable (unified cbuffer)
-                        idRemapping.Add(cbuffer.Variable.ResultId, cbuffersSpan[0].Variable.ResultId);
-                        removedIds.Add(cbuffer.Variable.ResultId);
+                        idRemapping.Add(cbuffer.Variable.Data.IdResult.Value, cbuffersSpan[0].Variable.Data.IdResult.Value);
+                        removedIds.Add(cbuffer.Variable.Data.IdResult.Value);
                         // Remove other cbuffer variables
-                        SetOpNop(cbuffer.Variable.InstructionMemory.Span);
+                        SetOpNop(cbuffer.Variable.Data.Memory.Span);
                         // TODO: Do we want to remove unecessary types?
                         //       Maybe we don't care as they are not used anymore, they will be ignored.
                         //       Also, if we do so, maybe we could do it as part of a global pass at the end rather than now?
@@ -235,12 +235,11 @@ namespace Stride.Shaders.Compilers.SDSL
         {
             var cbuffers = buffer
                 .Where(x => x.Op == Op.OpVariableSDSL)
-                .Select(x => (OpVariableSDSL)x)
                 // Note: MemberIndexOffset is simply a shift in Members index, not something like a byte offset
                 .Select(x => (
                     Variable: x,
-                    StructTypePtrId: x.ResultType,
-                    StructType: context.ReverseTypes[x.ResultType] is PointerType p && p.StorageClass == Specification.StorageClass.Uniform && p.BaseType is StructuredType s ? s : null,
+                    StructTypePtrId: x.Data.IdResultType.Value,
+                    StructType: context.ReverseTypes[x.Data.IdResultType.Value] is PointerType p && p.StorageClass == Specification.StorageClass.Uniform && p.BaseType is StructuredType s ? s : null,
                     MemberIndexOffset: 0))
                 .Where(x => x.StructType != null)
                 .ToList();
@@ -371,7 +370,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                 globalContext.Reflection.ConstantBuffers.Add(new EffectConstantBufferDescription
                 {
-                    Name = globalContext.Names[cbuffer.Variable.ResultId],
+                    Name = globalContext.Names[cbuffer.Variable.Data.IdResult.Value],
                     // Round buffer size to next multiple of 16 bytes
                     Size = (constantBufferOffset + 15) / 16 * 16,
 

@@ -596,28 +596,22 @@ public partial class SpirvBuilder
                 }
 
                 // Special case: remove duplicates in OpEntryPoint
-                // TODO: It's a bit ugly but we could make it better later with some syntactic sugar helper
                 if (i.Op == Op.OpEntryPoint && op.Quantifier == OperandQuantifier.ZeroOrMore)
                 {
+                    var entryPoint = new OpEntryPoint(ref i);
+
                     var existing = new HashSet<int>();
                     var target = 0;
-                    for (int index = 0; index < op.Words.Length; ++index)
+                    for (int index = 0; index < entryPoint.Values.Elements.Length; ++index)
                     {
-                        if (existing.Add(op.Words[index]))
+                        if (existing.Add(entryPoint.Values.Elements.Span[index]))
                         {
-                            op.Words[target++] = op.Words[index];
+                            entryPoint.Values.Elements.Span[target++] = entryPoint.Values.Elements.Span[index];
                         }
                     }
-                    // Adjust new size
-                    var length = i.Memory.Span[0] >> 16;
-                    length -= op.Words.Length - target;
-                    i.Memory.Span[0] = ((int)i.Memory.Span[0] & 0xFFFF) | (length << 16);
 
-                    var tmp = MemoryOwner<int>.Allocate(length);
-                    i.Memory.Span.Slice(0, length).CopyTo(tmp.Span);
-                    i.Memory.Dispose();
-                    i = new(tmp);
-
+                    // Slice and reassign to refresh InstructionMemory and size
+                    entryPoint.Values = entryPoint.Values.Slice(0, target);
                 }
             }
 

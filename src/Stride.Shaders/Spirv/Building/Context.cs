@@ -428,16 +428,16 @@ public class SpirvContext
     }
 
     public OpData Insert<T>(int index, in T value)
-        where T : struct, IMemoryInstruction
+        where T : struct, IMemoryInstruction, allows ref struct
         => Buffer.InsertData(index, value);
 
     public OpData Add<T>(in T value)
-        where T : struct, IMemoryInstruction
+        where T : struct, IMemoryInstruction, allows ref struct
         => Buffer.Add(value);
 
 
     public SpirvContext FluentAdd<T>(in T value, out T result)
-        where T : struct, IMemoryInstruction
+        where T : struct, IMemoryInstruction, allows ref struct
     {
         Buffer.FluentAdd(value, out result);
         return this;

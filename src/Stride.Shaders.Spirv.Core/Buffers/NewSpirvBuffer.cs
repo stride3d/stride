@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using CommunityToolkit.HighPerformance;
@@ -14,7 +15,7 @@ namespace Stride.Shaders.Spirv.Core.Buffers;
 
 public interface IMemoryInstruction
 {
-    OpDataIndex? DataIndex { get; set; }
+    ref OpData OpData { get; }
     MemoryOwner<int> InstructionMemory { get; }
     public void UpdateInstructionMemory();
 }
@@ -231,71 +232,37 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         return new OpDataIndex(index, this);
     }
 
-    public OpData Add<T>(in T instruction) where T : struct, IMemoryInstruction
+    public OpData Add<T>(in T instruction) where T : struct, IMemoryInstruction, allows ref struct
     {
-        if (instruction.DataIndex is OpDataIndex odi)
-        {
-            if (odi.Buffer == this)
-                return odi.Data;
-            else
-                Instructions.Add(new(instruction.InstructionMemory));
-        }
-        else Instructions.Add(new(instruction.InstructionMemory));
+        Instructions.Add(new(instruction.InstructionMemory));
         UpdateBound(Instructions[^1]);
         return Instructions[^1];
     }
 
-    public void AddRef<T>(ref T instruction) where T : struct, IMemoryInstruction
+    public NewSpirvBuffer FluentAdd<T>(in T instruction) where T : struct, IMemoryInstruction, allows ref struct
     {
-        if (instruction.DataIndex is OpDataIndex odi)
-        {
-            if (odi.Buffer == this)
-                return;
-            else
-                Instructions.Add(new(instruction.InstructionMemory));
-        }
-        else Instructions.Add(new(instruction.InstructionMemory));
-        instruction.DataIndex = new(Instructions.Count - 1, this);
-        UpdateBound(Instructions[^1]);
-    }
-    public NewSpirvBuffer FluentAdd<T>(in T instruction) where T : struct, IMemoryInstruction
-    {
-        if (instruction.DataIndex is OpDataIndex odi)
-        {
-            if (odi.Buffer == this)
-                return this;
-            else
-                Instructions.Add(new(instruction.InstructionMemory));
-        }
-        else Instructions.Add(new(instruction.InstructionMemory));
+        Instructions.Add(new(instruction.InstructionMemory));
         var tmp = instruction;
         UpdateBound(Instructions[^1]);
         return this;
     }
-    public NewSpirvBuffer FluentAdd<T>(in T instruction, out T result) where T : struct, IMemoryInstruction
+    public NewSpirvBuffer FluentAdd<T>(in T instruction, out T result) where T : struct, IMemoryInstruction, allows ref struct
     {
         result = instruction;
-        if (instruction.DataIndex is OpDataIndex odi)
-        {
-            if (odi.Buffer == this)
-                return this;
-            else
-                Instructions.Add(new(instruction.InstructionMemory));
-        }
-        else Instructions.Add(new(instruction.InstructionMemory));
+        Instructions.Add(new(instruction.InstructionMemory));
         UpdateBound(Instructions[^1]);
         return this;
     }
 
     public T Insert<T>(int index, in T data)
-        where T : struct, IMemoryInstruction
+        where T : struct, IMemoryInstruction, allows ref struct
     {
         Instructions.Insert(index, new(data.InstructionMemory));
         UpdateBound(Instructions[^1]);
         return data;
     }
     public OpData InsertData<T>(int index, in T data)
-        where T : struct, IMemoryInstruction
+        where T : struct, IMemoryInstruction, allows ref struct
     {
         var result = new OpData(data.InstructionMemory);
         Instructions.Insert(index, result);
@@ -346,7 +313,7 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         return Instructions[index];
     }
 
-    public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction
+    public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction, allows ref struct
     {
         if (index < 0 || index >= Instructions.Count)
             throw new InvalidOperationException();
@@ -468,11 +435,11 @@ public static class IMemoryInstructionExtensions
     /// </summary>
     /// <param name="op"></param>
     /// <returns></returns>
-    public static LogicalOperandArray GetInfo<T>(this ref T op)
-        where T : struct, IMemoryInstruction
+    public static LogicalOperandArray GetInfo<T>(this T op)
+        where T : struct, IMemoryInstruction, allows ref struct
     {
-        if (op.DataIndex is OpDataIndex odi)
-            return InstructionInfo.GetInfo(odi.Data);
+        if (!Unsafe.IsNullRef(ref op.OpData))
+            return InstructionInfo.GetInfo(op.OpData);
         return InstructionInfo.GetInfo(op.InstructionMemory.Span);
     }
 }

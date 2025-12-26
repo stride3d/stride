@@ -88,11 +88,11 @@ public partial class SpirvBuilder()
 
 
     public T Insert<T>(in T value)
-        where T : struct, IMemoryInstruction
+        where T : struct, IMemoryInstruction, allows ref struct
         => Buffer.Insert(Position++, value);
 
     public OpData InsertData<T>(in T value)
-        where T : struct, IMemoryInstruction
+        where T : struct, IMemoryInstruction, allows ref struct
         => Buffer.InsertData(Position++, value);
 
     [Obsolete("Use the insert method instead")]

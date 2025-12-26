@@ -85,6 +85,11 @@ public struct LiteralArray<T> : ISpirvElement, IFromSpirv<LiteralArray<T>>, IDis
         span.CopyTo(Elements.Span);
     }
 
+    public LiteralArray<T> Slice(int start, int length)
+    {
+        return new LiteralArray<T>(Elements.Slice(start, length));
+    }
+
     public readonly void Dispose() => Elements.Dispose();
 
     public readonly Span<T>.Enumerator GetEnumerator() => Elements.Span.GetEnumerator();
