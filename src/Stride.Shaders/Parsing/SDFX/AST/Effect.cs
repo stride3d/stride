@@ -1,3 +1,4 @@
+using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL;
@@ -28,6 +29,25 @@ public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : Sh
         {
             statement.Compile(table, compiler);
         }
+    }
+
+    internal static int[] CompileGenerics(SymbolTable table, CompilerUnit compiler, ShaderExpressionList? generics)
+    {
+        var genericCount = generics != null ? generics.Values.Count : 0;
+        var genericValues = new int[genericCount];
+        if (genericCount > 0)
+        {
+            int genericIndex = 0;
+            foreach (var generic in generics)
+            {
+                if (generic is not Literal literal)
+                    throw new InvalidOperationException($"Generic value {generic} is not a literal");
+                var compiledValue = generic.Compile(table, compiler);
+                genericValues[genericIndex++] = compiledValue.Id;
+            }
+        }
+
+        return genericValues;
     }
 }
 
@@ -79,22 +99,9 @@ public class MixinUse(List<Mixin> mixin, TextLocation info) : EffectStatement(in
             if (mixinName.Path.Count > 0)
                 throw new NotImplementedException();
 
-            var genericCount = mixinName.Generics != null ? mixinName.Generics.Values.Count : 0;
-            var genericValues = new int[genericCount];
-            if (genericCount > 0)
-            {
-                int genericIndex = 0;
-                foreach (var generic in mixinName.Generics)
-                {
-                    if (generic is not Literal literal)
-                        throw new InvalidOperationException($"Generic value {generic} is not a literal");
-                    var compiledValue = generic.Compile(table, compiler);
-                    genericValues[genericIndex++] = compiledValue.Id;
-                }
-            }
+            int[] genericValues = ShaderEffect.CompileGenerics(table, compiler, mixinName.Generics);
 
-
-            compiler.Builder.Insert(new OpSDSLMixin(mixinName.Name, [..genericValues]));
+            compiler.Builder.Insert(new OpSDSLMixin(mixinName.Name, [.. genericValues]));
         }
     }
 
@@ -149,14 +156,14 @@ public abstract class Composable();
 
 public abstract class ComposeValue(TextLocation info) : Node(info)
 {
-    public abstract void Compile(CompilerUnit compiler, Identifier identifier, AssignOperator @operator);
+    public abstract void Compile(SymbolTable table, CompilerUnit compiler, Identifier identifier, AssignOperator @operator);
 }
 
 public class ComposePathValue(string path, TextLocation info) : ComposeValue(info)
 {
     public string Path { get; set; } = path;
 
-    public override void Compile(CompilerUnit compiler, Identifier identifier, AssignOperator @operator)
+    public override void Compile(SymbolTable table, CompilerUnit compiler, Identifier identifier, AssignOperator @operator)
     {
         throw new NotImplementedException();
     }
@@ -170,18 +177,22 @@ public class ComposeMixinValue(Mixin mixin, TextLocation info) : ComposeValue(in
 {
     public Mixin Mixin { get; set; } = mixin;
 
-    public override void Compile(CompilerUnit compiler, Identifier identifier, AssignOperator @operator)
+    public override void Compile(SymbolTable table, CompilerUnit compiler, Identifier identifier, AssignOperator @operator)
     {
-        if (Mixin.Generics != null || Mixin.Path.Count > 0)
+        var (builder, context) = compiler;
+
+        if (Mixin.Path.Count > 0)
             throw new NotImplementedException();
+
+        var generics = ShaderEffect.CompileGenerics(table, compiler, Mixin.Generics);
 
         switch (@operator)
         {
             case AssignOperator.Simple:
-                compiler.Builder.Insert(new OpSDSLMixinCompose(identifier.Name, Mixin.Name.Name));
+                compiler.Builder.Insert(new OpSDSLMixinCompose(identifier.Name, Mixin.Name.Name, new(generics)));
                 break;
             case AssignOperator.Plus:
-                compiler.Builder.Insert(new OpSDSLMixinComposeArray(identifier.Name, Mixin.Name.Name));
+                compiler.Builder.Insert(new OpSDSLMixinComposeArray(identifier.Name, Mixin.Name.Name, new(generics)));
                 break;
             default:
                 throw new ArgumentException(null, nameof(@operator));
@@ -203,7 +214,7 @@ public class MixinCompose(Identifier identifier, AssignOperator op, ComposeValue
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        ComposeValue.Compile(compiler, Identifier, Operator);
+        ComposeValue.Compile(table, compiler, Identifier, Operator);
     }
 
 

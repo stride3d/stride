@@ -257,8 +257,13 @@
           "name": "identifier"
         },
         {
-          "kind": "LiteralString",
-          "name": "mixin"
+            "kind": "LiteralString",
+            "name": "mixin"
+        },
+        {
+          "kind": "IdRef",
+          "quantifier": "*",
+          "name": "generics"
         }
       ]
     },
@@ -273,6 +278,11 @@
         {
           "kind": "LiteralString",
           "name": "mixin"
+        },
+        {
+          "kind": "IdRef",
+          "quantifier": "*",
+          "name": "generics"
         }
       ]
     },
