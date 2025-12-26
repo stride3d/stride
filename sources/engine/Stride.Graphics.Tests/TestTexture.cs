@@ -125,7 +125,7 @@ namespace Stride.Graphics.Tests
                     // Release the texture
                     texture.Dispose();
                 },
-                GraphicsProfile.Level_9_1);
+                GraphicsProfile.Level_10_0);
         }
 
         [Fact]
@@ -412,7 +412,7 @@ namespace Stride.Graphics.Tests
                     var testMemoryAfter = GC.GetTotalMemory(true);
                     Log.Info($"Test loading {fileName} GPU texture / saving to {intermediateFormat} and compare with original Memory {testMemoryAfter - testMemoryBefore} delta bytes, in {time}ms");
                 }, 
-                GraphicsProfile.Level_9_1);
+                GraphicsProfile.Level_10_0);
         }
 
         [SkippableTheory, MemberData(nameof(ImageFileTypes))]
@@ -440,7 +440,7 @@ namespace Stride.Graphics.Tests
 
                     game.GraphicsContext.DrawTexture(texture, BlendStates.AlphaBlend);
                 },
-                GraphicsProfile.Level_9_1);
+                GraphicsProfile.Level_10_0);
         }
 
         private void CheckTexture(GraphicsContext graphicsContext, Texture texture, byte[] data)
@@ -464,21 +464,18 @@ namespace Stride.Graphics.Tests
         }
 
         [Theory]
-        [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Staging)]
-        [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Default)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Staging)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Default)]
         public void TestGetData(GraphicsProfile profile, GraphicsResourceUsage usage)
         {
-            var testArray = profile >= GraphicsProfile.Level_10_0; // TODO modify this when when supported on openGL
-            var mipmaps = GraphicsDevice.Platform == GraphicsPlatform.OpenGLES && profile < GraphicsProfile.Level_10_0 ? 1 : 3; // TODO remove this limitation when GetData is fixed on OpenGl ES for mipmap levels other than 0
+            var mipmaps = 3; // TODO remove this limitation when GetData is fixed on OpenGl ES for mipmap levels other than 0
 
             PerformTest(
                 game =>
                 {
                     const int width = 16;
                     const int height = width;
-                    var arraySize = testArray ? 2 : 1;
+                    var arraySize = 2;
                     var flags = usage == GraphicsResourceUsage.Default?
                         new[] { TextureFlags.ShaderResource, TextureFlags.RenderTarget, TextureFlags.RenderTarget | TextureFlags.ShaderResource }:
                         new[] { TextureFlags.None };
@@ -496,21 +493,18 @@ namespace Stride.Graphics.Tests
         }
 
         [Theory]
-        [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Staging)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Staging)]
-        [InlineData(GraphicsProfile.Level_9_1, GraphicsResourceUsage.Default)]
         [InlineData(GraphicsProfile.Level_10_0, GraphicsResourceUsage.Default)]
         public void TestCopy(GraphicsProfile profile, GraphicsResourceUsage usageSource)
         {
-            var testArray = profile >= GraphicsProfile.Level_10_0; // TODO modify this when when supported on openGL
-            var mipmaps = GraphicsDevice.Platform == GraphicsPlatform.OpenGLES && profile < GraphicsProfile.Level_10_0 ? 1 : 3; // TODO remove this limitation when GetData is fixed on OpenGl ES for mipmap levels other than 0
+            var mipmaps = 3; // TODO remove this limitation when GetData is fixed on OpenGl ES for mipmap levels other than 0
 
             PerformTest(
                 game =>
                 {
                     const int width = 16;
                     const int height = width;
-                    var arraySize = testArray ? 2 : 1;
+                    var arraySize = 2;
 
                     var destinationIsStaged = new[] { true, false };
 
