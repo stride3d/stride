@@ -1,14 +1,21 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Stride.Audio;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
+using Stride.Engine.Processors;
 using Stride.Games;
+using Stride.Graphics.Font;
 using Stride.Input;
+using Stride.Profiling;
 using Stride.Rendering;
+using Stride.Rendering.Fonts;
+using Stride.Rendering.Sprites;
 using Stride.Shaders.Compiler;
+using Stride.Streaming;
 
 namespace Stride.Engine.Builder;
 public static class GameBuilderExtensions
@@ -186,6 +193,28 @@ public static class GameBuilderExtensions
     public static IGameBuilder AddInputSource(this IGameBuilder gameBuilder, IInputSource inputSource)
     {
         gameBuilder.InputSources.Add(inputSource);
+        return gameBuilder;
+    }
+
+    /// <summary>
+    /// Default <see cref="GameSystem"/>s for a Stride game.
+    /// </summary>
+    /// <param name="gameBuilder"></param>
+    /// <returns></returns>
+    public static IGameBuilder UseDefaultGameSystems(this IGameBuilder gameBuilder)
+    {
+        gameBuilder
+            .AddService<ScriptSystem>()
+            .AddService<SceneSystem>()
+            .AddService<SpriteAnimationSystem>()
+            .AddService<DebugTextSystem>()
+            .AddService<GameProfilingSystem>()
+            .AddService<EffectSystem>()
+            .AddService<StreamingManager>()
+            .AddService<IAudioEngineProvider, AudioSystem>()
+            .AddService<GameFontSystem>()
+            .AddService<FontSystem>();
+
         return gameBuilder;
     }
 }
