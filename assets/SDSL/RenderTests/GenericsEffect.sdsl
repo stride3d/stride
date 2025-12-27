@@ -1,10 +1,10 @@
-// PSMain(ExpectedResult=#11FFFFFF)
+// PSMain(ExpectedResult=#34302425)
 
 namespace Stride.Shaders.Tests;
 
 shader Compute
 {
-    float Compute()
+    float4 Compute()
     {
         return 0.0;
     }
@@ -12,14 +12,26 @@ shader Compute
 
 shader ComputeFixed<float TVALUE> : Compute
 {
-    override float Compute()
+    override float4 Compute()
     {
-        return base.Compute() + TVALUE / 255.0;
+        return base.Compute() + float4(TVALUE, 0, 0, 0);
     }
 }
 
 shader ComputeFixed2<float TVALUE2> : ComputeFixed<TVALUE2>
 {
+    override float4 Compute()
+    {
+        return base.Compute() + float4(0, TVALUE2, 0, 0);
+    }
+}
+
+shader ComputeFixed3<float4 TVALUE2> : Compute
+{
+    override float4 Compute()
+    {
+        return base.Compute() + TVALUE2;
+    }
 }
 
 shader GenericsEffectTest : Compute
@@ -28,14 +40,19 @@ shader GenericsEffectTest : Compute
 
     void PSMain()
     {
-        streams.ColorTarget = float4(Compute(), 1.0, 1.0, 1.0);
+        streams.ColorTarget = Compute() / 255.0;
     }
 }
 
 effect GenericsEffect
 {
 	mixin GenericsEffectTest;
-    mixin ComputeFixed<7.0>;
+    
+    mixin ComputeFixed<4.0>;
+    mixin ComputeFixed<6.0>;
     mixin ComputeFixed2<10.0>;
-    mixin ComputeFixed2<7.0>;
+    mixin ComputeFixed2<6.0>;
+
+    mixin ComputeFixed3<float4(32, 32, 32, 32)>;
+    mixin ComputeFixed3<float4(0, 0, 4, 5)>;
 }

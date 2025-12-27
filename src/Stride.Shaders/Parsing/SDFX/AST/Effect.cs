@@ -42,7 +42,7 @@ public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : Sh
             {
                 if (generic is not Literal literal)
                     throw new InvalidOperationException($"Generic value {generic} is not a literal");
-                var compiledValue = generic.Compile(table, compiler);
+                var compiledValue = generic.CompileConstantValue(table, compiler.Context);
                 genericValues[genericIndex++] = compiledValue.Id;
             }
         }

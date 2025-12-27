@@ -1,4 +1,5 @@
 using CommunityToolkit.HighPerformance;
+using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -48,13 +49,26 @@ public static class ExpressionExtensions
         Op.OpSLessThanEqual,
         Op.OpUGreaterThanEqual,
         Op.OpSGreaterThanEqual,
+
+        // Note: those are not supported in standard shaders (only compute)
+        // but we'll make sure to simplify them once they can be resolved.
+        // We need them for SpirvBuilder.Convert() support
+        // However, it seems so far the expectedType system seems enough to use float4(int, int, int, int) in generics, so they are not implemented for now
+        //Op.OpConvertFToS,
+        //Op.OpConvertFToU,
+        //Op.OpConvertSToF,
+        //Op.OpConvertUToF,
+        //Op.OpBitcast,
     };
 
-    public static SpirvValue CompileConstantValue(this Expression expression, SymbolTable table, SpirvContext context)
+    public static SpirvValue CompileConstantValue(this Expression expression, SymbolTable table, SpirvContext context, SymbolType? expectedType = null)
     {
         var compiler = new CompilerUnit(context, new());
-        var result = expression.Compile(table, compiler);
-        
+        var result = expression.CompileAsValue(table, compiler, expectedType);
+
+        if (expectedType != null)
+            compiler.Builder.Convert(context, result, expectedType);
+
         var buffer = compiler.Builder.GetBuffer();
 
         // Process each instruction and check if it can be converted to constant version
@@ -64,7 +78,11 @@ public static class ExpressionExtensions
 
             if (i.Op == Op.OpCompositeConstruct)
             {
-                i.Data.Memory.Span[0] = (int)Op.OpConstantComposite | (i.Data.Memory.Length << 16);
+                i.Data.Memory.Span[0] = (int)Op.OpSpecConstantComposite | (i.Data.Memory.Length << 16);
+
+                // TODO: Check no IdRef to things outside context
+                var instruction = context.GetBuffer().Add(new(i.Data.Memory.Span));
+                result = new(instruction.Data);
             }
             // Rewrite using OpSpecConstantOp when possible
             else if(SpecConstantOpSupportedOps.Contains(i.Op))
@@ -74,17 +92,15 @@ public static class ExpressionExtensions
 
                 Span<int> instruction = [(int)Op.OpSpecConstantOp, resultType, resultId, (int)i.Op, .. i.Data.Memory.Span[3..]];
                 instruction[0] |= instruction.Length << 16;
+
+                // TODO: Check no IdRef to things outside context
+                context.GetBuffer().Add(new OpData(instruction));
+                result = new(resultId, resultType);
             }
             else
             {
                 throw new InvalidOperationException($"OpCode {i.Op} not supported when compiling constant {expression}");
             }
-
-            // TODO: Check no IdRef to things outside context is done
-
-            context.GetBuffer().Add(new OpData(instruction));
-
-            result = new(resultId, resultType);
         }
 
         buffer.Dispose();
