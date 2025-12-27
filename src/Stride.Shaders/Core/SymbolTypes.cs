@@ -1,3 +1,4 @@
+using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
@@ -314,38 +315,36 @@ public sealed record LoadedShaderSymbol(string Name, int[] GenericArguments) : S
     public List<(Symbol Symbol, FunctionFlagsMask Flags)> Methods { get; init; } = [];
 
     public List<(StructuredType Type, int ImportedId)> StructTypes { get; init; } = [];
+    public List<LoadedShaderSymbol> InheritedShaders { get; init; } = [];
 
-
-    internal bool TryResolveSymbol(SpirvContext context, string name, out Symbol symbol)
+    internal bool TryResolveSymbol(SymbolTable symbolTable, SpirvContext context, string name, out Symbol symbol)
     {
-        bool found = false;
+        if (TryResolveSymbolNoRecursion(this == symbolTable.CurrentShader, context, name, out symbol))
+            return true;
+
+        // Process inherited classes
+        // note: since it contains all indirectly inherited method too, which is why it is splitted with TryResolveSymbolNoRecursion
+        foreach (var inheritedShader in InheritedShaders)
+            if (inheritedShader.TryResolveSymbolNoRecursion(false, context, name, out symbol))
+                return true;
+
+        return false;
+    }
+
+    private bool TryResolveSymbolNoRecursion(bool isCurrentShader, SpirvContext context, string name, out Symbol symbol)
+    {
         symbol = default;
 
-        var shaderId = context.GetOrRegister(this);
-
-        var methods = CollectionsMarshal.AsSpan(Methods);
-        foreach (ref var c in methods)
-        {
-            if (c.Symbol.Id.Name == name)
-            {
-                if (c.Symbol.IdRef == 0)
-                {
-                    // Emit symbol
-                    context.ImportShaderMethod(shaderId, ref c.Symbol, c.Flags);
-                }
-
-                // Combine method symbols if multiple matches
-                var methodSymbol = c.Symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
-
-                symbol = found
-                    ? new Symbol(new(name, SymbolKind.MethodGroup, IsStage: symbol.Id.IsStage), new FunctionGroupType(), 0, GroupMembers: [symbol, methodSymbol])
-                    : methodSymbol;
-
-                found = true;
-            }
-        }
+        var found = BuildMethodGroup(isCurrentShader, context, name, ref symbol);
         if (found)
+        {
+            // If any method is found, let's process inherited classes too: we need all method groups to find proper override
+            foreach (var inheritedClass in InheritedShaders)
+            {
+                inheritedClass.BuildMethodGroup(false, context, name, ref symbol);
+            }
             return true;
+        }
 
         var variables = CollectionsMarshal.AsSpan(Variables);
         foreach (ref var c in variables)
@@ -355,10 +354,13 @@ public sealed record LoadedShaderSymbol(string Name, int[] GenericArguments) : S
                 if (c.Symbol.IdRef == 0)
                 {
                     // Emit symbol
+                    var shaderId = context.GetOrRegister(this);
                     context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
                 }
 
-                symbol = c.Symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+                symbol = c.Symbol;
+                if (!isCurrentShader)
+                    symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
                 return true;
             }
 
@@ -373,11 +375,14 @@ public sealed record LoadedShaderSymbol(string Name, int[] GenericArguments) : S
                         if (c.Symbol.IdRef == 0)
                         {
                             // Emit symbol
+                            var shaderId = context.GetOrRegister(this);
                             context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
                         }
 
                         var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
-                        symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.Symbol.IdRef, MemberAccessWithImplicitThis: c.Symbol.Type, AccessChain: index);
+                        symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.Symbol.IdRef, AccessChain: index);
+                        if (!isCurrentShader)
+                            symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
                         return true;
                     }
                 }
@@ -386,6 +391,45 @@ public sealed record LoadedShaderSymbol(string Name, int[] GenericArguments) : S
 
         symbol = default;
         return false;
+    }
+
+    private bool BuildMethodGroup(bool isCurrentShader, SpirvContext context, string name, ref Symbol symbol)
+    {
+        var found = false;
+        var methods = CollectionsMarshal.AsSpan(Methods);
+        foreach (ref var c in methods)
+        {
+            if (c.Symbol.Id.Name == name)
+            {
+                if (c.Symbol.IdRef == 0)
+                {
+                    // Emit symbol
+                    // TODO: emit it only when this specific method is *selected* as proper overload (signature) & override (base vs this)
+                    var shaderId = context.GetOrRegister(this);
+                    context.ImportShaderMethod(shaderId, ref c.Symbol, c.Flags);
+                }
+
+                // Combine method symbols if multiple matches
+                var methodSymbol = c.Symbol;
+
+                if (!isCurrentShader)
+                    methodSymbol = methodSymbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+
+                // If symbol is set, complete it as a method group
+                symbol = symbol.Type switch
+                {
+                    // First time: just assign to symbol
+                    null => methodSymbol,
+                    // Second time: create a method group
+                    FunctionType => new Symbol(new(name, SymbolKind.MethodGroup, IsStage: symbol.Id.IsStage), new FunctionGroupType(), 0, GroupMembers: [symbol, methodSymbol]),
+                    // Third time and later: complete method group
+                    FunctionGroupType => symbol with { GroupMembers = symbol.GroupMembers.Add(methodSymbol) },
+                };
+
+                found = true;
+            }
+        }
+        return found;
     }
 
     public override string ToString() => base.ToString();

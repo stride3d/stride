@@ -281,7 +281,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
             // Shader is inherited (TODO: do we want to do something more "selective", i.e. import only the required variable if it's a cbuffer?)
             var inheritedShaderCount = table.InheritedShaders.Count;
-            classSource = SpirvBuilder.BuildInheritanceList(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile);
+            classSource = SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile);
             for (int i = inheritedShaderCount; i < table.InheritedShaders.Count; ++i)
             {
                 table.InheritedShaders[i].Symbol = ShaderClass.LoadAndCacheExternalShaderType(table, context, table.InheritedShaders[i]);

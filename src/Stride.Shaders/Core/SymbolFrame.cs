@@ -9,17 +9,10 @@ public class SymbolFrame(SpirvContext context)
 {
     readonly Dictionary<string, Symbol> symbols = [];
 
-    readonly List<LoadedShaderSymbol> implicitShaders = [];
-
     public Symbol this[string name]
     {
         get => symbols[name];
         set => symbols[name] = value;
-    }
-
-    public void AddImplicitShader(LoadedShaderSymbol shaderSymbol)
-    {
-        implicitShaders.Add(shaderSymbol);
     }
 
     public void Add(string name, Symbol symbol)
@@ -49,11 +42,13 @@ public class SymbolFrame(SpirvContext context)
         if (symbols.TryGetValue(name, out symbol))
             return true;
 
-        foreach (var implicitShader in implicitShaders)
-        {
-            if (implicitShader.TryResolveSymbol(context, name, out symbol))
-                return true;
-        }
+        return false;
+    }
+
+    public bool TryGetValues(string name, List<Symbol> result)
+    {
+        if (symbols.TryGetValue(name, out var symbol))
+            result.Add(symbol);
 
         return false;
     }

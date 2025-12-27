@@ -44,7 +44,7 @@ public partial class ShaderMixer
                     break;
                 }
             }
-            SpirvBuilder.BuildInheritanceList(ShaderLoader, context, mixinToMerge2, shaderMixinSource.Macros.AsSpan(), mixinList, ResolveStep.Mix);
+            SpirvBuilder.BuildInheritanceListIncludingSelf(ShaderLoader, context, mixinToMerge2, shaderMixinSource.Macros.AsSpan(), mixinList, ResolveStep.Mix);
         }
 
         var compositions = new Dictionary<string, ShaderMixinInstantiation[]>();

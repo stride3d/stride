@@ -534,7 +534,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         methodGroup = new MethodGroup { Name = functionName, FunctionType = functionType };
 
                     methodGroup.Shader = currentShader;
-                    methodGroup.Methods.Add((Shader: currentShader, MethodId: function.ResultId));
+                    methodGroup.Methods.Add((Shader: currentShader, MethodId: function.ResultId, Flags: functionInfo.Flags));
 
                     methodMixinGroup.MethodGroups[function.ResultId] = methodGroup;
 
@@ -555,7 +555,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     else
                     {
                         // Remove the OpSDSLFunctionInfo
-                        SetOpNop(temp[index + 1].Data.Memory.Span);
+                        //SetOpNop(temp[index + 1].Data.Memory.Span);
                     }
                 }
             }
@@ -747,6 +747,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         foundInStage = true;
                     }
 
+                    // Default: most derived implementation
+                    var selectedMethod = methodGroupEntry.Methods[^1];
+
                     // Process base call
                     if (isBase)
                     {
@@ -762,7 +765,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         {
                             if (methodGroupEntry.Methods[j].Shader.ShaderIndex < currentShader.ShaderIndex)
                             {
-                                functionId = methodGroupEntry.Methods[j].MethodId;
+                                selectedMethod = methodGroupEntry.Methods[j];
                                 baseMethodFound = true;
                                 break;
                             }
@@ -771,11 +774,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         if (!baseMethodFound)
                             throw new InvalidOperationException($"Can't find a base method for {globalContext.Names[functionId]}");
                     }
-                    else
-                    {
-                        // If not, get the most derived implementation
-                        functionId = methodGroupEntry.Methods[^1].MethodId;
-                    }
+
+                    if ((selectedMethod.Flags & FunctionFlagsMask.Abstract) != 0)
+                        throw new InvalidOperationException($"Trying to call an abstract method {selectedMethod.Shader.ShaderName}.{globalContext.Names[functionId]}");
+                    functionId = selectedMethod.MethodId;
 
                     memberAccesses.Add(memberAccess.ResultId, functionId);
                 }
@@ -1160,7 +1162,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpTypeGenericSDSL
                 || i.Op == Op.OpSDSLImportShader
                 || i.Op == Op.OpSDSLImportFunction
-                || i.Op == Op.OpSDSLImportVariable)
+                || i.Op == Op.OpSDSLImportVariable
+                || i.Op == Op.OpSDSLFunctionInfo)
                 temp.RemoveAt(index--);
             else if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && ((OpDecorate)i).Decoration.Value is
                     Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL or Decoration.ResourceGroupIdSDSL

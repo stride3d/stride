@@ -102,7 +102,7 @@ public class ConstantVector
 
 public partial class SpirvBuilder
 {
-    private static void BuildInheritanceListHelper(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, NewSpirvBuffer buffer, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
+    public static void BuildInheritanceListWithoutSelf(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, NewSpirvBuffer buffer, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
     {
         // Build shader name mapping
         var shaderMapping = new Dictionary<int, ShaderClassInstantiation>();
@@ -149,7 +149,7 @@ public partial class SpirvBuilder
                     remappedGenericArguments[index] = RemapGenericParameter(remappedGenericArguments[index]);
 
                 var remappedShaderName = shaderName with { GenericArguments = remappedGenericArguments };
-                BuildInheritanceList(shaderLoader, context, remappedShaderName, macros, inheritanceList, resolveStep);
+                BuildInheritanceListIncludingSelf(shaderLoader, context, remappedShaderName, macros, inheritanceList, resolveStep);
             }
         }
     }
@@ -159,7 +159,7 @@ public partial class SpirvBuilder
         return new ShaderClassInstantiation(importShader.ShaderName, importShader.Values.Elements.Memory.ToArray());
     }
 
-    public static ShaderClassInstantiation BuildInheritanceList(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
+    public static ShaderClassInstantiation BuildInheritanceListIncludingSelf(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
     {
         // TODO: cache same instantiations within context?
         var index = inheritanceList.IndexOf(classSource);
@@ -175,7 +175,7 @@ public partial class SpirvBuilder
             index = inheritanceList.IndexOf(classSource);
             if (index == -1)
             {
-                BuildInheritanceListHelper(shaderLoader, context, classSource, macros, classSource.Buffer, inheritanceList, resolveStep);
+                BuildInheritanceListWithoutSelf(shaderLoader, context, classSource, macros, classSource.Buffer, inheritanceList, resolveStep);
                 index = inheritanceList.Count;
                 inheritanceList.Add(classSource);
             }

@@ -64,7 +64,8 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         if (MemberCall != null)
         {
             var type = (LoadedShaderSymbol)((PointerType)context.ReverseTypes[MemberCall.Value.TypeId]).BaseType;
-            type.TryResolveSymbol(context, Name, out functionSymbol);
+            if (!type.TryResolveSymbol(table, context, Name, out functionSymbol))
+                throw new InvalidOperationException($"Method {Name} could not be found in type {type.Name}");
         }
         else
         {
@@ -77,7 +78,9 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
             // Find methods matching number of parameters
             var matchingMethods = functionSymbol.GroupMembers.Where(x => ((FunctionType)x.Type).ParameterTypes.Count == parameters.Values.Count);
 
-            // TODO: find proper overload
+            // TODO: find proper overload (different signature)
+            // We take first element, so in case there is multiple override, it will take the most-derived implementation
+            // Note: this will be reevaluted during ShaderMixer (base/this, etc.) but it won't change overload (different signature)
             functionSymbol = matchingMethods.First();
         }
         var functionType = (FunctionType)functionSymbol.Type;
@@ -460,7 +463,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     // Emit OpAccessChain with everything so far
                     EmitOpAccessChain(accessChainIds);
 
-                    if (!s.TryResolveSymbol(context, field.Name, out var matchingComponent))
+                    if (!s.TryResolveSymbol(table, context, field.Name, out var matchingComponent))
                         throw new InvalidOperationException();
 
                     // TODO: figure out instance (this vs composition)

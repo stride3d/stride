@@ -51,7 +51,7 @@ public partial class ShaderMixer
         public string Name;
         public ShaderInfo Shader;
         public FunctionType FunctionType;
-        public List<(ShaderInfo Shader, int MethodId)> Methods { get; } = new();
+        public List<(ShaderInfo Shader, int MethodId, Spirv.Specification.FunctionFlagsMask Flags)> Methods { get; } = new();
 
         public override string ToString() => $"{Name} (shader: {Shader}, function Id: {string.Join(", ", Methods.Select(x => $"{x.Shader.ShaderName} {x.MethodId}"))})";
     }

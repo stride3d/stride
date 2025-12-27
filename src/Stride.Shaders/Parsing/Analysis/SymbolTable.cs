@@ -49,20 +49,16 @@ public partial class SymbolTable : ISymbolProvider
         return scope;
     }
 
-    public void Import(ISymbolProvider symbols)
-    {
-        foreach (var (name, type) in symbols.DeclaredTypes)
-            DeclaredTypes.TryAdd(name, type);
-        foreach (var (name, symbol) in symbols.RootSymbols)
-            RootSymbols.Add(name, symbol);
-    }
-
     public bool TryResolveSymbol(string name, out Symbol symbol)
     {
 
         for (int i = CurrentSymbols.Count - 1; i >= 0; i--)
             if (CurrentSymbols[i].TryGetValue(name, out symbol))
                 return true;
+
+        if (CurrentShader != null && CurrentShader.TryResolveSymbol(this, Context, name, out symbol))
+            return true;
+
         symbol = default;
         return false;
     }
@@ -77,6 +73,10 @@ public partial class SymbolTable : ISymbolProvider
             }
         }
 
-        throw new NotImplementedException($"Cannot find symbol {name}.");
+        if (CurrentShader != null && CurrentShader.TryResolveSymbol(this, Context, name, out var symbol2))
+            return symbol2;
+
+
+        throw new NotImplementedException($"Cannot find symbol {name} in main context (current shader is {CurrentShader?.Name}");
     }
 }

@@ -304,7 +304,7 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
         Type = constantBufferType;
 
         context.DeclareCBuffer(constantBufferType);
-        var pointerType = context.GetOrRegister(new PointerType(Type, Specification.StorageClass.Uniform));
+        var pointerType = new PointerType(Type, Specification.StorageClass.Uniform);
         var variable = context.Bound++;
 
         context.AddName(variable, Name);
@@ -324,10 +324,6 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
             if (isStaged != member.IsStaged)
                 throw new InvalidOperationException($"cbuffer {Name} have a mix of stage and non-stage members");
 
-            var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
-            var symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), variable, AccessChain: index);
-            table.CurrentFrame.Add(member.Name, symbol);
-
             if (member.Attributes != null && member.Attributes.Count > 0)
             {
                 var linkInfo = ProcessLinkAttributes(table, Info, member.Attributes);
@@ -339,7 +335,11 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
         }
 
         // TODO: Add a StreamSDSL storage class?
-        builder.Insert(new OpVariableSDSL(pointerType, variable, Specification.StorageClass.Uniform, isStaged == true ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
+        builder.Insert(new OpVariableSDSL(context.GetOrRegister(pointerType), variable, Specification.StorageClass.Uniform, isStaged == true ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
+
+        var sid = new SymbolID(Name, SymbolKind.CBuffer, Storage.Uniform);
+        var symbol = new Symbol(sid, pointerType, variable);
+        table.CurrentShader.Variables.Add((symbol, (isStaged ?? false) ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
     }
 }
 
@@ -379,7 +379,7 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
 
             var sid = new SymbolID(member.Name, kind, Storage.Uniform);
             var symbol = new Symbol(sid, type, variable.ResultId);
-            table.CurrentFrame.Add(member.Name, symbol);
+            table.CurrentShader.Variables.Add((symbol, member.IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
         }
     }
 

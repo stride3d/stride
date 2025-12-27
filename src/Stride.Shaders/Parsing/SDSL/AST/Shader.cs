@@ -297,11 +297,21 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
         }
 
+        // Build full inheritance list
+        List<ShaderClassInstantiation> inheritanceList = new();
+        SpirvBuilder.BuildInheritanceListWithoutSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), buffer, inheritanceList, ResolveStep.Compile);
+
+        // Load all the inherited shaders
+        List<LoadedShaderSymbol> inheritedShaderSymbols = new();
+        foreach (var inheritedClass in inheritanceList)
+            inheritedShaderSymbols.Add(LoadAndCacheExternalShaderType(table, context, inheritedClass));
+
         var shaderType = new LoadedShaderSymbol(classSource.ClassName, classSource.GenericArguments)
         {
             Variables = variables,
             Methods = methods,
             StructTypes = structTypes,
+            InheritedShaders = inheritedShaderSymbols,
         };
         return shaderType;
     }
@@ -331,7 +341,10 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var genericParameterTypeId = context.GetOrRegister(genericParameterType);
                 context.Add(new OpSDSLGenericParameter(genericParameterTypeId, context.Bound, i, Name.Name));
                 context.AddName(context.Bound, genericParameter.Name);
-                table.CurrentFrame.Add(genericParameter.Name, new(new(genericParameter.Name, SymbolKind.ConstantGeneric), genericParameterType, context.Bound));
+
+                // Note: we skip MemberName because they should have been replaced with the preprocessor during SpirvBuilder.InstantiateMemberNames() step
+                if (genericParameterType is not GenericParameterType { Kind: GenericParameterKindSDSL.MemberName or GenericParameterKindSDSL.MemberNameResolved })
+                    table.CurrentFrame.Add(genericParameter.Name, new(new(genericParameter.Name, SymbolKind.ConstantGeneric), genericParameterType, context.Bound));
 
                 openGenerics[i] = context.Bound;
 
@@ -373,8 +386,14 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 }
             }
             var shaderClassSource = new ShaderClassInstantiation(mixin.Name, generics);
-            SpirvBuilder.BuildInheritanceList(table.ShaderLoader, context, shaderClassSource, table.CurrentMacros.AsSpan(), inheritanceList, ResolveStep.Compile);
+            SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, shaderClassSource, table.CurrentMacros.AsSpan(), inheritanceList, ResolveStep.Compile);
         }
+
+        var currentShader = new LoadedShaderSymbol(Name, openGenerics);
+        RegisterShaderType(table, currentShader);
+
+        table.CurrentShader = currentShader;
+        table.InheritedShaders = inheritanceList;
 
         var shaderSymbols = new List<LoadedShaderSymbol>();
         foreach (var mixin in inheritanceList)
@@ -443,12 +462,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 table.DeclaredTypes.TryAdd(samplerState.Type.ToString(), samplerState.Type);
             }
         }
-
-        var currentShader = new LoadedShaderSymbol(Name, openGenerics);
-        RegisterShaderType(table, currentShader);
-
-        table.CurrentShader = currentShader;
-        table.InheritedShaders = inheritanceList;
 
         RenameCBufferVariables();
 
@@ -523,8 +536,9 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             table.DeclaredTypes.TryAdd(structType.Type.Name, structType.Type);
         }
 
+
         if (addToRoot)
-            table.CurrentFrame.AddImplicitShader(shaderType);
+            table.CurrentShader.InheritedShaders.Add(shaderType);
 
         // Mark inherit
         context.Add(new OpSDSLMixinInherit(shaderId));

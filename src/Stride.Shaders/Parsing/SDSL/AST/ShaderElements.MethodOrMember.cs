@@ -117,7 +117,6 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
             var sid = new SymbolID(Name, SymbolKind.SamplerState);
             var symbol = new Symbol(sid, Type, register.ResultId);
             table.CurrentShader.Variables.Add((symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
-            table.CurrentFrame.Add(Name, symbol);
         }
         else throw new Exception($"SamplerState {Name} already defined");
     }
@@ -222,7 +221,6 @@ public sealed class ShaderMember(
             );
         var symbol = new Symbol(sid, Type, variable);
         table.CurrentShader.Variables.Add((symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
-        table.CurrentFrame.Add(Name, symbol);
     }
 
     public override string ToString()
@@ -309,7 +307,6 @@ public class ShaderMethod(
 
         var symbol = new Symbol(new(Name, SymbolKind.Method, IsStage: IsStaged), Type, function.Id, MemberAccessWithImplicitThis: Type);
         table.CurrentShader.Methods.Add((symbol, functionFlags));
-        table.CurrentFrame.Add(Name, symbol);
     }
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler, bool hasUnresolvableGenerics)
