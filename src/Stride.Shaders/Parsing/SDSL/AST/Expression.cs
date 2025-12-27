@@ -364,7 +364,10 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             var accessor = Accessors[i];
             switch (currentValueType, accessor)
             {
-                case (PointerType { BaseType: TextureType textureType }, MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 }):
+                case (PointerType { BaseType: TextureType textureType },
+                        MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 }
+                        or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 }
+                        or MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Parameters.Values.Count: 3 }):
                     {
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds);
@@ -401,6 +404,26 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, ParameterizedFlags.ImageOperandsLod(levelValue.Id)));
 
                             result = new(sample.ResultId, sample.ResultType);
+                            accessor.Type = resultType;
+                        }
+                        else if (accessor is MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Parameters.Values.Count: 3 } sampleCompare)
+                        {
+                            var resultType = new VectorType(textureType.ReturnType, 4);
+
+                            var samplerValue = sampleCompare.Parameters.Values[0].CompileAsValue(table, compiler);
+                            var texCoordValue = sampleCompare.Parameters.Values[1].CompileAsValue(table, compiler);
+                            var compareValue = sampleCompare.Parameters.Values[2].CompileAsValue(table, compiler);
+
+                            var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+                            var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
+                            var returnType = context.GetOrRegister(resultType);
+
+                            var levelZero = context.CompileConstant(0.0f);
+                            var sample = sampleCompare.Name.Name == "SampleCmpLevelZero"
+                                ? builder.InsertData(new OpImageSampleDrefExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, ParameterizedFlags.ImageOperandsLod(levelZero.Id)))
+                                : builder.InsertData(new OpImageSampleDrefImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, Specification.ImageOperandsMask.None));
+
+                            result = new(sample.IdResult!.Value, sample.IdResultType!.Value);
                             accessor.Type = resultType;
                         }
                         else

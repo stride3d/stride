@@ -167,7 +167,7 @@ public record struct ShaderSamplerComparisonStateParser : IParser<ShaderSamplerC
             {
                 parsed = new(identifier, scanner[position..scanner.Position])
                 {
-                    Members = assignments
+                    Parameters = assignments
                 };
                 return true;
             }

@@ -99,6 +99,12 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
                             context.Add(new OpDecorateString(variableId, ParameterizedFlags.DecorationSamplerStateMaxLOD(maxLOD.ToString())));
                             break;
                         }
+                    case "ComparisonFunc":
+                        {
+                            var filter = Enum.Parse<Specification.SamplerComparisonFuncSDSL>(((Identifier)parameter.Value).Name, true);
+                            context.Add(new OpDecorate(variableId, ParameterizedFlags.DecorationSamplerStateComparisonFunc(filter)));
+                            break;
+                        }
                     case "BorderColor":
                     default:
                         throw new NotImplementedException();
@@ -121,14 +127,11 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
         return $"SamplerState {Name} ({string.Join(", ", Parameters)})";
     }
 }
-public class ShaderSamplerComparisonState(Identifier name, TextLocation info) : MethodOrMember(info)
+public class ShaderSamplerComparisonState(Identifier name, TextLocation info) : ShaderSamplerState(name, info)
 {
-    public Identifier Name { get; set; } = name;
-    public List<SamplerStateParameter> Members { get; set; } = [];
-
     public override string ToString()
     {
-        return $"SamplerState {Name} ({string.Join(", ", Members)})";
+        return $"SamplerComparisonState {Name} ({string.Join(", ", Parameters)})";
     }
 }
 
