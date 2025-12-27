@@ -177,7 +177,7 @@ public record struct LiteralsParser : IParser<Literal>
                         else if (Tokens.Char(')', ref scanner, advance: true))
                             break;
                     }
-                    if (scanner.IsEof)
+                    if (scanner.IsEof && scanner.Span[scanner.Position - 1] != ')')
                         return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0004, scanner[scanner.Position], scanner.Memory));
                     if (p.Values.Count != size && p.Values.Count > size)
                         return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0005, scanner[scanner.Position], scanner.Memory));
@@ -394,7 +394,7 @@ public record struct MatrixParser : IParser<MatrixLiteral>
                     else if (Tokens.Char(')', ref scanner, advance: true))
                         break;
                 }
-                if (scanner.IsEof)
+                if (scanner.IsEof && scanner.Span[scanner.Position - 1] != ')')
                     return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0008, scanner[scanner.Position], scanner.Memory));
                 if (p.Values.Count != rows * cols && p.Values.Count > rows * cols)
                     return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0002, scanner[scanner.Position], scanner.Memory));
