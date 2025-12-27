@@ -16,22 +16,22 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 /// </summary>
 public abstract class Expression(TextLocation info) : ValueNode(info)
 {
-    public SpirvValue Compile(SymbolTable table, CompilerUnit compiler)
+    public SpirvValue Compile(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
-        var result = CompileImpl(table, compiler);
+        var result = CompileImpl(table, compiler, expectedType);
         // In case type is not computed yet, make sure it is using SpirvValue.TypeId
         if (result.TypeId != 0)
             Type ??= compiler.Context.ReverseTypes[result.TypeId];
         return result;
     }
 
-    public abstract SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler);
+    public abstract SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null);
 
     public SymbolType? ValueType { get => field ?? throw new InvalidOperationException($"Can't query {nameof(ValueType)} before calling {nameof(CompileAsValue)}"); private set; }
 
-    public virtual SpirvValue CompileAsValue(SymbolTable table, CompilerUnit compiler)
+    public virtual SpirvValue CompileAsValue(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
-        var result = Compile(table, compiler);
+        var result = Compile(table, compiler, expectedType);
         result = compiler.Builder.AsValue(compiler.Context, result);
         ValueType = compiler.Context.ReverseTypes[result.TypeId];
         return result;
@@ -44,7 +44,7 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
 /// <param name="info"></param>
 public class EmptyExpression(TextLocation info) : Expression(info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler) => throw new NotImplementedException();
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null) => throw new NotImplementedException();
     public override string ToString() => string.Empty;
 }
 
@@ -56,7 +56,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
     public SpirvValue? MemberCall { get; set; }
     public bool IsBaseCall { get; set; } = false;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
 
@@ -166,7 +166,7 @@ public class MixinAccess(Mixin mixin, TextLocation info) : Expression(info)
 {
     public Mixin Mixin { get; set; } = mixin;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         throw new NotImplementedException();
     }
@@ -185,7 +185,7 @@ public abstract class UnaryExpression(Expression expression, Operator op, TextLo
 
 public class PrefixExpression(Operator op, Expression expression, TextLocation info) : UnaryExpression(expression, op, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
         var expression = Expression.Compile(table, compiler);
@@ -264,7 +264,7 @@ public class CastExpression(TypeName typeName, Operator op, Expression expressio
 {
     public TypeName TypeName { get; set; } = typeName;
 
-    public unsafe override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public unsafe override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
         var castType = TypeName.ResolveType(table, context);
@@ -281,7 +281,7 @@ public class IndexerExpression(Expression index, TextLocation info) : Expression
 {
     public Expression Index { get; set; } = index;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         throw new NotImplementedException();
     }
@@ -295,7 +295,7 @@ public class PostfixIncrement(Operator op, TextLocation info) : Expression(info)
 {
     public Operator Operator { get; set; } = op;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         throw new NotImplementedException();
     }
@@ -310,7 +310,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     public Expression Source { get; set; } = source;
     public List<Expression> Accessors { get; set; } = [];
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
         SpirvValue result;
@@ -626,7 +626,7 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var left = Left.CompileAsValue(table, compiler);
         var right = Right.CompileAsValue(table, compiler);
@@ -649,7 +649,7 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
 

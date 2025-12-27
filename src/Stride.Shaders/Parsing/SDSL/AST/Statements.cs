@@ -98,9 +98,9 @@ public class DeclaredVariableAssign(Identifier variable, bool isConst, TextLocat
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        Variable.Type = TypeName.ResolveType(table, context);
-        var initialValue = Value?.CompileAsValue(table, compiler);
-        if (Value is not null && Value.Type != Variable.Type)
+        var variableValueType = TypeName.ResolveType(table, context);
+        var initialValue = Value?.CompileAsValue(table, compiler, variableValueType);
+        if (Value is not null && Value.ValueType != variableValueType)
             table.Errors.Add(new(TypeName.Info, "wrong type"));
 
         throw new NotImplementedException();
@@ -129,16 +129,19 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         var (builder, context) = compiler;
 
         var compiledValues = new SpirvValue[Variables.Count];
-        for (var index = 0; index < Variables.Count; index++)
-        {
-            if (Variables[index].Value != null)
-                compiledValues[index] = Variables[index].Value!.CompileAsValue(table, compiler);
-        }
 
         // Compute type
         SymbolType valueType;
-        if (TypeName == "var")
+        var isVarType = TypeName == "var";
+        if (isVarType)
         {
+            // Compile first then guess type (for non-var, we delay compilation of intial values later so that we can infer type using full typename and arrays)
+            for (var index = 0; index < Variables.Count; index++)
+            {
+                if (Variables[index].Value != null)
+                    compiledValues[index] = Variables[index].Value!.CompileAsValue(table, compiler);
+            }
+
             if (Variables.Count == 1 && Variables[0].Value is not null)
             {
                 valueType = Variables[0].Value!.ValueType;
@@ -182,8 +185,13 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
             if (builder.CurrentFunction is SpirvFunction f)
                 f.Variables.Add(d.Variable, new(variable, variableTypeId, d.Variable));
 
+            // Check initial value
             if (d.Value != null)
             {
+                // var type: already computed
+                if (!isVarType)
+                    compiledValues[index] = Variables[index].Value!.CompileAsValue(table, compiler, variableValueType);
+
                 var source = compiledValues[index];
 
                 // Make sure type is correct

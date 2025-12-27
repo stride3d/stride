@@ -23,7 +23,7 @@ public class StringLiteral(string value, TextLocation info) : Literal(info)
 {
     public string Value { get; set; } = value;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
 
@@ -32,7 +32,7 @@ public class StringLiteral(string value, TextLocation info) : Literal(info)
         return new SpirvValue(i.IdResult.Value, 0);
     }
 
-    public override SpirvValue CompileAsValue(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileAsValue(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         // Since we use type 0, CompileAsValue won't work
         return CompileImpl(table, compiler);
@@ -69,7 +69,7 @@ public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info
 
 public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, value, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         return compiler.Context.CompileConstantLiteral(this);
     }
@@ -80,7 +80,7 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
     public int? Exponent { get; set; } = exponent;
     public static implicit operator FloatLiteral(double v) => new(new(), v, null, new());
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         return compiler.Context.CompileConstantLiteral(this);
     }
@@ -97,7 +97,7 @@ public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
     public bool Value { get; set; } = value;
     public override SymbolType? Type => ScalarType.From("bool");
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         return compiler.Context.CompileConstantLiteral(this);
     }
@@ -108,7 +108,7 @@ public class ExpressionLiteral(Expression value, TypeName typeName, TextLocation
     public Expression Value { get; set; } = value;
     public TypeName TypeName { get; set; } = typeName;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
         var castType = TypeName.ResolveType(table, context);
@@ -134,7 +134,7 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
 
     public abstract SymbolType GenerateType(SymbolTable table, SpirvContext context, (SpirvValue Value, SymbolType Type)[] sourceValues);
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
 
@@ -263,7 +263,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public static implicit operator string(Identifier identifier) => identifier.Name;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
 
@@ -493,7 +493,7 @@ public class TypeName(string name, TextLocation info) : Literal(info)
         return result;
     }
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         throw new NotImplementedException();
     }

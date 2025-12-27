@@ -8,7 +8,7 @@ namespace Stride.Shaders.Spirv.Building;
 
 public static class ExpressionExtensions
 {
-    public static HashSet<Op> SpecConstantSupportedOps = new()
+    public static HashSet<Op> SpecConstantOpSupportedOps = new()
     {
         Op.OpSConvert,
         Op.OpUConvert,
@@ -62,15 +62,23 @@ public static class ExpressionExtensions
         {
             var i = buffer[index];
 
-            // Check if opcode is supported
-            if (!SpecConstantSupportedOps.Contains(i.Op))
+            if (i.Op == Op.OpCompositeConstruct)
+            {
+                i.Data.Memory.Span[0] = (int)Op.OpConstantComposite | (i.Data.Memory.Length << 16);
+            }
+            // Rewrite using OpSpecConstantOp when possible
+            else if(SpecConstantOpSupportedOps.Contains(i.Op))
+            {
+                var resultType = i.Data.Memory.Span[1];
+                var resultId = i.Data.Memory.Span[2];
+
+                Span<int> instruction = [(int)Op.OpSpecConstantOp, resultType, resultId, (int)i.Op, .. i.Data.Memory.Span[3..]];
+                instruction[0] |= instruction.Length << 16;
+            }
+            else
+            {
                 throw new InvalidOperationException($"OpCode {i.Op} not supported when compiling constant {expression}");
-
-            var resultType = i.Data.Memory.Span[1];
-            var resultId = i.Data.Memory.Span[2];
-
-            Span<int> instruction = [(int)Op.OpSpecConstantOp, resultType, resultId, (int)i.Op, .. i.Data.Memory.Span[3..]];
-            instruction[0] |= instruction.Length << 16;
+            }
 
             // TODO: Check no IdRef to things outside context is done
 
