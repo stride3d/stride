@@ -262,6 +262,8 @@ namespace Stride.Shaders.Compilers.SDSL
                 var offset = 0;
                 for (int i = 0; i < s.Members.Count; ++i)
                 {
+                    var memberSize = SpirvBuilder.ComputeCBufferOffset(s.Members[i].Type, s.Members[i].TypeModifier, ref offset);
+
                     members[i] = new EffectTypeMemberDescription
                     {
                         Name = s.Members[i].Name,
@@ -269,11 +271,9 @@ namespace Stride.Shaders.Compilers.SDSL
                         Offset = offset,
                     };
 
-                    var memberSize = SpirvBuilder.ComputeCBufferOffset(s.Members[i].Type, s.Members[i].TypeModifier, ref offset);
-
                     // Note: we assume if already added by another cbuffer using this type, the offsets were computed the same way
                     if (!hasOffsetDecorations)
-                        context.Add(new OpMemberDecorate(structId, i, ParameterizedFlags.DecorationOffset(offset)));
+                        DecorateMember(context, structId, i, offset, memberSize, s.Members[i].Type, s.Members[i].TypeModifier);
 
                     offset += memberSize;
                 }
@@ -311,8 +311,12 @@ namespace Stride.Shaders.Compilers.SDSL
                         }
                     }
 
-                    var arrayStride = (elementType.ElementSize + 15) / 16 * 16;
-                    context.Add(new OpDecorate(typeId, ParameterizedFlags.DecorationArrayStride(arrayStride)));
+                    if (!hasStrideDecoration)
+                    {
+                        var elementSize = SpirvBuilder.TypeSizeInBuffer(a.BaseType, typeModifier).Size;
+                        var arrayStride = (elementSize + 15) / 16 * 16;
+                        context.Add(new OpDecorate(typeId, ParameterizedFlags.DecorationArrayStride(arrayStride)));
+                    }
 
                     return elementType with { Elements = a.Size };
                 }
@@ -348,7 +352,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     var member = cb.Members[index];
                     var memberSize = SpirvBuilder.ComputeCBufferOffset(member.Type, member.TypeModifier, ref constantBufferOffset);
 
-                    context.Add(new OpMemberDecorate(context.Types[cbuffer.StructType], index, ParameterizedFlags.DecorationOffset(constantBufferOffset)));
+                    DecorateMember(context, structTypeId, index, constantBufferOffset, memberSize, member.Type, member.TypeModifier);
 
                     if (!links.TryGetValue((structTypeId, index), out var linkName))
                         throw new InvalidOperationException($"Could not find cbuffer member link info; it should have been generated during {MergeCBuffers}");
@@ -378,6 +382,19 @@ namespace Stride.Shaders.Compilers.SDSL
                     Type = ConstantBufferType.ConstantBuffer,
                     Members = memberInfos,
                 });
+            }
+        }
+
+        private static void DecorateMember(SpirvContext context, int structTypeId, int index, int offset, int size, SymbolType memberType, TypeModifier memberTypeModifier)
+        {
+            context.Add(new OpMemberDecorate(structTypeId, index, ParameterizedFlags.DecorationOffset(offset)));
+            if (memberType is MatrixType or ArrayType { BaseType: MatrixType })
+            {
+                if (memberTypeModifier != TypeModifier.ColumnMajor)
+                    context.Add(new OpMemberDecorate(structTypeId, index, new ParameterizedFlag<Decoration>(Decoration.ColMajor, [])));
+                else if (memberTypeModifier != TypeModifier.RowMajor)
+                    context.Add(new OpMemberDecorate(structTypeId, index, new ParameterizedFlag<Decoration>(Decoration.RowMajor, [])));
+                context.Add(new OpMemberDecorate(structTypeId, index, ParameterizedFlags.DecorationMatrixStride(16)));
             }
         }
     }

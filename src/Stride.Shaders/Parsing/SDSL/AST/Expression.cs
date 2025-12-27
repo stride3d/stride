@@ -400,6 +400,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             var samplerValue = explicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
                             var texCoordValue = explicitSampling.Parameters.Values[1].CompileAsValue(table, compiler);
                             var levelValue = explicitSampling.Parameters.Values[2].CompileAsValue(table, compiler);
+                            levelValue = builder.Convert(context, levelValue, ScalarType.From("float"));
 
                             var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
@@ -411,7 +412,9 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         }
                         else if (accessor is MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Parameters.Values.Count: 3 } sampleCompare)
                         {
-                            var resultType = new VectorType(textureType.ReturnType, 4);
+                            var resultType = textureType.ReturnType;
+                            if (resultType is not ScalarType)
+                                throw new InvalidOperationException();
 
                             var samplerValue = sampleCompare.Parameters.Values[0].CompileAsValue(table, compiler);
                             var texCoordValue = sampleCompare.Parameters.Values[1].CompileAsValue(table, compiler);

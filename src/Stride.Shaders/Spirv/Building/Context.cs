@@ -287,15 +287,6 @@ public class SpirvContext
         {
             var member = structSymbol.Members[index];
             AddMemberName(id, index, member.Name);
-
-            if (member.Type is MatrixType)
-            {
-                if (member.TypeModifier != TypeModifier.ColumnMajor)
-                    Add(new OpMemberDecorate(id, index, new ParameterizedFlag<Decoration>(Decoration.ColMajor, [])));
-                else if (member.TypeModifier != TypeModifier.RowMajor)
-                    Add(new OpMemberDecorate(id, index, new ParameterizedFlag<Decoration>(Decoration.RowMajor, [])));
-            }
-
         }
 
         Types[structSymbol] = id;

@@ -49,8 +49,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var rootMixin = MergeMixinNode(globalContext, context, table, temp, shaderSource2);
 
         context.Insert(0, new OpCapability(Capability.Shader));
-        context.Insert(1, new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
-        context.Insert(2, new OpExtension("SPV_GOOGLE_hlsl_functionality1"));
+        context.Insert(1, new OpCapability(Capability.SampledBuffer));
+        context.Insert(2, new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
+        context.Insert(3, new OpExtension("SPV_GOOGLE_hlsl_functionality1"));
 
         // Process streams and remove unused code/cbuffer/variable/resources
         new InterfaceProcessor().Process(table, temp, context);

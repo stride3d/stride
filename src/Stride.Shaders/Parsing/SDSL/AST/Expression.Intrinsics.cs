@@ -858,7 +858,8 @@ public class DistanceCall(ShaderExpressionList parameters, TextLocation info) : 
         var xType = Parameters.Values[0].ValueType;
         var yType = Parameters.Values[1].ValueType;
 
-        var resultType = IntrinsicHelper.FindCommonType(ScalarType.From("float"), xType, yType);
+        var resultType = ScalarType.From("float");
+        var inputTypes = IntrinsicHelper.FindCommonType(resultType, xType, yType);
 
         x = builder.Convert(context, x, resultType);
         y = builder.Convert(context, y, resultType);
