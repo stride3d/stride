@@ -154,6 +154,171 @@ With version:
 
 ⚠️ **Warning:** When using explicit imports, must import both `.props` and `.targets`, and remove SDK from Project element to avoid duplicate imports.
 
+## SDK Composition and Chaining
+
+### Can SDKs Reference Other SDKs?
+
+**Yes!** SDKs can reference and build upon other SDKs. This is a common pattern in the .NET ecosystem.
+
+### How Microsoft.NET.Sdk.Web Works
+
+According to Microsoft documentation:
+
+> "The .NET SDK is the base SDK for .NET. The other SDKs reference the .NET SDK, and projects that are associated with the other SDKs have all the .NET SDK properties available to them. The Web SDK, for example, depends on both the .NET SDK and the Razor SDK."
+
+**Microsoft.NET.Sdk.Web structure:**
+```
+Microsoft.NET.Sdk.Web/
+├── Sdk/
+│   ├── Sdk.props
+│   │   └── (imports Microsoft.NET.Sdk/Sdk.props)
+│   │   └── (imports Microsoft.NET.Sdk.Razor/Sdk.props)
+│   │   └── (adds web-specific properties)
+│   └── Sdk.targets
+│       └── (imports Microsoft.NET.Sdk/Sdk.targets)
+│       └── (imports Microsoft.NET.Sdk.Razor/Sdk.targets)
+│       └── (adds web-specific targets)
+```
+
+### Two Patterns for SDK Composition
+
+#### Pattern 1: Internal Chaining (Recommended for Stride)
+The SDK internally imports another SDK. **This is the recommended approach for Stride.Sdk.**
+
+**Stride.Sdk/Sdk/Sdk.props:**
+```xml
+<Project>
+  <!-- Stride-specific properties BEFORE base SDK -->
+  <PropertyGroup>
+    <UsingStrideSdk>true</UsingStrideSdk>
+    <StridePlatform Condition="'$(StridePlatform)' == ''">Windows</StridePlatform>
+  </PropertyGroup>
+  
+  <!-- Import base SDK props -->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  
+  <!-- Stride-specific properties AFTER base SDK -->
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Override or extend base SDK properties -->
+  </PropertyGroup>
+</Project>
+```
+
+**Stride.Sdk/Sdk/Sdk.targets:**
+```xml
+<Project>
+  <!-- Import base SDK targets first -->
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  
+  <!-- Stride-specific targets after -->
+  <Target Name="StridePostBuild" AfterTargets="Build">
+    <!-- Custom Stride build logic -->
+  </Target>
+</Project>
+```
+
+**Usage:**
+```xml
+<!-- User only needs to reference Stride.Sdk -->
+<Project Sdk="Stride.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+</Project>
+```
+
+**Benefits:**
+- Users only reference one SDK
+- Stride.Sdk controls the layering
+- All Microsoft.NET.Sdk features automatically available
+- Can override or extend base SDK behavior
+- Simpler project files
+
+#### Pattern 2: Additive SDKs
+Multiple SDKs declared explicitly, each imported independently.
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <Sdk Name="Stride.Sdk" Version="1.0.0" />
+  
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+</Project>
+```
+
+**How it works:**
+- `Sdk="Microsoft.NET.Sdk"` imports Microsoft.NET.Sdk's props/targets
+- `<Sdk Name="Stride.Sdk">` imports Stride.Sdk's props/targets
+- Both SDKs are independent but can interact
+
+**When to use:**
+- When SDKs are truly independent
+- When you want explicit control over which SDKs are used
+- For optional add-on functionality
+
+**Drawbacks for Stride:**
+- Users must specify both SDKs
+- More verbose
+- Potential for ordering issues
+
+### Import Order in Composed SDKs
+
+When Stride.Sdk imports Microsoft.NET.Sdk, the evaluation order is:
+
+```
+1. Stride.Sdk/Sdk.props (top part)
+2.   └─> Microsoft.NET.Sdk/Sdk.props (imported)
+3. Stride.Sdk/Sdk.props (bottom part)
+4. <Project content> (user's PropertyGroups, ItemGroups)
+5. Stride.Sdk/Sdk.targets (top part)
+6.   └─> Microsoft.NET.Sdk/Sdk.targets (imported)
+7. Stride.Sdk/Sdk.targets (bottom part)
+```
+
+This allows Stride.Sdk to:
+- Set defaults before Microsoft.NET.Sdk evaluates
+- Override Microsoft.NET.Sdk defaults
+- Add additional properties/targets after base SDK
+- Preserve all Microsoft.NET.Sdk functionality
+
+### Recommendation for Stride.Sdk
+
+**Use Pattern 1 (Internal Chaining):**
+
+1. **Stride.Sdk internally imports Microsoft.NET.Sdk**
+2. Users only reference `<Project Sdk="Stride.Sdk">`
+3. Stride.Sdk controls when/how Microsoft.NET.Sdk is imported
+4. Can layer multiple supporting props/targets files
+
+**Why this approach?**
+- ✅ Simpler user experience (one SDK reference)
+- ✅ Full control over base SDK integration
+- ✅ Can override Microsoft.NET.Sdk defaults
+- ✅ All .NET SDK features automatically available
+- ✅ Matches pattern used by Microsoft.NET.Sdk.Web
+- ✅ Easier to maintain and version independently
+
+**Example Stride.Sdk Structure:**
+```
+Stride.Sdk/
+├── Sdk/
+│   ├── Sdk.props
+│   │   ├── (set Stride defaults)
+│   │   ├── Import: Stride.Platforms.props
+│   │   ├── Import: Stride.Graphics.props
+│   │   ├── Import: Microsoft.NET.Sdk/Sdk.props ← BASE SDK
+│   │   └── (override/extend base SDK)
+│   │
+│   └── Sdk.targets
+│       ├── Import: Microsoft.NET.Sdk/Sdk.targets ← BASE SDK
+│       ├── Import: Stride.AssemblyProcessor.targets
+│       └── (custom Stride targets)
+```
+
+This is exactly what you were doing manually in your current setup - Stride.Sdk will just formalize and package it properly.
+
 ## Version Management with global.json
 
 ### Basic global.json
@@ -318,6 +483,7 @@ Set properties to indicate SDK is in use:
 3. Provide extensibility through properties
 4. Set `Using[SdkName]Sdk=true` for detection
 5. Support both PackageReference and SDK reference methods
+6. **Compose on Microsoft.NET.Sdk** - Most specialized SDKs internally import Microsoft.NET.Sdk rather than replacing it
 
 ## Debugging and Troubleshooting
 
