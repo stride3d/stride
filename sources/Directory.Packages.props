@@ -114,8 +114,8 @@
   </ItemGroup>
   <!-- Avalonia dependencies -->
   <PropertyGroup>
-    <AvaloniaVersion>11.3.1</AvaloniaVersion>
-    <AvaloniaBehaviorVersion>11.3.0.10</AvaloniaBehaviorVersion>
+    <AvaloniaVersion>11.3.9</AvaloniaVersion>
+    <AvaloniaBehaviorVersion>11.3.9</AvaloniaBehaviorVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
