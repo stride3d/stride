@@ -67,6 +67,7 @@ namespace Stride.Rendering.Materials
             public ParameterCollection MaterialParameters; // Protect against changes of Material.Parameters instance (happens with editor fast reload)
             public CullMode? CullMode;
             public CompareFunction? DepthFunction;
+            public bool WriteDepthInTransparentStage;
 
             public ShaderSource VertexStageSurfaceShaders;
             public ShaderSource VertexStageStreamInitializer;
@@ -94,6 +95,7 @@ namespace Stride.Rendering.Materials
                 MaterialPass = materialPass;
                 CullMode = materialPass.CullMode;
                 DepthFunction = materialPass.DepthFunction;
+                WriteDepthInTransparentStage = materialPass.WriteDepthInTransparentStage;
             }
         }
 
@@ -184,10 +186,19 @@ namespace Stride.Rendering.Materials
                     resetPipelineState = true;
                 }
 
-                if (materialInfo != null && materialInfo.DepthFunction != material.DepthFunction)
+                if (materialInfo != null)
                 {
-                    materialInfo.DepthFunction = material.DepthFunction;
-                    resetPipelineState = true;
+                    if (materialInfo.DepthFunction != material.DepthFunction)
+                    {
+                        materialInfo.DepthFunction = material.DepthFunction;
+                        resetPipelineState = true;
+                    }
+
+                    if (materialInfo.WriteDepthInTransparentStage != material.WriteDepthInTransparentStage)
+                    {
+                        materialInfo.WriteDepthInTransparentStage = material.WriteDepthInTransparentStage;
+                        resetPipelineState = true;
+                    }
                 }
 
                 for (int i = 0; i < effectSlotCount; ++i)

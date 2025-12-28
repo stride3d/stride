@@ -32,7 +32,6 @@ namespace Stride.Rendering.Compositing
         public const PixelFormat DepthBufferFormat = PixelFormat.D24_UNorm_S8_UInt;
 
         private IShadowMapRenderer shadowMapRenderer;
-        private Texture depthStencilROCached;
         private MultisampleCount actualMultisampleCount = MultisampleCount.None;
         private VRDeviceSystem vrSystem;
 
@@ -795,17 +794,6 @@ namespace Stride.Rendering.Compositing
                 }
             }
 
-            context.CommandList.SetRenderTargets(null, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
-
-            var depthStencilROCached = context.Resolver.GetDepthStencilAsRenderTarget(depthStencil, this.depthStencilROCached);
-            if (depthStencilROCached != this.depthStencilROCached)
-            {
-                // Dispose cached view
-                this.depthStencilROCached?.Dispose();
-                this.depthStencilROCached = depthStencilROCached;
-            }
-            context.CommandList.SetRenderTargets(depthStencilROCached, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
-
             return depthStencilSRV;
         }
 
@@ -906,7 +894,6 @@ namespace Stride.Rendering.Compositing
         protected override void Destroy()
         {
             PostEffects?.Dispose();
-            depthStencilROCached?.Dispose();
         }
 
         [StructLayout(LayoutKind.Sequential)]

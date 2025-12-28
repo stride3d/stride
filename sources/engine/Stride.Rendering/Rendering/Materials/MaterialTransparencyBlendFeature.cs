@@ -58,6 +58,13 @@ namespace Stride.Rendering.Materials
         [DataMember(30)]
         public bool DitheredShadows { get; set; } = true;
 
+        /// <summary>
+        /// If enabled, objects drawn with this material will occlude itself and other objects.
+        /// </summary>
+        /// <userdoc>If enabled, objects drawn with this material will occlude itself and other objects.</userdoc>
+        [DataMember(40)]
+        public bool WriteDepth { get; set; }
+
         public override void GenerateShader(MaterialGeneratorContext context)
         {
             var alpha = Alpha ?? new ComputeFloat(1f);
@@ -73,6 +80,7 @@ namespace Stride.Rendering.Materials
             context.MaterialPass.AlphaToCoverage = false;
             // TODO GRAPHICS REFACTOR
             //context.Parameters.SetResourceSlow(Effect.BlendStateKey, BlendState.NewFake(blendDesc));
+            context.MaterialPass.WriteDepthInTransparentStage = WriteDepth;
 
             context.SetStream(AlphaBlendStream.Stream, alpha, MaterialKeys.DiffuseSpecularAlphaBlendMap, MaterialKeys.DiffuseSpecularAlphaBlendValue, Color.White);
             context.SetStream(AlphaBlendColorStream.Stream, tint, MaterialKeys.AlphaBlendColorMap, MaterialKeys.AlphaBlendColorValue, Color.White);
