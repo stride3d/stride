@@ -22,7 +22,7 @@ internal sealed class ClipboardService : IClipboardService
 
     public Task<string?> GetTextAsync()
     {
-        return clipboard.GetTextAsync();
+        return clipboard.TryGetTextAsync();
     }
 
     public Task SetTextAsync(string? text)
