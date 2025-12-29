@@ -1,11 +1,15 @@
 # Custom MSBuild SDK Research
 
-**Date:** December 28, 2025  
+**Date:** December 28-29, 2025  
 **Purpose:** Research how to create a custom MSBuild SDK to modernize Stride's build configuration
 
 ## Overview
 
 This document contains research findings on creating custom MSBuild SDKs and how they can be applied to the Stride game engine to simplify build configuration and improve tool compatibility.
+
+**Related Documentation:**
+- [SDK Modernization Roadmap](./sdk-modernization-roadmap.md) - Implementation plan
+- [Stride Build Properties Inventory](./stride-build-properties-inventory.md) - Complete catalog of all MSBuild properties, items, and targets
 
 ## What is an MSBuild Project SDK?
 

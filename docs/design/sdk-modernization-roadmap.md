@@ -151,8 +151,8 @@ sources/sdk/Stride.Sdk/
 
 ## Phase 1: Analysis & Planning ✅ COMPLETE
 
-**Duration:** 1 week  
-**Status:** Complete (2024-12-28)
+**Duration:** 2 weeks  
+**Status:** Complete (2024-12-29)
 
 ### Completed Tasks
 - ✅ Analyzed current build structure
@@ -162,10 +162,34 @@ sources/sdk/Stride.Sdk/
 - ✅ Identified custom features to preserve
 - ✅ Created research documentation
 - ✅ Created this roadmap
+- ✅ Exhaustively cataloged all properties, items, and targets
+- ✅ Documented all conditional logic patterns
+- ✅ Analyzed sample project files
+- ✅ Mapped complete import chains
 
 ### Deliverables
 - [sdk-modernization-research.md](./sdk-modernization-research.md)
+- [stride-build-properties-inventory.md](./stride-build-properties-inventory.md) ⭐ **NEW**
 - This roadmap document
+
+### Key Findings
+
+The inventory reveals **100+ custom MSBuild properties** organized into:
+- **Core Framework Properties**: 8 properties defining target frameworks (net10.0, net10.0-windows, net10.0-android, etc.)
+- **Platform Properties**: 15 properties for platform detection and configuration (Windows, Linux, macOS, Android, iOS, UWP)
+- **Graphics API Properties**: 10 properties for multi-API builds (Direct3D11/12, OpenGL/ES, Vulkan)
+- **Assembly Processor Properties**: 15 properties controlling Stride's custom IL processor
+- **Build Configuration Properties**: 20+ properties for build control and outputs
+- **Package Properties**: 15+ properties for NuGet package generation
+
+**Critical Patterns Identified:**
+1. **Two-Tier System**: Stride.Core.* (minimal) vs Stride.* (full engine)
+2. **Multi-Targeting**: `StrideRuntime=true` enables automatic platform multi-targeting
+3. **Graphics API Inner Builds**: Special handling for building same code with different graphics backends
+4. **Solution-Specific Overrides**: Conditional imports based on `$(SolutionName)`
+5. **Assembly Processor Integration**: Custom post-compile IL modification step
+
+See [stride-build-properties-inventory.md](./stride-build-properties-inventory.md) for complete details.
 
 ## Phase 2: Create Base SDK Structure
 
