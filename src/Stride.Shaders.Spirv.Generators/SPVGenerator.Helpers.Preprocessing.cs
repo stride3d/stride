@@ -118,7 +118,7 @@ public partial class SPVGenerator
         var htmlContext = BrowsingContext.New(config);
         var coreTask = htmlContext.OpenAsync(req => req.Content(grammar.CoreDoc));
         coreTask.Wait();
-        var glslTask = htmlContext.OpenAsync(req => req.Content(grammar.CoreDoc));
+        var glslTask = htmlContext.OpenAsync(req => req.Content(grammar.GLSLDoc));
         glslTask.Wait();
         var coreDoc = coreTask.Result;
         var glslDoc = glslTask.Result;
@@ -127,32 +127,47 @@ public partial class SPVGenerator
         // var buffer = new List<OperandData>(24);
         if (grammar.Instructions?.AsList() is List<InstructionData> instructions)
         {
+            // Prebuilt for fast lookup
+            var tableblocksCore = coreDoc!.QuerySelectorAll($"p.tableblock").ToArray();
+            var coreNodesById = new Dictionary<string, IElement>();
+            foreach (var tableblock in tableblocksCore)
+            {
+                var firstNode = tableblock.ChildNodes.FirstOrDefault();
+                if (firstNode is IElement element && element.NodeName == "A" && element.Id != null)
+                    coreNodesById.Add(element.Id, tableblock);
+            }
+            var tableblocksGLSL = glslDoc!.QuerySelectorAll($"p.tableblock").ToArray();
+            var glslNodesByName = new Dictionary<string, IElement>();
+            foreach (var tableblock in tableblocksGLSL)
+            {
+                var firstNode = tableblock.ChildNodes.FirstOrDefault();
+                if (firstNode is IElement element && element.NodeName == "STRONG")
+                    glslNodesByName.Add(element.TextContent, tableblock);
+            }
+
             for (int i = 0; i < instructions.Count; i++)
             // foreach (var instruction in grammar.Instructions)
             {
                 var instruction = grammar.Instructions.Value.AsList()![i]!;
 
                 // setup the documentation
-                var cells = instruction.OpName switch
+                var element = instruction.OpName switch
                 {
-                    string v when !v.StartsWith("Op") => glslDoc.QuerySelectorAll($"p.tableblock:has(strong:contains(\"{instruction.OpName.Replace("GLSL", "")}\"))"),
+                    string v when !v.StartsWith("Op") => glslNodesByName.ContainsKey(instruction.OpName.Replace("GLSL", "")) ? glslNodesByName[instruction.OpName.Replace("GLSL", "")] : null,
                     string v when v.Contains("SDSL") => null, // SDSL does not have documentation
-                    string => coreDoc!.QuerySelectorAll($"p.tableblock:has(#{instruction.OpName})"),
+                    string => coreNodesById.ContainsKey(instruction.OpName) ? coreNodesById[instruction.OpName] : null,
                 };
-                if (cells is not null)
+                if (element is not null)
                 {
-                    if (cells.FirstOrDefault() is IElement element)
-                    {
-                        var split = element.TextContent.Split('\n');
-                        builder.Clear();
-                        builder.AppendLine("/// <summary>").Append("/// <para><c>").Append(split[0]).AppendLine("</c></para>");
-                        foreach (var t in split.Skip(1))
-                            if (!string.IsNullOrEmpty(t))
-                                builder.Append("/// <para>")
-                                    .Append(t.Replace("<id>", "<c>id</c>"))
-                                    .AppendLine("</para>");
-                        builder.AppendLine("/// </summary>");
-                    }
+                    var split = element.TextContent.Split('\n');
+                    builder.Clear();
+                    builder.AppendLine("/// <summary>").Append("/// <para><c>").Append(split[0]).AppendLine("</c></para>");
+                    foreach (var t in split.Skip(1))
+                        if (!string.IsNullOrEmpty(t))
+                            builder.Append("/// <para>")
+                                .Append(t.Replace("<id>", "<c>id</c>"))
+                                .AppendLine("</para>");
+                    builder.AppendLine("/// </summary>");
                     instruction.Documentation = builder.ToString();
                 }
 
