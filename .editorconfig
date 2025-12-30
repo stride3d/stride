@@ -16,7 +16,7 @@ insert_final_newline = false
 # XML Code Style Rules           #
 ##################################
 
-[*.{xaml,props,targets,proj,csproj,shproj,ttproj,vcxproj}]
+[*.{axaml,xaml,props,targets,proj,csproj,shproj,ttproj,vcxproj}]
 # enable this once we have merged most of our branches into master
 indent_style = space
 indent_size = 2

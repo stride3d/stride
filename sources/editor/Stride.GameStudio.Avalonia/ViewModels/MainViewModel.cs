@@ -45,6 +45,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         OpenDebugWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
         OpenSettingsWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenSettingsWindow, () => DialogService.HasMainWindow);
         OpenWebPageCommand = new AnonymousTaskCommand<string>(serviceProvider, OnOpenWebPage);
+        RunCurrentProjectCommand = new AnonymousTaskCommand(serviceProvider, RunCurrentProject);
 
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
@@ -79,6 +80,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     public ICommandBase OpenSettingsWindowCommand { get; }
 
     public ICommandBase OpenWebPageCommand { get; }
+
+    public ICommandBase RunCurrentProjectCommand { get; }
 
     private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
 
@@ -141,6 +144,128 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         DialogService.Exit();
     }
 
+    private static async Task<bool> BuildProject(string projectPath, string framework, string workingDirectory)
+    {
+        using var process = new Process();
+        process.StartInfo = new ProcessStartInfo
+        {
+            FileName = "dotnet",
+            Arguments = $"build \"{projectPath}\" --framework {framework}",
+            WorkingDirectory = workingDirectory,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+        };
+
+        process.OutputDataReceived += (_, e) => { if (e.Data != null) Console.Out.WriteLine("[build] " + e.Data); };
+        process.ErrorDataReceived += (_, e) => { if (e.Data != null) Console.Error.WriteLine("[build-err] " + e.Data); };
+
+        try
+        {
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            await process.WaitForExitAsync();
+            return process.ExitCode == 0;
+        }
+        catch (Exception ex)
+        {
+            await Console.Error.WriteLineAsync("Build process failed: " + ex);
+            return false;
+        }
+    }
+
+    private async Task RunCurrentProject()
+    {
+        var mainProjectPath = Session?.CurrentProject?.RootDirectory;
+        if (mainProjectPath == null) return;
+
+        var projectDir = Path.GetDirectoryName(mainProjectPath.FullPath);
+        var projectBaseName = Path.GetFileNameWithoutExtension(mainProjectPath.FullPath);
+
+        string platformSuffix, framework, platformRuntime;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            platformSuffix = "Windows";
+            platformRuntime = "win-x64";
+            framework = "net8.0-windows";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            platformSuffix = "Linux";
+            platformRuntime = "linux-x64";
+            framework = "net8.0-linux";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            platformSuffix = "macOS";
+            platformRuntime = "osx-x64";
+            framework = "net8.0-macos";
+        }
+        else
+        {
+            await ShowError("Unsupported OS platform");
+            return;
+        }
+
+        var platformProjectName = $"{projectBaseName}.{platformSuffix}.csproj";
+        var platformProjectPath = Path.Combine(projectDir, $"{projectBaseName}.{platformSuffix}", platformProjectName);
+        var execPath = Path.Combine(projectDir, "Bin", platformSuffix, "Debug", platformRuntime);
+        var dllPath = Path.Combine(execPath, $"{projectBaseName}.{platformSuffix}.dll");
+
+
+        if (!File.Exists(platformProjectPath))
+        {
+            await ShowError($"Platform-specific project not found: {platformProjectPath}");
+            return;
+        }
+
+        Status.PushStatus("Building project...");
+        await Console.Out.WriteLineAsync("Building project...");
+        bool buildSuccess = await Task.Run(() => BuildProject(platformProjectPath, framework, projectDir));
+        if (!buildSuccess)
+        {
+            Status.PushStatus("Build failed.");
+            await Console.Out.WriteLineAsync("Build failed.");
+            await ShowError("Build failed. See output for details.");
+            return;
+        }
+
+        Status.PushStatus("Running project...");
+        await Console.Out.WriteLineAsync("Running project...");
+        var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = $"\"{dllPath}\"",
+                WorkingDirectory = projectDir,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = false,
+            }
+        };
+
+        process.OutputDataReceived += (_, e) => { if (e.Data != null) Console.Out.WriteLine("[run] " + e.Data); };
+        process.ErrorDataReceived += (_, e) => { if (e.Data != null) Console.Error.WriteLine("[run-err] " + e.Data); };
+
+        try
+        {
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+        }
+        catch (Exception ex)
+        {
+            await Console.Error.WriteLineAsync("Run process failed: " + ex);
+            await ShowError("Failed to start the game process. See output for details.");
+        }
+
+        // FIXME: should we wait for process end?
+    }
+
     private async Task OnOpen(UFile? initialPath)
     {
         await OpenSession(initialPath);
@@ -168,5 +293,10 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             var message = $"{Tr._p("Message", "An error occurred while opening the file.")}{ex.FormatSummary(true)}";
             await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private async Task ShowError(string message)
+    {
+        await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
     }
 }
