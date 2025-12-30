@@ -129,7 +129,7 @@ internal class NavigationBuilder(BuildSettings buildSettings)
         // Update poly flags from areas.
         for (int i = 0; i < polyMesh.npolys; ++i)
         {
-            if (polyMesh.areas[i] ==  63)
+            if (polyMesh.areas[i] ==  RcRecast.RC_WALKABLE_AREA)
                 polyMesh.areas[i] = 0;
 
             if (polyMesh.areas[i] == 0)
