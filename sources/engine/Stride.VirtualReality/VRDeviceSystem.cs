@@ -91,6 +91,7 @@ namespace Stride.VirtualReality
                             }
                         case VRApi.WindowsMixedReality:
                         {
+                            throw NotSupportedException();
                             break;
                         }
                         default:
