@@ -1,26 +1,27 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Collections.Generic;
 
-namespace Stride.LauncherApp
+
+namespace Stride.Launcher;
+
+/// <summary>
+/// A structure representing the arguments passed to the launcher process.
+/// </summary>
+internal struct LauncherArguments
 {
     /// <summary>
-    /// A structure representing the arguments passed to the launcher process.
+    /// An enum representing the type of action this process should perform.
     /// </summary>
-    internal struct LauncherArguments
+    public enum ActionType
     {
-        /// <summary>
-        /// An enum representing the type of action this process should perform.
-        /// </summary>
-        public enum ActionType
-        {
-            Run,
-            Uninstall,
-        }
-
-        /// <summary>
-        /// The list of actions this process should perform.
-        /// </summary>
-        public List<ActionType> Actions;
+        Run,
+        Uninstall,
     }
+
+    /// <summary>
+    /// The list of actions this process should perform.
+    /// </summary>
+    public List<ActionType> Actions;
+
+    public string[] Args;
 }

@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.352
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151 d18.0
 MinimumVisualStudioVersion = 16.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Launcher", "..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj", "{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Launcher", "..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj", "{78695DE1-E621-45DF-975D-CFD407081E23}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core", "..\sources\core\Stride.Core\Stride.Core.csproj", "{BAC8FB10-95ED-4FBB-9925-F6F0E15BD936}"
 EndProject
@@ -21,34 +21,32 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.IO", "..\source
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.MicroThreading", "..\sources\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj", "{076940AD-70F3-47A8-827C-8E722714F937}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Wpf", "..\sources\presentation\Stride.Core.Presentation.Wpf\Stride.Core.Presentation.Wpf.csproj", "{61E90191-22FF-4ADC-AFD0-FAB662589AB4}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Dialogs", "..\sources\presentation\Stride.Core.Presentation.Dialogs\Stride.Core.Presentation.Dialogs.csproj", "{5EB0493A-076D-4488-AF08-D812FB3FDF7C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Translation", "..\sources\core\Stride.Core.Translation\Stride.Core.Translation.csproj", "{8A23DF78-B3D6-41BD-BA50-19D0FBE4AB69}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Translation.Presentation", "..\sources\presentation\Stride.Core.Translation.Presentation\Stride.Core.Translation.Presentation.csproj", "{7B286D71-5143-4A08-B9DE-113B310A3F0C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Packages", "..\sources\assets\Stride.Core.Packages\Stride.Core.Packages.csproj", "{1F5FBA04-C334-41C2-895A-ACC4B786F99E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.CompilerServices", "..\sources\core\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj", "{ADE0E241-CBDD-48C3-8F50-98FFE76C03C8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10-CoreRuntime", "10-CoreRuntime", "{706260A8-86D4-432D-9FE0-F312863288F5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "30-CoreDesign", "30-CoreDesign", "{FE721A31-DF09-4E33-B791-BEC6C9E1C6F1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "50-Presentation", "50-Presentation", "{3BC606D7-27B3-41FA-8FB3-9D56AC8B4DD7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Avalonia", "..\sources\presentation\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj", "{3B613E66-671E-4049-8EF5-43CDAA549210}"
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
-		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
-		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
-		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{0f8be30e-c41f-4747-b52b-d2d4e13ec6a2}*SharedItemsImports = 5
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78695DE1-E621-45DF-975D-CFD407081E23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78695DE1-E621-45DF-975D-CFD407081E23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78695DE1-E621-45DF-975D-CFD407081E23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78695DE1-E621-45DF-975D-CFD407081E23}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BAC8FB10-95ED-4FBB-9925-F6F0E15BD936}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BAC8FB10-95ED-4FBB-9925-F6F0E15BD936}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAC8FB10-95ED-4FBB-9925-F6F0E15BD936}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -81,22 +79,10 @@ Global
 		{076940AD-70F3-47A8-827C-8E722714F937}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{076940AD-70F3-47A8-827C-8E722714F937}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{076940AD-70F3-47A8-827C-8E722714F937}.Release|Any CPU.Build.0 = Release|Any CPU
-		{61E90191-22FF-4ADC-AFD0-FAB662589AB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{61E90191-22FF-4ADC-AFD0-FAB662589AB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{61E90191-22FF-4ADC-AFD0-FAB662589AB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{61E90191-22FF-4ADC-AFD0-FAB662589AB4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5EB0493A-076D-4488-AF08-D812FB3FDF7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5EB0493A-076D-4488-AF08-D812FB3FDF7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5EB0493A-076D-4488-AF08-D812FB3FDF7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5EB0493A-076D-4488-AF08-D812FB3FDF7C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8A23DF78-B3D6-41BD-BA50-19D0FBE4AB69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8A23DF78-B3D6-41BD-BA50-19D0FBE4AB69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A23DF78-B3D6-41BD-BA50-19D0FBE4AB69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A23DF78-B3D6-41BD-BA50-19D0FBE4AB69}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7B286D71-5143-4A08-B9DE-113B310A3F0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7B286D71-5143-4A08-B9DE-113B310A3F0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7B286D71-5143-4A08-B9DE-113B310A3F0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7B286D71-5143-4A08-B9DE-113B310A3F0C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1F5FBA04-C334-41C2-895A-ACC4B786F99E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1F5FBA04-C334-41C2-895A-ACC4B786F99E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F5FBA04-C334-41C2-895A-ACC4B786F99E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -105,11 +91,36 @@ Global
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADE0E241-CBDD-48C3-8F50-98FFE76C03C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADE0E241-CBDD-48C3-8F50-98FFE76C03C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADE0E241-CBDD-48C3-8F50-98FFE76C03C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADE0E241-CBDD-48C3-8F50-98FFE76C03C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B613E66-671E-4049-8EF5-43CDAA549210}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B613E66-671E-4049-8EF5-43CDAA549210}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B613E66-671E-4049-8EF5-43CDAA549210}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B613E66-671E-4049-8EF5-43CDAA549210}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BAC8FB10-95ED-4FBB-9925-F6F0E15BD936} = {706260A8-86D4-432D-9FE0-F312863288F5}
+		{1F01E12A-50B7-4092-B30A-DEE9638FB753} = {706260A8-86D4-432D-9FE0-F312863288F5}
+		{53CDAFA0-30DF-404C-AAF0-652CA4047605} = {FE721A31-DF09-4E33-B791-BEC6C9E1C6F1}
+		{A7AE1C3F-CDC6-42DC-B4C1-5F7150661984} = {FE721A31-DF09-4E33-B791-BEC6C9E1C6F1}
+		{CA70C887-2A83-45DF-82EB-2DFFA8841B7B} = {706260A8-86D4-432D-9FE0-F312863288F5}
+		{CEF8B221-56E0-4777-88C1-9E3F9F3D1D3D} = {FE721A31-DF09-4E33-B791-BEC6C9E1C6F1}
+		{B6687100-3D8C-428C-8288-84607D9D5EDF} = {706260A8-86D4-432D-9FE0-F312863288F5}
+		{076940AD-70F3-47A8-827C-8E722714F937} = {706260A8-86D4-432D-9FE0-F312863288F5}
+		{8A23DF78-B3D6-41BD-BA50-19D0FBE4AB69} = {FE721A31-DF09-4E33-B791-BEC6C9E1C6F1}
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6} = {3BC606D7-27B3-41FA-8FB3-9D56AC8B4DD7}
+		{ADE0E241-CBDD-48C3-8F50-98FFE76C03C8} = {706260A8-86D4-432D-9FE0-F312863288F5}
+		{3B613E66-671E-4049-8EF5-43CDAA549210} = {3BC606D7-27B3-41FA-8FB3-9D56AC8B4DD7}
+	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {04241BED-1662-4690-BA56-15C99A840CFE}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{78695de1-e621-45df-975d-cfd407081e23}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

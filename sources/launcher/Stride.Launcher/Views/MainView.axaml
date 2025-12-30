@@ -1,0 +1,713 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+             xmlns:p="using:Stride.Core.Presentation.Avalonia.Services"
+             xmlns:l="using:Stride.Launcher.Assets.Localization"
+             xmlns:srv="using:Stride.Launcher.Services"
+             xmlns:vm="using:Stride.Launcher.ViewModels"
+             xmlns:vw="using:Stride.Launcher.Views"
+             mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+             x:Class="Stride.Launcher.Views.MainView"
+             x:DataType="vm:MainViewModel">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Default">
+          <ImageBrush x:Key="ImageBackground"/>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <ImageBrush x:Key="ImageBackground"
+                      Source="/Assets/Images/robot.png" Stretch="UniformToFill"/>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <!-- FIXME xplat-editor find a background image working better with the light variant -->
+          <ImageBrush x:Key="ImageBackground"
+                      Source="/Assets/Images/robot.png" Stretch="UniformToFill" Opacity="0.4"/>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <UserControl.Background>
+    <DynamicResource ResourceKey="ImageBackground"/>
+  </UserControl.Background>
+
+  <Grid>
+    <DockPanel>
+      <!-- Status -->
+      <Border DockPanel.Dock="Bottom"
+              Background="{DynamicResource BackgroundEmphasis}"
+              Padding="8,4">
+        <Grid ColumnDefinitions="3*, *, Auto">
+          <TextBlock Grid.Column="0"
+                     HorizontalAlignment="Left" VerticalAlignment="Center"
+                     Text="{Binding CurrentToolTip}" />
+          <!-- Reconnect button -->
+          <Button Grid.Column="1"
+                  Classes="TransparentButton"
+                  Margin="8,4" Cursor="Hand"
+                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                  ToolTip.Tip="Click to reconnect…"
+                  IsVisible="{Binding IsOffline}"
+                  Command="{Binding ReconnectCommand}">
+            <TextBlock FontWeight="ExtraBold" Foreground="Gold" Text="Offline" />
+          </Button>
+          <TextBlock Grid.Column="2"
+                     Margin="8,4" HorizontalAlignment="Right" VerticalAlignment="Center"
+                     Text="{Binding Source={x:Static srv:SelfUpdater.Version}, StringFormat=Launcher v{0}}"/>
+        </Grid>
+      </Border>
+      <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
+        <Grid ColumnDefinitions="Auto, *">
+          <!-- FIRST COLUMN -->
+          <DockPanel Grid.Column="0" Width="400">
+            <Border DockPanel.Dock="Bottom"
+                    BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
+                    Background="{DynamicResource BackgroundTileAlpha}">
+              <DockPanel Margin="10">
+                <!-- Media buttons -->
+                <StackPanel DockPanel.Dock="Bottom" Margin="10"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center">
+                  <Button Classes="TransparentButton MediaButton"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.XTwitter}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
+                          Content="{StaticResource ImageTwitter}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                  </Button>
+                  <Button Classes="TransparentButton MediaButton"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Facebook}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
+                          Content="{StaticResource ImageFacebook}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                  </Button>
+                  <Button Classes="TransparentButton MediaButton"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Reddit}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
+                          Content="{StaticResource ImageReddit}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                  </Button>
+                  <Button Classes="TransparentButton MediaButton"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.OpenCollective}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
+                          Content="{StaticResource ImageOpenCollective}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                  </Button>
+                </StackPanel>
+                <!-- Community links -->
+                <UniformGrid Columns="2">
+                  <Button Classes="TransparentButton"
+                          HorizontalAlignment="Left"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Issues}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                    <StackPanel Orientation="Horizontal">
+                      <Image Margin="4" Width="16" Height="16"
+                             Source="/Assets/Images/issues.png" />
+                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Text="{x:Static l:Strings.ButtonIssues}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="TransparentButton"
+                          HorizontalAlignment="Left"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Forums}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                    <StackPanel Orientation="Horizontal">
+                      <Image Margin="4" Width="16" Height="16"
+                             Source="/Assets/Images/chat.png" />
+                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Text="{x:Static l:Strings.ButtonForums}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="TransparentButton"
+                          HorizontalAlignment="Left"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Discord}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                    <StackPanel Orientation="Horizontal">
+                      <Image Margin="4" Width="16" Height="16"
+                             Source="/Assets/Images/discord.png" />
+                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Text="{x:Static l:Strings.ButtonDiscord}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="TransparentButton"
+                          HorizontalAlignment="Left"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.GitHub}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                    <StackPanel Orientation="Horizontal">
+                      <Image Margin="4" Width="16" Height="16"
+                             Source="/Assets/Images/github.png" />
+                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Text="{x:Static l:Strings.ButtonGitHub}" />
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="TransparentButton"
+                          HorizontalAlignment="Left"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.Roadmap}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
+                    <Interaction.Behaviors>
+                      <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                    </Interaction.Behaviors>
+                    <StackPanel Orientation="Horizontal">
+                      <Image Margin="4" Width="16" Height="16"
+                             Source="/Assets/Images/roadmap.png" />
+                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Text="{x:Static l:Strings.ButtonRoadmap}" />
+                    </StackPanel>
+                  </Button>
+                </UniformGrid>
+              </DockPanel>
+            </Border>
+            <DockPanel>
+              <Border DockPanel.Dock="Top"
+                      BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
+                <StackPanel>
+                  <Grid Height="48">
+                    <!-- Launch game studio -->
+                    <Button Command="{Binding StartStudioCommand}"
+                            Content="{Binding ActiveVersion.FullName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            Background="{DynamicResource BackgroundEmphasis}"
+                            IsEnabled="{Binding !ActiveVersion.IsProcessing}"
+                            IsVisible="{Binding ActiveVersion.CanStart}" />
+                    <!-- Install specific version -->
+                    <Button Command="{Binding ActiveVersion.DownloadCommand}"
+                            Content="{Binding ActiveVersion.FullName, StringFormat={x:Static l:Strings.InstallVersion}}" FontSize="24"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            Background="{DynamicResource BackgroundEmphasis}"
+                            IsEnabled="{Binding !ActiveVersion.IsProcessing}"
+                            IsVisible="{sd:MultiBinding {Binding ActiveVersion.DownloadCommand.IsEnabled},
+                                                        {Binding !ActiveVersion.CanStart},
+                                                        Converter={sd:AndMulti}}" />
+                    <!-- Install latest version (nothing installed) -->
+                    <Button Command="{Binding InstallLatestVersionCommand}"
+                            Content="{x:Static l:Strings.InstallLatestVersion}" FontSize="24"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            Background="{DynamicResource BackgroundEmphasis}"
+                            IsEnabled="{Binding !IsSynchronizing}"
+                            IsVisible="{Binding ActiveVersion, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
+                  </Grid>
+                  <ComboBox x:Name="FrameworkSelector" Margin="0,4"
+                            HorizontalAlignment="Stretch"
+                            ItemsSource="{Binding ActiveVersion.Frameworks}"
+                            SelectedItem="{Binding ActiveVersion.SelectedFramework}"
+                            SelectionChanged="FrameworkChanged"
+                            IsEnabled="{Binding ActiveVersion.Frameworks.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Converter={vm:FrameworkConverter}}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <CheckBox DockPanel.Dock="Bottom" Margin="0,2"
+                            IsChecked="{Binding AutoCloseLauncher}"
+                            Content="{x:Static l:Strings.AutoCloseLauncher}"/>
+                </StackPanel>
+              </Border>
+              <Border DockPanel.Dock="Top"
+                      BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
+                <DockPanel Height="32" Margin="4,0">
+                  <Image Source="/Assets/Images/switch-version.png"
+                         Width="26" Height="26"
+                         VerticalAlignment="Center" />
+                  <TextBlock Text="{x:Static l:Strings.SwitchOrUpdateVersion}"
+                             Margin="10,0"
+                             FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
+                </DockPanel>
+              </Border>
+              <!-- Visual studio extensions -->
+              <Border DockPanel.Dock="Bottom"
+                      IsVisible="{Binding Source={x:Static p:OperatingSystemHelper.IsWindows}, Mode=OneTime}"
+                      BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource BorderThicknessTile}">
+                <StackPanel>
+                  <StackPanel.DataTemplates>
+                    <DataTemplate DataType="{x:Type vm:VsixVersionViewModel}">
+                      <Grid Height="32">
+                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding CurrentProgress}"
+                                     IsIndeterminate="{Binding CurrentProgress, Converter={vw:ProgressToIndeterminatedConverter}}"
+                                     VerticalAlignment="Stretch"
+                                     IsVisible="{Binding IsProcessing}" />
+                        <TextBlock Text="{Binding CurrentProcessStatus}"
+                                   IsVisible="{Binding IsProcessing}" />
+                        <Button Command="{Binding ExecuteActionCommand}"
+                                Content="{Binding Status}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                ToolTip.Tip="{Binding Status, StringFormat={x:Static l:Strings.ToolTipVisualStudioExtension}}"
+                                IsVisible="{Binding !IsProcessing}">
+                          <Interaction.Behaviors>
+                            <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                 DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                          </Interaction.Behaviors>
+                        </Button>
+                      </Grid>
+                    </DataTemplate>
+                  </StackPanel.DataTemplates>
+                  <ContentControl Margin="2" Content="{Binding VsixPackage2019}"/>
+                  <ContentControl Margin="2" Content="{Binding VsixPackage2022}"/>
+                </StackPanel>
+              </Border>
+              <Border DockPanel.Dock="Bottom"
+                      IsVisible="{Binding Source={x:Static p:OperatingSystemHelper.IsWindows}, Mode=OneTime}"
+                      BorderBrush="{StaticResource BorderBrushTile}">
+                <DockPanel Margin="4,0">
+                  <Button Classes="TransparentButton"
+                          HorizontalAlignment="Left"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.VisualStudio}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
+                          Loaded="VisualStudioDownloadPage_Button_Loaded">
+                    <TextBlock Text="{x:Static l:Strings.VisualStudioDownloadPage}"
+                               FontSize="12" Margin="10,0"
+                               TextAlignment="Left" VerticalAlignment="Center" />
+                  </Button>
+                </DockPanel>
+              </Border>
+              <Border DockPanel.Dock="Bottom"
+                      IsVisible="{Binding Source={x:Static p:OperatingSystemHelper.IsWindows}, Mode=OneTime}"
+                      BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="12,0,0,0">
+                <DockPanel Height="32" Margin="4,0">
+                  <Image Source="/Assets/Images/visual-studio.png"
+                         Width="26" Height="26"
+                         VerticalAlignment="Center" />
+                  <TextBlock Text="{x:Static l:Strings.VisualStudioExtension}"
+                             Margin="10,0"
+                             FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
+                </DockPanel>
+              </Border>
+              <!-- Stride versions -->
+              <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
+                      Background="Transparent">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalAlignment="Top" AllowAutoHide="False">
+                  <StackPanel Margin="0,0,16,0">
+                    <ItemsControl ItemsSource="{Binding StrideVersions}">
+                      <ItemsControl.DataTemplates>
+                        <DataTemplate DataType="{x:Type vm:StrideDevVersionViewModel}">
+                          <DockPanel Height="32" Margin="0,2"
+                                     Background="{DynamicResource BackgroundTileAlpha}"
+                                     IsVisible="{Binding IsVisible}">
+                            <StackPanel DockPanel.Dock="Right"
+                                        MinWidth="32" Orientation="Horizontal"
+                                        IsEnabled="{Binding !IsProcessing}">
+                              <!-- Delete button -->
+                              <Button Margin="4,0" Width="32" Height="32"
+                                      Command="{Binding DeleteCommand}"
+                                      IsVisible="{Binding CanDelete}"
+                                      ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipUninstall}}">
+                                <Interaction.Behaviors>
+                                  <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                       DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                </Interaction.Behaviors>
+                                <Image Source="/Assets/Images/delete.png"
+                                       Width="20" Height="20" />
+                              </Button>
+                            </StackPanel>
+                            <Grid>
+                              <Button Command="{Binding SetAsActiveCommand}"
+                                      IsVisible="{Binding !IsProcessing}"
+                                      ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}">
+                                <Interaction.Behaviors>
+                                  <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                       DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                </Interaction.Behaviors>
+                                <TextBlock Text="{Binding DisplayName, StringFormat={x:Static l:Strings.VersionButton}}" />
+                              </Button>
+                            </Grid>
+                          </DockPanel>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:StrideStoreVersionViewModel}">
+                          <DockPanel Height="32" Margin="0,2"
+                                     Background="{DynamicResource BackgroundTileAlpha}"
+                                     IsVisible="{Binding IsVisible}">
+                            <StackPanel DockPanel.Dock="Right"
+                                        MinWidth="32" Orientation="Horizontal"
+                                        IsEnabled="{Binding !IsProcessing}">
+                              <!-- Update button -->
+                              <Button Margin="4,0,0,0" Width="32" Height="32"
+                                      Command="{Binding DownloadCommand}"
+                                      IsVisible="{sd:MultiBinding {Binding CanBeDownloaded}, {Binding CanDelete}, Converter={sd:AndMulti}}"
+                                      ToolTip.Tip="{Binding ServerVersionFullName, StringFormat={x:Static l:Strings.ToolTipUpdate}}">
+                                <Interaction.Behaviors>
+                                  <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                       DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                </Interaction.Behaviors>
+                                <Image Source="/Assets/Images/update.png"
+                                       Width="20" Height="20" />
+                              </Button>
+                              <!-- Download button -->
+                              <Button Margin="4,0,0,0" Width="32" Height="32"
+                                      Command="{Binding DownloadCommand}"
+                                      IsVisible="{sd:MultiBinding {Binding CanBeDownloaded}, {Binding !CanDelete}, Converter={sd:AndMulti}}"
+                                      ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipDownload}}">
+                                <Interaction.Behaviors>
+                                  <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                       DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                </Interaction.Behaviors>
+                                <Image Source="/Assets/Images/download.png"
+                                       Width="20" Height="20" />
+                              </Button>
+                              <!-- Delete button -->
+                              <Button Margin="4,0,0,0" Width="32" Height="32"
+                                      Command="{Binding DeleteCommand}"
+                                      IsVisible="{Binding CanDelete}"
+                                      ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipUninstall}}">
+                                <Interaction.Behaviors>
+                                  <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                       DefaultValue="{x:Static l:Strings.ToolTipDefault}" />
+                                </Interaction.Behaviors>
+                                <Image Source="/Assets/Images/delete.png"
+                                       Width="20" Height="20" />
+                              </Button>
+                              <!-- Alternate versions -->
+                              <ToggleButton x:Name="Toggle" Margin="4,0,0,0" Width="32" Height="32"
+                                            ToolTip.Tip="Install another version">
+                                <Interaction.Behaviors>
+                                  <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                       DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                </Interaction.Behaviors>
+                                <Image Source="/Assets/Images/list.png"
+                                       Width="20" Height="20" />
+                              </ToggleButton>
+                              <Popup x:Name="Popup"
+                                     IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
+                                <Border Margin="4" Background="{DynamicResource SystemChromeMediumLowColor}">
+                                  <Border.Effect>
+                                    <DropShadowEffect BlurRadius="5" Opacity="0.4" />
+                                  </Border.Effect>
+                                  <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="256">
+                                    <ItemsControl ItemsSource="{Binding AlternateVersions}">
+                                      <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type vm:StrideStoreAlternateVersionViewModel}">
+                                          <Button Content="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}"
+                                                  Command="{Binding SetAsActiveCommand}"
+                                                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                                            <Interaction.Behaviors>
+                                              <EventTriggerBehavior EventName="Click">
+                                                <ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="False" />
+                                              </EventTriggerBehavior>
+                                            </Interaction.Behaviors>
+                                          </Button>
+                                        </DataTemplate>
+                                      </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                  </ScrollViewer>
+                                </Border>
+                              </Popup>
+                            </StackPanel>
+                            <!-- Release notes button -->
+                            <Button DockPanel.Dock="Left"
+                                    Margin="0,0,4,0" Width="32" Height="32"
+                                    Command="{Binding ReleaseNotes.ToggleCommand}"
+                                    ToolTip.Tip="Display release notes for this version">
+                              <Interaction.Behaviors>
+                                <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                     DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                              </Interaction.Behaviors>
+                              <Image Source="/Assets/Images/note.png"
+                                     Width="20" Height="20" />
+                            </Button>
+                            <Grid>
+                              <ProgressBar Minimum="0" Maximum="100" Value="{Binding CurrentProgress}"
+                                           IsIndeterminate="{Binding CurrentProgress, Converter={vw:ProgressToIndeterminatedConverter}}"
+                                           VerticalAlignment="Stretch"
+                                           IsVisible="{Binding IsProcessing}" />
+                              <TextBlock Text="{Binding CurrentProcessStatus}"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                                         IsVisible="{Binding IsProcessing}" />
+                              <Grid IsVisible="{Binding !IsProcessing}">
+                                <Button Command="{Binding SetAsActiveCommand}"
+                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                        IsVisible="{Binding CanDelete}"
+                                        ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}">
+                                  <Interaction.Behaviors>
+                                    <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                  </Interaction.Behaviors>
+                                </Button>
+                                <TextBlock Margin="16,0" IsHitTestVisible="False"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center">
+                                  <Run Text="{Binding DisplayName, Mode=OneWay, StringFormat={x:Static l:Strings.VersionButton}}"/>
+                                  <!-- Careful here, there must not be any space or line-break between the next two Run tags! -->
+                                  <Run Text="{Binding !CanDelete, Mode=OneWay, Converter={sd:BoolToParam}, ConverterParameter={x:Static l:Strings.VersionButtonUninstalled}
+                                       }"/><Run Text="{sd:MultiBinding {Binding CanDelete}, {Binding CanBeDownloaded}, {Binding IsLatestPackageRemote}, Converter={sd:MultiChained
+                                       {sd:AndMulti}, {sd:BoolToParam}, Parameter1={x:Static l:Strings.VersionButtonUpdateAvailable}}}"/><Run Text="{sd:MultiBinding
+                                       {Binding CanDelete}, {Binding CanBeDownloaded}, {Binding IsLatestPackageLocal}, Converter={sd:MultiChained {sd:AndMulti}, {sd:BoolToParam},
+                                        Parameter1={x:Static l:Strings.VersionButtonLocalUpdateAvailable}}}"/>
+                                </TextBlock>
+                              </Grid>
+                            </Grid>
+                          </DockPanel>
+                        </DataTemplate>
+                      </ItemsControl.DataTemplates>
+                    </ItemsControl>
+                    <ProgressBar IsIndeterminate="True"
+                                 Height="24" Margin="0,2"
+                                 Opacity="0.5"
+                                 IsVisible="{Binding IsSynchronizing}" />
+                    <ToggleButton Classes="TransparentButton"
+                                  Margin="0,4" HorizontalAlignment="Center"
+                                  IsChecked="{Binding ShowBetaVersions}"
+                                  Content="{Binding}"
+                                  Command="{Binding CheckDeprecatedSourcesCommand}">
+                      <ToggleButton.ContentTemplate>
+                        <DataTemplate DataType="vm:MainViewModel">
+                          <TextBlock Text="{x:Static l:Strings.ToggleShowBetaVersions}">
+                            <Interaction.Behaviors>
+                              <DataTriggerBehavior Binding="{Binding ShowBetaVersions}" Value="True">
+                                <ChangePropertyAction PropertyName="Text" Value="{x:Static l:Strings.ToggleHideBetaVersions}" />
+                              </DataTriggerBehavior>
+                              <DataTriggerBehavior Binding="{Binding ShowBetaVersions}" Value="False">
+                                <ChangePropertyAction PropertyName="Text" Value="{x:Static l:Strings.ToggleShowBetaVersions}" />
+                              </DataTriggerBehavior>
+                            </Interaction.Behaviors>
+                          </TextBlock>
+                        </DataTemplate>
+                      </ToggleButton.ContentTemplate>
+                    </ToggleButton>
+                  </StackPanel>
+                </ScrollViewer>
+              </Border>
+            </DockPanel>
+          </DockPanel>
+
+          <Grid Grid.Column="1"
+                ColumnDefinitions="*, *"
+                IsEnabled="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}"
+                IsVisible="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}">
+            <!-- SECOND COLUMN -->
+            <Border Grid.Column="0">
+              <!-- Recent projects  -->
+              <DockPanel>
+                <Border DockPanel.Dock="Top">
+                  <DockPanel Height="48" Margin="10,0">
+                    <Image Source="/Assets/Images/recent-projects.png"
+                           Width="26" Height="26"
+                           VerticalAlignment="Center" />
+                    <TextBlock Text="{x:Static l:Strings.Projects}"
+                               Margin="10,0"
+                               FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
+                  </DockPanel>
+                </Border>
+                <Grid>
+                  <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
+                          Background="{DynamicResource BackgroundTileAlpha}"
+                          IsVisible="{Binding !RecentProjects.Count, FallbackValue={x:False}}"
+                          VerticalAlignment="Top">
+                    <TextBlock Text="{x:Static l:Strings.NoProjectCreated}"
+                               FontSize="16" Margin="20"
+                               TextAlignment="Center" VerticalAlignment="Center" />
+                  </Border>
+                  <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                      <ItemsControl ItemsSource="{Binding RecentProjects}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate DataType="{x:Type vm:RecentProjectViewModel}">
+                            <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTileList}">
+                              <Button Command="{Binding OpenCommand}"
+                                      IsEnabled="{Binding Launcher.StartStudioCommand.IsEnabled}"
+                                      HorizontalAlignment="Stretch"
+                                      HorizontalContentAlignment="Stretch">
+                                <DockPanel Margin="8,4">
+                                  <DockPanel DockPanel.Dock="Bottom">
+                                    <!-- Update dropdown -->
+                                    <ToggleButton DockPanel.Dock="Right" x:Name="Toggle"
+                                                  IsVisible="{Binding CompatibleVersions.Count}"/>
+                                    <Popup IsOpen="{Binding ElementName=Toggle, Path=IsChecked}"
+                                           PlacementTarget="{Binding ElementName=Toggle}">
+                                      <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl ItemsSource="{Binding CompatibleVersions}">
+                                          <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type vm:StrideVersionViewModel}">
+                                              <Button Content="{Binding DisplayName, StringFormat={x:Static l:Strings.OpenProjectWithVersion}}"
+                                                      Command="{Binding $parent[ScrollViewer].((vm:RecentProjectViewModel)DataContext).OpenWithCommand}"
+                                                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
+                                            </DataTemplate>
+                                          </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                      </ScrollViewer>
+                                    </Popup>
+                                    <TextBlock DockPanel.Dock="Bottom"
+                                               Text="{Binding FullPath}"
+                                               FontStyle="Italic" />
+                                  </DockPanel>
+                                  <DockPanel>
+                                    <!-- Discovering -->
+                                    <TextBlock Text="{Binding StrideVersionName}"
+                                               FontSize="14"
+                                               IsVisible="{Binding StrideVersionName, Converter={sd:ObjectToBool}}" />
+                                    <!-- Unknown -->
+                                    <TextBlock Text="{x:Static l:Strings.UnknownVersion}"
+                                               FontSize="14"
+                                               IsVisible="{Binding StrideVersionName, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="16" FontWeight="Bold" />
+                                  </DockPanel>
+                                </DockPanel>
+                              </Button>
+                              <Border.ContextMenu>
+                                <ContextMenu>
+                                  <MenuItem Header="{x:Static l:Strings.ShowInExplorer}" Command="{Binding ExploreCommand}" />
+                                  <MenuItem Header="{x:Static l:Strings.RemoveFromList}" Command="{Binding RemoveCommand}" />
+                                </ContextMenu>
+                              </Border.ContextMenu>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </ScrollViewer>
+                  </Border>
+                </Grid>
+              </DockPanel>
+            </Border>
+
+            <!-- THIRD COLUMN -->
+            <Border Grid.Column="1">
+              <TabControl>
+                <TabControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <UniformGrid Rows="1" Height="32" Margin="0,12,0,32"/>
+                  </ItemsPanelTemplate>
+                </TabControl.ItemsPanel>
+                <TabControl.Styles>
+                  <Style Selector="TabItem">
+                    <Setter Property="FontSize" Value="18" />
+                  </Style>
+                </TabControl.Styles>
+                <!-- Getting started -->
+                <TabItem Header="{x:Static l:Strings.TabGettingStarted}">
+                  <ScrollViewer>
+                    <StackPanel>
+                      <Border IsVisible="{Binding !ActiveDocumentationPages.Count, FallbackValue={x:False}}">
+                        <TextBlock Text="{x:Static l:Strings.NoDocumentation}"
+                                   FontSize="16" Margin="20"
+                                   TextAlignment="Center" VerticalAlignment="Center" />
+                      </Border>
+                      <ItemsControl ItemsSource="{Binding ActiveDocumentationPages}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate DataType="{x:Type vm:DocumentationPageViewModel}">
+                            <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTileList}">
+                              <Button Command="{Binding OpenUrlCommand}"
+                                      HorizontalAlignment="Stretch"
+                                      HorizontalContentAlignment="Stretch">
+                                <DockPanel>
+                                  <TextBlock DockPanel.Dock="Top"
+                                             HorizontalAlignment="Left"
+                                             Text="{Binding Title}" />
+                                  <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                </DockPanel>
+                              </Button>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </ScrollViewer>
+                </TabItem>
+                <!-- News -->
+                <TabItem Header="{x:Static l:Strings.TabNews}">
+                  <ScrollViewer>
+                    <StackPanel>
+                      <Border Background="{DynamicResource BackgroundTileAlpha}"
+                              IsVisible="{Binding !NewsPages.Count, FallbackValue={x:False}}">
+                        <TextBlock Text="{x:Static l:Strings.NoNews}"
+                                   FontSize="16" Margin="20"
+                                   TextAlignment="Center" VerticalAlignment="Center" />
+                      </Border>
+                      <ItemsControl ItemsSource="{Binding NewsPages}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate DataType="{x:Type vm:NewsPageViewModel}">
+                            <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTileList}">
+                              <Button Command="{Binding OpenUrlCommand}"
+                                      HorizontalAlignment="Stretch"
+                                      HorizontalContentAlignment="Stretch">
+                                <DockPanel Margin="4">
+                                  <TextBlock DockPanel.Dock="Top"
+                                             Margin="0,4" HorizontalAlignment="Left"
+                                             FontSize="16"
+                                             Text="{Binding Title}" TextWrapping="Wrap" />
+                                  <TextBlock Margin="0,8,0,4" HorizontalAlignment="Right"
+                                             Text="{Binding Date, StringFormat={x:Static l:Strings.NewsDate}}" />
+                                </DockPanel>
+                              </Button>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </ScrollViewer>
+                </TabItem>
+              </TabControl>
+            </Border>
+          </Grid>
+
+          <!-- Release notes -->
+          <Grid Grid.Column="1"
+                IsEnabled="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}"
+                IsVisible="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}">
+            <DockPanel>
+              <DockPanel>
+                <Button />
+                <TextBlock />
+              </DockPanel>
+              <Grid>
+                <md:MarkdownScrollViewer Markdown="{Binding ActiveReleaseNotes.MarkdownContent}"
+                                         IsVisible="{Binding ActiveReleaseNotes.IsLoaded}" />
+                <TextBlock Text="{x:Static l:Strings.NoReleaseNotes}"
+                           TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           IsVisible="{Binding ActiveReleaseNotes.IsUnavailable}" />
+                <TextBlock Text="{x:Static l:Strings.DownloadingReleaseNotes}"
+                           TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           IsVisible="{Binding ActiveReleaseNotes.IsLoading}" />
+              </Grid>
+            </DockPanel>
+          </Grid>
+        </Grid>
+      </Border>
+    </DockPanel>
+    <!-- Announcements -->
+    <Border IsVisible="{Binding Announcement, Converter={sd:ObjectToBool}, FallbackValue={x:False}}">
+      <vw:Announcement DataContext="{Binding Announcement}" />
+    </Border>
+  </Grid>
+</UserControl>

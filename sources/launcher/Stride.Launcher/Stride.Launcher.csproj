@@ -1,135 +1,78 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <DebugType>embedded</DebugType>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <UseWPF>true</UseWPF>
-    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <OutputPath>bin\Debug\</OutputPath>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <DefineConstants>TRACE;STRIDE_LAUNCHER</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;STRIDE_LAUNCHER</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationIcon>Resources\Launcher.ico</ApplicationIcon>
-    <RootNamespace>Stride.LauncherApp</RootNamespace>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationIcon>Assets\Launcher.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <StartupObject>Stride.LauncherApp.Program</StartupObject>
+    <StartupObject>Stride.Launcher.Program</StartupObject>
+    <DefineConstants>$(DefineConstants);STRIDE_LAUNCHER</DefineConstants>
     <!-- Get version directly from nuspec file, so that there's only one place to bump -->
     <_StrideLauncherNuSpecLines>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)Stride.Launcher.nuspec'))</_StrideLauncherNuSpecLines>
     <Version>$([System.Text.RegularExpressions.Regex]::Match($(_StrideLauncherNuSpecLines), `<version>(.*)</version>`).Groups[1].Value)</Version>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
+
   <ItemGroup>
-    <Using Include="System.IO" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
   </ItemGroup>
-  <ItemGroup>
-    <None Remove="Resources\list-26.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <TrimmerRootAssembly Include="System.Xml.Linq" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Stride.Metrics" Version="1.0.3" />
-    <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs">
-      <Link>Packages\PackageSessionHelper.Solution.cs</Link>
-    </Compile>
-    <Compile Include="..\..\assets\Stride.Core.Assets\Package.Constants.cs">
-      <Link>Packages\Package.Constants.cs</Link>
-    </Compile>
-    <Compile Include="..\..\editor\Stride.Core.Assets.Editor\EditorPath.cs">
-      <Link>Editor\EditorPath.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Announcements\Release30.md" />
-    <Resource Include="Resources\EditorIcon.png" />
-    <Resource Include="Resources\list-26.png" />
-    <Resource Include="Resources\update.png" />
-    <Resource Include="Resources\roadmap.png" />
-    <Resource Include="Resources\survey.png" />
-    <Resource Include="Resources\upgrade-16.png" />
-    <Resource Include="Resources\note-26-dark.png" />
-    <Resource Include="Resources\recent-projects.png" />
-    <Resource Include="Resources\switch-version.png" />
-    <Resource Include="Resources\visual-studio.png" />
-    <Resource Include="Resources\chat-16.png" />
-    <Resource Include="Resources\discord.png" />
-    <Resource Include="Resources\showcase.png" />
-    <Resource Include="Resources\Robot.jpg" />
-    <Resource Include="Resources\twitch_24.png" />
-    <Resource Include="Resources\facebook_24.png" />
-    <Resource Include="Resources\reddit_24.png" />
-    <Resource Include="Resources\xtwitter_24.png" />
-    <Resource Include="Resources\opencollective_24.png" />
-    <Resource Include="Resources\github.png" />
-    <Resource Include="Resources\issues.png" />
-    <Resource Include="Resources\Launcher.ico" />
-    <Resource Include="Resources\delete-26-dark.png" />
-    <Resource Include="Resources\download-26-dark.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\Strings.ja-JP.resx" />
-    <EmbeddedResource Update="Resources\Strings.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Urls.ja-JP.resx" />
-    <EmbeddedResource Update="Resources\Urls.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Urls.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Packages\Stride.Core.Packages.csproj" />
-    <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Stride.Core.IO\Stride.Core.IO.csproj" />
-    <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\..\core\Stride.Core.Reflection\Stride.Core.Reflection.csproj" />
-    <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\core\Stride.Core.Yaml\Stride.Core.Yaml.csproj" />
-    <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
-    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
-    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Dialogs\Stride.Core.Presentation.Dialogs.csproj" />
+    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+    <None Include="..\..\Directory.Packages.props" Link="Build\Directory.Packages.props" />
   </ItemGroup>
+
   <ItemGroup>
-    <TrimmerRootAssembly Include="System.Runtime" />
-    <TrimmerRootAssembly Include="System.Diagnostics.Debug" />
-    <TrimmerRootAssembly Include="System.Runtime.Extensions" />
+    <Compile Remove="..\..\shared\SharedAssemblyInfo.cs" />
+    <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs" Link="Packages\PackageSessionHelper.Solution.cs" />
+    <Compile Include="..\..\editor\Stride.Core.Assets.Editor\EditorPath.cs" Link="Editor\EditorPath.cs" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Update="Resources\Strings.Designer.cs">
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Remove="Assets\Localization\**" />
+    <EmbeddedResource Update="Assets\Localization\Strings.ja-JP.resx" />
+    <EmbeddedResource Update="Assets\Localization\Strings.resx">
+      <SubType>Designer</SubType>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Assets\Localization\Urls.ja-JP.resx" />
+    <EmbeddedResource Update="Assets\Localization\Urls.resx">
+      <SubType>Designer</SubType>
+      <LastGenOutput>Urls.Designer.cs</LastGenOutput>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <Compile Update="Assets\Localization\Strings.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Update="Resources\Urls.Designer.cs">
+    <Compile Update="Assets\Localization\Urls.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Urls.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-  <Import Project="..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
+
   <Import Project="..\..\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
-  <Import Project="..\..\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems" Label="Shared" />
-  <Import Project="..\..\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems" Label="Shared" />
 </Project>
