@@ -3,6 +3,7 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Runtime.CompilerServices;
+using Stride.Core;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
@@ -126,6 +127,18 @@ namespace Stride.Graphics
                     NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader;
                 }
 
+                if ((ViewFlags & BufferFlags.StructuredBuffer) != 0)
+                {
+                    createInfo.usage |= VkBufferUsageFlags.StorageBuffer;
+                    NativeAccessMask |= VkAccessFlags.UniformRead;
+                    NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader;
+
+                    if ((ViewFlags & BufferFlags.UnorderedAccess) != 0)
+                    {
+                        NativeAccessMask |= VkAccessFlags.ShaderWrite;
+                    }
+                }
+
                 if ((ViewFlags & BufferFlags.ShaderResource) != 0)
                 {
                     createInfo.usage |= VkBufferUsageFlags.UniformTexelBuffer;
@@ -183,7 +196,7 @@ namespace Stride.Graphics
                     {
                         void* uploadMemory;
                         vkMapMemory(GraphicsDevice.NativeDevice, NativeMemory, 0, (ulong) SizeInBytes, VkMemoryMapFlags.None, &uploadMemory);
-                        Unsafe.CopyBlockUnaligned(uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
+                        Utilities.CopyWithAlignmentFallback(uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
                         vkUnmapMemory(GraphicsDevice.NativeDevice, NativeMemory);
                     }
                     else
@@ -191,7 +204,7 @@ namespace Stride.Graphics
                         var sizeInBytes = bufferDescription.SizeInBytes;
                         var uploadMemory = GraphicsDevice.AllocateUploadBuffer(sizeInBytes, out var uploadResource, out var uploadOffset);
 
-                        Unsafe.CopyBlockUnaligned((void*) uploadMemory, (void*) dataPointer, (uint) sizeInBytes);
+                        Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) sizeInBytes);
 
                         // Barrier
                         var memoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong) uploadOffset, (ulong) sizeInBytes);

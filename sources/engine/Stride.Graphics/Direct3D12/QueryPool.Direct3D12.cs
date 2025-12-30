@@ -26,7 +26,7 @@ namespace Stride.Graphics
                 var mappedData = readbackBuffer.Map(0);
                 fixed (long* dataPointer = &dataArray[0])
                 {
-                    Unsafe.CopyBlockUnaligned(dataPointer, (void*) mappedData, (uint) QueryCount * 8);
+                    Core.Utilities.CopyWithAlignmentFallback(dataPointer, (void*) mappedData, (uint) QueryCount * 8);
                 }
                 readbackBuffer.Unmap(subresource: 0);
                 return true;

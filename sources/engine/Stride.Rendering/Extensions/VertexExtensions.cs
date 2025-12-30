@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
+using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Rendering;
 
@@ -17,6 +18,7 @@ namespace Stride.Extensions
         /// </summary>
         /// <param name="meshData">The mesh data.</param>
         /// <param name="vertexElementToExtract">The declaration to extract (e.g. "POSITION0"...etc.) </param>
+        [Obsolete($"Use {nameof(VertexBufferHelper)} instead")]
         public static unsafe T[] GetVertexBufferData<T>(this MeshDraw meshData, params string[] vertexElementToExtract) where T : unmanaged
         {
             var declaration = meshData.VertexBuffers[0].Declaration;
@@ -43,7 +45,7 @@ namespace Stride.Extensions
                 {
                     foreach (var vertexElementWithOffset in offsets)
                     {
-                        Unsafe.CopyBlockUnaligned(ptrOutput, ptrInput + vertexElementWithOffset.Offset, (uint)vertexElementWithOffset.Size);
+                        Utilities.CopyWithAlignmentFallback(ptrOutput, ptrInput + vertexElementWithOffset.Offset, (uint)vertexElementWithOffset.Size);
                         ptrOutput += vertexElementWithOffset.Size;
                     }
                     ptrInput += declaration.VertexStride;

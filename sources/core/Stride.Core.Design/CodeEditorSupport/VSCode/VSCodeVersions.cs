@@ -24,10 +24,10 @@ public static class VSCodeVersions
             }
             
             if (File.Exists(vscodiumExe))
-                instances.Add(new IDEInfo(new(), "VS Codium", vscodiumExe, "", IDEType.VSCode));
+                instances.Add(new IDEInfo("VS Codium", vscodiumExe, IDEType.VSCode));
             
             if (File.Exists(vscodeExe))
-                instances.Add(new IDEInfo(new(), "VS Code", vscodeExe, "", IDEType.VSCode));
+                instances.Add(new IDEInfo("VS Code", vscodeExe, IDEType.VSCode));
             
         }
 

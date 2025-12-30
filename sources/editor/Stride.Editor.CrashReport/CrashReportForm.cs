@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Stride.CrashReport;
+using System.ComponentModel;
 
 namespace Stride.Editor.CrashReport
 {
@@ -39,6 +40,7 @@ namespace Stride.Editor.CrashReport
             }
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool Expanded { get { return expanded; } set { expanded = value; RefreshSize(); } }
 
         private void RefreshSize()

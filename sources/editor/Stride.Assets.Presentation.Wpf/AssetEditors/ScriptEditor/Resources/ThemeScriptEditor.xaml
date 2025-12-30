@@ -71,8 +71,12 @@
     <Image Source="{Binding Mode=OneTime}" />
   </DataTemplate>
 
+  <Style TargetType="editor:CodeEditorCompletionWindow"
+           BasedOn="{StaticResource {x:Type Window}}">
+    <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+  </Style>
+  
   <Style TargetType="scriptEditor:SimpleCodeTextEditor">
-    <Setter Property="CompletionBackground" Value="{DynamicResource ControlBackgroundBrush}"/>
     <Setter Property="FontFamily" Value="Consolas"/>
     <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
     <Setter Property="Background" Value="{DynamicResource CodeEditorBackgroundBrush}" />

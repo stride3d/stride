@@ -48,7 +48,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         DisplayReleaseAnnouncement();
 
         VsixPackage2019 = new(this, store, store.VsixPackageId, NugetStore.VsixSupportedVsVersion.VS2019);
-        VsixPackage2022 = new(this, store, store.VsixPackageId, NugetStore.VsixSupportedVsVersion.VS2022);
+        VsixPackage2022 = new(this, store, store.VsixPackageId, NugetStore.VsixSupportedVsVersion.VS2022AndNext);
         // Commands
         InstallLatestVersionCommand = new AnonymousTaskCommand(ServiceProvider, InstallLatestVersion) { IsEnabled = false };
         OpenUrlCommand = new AnonymousTaskCommand<string>(ServiceProvider, OpenUrl);
@@ -516,8 +516,8 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                     var versionToInstall = StrideVersions.First(x => x.CanBeDownloaded);
                     await versionToInstall.Download(true);
 
-                    // if VS2022 is installed (version 17.x)
-                    if (VsixPackage2022 is { IsLatestVersionInstalled: false, CanBeDownloaded: true } && VisualStudioVersions.AvailableInstances.Any(ide => ide.InstallationVersion.Major == 17))
+                    // if VS2022+ is installed (version 17.x+)
+                    if (VsixPackage2022 is { IsLatestVersionInstalled: false, CanBeDownloaded: true } && VisualStudioVersions.AvailableInstances.Any(ide => ide.InstallationVersion.Major >= 17))
                     {
                         result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.AskInstallVSIX, "2022"), MessageBoxButton.YesNo, MessageBoxImage.Question);
                         if (result == MessageBoxResult.Yes)

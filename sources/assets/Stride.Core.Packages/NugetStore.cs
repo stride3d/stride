@@ -158,7 +158,7 @@ public partial class NugetStore : INugetDownloadProgress
     public enum VsixSupportedVsVersion
     {
         VS2019,
-        VS2022
+        VS2022AndNext,
     }
 
     /// <summary>
@@ -168,10 +168,10 @@ public partial class NugetStore : INugetDownloadProgress
     public IReadOnlyDictionary<VsixSupportedVsVersion, (PackageVersion MinVersion, PackageVersion MaxVersion)> VsixVersionToStrideRelease { get; } = new Dictionary<VsixSupportedVsVersion, (PackageVersion, PackageVersion)>
     {
         // The VSIX for VS2019 is avaliable in Stride packages of version 4.0.x
-        {VsixSupportedVsVersion.VS2019, (new PackageVersion("4.0"), new PackageVersion("4.1")) },
+        { VsixSupportedVsVersion.VS2019, (new PackageVersion("4.0"), new PackageVersion("4.1")) },
 
         // The VSIX for VS2022 is available in Stride packages of version 4.1.x and later.
-        {VsixSupportedVsVersion.VS2022, (new PackageVersion("4.1"), new PackageVersion(int.MaxValue,0,0,0)) },
+        { VsixSupportedVsVersion.VS2022AndNext, (new PackageVersion("4.1"), new PackageVersion(int.MaxValue, 0, 0, 0)) },
     };
 
     /// <summary>
@@ -332,7 +332,7 @@ public partial class NugetStore : INugetDownloadProgress
 
                     // In case it's a package without any TFM (i.e. Visual Studio plugin), we still need to specify one
                     if (!targetFrameworks.Any())
-                        targetFrameworks = ["net8.0"];
+                        targetFrameworks = ["net10.0"];
 
                     // Old version expects to be installed in GamePackages
                     if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0) && oldRootDirectory != null)
@@ -345,13 +345,6 @@ public partial class NugetStore : INugetDownloadProgress
                     {
                         Name = Path.GetFileNameWithoutExtension(projectPath), // make sure this package never collides with a dependency
                         FilePath = projectPath,
-                        Dependencies =
-                        [
-                            new()
-                            {
-                                LibraryRange = new LibraryRange(packageId, new VersionRange(version.ToNuGetVersion()), LibraryDependencyTarget.Package),
-                            }
-                        ],
                         RestoreMetadata = new ProjectRestoreMetadata
                         {
                             ProjectPath = projectPath,
@@ -368,7 +361,17 @@ public partial class NugetStore : INugetDownloadProgress
                     };
                     foreach (var targetFramework in targetFrameworks)
                     {
-                        spec.TargetFrameworks.Add(new TargetFrameworkInformation { FrameworkName = NuGetFramework.Parse(targetFramework) });
+                        spec.TargetFrameworks.Add(new TargetFrameworkInformation
+                        {
+                            FrameworkName = NuGetFramework.Parse(targetFramework),
+                            Dependencies =
+                                [
+                                    new()
+                                    {
+                                        LibraryRange = new LibraryRange(packageId, new VersionRange(version.ToNuGetVersion()), LibraryDependencyTarget.Package),
+                                    }
+                                ],
+                        });
                     }
 
                     using (var context = new SourceCacheContext { MaxAge = DateTimeOffset.UtcNow })

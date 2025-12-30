@@ -51,7 +51,7 @@ namespace Stride.Rendering.Lights
         {
         }
 
-        public virtual void SetViews(FastList<RenderView> views)
+        public virtual void SetViews(List<RenderView> views)
         {
         }
 
@@ -64,7 +64,7 @@ namespace Stride.Rendering.Lights
             // Information about the view
             public int ViewIndex;
             public RenderView View;
-            public FastList<RenderView> Views;
+            public List<RenderView> Views;
 
             // Current renderers in this group
             public LightGroupRendererBase[] Renderers;

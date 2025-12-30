@@ -61,7 +61,7 @@ jobs:
           lfs: true
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
       - name: Install dependencies
         run: |
           sudo apt-get install clang lld

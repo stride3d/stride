@@ -17,7 +17,7 @@ using NRigidPose = BepuPhysics.RigidPose;
 namespace Stride.BepuPhysics;
 
 [ComponentCategory("Physics - Bepu")]
-public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEventHandler
+public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactHandler
 {
     private bool _jumping;
 
@@ -162,38 +162,57 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
         return false;
     }
 
-    bool IContactEventHandler.NoContactResponse => NoContactResponse;
-    void IContactEventHandler.OnStartedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStartedTouching(eventSource, other, ref contactManifold, flippedManifold, contactIndex, bepuSimulation);
-    void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStoppedTouching(eventSource, other, ref contactManifold, flippedManifold, contactIndex, bepuSimulation);
+    bool IContactHandler.NoContactResponse => NoContactResponse;
+    void IContactHandler.OnStartedTouching<TManifold>(Contacts<TManifold> contacts) => OnStartedTouching(contacts);
+    void IContactHandler.OnTouching<TManifold>(Contacts<TManifold> contacts) => OnTouching(contacts);
+    void IContactHandler.OnStoppedTouching<TManifold>(Contacts<TManifold> contacts) => OnStoppedTouching(contacts);
 
 
     protected bool NoContactResponse => false;
 
-    /// <inheritdoc cref="IContactEventHandler.OnStartedTouching{TManifold}"/>
-    protected virtual void OnStartedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <inheritdoc cref="IContactHandler.OnStartedTouching{TManifold}"/>
+    protected virtual void OnStartedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-        contactManifold.GetContact(contactIndex, out var contact);
-
-        if (flippedManifold)
+        foreach (var contact in contacts)
         {
-            // Contact manifold was computed from the other collidable's point of view, normal and offset should be flipped
-            contact.Offset = -contact.Offset;
-            contact.Normal = -contact.Normal;
+            Contacts.Add((contacts.Other, new Contact
+            {
+                Normal = contact.Normal,
+                Depth = contact.Depth,
+                FeatureId = contact.FeatureId,
+                Offset = contact.Point - (Vector3)contacts.EventSource.Pose!.Value.Position,
+            }));
         }
-
-        contact.Offset = contact.Offset + Entity.Transform.WorldMatrix.TranslationVector.ToNumeric() + CenterOfMass.ToNumeric();
-        Contacts.Add((other, contact));
     }
 
-    /// <inheritdoc cref="IContactEventHandler.OnStoppedTouching{TManifold}"/>
-    protected virtual void OnStoppedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <inheritdoc cref="IContactHandler.OnTouching{TManifold}"/>
+    protected virtual void OnTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         for (int i = Contacts.Count - 1; i >= 0; i--)
         {
-            if (Contacts[i].Source == other)
+            if (Contacts[i].Source == contacts.Other)
+                Contacts.SwapRemoveAt(i);
+        }
+
+        foreach (var contact in contacts)
+        {
+            Contacts.Add((contacts.Other, new Contact
+            {
+                Normal = contact.Normal,
+                Depth = contact.Depth,
+                FeatureId = contact.FeatureId,
+                Offset = contact.Point - (Vector3)contacts.EventSource.Pose!.Value.Position,
+            }));
+        }
+    }
+
+    /// <inheritdoc cref="IContactHandler.OnStoppedTouching{TManifold}"/>
+    protected virtual void OnStoppedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
+    {
+        for (int i = Contacts.Count - 1; i >= 0; i--)
+        {
+            if (Contacts[i].Source == contacts.Other)
                 Contacts.SwapRemoveAt(i);
         }
     }
 }
-
-

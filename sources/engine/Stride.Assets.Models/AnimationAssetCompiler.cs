@@ -220,7 +220,7 @@ namespace Stride.Assets.Models
 
                 var resultEvaluator = animationBlender.CreateEvaluator(resultAnimation);
 
-                var animationOperations = new FastList<AnimationOperation>();
+                var animationOperations = new List<AnimationOperation>();
 
                 // Perform animation blending for each frame and upload results in a new animation
                 // Note that it does a simple per-frame sampling, so animation discontinuities will be lost.

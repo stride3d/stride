@@ -17,7 +17,7 @@ namespace Stride.Rendering
     /// Manage several effect parameters (resources and data). A specific data and resource layout can be forced (usually by the consuming effect).
     /// </summary>
     [DataSerializer(typeof(ParameterCollection.Serializer))]
-    [DataSerializerGlobal(null, typeof(FastList<ParameterKeyInfo>))]
+    [DataSerializerGlobal(null, typeof(List<ParameterKeyInfo>))]
     [DebuggerTypeProxy(typeof(ParameterCollection.DebugView))]
     public class ParameterCollection
     {
@@ -28,11 +28,11 @@ namespace Stride.Rendering
         private ParameterCollectionLayout layout;
 
         // TODO: Switch to FastListStruct (for serialization)
-        private FastList<ParameterKeyInfo> parameterKeyInfos = new(4);
+        private List<ParameterKeyInfo> parameterKeyInfos = new(4);
 
         // Constants and resources
         [DataMemberIgnore]
-        public byte[] DataValues = Array.Empty<byte>();
+        public byte[] DataValues = [];
         [DataMemberIgnore]
         public object[] ObjectValues;
 
@@ -43,7 +43,7 @@ namespace Stride.Rendering
         public int LayoutCounter = 1;
 
         [DataMemberIgnore]
-        public FastList<ParameterKeyInfo> ParameterKeyInfos => parameterKeyInfos;
+        public List<ParameterKeyInfo> ParameterKeyInfos => parameterKeyInfos;
 
         [DataMemberIgnore]
         public ParameterCollectionLayout Layout => layout;
@@ -78,13 +78,16 @@ namespace Stride.Rendering
             if (parameterCollection.DataValues != null)
             {
                 if (parameterCollection.DataValues.Length == 0)
-                    DataValues = Array.Empty<byte>();
-                else {
+                {
+                    DataValues = [];
+                }
+                else
+                {
                     DataValues = new byte[parameterCollection.DataValues.Length];
                     fixed (byte* dataValuesSources = parameterCollection.DataValues)
                     fixed (byte* dataValuesDest = DataValues)
                     {
-                        Unsafe.CopyBlockUnaligned(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
+                        Utilities.CopyWithAlignmentFallback(dataValuesDest, dataValuesSources, (uint)DataValues.Length);
                     }
                 }
             }
@@ -155,12 +158,14 @@ namespace Stride.Rendering
 
         private unsafe Accessor GetValueAccessorHelper(ParameterKey parameterKey, int elementCount = 1)
         {
+            var parameterKeyInfosSpan = CollectionsMarshal.AsSpan(parameterKeyInfos);
+            
             // Find existing first
-            for (int i = 0; i < parameterKeyInfos.Count; ++i)
+            for (int i = 0; i < parameterKeyInfosSpan.Length; ++i)
             {
-                if (parameterKeyInfos.Items[i].Key == parameterKey)
+                if (parameterKeyInfosSpan[i].Key == parameterKey)
                 {
-                    return parameterKeyInfos.Items[i].GetValueAccessor();
+                    return parameterKeyInfosSpan[i].GetValueAccessor();
                 }
             }
 
@@ -320,14 +325,18 @@ namespace Stride.Rendering
             var stride = Align(Unsafe.SizeOf<T>());
             var values = new T[parameter.Count];
 
-            ref var data = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(DataValues), parameter.Offset);
-            for (int i = 0; i < values.Length; ++i)
+            fixed (byte* dataValues = DataValues)
             {
-                values[i] = Unsafe.ReadUnaligned<T>(ref data);
-                data = ref Unsafe.Add(ref data, stride);
-            }
+                var dataPtr = dataValues + parameter.Offset;
 
-            return values;
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    values[i] = Unsafe.Read<T>(dataPtr);
+                    dataPtr += stride;
+                }
+
+                return values;
+            }
         }
 
         /// <summary>
@@ -355,7 +364,7 @@ namespace Stride.Rendering
             fixed (byte* sourceDataValues = DataValues)
             fixed (byte* destDataValues = destination.DataValues)
             {
-                Unsafe.CopyBlockUnaligned(
+                Utilities.CopyWithAlignmentFallback(
                     destination: destDataValues + destParameter.Offset,
                     source: sourceDataValues + sourceParameter.Offset,
                     (uint)sizeInBytes);
@@ -369,7 +378,10 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <param name="value"></param>
         public unsafe void Set<T>(ValueParameter<T> parameter, T value) where T : struct
-            => Unsafe.WriteUnaligned(ref DataValues[parameter.Offset], value);
+        {
+            fixed (void* ptr = &DataValues[parameter.Offset])
+                Unsafe.Write(ptr, value);
+        }
 
         /// <summary>
         /// Sets a blittable value.
@@ -378,7 +390,10 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <param name="value"></param>
         public unsafe void Set<T>(ValueParameter<T> parameter, ref T value) where T : struct
-            => Unsafe.WriteUnaligned(ref DataValues[parameter.Offset], value);
+        {
+            fixed (void* ptr = &DataValues[parameter.Offset])
+                Unsafe.Write(ptr, value);
+        }
 
         /// <summary>
         /// Sets blittable values.
@@ -397,11 +412,15 @@ namespace Stride.Rendering
                 throw new IndexOutOfRangeException();
             }
 
-            ref var data = ref DataValues[parameter.Offset];
-            for (var i = 0; i < count; i++)
+            fixed (byte* dataValues = DataValues)
             {
-                Unsafe.WriteUnaligned(ref data, Unsafe.Add(ref firstValue, i));
-                data = ref Unsafe.Add(ref data, stride);
+                var dataPtr = dataValues + parameter.Offset;
+
+                for (int i = 0; i < count; ++i)
+                {
+                    Unsafe.Write(dataPtr, Unsafe.Add(ref firstValue, i));
+                    dataPtr += stride;
+                }
             }
         }
 
@@ -444,7 +463,10 @@ namespace Stride.Rendering
         /// <param name="parameter"></param>
         /// <returns></returns>
         public unsafe T Get<T>(ValueParameter<T> parameter) where T : struct
-            => Unsafe.ReadUnaligned<T>(ref DataValues[parameter.Offset]);
+        {
+            fixed (void* ptr = &DataValues[parameter.Offset])
+                return Unsafe.Read<T>(ptr);
+        }
 
         /// <summary>
         /// Gets a permutation.
@@ -557,8 +579,9 @@ namespace Stride.Rendering
             var layoutParameterKeyInfos = collectionLayout.LayoutParameterKeyInfos;
 
             // Do a first pass to measure constant buffer size
-            var newParameterKeyInfos = new FastList<ParameterKeyInfo>(Math.Max(1, parameterKeyInfos.Count));
+            var newParameterKeyInfos = new List<ParameterKeyInfo>(Math.Max(1, parameterKeyInfos.Count));
             newParameterKeyInfos.AddRange(parameterKeyInfos);
+            var newParameterKeyInfosSpan = CollectionsMarshal.AsSpan(newParameterKeyInfos);
             var processedParameters = new bool[parameterKeyInfos.Count];
 
             var bufferSize = collectionLayout.BufferSize;
@@ -573,7 +596,7 @@ namespace Stride.Rendering
                     if (parameterKeyInfos[i].Key == layoutParameterKeyInfo.Key)
                     {
                         processedParameters[i] = true;
-                        newParameterKeyInfos.Items[i] = layoutParameterKeyInfo;
+                        newParameterKeyInfosSpan[i] = layoutParameterKeyInfo;
                         break;
                     }
                 }
@@ -591,17 +614,17 @@ namespace Stride.Rendering
                 if (parameterKeyInfo.Offset != -1)
                 {
                     // It's data
-                    newParameterKeyInfos.Items[i].Offset = bufferSize;
+                    newParameterKeyInfosSpan[i].Offset = bufferSize;
 
                     var additionalSize = ComputeAlignedSizeMinusTrailingPadding(
-                        elementSize: newParameterKeyInfos.Items[i].Key.Size,
-                        newParameterKeyInfos.Items[i].Count);
+                        elementSize: newParameterKeyInfosSpan[i].Key.Size,
+                        newParameterKeyInfosSpan[i].Count);
                     bufferSize += additionalSize;
                 }
                 else if (parameterKeyInfo.BindingSlot != -1)
                 {
                     // It's a resource
-                    newParameterKeyInfos.Items[i].BindingSlot = resourceCount++;
+                    newParameterKeyInfosSpan[i].BindingSlot = resourceCount++;
                 }
             }
 
@@ -686,12 +709,13 @@ namespace Stride.Rendering
 
         protected Accessor GetObjectParameterHelper(ParameterKey parameterKey, bool createIfNew = true)
         {
+            var parameterKeyInfosSpan = CollectionsMarshal.AsSpan(parameterKeyInfos);
             // Find existing first
-            for (int i = 0; i < parameterKeyInfos.Count; ++i)
+            for (int i = 0; i < parameterKeyInfosSpan.Length; ++i)
             {
-                if (parameterKeyInfos.Items[i].Key == parameterKey)
+                if (parameterKeyInfosSpan[i].Key == parameterKey)
                 {
-                    return parameterKeyInfos.Items[i].GetObjectAccessor();
+                    return parameterKeyInfosSpan[i].GetObjectAccessor();
                 }
             }
 
@@ -798,7 +822,7 @@ namespace Stride.Rendering
                         {
                             fixed (byte* destDataValues = destination.DataValues)
                             fixed (byte* sourceDataValues = source.DataValues)
-                                Unsafe.CopyBlockUnaligned(
+                                Utilities.CopyWithAlignmentFallback(
                                     destination: destDataValues + range.DestStart,
                                     source: sourceDataValues + range.SourceStart,
                                     byteCount: (uint)range.Size);
@@ -811,7 +835,7 @@ namespace Stride.Rendering
             {
                 fixed (byte* destPtr = destination.DataValues)
                 fixed (byte* sourcePtr = source.DataValues)
-                    Unsafe.CopyBlockUnaligned(destPtr, sourcePtr, (uint)destinationLayout.BufferSize);
+                    Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)destinationLayout.BufferSize);
 
                 var resourceCount = destinationLayout.ResourceCount;
                 for (int i = 0; i < resourceCount; ++i)

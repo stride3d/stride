@@ -110,6 +110,15 @@ namespace Stride.UI.Controls
         }
 
         /// <summary>
+        /// Gets or set the color used to tint the image. Default value is White.
+        /// </summary>
+        /// <remarks>The initial image color is multiplied by this color.</remarks>
+        /// <userdoc>The color used to tint the image. The default value is white.</userdoc>
+        [DataMember]
+        [Display(category: AppearanceCategory)]
+        public Color Color { get; set; } = Color.White;
+
+        /// <summary>
         /// Gets or sets a value that describes how the button image should be stretched to fill the destination rectangle.
         /// </summary>
         /// <remarks>This property has no effect is <see cref="SizeToContent"/> is <c>true</c>.</remarks>

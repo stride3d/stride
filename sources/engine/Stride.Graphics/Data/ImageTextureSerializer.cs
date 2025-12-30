@@ -122,7 +122,7 @@ namespace Stride.Graphics.Data
                             if (!chunk.IsLoaded)
                                 throw new ContentStreamingException("Data chunk is not loaded.", storage);
 
-                            Unsafe.CopyBlockUnaligned((void*)bufferPtr, (void*)data, (uint)chunk.Size);
+                            Utilities.CopyWithAlignmentFallback((void*)bufferPtr, (void*)data, (uint)chunk.Size);
                             bufferPtr += chunk.Size;
                         }
                     }

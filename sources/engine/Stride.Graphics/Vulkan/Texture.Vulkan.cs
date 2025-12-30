@@ -3,6 +3,7 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Runtime.CompilerServices;
+using Stride.Core;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
@@ -339,7 +340,7 @@ namespace Stride.Graphics
                     uploadMemory += alignment;
                     uploadOffset += alignment;
 
-                    Unsafe.CopyBlockUnaligned((void*) uploadMemory, (void*) (dataBoxes[i].DataPointer), (uint) slicePitch);
+                    Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) (dataBoxes[i].DataPointer), (uint) slicePitch);
 
                     if (Usage == GraphicsResourceUsage.Staging)
                     {
@@ -487,7 +488,7 @@ namespace Stride.Graphics
             if (!IsShaderResource)
                 return VkImageView.Null;
 
-            if (viewType == ViewType.MipBand)
+            if (viewType == ViewType.MipBand && IsRenderTarget)
                 throw new NotSupportedException("ViewSlice.MipBand is not supported for render targets");
 
             GetViewSliceBounds(viewType, ref arrayOrDepthSlice, ref mipIndex, out var arrayOrDepthCount, out var mipCount);

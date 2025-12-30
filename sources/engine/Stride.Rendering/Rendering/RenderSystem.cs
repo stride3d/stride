@@ -10,6 +10,7 @@ using Stride.Core.Collections;
 using Stride.Core.Threading;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
+using System.Runtime.InteropServices;
 
 namespace Stride.Rendering
 {
@@ -22,7 +23,7 @@ namespace Stride.Rendering
         private readonly ConcurrentPool<PrepareThreadLocals> prepareThreadLocals = new ConcurrentPool<PrepareThreadLocals>(() => new PrepareThreadLocals());
 
         private readonly ConcurrentPool<ConcurrentCollector<RenderNodeFeatureReference>> renderNodePool = new ConcurrentPool<ConcurrentCollector<RenderNodeFeatureReference>>(() => new ConcurrentCollector<RenderNodeFeatureReference>());
-        private readonly ConcurrentPool<FastList<RenderNodeFeatureReference>> sortedRenderNodePool = new ConcurrentPool<FastList<RenderNodeFeatureReference>>(() => new FastList<RenderNodeFeatureReference>());
+        private readonly ConcurrentPool<List<RenderNodeFeatureReference>> sortedRenderNodePool = new ConcurrentPool<List<RenderNodeFeatureReference>>(() => []);
 
         private CompiledCommandList[] commandLists;
         private Texture[] renderTargets;
@@ -285,8 +286,7 @@ namespace Stride.Rendering
                         var renderStage = RenderStages[renderViewStage.Index];
                         var sortedRenderNodes = renderViewStage.SortedRenderNodes;
 
-                        // Fast clear, since it's cleared properly in Reset()
-                        sortedRenderNodes.Resize(renderViewStage.RenderNodes.Count, true);                        
+                        CollectionsMarshal.SetCount(sortedRenderNodes, renderNodes.Count);
 
                         if (renderStage.SortMode != null)
                         {
@@ -525,7 +525,7 @@ namespace Stride.Rendering
                     {
                         // Slow clear, since type contains references
                         renderViewStage.RenderNodes?.Clear(false);
-                        renderViewStage.SortedRenderNodes?.Clear(false);
+                        renderViewStage.SortedRenderNodes?.Clear();
 
                         if (renderViewStage.RenderNodes != null) renderNodePool.Release(renderViewStage.RenderNodes);
                         if (renderViewStage.SortedRenderNodes != null) sortedRenderNodePool.Release(renderViewStage.SortedRenderNodes);

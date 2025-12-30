@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Animations;
@@ -71,7 +72,7 @@ namespace FirstPersonShooter.Player
                 throw new InvalidOperationException("Reloading animation is not set");
 
             // By setting a custom blend tree builder we can override the default behavior of the animation system
-            //  Instead, BuildBlendTree(FastList<AnimationOperation> blendStack) will be called each frame
+            //  Instead, BuildBlendTree(List<AnimationOperation> blendStack) will be called each frame
             AnimationComponent.BlendTreeBuilder = this;
 
             animEvaluatorIdle   = AnimationComponent.Blender.CreateEvaluator(AnimationIdle);
@@ -168,7 +169,7 @@ namespace FirstPersonShooter.Player
         /// It overrides the default behavior of the <see cref="AnimationComponent"/> by setting a custom blend tree
         /// </summary>
         /// <param name="blendStack">The stack of animation operations to be blended</param>
-        public void BuildBlendTree(FastList<AnimationOperation> blendStack)
+        public void BuildBlendTree(List<AnimationOperation> blendStack)
         {
             blendStack.Add(AnimationOperation.NewPush(currentEvaluator, TimeSpan.FromTicks((long)(currentTime * currentClip.Duration.Ticks))));
         }

@@ -150,7 +150,7 @@ public static class SelfUpdater
         {
             return;
         }
-       
+
         // Display progress window
         await dispatcher.InvokeAsync(() =>
         {

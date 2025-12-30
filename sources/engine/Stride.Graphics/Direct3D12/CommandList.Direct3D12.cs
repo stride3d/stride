@@ -777,7 +777,7 @@ namespace Stride.Graphics
                         var destinationMapped = destinationTexture.NativeResource.Map(0);
                         var sourceMapped = sourceTexture.NativeResource.Map(0, new SharpDX.Direct3D12.Range { Begin = 0, End = size });
 
-                        Unsafe.CopyBlockUnaligned((void*) destinationMapped, (void*) sourceMapped, (uint) size);
+                        Core.Utilities.CopyWithAlignmentFallback((void*) destinationMapped, (void*) sourceMapped, (uint) size);
 
                         sourceTexture.NativeResource.Unmap(0);
                         destinationTexture.NativeResource.Unmap(0);
@@ -976,7 +976,7 @@ namespace Stride.Graphics
                     var uploadSize = region.Right - region.Left;
                     var uploadMemory = GraphicsDevice.AllocateUploadBuffer(region.Right - region.Left, out var uploadResource, out var uploadOffset);
 
-                    Unsafe.CopyBlockUnaligned((void*) uploadMemory, (void*) databox.DataPointer, (uint) uploadSize);
+                    Core.Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) databox.DataPointer, (uint) uploadSize);
 
                     ResourceBarrierTransition(resource, GraphicsResourceState.CopyDestination);
                     FlushResourceBarriers();

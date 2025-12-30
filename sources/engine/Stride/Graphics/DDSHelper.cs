@@ -1070,7 +1070,7 @@ namespace Stride.Graphics
                         int pixsize = pixelBuffers[index].BufferStride;
                         Debug.Assert((uint)pixsize <= buffer.Length);
                         fixed (byte* pinned = buffer) {
-                            Unsafe.CopyBlockUnaligned(pinned, source: (void*)pixelBuffers[index].DataPointer, (uint)pixsize);
+                            Utilities.CopyWithAlignmentFallback(pinned, source: (void*)pixelBuffers[index].DataPointer, (uint)pixsize);
                         }
                         stream.Write(buffer, 0, pixsize);
                         ++index;
@@ -1146,7 +1146,7 @@ namespace Stride.Graphics
 
                         if (metadata.Format.IsCompressed())
                         {
-                            Unsafe.CopyBlockUnaligned((void*)pDest, (void*)pSrc, (uint)Math.Min(images[index].BufferStride, imagesDst[index].BufferStride));
+                            Utilities.CopyWithAlignmentFallback((void*)pDest, (void*)pSrc, (uint)Math.Min(images[index].BufferStride, imagesDst[index].BufferStride));
                         }
                         else
                         {
@@ -1515,7 +1515,7 @@ namespace Stride.Graphics
             if (pDestination == pSource)
                 return;
 
-            Unsafe.CopyBlockUnaligned((void*)pDestination, source: (void*)pSource, (uint)Math.Min(outSize, inSize));
+            Utilities.CopyWithAlignmentFallback((void*)pDestination, source: (void*)pSource, (uint)Math.Min(outSize, inSize));
         }
 
         /// <summary>
@@ -1628,7 +1628,7 @@ namespace Stride.Graphics
             if (pDestination == pSource)
                 return;
 
-            Unsafe.CopyBlockUnaligned((void*)pDestination, source: (void*)pSource, (uint)Math.Min(outSize, inSize));
+            Utilities.CopyWithAlignmentFallback((void*)pDestination, source: (void*)pSource, (uint)Math.Min(outSize, inSize));
         }
 
     }

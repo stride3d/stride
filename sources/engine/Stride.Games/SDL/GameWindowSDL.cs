@@ -117,14 +117,14 @@ namespace Stride.Games
             {
                 //gameForm.AppActivated += OnActivated;
                 //gameForm.AppDeactivated += OnDeactivated;
-                gameForm.UserResized += OnClientSizeChanged;
+                gameForm.SizeChanged += OnClientSizeChanged;
                 gameForm.CloseActions += GameForm_CloseActions;
                 gameForm.FullscreenToggle += OnFullscreenToggle;
                 
             }
             else
             {
-                window.ResizeEndActions += WindowOnResizeEndActions;
+                window.UserResizedActions += WindowOnUserResizedActions;
             }
         }
 
@@ -194,7 +194,7 @@ namespace Stride.Games
             }
         }
 
-        private void WindowOnResizeEndActions(WindowEvent sdlWindowEvent)
+        private void WindowOnUserResizedActions(WindowEvent sdlWindowEvent)
         {
             OnClientSizeChanged(window, EventArgs.Empty);
         }

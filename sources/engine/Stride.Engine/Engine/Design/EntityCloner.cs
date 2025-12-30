@@ -29,10 +29,13 @@ namespace Stride.Engine.Design
     [DataSerializerGlobal(typeof(CloneSerializer<OfflineRasterizedSpriteFont>), Profile = "Clone")]
     [DataSerializerGlobal(typeof(CloneSerializer<RuntimeRasterizedSpriteFont>), Profile = "Clone")]
     [DataSerializerGlobal(typeof(CloneSerializer<SignedDistanceFieldSpriteFont>), Profile = "Clone")]
+    [DataSerializerGlobal(typeof(CloneSerializer<Prefab>), Profile = "Clone")]
+    [DataSerializerGlobal(typeof(CloneSerializer<Entity>), Profile = "Clone")]
     public class EntityCloner
     {
         private static readonly CloneContext cloneContext = new CloneContext();
         private static SerializerSelector cloneSerializerSelector = null;
+        private static SerializerSelector entitySerializerSelector = null;
         public static readonly PropertyKey<CloneContext> CloneContextProperty = new PropertyKey<CloneContext>("CloneContext", typeof(EntityCloner));
 
         // CloneObject TLS used to clone entities, so that we don't create one everytime we clone
@@ -45,13 +48,13 @@ namespace Stride.Engine.Design
         }
 
         /// <summary>
-        /// Clones the specified prefab.
-        /// <see cref="Entity"/>, children <see cref="Entity"/> and their <see cref="EntityComponent"/> will be cloned.
+        /// Instantiates the content of the prefab provided.
+        /// <see cref="Prefab.Entities"/>, children <see cref="Entity"/> and their <see cref="EntityComponent"/> will be cloned.
         /// Other assets will be shared.
         /// </summary>
-        /// <param name="prefab">The prefab to clone.</param>
-        /// <returns>A cloned prefab</returns>
-        public static Prefab Clone(Prefab prefab)
+        /// <param name="prefab">The prefab to instantiate.</param>
+        /// <returns>A clone of this prefab's <see cref="Prefab.Entities"/></returns>
+        public static List<Entity> Instantiate(Prefab prefab)
         {
             if (prefab == null) throw new ArgumentNullException(nameof(prefab));
             var clonedObjects = ClonedObjects();
@@ -61,7 +64,8 @@ namespace Stride.Engine.Design
                 {
                     CollectEntityTreeHelper(entity, clonedObjects);
                 }
-                return Clone(clonedObjects, null, prefab);
+
+                return Clone(clonedObjects, null, prefab.Entities);
             }
             finally
             {
@@ -127,17 +131,16 @@ namespace Stride.Engine.Design
         /// <returns>The cloned object.</returns>
         private static T Clone<T>(HashSet<object> clonedObjects, TryGetValueFunction<object, object> mappedObjects, T entity) where T : class
         {
-            if (cloneSerializerSelector == null)
-            {
-                cloneSerializerSelector = new SerializerSelector(true, false, "Default", "Clone");
-            }
+            cloneSerializerSelector ??= new SerializerSelector(true, false, "Default", "Clone");
+
+            entitySerializerSelector ??= new SerializerSelector(true, false, "Default");
 
             // Initialize CloneContext
             lock (cloneContext)
             {
                 try
                 {
-                    cloneContext.EntitySerializerSelector = cloneSerializerSelector;
+                    cloneContext.EntitySerializerSelector = entitySerializerSelector;
 
                     cloneContext.ClonedObjects = clonedObjects;
                     cloneContext.MappedObjects = mappedObjects;

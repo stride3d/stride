@@ -56,16 +56,6 @@ namespace Stride.Engine
             graphicsDeviceService = Services.GetSafeServiceAs<IGraphicsDeviceService>();
 
             Game = Services.GetSafeServiceAs<IGame>();
-            Content = (ContentManager)Services.GetSafeServiceAs<IContentManager>();
-            Input = Services.GetSafeServiceAs<InputManager>();
-            Script = Services.GetSafeServiceAs<ScriptSystem>();
-            SceneSystem = Services.GetSafeServiceAs<SceneSystem>();
-            EffectSystem = Services.GetSafeServiceAs<EffectSystem>();
-            Audio = Services.GetSafeServiceAs<AudioSystem>();
-            SpriteAnimation = Services.GetSafeServiceAs<SpriteAnimationSystem>();
-            GameProfiler = Services.GetSafeServiceAs<GameProfilingSystem>();
-            DebugText = Services.GetSafeServiceAs<DebugTextSystem>();
-            Streaming = Services.GetSafeServiceAs<StreamingManager>();
         }
 
         /// <summary>
@@ -91,47 +81,167 @@ namespace Stride.Engine
         }
 
         [DataMemberIgnore]
-        public AudioSystem Audio { get; private set; }
-
-        [DataMemberIgnore]
-        public SpriteAnimationSystem SpriteAnimation { get; private set; }
-
-        [DataMemberIgnore]
         public IServiceRegistry Services { get; private set; }
 
         [DataMemberIgnore]
         public IGame Game { get; private set; }
 
         [DataMemberIgnore]
-        public ContentManager Content { get; private set; }
-
-        [DataMemberIgnore]
-        public GameProfilingSystem GameProfiler { get; private set; }
-
-        [DataMemberIgnore]
         public GraphicsDevice GraphicsDevice => graphicsDeviceService?.GraphicsDevice;
 
         [DataMemberIgnore]
-        public InputManager Input { get; private set; }
+        public ContentManager Content 
+        { 
+            get
+            {
+                contentManager ??= Services.GetSafeServiceAs<IContentManager>() as ContentManager;
+                return contentManager;
+            }
+            private set
+            {
+                contentManager = value;
+            }
+        }
+        private ContentManager contentManager;
 
         [DataMemberIgnore]
-        public ScriptSystem Script { get; private set; }
+        public GameProfilingSystem GameProfiler 
+        { 
+            get
+            {
+                gameProfilerSystem ??= Services.GetSafeServiceAs<GameProfilingSystem>();
+                return gameProfilerSystem;
+            }
+            private set
+            {
+                gameProfilerSystem = value;
+            }
+        }
+        private GameProfilingSystem gameProfilerSystem;
 
         [DataMemberIgnore]
-        public SceneSystem SceneSystem { get; private set; }
+        public InputManager Input 
+        { 
+            get
+            {
+                inputManager ??= Services.GetSafeServiceAs<InputManager>();
+                return inputManager;
+            }
+            private set
+            {
+                inputManager = value;
+            }
+        }
+        private InputManager inputManager;
 
         [DataMemberIgnore]
-        public EffectSystem EffectSystem { get; private set; }
+        public ScriptSystem Script 
+        { 
+            get
+            {
+                scriptSystem ??= Services.GetSafeServiceAs<ScriptSystem>();
+                return scriptSystem;
+            }
+            private set
+            {
+                scriptSystem = value;
+            }
+        }
+        private ScriptSystem scriptSystem;
 
         [DataMemberIgnore]
-        public DebugTextSystem DebugText { get; private set; }
+        public SceneSystem SceneSystem 
+        { 
+            get
+            {
+                sceneSystem ??= Services.GetSafeServiceAs<SceneSystem>();
+                return sceneSystem;
+            }
+            private set
+            {
+                sceneSystem = value;
+            }
+        }
+        private SceneSystem sceneSystem;
+
+        [DataMemberIgnore]
+        public EffectSystem EffectSystem 
+        { 
+            get
+            {
+                effectSystem ??= Services.GetSafeServiceAs<EffectSystem>();
+                return effectSystem;
+            }
+            private set
+            {
+                effectSystem = value;
+            }
+        }
+        private EffectSystem effectSystem;
+
+        [DataMemberIgnore]
+        public DebugTextSystem DebugText 
+        { 
+            get
+            {
+                debugTextSystem ??= Services.GetSafeServiceAs<DebugTextSystem>();
+                return debugTextSystem;
+            }
+            private set
+            {
+                debugTextSystem = value;
+            }
+        }
+        private DebugTextSystem debugTextSystem;
+
+        [DataMemberIgnore]
+        public AudioSystem Audio
+        {
+            get
+            {
+                audioSystem ??= Services.GetSafeServiceAs<AudioSystem>();
+                return audioSystem;
+            }
+            private set
+            {
+                audioSystem = value;
+            }
+        }
+        private AudioSystem audioSystem;
+
+        [DataMemberIgnore]
+        public SpriteAnimationSystem SpriteAnimation
+        {
+            get
+            {
+                spriteAnimationSystem ??= Services.GetSafeServiceAs<SpriteAnimationSystem>();
+                return spriteAnimationSystem;
+            }
+            private set
+            {
+                spriteAnimationSystem = value;
+            }
+        }
+        private SpriteAnimationSystem spriteAnimationSystem;
 
         /// <summary>
         /// Gets the streaming system.
         /// </summary>
         /// <value>The streaming system.</value>
         [DataMemberIgnore]
-        public StreamingManager Streaming { get; private set; }
+        public StreamingManager Streaming 
+        { 
+            get
+            {
+                streamingManager ??= Services.GetSafeServiceAs<StreamingManager>();
+                return streamingManager;
+            }
+            private set
+            {
+                streamingManager = value;
+            }
+        }
+        private StreamingManager streamingManager;
 
         [DataMemberIgnore]
         protected Logger Log
