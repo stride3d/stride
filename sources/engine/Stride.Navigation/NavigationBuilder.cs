@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -96,7 +96,7 @@ internal class NavigationBuilder(BuildSettings buildSettings)
         }
         
         // Find walkable triangles and rasterize into heightfield
-        triAreas = RcCommons.MarkWalkableTriangles(context, buildSettings.AgentMaxSlope, verts, indices, numTriangles, new RcAreaModification(RcAreaModification.RC_AREA_FLAGS_MASK));
+        triAreas = MarkWalkableTriangles(context, buildSettings.AgentMaxSlope, verts, indices, numTriangles, new RcAreaModification(RcAreaModification.RC_AREA_FLAGS_MASK));
         RcRasterizations.RasterizeTriangles(context,  verts, indices, triAreas, numTriangles, solid, walkableClimb);
         
         // Filter walkable surfaces.
@@ -129,7 +129,7 @@ internal class NavigationBuilder(BuildSettings buildSettings)
         // Update poly flags from areas.
         for (int i = 0; i < polyMesh.npolys; ++i)
         {
-            if (polyMesh.areas[i] ==  RcConstants.RC_WALKABLE_AREA)
+            if (polyMesh.areas[i] ==  63)
                 polyMesh.areas[i] = 0;
 
             if (polyMesh.areas[i] == 0)
@@ -188,5 +188,39 @@ internal class NavigationBuilder(BuildSettings buildSettings)
         navmeshData = DtNavMeshBuilder.CreateNavMeshData(createParams);
         
         return navmeshData != null;
+    }
+
+    private static int[] MarkWalkableTriangles(RcContext ctx, float walkableSlopeAngle, float[] verts, int[] tris, int nt, RcAreaModification areaMod)
+    {
+        int[] array = new int[nt];
+        float num = MathF.Cos(walkableSlopeAngle / 180f * (float)Math.PI);
+        Vector3 norm = default(Vector3);
+        for (int i = 0; i < nt; i++)
+        {
+            int num2 = i * 3;
+            Vector3 v = ToVec3(verts, tris[num2] * 3);
+            Vector3 v2 = ToVec3(verts, tris[num2 + 1] * 3);
+            Vector3 v3 = ToVec3(verts, tris[num2 + 2] * 3);
+            CalcTriNormal(v, v2, v3, ref norm);
+            if (norm.Y > num)
+            {
+                array[i] = areaMod.Apply(array[i]);
+            }
+        }
+
+        return array;
+    }
+
+    private static void CalcTriNormal(Vector3 v0, Vector3 v1, Vector3 v2, ref Vector3 norm)
+    {
+        Vector3 v3 = v1 - v0;
+        Vector3 v4 = v2 - v0;
+        norm = Vector3.Cross(v3, v4);
+        norm = Vector3.Normalize(norm);
+    }
+
+    private static Vector3 ToVec3(float[] values, int n)
+    {
+        return new Vector3(values[n], values[n + 1], values[n + 2]);
     }
 }
