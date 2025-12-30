@@ -124,10 +124,11 @@ float4 main(vs_out input) : SV_TARGET {
             )
         );
 
+        var cts = new CancellationTokenSource();
         if (OperatingSystem.IsWindows())
         {
             // Log debug messages for this device (given that we've enabled the debug flag). Don't do this in release code!
-            device.SetInfoQueueCallback(msg => Console.WriteLine(SilkMarshal.PtrToString((nint)msg.PDescription)));
+            device.SetInfoQueueCallback(msg => Console.WriteLine(SilkMarshal.PtrToString((nint)msg.PDescription)), cts.Token);
         }
 
         // Create our swapchain.
@@ -634,6 +635,9 @@ float4 main(vs_out input) : SV_TARGET {
         renderTargetView.Dispose();
 
         framebuffer.Dispose();
+
+        cts.Cancel();
+        cts.Dispose();
 
         window.Close();
         window.Dispose();
