@@ -18,13 +18,6 @@
     <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" PrivateAssets="all" />
-    <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Diagnostics.Tracing" />
-    <PackageReference Include="System.Runtime" />
-    <PackageReference Include="System.Runtime.Extensions" />
-    <PackageReference Include="System.Runtime.InteropServices" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" />
-    <PackageReference Include="System.Threading.Thread" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

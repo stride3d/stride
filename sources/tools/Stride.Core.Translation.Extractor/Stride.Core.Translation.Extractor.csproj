@@ -15,7 +15,6 @@
   <ItemGroup>
     <PackageReference Include="Stride.GNU.Getopt" />
     <PackageReference Include="Stride.GNU.Gettext" />
-    <PackageReference Include="System.ValueTuple" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
