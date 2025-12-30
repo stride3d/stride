@@ -71,7 +71,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         foreach (var inst in context)
             temp.Add(inst.Data);
 
-        CleanupUnnecessaryInstructions(globalContext, temp);
+        CleanupUnnecessaryInstructions(globalContext, context, temp);
 
         temp.Sort();
 
@@ -470,9 +470,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Setup types in context
         foreach (var type in globalContext.Types)
         {
-            // Ignore ShaderSymbol which are not fully loaded (they are likely just OpSDSLImportShader)
-            if (type.Value is ShaderSymbol && type.Value is not LoadedShaderSymbol)
-                continue;
             if (!context.ReverseTypes.ContainsKey(type.Key))
             {
                 context.Types.Add(type.Value, type.Key);
@@ -1130,14 +1127,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
-    private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, NewSpirvBuffer temp)
+    private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
     {
         for (int index = 0; index < temp.Count; index++)
         {
             var i = temp[index];
 
             // Transform OpVariableSDSL into OpVariable (we don't need extra info anymore)
-            // Note: we ignore initializer as we store a method which is already processed during StreamAnalyzer (as opposed to a const for OpVariable)
+            // Note: we ignore initializer as we store a method which is already processed during InterfaceProcessor (as opposed to a const for OpVariable)
             if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
                 temp.Replace(index, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
 
@@ -1177,20 +1174,20 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // Remove SPIR-V about pointer types to other shaders (variable and types themselves are removed as well)
             else if (i.Op == Op.OpTypePointer && (OpTypePointer)i is { } typePointer)
             {
-                var pointedType = globalContext.Types[typePointer.Type];
+                var pointedType = context.ReverseTypes[typePointer.Type];
                 if (pointedType is ShaderSymbol || pointedType is ArrayType { BaseType: ShaderSymbol })
                     temp.RemoveAt(index--);
             }
             // Also remove arrays of shaders (used in composition arrays)
             else if (i.Op == Op.OpTypeArray && (OpTypeArray)i is { } typeArray)
             {
-                var innerType = globalContext.Types[typeArray.ElementType];
+                var innerType = context.ReverseTypes[typeArray.ElementType];
                 if (innerType is ShaderSymbol)
                     temp.RemoveAt(index--);
             }
             else if (i.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)i is { } typeRuntimeArray)
             {
-                var innerType = globalContext.Types[typeRuntimeArray.ElementType];
+                var innerType = context.ReverseTypes[typeRuntimeArray.ElementType];
                 if (innerType is ShaderSymbol)
                     temp.RemoveAt(index--);
             }

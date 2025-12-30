@@ -234,6 +234,13 @@
       ]
     },
     {
+      "opname": "OpStreamsSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" }
+      ]
+    },
+    {
       "opname": "OpSDSLMixin",
       "class": "Miscellaneous",
       "operands": [
@@ -341,6 +348,13 @@
       ]
     },
     {
+      "opname": "OpTypeStreamsSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" }
+      ]
+    },
+    {
       "opname": "OpForeachSDSL",
       "class": "Miscellaneous",
       "operands": [
@@ -409,6 +423,10 @@
         {
           "enumerant": "Stage",
           "value": "0x0001"
+        },
+        {
+          "enumerant": "Stream",
+          "value": "0x0002"
         }
       ]
     },

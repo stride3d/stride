@@ -7,12 +7,14 @@
     <Compile Remove="..\..\submodules\CppNet8\CppTask.cs" />
     <Compile Remove="..\..\submodules\CppNet8\InputLexerSource.cs" />
     <Compile Remove="..\..\submodules\CppNet8\TokenSnifferSource.cs" />
+    <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
     <Compile Remove="StrideImported\**" Condition="'$(StrideDirectory)' != ''" />
     <None Remove="StrideImported\**" Condition="'$(StrideDirectory)' != ''" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Spirv.Core\Stride.Shaders.Spirv.Core.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,6 +29,9 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <AssemblyName Condition="'$(StrideDirectory)' != ''">$(MSBuildProjectName)2</AssemblyName>
+    <WarningsAsErrors>CS8785;$(WarningsAsErrors)</WarningsAsErrors>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
 </Project>

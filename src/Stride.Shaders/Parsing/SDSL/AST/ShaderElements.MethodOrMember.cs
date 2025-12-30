@@ -179,6 +179,8 @@ public sealed class ShaderMember(
             storageClass = pointerType.StorageClass;
 
         var variableFlags = IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None;
+        if (StreamKind == StreamKind.Stream)
+            variableFlags |= Specification.VariableFlagsMask.Stream;
 
         int? initializerMethod = null;
         if (Value != null)

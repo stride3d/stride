@@ -11,7 +11,12 @@ using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Core;
 
+public interface ISymbolTypeNode
+{
+    public void Accept(TypeVisitor visitor);
 
+    public bool Accept<TResult>(TypeVisitor<TResult> visitor);
+}
 
 public abstract record SymbolType()
 {
@@ -80,9 +85,13 @@ public abstract record SymbolType()
         };
         return found;
     }
+
+    public abstract void Accept(TypeVisitor visitor);
+
+    public abstract TResult Accept<TResult>(TypeVisitor<TResult> visitor);
 }
 
-public sealed record UndefinedType(string TypeName) : SymbolType()
+public sealed partial record UndefinedType(string TypeName) : SymbolType()
 {
     public override string ToString()
     {
@@ -90,7 +99,7 @@ public sealed record UndefinedType(string TypeName) : SymbolType()
     }
 }
 
-public sealed record PointerType(SymbolType BaseType, Specification.StorageClass StorageClass) : SymbolType()
+public sealed partial record PointerType(SymbolType BaseType, Specification.StorageClass StorageClass) : SymbolType()
 {
     public override string ToId() => $"ptr_{StorageClass}_{BaseType.ToId()}";
     public override string ToString() => $"*{BaseType}";
@@ -118,12 +127,15 @@ public sealed partial record MatrixType(ScalarType BaseType, int Rows, int Colum
 /// </summary>
 /// <param name="BaseType">The base type for the array.</param>
 /// <param name="Size">The size of the array. If -1, it means size is not defined, such as using [].</param>
-public sealed record ArrayType(SymbolType BaseType, int Size, (int Id, NewSpirvBuffer Buffer)? SizeExpression = null) : SymbolType()
+public sealed partial record ArrayType(SymbolType BaseType, int Size, (int Id, NewSpirvBuffer Buffer)? SizeExpression = null) : SymbolType()
 {
     public override string ToId() => $"{BaseType.ToId()}[{(Size != -1 ? Size : string.Empty)}]";
     public override string ToString() => $"{BaseType}[{(Size != -1 ? Size : string.Empty)}]";
 }
-public record StructuredType(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : SymbolType()
+
+public partial record struct StructuredTypeMember(string Name, SymbolType Type, TypeModifier TypeModifier) : ISymbolTypeNode;
+
+public partial record StructuredType(string Name, List<StructuredTypeMember> Members) : SymbolType()
 {
     public override string ToId() => Name;
     public override string ToString() => $"{Name}{{{string.Join(", ", Members.Select(x => $"{x.Type} {x.Name}"))}}}";
@@ -153,57 +165,58 @@ public record StructuredType(string Name, List<(string Name, SymbolType Type, Ty
 
         return -1;
     }
-
 }
 
-public sealed record StructType(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : StructuredType(Name, Members)
+public sealed partial record StructType(string Name, List<StructuredTypeMember> Members) : StructuredType(Name, Members)
 {
     public override string ToString() => $"struct {base.ToString()}";
 }
 
-public sealed record BufferType(ScalarType BaseType) : SymbolType()
+public sealed partial record BufferType(ScalarType BaseType) : SymbolType()
 {
     public override string ToString() => $"Buffer<{BaseType}>";
 }
 
 // TODO: Add sampler parameters
-public sealed record SamplerType() : SymbolType()
+public sealed partial record SamplerType() : SymbolType()
 {
     public override string ToId() => $"type_sampler";
     public override string ToString() => $"SamplerState";
 }
-public sealed record SampledImage(TextureType ImageType) : SymbolType()
+public sealed partial record SampledImage(TextureType ImageType) : SymbolType()
 {
     public override string ToString() => $"SampledImage<{ImageType}>";
 }
 
-public abstract record TextureType(ScalarType ReturnType, Dim Dimension, int Depth, bool Arrayed, bool Multisampled, int Sampled, ImageFormat Format) : SymbolType()
+public abstract partial record TextureType(ScalarType ReturnType, Dim Dimension, int Depth, bool Arrayed, bool Multisampled, int Sampled, ImageFormat Format) : SymbolType()
 {
     public override string ToId() => $"Texture_{ReturnType}";
     public override string ToString() => $"Texture<{ReturnType}>({Dimension}, {Depth}, {Arrayed}, {Multisampled}, {Sampled}, {Format})";
 }
 
-public sealed record Texture1DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim1D, 2, false, false, 1, ImageFormat.Unknown)
+public sealed partial record Texture1DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim1D, 2, false, false, 1, ImageFormat.Unknown)
 {
     public override string ToString() => $"Texture1D<{ReturnType}>";
 }
-public sealed record Texture2DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim2D, 2, false, false, 1, ImageFormat.Unknown)
+public sealed partial record Texture2DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim2D, 2, false, false, 1, ImageFormat.Unknown)
 {
     public override string ToString() => $"Texture2D<{ReturnType}>";
 }
-public sealed record Texture3DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim3D, 2, false, false, 1, ImageFormat.Unknown)
+public sealed partial record Texture3DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim3D, 2, false, false, 1, ImageFormat.Unknown)
 {
     public override string ToString() => $"Texture3D<{ReturnType}>";
 }
 
-public sealed record TextureCubeType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Cube, 2, false, false, 1, ImageFormat.Unknown)
+public sealed partial record TextureCubeType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Cube, 2, false, false, 1, ImageFormat.Unknown)
 {
     public override string ToString() => $"TextureCube<{ReturnType}>";
 }
 
-public sealed record FunctionGroupType() : SymbolType();
+public sealed partial record FunctionGroupType() : SymbolType();
 
-public sealed record FunctionType(SymbolType ReturnType, List<(SymbolType Type, ParameterModifiers Modifiers)> ParameterTypes) : SymbolType()
+public partial record struct FunctionParameter(SymbolType Type, ParameterModifiers Modifiers) : ISymbolTypeNode;
+
+public sealed partial record FunctionType(SymbolType ReturnType, List<FunctionParameter> ParameterTypes) : SymbolType()
 {
     public bool Equals(FunctionType? other)
     {
@@ -267,17 +280,17 @@ public sealed record FunctionType(SymbolType ReturnType, List<(SymbolType Type, 
     }
 }
 
-public sealed record StreamsSymbol : SymbolType;
+public sealed partial record StreamsSymbol : SymbolType;
 
-public sealed record ConstantBufferSymbol(string Name, List<(string Name, SymbolType Type, TypeModifier TypeModifier)> Members) : StructuredType(Name, Members)
+public sealed partial record ConstantBufferSymbol(string Name, List<StructuredTypeMember> Members) : StructuredType(Name, Members)
 {
     public override string ToId() => $"type.{Name}";
     public override string ToString() => $"cbuffer {base.ToString()}";
 }
-public sealed record ParamsSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
-public sealed record EffectSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
+public sealed partial record ParamsSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
+public sealed partial record EffectSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
 
-public record ShaderSymbol(string Name, int[] GenericArguments) : SymbolType
+public partial record ShaderSymbol(string Name, int[] GenericArguments) : SymbolType
 {
     public string ToClassName()
     {
@@ -308,7 +321,7 @@ public record ShaderSymbol(string Name, int[] GenericArguments) : SymbolType
     }
 }
 
-public sealed record LoadedShaderSymbol(string Name, int[] GenericArguments) : ShaderSymbol(Name, GenericArguments)
+public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArguments) : ShaderSymbol(Name, GenericArguments)
 {
     public List<(Symbol Symbol, VariableFlagsMask Flags)> Variables { get; init; } = [];
 
@@ -435,4 +448,9 @@ public sealed record LoadedShaderSymbol(string Name, int[] GenericArguments) : S
     public override string ToString() => base.ToString();
 }
 
-public sealed record GenericParameterType(GenericParameterKindSDSL Kind) : SymbolType;
+public sealed partial record GenericParameterType(GenericParameterKindSDSL Kind) : SymbolType;
+
+public sealed partial record StreamsType : SymbolType
+{
+    public override string ToString() => "Streams";
+}

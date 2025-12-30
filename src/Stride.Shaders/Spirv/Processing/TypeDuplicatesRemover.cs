@@ -276,6 +276,7 @@ public class TypeDuplicateHelper
             || op == Op.OpTypeSampler
             || op == Op.OpTypeSampledImage
             || op == Op.OpTypeGenericSDSL
+            || op == Op.OpTypeStreamsSDSL
             || op == Op.OpSDSLImportShader
             || op == Op.OpSDSLImportVariable
             || op == Op.OpSDSLImportFunction

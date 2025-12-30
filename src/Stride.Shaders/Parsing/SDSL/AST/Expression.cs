@@ -320,14 +320,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
         int firstIndex = 0;
         SymbolType currentValueType;
-        if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
-        {
-            result = streamVar.Compile(table, compiler);
-            result.ThrowIfSwizzle();
-            currentValueType = streamVar.Type;
-            firstIndex = 1;
-        }
-        else if ((Source is Identifier { Name: "base" } || Source is Identifier { Name: "this" }) && Accessors[0] is MethodCall methodCall)
+        if ((Source is Identifier { Name: "base" } || Source is Identifier { Name: "this" }) && Accessors[0] is MethodCall methodCall)
         {
             if (Source is Identifier { Name: "base" })
                 methodCall.IsBaseCall = true;
@@ -473,6 +466,14 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     result = Identifier.EmitSymbol(builder.GetBuffer(), ref builder.Position, context, matchingComponent, false, result.Id);
                     accessor.Type = matchingComponent.Type;
 
+                    break;
+                case (PointerType { BaseType: StreamsType s } p, Identifier streamVar):
+                    // Since STREAMS struct is built later for each shader, we simply make a reference to variable for now\
+                    streamVar.AllowStreamVariables = true;
+                    var streamVariableResult = streamVar.Compile(table, compiler);
+                    streamVariableResult.ThrowIfSwizzle();
+                    PushAccessChainId(accessChainIds, streamVariableResult.Id);
+                    accessor.Type = streamVar.Type;
                     break;
                 case (PointerType { BaseType: StructType s } p, Identifier field):
 

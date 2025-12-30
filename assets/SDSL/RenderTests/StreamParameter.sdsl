@@ -2,37 +2,26 @@
 
 namespace Stride.Shaders.Tests;
 
-shader Compute
-{
-    float4 Compute()
-    {
-        return 0.0;
-    }
-}
-
-shader ComputeSemantic<Semantic TSemantic> : Compute
-{
-    stream float4 Test : TSemantic;
-
-    override float4 Compute()
-    {
-        return streams.Test;
-    }
-}
-
-shader GenericsSemantic : ComputeSemantic<"EXTRA_COLOR">
+shader StreamParameter
 {
     stream float4 Position : POSITION;
     stream float4 ShadingPosition : SV_Position;
     stream float4 ColorTarget : SV_Target0;
+    stream float4 ExtraColor : EXTRA_COLOR;
+
+    float4 Test(Streams streamsCopy)
+    {
+        return streamsCopy.ExtraColor;
+    }
 
     void VSMain()
     {
+        Test(streams);
         streams.ShadingPosition = streams.Position;
     }
 
     void PSMain()
     {
-        streams.ColorTarget = Compute();
+        streams.ColorTarget = Test(streams);
     }
 }

@@ -255,6 +255,7 @@ public class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
 
 public class Identifier(string name, TextLocation info) : Literal(info)
 {
+    internal bool AllowStreamVariables { get; set; }
     public string Name { get; set; } = name;
 
     public static implicit operator string(Identifier identifier) => identifier.Name;
@@ -268,6 +269,12 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     private SpirvValue CompileSymbol(SymbolTable table, NewSpirvBuffer? buffer, ref int position, SpirvContext context, bool constantOnly)
     {
+        if (Name == "streams")
+        {
+            var result = buffer.Insert(position++, new OpStreamsSDSL(context.Bound++));
+            return new(result.ResultId, context.GetOrRegister(new PointerType(new StreamsType(), Specification.StorageClass.Private)));
+        }
+
         if (!table.TryResolveSymbol(Name, out var symbol))
         {
             if (constantOnly)
@@ -292,12 +299,11 @@ public class Identifier(string name, TextLocation info) : Literal(info)
             var shaderId = context.GetOrRegister(classSource.Symbol);
             symbol = new Symbol(new(classSource.Symbol.Name, SymbolKind.Shader), new PointerType(classSource.Symbol, Specification.StorageClass.Private), shaderId);
             table.CurrentFrame.Add(classSource.Symbol.Name, symbol);
-
-            Type = symbol.Type;
-            return EmitSymbol(buffer, ref position, context, symbol, constantOnly);
         }
-        Type = symbol.Type;
 
+        if (symbol.Id.Storage == Storage.Stream && !AllowStreamVariables)
+            throw new InvalidOperationException("Streams member used without an base type");
+        Type = symbol.Type;
         return EmitSymbol(buffer, ref position, context, symbol, constantOnly);
     }
 
@@ -408,6 +414,10 @@ public class TypeName(string name, TextLocation info) : Literal(info)
         else if (Name == "MemberNameResolved")
         {
             symbolType = new GenericParameterType(Specification.GenericParameterKindSDSL.MemberNameResolved);
+        }
+        else if (Name == "Streams")
+        {
+            symbolType = new StreamsType();
         }
         else
         {

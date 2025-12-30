@@ -169,13 +169,13 @@ public abstract class ShaderBuffer : ShaderElement
 
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
-        var fields = new List<(string Name, SymbolType Type, TypeModifier TypeModifier)>();
+        var fields = new List<StructuredTypeMember>();
         foreach (var smem in Members)
         {
             smem.Type = smem.TypeName.ResolveType(table, context);
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
 
-            fields.Add((smem.Name, smem.Type, smem.TypeModifier));
+            fields.Add(new(smem.Name, smem.Type, smem.TypeModifier));
         }
 
         Type = new ConstantBufferSymbol(Name, fields);
@@ -218,13 +218,13 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
 
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
-        var fields = new List<(string Name, SymbolType Type, TypeModifier TypeModifier)>();
+        var fields = new List<StructuredTypeMember>();
         foreach (var smem in Members)
         {
             smem.Type = smem.TypeName.ResolveType(table, context);
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
 
-            fields.Add((smem.Name, smem.Type, smem.TypeModifier));
+            fields.Add(new(smem.Name, smem.Type, smem.TypeModifier));
         }
 
         Type = new StructType(TypeName.ToString(), fields);
@@ -334,7 +334,6 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
             }
         }
 
-        // TODO: Add a StreamSDSL storage class?
         builder.Insert(new OpVariableSDSL(context.GetOrRegister(pointerType), variable, Specification.StorageClass.Uniform, isStaged == true ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
 
         var sid = new SymbolID(Name, SymbolKind.CBuffer, Storage.Uniform);

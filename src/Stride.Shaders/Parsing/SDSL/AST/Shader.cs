@@ -128,13 +128,13 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 var structName = names[typeStructInstruction.ResultId];
                 var fieldsData = typeStructInstruction.Values;
-                var fields = new List<(string Name, SymbolType Type, TypeModifier TypeModifier)>();
+                var fields = new List<StructuredTypeMember>();
                 for (var index = 0; index < fieldsData.WordCount; index++)
                 {
                     var fieldData = fieldsData.Words[index];
                     var type = types[fieldData];
                     var name = memberNames[(typeStructInstruction.ResultId, index)];
-                    fields.Add((name, type, TypeModifier.None));
+                    fields.Add(new(name, type, TypeModifier.None));
                 }
                 StructuredType structType = (blocks.Contains(typeStructInstruction.ResultId))
                     ? new ConstantBufferSymbol(structName.StartsWith("type.") ? structName.Substring("type.".Length) : throw new InvalidOperationException(), fields)
@@ -163,10 +163,10 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             else if (instruction.Op == Op.OpTypeFunctionSDSL && new OpTypeFunctionSDSL(instruction) is { } typeFunctionInstruction)
             {
                 var returnType = types[typeFunctionInstruction.ReturnType];
-                var parameterTypes = new List<(SymbolType Type, ParameterModifiers Flags)>();
+                var parameterTypes = new List<FunctionParameter>();
                 foreach (var operand in typeFunctionInstruction.Values)
                 {
-                    parameterTypes.Add((types[operand.Item1], (ParameterModifiers)operand.Item2));
+                    parameterTypes.Add(new(types[operand.Item1], (ParameterModifiers)operand.Item2));
                 }
                 types.Add(typeFunctionInstruction.ResultId, new FunctionType(returnType, parameterTypes));
             }
@@ -206,6 +206,10 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             else if (instruction.Op == Op.OpTypeGenericSDSL && (OpTypeGenericSDSL)instruction is { } typeGeneric)
             {
                 types.Add(typeGeneric.ResultId, new GenericParameterType(typeGeneric.Kind));
+            }
+            else if (instruction.Op == Op.OpTypeStreamsSDSL && (OpTypePointer)instruction is { } typeStreams)
+            {
+                types.Add(typeStreams.ResultId, new StreamsType());
             }
             // Unresolved content
             // This only happens during EvaluateInheritanceAndCompositions so it's not important to have all information valid
@@ -273,7 +277,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     variableName = $"_{variable.ResultId}";
                 var variableType = types[variable.ResultType];
 
-                var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream, IsStage: (variable.Flags & VariableFlagsMask.Stage) != 0);
+                var sid = new SymbolID(variableName, SymbolKind.Variable, variable.Flags.HasFlag(VariableFlagsMask.Stream) ? Storage.Stream : 0, IsStage: (variable.Flags & VariableFlagsMask.Stage) != 0);
                 variables.Add((new(sid, variableType, 0), variable.Flags));
             }
 
@@ -419,7 +423,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var argSym = arg.TypeName.ResolveType(table, context);
                     table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
                     arg.Type = new PointerType(argSym, Specification.StorageClass.Function);
-                    ftype.ParameterTypes.Add((arg.Type, arg.Modifiers));
+                    ftype.ParameterTypes.Add(new(arg.Type, arg.Modifiers));
                 }
                 func.Type = ftype;
 

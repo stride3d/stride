@@ -7,6 +7,7 @@ using System.IO;
 using Stride.Shaders.Parsing.Analysis;
 using static Stride.Shaders.Spirv.Specification;
 using System.Runtime.InteropServices;
+using CommunityToolkit.HighPerformance;
 
 namespace Stride.Shaders.Spirv.Processing
 {
@@ -20,9 +21,7 @@ namespace Stride.Shaders.Spirv.Processing
             public string? Semantic { get; } = semantic;
             public string Name { get; } = name;
             public SymbolType Type { get; } = type;
-
             public int VariableId { get; } = variableId;
-            public int? VariableMethodInitializerId { get; set; }
 
             public int? InputLayoutLocation { get; set; }
             public int? OutputLayoutLocation { get; set; }
@@ -31,14 +30,34 @@ namespace Stride.Shaders.Spirv.Processing
             /// We automatically mark input: a variable read before it's written to, or an output without a write.
             /// </summary>
             public bool Input => Read || (Output && !Write);
-            public bool Output { get; set; }
-            public bool Private => Input || Output || Read || Write;
+            public bool Output { get => field; set { field = value; UsedAnyStage = true; } }
+            public bool UsedThisStage => Input || Output || Read || Write;
 
             public bool Read { get => field; set { field = value; UsedAnyStage = true; } }
             public bool Write { get => field; set { field = value; UsedAnyStage = true; } }
             public bool UsedAnyStage { get; private set; }
+            public int StreamStructFieldIndex { get; internal set; }
 
             public override string ToString() => $"{Type} {Name} {(Read ? "R" : "")} {(Write ? "W" : "")}";
+        }
+
+        class VariableInfo(string name, SymbolType type, int variableId)
+        {
+            public string Name { get; } = name;
+            public SymbolType Type { get; } = type;
+
+            public int VariableId { get; } = variableId;
+            public int? VariableMethodInitializerId { get; set; }
+
+
+            /// <summary>
+            /// Used during current stage being processed?
+            /// </summary>
+            public bool UsedThisStage { get => field; set { field = value; UsedAnyStage |= value; } }
+            /// <summary>
+            /// Used at all (in any stage)
+            /// </summary>
+            public bool UsedAnyStage { get; private set; }
         }
 
         class ResourceInfo(string name)
@@ -87,7 +106,7 @@ namespace Stride.Shaders.Spirv.Processing
             public List<CBufferInfo> CBuffers { get; } = new();
         }
 
-        record struct AnalysisResult(SortedList<int, StreamInfo> Streams, SortedList<int, CBufferInfo> CBuffers, SortedList<int, ResourceGroup> ResourceGroups, SortedList<int, ResourceInfo> Resources);
+        record struct AnalysisResult(Dictionary<int, string> Names, Dictionary<int, StreamInfo> Streams, Dictionary<int, VariableInfo> Variables, Dictionary<int, CBufferInfo> CBuffers, Dictionary<int, ResourceGroup> ResourceGroups, Dictionary<int, ResourceInfo> Resources);
 
         class MethodInfo
         {
@@ -99,16 +118,31 @@ namespace Stride.Shaders.Spirv.Processing
             /// Used at all (in any stage)
             /// </summary>
             public bool UsedAnyStage { get; private set; }
+
+            public List<OpData>? OriginalMethodCode { get; set; }
+            public int? ThisStageMethodId { get; set; }
+
+            // True if the method depends on STREAMS type (also if used by any OpFunctionCall recursively)
+            public bool HasStreamAccess { get; internal set; }
         }
 
         class LiveAnalysis
         {
             public Dictionary<int, MethodInfo> ReferencedMethods { get; } = new();
 
-            public bool MarkMethodUsed(int functionId)
+            public HashSet<int> ExtraReferencedMethods { get; } = new();
+
+            public MethodInfo GetOrCreateMethodInfo(int functionId)
             {
                 if (!ReferencedMethods.TryGetValue(functionId, out MethodInfo methodInfo))
                     ReferencedMethods.Add(functionId, methodInfo = new MethodInfo());
+
+                return methodInfo;
+            }
+
+            public bool MarkMethodUsed(int functionId)
+            {
+                var methodInfo = GetOrCreateMethodInfo(functionId);
 
                 var previousValue = methodInfo.UsedThisStage;
                 methodInfo.UsedThisStage = true;
@@ -135,7 +169,7 @@ namespace Stride.Shaders.Spirv.Processing
             var streams = analysisResult.Streams;
 
             var liveAnalysis = new LiveAnalysis();
-            AnalyzeStreamReadWrites(buffer, [], entryPointPS.IdRef, analysisResult, liveAnalysis);
+            AnalyzeStreamReadWrites(buffer, context, entryPointPS.IdRef, analysisResult, liveAnalysis);
 
             // If written to, they are expected at the end of pixel shader
             foreach (var stream in streams)
@@ -160,16 +194,22 @@ namespace Stride.Shaders.Spirv.Processing
                     stream.Value.Read = false;
             }
             // Reset cbuffer/resource/methods used for next stage
+            foreach (var variable in analysisResult.Variables)
+                variable.Value.UsedThisStage = false;
             foreach (var resource in analysisResult.Resources)
                 resource.Value.UsedThisStage = false;
             foreach (var cbuffer in analysisResult.CBuffers)
                 cbuffer.Value.UsedThisStage = false;
             foreach (var method in liveAnalysis.ReferencedMethods)
+            {
                 method.Value.UsedThisStage = false;
+                method.Value.ThisStageMethodId = null;
+            }
+
             PropagateStreamsFromPreviousStage(streams);
             if (entryPointVS.IdRef != 0)
             {
-                AnalyzeStreamReadWrites(buffer, [], entryPointVS.IdRef, analysisResult, liveAnalysis);
+                AnalyzeStreamReadWrites(buffer, context, entryPointVS.IdRef, analysisResult, liveAnalysis);
 
                 // If written to, they are expected at the end of vertex shader
                 foreach (var stream in streams)
@@ -187,7 +227,7 @@ namespace Stride.Shaders.Spirv.Processing
             RemoveUnreferencedCode(buffer, context, analysisResult, streams, liveAnalysis);
         }
 
-        private static void RemoveUnreferencedCode(NewSpirvBuffer buffer, SpirvContext context, AnalysisResult analysisResult, SortedList<int, StreamInfo> streams, LiveAnalysis liveAnalysis)
+        private static void RemoveUnreferencedCode(NewSpirvBuffer buffer, SpirvContext context, AnalysisResult analysisResult, Dictionary<int, StreamInfo> streams, LiveAnalysis liveAnalysis)
         {
             // Remove unreferenced code
             var removedIds = new HashSet<int>();
@@ -249,7 +289,9 @@ namespace Stride.Shaders.Spirv.Processing
                 var i = buffer[index];
                 if (i.Op == Op.OpFunction && (OpFunction)i is { } function)
                 {
-                    if (!liveAnalysis.ReferencedMethods.ContainsKey(function.ResultId))
+                    bool isReferenced = liveAnalysis.ReferencedMethods.ContainsKey(function.ResultId)
+                        || liveAnalysis.ExtraReferencedMethods.Contains(function.ResultId);
+                    if (!isReferenced)
                     {
                         removedIds.Add(function.ResultId);
                         while (buffer[index].Op != Op.OpFunctionEnd)
@@ -297,13 +339,21 @@ namespace Stride.Shaders.Spirv.Processing
                     {
                         Storageclass: StorageClass.Private,
                         ResultId: int
-                    } stream
-                    && streams.TryGetValue(stream.ResultId, out var streamInfo))
+                    } variable2)
                 {
-                    if (!streamInfo.UsedAnyStage)
+                    if (variable2.Flags.HasFlag(VariableFlagsMask.Stream))
                     {
-                        removedIds.Add(stream.ResultId);
+                        // Always removed as we now use streams structure
+                        removedIds.Add(variable2.ResultId);
                         SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    }
+                    else
+                    {
+                        if (!analysisResult.Variables.TryGetValue(variable2.ResultId, out var variableInfo) || !variableInfo.UsedAnyStage)
+                        {
+                            removedIds.Add(variable2.ResultId);
+                            SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                        }
                     }
                 }
             }
@@ -324,6 +374,16 @@ namespace Stride.Shaders.Spirv.Processing
                 {
                     if (removedIds.Contains(decorateString.Target))
                         SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                }
+                else if (i.Op == Op.OpTypeStreamsSDSL || i.Op == Op.OpTypeFunctionSDSL || i.Op == Op.OpTypePointer)
+                {
+                    if (context.ReverseTypes.TryGetValue(i.Data.IdResult.Value, out var type))
+                    {
+                        var streamsTypeSearch = new StreamsTypeSearch();
+                        streamsTypeSearch.VisitType(type);
+                        if (streamsTypeSearch.Found)
+                            SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    }
                 }
             }
         }
@@ -360,7 +420,7 @@ namespace Stride.Shaders.Spirv.Processing
             SpirvBuilder.RemapIds(buffer, 0, buffer.Count, remapIds);
         }
 
-        private static void PropagateStreamsFromPreviousStage(SortedList<int, StreamInfo> streams)
+        private static void PropagateStreamsFromPreviousStage(Dictionary<int, StreamInfo> streams)
         {
             foreach (var stream in streams)
             {
@@ -374,16 +434,17 @@ namespace Stride.Shaders.Spirv.Processing
 
         private AnalysisResult Analyze(NewSpirvBuffer buffer, SpirvContext context)
         {
-            var streams = new SortedList<int, StreamInfo>();
+            var streams = new Dictionary<int, StreamInfo>();
 
             HashSet<int> blockTypes = [];
             Dictionary<int, int> blockPointerTypes = [];
-            SortedList<int, CBufferInfo> cbuffers = [];
-            SortedList<int, ResourceInfo> resources = [];
+            Dictionary<int, CBufferInfo> cbuffers = [];
+            Dictionary<int, ResourceInfo> resources = [];
+            Dictionary<int, VariableInfo> variables = [];
 
             // Build name table
-            SortedList<int, string> nameTable = [];
-            SortedList<int, string> semanticTable = [];
+            Dictionary<int, string> nameTable = [];
+            Dictionary<int, string> semanticTable = [];
             foreach (var temp in new[] { context.GetBuffer(), buffer })
             {
                 foreach (var instruction in temp)
@@ -475,16 +536,23 @@ namespace Stride.Shaders.Spirv.Processing
                         ? nameId
                         : $"unnamed_{variable.ResultId}";
                     var type = context.ReverseTypes[variable.ResultType];
-                    semanticTable.TryGetValue(variable.ResultId, out var semantic);
 
-                    var stream = new StreamInfo(semantic, name, type, variable.ResultId)
+                    if (variable.Flags.HasFlag(VariableFlagsMask.Stream))
                     {
-                        // Does it have an initializer? if yes, mark it as a value written in this stage
-                        Write = variable.MethodInitializer != null,
-                        VariableMethodInitializerId = variable.MethodInitializer,
-                    };
+                        semanticTable.TryGetValue(variable.ResultId, out var semantic);
 
-                    streams.Add(variable.ResultId, stream);
+                        if (variable.MethodInitializer != null)
+                            throw new NotImplementedException("Variable initializer is not supported on streams variable");
+
+                        streams.Add(variable.ResultId, new StreamInfo(semantic, name, type, variable.ResultId));
+                    }
+                    else
+                    {
+                        variables.Add(variable.ResultId, new VariableInfo(name, type, variable.ResultId)
+                        {
+                            VariableMethodInitializerId = variable.MethodInitializer,
+                        });
+                    }
                 }
 
                 if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
@@ -503,7 +571,7 @@ namespace Stride.Shaders.Spirv.Processing
             }
 
             // Process ResourceGroupId and build ResourceGroups
-            SortedList<int, ResourceGroup> resourceGroups = new();
+            Dictionary<int, ResourceGroup> resourceGroups = new();
             foreach (var i in context)
             {
                 if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: { Value: Decoration.ResourceGroupIdSDSL, Parameters: { } m } } resourceGroupIdDecorate)
@@ -554,7 +622,7 @@ namespace Stride.Shaders.Spirv.Processing
                 }
             }
 
-            return new(streams, cbuffers, resourceGroups, resources);
+            return new(nameTable, streams, variables, cbuffers, resourceGroups, resources);
         }
 
         private int GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
@@ -607,7 +675,8 @@ namespace Stride.Shaders.Spirv.Processing
             foreach (var stream in streams)
             {
                 var baseType = ((PointerType)stream.Value.Type).BaseType;
-                if (stream.Value.Private)
+
+                if (stream.Value.UsedThisStage)
                     privateStreams.Add(stream.Value);
 
                 if (stream.Value.Input)
@@ -654,6 +723,29 @@ namespace Stride.Shaders.Spirv.Processing
                 }
             }
 
+            var fields = new List<StructuredTypeMember>();
+            foreach (var stream in privateStreams)
+            {
+                stream.StreamStructFieldIndex = fields.Count;
+                fields.Add(new(stream.Name, stream.Type, default));
+            }
+            var streamsType = new StructType($"{stage}_STREAMS", fields);
+            context.DeclareStructuredType(streamsType);
+
+            // Create a static global streams variable
+            context.FluentAdd(new OpVariable(context.GetOrRegister(new PointerType(streamsType, StorageClass.Private)), context.Bound++, StorageClass.Private, null), out var streamsVariable);
+            context.AddName(streamsVariable.ResultId, $"streams{stage}");
+
+            // Patch any OpStreams/OpAccessChain to use the new struct
+            foreach (var method in liveAnalysis.ReferencedMethods)
+            {
+                if (method.Value.UsedThisStage && method.Value.HasStreamAccess)
+                {
+                    DuplicateMethodIfNecessary(buffer, context, method.Key, analysisResult, liveAnalysis);
+                    PatchStreamsAccesses(buffer, context, method.Key, streamsType, streamsVariable.ResultId, analysisResult, liveAnalysis);
+                }
+            }
+
             context.FluentAdd(new OpTypeVoid(context.Bound++), out var voidType);
 
             // Add new entry point wrapper
@@ -664,48 +756,57 @@ namespace Stride.Shaders.Spirv.Processing
 
             {
                 // Variable initializers
-                foreach (var stream in streams)
+                foreach (var variable in analysisResult.Variables)
                 {
                     // Note: we check Private to make sure variable is actually used in the shader (otherwise it won't be emitted if not part of all used variables in OpEntryPoint)
-                    if (stream.Value.Private
-                        && stream.Value.VariableMethodInitializerId is int methodInitializerId)
+                    if (variable.Value.UsedThisStage
+                        && variable.Value.VariableMethodInitializerId is int methodInitializerId)
                     {
-                        liveAnalysis.MarkMethodUsed(methodInitializerId);
+                        liveAnalysis.ExtraReferencedMethods.Add(methodInitializerId);
 
-                        var variableValueType = ((PointerType)stream.Value.Type).BaseType;
+                        var variableValueType = ((PointerType)variable.Value.Type).BaseType;
                         buffer.FluentAdd(new OpFunctionCall(context.GetOrRegister(variableValueType), context.Bound++, methodInitializerId, []), out var methodInitializerCall);
-                        buffer.Add(new OpStore(stream.Value.VariableId, methodInitializerCall.ResultId, null));
+                        buffer.Add(new OpStore(variable.Value.VariableId, methodInitializerCall.ResultId, null));
                     }
                 }
 
-                // Copy read variables from streams
+                // Copy variables from input to streams struct
                 foreach (var stream in inputStreams)
                 {
                     var baseType = ((PointerType)stream.Info.Type).BaseType;
+                    buffer.FluentAdd(new OpAccessChain(context.Types[stream.Info.Type], context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id]), out var streamPointer);
                     buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, stream.Id, null), out var loadedValue);
-                    buffer.Add(new OpStore(stream.Info.VariableId, loadedValue.ResultId, null));
+                    buffer.Add(new OpStore(streamPointer.ResultId, loadedValue.ResultId, null));
                 }
 
                 buffer.Add(new OpFunctionCall(voidType, context.Bound++, entryPointId, []));
 
+                // Copy variables from streams struct to output
                 foreach (var stream in outputStreams)
                 {
                     var baseType = ((PointerType)stream.Info.Type).BaseType;
-                    buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, stream.Info.VariableId, null), out var loadedValue);
+                    buffer.FluentAdd(new OpAccessChain(context.Types[stream.Info.Type], context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id]), out var streamPointer);
+                    buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, streamPointer.ResultId, null), out var loadedValue);
                     buffer.Add(new OpStore(stream.Id, loadedValue.ResultId, null));
                 }
+
 
                 buffer.Add(new OpReturn());
                 buffer.Add(new OpFunctionEnd());
 
-                Span<int> pvariables = stackalloc int[inputStreams.Count + outputStreams.Count + privateStreams.Count + analysisResult.CBuffers.Count + analysisResult.Resources.Count];
+                // Note: we overallocate and filter with UsedThisStage after
+                Span<int> pvariables = stackalloc int[inputStreams.Count + outputStreams.Count + 1 + analysisResult.Variables.Count + analysisResult.CBuffers.Count + analysisResult.Resources.Count];
                 int pvariableIndex = 0;
                 foreach (var inputStream in inputStreams)
                     pvariables[pvariableIndex++] = inputStream.Id;
                 foreach (var outputStream in outputStreams)
                     pvariables[pvariableIndex++] = outputStream.Id;
-                foreach (var privateStream in privateStreams)
-                    pvariables[pvariableIndex++] = privateStream.VariableId;
+                pvariables[pvariableIndex++] = streamsVariable.ResultId;
+                foreach (var variable in analysisResult.Variables)
+                {
+                    if (variable.Value.UsedThisStage)
+                        pvariables[pvariableIndex++] = variable.Key;
+                }
                 foreach (var cbuffer in analysisResult.CBuffers)
                 {
                     if (cbuffer.Value.UsedThisStage)
@@ -717,88 +818,298 @@ namespace Stride.Shaders.Spirv.Processing
                         pvariables[pvariableIndex++] = resource.Key;
                 }
 
-                liveAnalysis.MarkMethodUsed(newEntryPointFunction);
+                liveAnalysis.ExtraReferencedMethods.Add(newEntryPointFunction);
                 context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [.. pvariables.Slice(0, pvariableIndex)]));
             }
 
             return newEntryPointFunction.ResultId;
         }
 
+        void DuplicateMethodIfNecessary(NewSpirvBuffer buffer, SpirvContext context, int functionId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
+        {
+            var methodInfo = liveAnalysis.GetOrCreateMethodInfo(functionId);
+
+            (var methodStart, var methodEnd) = FindMethodBounds(buffer, functionId);
+
+            // One function might need to be duplicated in case it is used by different shader stages with STREAMS:
+            // On first time (in a stage), we backup method original content before mutation
+            // On second time (in a different stage), we copy the method (from original content)
+            if (methodInfo.OriginalMethodCode == null)
+            {
+                // Copy instructions memory (since we're going to mutate them and want to retain original version)
+                var methodInstructions = buffer.Slice(methodStart, methodEnd - methodStart);
+                foreach (ref var i in methodInstructions.AsSpan())
+                    i = new OpData(i.Memory.Span);
+
+                methodInfo.OriginalMethodCode = methodInstructions;
+            }
+            else
+            {
+                // Need to reinsert method with new IDs
+                var remapIds = new Dictionary<int, int>();
+                var copiedInstructions = new List<OpData>();
+                foreach (var i in methodInfo.OriginalMethodCode)
+                {
+                    // Save copied function ID
+                    if (i.Op == Op.OpFunction)
+                        methodInfo.ThisStageMethodId = context.Bound;
+
+                    var i2 = new OpData(i.Memory.Span);
+                    if (i2.IdResult.HasValue)
+                        remapIds.Add(i2.IdResult.Value, context.Bound++);
+                    SpirvBuilder.RemapIds(remapIds, ref i2);
+                    copiedInstructions.Add(i2);
+
+                    // Copy names too
+                    if (i.IdResult is int resultId)
+                    {
+                        if (analysisResult.Names.TryGetValue(resultId, out var name))
+                            context.AddName(i2.IdResult!.Value, name);
+                    }
+                }
+
+                if (methodInfo.ThisStageMethodId == null)
+                    throw new InvalidOperationException();
+
+                liveAnalysis.ExtraReferencedMethods.Add(methodInfo.ThisStageMethodId.Value);
+
+                buffer.InsertRange(methodEnd, copiedInstructions.AsSpan());
+            }
+        }
+
+        class StreamsTypeReplace(SymbolType streamsReplacement) : TypeRewriter
+        {
+            public override SymbolType Visit(StreamsType streamsType)
+            {
+                return streamsReplacement;
+            }
+        }
+
+        class StreamsTypeSearch : TypeWalker
+        {
+            public bool Found { get; private set; }
+            public override void Visit(StreamsType streamsType)
+            {
+                Found = true;
+            }
+        }
+
+        void PatchStreamsAccesses(NewSpirvBuffer buffer, SpirvContext context, int functionId, StructType streamsStructType, int streamsVariableId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
+        {
+            var methodInfo = liveAnalysis.GetOrCreateMethodInfo(functionId);
+
+            (var methodStart, var methodEnd) = FindMethodBounds(buffer, methodInfo.ThisStageMethodId ?? functionId);
+
+            var streams = analysisResult.Streams;
+            var streamsInstructionIds = new HashSet<int>();
+
+            var method = (OpFunction)buffer[methodStart];
+            var methodType = (FunctionType)context.ReverseTypes[method.FunctionType];
+
+            methodType = (FunctionType)new StreamsTypeReplace(streamsStructType).Visit(methodType);
+            method.FunctionType = context.GetOrRegister(methodType);
+
+            // Remap ids for streams type to actual struct type
+            var remapIds = new Dictionary<int, int>
+            {
+                { context.GetOrRegister(new StreamsType()), context.GetOrRegister(streamsStructType) },
+                { context.GetOrRegister(new PointerType(new StreamsType(), StorageClass.Private)), context.GetOrRegister(new PointerType(streamsStructType, StorageClass.Private)) },
+                { context.GetOrRegister(new PointerType(new StreamsType(), StorageClass.Function)), context.GetOrRegister(new PointerType(streamsStructType, StorageClass.Function)) },
+            };
+
+            // TODO: remap method type!
+            for (int index = methodStart; index < methodEnd; ++index)
+            {
+                var i = buffer[index];
+
+                if (i.Op == Op.OpStreamsSDSL && (OpAccessChain)i is { } streamsInstruction)
+                {
+                    streamsInstructionIds.Add(streamsInstruction.ResultId);
+                    remapIds.Add(streamsInstruction.ResultId, streamsVariableId);
+                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                }
+                else if (i.Op is Op.OpVariable && (OpVariable)i is { } variable)
+                {
+                    var type = context.ReverseTypes[variable.ResultType];
+                    if (type is PointerType { BaseType: StreamsType })
+                        streamsInstructionIds.Add(variable.ResultId);
+                }
+                else if (i.Op is Op.OpFunctionParameter && (OpFunctionParameter)i is { } functionParameter)
+                {
+                    var type = context.ReverseTypes[functionParameter.ResultType];
+                    if (type is PointerType { BaseType: StreamsType })
+                        streamsInstructionIds.Add(functionParameter.ResultId);
+                }
+                else if (i.Op == Op.OpAccessChain && (OpAccessChain)i is { } accessChain)
+                {
+                    // In case it's a streams access, patch acces to use STREAMS struct with proper index
+                    if (streamsInstructionIds.Contains(accessChain.BaseId))
+                    {
+                        var streamVariableId = accessChain.Values.Elements.Span[0];
+                        var streamInfo = streams[streamVariableId];
+                        var streamStructMemberIndex = streamInfo.StreamStructFieldIndex;
+
+                        // TODO: this won't update accessChain.Memory yet but setting accessChain.Base later will fix that
+                        //       we'll need a better way to update LiteralArray and propagate changes
+                        accessChain.Values.Elements.Span[0] = context.CompileConstant(streamStructMemberIndex).Id;
+
+                        // Force refresh of InstructionMemory
+                        accessChain.BaseId = streamsVariableId;
+                    }
+                }
+                else if (i.Op == Op.OpFunctionCall && (OpFunctionCall)i is { } call)
+                {
+                    var calledMethodInfo = liveAnalysis.ReferencedMethods[call.Function];
+                    // In case we copied the method, use the new ID
+                    if (calledMethodInfo.ThisStageMethodId is int updatedMethodId)
+                        call.Function = updatedMethodId;
+                }
+
+                SpirvBuilder.RemapIds(remapIds, ref i.Data);
+            }
+        }
+
         /// <summary>
         /// Figure out (recursively) which streams are being read from and written to.
         /// </summary>
-        private void AnalyzeStreamReadWrites(NewSpirvBuffer buffer, List<int> callStack, int functionId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
+        private bool AnalyzeStreamReadWrites(NewSpirvBuffer buffer, SpirvContext context, int functionId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
         {
-            // Mark as used, and check if already processed
-            if (!liveAnalysis.MarkMethodUsed(functionId))
-                return;
+            // Check if already processed
+            var methodInfo = liveAnalysis.GetOrCreateMethodInfo(functionId);
+            if (methodInfo.UsedThisStage)
+            {
+                return methodInfo.HasStreamAccess;
+            }
 
+            // Mark as used
+            methodInfo.UsedThisStage = true;
+
+            // If method was mutated by another stage, we work on the original copy instead
+            List<OpData> methodInstructions;
+            if (methodInfo.OriginalMethodCode != null)
+            {
+                methodInstructions = methodInfo.OriginalMethodCode;
+            }
+            else
+            {
+                (var methodStart, var methodEnd) = FindMethodBounds(buffer, functionId);
+                methodInstructions = buffer.Slice(methodStart, methodEnd - methodStart);
+            }
+
+            var streamsInstructionIds = new HashSet<int>();
             var streams = analysisResult.Streams;
+            var variables = analysisResult.Variables;
             var accessChainBases = new Dictionary<int, int>();
 
-            var methodStart = FindMethodStart(buffer, functionId);
-            for (var index = methodStart; index < buffer.Count; index++)
+            foreach (ref var i in methodInstructions.AsSpan())
             {
-                var instruction = buffer[index];
-                if (instruction.Op == Op.OpFunctionEnd)
-                    break;
-
-                if (instruction.Op is Op.OpLoad && (OpLoad)instruction is { } load)
+                // Check for any Streams variable
+                if (i.Op is Op.OpFunction && new OpFunction(ref i) is { } function)
                 {
-                    // Check for access chains
+                    var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
+                    var streamsTypeSearch = new StreamsTypeSearch();
+                    streamsTypeSearch.Visit(functionType);
+                    if (streamsTypeSearch.Found)
+                        methodInfo.HasStreamAccess = true;
+                }
+                else if (i.Op is Op.OpVariable && new OpVariable(ref i) is { } variable)
+                {
+                    var type = context.ReverseTypes[variable.ResultType];
+                    if (type is PointerType { BaseType: StreamsType })
+                    {
+                        // Note: we should restrict to R except if inout variable
+                        streamsInstructionIds.Add(variable.ResultId);
+                        methodInfo.HasStreamAccess = true;
+                    }
+                }
+                // and for any Streams parameter
+                else if (i.Op is Op.OpFunctionParameter && new OpFunctionParameter(ref i) is { } functionParameter)
+                {
+                    var type = context.ReverseTypes[functionParameter.ResultType];
+                    if (type is PointerType { BaseType: StreamsType })
+                    {
+                        // Note: we should restrict to R except if inout variable
+                        streamsInstructionIds.Add(functionParameter.ResultId);
+                        methodInfo.HasStreamAccess = true;
+                    }
+                }
+                else if (i.Op is Op.OpLoad && new OpLoad(ref i) is { } load)
+                {
+                    // Check for indirect access chains
                     if (!accessChainBases.TryGetValue(load.Pointer, out var pointer))
                         pointer = load.Pointer;
 
                     if (streams.TryGetValue(pointer, out var streamInfo) && !streamInfo.Write)
                         streamInfo.Read = true;
+                    if (variables.TryGetValue(pointer, out var variableInfo))
+                        variableInfo.UsedThisStage = true;
                     if (analysisResult.Resources.TryGetValue(pointer, out var resourceInfo))
                         resourceInfo.UsedThisStage = true;
                     if (analysisResult.CBuffers.TryGetValue(pointer, out var cbufferInfo))
                         cbufferInfo.UsedThisStage = true;
                 }
-                else if (instruction.Op is Op.OpStore && (OpStore)instruction is { } store)
+                else if (i.Op is Op.OpStore && new OpStore(ref i) is { } store)
                 {
-                    // Check for access chains
+                    // Check for indirect access chains
                     if (!accessChainBases.TryGetValue(store.Pointer, out var pointer))
                         pointer = store.Pointer;
 
                     if (streams.TryGetValue(pointer, out var streamInfo))
                         streamInfo.Write = true;
+                    if (variables.TryGetValue(pointer, out var variableInfo))
+                        variableInfo.UsedThisStage = true;
                     if (analysisResult.Resources.TryGetValue(pointer, out var resourceInfo))
                         resourceInfo.UsedThisStage = true;
                     if (analysisResult.CBuffers.TryGetValue(pointer, out var cbufferInfo))
                         cbufferInfo.UsedThisStage = true;
                 }
-                else if (instruction is { Op: Op.OpAccessChain } && (OpAccessChain)instruction is { } accessChain)
+                else if (i.Op == Op.OpStreamsSDSL && new OpAccessChain(ref i) is { } streamsInstruction)
                 {
+                    streamsInstructionIds.Add(streamsInstruction.ResultId);
+                    methodInfo.HasStreamAccess = true;
+                }
+                else if (i.Op == Op.OpAccessChain && new OpAccessChain(ref i) is { } accessChain)
+                {
+                    var currentBase = accessChain.BaseId;
+
+                    // In case it's a streams access, mark the stream as being the base
+                    if (streamsInstructionIds.Contains(currentBase))
+                    {
+                        var streamVariableId = accessChain.Values.Elements.Span[0];
+                        var streamInfo = streams[streamVariableId];
+
+                        // Set this base for OpStore/OpLoad stream R/W analysis
+                        currentBase = streamVariableId;
+                    }
+
                     // Any read or write through an access chain will be treated as doing it on the main variable.
                     // i.e., streams.A.B will share same streamInfo as streams.A
                     // TODO: what happens in case of partial write?
-                    var currentBase = accessChain.BaseId;
                     // Recurse in case we have multiple access chain chained after each other
                     while (accessChainBases.TryGetValue(currentBase, out var nextBase))
                         currentBase = nextBase;
                     accessChainBases.Add(accessChain.ResultId, currentBase);
                 }
-                else if (instruction.Op == Op.OpFunctionCall && (OpFunctionCall)instruction is { } call)
+                else if (i.Op == Op.OpFunctionCall && new OpFunctionCall(ref i) is { } call)
                 {
                     // Process call
-                    if (callStack.Contains(functionId))
-                        throw new InvalidOperationException($"Recursive call with method id {functionId}");
-                    callStack.Add(functionId);
-                    AnalyzeStreamReadWrites(buffer, callStack, call.Function, analysisResult, liveAnalysis);
-                    callStack.RemoveAt(callStack.Count - 1);
+                    methodInfo.HasStreamAccess |= AnalyzeStreamReadWrites(buffer, context, call.Function, analysisResult, liveAnalysis);
                 }
             }
+
+            return methodInfo.HasStreamAccess;
         }
 
-        public int FindMethodStart(NewSpirvBuffer buffer, int functionId)
+        public (int Start, int End) FindMethodBounds(NewSpirvBuffer buffer, int functionId)
         {
+            int? start = null;
             for (var index = 0; index < buffer.Count; index++)
             {
                 var instruction = buffer[index];
                 if (instruction.Op is Op.OpFunction && ((OpFunction)instruction).ResultId == functionId)
-                    return index;
+                    start = index;
+                if (instruction.Op is Op.OpFunctionEnd && start is int startIndex)
+                    return (startIndex, index + 1);
             }
             throw new InvalidOperationException($"Could not find start of method {functionId}");
         }
