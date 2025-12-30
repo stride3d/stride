@@ -122,16 +122,11 @@ namespace Stride.Graphics
         {
             get
             {
-#if STRIDE_PLATFORM_UWP
-                return false;
-#else
                 return swapChain.IsFullScreen;
-#endif
             }
 
             set
             {
-#if !STRIDE_PLATFORM_UWP
                 if (swapChain == null)
                     return;
 
@@ -184,7 +179,6 @@ namespace Stride.Graphics
                     description.RefreshRate = new SharpDX.DXGI.Rational(0, 0);
                     swapChain.ResizeTarget(ref description);
                 }
-#endif
             }
         }
 
@@ -269,19 +263,6 @@ namespace Stride.Graphics
             // Manually update all children textures
             var fastList = DestroyChildrenTextures(backBuffer);
 
-#if STRIDE_PLATFORM_UWP
-            var swapChainPanel = Description.DeviceWindowHandle.NativeWindow as Windows.UI.Xaml.Controls.SwapChainPanel;
-            if (swapChainPanel != null)
-            {
-                var swapChain2 = swapChain.QueryInterface<SwapChain2>();
-                if (swapChain2 != null)
-                {
-                    swapChain2.MatrixTransform = new RawMatrix3x2 { M11 = 1f / swapChainPanel.CompositionScaleX, M22 = 1f / swapChainPanel.CompositionScaleY };
-                    swapChain2.Dispose();
-                }
-            }
-#endif
-
             if (useFlipModel)
                 format = ToSupportedFlipModelFormat(format); // See CreateSwapChainForDesktop
 
@@ -360,78 +341,10 @@ namespace Stride.Graphics
             {
                 throw new ArgumentException("DeviceWindowHandle cannot be null");
             }
-
-#if STRIDE_PLATFORM_UWP
-            return CreateSwapChainForUWP();
-#else
+            
             return CreateSwapChainForWindows();
-#endif
         }
 
-#if STRIDE_PLATFORM_UWP
-        private SwapChain CreateSwapChainForUWP()
-        {
-            bufferCount = 2;
-            var description = new SwapChainDescription1
-            {
-                // Automatic sizing
-                Width = Description.BackBufferWidth,
-                Height = Description.BackBufferHeight,
-                Format = (DXGI_Format)Description.BackBufferFormat.ToNonSRgb(),
-                Stereo = false,
-                SampleDescription = new SharpDX.DXGI.SampleDescription((int)Description.MultisampleCount, 0),
-                Usage = Usage.BackBuffer | Usage.RenderTargetOutput,
-                // Use two buffers to enable flip effect.
-                BufferCount = bufferCount,
-                Scaling = SharpDX.DXGI.Scaling.Stretch,
-                SwapEffect = SharpDX.DXGI.SwapEffect.FlipSequential,
-            };
-
-            SwapChain swapChain = null;
-            switch (Description.DeviceWindowHandle.Context)
-            {
-                case Games.AppContextType.UWPXaml:
-                {
-                    var nativePanel = ComObject.As<ISwapChainPanelNative>(Description.DeviceWindowHandle.NativeWindow);
-
-                    // Creates the swap chain for XAML composition
-                    swapChain = new SwapChain1(GraphicsAdapterFactory.NativeFactory, GraphicsDevice.NativeDevice, ref description);
-
-                    // Associate the SwapChainPanel with the swap chain
-                    nativePanel.SwapChain = swapChain;
-
-                    break;
-                }
-
-                case Games.AppContextType.UWPCoreWindow:
-                {
-                    using (var dxgiDevice = GraphicsDevice.NativeDevice.QueryInterface<SharpDX.DXGI.Device2>())
-                    {
-                        // Ensure that DXGI does not queue more than one frame at a time. This both reduces
-                        // latency and ensures that the application will only render after each VSync, minimizing
-                        // power consumption.
-                        dxgiDevice.MaximumFrameLatency = 1;
-
-                        // Next, get the parent factory from the DXGI Device.
-                        using (var dxgiAdapter = dxgiDevice.Adapter)
-                        using (var dxgiFactory = dxgiAdapter.GetParent<SharpDX.DXGI.Factory2>())
-                            // Finally, create the swap chain.
-                        using (var coreWindow = new SharpDX.ComObject(Description.DeviceWindowHandle.NativeWindow))
-                        {
-                            swapChain = new SharpDX.DXGI.SwapChain1(dxgiFactory
-                                , GraphicsDevice.NativeDevice, coreWindow, ref description);
-                        }
-                    }
-
-                    break;
-                }
-                default:
-                    throw new NotSupportedException(string.Format("Window context [{0}] not supported while creating SwapChain", Description.DeviceWindowHandle.Context));
-            }
-
-            return swapChain;
-        }
-#else
         /// <summary>
         /// Create the SwapChain on Windows.
         /// </summary>
@@ -519,7 +432,6 @@ namespace Stride.Graphics
 
             return flags;
         }
-#endif
 
         /// <summary>
         /// Flip model does not support certain format, this method ensures it is in a supported format.

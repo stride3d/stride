@@ -102,8 +102,6 @@ public static class PlatformFolders
         var directory = Path.Combine(PlatformAndroid.Context.FilesDir.AbsolutePath, "roaming");
         Directory.CreateDirectory(directory);
         return directory;
-#elif STRIDE_PLATFORM_UWP
-        return Windows.Storage.ApplicationData.Current.RoamingFolder.Path;
 #elif STRIDE_PLATFORM_IOS
         var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "..", "Library", "Roaming");
         Directory.CreateDirectory(directory);
@@ -120,8 +118,6 @@ public static class PlatformFolders
     {
 #if STRIDE_PLATFORM_ANDROID
         var directory = Path.Combine(PlatformAndroid.Context.FilesDir.AbsolutePath, "cache");
-#elif STRIDE_PLATFORM_UWP
-        var directory = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "cache");
 #elif STRIDE_PLATFORM_IOS
         var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "..", "Library", "Caches");
 #else
@@ -157,8 +153,6 @@ public static class PlatformFolders
     {
 #if STRIDE_PLATFORM_ANDROID
         return PlatformAndroid.Context.CacheDir.AbsolutePath;
-#elif STRIDE_PLATFORM_UWP
-        return Windows.Storage.ApplicationData.Current.TemporaryFolder.Path;
 #elif STRIDE_PLATFORM_IOS
         return Path.Combine (Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "..", "tmp");
 #else
@@ -190,8 +184,6 @@ public static class PlatformFolders
 #else
         return AppDomain.CurrentDomain.BaseDirectory;
 #endif
-#elif STRIDE_PLATFORM_UWP
-        return Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
 #else
         throw new NotImplementedException();
 #endif
@@ -203,8 +195,6 @@ public static class PlatformFolders
         return Android.OS.Environment.ExternalStorageDirectory.AbsolutePath + "/Android/data/" + PlatformAndroid.Context.PackageName + "/data";
 #elif STRIDE_PLATFORM_IOS
         return Foundation.NSBundle.MainBundle.BundlePath + "/data";
-#elif STRIDE_PLATFORM_UWP
-        return Windows.ApplicationModel.Package.Current.InstalledLocation.Path + @"\data";
 #else
         return Path.Combine(GetApplicationBinaryDirectory(), "data");
 #endif
