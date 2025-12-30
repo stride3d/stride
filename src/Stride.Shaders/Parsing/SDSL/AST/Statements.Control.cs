@@ -24,6 +24,7 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
 
         var blockTrueIds = stackalloc int[ElseIfs.Count + 1];
         var blockMergeIds = stackalloc int[ElseIfs.Count + 1];
+        var isMergeBlockReachable = stackalloc bool[ElseIfs.Count + 1];
 
         // Create and connect true/false blocks
         for (int i = 0; i < ElseIfs.Count + 1; ++i)
@@ -52,7 +53,10 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
             if (falseBlock != null)
             {
                 if (!SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+                {
+                    isMergeBlockReachable[i] = true;
                     builder.Insert(new OpBranch(blockMergeIds[i]));
+                }
 
                 builder.CreateBlock(context, falseBlock.Value, $"if_false_{builder.IfBlockCount + i}");
 
@@ -60,14 +64,23 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
                 if (i + 1 == ElseIfs.Count + 1)
                     Else!.Compile(table, compiler);
             }
+            else
+            {
+                isMergeBlockReachable[i] = true;
+            }
         }
 
         // Create and connect merge branches
         for (int i = ElseIfs.Count; i >= 0; --i)
         {
             if (!SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+            {
+                isMergeBlockReachable[i] = true;
                 builder.Insert(new OpBranch(blockMergeIds[i]));
+            }
             builder.CreateBlock(context, blockMergeIds[i], $"if_merge_{builder.IfBlockCount + i}");
+            if (!isMergeBlockReachable[i])
+                builder.Insert(new OpUnreachable());
         }
 
         builder.IfBlockCount += ElseIfs.Count + 1;
