@@ -20,31 +20,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <PackageReference Include="SSH.NET" />
-    <PackageReference Include="System.AppContext" />
-    <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Console" />
-    <PackageReference Include="System.Diagnostics.FileVersionInfo" />
-    <PackageReference Include="System.Diagnostics.StackTrace" />
-    <PackageReference Include="System.IO" />
-    <PackageReference Include="System.IO.Compression" />
-    <PackageReference Include="System.IO.FileSystem" />
-    <PackageReference Include="System.IO.FileSystem.Primitives" />
-    <PackageReference Include="System.Reflection" />
-    <PackageReference Include="System.Reflection.Metadata" />
-    <PackageReference Include="System.Runtime" />
-    <PackageReference Include="System.Runtime.Extensions" />
-    <PackageReference Include="System.Runtime.InteropServices" />
-    <PackageReference Include="System.Security.Cryptography.Algorithms" />
-    <PackageReference Include="System.Security.Cryptography.Encoding" />
-    <PackageReference Include="System.Security.Cryptography.Primitives" />
-    <PackageReference Include="System.Security.Cryptography.X509Certificates" />
-    <PackageReference Include="System.Text.Encoding.CodePages" />
-    <PackageReference Include="System.Threading.Thread" />
-    <PackageReference Include="System.ValueTuple" />
-    <PackageReference Include="System.Xml.ReaderWriter" />
-    <PackageReference Include="System.Xml.XmlDocument" />
-    <PackageReference Include="System.Xml.XPath" />
-    <PackageReference Include="System.Xml.XPath.XDocument" />
     <Reference Include="VHACDSharp">
       <HintPath>..\..\..\deps\VHACD\VHACDSharp.dll</HintPath>
     </Reference>
