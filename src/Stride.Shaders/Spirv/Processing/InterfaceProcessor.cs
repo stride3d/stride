@@ -445,80 +445,68 @@ namespace Stride.Shaders.Spirv.Processing
             // Build name table
             Dictionary<int, string> nameTable = [];
             Dictionary<int, string> semanticTable = [];
-            foreach (var temp in new[] { context.GetBuffer(), buffer })
+            foreach (var i in context)
             {
-                foreach (var instruction in temp)
+                // Names
                 {
-                    // Names
+                    if (i.Op == Op.OpName
+                        && ((OpName)i) is
+                        {
+                            Target: int t,
+                            Name: string n
+                        }
+                        )
                     {
-                        if (instruction.Op == Op.OpName
-                            && ((OpName)instruction) is
-                            {
-                                Target: int t,
-                                Name: string n
-                            }
-                           )
-                        {
-                            nameTable[t] = new(n);
-                        }
-                        else if (instruction.Op == Op.OpMemberName
-                            && ((OpMemberName)instruction) is
-                            {
-                                Type: int t2,
-                                Member: int m,
-                                Name: string n2
-                            }
-                           )
-                        {
-                            nameTable[t2] = new(n2);
-                        }
+                        nameTable[t] = new(n);
                     }
-
-                    // CBuffer
-                    // Encoded in this format:
-                    // OpDecorate %type_CBuffer1 Block
-                    // %_ptr_Uniform_type_CBuffer1 = OpTypePointer Uniform %type_CBuffer1
-                    // %CBuffer1 = OpVariable %_ptr_Uniform_type_CBuffer1 Uniform
+                    else if (i.Op == Op.OpMemberName
+                        && ((OpMemberName)i) is
+                        {
+                            Type: int t2,
+                            Member: int m,
+                            Name: string n2
+                        }
+                        )
                     {
-                        if (instruction.Op == Op.OpDecorate
-                            && ((OpDecorate)instruction) is { Decoration: { Value: Decoration.Block }, Target: var bufferType })
-                        {
-                            blockTypes.Add(bufferType);
-                        }
-                        else if (instruction.Op == Op.OpTypePointer
-                            && ((OpTypePointer)instruction) is { Storageclass: StorageClass.Uniform, ResultId: var pointerType, Type: var bufferType2 }
-                            && blockTypes.Contains(bufferType2))
-                        {
-                            blockPointerTypes.Add(pointerType, bufferType2);
-                        }
-                        else if (instruction.Op == Op.OpVariableSDSL
-                            && ((OpVariableSDSL)instruction) is { Storageclass: StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
-                            && blockPointerTypes.TryGetValue(pointerType2, out var bufferType3))
-                        {
-                            var name = nameTable[bufferId];
-                            // Note: cbuffer names might be suffixed with .0 .1 (as in Shader.RenameCBufferVariables)
-                            // Adjust for it
-                            cbuffers.Add(bufferId, new(name));
-                        }
+                        nameTable[t2] = new(n2);
                     }
+                }
 
-                    // Semantic
+                // CBuffer
+                // Encoded in this format:
+                // OpDecorate %type_CBuffer1 Block
+                // %_ptr_Uniform_type_CBuffer1 = OpTypePointer Uniform %type_CBuffer1
+                // %CBuffer1 = OpVariable %_ptr_Uniform_type_CBuffer1 Uniform
+                {
+                    if (i.Op == Op.OpDecorate
+                        && ((OpDecorate)i) is { Decoration: { Value: Decoration.Block }, Target: var bufferType })
                     {
-                        if (instruction.Op == Op.OpDecorateString
-                            && ((OpDecorateString)instruction) is
-                            {
-                                Target: int t,
-                                Decoration:
-                                {
-                                    Value: Decoration.UserSemantic,
-                                    Parameters: { } m
-                                }
-                            }
-                           )
+                        blockTypes.Add(bufferType);
+                    }
+                    else if (i.Op == Op.OpTypePointer
+                        && ((OpTypePointer)i) is { Storageclass: StorageClass.Uniform, ResultId: var pointerType, Type: var bufferType2 }
+                        && blockTypes.Contains(bufferType2))
+                    {
+                        blockPointerTypes.Add(pointerType, bufferType2);
+                    }
+                }
+
+                // Semantic
+                {
+                    if (i.Op == Op.OpDecorateString
+                        && ((OpDecorateString)i) is
                         {
-                            using var n = new LiteralValue<string>(m.Span);
-                            semanticTable[t] = n.Value;
+                            Target: int t,
+                            Decoration:
+                            {
+                                Value: Decoration.UserSemantic,
+                                Parameters: { } m
+                            }
                         }
+                        )
+                    {
+                        using var n = new LiteralValue<string>(m.Span);
+                        semanticTable[t] = n.Value;
                     }
                 }
             }
@@ -526,6 +514,16 @@ namespace Stride.Shaders.Spirv.Processing
             // Analyze streams
             foreach (var i in buffer)
             {
+                if (i.Op == Op.OpVariableSDSL
+                    && ((OpVariableSDSL)i) is { Storageclass: StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
+                    && blockPointerTypes.TryGetValue(pointerType2, out var bufferType3))
+                {
+                    var name = nameTable[bufferId];
+                    // Note: cbuffer names might be suffixed with .0 .1 (as in Shader.RenameCBufferVariables)
+                    // Adjust for it
+                    cbuffers.Add(bufferId, new(name));
+                }
+
                 if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                     {
                         Storageclass: StorageClass.Private,
