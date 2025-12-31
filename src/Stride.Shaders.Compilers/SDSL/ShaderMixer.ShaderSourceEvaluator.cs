@@ -53,7 +53,6 @@ public partial class ShaderMixer
         foreach (var shaderName in mixinList.ToArray())
         {
             var shader = shaderName.Buffer.Value;
-            ShaderClass.ProcessNameAndTypes(shader.Context);
             bool hasStage = false;
             foreach (var i in shader.Context)
             {

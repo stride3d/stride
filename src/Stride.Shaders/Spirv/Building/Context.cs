@@ -27,9 +27,9 @@ public class SpirvContext
 {
     public int ResourceGroupBound { get; set; } = 1;
     public int Bound { get; set; } = 1;
-    public Dictionary<SymbolType, int> Types { get; } = [];
-    public Dictionary<int, SymbolType> ReverseTypes { get; } = [];
-    public Dictionary<int, string> Names { get; } = [];
+    public Dictionary<SymbolType, int> Types { get; init; } = [];
+    public Dictionary<int, SymbolType> ReverseTypes { get; init; } = [];
+    public Dictionary<int, string> Names { get; init; } = [];
     public Dictionary<(SymbolType Type, object Value), SpirvValue> LiteralConstants { get; } = [];
     NewSpirvBuffer Buffer { get; init; }
 
@@ -60,7 +60,10 @@ public class SpirvContext
     }
 
     public void AddName(int target, string name)
-        => Buffer.Add(new OpName(target, name));
+    {
+        Buffer.Add(new OpName(target, name));
+        Names.Add(target, name);
+    }
 
     public void AddMemberName(int target, int accessor, string name)
         => Buffer.Add(new OpMemberName(target, accessor, name.Replace('.', '_')));

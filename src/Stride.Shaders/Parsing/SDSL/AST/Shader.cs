@@ -20,12 +20,12 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 
 public interface IShaderImporter
 {
-    ShaderSymbol Import(ShaderClassInstantiation classSource, NewSpirvBuffer buffer);
+    ShaderSymbol Import(ShaderClassInstantiation classSource, SpirvContext declaringContext);
 }
 
 public class EmptyShaderImporter : IShaderImporter
 {
-    public ShaderSymbol Import(ShaderClassInstantiation classSource, NewSpirvBuffer buffer)
+    public ShaderSymbol Import(ShaderClassInstantiation classSource, SpirvContext declaringContext)
     {
         return new ShaderSymbol(classSource.ClassName, classSource.GenericArguments);
     }
@@ -41,31 +41,35 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     // Note: We should make this method incremental (called many times in ShaderMixer)
     //       And possibly do the type deduplicating at the same time? (TypeDuplicateRemover)
 
-    public static void ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end, out Dictionary<int, string> names, out Dictionary<int, SymbolType> types, IShaderImporter? shaderImporter = null)
+    public static void ProcessNameAndTypes(SpirvContext context, IShaderImporter? shaderImporter = null, bool allowReplace = false)
     {
-        names = [];
-        types = [];
-
-        ProcessNameAndTypes(buffer, start, end, names, types, shaderImporter);
+        ProcessNameAndTypes(context, 0, context.GetBuffer().Count, shaderImporter, allowReplace);
     }
 
-    public static void ProcessNameAndTypes(SpirvContext context, int start, int end, IShaderImporter? shaderImporter = null)
+    public static void ProcessNameAndTypes(SpirvContext context, int start, int end, IShaderImporter? shaderImporter = null, bool allowReplace = false)
     {
-        ProcessNameAndTypes(context.GetBuffer(), start, end, context.Names, context.ReverseTypes, shaderImporter);
-        foreach (var type in context.ReverseTypes)
+        void RegisterType(int typeId, SymbolType symbolType)
         {
-            if (!context.Types.ContainsKey(type.Value))
-                context.Types.Add(type.Value, type.Key);
+            if (allowReplace && context.ReverseTypes.TryGetValue(typeId, out var existingSymbolType))
+            {
+                context.ReverseTypes[typeId] = symbolType;
+                context.Types.Remove(existingSymbolType);
+            }
+            else
+            {
+                context.ReverseTypes.Add(typeId, symbolType);
+            }
+            context.Types.Add(symbolType, typeId);
         }
-    }
 
-    public static void ProcessNameAndTypes(SpirvContext context, IShaderImporter? shaderImporter = null)
-    {
-        ProcessNameAndTypes(context, 0, context.GetBuffer().Count, shaderImporter);
-    }
+        void RegisterName(int target, string name)
+        {
+            if (allowReplace)
+                context.Names[target] = name;
+            else
+                context.Names.Add(target, name);
+        }
 
-    public static void ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end, Dictionary<int, string> names, Dictionary<int, SymbolType> types, IShaderImporter? shaderImporter = null)
-    {
         var realShaderImporter = shaderImporter ?? new EmptyShaderImporter();
         var importedShaders = new Dictionary<int, ShaderSymbol>();
 
@@ -73,11 +77,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         var blocks = new HashSet<int>();
         for (var i = start; i < end; i++)
         {
-            var instruction = buffer[i];
+            var instruction = context.GetBuffer()[i];
             if (instruction.Op == Op.OpName)
             {
                 OpName nameInstruction = instruction;
-                names.Add(nameInstruction.Target, nameInstruction.Name);
+                RegisterName(nameInstruction.Target, nameInstruction.Name);
             }
             else if (instruction.Op == Op.OpMemberName)
             {
@@ -96,7 +100,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 //if (floatInstruction.FloatingPointEncoding != 0)
                 //    throw new InvalidOperationException();
 
-                types.Add(floatInstruction.ResultId, floatInstruction.Width switch
+                RegisterType(floatInstruction.ResultId, floatInstruction.Width switch
                 {
                     16 => ScalarType.From("half"),
                     32 => ScalarType.From("float"),
@@ -107,7 +111,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             else if (instruction.Op == Op.OpTypeInt)
             {
                 OpTypeInt intInstruction = instruction;
-                types.Add(intInstruction.ResultId, (intInstruction.Width, intInstruction.Signedness == 1) switch
+                RegisterType(intInstruction.ResultId, (intInstruction.Width, intInstruction.Signedness == 1) switch
                 {
                     (32, true) => ScalarType.From("int"),
                     (32, false) => ScalarType.From("uint"),
@@ -118,80 +122,80 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             else if (instruction.Op == Op.OpTypeBool)
             {
                 OpTypeBool boolInstruction = instruction;
-                types.Add(boolInstruction.ResultId, ScalarType.From("bool"));
+                RegisterType(boolInstruction.ResultId, ScalarType.From("bool"));
             }
             else if (instruction.Op == Op.OpTypePointer && (OpTypePointer)instruction is { } pointerInstruction)
             {
-                var innerType = types[pointerInstruction.Type];
-                types.Add(pointerInstruction.ResultId, new PointerType(innerType, pointerInstruction.Storageclass));
+                var innerType = context.ReverseTypes[pointerInstruction.Type];
+                RegisterType(pointerInstruction.ResultId, new PointerType(innerType, pointerInstruction.Storageclass));
             }
             else if (instruction.Op == Op.OpTypeVoid && (OpTypeVoid)instruction is { } voidInstruction)
             {
-                types.Add(voidInstruction.ResultId, ScalarType.From("void"));
+                RegisterType(voidInstruction.ResultId, ScalarType.From("void"));
             }
             else if (instruction.Op == Op.OpTypeVector && (OpTypeVector)instruction is { } vectorInstruction)
             {
-                var innerType = (ScalarType)types[vectorInstruction.ComponentType];
-                types.Add(vectorInstruction.ResultId, new VectorType(innerType, vectorInstruction.ComponentCount));
+                var innerType = (ScalarType)context.ReverseTypes[vectorInstruction.ComponentType];
+                RegisterType(vectorInstruction.ResultId, new VectorType(innerType, vectorInstruction.ComponentCount));
             }
             else if (instruction.Op == Op.OpTypeMatrix && (OpTypeMatrix)instruction is { } matrixInstruction)
             {
-                var innerType = (VectorType)types[matrixInstruction.ColumnType];
-                types.Add(matrixInstruction.ResultId, new MatrixType(innerType.BaseType, innerType.Size, matrixInstruction.ColumnCount));
+                var innerType = (VectorType)context.ReverseTypes[matrixInstruction.ColumnType];
+                RegisterType(matrixInstruction.ResultId, new MatrixType(innerType.BaseType, innerType.Size, matrixInstruction.ColumnCount));
             }
             else if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
             {
-                var structName = names[typeStructInstruction.ResultId];
+                var structName = context.Names[typeStructInstruction.ResultId];
                 var fieldsData = typeStructInstruction.Values;
                 var fields = new List<StructuredTypeMember>();
                 for (var index = 0; index < fieldsData.WordCount; index++)
                 {
                     var fieldData = fieldsData.Words[index];
-                    var type = types[fieldData];
+                    var type = context.ReverseTypes[fieldData];
                     var name = memberNames[(typeStructInstruction.ResultId, index)];
                     fields.Add(new(name, type, TypeModifier.None));
                 }
                 StructuredType structType = (blocks.Contains(typeStructInstruction.ResultId))
                     ? new ConstantBufferSymbol(structName.StartsWith("type.") ? structName.Substring("type.".Length) : throw new InvalidOperationException(), fields)
                     : new StructType(structName, fields);
-                types.Add(typeStructInstruction.ResultId, structType);
+                RegisterType(typeStructInstruction.ResultId, structType);
             }
             else if (instruction.Op == Op.OpTypeArray && (OpTypeArray)instruction is { } typeArray)
             {
-                var innerType = types[typeArray.ElementType];
-                if (SpirvBuilder.TryGetConstantValue(typeArray.Length, out var arraySizeObject, out _, buffer, false))
+                var innerType = context.ReverseTypes[typeArray.ElementType];
+                if (SpirvBuilder.TryGetConstantValue(typeArray.Length, out var arraySizeObject, out _, context.GetBuffer(), false))
                 {
-                    types.Add(typeArray.ResultId, new ArrayType(innerType, (int)arraySizeObject));
+                    RegisterType(typeArray.ResultId, new ArrayType(innerType, (int)arraySizeObject));
                 }
                 else
                 {
                     // Constant can't be computed; we need to save aside all opcodes
-                    var bufferForConstant = SpirvBuilder.ExtractConstantAsSpirvBuffer(buffer, typeArray.Length);
-                    types.Add(typeArray.ResultId, new ArrayType(innerType, -1, (typeArray.Length, bufferForConstant)));
+                    var bufferForConstant = SpirvBuilder.ExtractConstantAsSpirvBuffer(context.GetBuffer(), typeArray.Length);
+                    RegisterType(typeArray.ResultId, new ArrayType(innerType, -1, (typeArray.Length, bufferForConstant)));
                 }
             }
             else if (instruction.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)instruction is { } typeRuntimeArray)
             {
-                var innerType = types[typeRuntimeArray.ElementType];
-                types.Add(typeRuntimeArray.ResultId, new ArrayType(innerType, -1));
+                var innerType = context.ReverseTypes[typeRuntimeArray.ElementType];
+                RegisterType(typeRuntimeArray.ResultId, new ArrayType(innerType, -1));
             }
             else if (instruction.Op == Op.OpTypeFunctionSDSL && new OpTypeFunctionSDSL(instruction) is { } typeFunctionInstruction)
             {
                 var tmp = new OpTypeFunction(instruction);
-                var returnType = types[typeFunctionInstruction.ReturnType];
+                var returnType = context.ReverseTypes[typeFunctionInstruction.ReturnType];
                 var parameterTypes = new List<FunctionParameter>();
                 foreach (var operand in typeFunctionInstruction.Values)
                 {
-                    parameterTypes.Add(new(types[operand.Item1], (ParameterModifiers)operand.Item2));
+                    parameterTypes.Add(new(context.ReverseTypes[operand.Item1], (ParameterModifiers)operand.Item2));
                 }
-                types.Add(typeFunctionInstruction.ResultId, new FunctionType(returnType, parameterTypes));
+                RegisterType(typeFunctionInstruction.ResultId, new FunctionType(returnType, parameterTypes));
             }
             else if (instruction.Op == Op.OpTypeImage && new OpTypeImage(instruction) is { } typeImage)
             {
-                var sampledType = (ScalarType)types[typeImage.SampledType];
+                var sampledType = (ScalarType)context.ReverseTypes[typeImage.SampledType];
                 if (typeImage.Dim == Dim.Buffer)
                 {
-                    types.Add(typeImage.ResultId, new BufferType(sampledType));
+                    RegisterType(typeImage.ResultId, new BufferType(sampledType));
                 }
                 else
                 {
@@ -212,41 +216,41 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                         Sampled = typeImage.Sampled,
                     };
 
-                    types.Add(typeImage.ResultId, textureType);
+                    RegisterType(typeImage.ResultId, textureType);
                 }
             }
             else if (instruction.Op == Op.OpTypeSampler && new OpTypeSampler(instruction) is { } typeSampler)
             {
-                types.Add(typeSampler.ResultId, new SamplerType());
+                RegisterType(typeSampler.ResultId, new SamplerType());
             }
             else if (instruction.Op == Op.OpTypeGenericSDSL && (OpTypeGenericSDSL)instruction is { } typeGeneric)
             {
-                types.Add(typeGeneric.ResultId, new GenericParameterType(typeGeneric.Kind));
+                RegisterType(typeGeneric.ResultId, new GenericParameterType(typeGeneric.Kind));
             }
             else if (instruction.Op == Op.OpTypeStreamsSDSL && (OpTypePointer)instruction is { } typeStreams)
             {
-                types.Add(typeStreams.ResultId, new StreamsType());
+                RegisterType(typeStreams.ResultId, new StreamsType());
             }
             // Unresolved content
             // This only happens during EvaluateInheritanceAndCompositions so it's not important to have all information valid
             else if (instruction.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)instruction is { } importShader)
             {
                 var classSource = new ShaderClassInstantiation(importShader.ShaderName, importShader.Values.Elements.Memory.ToArray());
-                var shaderSymbol = realShaderImporter.Import(classSource, buffer);
+                var shaderSymbol = realShaderImporter.Import(classSource, context);
 
-                types.Add(importShader.ResultId, shaderSymbol);
+                RegisterType(importShader.ResultId, shaderSymbol);
             }
             else if (instruction.Op == Op.OpSDSLImportStruct && (OpSDSLImportStruct)instruction is { } importStruct)
             {
-                var shaderSymbol = (ShaderSymbol)types[importStruct.Shader];
+                var shaderSymbol = (ShaderSymbol)context.ReverseTypes[importStruct.Shader];
                 if (shaderSymbol is LoadedShaderSymbol loadedShaderSymbol)
                 {
                     var structName = importStruct.StructName;
-                    types.Add(importStruct.ResultId, loadedShaderSymbol.StructTypes.Single(x => x.Type.ToId() == structName).Type);
+                    RegisterType(importStruct.ResultId, loadedShaderSymbol.StructTypes.Single(x => x.Type.ToId() == structName).Type);
                 }
                 else
                 {
-                    types.Add(importStruct.ResultId, new StructType(importStruct.StructName, []));
+                    RegisterType(importStruct.ResultId, new StructType(importStruct.StructName, []));
                 }
             }
         }
@@ -254,12 +258,12 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         // Second pass (for processing when info from first pass is needed)
         for (var i = start; i < end; i++)
         {
-            var instruction = buffer[i];
+            var instruction = context.GetBuffer()[i];
 
             // Can be declared before OpTypeStruct, so done in second pass
             if (instruction.Op == Op.OpMemberDecorate && (OpMemberDecorate)instruction is { } memberDecorate)
             {
-                var structType = (StructuredType)types[memberDecorate.StructureType];
+                var structType = (StructuredType)context.ReverseTypes[memberDecorate.StructureType];
                 if (memberDecorate.Decoration == Decoration.ColMajor)
                     structType.Members[memberDecorate.Member] = structType.Members[memberDecorate.Member] with { TypeModifier = TypeModifier.ColumnMajor };
                 else if (memberDecorate.Decoration == Decoration.RowMajor)
@@ -268,17 +272,25 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         }
     }
 
+    class ReplaceTypes(Dictionary<SymbolType, SymbolType> TypesToReplace) : TypeRewriter
+    {
+        public override SymbolType DefaultVisit(SymbolType node) => TypesToReplace.TryGetValue(node, out var result) ? result : node;
+    }
+
     public class ShaderImporter(SymbolTable table, SpirvContext context) : IShaderImporter
     {
-        public ShaderSymbol Import(ShaderClassInstantiation classSource, NewSpirvBuffer buffer)
+        public ShaderSymbol Import(ShaderClassInstantiation classSource, SpirvContext declaringContext)
         {
-            return LoadAndCacheExternalShaderType(table, context, classSource, buffer);
+            return LoadAndCacheExternalShaderType(table, context, classSource, declaringContext);
         }
     }
 
     private static LoadedShaderSymbol CreateShaderType(SymbolTable table, SpirvContext context, ShaderBuffers shaderBuffers, ShaderClassInstantiation classSource)
     {
-        ProcessNameAndTypes(shaderBuffers.Context, new ShaderImporter(table, context));
+        // Reprocess types, this is necessary for:
+        // - ArrayType (with proper updated constants without generics)
+        // - ShaderClass (properly loaded as LoadedShaderSymbol)
+        ProcessNameAndTypes(shaderBuffers.Context, new ShaderImporter(table, context), true);
 
         var variables = new List<(Symbol Symbol, VariableFlagsMask Flags)>();
         var methods = new List<(Symbol Symbol, FunctionFlagsMask Flags)>();
@@ -585,7 +597,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         return shaderType;
     }
 
-    public static LoadedShaderSymbol LoadAndCacheExternalShaderType(SymbolTable table, SpirvContext context, ShaderClassInstantiation classSource, NewSpirvBuffer parentBuffer)
+    public static LoadedShaderSymbol LoadAndCacheExternalShaderType(SymbolTable table, SpirvContext context, ShaderClassInstantiation classSource, SpirvContext declaringContext)
     {
         // Already processed?
         if (table.DeclaredTypes.TryGetValue(classSource.ToClassName(), out var symbolType))
@@ -593,7 +605,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         if (classSource.Buffer == null)
         {
-            var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), ResolveStep.Compile, parentBuffer);
+            var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), ResolveStep.Compile, declaringContext);
             classSource.Buffer = shader;
         }
         var shaderType = LoadExternalShaderType(table, context, classSource);
