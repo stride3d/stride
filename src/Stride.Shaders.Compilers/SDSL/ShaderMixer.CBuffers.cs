@@ -74,7 +74,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     LogicalGroup: GetCBufferLogicalGroup(x.Variable.Data.IdResult.Value)))
                 // TODO: Check Decoration.Block?
                 .Where(x => x.StructType != null)
-                .GroupBy(x => ShaderClass.GetCBufferRealName(globalContext.Names[x.Variable.Data.IdResult.Value]));
+                .GroupBy(x => ShaderClass.GetCBufferRealName(context.Names[x.Variable.Data.IdResult.Value]));
 
             var cbufferStructTypes = cbuffersByNames.SelectMany(x => x).Select(x => context.Types[x.StructType]).ToHashSet();
 
@@ -136,7 +136,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                 // In all cases, we update name to one without .0 .1 suffix
                 // (we do it even for case count == 1 because all buffer except one might have been optimized away)
-                globalContext.Names[cbuffersSpan[0].Variable.Data.IdResult.Value] = cbuffersEntry.Key;
+                context.Names[cbuffersSpan[0].Variable.Data.IdResult.Value] = cbuffersEntry.Key;
 
                 if (cbuffersEntry.Count() == 1)
                 {
@@ -159,9 +159,6 @@ namespace Stride.Shaders.Compilers.SDSL
                     var mergedCbufferStructId = context.DeclareCBuffer(mergedCbufferStruct);
                     var mergedCbufferPtrStruct = new PointerType(mergedCbufferStruct, Specification.StorageClass.Uniform);
                     var mergedCbufferPtrStructId = context.GetOrRegister(mergedCbufferPtrStruct);
-
-                    globalContext.Types.Add(mergedCbufferStructId, mergedCbufferStruct);
-                    globalContext.Types.Add(mergedCbufferPtrStructId, mergedCbufferPtrStruct);
 
                     ProcessDecorations(cbuffersSpan, mergedCbufferStructId, true);
 
@@ -375,7 +372,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                 globalContext.Reflection.ConstantBuffers.Add(new EffectConstantBufferDescription
                 {
-                    Name = globalContext.Names[cbuffer.Variable.Data.IdResult.Value],
+                    Name = context.Names[cbuffer.Variable.Data.IdResult.Value],
                     // Round buffer size to next multiple of 16 bytes
                     Size = (constantBufferOffset + 15) / 16 * 16,
 

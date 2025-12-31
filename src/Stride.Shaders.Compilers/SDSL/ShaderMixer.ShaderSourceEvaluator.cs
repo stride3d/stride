@@ -53,8 +53,7 @@ public partial class ShaderMixer
         foreach (var shaderName in mixinList.ToArray())
         {
             var shader = shaderName.Buffer.Value;
-            ShaderClass.ProcessNameAndTypes(shader.Context.GetBuffer(), 0, shader.Context.GetBuffer().Count, out var names, out var types);
-
+            ShaderClass.ProcessNameAndTypes(shader.Context);
             bool hasStage = false;
             foreach (var i in shader.Context)
             {
@@ -69,10 +68,10 @@ public partial class ShaderMixer
                 {
                     hasStage |= (variable.Flags & VariableFlagsMask.Stage) != 0;
 
-                    var variableType = types[variable.ResultType];
+                    var variableType = shader.Context.ReverseTypes[variable.ResultType];
                     if (variableType is PointerType pointer && pointer.BaseType is ShaderSymbol or ArrayType { BaseType: ShaderSymbol })
                     {
-                        var variableName = names[variable.ResultId];
+                        var variableName = shader.Context.Names[variable.ResultId];
                         // Make sure we have a ShaderMixinSource
                         // If composition is not specified, use default class
                         if (!shaderMixinSource.Compositions.TryGetValue(variableName, out var compositionMixin))

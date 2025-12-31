@@ -56,7 +56,7 @@ public partial class ShaderMixer
         public override string ToString() => $"{ShaderName} ({(CompositionPath != null ? $" {CompositionPath} " : "")}{StartInstruction}..{EndInstruction})";
     }
 
-    private void PopulateShaderInfo(MixinGlobalContext globalContext, NewSpirvBuffer context, int contextStart, int contextEnd, NewSpirvBuffer buffer, int shaderStart, int shaderEnd, ShaderInfo shaderInfo, MixinNode mixinNode)
+    private void PopulateShaderInfo(MixinGlobalContext globalContext, SpirvContext context, int contextStart, int contextEnd, NewSpirvBuffer buffer, int shaderStart, int shaderEnd, ShaderInfo shaderInfo, MixinNode mixinNode)
     {
         var removedIds = new HashSet<int>();
         for (var index = shaderStart; index < shaderEnd; index++)
@@ -65,16 +65,16 @@ public partial class ShaderMixer
 
             if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
-                var functionName = globalContext.Names[function.ResultId];
-                var functionType = (FunctionType)globalContext.Types[function.FunctionType];
+                var functionName = context.Names[function.ResultId];
+                var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
                 if (!shaderInfo!.Functions.TryGetValue(functionName, out var functions))
                     shaderInfo.Functions.Add(functionName, functions = new());
                 functions.Add((function.ResultId, functionType));
             }
             else if (i.Data.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
             {
-                var variableName = globalContext.Names[variable.ResultId];
-                var variableType = globalContext.Types[variable.ResultType];
+                var variableName = context.Names[variable.ResultId];
+                var variableType = context.ReverseTypes[variable.ResultType];
                 shaderInfo!.Variables.Add(variableName, (variable.ResultId, variableType));
 
                 // Remove SPIR-V variables to other shaders (already stored in ShaderInfo and not valid SPIR-V)
@@ -89,7 +89,7 @@ public partial class ShaderMixer
         // Second pass to remove OpName
         for (var index = contextStart; index < contextEnd; index++)
         {
-            var i = context[index];
+            var i = context.GetBuffer()[index];
 
             if (i.Data.Op == Op.OpName && (OpName)i is { } nameInstruction)
             {

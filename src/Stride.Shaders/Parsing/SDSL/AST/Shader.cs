@@ -49,6 +49,21 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         ProcessNameAndTypes(buffer, start, end, names, types, shaderImporter);
     }
 
+    public static void ProcessNameAndTypes(SpirvContext context, int start, int end, IShaderImporter? shaderImporter = null)
+    {
+        ProcessNameAndTypes(context.GetBuffer(), start, end, context.Names, context.ReverseTypes, shaderImporter);
+        foreach (var type in context.ReverseTypes)
+        {
+            if (!context.Types.ContainsKey(type.Value))
+                context.Types.Add(type.Value, type.Key);
+        }
+    }
+
+    public static void ProcessNameAndTypes(SpirvContext context, IShaderImporter? shaderImporter = null)
+    {
+        ProcessNameAndTypes(context, 0, context.GetBuffer().Count, shaderImporter);
+    }
+
     public static void ProcessNameAndTypes(NewSpirvBuffer buffer, int start, int end, Dictionary<int, string> names, Dictionary<int, SymbolType> types, IShaderImporter? shaderImporter = null)
     {
         var realShaderImporter = shaderImporter ?? new EmptyShaderImporter();
@@ -263,7 +278,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
     private static LoadedShaderSymbol CreateShaderType(SymbolTable table, SpirvContext context, ShaderBuffers shaderBuffers, ShaderClassInstantiation classSource)
     {
-        ProcessNameAndTypes(shaderBuffers.Context.GetBuffer(), 0, shaderBuffers.Context.GetBuffer().Count, out var names, out var types, new ShaderImporter(table, context));
+        ProcessNameAndTypes(shaderBuffers.Context, new ShaderImporter(table, context));
 
         var variables = new List<(Symbol Symbol, VariableFlagsMask Flags)>();
         var methods = new List<(Symbol Symbol, FunctionFlagsMask Flags)>();
@@ -273,7 +288,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         {
             if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStructInstruction)
             {
-                structTypes.Add(((StructuredType)types[typeStructInstruction.ResultId], -1));
+                structTypes.Add(((StructuredType)shaderBuffers.Context.ReverseTypes[typeStructInstruction.ResultId], -1));
             }
         }
         for (var index = 0; index < shaderBuffers.Buffer.Count; index++)
@@ -282,9 +297,9 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             if (instruction.Op == Op.OpVariableSDSL && (OpVariableSDSL)instruction is { } variable &&
                 variable.Storageclass != Specification.StorageClass.Function)
             {
-                if (!names.TryGetValue(variable.ResultId, out var variableName))
+                if (!shaderBuffers.Context.Names.TryGetValue(variable.ResultId, out var variableName))
                     variableName = $"_{variable.ResultId}";
-                var variableType = types[variable.ResultType];
+                var variableType = shaderBuffers.Context.ReverseTypes[variable.ResultType];
 
                 var sid = new SymbolID(variableName, SymbolKind.Variable, variable.Flags.HasFlag(VariableFlagsMask.Stream) ? Storage.Stream : 0, IsStage: (variable.Flags & VariableFlagsMask.Stage) != 0);
                 variables.Add((new(sid, variableType, 0), variable.Flags));
@@ -297,8 +312,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     functionFlags = functionInfo.Flags;
 
                 OpFunction functionInstruction = instruction;
-                var functionName = names[functionInstruction.ResultId];
-                var functionType = types[functionInstruction.FunctionType];
+                var functionName = shaderBuffers.Context.Names[functionInstruction.ResultId];
+                var functionType = shaderBuffers.Context.ReverseTypes[functionInstruction.FunctionType];
 
                 var sid = new SymbolID(functionName, SymbolKind.Method, IsStage: (functionFlags & FunctionFlagsMask.Stage) != 0);
                 methods.Add((new(sid, functionType, 0), functionFlags));
@@ -306,7 +321,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
             if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
             {
-                structTypes.Add(((StructuredType)types[typeStructInstruction.ResultId], -1));
+                structTypes.Add(((StructuredType)shaderBuffers.Context.ReverseTypes[typeStructInstruction.ResultId], -1));
             }
         }
 

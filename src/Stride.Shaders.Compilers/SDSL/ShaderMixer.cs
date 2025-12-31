@@ -44,7 +44,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var globalContext = new MixinGlobalContext();
 
         // Process name and types imported by constants due to generics instantiation
-        ShaderClass.ProcessNameAndTypes(context.GetBuffer(), 0, context.GetBuffer().Count, globalContext.Names, globalContext.Types);
+        ShaderClass.ProcessNameAndTypes(context);
 
         var rootMixin = MergeMixinNode(globalContext, context, table, temp, shaderSource2);
 
@@ -94,9 +94,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     class MixinGlobalContext
     {
-        public Dictionary<int, string> Names { get; } = [];
-        public Dictionary<int, SymbolType> Types { get; } = [];
-
         public EffectReflection Reflection { get; } = new();
 
         public Dictionary<int, string> ExternalShaders { get; } = new();
@@ -182,8 +179,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             mixinNode.Shaders.Add(shaderInfo);
 
             // Note: we process name, types and struct right away, as they might be needed by the next Shader
-            ShaderClass.ProcessNameAndTypes(context.GetBuffer(), contextStart, context.GetBuffer().Count, globalContext.Names, globalContext.Types);
-            PopulateShaderInfo(globalContext, context.GetBuffer(), contextStart, context.GetBuffer().Count, buffer, shaderInfo.StartInstruction, shaderInfo.EndInstruction, shaderInfo, mixinNode);
+            ShaderClass.ProcessNameAndTypes(context, contextStart, context.GetBuffer().Count);
+            PopulateShaderInfo(globalContext, context, contextStart, context.GetBuffer().Count, buffer, shaderInfo.StartInstruction, shaderInfo.EndInstruction, shaderInfo, mixinNode);
         }
 
         mixinNode.EndInstruction = buffer.Count;
@@ -470,24 +467,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     private static void BuildTypesAndMethodGroups(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, NewSpirvBuffer temp, MixinNode mixinNode)
     {
-        // Setup types in context
-        foreach (var type in globalContext.Types)
-        {
-            if (!context.ReverseTypes.ContainsKey(type.Key))
-            {
-                context.Types.Add(type.Value, type.Key);
-                context.ReverseTypes.Add(type.Key, type.Value);
-            }
-        }
-
         // Add symbol for each method in current type (equivalent to implicit this pointer)
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
         {
             var i = temp[index];
             if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
-                var functionName = globalContext.Names[function.ResultId];
-                var symbol = new Symbol(new(functionName, SymbolKind.Method), globalContext.Types[function.FunctionType], function.ResultId);
+                var functionName = context.Names[function.ResultId];
+                var symbol = new Symbol(new(functionName, SymbolKind.Method), context.ReverseTypes[function.FunctionType], function.ResultId);
                 table.CurrentFrame.Add(functionName, symbol);
             }
         }
@@ -512,7 +499,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (temp[index + 1].Op == Op.OpSDSLFunctionInfo &&
                     (OpSDSLFunctionInfo)temp[index + 1] is { } functionInfo) 
                 {
-                    var functionName = globalContext.Names[function.ResultId];
+                    var functionName = context.Names[function.ResultId];
                     var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
 
                     var methodMixinGroup = mixinNode;
@@ -540,8 +527,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     methodMixinGroup.MethodGroups[function.ResultId] = methodGroup;
 
                     // Also add lookup by name
-                    if (!methodMixinGroup.MethodGroupsByName.TryGetValue((functionName, functionType), out var methodGroups))
-                        methodMixinGroup.MethodGroupsByName.Add((functionName, functionType), function.ResultId);
+                    if (!methodMixinGroup.MethodGroupsByName.TryGetValue(new(functionName, functionType), out var methodGroups))
+                        methodMixinGroup.MethodGroupsByName.Add(new(functionName, functionType), function.ResultId);
 
                     // If abstract, let's erase the whole function
                     if ((functionInfo.Flags & FunctionFlagsMask.Abstract) != 0)
@@ -608,7 +595,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (i.IdResult is int result)
                 {
                     // Also duplicate name (if any)
-                    if (globalContext.Names.TryGetValue(result, out var name))
+                    if (context.Names.TryGetValue(result, out var name))
                         context.AddName(context.Bound, name);
                     idRemapping.Add(result, context.Bound++);
                 }
@@ -731,7 +718,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     }
                     memberAccesses.Add(memberAccess.ResultId, variableInfo.Id);
                 }
-                else if (globalContext.Types[memberAccess.ResultType] is FunctionType functionType)
+                else if (context.ReverseTypes[memberAccess.ResultType] is FunctionType functionType)
                 {
                     // In case of functions, OpMemberAccessSDSL.Member could either be a OpFunction or a OpImportFunctionSDSL
                     var functionId = memberAccess.Member;
@@ -744,7 +731,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     {
                         // Try again as a stage method (only if not a base call)
                         if (instanceMixinGroup.Stage == null || !instanceMixinGroup.Stage.MethodGroups.TryGetValue(functionId, out methodGroupEntry))
-                            throw new InvalidOperationException($"Can't find method group info for {globalContext.Names[functionId]}");
+                            throw new InvalidOperationException($"Can't find method group info for {context.Names[functionId]}");
                         foundInStage = true;
                     }
 
@@ -757,7 +744,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         // We currently do not allow calling base stage method from a non-stage method
                         // (if we were to allow them later, we would need to tweak following detection code as ShaderIndex comparison is only valid for items within the same MixinNode)
                         if (foundInStage)
-                            throw new InvalidOperationException($"Method {globalContext.Names[functionId]} was found but a base call can't be performed on a stage method from a non-stage method");
+                            throw new InvalidOperationException($"Method {context.Names[functionId]} was found but a base call can't be performed on a stage method from a non-stage method");
 
                         // Is it a base call? if yes, find the direct parent
                         // Let's find the method in same group just before ours
@@ -773,11 +760,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         }
 
                         if (!baseMethodFound)
-                            throw new InvalidOperationException($"Can't find a base method for {globalContext.Names[functionId]}");
+                            throw new InvalidOperationException($"Can't find a base method for {context.Names[functionId]}");
                     }
 
                     if ((selectedMethod.Flags & FunctionFlagsMask.Abstract) != 0)
-                        throw new InvalidOperationException($"Trying to call an abstract method {selectedMethod.Shader.ShaderName}.{globalContext.Names[functionId]}");
+                        throw new InvalidOperationException($"Trying to call an abstract method {selectedMethod.Shader.ShaderName}.{context.Names[functionId]}");
                     functionId = selectedMethod.MethodId;
 
                     memberAccesses.Add(memberAccess.ResultId, functionId);
@@ -792,7 +779,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function && temp[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)temp[index + 1] is { } functionInfo)
             {
                 if (!mixinNode.MethodGroups.TryGetValue(function.ResultId, out var methodGroupEntry))
-                    throw new InvalidOperationException($"Can't find method group info for {globalContext.Names[function.ResultId]}");
+                    throw new InvalidOperationException($"Can't find method group info for {context.Names[function.ResultId]}");
             }
             else if (i.Data.Op == Op.OpFunctionEnd)
             {
@@ -828,7 +815,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             else if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { Storageclass: Specification.StorageClass.UniformConstant } variable)
             {
                 // Note: we don't rename cbuffer as they have been merged and don't belong to a specific shader/composition anymore
-                var type = globalContext.Types[variable.ResultType];
+                var type = context.ReverseTypes[variable.ResultType];
                 if (type is not ConstantBufferSymbol)
                     prefixes[variable.ResultId] = shaderNameWithComposition;
             }
@@ -855,7 +842,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     // Now, make sure it's all valid HLSL/GLSL characters (this will replace multiple invalid characters with a single underscore)
                     // Otherwise, EffectReflection RawName won't match
                     updatedName = SpirvBuilder.RemoveInvalidCharactersFromSymbol(updatedName);
-                    globalContext.Names[name.Target] = updatedName;
+                    context.Names[name.Target] = updatedName;
                 }
             }
         }
@@ -977,7 +964,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 var type = context.ReverseTypes[variable.ResultType];
                 if (type is PointerType pointerType)
                 {
-                    var name = globalContext.Names[variable.ResultId];
+                    var name = context.Names[variable.ResultId];
                     linkInfos.TryGetValue(variable.ResultId, out var linkInfo);
                     var linkName = linkInfo.LinkName ?? $"{TypeName.GetTypeNameWithoutGenerics(currentShaderName)}.{name}";
                     if (mixinNode.CompositionPath != null)
