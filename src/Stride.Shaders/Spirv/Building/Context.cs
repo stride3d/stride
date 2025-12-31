@@ -31,9 +31,19 @@ public class SpirvContext
     public Dictionary<int, SymbolType> ReverseTypes { get; } = [];
     public Dictionary<int, string> Names { get; } = [];
     public Dictionary<(SymbolType Type, object Value), SpirvValue> LiteralConstants { get; } = [];
-    NewSpirvBuffer Buffer { get; set; } = new();
+    NewSpirvBuffer Buffer { get; init; }
 
     public int? GLSLSet { get; private set; }
+
+    public SpirvContext()
+    {
+        Buffer = new();
+    }
+
+    public SpirvContext(NewSpirvBuffer buffer)
+    {
+        Buffer = buffer;
+    }
 
     public void ImportGLSL()
     {
