@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using DotRecast.Core.Numerics;
 using DotRecast.Detour;
@@ -79,14 +80,32 @@ internal class InternalNavigationMesh
             return;
 
         long[] polys = new long[query.MaxPathPoints];
-        status = navQuery.FindPath(startPoly, endPoly, startPoint, endPoint, filter, polys, out var pathCount, query.MaxPathPoints);
-        if (status.Failed() || status.IsPartial())
-            return;
+        navQuery.FindPath(startPoly, endPoly, startPoint, endPoint, filter, polys, out var pathCount, polys.Length);
 
-        var pathPointsSpan = CollectionsMarshal.AsSpan(result.PathPoints);
-        status = navQuery.FindStraightPath(startPoint, endPoint, polys, polys.Length, pathPointsSpan, out var straightPathCount, query.MaxPathPoints, 0);
-        if (status.Failed())
+        if (0 >= pathCount)
+        {
             return;
+        }
+
+        // In case of partial path, make sure the end point is clamped to the last polygon.
+        var endPosition = new RcVec3f(endPoint.X, endPoint.Y, endPoint.Z);
+        if (polys[pathCount - 1] != endPoly)
+        {
+            status = navQuery.ClosestPointOnPoly(polys[pathCount - 1], endPoint, out var closest, out var _);
+            if (status.Succeeded())
+            {
+                endPosition = closest;
+            }
+        }
+
+        // Due to Dotrecast using Spans, we need to allocate the array with the max size possible then resize it later to remove empty entries.
+        // TODO: By default we allocate 1024 points which is way more than enough for most cases and should maybe be defaulted to a smaller value in the future.
+        result.PathPoints = new DtStraightPath[query.MaxPathPoints];
+        navQuery.FindStraightPath(startPoint, endPosition, polys, pathCount, result.PathPoints, out var straightPathCount, query.MaxPathPoints, 0);
+
+        // cut out the empty entries
+        Array.Resize(ref result.PathPoints, straightPathCount);
+
         result.PathFound = true;
     }
 

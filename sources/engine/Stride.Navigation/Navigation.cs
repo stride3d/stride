@@ -27,7 +27,7 @@ namespace Stride.Navigation
     internal struct PathFindResult
     {
         public bool PathFound;
-        public List<DtStraightPath> PathPoints;
+        public DtStraightPath[] PathPoints;
     }
     
     internal struct BuildSettings
