@@ -31,12 +31,12 @@ public partial class ShaderMixer
 
         foreach (var mixinToMerge in shaderMixinSource.Mixins)
         {
-            var buffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge.ClassName, mixinToMerge.GenericArguments, shaderMixinSource.Macros.AsSpan());
+            var shaderBuffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge.ClassName, mixinToMerge.GenericArguments, shaderMixinSource.Macros.AsSpan());
 
             var mixinToMerge2 = new ShaderClassInstantiation(mixinToMerge.ClassName, []);
-            mixinToMerge2.Buffer = buffer;
+            mixinToMerge2.Buffer = shaderBuffer;
             // Copy back updated shader name (in case it had generic parameters)
-            foreach (var i in buffer)
+            foreach (var i in shaderBuffer.Buffer)
             {
                 if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shaderInstruction)
                 {
@@ -52,11 +52,18 @@ public partial class ShaderMixer
 
         foreach (var shaderName in mixinList.ToArray())
         {
-            var shader = shaderName.Buffer;
-            ShaderClass.ProcessNameAndTypes(shader, 0, shader.Count, out var names, out var types);
+            var shader = shaderName.Buffer.Value;
+            ShaderClass.ProcessNameAndTypes(shader.Context.GetBuffer(), 0, shader.Context.GetBuffer().Count, out var names, out var types);
 
             bool hasStage = false;
-            foreach (var i in shader)
+            foreach (var i in shader.Context)
+            {
+                if (i.Op == Op.OpTypeStruct)
+                {
+                    hasStage = true;
+                }
+            }
+            foreach (var i in shader.Buffer)
             {
                 if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
                 {
@@ -96,11 +103,6 @@ public partial class ShaderMixer
                 if (i.Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)i is {} functionInfo)
                 {
                     hasStage |= (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
-                }
-
-                if (i.Op == Op.OpTypeStruct)
-                {
-                    hasStage = true;
                 }
             }
 

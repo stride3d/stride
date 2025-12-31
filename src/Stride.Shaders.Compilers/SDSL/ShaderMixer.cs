@@ -198,7 +198,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 throw new InvalidOperationException("importing stage-only methods/variables is only possible at the root mixin");
         }
 
-        var shader = shaderClass.Buffer;
+        var shaderBuffers = shaderClass.Buffer.Value;
         var offset = context.Bound;
         var resourceGroupOffset = context.ResourceGroupBound;
 
@@ -250,171 +250,174 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var structTypes = new Dictionary<string, int>();
 
         // Copy instructions to main buffer
-        for (var index = 0; index < shader.Count; index++)
+        foreach (var shader in new[] { shaderBuffers.Context.GetBuffer(), shaderBuffers.Buffer })
         {
-            var i = shader[index];
-
-            // Do we need to skip variable/functions? (depending on stage/non-stage)
+            for (var index = 0; index < shader.Count; index++)
             {
-                var include = true;
-                if (i.Op == Op.OpName)
-                {
-                    OpName nameInstruction = i;
-                    names.Add(nameInstruction.Target, nameInstruction.Name);
-                }
-                if (i.Op == Op.OpFunction && (OpFunction)i is { } function && shader[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shader[index + 1] is { } functionInfo)
-                {
-                    var isStage = (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
-                    // Note: BuildTypesAndMethodGroups has not been called for this mixin so context.Types/ReverseTypes is not filled
-                    //       However:
-                    //        - FunctionType is only required when looking for stage function
-                    //        - In that case, root stage mixin MergeMixinNode => BuildTypesAndMethodGroups would have been called for this function type
-                    //        - function type is already deduplicated (in this loop)
-                    //       So the lookup will work when it is necessary
+                var i = shader[index];
 
-                    FunctionType? functionType = default;
-                    // First, assuming FunctionType is a duplicate from a previous shader, we could find the already existing type by applying offset and remapIds
-                    if (remapIds.TryGetValue(function.FunctionType + offset, out var remappedFunctionTypeId)
-                        // Then, we can find the actual type in context.ReverseTypes
-                        && context.ReverseTypes.TryGetValue(remappedFunctionTypeId, out var functionType2))
-                        functionType = (FunctionType)functionType2;
-
-                    include = ProcessStageMemberOrType(function.ResultId, functionType, isStage);
-                }
-                if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variableInstruction)
+                // Do we need to skip variable/functions? (depending on stage/non-stage)
                 {
-                    var isStage = (variableInstruction.Flags & VariableFlagsMask.Stage) != 0;
-                    include = ProcessStageMemberOrType(variableInstruction.ResultId, null, isStage);
-                }
-                if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStruct)
-                {
-                    include = ProcessStageMemberOrType(typeStruct.ResultId, null, true);
-                }
-
-                if (!include)
-                {
-                    // We store removed IDs for further OpName removals
-                    if (i.Data.IdResult is int id)
-                        removedIds.Add(offset + id);
-
-                    // Special case for function: skip until function end
-                    // (for other cases such as variable, skipping only current instruction is enough)
-                    if (i.Op == Op.OpFunction)
+                    var include = true;
+                    if (i.Op == Op.OpName)
                     {
-                        // Skip until end of function
-                        while (shader[++index].Op != Op.OpFunctionEnd)
-                        {
-                            // We store removed IDs for further OpName removals
-                            if (shader[index].Data.IdResult is int id2)
-                                removedIds.Add(offset + id2);
-                        }
+                        OpName nameInstruction = i;
+                        names.Add(nameInstruction.Target, nameInstruction.Name);
+                    }
+                    if (i.Op == Op.OpFunction && (OpFunction)i is { } function && shader[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shader[index + 1] is { } functionInfo)
+                    {
+                        var isStage = (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
+                        // Note: BuildTypesAndMethodGroups has not been called for this mixin so context.Types/ReverseTypes is not filled
+                        //       However:
+                        //        - FunctionType is only required when looking for stage function
+                        //        - In that case, root stage mixin MergeMixinNode => BuildTypesAndMethodGroups would have been called for this function type
+                        //        - function type is already deduplicated (in this loop)
+                        //       So the lookup will work when it is necessary
+
+                        FunctionType? functionType = default;
+                        // First, assuming FunctionType is a duplicate from a previous shader, we could find the already existing type by applying offset and remapIds
+                        if (remapIds.TryGetValue(function.FunctionType + offset, out var remappedFunctionTypeId)
+                            // Then, we can find the actual type in context.ReverseTypes
+                            && context.ReverseTypes.TryGetValue(remappedFunctionTypeId, out var functionType2))
+                            functionType = (FunctionType)functionType2;
+
+                        include = ProcessStageMemberOrType(function.ResultId, functionType, isStage);
+                    }
+                    if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variableInstruction)
+                    {
+                        var isStage = (variableInstruction.Flags & VariableFlagsMask.Stage) != 0;
+                        include = ProcessStageMemberOrType(variableInstruction.ResultId, null, isStage);
+                    }
+                    if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStruct)
+                    {
+                        include = ProcessStageMemberOrType(typeStruct.ResultId, null, true);
                     }
 
-                    // Go to next instruction
-                    continue;
-                }
-            }
-
-            var i2 = new OpData(i.Data.Memory.Span);
-
-            if (offset > 0)
-                OffsetIds(i2, offset);
-
-            if (i2.IdResult != null)
-                context.Bound = Math.Max(context.Bound, i2.IdResult.Value + 1);
-
-            // ResourceGroupId: adjust offsets too
-            if (i2.Op == Op.OpDecorate && new OpDecorate(ref i2) is { Decoration: { Value: Decoration.ResourceGroupIdSDSL, Parameters: { } m } } resourceGroupIdDecorate)
-            {
-                // Somehow data doesn't get mutated inside i2 if we update resourceGroupIdDecorate.Decoration, so we reference buffer directly
-                var n = new LiteralValue<int>(m.Span);
-                n.Value += resourceGroupOffset;
-                resourceGroupIdDecorate.Decoration = new(resourceGroupIdDecorate.Decoration.Value, n.Words);
-                context.ResourceGroupBound = Math.Max(context.ResourceGroupBound, n.Value + 1);
-                n.Dispose();
-            }
-
-            if (SpirvBuilder.ContainIds(forbiddenIds, i2))
-                throw new InvalidOperationException($"Stage instruction {i.Data} references a non-stage ID");
-
-            SpirvBuilder.RemapIds(remapIds, ref i2);
-
-            // Detect when we switch from context to main buffer
-            if (i2.Op == Op.OpSDSLShader)
-            {
-                isContext = false;
-            }
-
-            // Specific type instructions in context gets deduplicated before adding
-            bool addToContext = false;
-            if (TypeDuplicateHelper.OpCheckDuplicateForTypesAndImport(i2.Op))
-            {
-                // We need to replace those right now (otherwise further types depending on this struct won't get properly translated)
-                if (i2.Op == Op.OpSDSLImportStruct && new OpSDSLImportStruct(ref i2) is { } importStruct)
-                {
-                    var shaderName = globalContext.ExternalShaders[importStruct.Shader];
-                    var shader2 = mixinNode.ShadersByName[shaderName];
-                    if (!shader2.StructTypes.TryGetValue(importStruct.StructName, out var structId)
-                        && (shader2.Stage == null || !shader2.Stage.StructTypes.TryGetValue(importStruct.StructName, out structId)))
-                        throw new InvalidOperationException($"Struct {importStruct.StructName} not found in shader {shaderName}");
-                    remapIds.Add(importStruct.ResultId, structId);
-                    removedIds.Add(structId);
-                }
-                else
-                {
-                    // Check if type already exists in context (deduplicate them)
-                    if (typeDuplicateInserter.CheckForDuplicates(i2, out var existingInstruction))
+                    if (!include)
                     {
-                        if (i2.IdResult is int id)
+                        // We store removed IDs for further OpName removals
+                        if (i.Data.IdResult is int id)
+                            removedIds.Add(offset + id);
+
+                        // Special case for function: skip until function end
+                        // (for other cases such as variable, skipping only current instruction is enough)
+                        if (i.Op == Op.OpFunction)
                         {
-                            remapIds.Add(id, existingInstruction.Data.IdResult.Value);
-                            removedIds.Add(existingInstruction.Data.IdResult.Value);
+                            // Skip until end of function
+                            while (shader[++index].Op != Op.OpFunctionEnd)
+                            {
+                                // We store removed IDs for further OpName removals
+                                if (shader[index].Data.IdResult is int id2)
+                                    removedIds.Add(offset + id2);
+                            }
                         }
+
+                        // Go to next instruction
+                        continue;
+                    }
+                }
+
+                var i2 = new OpData(i.Data.Memory.Span);
+
+                if (offset > 0)
+                    OffsetIds(i2, offset);
+
+                if (i2.IdResult != null)
+                    context.Bound = Math.Max(context.Bound, i2.IdResult.Value + 1);
+
+                // ResourceGroupId: adjust offsets too
+                if (i2.Op == Op.OpDecorate && new OpDecorate(ref i2) is { Decoration: { Value: Decoration.ResourceGroupIdSDSL, Parameters: { } m } } resourceGroupIdDecorate)
+                {
+                    // Somehow data doesn't get mutated inside i2 if we update resourceGroupIdDecorate.Decoration, so we reference buffer directly
+                    var n = new LiteralValue<int>(m.Span);
+                    n.Value += resourceGroupOffset;
+                    resourceGroupIdDecorate.Decoration = new(resourceGroupIdDecorate.Decoration.Value, n.Words);
+                    context.ResourceGroupBound = Math.Max(context.ResourceGroupBound, n.Value + 1);
+                    n.Dispose();
+                }
+
+                if (SpirvBuilder.ContainIds(forbiddenIds, i2))
+                    throw new InvalidOperationException($"Stage instruction {i.Data} references a non-stage ID");
+
+                SpirvBuilder.RemapIds(remapIds, ref i2);
+
+                // Detect when we switch from context to main buffer
+                if (i2.Op == Op.OpSDSLShader)
+                {
+                    isContext = false;
+                }
+
+                // Specific type instructions in context gets deduplicated before adding
+                bool addToContext = false;
+                if (TypeDuplicateHelper.OpCheckDuplicateForTypesAndImport(i2.Op))
+                {
+                    // We need to replace those right now (otherwise further types depending on this struct won't get properly translated)
+                    if (i2.Op == Op.OpSDSLImportStruct && new OpSDSLImportStruct(ref i2) is { } importStruct)
+                    {
+                        var shaderName = globalContext.ExternalShaders[importStruct.Shader];
+                        var shader2 = mixinNode.ShadersByName[shaderName];
+                        if (!shader2.StructTypes.TryGetValue(importStruct.StructName, out var structId)
+                            && (shader2.Stage == null || !shader2.Stage.StructTypes.TryGetValue(importStruct.StructName, out structId)))
+                            throw new InvalidOperationException($"Struct {importStruct.StructName} not found in shader {shaderName}");
+                        remapIds.Add(importStruct.ResultId, structId);
+                        removedIds.Add(structId);
                     }
                     else
                     {
-                        addToContext = true;
+                        // Check if type already exists in context (deduplicate them)
+                        if (typeDuplicateInserter.CheckForDuplicates(i2, out var existingInstruction))
+                        {
+                            if (i2.IdResult is int id)
+                            {
+                                remapIds.Add(id, existingInstruction.Data.IdResult.Value);
+                                removedIds.Add(existingInstruction.Data.IdResult.Value);
+                            }
+                        }
+                        else
+                        {
+                            addToContext = true;
+                        }
                     }
                 }
-            }
-            // Does this belong in context or buffer?
-            else if (isContext)
-            {
-                addToContext = true;
-            }
-            else
-            {
-                buffer.Add(i2);
-            }
-
-            // OpTypeStruct is the only type that can be defined by the shader.
-            // In case it's deduplicated (i.e. used in two separate mixin nodes), we still want to have it in shaderInfo.StructTypes, so let's save it aside now.
-            if (i2.Op == Op.OpTypeStruct && new OpTypeStruct(ref i2) is { } typeStruct2)
-            {
-                var structName = names[typeStruct2.ResultId - offset];
-                if (!remapIds.TryGetValue(typeStruct2.ResultId, out var structId))
-                    structId = typeStruct2.ResultId;
-                structTypes.Add(structName, structId);
-            }
-
-            // Process OpSDSLImport
-            ProcessImportInfo(globalContext, mixinNode, ref i2, context.GetBuffer());
-
-            if (addToContext)
-            {
-                // OpName and such: check if associated instruction has not been removed
-                if (i2.Op == Op.OpName || i2.Op == Op.OpDecorate || i2.Op == Op.OpDecorateString
-                    || i2.Op == Op.OpMemberName || i2.Op == Op.OpMemberDecorate || i2.Op == Op.OpMemberDecorateString)
+                // Does this belong in context or buffer?
+                else if (isContext)
                 {
-                    // Target/Structure ID is always stored in first operand for all those instructions
-                    var target = i2.Memory.Span[1];
-                    if (removedIds.Contains(target))
-                        addToContext = false;
+                    addToContext = true;
                 }
+                else
+                {
+                    buffer.Add(i2);
+                }
+
+                // OpTypeStruct is the only type that can be defined by the shader.
+                // In case it's deduplicated (i.e. used in two separate mixin nodes), we still want to have it in shaderInfo.StructTypes, so let's save it aside now.
+                if (i2.Op == Op.OpTypeStruct && new OpTypeStruct(ref i2) is { } typeStruct2)
+                {
+                    var structName = names[typeStruct2.ResultId - offset];
+                    if (!remapIds.TryGetValue(typeStruct2.ResultId, out var structId))
+                        structId = typeStruct2.ResultId;
+                    structTypes.Add(structName, structId);
+                }
+
+                // Process OpSDSLImport
+                ProcessImportInfo(globalContext, mixinNode, ref i2, context.GetBuffer());
 
                 if (addToContext)
                 {
-                    var i2Index = context.GetBuffer().Add(i2);
+                    // OpName and such: check if associated instruction has not been removed
+                    if (i2.Op == Op.OpName || i2.Op == Op.OpDecorate || i2.Op == Op.OpDecorateString
+                        || i2.Op == Op.OpMemberName || i2.Op == Op.OpMemberDecorate || i2.Op == Op.OpMemberDecorateString)
+                    {
+                        // Target/Structure ID is always stored in first operand for all those instructions
+                        var target = i2.Memory.Span[1];
+                        if (removedIds.Contains(target))
+                            addToContext = false;
+                    }
+
+                    if (addToContext)
+                    {
+                        var i2Index = context.GetBuffer().Add(i2);
+                    }
                 }
             }
         }

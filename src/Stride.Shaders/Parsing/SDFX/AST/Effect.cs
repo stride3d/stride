@@ -23,8 +23,8 @@ public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : Sh
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        context.GetBuffer().Add(new OpSDSLEffect(Name.Name));
 
+        compiler.Builder.Insert(new OpSDSLEffect(Name.Name));
         foreach (var statement in Members)
         {
             statement.Compile(table, compiler);

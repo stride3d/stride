@@ -302,7 +302,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         }
 
         if (symbol.Id.Storage == Storage.Stream && !AllowStreamVariables)
-            throw new InvalidOperationException("Streams member used without an base type");
+            throw new InvalidOperationException($"Streams member {Name} used without an object");
         Type = symbol.Type;
         return EmitSymbol(buffer, ref position, context, symbol, constantOnly);
     }

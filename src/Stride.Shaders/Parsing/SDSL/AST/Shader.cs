@@ -71,7 +71,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (instruction.Op == Op.OpDecorate)
             {
-                OpDecorate decorateInstruction = instruction;
+                var decorateInstruction = new OpDecorate(instruction);
                 if (decorateInstruction.Decoration.Value == Decoration.Block)
                     blocks.Add(decorateInstruction.Target);
             }
@@ -162,6 +162,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (instruction.Op == Op.OpTypeFunctionSDSL && new OpTypeFunctionSDSL(instruction) is { } typeFunctionInstruction)
             {
+                var tmp = new OpTypeFunction(instruction);
                 var returnType = types[typeFunctionInstruction.ReturnType];
                 var parameterTypes = new List<FunctionParameter>();
                 foreach (var operand in typeFunctionInstruction.Values)
@@ -260,16 +261,24 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         }
     }
 
-    private static LoadedShaderSymbol CreateShaderType(SymbolTable table, SpirvContext context, NewSpirvBuffer buffer, ShaderClassInstantiation classSource)
+    private static LoadedShaderSymbol CreateShaderType(SymbolTable table, SpirvContext context, ShaderBuffers shaderBuffers, ShaderClassInstantiation classSource)
     {
-        ProcessNameAndTypes(buffer, 0, buffer.Count, out var names, out var types, new ShaderImporter(table, context));
+        ProcessNameAndTypes(shaderBuffers.Context.GetBuffer(), 0, shaderBuffers.Context.GetBuffer().Count, out var names, out var types, new ShaderImporter(table, context));
 
         var variables = new List<(Symbol Symbol, VariableFlagsMask Flags)>();
         var methods = new List<(Symbol Symbol, FunctionFlagsMask Flags)>();
         var structTypes = new List<(StructuredType Type, int ImportedId)>();
-        for (var index = 0; index < buffer.Count; index++)
+
+        foreach (var i in shaderBuffers.Context)
         {
-            var instruction = buffer[index];
+            if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStructInstruction)
+            {
+                structTypes.Add(((StructuredType)types[typeStructInstruction.ResultId], -1));
+            }
+        }
+        for (var index = 0; index < shaderBuffers.Buffer.Count; index++)
+        {
+            var instruction = shaderBuffers.Buffer[index];
             if (instruction.Op == Op.OpVariableSDSL && (OpVariableSDSL)instruction is { } variable &&
                 variable.Storageclass != Specification.StorageClass.Function)
             {
@@ -284,7 +293,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             if (instruction.Op == Op.OpFunction)
             {
                 var functionFlags = FunctionFlagsMask.None;
-                if (buffer[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)buffer[index + 1] is { } functionInfo)
+                if (shaderBuffers.Buffer[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shaderBuffers.Buffer[index + 1] is { } functionInfo)
                     functionFlags = functionInfo.Flags;
 
                 OpFunction functionInstruction = instruction;
@@ -303,7 +312,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         // Build full inheritance list
         List<ShaderClassInstantiation> inheritanceList = new();
-        SpirvBuilder.BuildInheritanceListWithoutSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), buffer, inheritanceList, ResolveStep.Compile);
+        SpirvBuilder.BuildInheritanceListWithoutSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), shaderBuffers.Context.GetBuffer(), inheritanceList, ResolveStep.Compile);
 
         // Load all the inherited shaders
         List<LoadedShaderSymbol> inheritedShaderSymbols = new();
@@ -580,7 +589,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     {
         var shaderBuffer = classSource.Buffer;
 
-        var shaderType = CreateShaderType(table, context, shaderBuffer, classSource);
+        var shaderType = CreateShaderType(table, context, shaderBuffer.Value, classSource);
 
         RegisterShaderType(table, shaderType);
 

@@ -29,6 +29,7 @@ public class SpirvContext
     public int Bound { get; set; } = 1;
     public Dictionary<SymbolType, int> Types { get; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; } = [];
+    public Dictionary<int, string> Names { get; } = [];
     public Dictionary<(SymbolType Type, object Value), SpirvValue> LiteralConstants { get; } = [];
     NewSpirvBuffer Buffer { get; set; } = new();
 
