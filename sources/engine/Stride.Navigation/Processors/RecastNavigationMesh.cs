@@ -86,12 +86,12 @@ namespace Stride.Navigation.Processors
             query.FindNearestPolyExtent = querySettings.FindNearestPolyExtent;
             PathFindResult queryResult = default;
             
-            queryResult.PathPoints = new List<DtStraightPath>(querySettings.MaxPathPoints);
+            queryResult.PathPoints = new DtStraightPath[querySettings.MaxPathPoints];
             navmesh.DoPathFindQuery(query, ref queryResult);
             if (!queryResult.PathFound)
                 return false;
 
-            for (int i = 0; i < queryResult.PathPoints.Count; i++)
+            for (int i = 0; i < queryResult.PathPoints.Length; i++)
             {
                 path.Add(queryResult.PathPoints[i].pos.ToStrideVector());
             }
