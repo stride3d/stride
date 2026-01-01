@@ -577,6 +577,17 @@
                     }
                 ],
                 "version": "1.0"
+            },
+            {
+              "enumerant": "FunctionParameterDefaultValueSDSL",
+              "value": 8040,
+              "parameters": [
+                {
+                  "kind": "IdRef",
+                  "quantifier": "*"
+                }
+              ],
+              "version": "1.0"
             }
         ]
     },

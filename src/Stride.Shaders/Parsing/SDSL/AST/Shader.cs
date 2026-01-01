@@ -294,6 +294,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         var variables = new List<(Symbol Symbol, VariableFlagsMask Flags)>();
         var methods = new List<(Symbol Symbol, FunctionFlagsMask Flags)>();
+        var methodsDefaultParameters = new Dictionary<int, MethodSymbolDefaultParameters>();
         var structTypes = new List<(StructuredType Type, int ImportedId)>();
 
         foreach (var i in shaderBuffers.Context)
@@ -301,6 +302,14 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStructInstruction)
             {
                 structTypes.Add(((StructuredType)shaderBuffers.Context.ReverseTypes[typeStructInstruction.ResultId], -1));
+            }
+            else if (i.Op == Op.OpDecorate && (OpDecorate)i is
+                {
+                    Decoration: { Value: Decoration.FunctionParameterDefaultValueSDSL },
+                    Target: var target,
+                } decorateFunctionParameters)
+            {
+                methodsDefaultParameters.Add(target, new(shaderBuffers.Context, decorateFunctionParameters.Decoration.Span.ToArray()));
             }
         }
         for (var index = 0; index < shaderBuffers.Buffer.Count; index++)
@@ -328,7 +337,10 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var functionType = shaderBuffers.Context.ReverseTypes[functionInstruction.FunctionType];
 
                 var sid = new SymbolID(functionName, SymbolKind.Method, IsStage: (functionFlags & FunctionFlagsMask.Stage) != 0);
-                methods.Add((new(sid, functionType, 0), functionFlags));
+                MethodSymbolDefaultParameters? methodDefaultParameters = methodsDefaultParameters.TryGetValue(functionInstruction.ResultId, out var methodDefaultParametersValue)
+                    ? methodDefaultParametersValue
+                    : null;
+                methods.Add((new(sid, functionType, 0, MethodDefaultParameters: methodDefaultParameters), functionFlags));
             }
 
             if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
@@ -458,8 +470,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 {
                     var argSym = arg.TypeName.ResolveType(table, context);
                     table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
-                    arg.Type = new PointerType(argSym, Specification.StorageClass.Function);
-                    ftype.ParameterTypes.Add(new(arg.Type, arg.Modifiers));
+                    arg.Type = argSym;
+                    ftype.ParameterTypes.Add(new(new PointerType(arg.Type, Specification.StorageClass.Function), arg.Modifiers));
                 }
                 func.Type = ftype;
 

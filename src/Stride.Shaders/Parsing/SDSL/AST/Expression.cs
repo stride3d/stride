@@ -6,6 +6,7 @@ using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System;
 using System.Text;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -87,7 +88,10 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 
         Type = functionType.ReturnType;
 
-        Span<int> compiledParams = stackalloc int[parameters.Values.Count];
+        Span<int> compiledParams = stackalloc int[functionType.ParameterTypes.Count];
+        
+        if (parameters.Values.Count > functionType.ParameterTypes.Count)
+            throw new InvalidOperationException($"Function {Name} was called with {parameters.Values.Count} arguments but only {functionType.ParameterTypes.Count} expected");
 
         for (int i = 0; i < parameters.Values.Count; i++)
         {
@@ -113,6 +117,40 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 
             compiledParams[i] = paramVariable;
         }
+        
+        // Find default parameters decoration (if any)
+        var missingParameters = functionType.ParameterTypes.Count - parameters.Values.Count;
+        var defaultParameters = 0;
+        if (missingParameters > 0 && functionSymbol.MethodDefaultParameters is {} methodDefaultParameters)
+        {
+            // Is there enough parameters now?
+            if (missingParameters <= methodDefaultParameters.DefaultValues.Length)
+            {
+                // Import missing parameters
+                for (int i = 0; i < missingParameters; ++i)
+                {
+                    var paramDefinition = functionType.ParameterTypes[parameters.Values.Count + i];
+
+                    var source = methodDefaultParameters.DefaultValues[^(missingParameters - i)];
+                    // Import in current buffer
+                    if (methodDefaultParameters.SourceContext != context)
+                    {
+                        var bufferForConstant = methodDefaultParameters.SourceContext.ExtractConstantAsSpirvBuffer(source);
+                        source = context.InsertWithoutDuplicates(null, bufferForConstant);
+                    }
+                    
+                    var paramVariable = context.Bound++;
+                    builder.AddFunctionVariable(context.GetOrRegister(paramDefinition.Type), paramVariable);
+                    builder.Insert(new OpStore(paramVariable, source, null));
+
+                    compiledParams[parameters.Values.Count + i] = paramVariable;
+                }
+                missingParameters = 0;
+            }
+        }
+        
+        if (missingParameters > 0)
+            throw new InvalidOperationException($"Function {Name} was called with {parameters.Values.Count} arguments but there was {(defaultParameters > 0 ? $"between {functionType.ParameterTypes.Count - defaultParameters} and {functionType.ParameterTypes.Count}" : functionType.ParameterTypes.Count)} expected");
 
         int? instance = null;
         if (MemberCall != null)
@@ -133,7 +171,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 
         if (instance is int instanceId)
             functionSymbol.IdRef = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(functionType), context.Bound++, instanceId, functionSymbol.IdRef)).ResultId;
-
+        
         var result = builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
 
         for (int i = 0; i < parameters.Values.Count; i++)
@@ -381,7 +419,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
                             var returnType = context.GetOrRegister(resultType);
-                            var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, Specification.ImageOperandsMask.None));
+                            var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, ImageOperandsMask.None));
 
                             result = new(sample.ResultId, sample.ResultType);
                             accessor.Type = resultType;
@@ -420,7 +458,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             var levelZero = context.CompileConstant(0.0f);
                             var sample = sampleCompare.Name.Name == "SampleCmpLevelZero"
                                 ? builder.InsertData(new OpImageSampleDrefExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, ParameterizedFlags.ImageOperandsLod(levelZero.Id)))
-                                : builder.InsertData(new OpImageSampleDrefImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, Specification.ImageOperandsMask.None));
+                                : builder.InsertData(new OpImageSampleDrefImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, ImageOperandsMask.None));
 
                             result = new(sample.IdResult!.Value, sample.IdResultType!.Value);
                             accessor.Type = resultType;
@@ -731,7 +769,7 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
             var blockFalseId = context.Bound++;
 
             // OpSelectionMerge and OpBranchConditional (will be filled later)
-            builder.Insert(new OpSelectionMerge(blockMergeId, Specification.SelectionControlMask.None));
+            builder.Insert(new OpSelectionMerge(blockMergeId, SelectionControlMask.None));
             builder.Insert(new OpBranchConditional(conditionValue.Id, blockTrueId, blockFalseId, []));
 
             // Block when choosing left value
