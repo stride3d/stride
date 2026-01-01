@@ -76,12 +76,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         temp.Sort();
 
-        // Final processing
-        SpirvProcessor.Process(temp);
-
-
-        temp.Sort();
-
         bytecode = SpirvBytecode.CreateBytecodeFromBuffers(temp);
 
 #if DEBUG
@@ -243,7 +237,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             return include;
         }
 
-        var typeDuplicateInserter = new TypeDuplicateHelper(context.GetBuffer());
+        var typeDuplicateInserter = new TypeDuplicateHelper(context);
 
         var structTypes = new Dictionary<string, int>();
 
@@ -398,7 +392,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 }
 
                 // Process OpSDSLImport
-                ProcessImportInfo(globalContext, mixinNode, ref i2, context.GetBuffer());
+                ProcessImportInfo(globalContext, mixinNode, ref i2, context);
 
                 if (addToContext)
                 {
@@ -674,7 +668,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (mixinNode.CompositionArrays.TryGetValue(accessChain.BaseId, out var compositions)
                     || (mixinNode.Stage != null && mixinNode.Stage.CompositionArrays.TryGetValue(accessChain.BaseId, out compositions)))
                 {
-                    var compositionIndex = (int)SpirvBuilder.GetConstantValue(accessChain.Values.Elements.Span[0], context.GetBuffer());
+                    var compositionIndex = (int)context.GetConstantValue(accessChain.Values.Elements.Span[0]);
                     compositionArrayAccesses.Add(accessChain.ResultId, compositions[compositionIndex]);
 
                     SetOpNop(i.Data.Memory.Span);

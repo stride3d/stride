@@ -99,7 +99,7 @@ public partial class ShaderMixer
         }
     }
 
-    private void ProcessImportInfo(MixinGlobalContext globalContext, MixinNode mixinNode, ref OpData i, NewSpirvBuffer contextBuffer)
+    private void ProcessImportInfo(MixinGlobalContext globalContext, MixinNode mixinNode, ref OpData i, SpirvContext context)
     {
         if (i.Op == Op.OpSDSLImportShader && new OpSDSLImportShader(ref i) is { } importShader)
         {
@@ -110,7 +110,7 @@ public partial class ShaderMixer
                 var genericArguments = new object[importShader.Values.Elements.Length];
                 for (int j = 0; j < genericArguments.Length; j++)
                 {
-                    genericArguments[j] = SpirvBuilder.GetConstantValue(importShader.Values.Elements.Span[j], contextBuffer);
+                    genericArguments[j] = context.GetConstantValue(importShader.Values.Elements.Span[j]);
                 }
                 shaderName += $"<{string.Join(",", genericArguments)}>";
             }

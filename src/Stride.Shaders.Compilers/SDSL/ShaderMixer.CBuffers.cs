@@ -172,7 +172,7 @@ namespace Stride.Shaders.Compilers.SDSL
                                 // According to spec, this must be a OpConstant (and we only create them with int)
                                 var indexes = accessChain.Values.Elements.Span;
                                 var constantId = indexes[0];
-                                var index = cbuffer.MemberIndexOffset + (int)SpirvBuilder.GetConstantValue(constantId, context.GetBuffer());
+                                var index = cbuffer.MemberIndexOffset + (int)context.GetConstantValue(constantId);
                                 indexes[0] = context.CompileConstant(index).Id;
 
                                 // Regenerate buffer (since we modify accessChain.Values, it doesn't get rebuilt automatically)

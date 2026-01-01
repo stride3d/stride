@@ -23,7 +23,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 var genericArguments = new object[genericIds.Length];
                 for (int i = 0; i < genericArguments.Length; i++)
                 {
-                    genericArguments[i] = SpirvBuilder.GetConstantValue(genericIds[i], context.GetBuffer());
+                    genericArguments[i] = context.GetConstantValue(genericIds[i]);
                 }
                 return genericArguments;
             }

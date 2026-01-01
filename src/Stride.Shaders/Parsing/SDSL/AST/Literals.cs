@@ -481,7 +481,7 @@ public class TypeName(string name, TextLocation info) : Literal(info)
                     arrayComputedSize = (int)i.Value;
 
                 var constantArraySize = arraySize.CompileConstantValue(table, context);
-                if (SpirvBuilder.TryGetConstantValue(constantArraySize.Id, out var value, out _, context.GetBuffer(), true))
+                if (context.TryGetConstantValue(constantArraySize.Id, out var value, out _, true))
                     arrayComputedSize = (int)value;
                 arraySymbolType = arrayComputedSize != -1
                     ? new ArrayType(arraySymbolType, arrayComputedSize)

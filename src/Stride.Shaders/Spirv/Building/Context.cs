@@ -24,7 +24,7 @@ public interface IExternalShaderLoader
 
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 
 // SPIR-V parameters
-public class SpirvContext
+public partial class SpirvContext
 {
     private int bound = 1;
     public int ResourceGroupBound { get; set; } = 1;
@@ -32,7 +32,6 @@ public class SpirvContext
     public Dictionary<SymbolType, int> Types { get; init; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; init; } = [];
     public Dictionary<int, string> Names { get; init; } = [];
-    public Dictionary<(SymbolType Type, object Value), SpirvValue> LiteralConstants { get; } = [];
     NewSpirvBuffer Buffer { get; init; }
 
     public int? GLSLSet { get; private set; }
@@ -69,29 +68,6 @@ public class SpirvContext
 
     public void AddMemberName(int target, int accessor, string name)
         => Buffer.Add(new OpMemberName(target, accessor, name.Replace('.', '_')));
-
-    public int AddConstant<TScalar>(TScalar value)
-        where TScalar : INumber<TScalar>
-    {
-        var data = value switch
-        {
-            byte v => Buffer.Add(new OpConstant<byte>(GetOrRegister(ScalarType.From("byte")), Bound++, v)),
-            sbyte v => Buffer.Add(new OpConstant<sbyte>(GetOrRegister(ScalarType.From("sbyte")), Bound++, v)),
-            ushort v => Buffer.Add(new OpConstant<ushort>(GetOrRegister(ScalarType.From("ushort")), Bound++, v)),
-            short v => Buffer.Add(new OpConstant<short>(GetOrRegister(ScalarType.From("short")), Bound++, v)),
-            uint v => Buffer.Add(new OpConstant<uint>(GetOrRegister(ScalarType.From("uint")), Bound++, v)),
-            int v => Buffer.Add(new OpConstant<int>(GetOrRegister(ScalarType.From("int")), Bound++, v)),
-            ulong v => Buffer.Add(new OpConstant<ulong>(GetOrRegister(ScalarType.From("ulong")), Bound++, v)),
-            long v => Buffer.Add(new OpConstant<long>(GetOrRegister(ScalarType.From("long")), Bound++, v)),
-            Half v => Buffer.Add(new OpConstant<Half>(GetOrRegister(ScalarType.From("half")), Bound++, v)),
-            float v => Buffer.Add(new OpConstant<float>(GetOrRegister(ScalarType.From("float")), Bound++, v)),
-            double v => Buffer.Add(new OpConstant<double>(GetOrRegister(ScalarType.From("bdouble")), Bound++, v)),
-            _ => throw new NotImplementedException()
-        };
-        if (InstructionInfo.GetInfo(data).GetResultIndex(out var index))
-            return data.Memory.Span[index + 1];
-        throw new Exception("Constant has no result id");
-    }
 
     public void SetEntryPoint(ExecutionModel model, int function, string name, ReadOnlySpan<Symbol> variables)
     {
@@ -420,12 +396,18 @@ public class SpirvContext
         where T : struct, IMemoryInstruction, allows ref struct
         => Buffer.InsertData(index, value);
 
+    public OpDataIndex Insert(int index, OpData data)
+        => Buffer.Insert(index, data);
+
     public OpData Add<T>(in T value)
         where T : struct, IMemoryInstruction, allows ref struct
         => Buffer.Add(value);
 
     public OpDataIndex Add(OpData data)
         => Buffer.Add(data);
+
+    public void RemoveAt(int index, bool dispose)
+        => Buffer.RemoveAt(index, dispose);
 
 
     public SpirvContext FluentAdd<T>(in T value, out T result)
@@ -436,137 +418,6 @@ public class SpirvContext
     }
 
     public void Sort() => Buffer.Sort();
-
-    public int InsertWithoutDuplicates(int? desiredResultId, NewSpirvBuffer source)
-    {
-        var index = Buffer.Count;
-        return InsertWithoutDuplicates(ref index, desiredResultId, source);
-    }
-
-    public int InsertWithoutDuplicates(ref int instructionIndex, int? desiredResultId, NewSpirvBuffer source)
-    {
-        // Import in current buffer (without duplicate)
-        var typeDuplicateInserter = new TypeDuplicateHelper(Buffer);
-        var remapIds = new Dictionary<int, int>();
-        int lastResultId = -1;
-        
-        var lastResultIndex = -1;
-        if (desiredResultId != null)
-        {
-            // Find last index returning a value (that's the value we want remapped to desiredResultId)
-            for (int index = 0; index < source.Count; ++index)
-            {
-                var i = source[index];
-                if (i.Data.IdResult is not null)
-                    lastResultIndex = index;
-            }
-        }
-
-        for (int index = 0; index < source.Count; ++index)
-        {
-            var i = source[index];
-            SpirvBuilder.RemapIds(remapIds, ref i.Data);
-
-            //// If it's a generic reference, remap to OpSDSLGenericParameter which has to match during typeDuplicateInserter.CheckForDuplicates()
-            var isGenericReference = i.Op == Op.OpSDSLGenericReference;
-            if (isGenericReference)
-                i.Data.Memory.Span[0] = (int)(i.Data.Memory.Span[0] & 0xFFFF0000) | (int)Op.OpSDSLGenericParameter;
-
-            // Note: we try to avoid duplicating the last (constant) instruction if there is a desired ID (so that it keeps its name/identity) 
-            if ((TypeDuplicateHelper.OpCheckDuplicateForTypesAndImport(i.Op) || TypeDuplicateHelper.OpCheckDuplicateForConstant(i.Op) || isGenericReference)
-                && typeDuplicateInserter.CheckForDuplicates(i.Data, out var existingData)
-                && (index != lastResultIndex || desiredResultId == null))
-            {
-                // Make sure this data is declared at current index, otherwise move it.
-                // Note: it should be safe to do so as the source buffer has all the dependencies and they should have been inserted in previous loops
-                if (existingData.Index > instructionIndex)
-                {
-                    var existingDataCopy = new OpData(existingData.Data.Memory);
-                    typeDuplicateInserter.RemoveInstructionAt(existingData.Index, false);
-                    existingData = typeDuplicateInserter.InsertInstruction(instructionIndex++, existingDataCopy);
-                }
-                remapIds.Add(i.Data.IdResult.Value, existingData.Data.IdResult.Value);
-                lastResultId = existingData.Data.IdResult.Value;
-            }
-            else
-            {
-                if (isGenericReference)
-                    i.Data.Memory.Span[0] = (int)(i.Data.Memory.Span[0] & 0xFFFF0000) | (int)Op.OpSDSLGenericReference;
-
-                if (i.Data.IdResult.HasValue)
-                {
-                    // Make sure to remap last instruction (which we assume is the actual constant) with the desired result ID
-                    var resultId = index == lastResultIndex && desiredResultId != null
-                        ? desiredResultId.Value
-                        : bound++;
-
-                    remapIds.Add(i.Data.IdResult.Value, resultId);
-                    i.Data.IdResult = resultId;
-                    typeDuplicateInserter.InsertInstruction(instructionIndex++, i.Data);
-
-                    lastResultId = resultId;
-                }
-            }
-        }
-
-        if (lastResultId == -1)
-            throw new InvalidOperationException("Could not find any instruction with a value");
-
-        // Note: we made sure to not copy last instruction which should have the constant we want, so this case shouldn't happen anymore
-        if (desiredResultId != null && lastResultId != desiredResultId)
-            throw new InvalidOperationException();
-            // Note: if we were to readd this, we would also need to process the main buffer 
-            //SpirvBuilder.RemapIds(Buffer, 0, Buffer.Count, new Dictionary<int, int> { { lastResultId, desiredResultId.Value } });
-
-        return lastResultId;
-    }
-
-    public NewSpirvBuffer ExtractConstantAsSpirvBuffer(int constantId)
-    {
-        // First, run a simplification pass
-        // TODO: separate simplification from computing value?
-        SpirvBuilder.TryGetConstantValue(constantId, out _, out _, Buffer, true);
-
-        // Go backward and find any reference
-        var newBuffer = new NewSpirvBuffer();
-        var referenced = new HashSet<int> { constantId };
-        var instructions = new List<OpData>();
-        for (int index = Buffer.Count - 1; index >= 0; --index)
-        {
-            var i = Buffer[index];
-            if (i.Data.IdResult is int resultId && referenced.Remove(resultId))
-            {
-                var i2 = new OpData(i.Data.Memory.Span);
-
-                // Then add IdRef operands to next requested instructions or types
-                foreach (var op in i2)
-                {
-                    if (op.Kind == OperandKind.IdRef
-                        || op.Kind == OperandKind.IdResultType
-                        || op.Kind == OperandKind.PairIdRefIdRef)
-                    {
-                        foreach (ref var word in op.Words)
-                        {
-                            referenced.Add(word);
-                        }
-                    }
-                    else if (op.Kind == OperandKind.PairLiteralIntegerIdRef
-                        || op.Kind == OperandKind.PairIdRefLiteralInteger)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-
-                instructions.Add(i2);
-            }
-        }
-
-        // Since we went backward, reverse the list
-        instructions.Reverse();
-        foreach (var i in instructions)
-            newBuffer.Add(i);
-        return newBuffer;
-    }
 
     [Obsolete("Use the insert method instead")]
     public NewSpirvBuffer GetBuffer() => Buffer;

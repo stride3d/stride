@@ -163,7 +163,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             else if (instruction.Op == Op.OpTypeArray && (OpTypeArray)instruction is { } typeArray)
             {
                 var innerType = context.ReverseTypes[typeArray.ElementType];
-                if (SpirvBuilder.TryGetConstantValue(typeArray.Length, out var arraySizeObject, out _, context.GetBuffer(), false))
+                if (context.TryGetConstantValue(typeArray.Length, out var arraySizeObject, out _, false))
                 {
                     RegisterType(typeArray.ResultId, new ArrayType(innerType, (int)arraySizeObject));
                 }

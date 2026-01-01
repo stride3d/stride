@@ -11,9 +11,9 @@ public static class SpirvProcessor
 {
     public static void Process(NewSpirvBuffer buffer)
     {
-        Apply<TypeDuplicateRemover>(buffer);
-        // Apply<BoundReducer>(buffer);
-        Apply<NOPRemover>(buffer);
+        //Apply<TypeDuplicateRemover>(buffer);
+        //Apply<BoundReducer>(buffer);
+        //Apply<NOPRemover>(buffer);
     }
 
     static void Apply<T>(NewSpirvBuffer buffer)

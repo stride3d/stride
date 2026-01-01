@@ -183,140 +183,6 @@ public partial class SpirvBuilder
         return inheritanceList[index];
     }
 
-    public static bool TryGetInstructionById(int constantId, out OpDataIndex instruction, NewSpirvBuffer buffer)
-    {
-        if (buffer.TryGetInstructionById(constantId, out instruction))
-            return true;
-
-        instruction = default;
-        return false;
-    }
-
-    public static object GetConstantValue(int constantId, NewSpirvBuffer buffer)
-    {
-        if (buffer.TryGetInstructionById(constantId, out var constant))
-        {
-            return ResolveConstantValue(constant, buffer);
-        }
-
-        throw new Exception("Cannot find constant instruction for id " + constantId);
-    }
-
-    public static bool TryGetConstantValue(int constantId, out object value, out int typeId, NewSpirvBuffer buffer, bool simplifyInBuffer = false)
-    {
-        if (buffer.TryGetInstructionById(constantId, out var constant))
-        {
-            return TryGetConstantValue(constant, out value, out typeId, buffer, simplifyInBuffer);
-        }
-
-        typeId = default;
-        value = default;
-        return false;
-    }
-
-    public static object ResolveConstantValue(OpDataIndex i, NewSpirvBuffer buffer)
-    {
-        if (!TryGetConstantValue(i, out var value, out _, buffer, false))
-            throw new InvalidOperationException($"Can't process constant {i.Data.IdResult}");
-
-        return value;
-    }
-
-    // Note: this will return false if constant can't be resolved yet (i.e. due to unresolved generics). If it is not meant to become a constant (even later), behavior is undefined.
-    public static bool TryGetConstantValue(OpDataIndex i, out object value, out int typeId, NewSpirvBuffer buffer, bool simplifyInBuffer = false)
-    {
-        typeId = default;
-        value = default;
-
-        // Check for unresolved values
-        if (i.Op == Op.OpSDSLGenericParameter || i.Op == Op.OpSDSLGenericReference)
-        {
-            return false;
-        }
-
-        if (i.Op == Op.OpConstantStringSDSL)
-        {
-            var operand2 = i.Data.Get("literalString");
-            value = operand2.ToLiteral<string>();
-            return true;
-        }
-
-        if (i.Op == Op.OpSpecConstantOp)
-        {
-            var resultType = i.Data.Memory.Span[1];
-            var resultId = i.Data.Memory.Span[2];
-            var op = (Op)i.Data.Memory.Span[3];
-            switch (op)
-            {
-                case Op.OpIMul:
-                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var left, out var leftTypeId, buffer))
-                        return false;
-                    if (!TryGetConstantValue(i.Data.Memory.Span[5], out var right, out var rightTypeId, buffer))
-                        return false;
-                    if (leftTypeId != resultType || rightTypeId != resultType)
-                        return false;
-                    value = (int)left * (int)right;
-                    if (simplifyInBuffer)
-                        buffer.Replace(i.Index, new OpConstant<int>(resultType, resultId, (int)value));
-                    return true;
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-        if ((i.Op == Op.OpConstantComposite || i.Op == Op.OpSpecConstantComposite) &&  (OpConstantComposite)i is { } constantComposite)
-        {
-            var values = constantComposite.Values;
-            var constants = new object[values.WordCount];
-            for (int j = 0; j < values.WordCount; ++j)
-            {
-                if (!TryGetConstantValue(values.Elements.Span[j], out constants[j], out _, buffer))
-                    return false;
-            }
-
-            // For now we assume it's a vector type (but we would need to revisit that later if we handle more advanced constants such as matrix or arrays)
-            value = new ConstantVector { Values = constants };
-
-            return true;
-        }
-
-        typeId = i.Op switch
-        {
-            Op.OpConstant or Op.OpSpecConstant => i.Data.Memory.Span[1],
-        };
-        var operand = i.Data.Get("value");
-        if (buffer.TryGetInstructionById(typeId, out var typeInst))
-        {
-            if (typeInst.Op == Op.OpTypeInt)
-            {
-                var type = (OpTypeInt)typeInst;
-                value = type switch
-                {
-                    { Width: <= 32, Signedness: 0 } => operand.ToLiteral<uint>(),
-                    { Width: <= 32, Signedness: 1 } => operand.ToLiteral<int>(),
-                    { Width: 64, Signedness: 0 } => operand.ToLiteral<ulong>(),
-                    { Width: 64, Signedness: 1 } => operand.ToLiteral<long>(),
-                    _ => throw new NotImplementedException($"Unsupported int width {type.Width}"),
-                };
-                return true;
-            }
-            else if (typeInst.Op == Op.OpTypeFloat)
-            {
-                var type = new OpTypeFloat(typeInst);
-                value = type switch
-                {
-                    { Width: 16 } => operand.ToLiteral<Half>(),
-                    { Width: 32 } => operand.ToLiteral<float>(),
-                    { Width: 64 } => operand.ToLiteral<double>(),
-                    _ => throw new NotImplementedException($"Unsupported float width {type.Width}"),
-                };
-                return true;
-            }
-            else
-                throw new NotImplementedException($"Unsupported context dependent number with type {typeInst.Op}");
-        }
-        throw new Exception("Cannot find type instruction for id " + typeId);
-    }
-
     record struct GenericParameter(SymbolType Type, int ResultId, int ResultType, int Index, string Name, bool Resolved, string Value);
 
     abstract class GenericResolver
@@ -405,7 +271,7 @@ public partial class SpirvBuilder
 
         public override bool TryResolveGenericValue(SymbolType genericParameterType, string genericParameterName, int index, out object value)
         {
-            if (!TryGetConstantValue(classSource.GenericArguments[index], out value, out _, declaringContext.GetBuffer(), false))
+            if (!declaringContext.TryGetConstantValue(classSource.GenericArguments[index], out value, out _, false))
             {
                 value = GetIdRefAsString(index);
                 return false;
@@ -418,7 +284,7 @@ public partial class SpirvBuilder
         {
             var contextBuffer = context.GetBuffer();
             // Check if generic value can already be computed (no OpSDSLGenericParameter and such)
-            if (TryGetConstantValue(classSource.GenericArguments[genericIndex], out var constantValue, out _, declaringContext.GetBuffer(), false))
+            if (declaringContext.TryGetConstantValue(classSource.GenericArguments[genericIndex], out var constantValue, out _, false))
             {
                 // TODO: shortcut: store it right away and finish here
                 textValue = constantValue.ToString();
@@ -511,9 +377,9 @@ public partial class SpirvBuilder
             if (i.Op == Op.OpTypeArray && (OpTypeArray)i is { } typeArray)
             {
                 // Make sure constant is a proper OpConstant (i.e. not an OpSpecConstant)
-                if (!TryGetInstructionById(typeArray.Length, out var lengthInstruction, shaderBuffers.Context.GetBuffer()))
+                if (!shaderBuffers.Context.GetBuffer().TryGetInstructionById(typeArray.Length, out var lengthInstruction))
                     throw new InvalidOperationException();
-                if (lengthInstruction.Op != Op.OpConstant && TryGetConstantValue(typeArray.Length, out var value, out _, shaderBuffers.Context.GetBuffer(), true))
+                if (lengthInstruction.Op != Op.OpConstant && shaderBuffers.Context.TryGetConstantValue(typeArray.Length, out var value, out _, true))
                 {
                 }
             }

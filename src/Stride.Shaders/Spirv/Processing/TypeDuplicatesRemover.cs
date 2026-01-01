@@ -50,7 +50,7 @@ public class TypeDuplicateHelper
         public override string ToString() => Data.Memory != null ? Data.ToString() : $"{Op} Index: {Index}";
     }
 
-    class OperationComparer(NewSpirvBuffer Buffer, bool UseIndices) : IComparer<InstructionSortHelper>
+    class OperationComparer(SpirvContext Context, bool UseIndices) : IComparer<InstructionSortHelper>
     {
         private static int RemapOp(Op op)
         {
@@ -97,7 +97,7 @@ public class TypeDuplicateHelper
                 if (comparison != 0)
                     return comparison;
 
-                comparison = CompareIntConstant(Buffer, x.Data.Memory.Span[3], y.Data.Memory.Span[3]);
+                comparison = CompareIntConstant(Context, x.Data.Memory.Span[3], y.Data.Memory.Span[3]);
                 if (comparison != 0)
                     return comparison;
             }
@@ -135,13 +135,13 @@ public class TypeDuplicateHelper
         }
     }
 
-    private static int CompareIntConstant(NewSpirvBuffer buffer, int id1, int id2)
+    private static int CompareIntConstant(SpirvContext context, int id1, int id2)
     {
         if (id1 == id2)
             return 0;
 
-        var value1Success = SpirvBuilder.TryGetConstantValue(id1, out var value1, out _, buffer, false);
-        var value2Success = SpirvBuilder.TryGetConstantValue(id2, out var value2, out _, buffer, false);
+        var value1Success = context.TryGetConstantValue(id1, out var value1, out _, false);
+        var value2Success = context.TryGetConstantValue(id2, out var value2, out _, false);
 
         return (value1Success, value2Success) switch
         {
@@ -154,34 +154,34 @@ public class TypeDuplicateHelper
         };
     }
 
-    private NewSpirvBuffer buffer;
+    private SpirvContext context;
     private List<InstructionSortHelper> instructionsByOp;
     private List<InstructionSortHelper> namesByOp;
     private OperationComparer comparerSort;
     private OperationComparer comparerInsert;
     private bool namesSorted;
 
-    public TypeDuplicateHelper(NewSpirvBuffer buffer)
+    public TypeDuplicateHelper(SpirvContext context)
     {
-        this.buffer = buffer;
+        this.context = context;
         instructionsByOp = new();
         namesByOp = new();
         namesSorted = false;
-        foreach (var i in buffer)
+        foreach (var i in context)
         {
             GetTargetList(i.Data).Add(new InstructionSortHelper(i.Op, i.Index, i.Data));
         }
 
-        comparerSort = new OperationComparer(buffer, true);
+        comparerSort = new OperationComparer(context, true);
         namesByOp.Sort(comparerSort);
         instructionsByOp.Sort(comparerSort);
 
-        comparerInsert = new OperationComparer(buffer, false);
+        comparerInsert = new OperationComparer(context, false);
     }
 
     public OpDataIndex InsertInstruction(int index, OpData data)
     {
-        var result = buffer.Insert(index, data);
+        var result = context.Insert(index, data);
 
         // Adjust indices
         var namesByOpSpan = CollectionsMarshal.AsSpan(namesByOp);
@@ -213,7 +213,7 @@ public class TypeDuplicateHelper
 
     public void RemoveInstructionAt(int index, bool dispose)
     {
-        buffer.RemoveAt(index, dispose);
+        context.RemoveAt(index, dispose);
 
         // Adjust indices and remove at same time
         var namesByOpSpan = CollectionsMarshal.AsSpan(namesByOp);
@@ -305,7 +305,7 @@ public class TypeDuplicateHelper
 
         if (index >= 0)
         {
-            foundData = new(instructionsByOp[index].Index, buffer);
+            foundData = new(instructionsByOp[index].Index, context.GetBuffer());
             return true;
         }
 
@@ -315,6 +315,8 @@ public class TypeDuplicateHelper
 
     public void RemoveDuplicates()
     {
+        var buffer = context.GetBuffer();
+        
         // Note: We process instruction by types depending on their dependencies
         // i.e. a OpTypeFloat being unified means a OpTypeVector depending on it might too
 
@@ -425,13 +427,5 @@ public class TypeDuplicateHelper
     {
         words[0] = words.Length << 16;
         words[1..].Clear();
-    }
-}
-
-public struct TypeDuplicateRemover : INanoPass
-{
-    public void Apply(NewSpirvBuffer buffer)
-    {
-        new TypeDuplicateHelper(buffer).RemoveDuplicates();
     }
 }
