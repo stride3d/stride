@@ -79,12 +79,12 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
                 && Parsers.Spaces0(ref scanner, result, out _)
             )
             {
-                parsed = new(typename, identifier, scanner[position..scanner.Position], modifiers, semantic: semantic);
+                parsed = new(typename, identifier, scanner[position..scanner.Position], modifiers, value, semantic: semantic);
                 return true;
             }
             else
             {
-                parsed = new(typename, identifier, scanner[position..scanner.Position], modifiers);
+                parsed = new(typename, identifier, scanner[position..scanner.Position], modifiers, value);
                 return true;
             }
         }
