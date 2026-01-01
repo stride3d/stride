@@ -449,6 +449,19 @@ public class SpirvContext
         var typeDuplicateInserter = new TypeDuplicateHelper(Buffer);
         var remapIds = new Dictionary<int, int>();
         int lastResultId = -1;
+        
+        var lastResultIndex = -1;
+        if (desiredResultId != null)
+        {
+            // Find last index returning a value (that's the value we want remapped to desiredResultId)
+            for (int index = 0; index < source.Count; ++index)
+            {
+                var i = source[index];
+                if (i.Data.IdResult is not null)
+                    lastResultIndex = index;
+            }
+        }
+
         for (int index = 0; index < source.Count; ++index)
         {
             var i = source[index];
@@ -459,10 +472,10 @@ public class SpirvContext
             if (isGenericReference)
                 i.Data.Memory.Span[0] = (int)(i.Data.Memory.Span[0] & 0xFFFF0000) | (int)Op.OpSDSLGenericParameter;
 
-            // Note: we also try to avoid duplciate for constants (which should have been resolved)
-            // otherwise a generic type might have 2 different instantiation with same parameters
+            // Note: we try to avoid duplicating the last (constant) instruction if there is a desired ID (so that it keeps its name/identity) 
             if ((TypeDuplicateHelper.OpCheckDuplicateForTypesAndImport(i.Op) || TypeDuplicateHelper.OpCheckDuplicateForConstant(i.Op) || isGenericReference)
-                && typeDuplicateInserter.CheckForDuplicates(i.Data, out var existingData))
+                && typeDuplicateInserter.CheckForDuplicates(i.Data, out var existingData)
+                && (index != lastResultIndex || desiredResultId == null))
             {
                 // Make sure this data is declared at current index, otherwise move it.
                 // Note: it should be safe to do so as the source buffer has all the dependencies and they should have been inserted in previous loops
@@ -483,7 +496,7 @@ public class SpirvContext
                 if (i.Data.IdResult.HasValue)
                 {
                     // Make sure to remap last instruction (which we assume is the actual constant) with the desired result ID
-                    var resultId = index == source.Count - 1 && desiredResultId != null
+                    var resultId = index == lastResultIndex && desiredResultId != null
                         ? desiredResultId.Value
                         : bound++;
 
@@ -499,11 +512,11 @@ public class SpirvContext
         if (lastResultId == -1)
             throw new InvalidOperationException("Could not find any instruction with a value");
 
+        // Note: we made sure to not copy last instruction which should have the constant we want, so this case shouldn't happen anymore
         if (desiredResultId != null && lastResultId != desiredResultId)
-        {
-            // Need to remap all existing references
-            SpirvBuilder.RemapIds(Buffer, 0, Buffer.Count, new Dictionary<int, int> { { lastResultId, desiredResultId.Value } });
-        }
+            throw new InvalidOperationException();
+            // Note: if we were to readd this, we would also need to process the main buffer 
+            //SpirvBuilder.RemapIds(Buffer, 0, Buffer.Count, new Dictionary<int, int> { { lastResultId, desiredResultId.Value } });
 
         return lastResultId;
     }
