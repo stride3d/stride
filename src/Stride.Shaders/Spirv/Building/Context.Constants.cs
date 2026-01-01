@@ -1,5 +1,7 @@
 ﻿using System.Numerics;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing;
+using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 
@@ -158,5 +160,127 @@ public partial class SpirvContext
         }
 
         throw new Exception("Cannot find type instruction for id " + typeId);
+    }
+
+    public unsafe SpirvValue CreateConstantCompositeRepeat(Literal literal, int size)
+    {
+        var value = CompileConstantLiteral(literal);
+        if (size == 1)
+            return value;
+
+        Span<int> values = stackalloc int[size];
+        for (int i = 0; i < size; ++i)
+            values[i] = size;
+        
+        var type = new VectorType((ScalarType)ReverseTypes[value.TypeId], size);
+        var instruction = Buffer.Add(new OpConstantComposite(GetOrRegister(type), Bound++, new(values)));
+
+        return new(instruction);
+    }
+
+    public Literal CreateLiteral(object value, TextLocation location = default)
+    {
+        return value switch
+        {
+            bool i => new BoolLiteral(i, location),
+            sbyte i => new IntegerLiteral(new(8, false, true), i, location),
+            byte i => new IntegerLiteral(new(8, false, false), i, location),
+            short i => new IntegerLiteral(new(16, false, true), i, location),
+            ushort i => new IntegerLiteral(new(16, false, false), i, location),
+            int i => new IntegerLiteral(new(32, false, true), i, location),
+            uint i => new IntegerLiteral(new(32, false, false), i, location),
+            long i => new IntegerLiteral(new(64, false, true), i, location),
+            ulong i => new IntegerLiteral(new(64, false, false), (long)i, location),
+            float i => new FloatLiteral(new(32, true, true), i, null, location),
+            double i => new FloatLiteral(new(64, true, true), i, null, location),
+        };
+    }
+
+    public SpirvValue CompileConstant(object value, TextLocation location = default)
+    {
+        return CompileConstantLiteral(CreateLiteral(value, location));
+    }
+
+    public SpirvValue CompileConstantLiteral(Literal literal)
+    {
+        object literalValue = literal switch
+        {
+            BoolLiteral lit => lit.Value,
+            IntegerLiteral lit => lit.Suffix.Size switch
+            {
+                > 32 => lit.LongValue,
+                _ => lit.IntValue,
+            },
+            FloatLiteral lit => lit.Suffix.Size switch
+            {
+                > 32 => lit.DoubleValue,
+                _ => (float)lit.DoubleValue,
+            },
+        };
+
+        if (literal.Type == null)
+        {
+            literal.Type = literal switch
+            {
+                BoolLiteral lit => ScalarType.From("bool"),
+                IntegerLiteral lit => lit.Suffix switch
+                {
+                    { Signed: true, Size: 8 } => ScalarType.From("sbyte"),
+                    { Signed: true, Size: 16 } => ScalarType.From("short"),
+                    { Signed: true, Size: 32 } => ScalarType.From("int"),
+                    { Signed: true, Size: 64 } => ScalarType.From("long"),
+                    { Signed: false, Size: 8 } => ScalarType.From("byte"),
+                    { Signed: false, Size: 16 } => ScalarType.From("ushort"),
+                    { Signed: false, Size: 32 } => ScalarType.From("uint"),
+                    { Signed: false, Size: 64 } => ScalarType.From("ulong"),
+                    _ => throw new NotImplementedException("Unsupported integer suffix")
+                },
+                FloatLiteral lit => lit.Suffix.Size switch
+                {
+                    16 => ScalarType.From("half"),
+                    32 => ScalarType.From("float"),
+                    64 => ScalarType.From("double"),
+                    _ => throw new NotImplementedException("Unsupported float")
+                },
+            };
+        }
+
+        if (LiteralConstants.TryGetValue((literal.Type, literalValue), out var result))
+            return result;
+
+        var instruction = literal switch
+        {
+            BoolLiteral { Value: true } lit => Buffer.Add(new OpConstantTrue(GetOrRegister(lit.Type), Bound++)),
+            BoolLiteral { Value: false } lit => Buffer.Add(new OpConstantFalse(GetOrRegister(lit.Type), Bound++)),
+            IntegerLiteral lit => lit.Suffix switch
+            {
+                { Size: <= 8, Signed: false } => Buffer.Add(new OpConstant<byte>(GetOrRegister(lit.Type), Bound++, (byte)lit.IntValue)),
+                { Size: <= 8, Signed: true } => Buffer.Add(new OpConstant<sbyte>(GetOrRegister(lit.Type), Bound++, (sbyte)lit.IntValue)),
+                { Size: <= 16, Signed: false } => Buffer.Add(new OpConstant<ushort>(GetOrRegister(lit.Type), Bound++, (ushort)lit.IntValue)),
+                { Size: <= 16, Signed: true } => Buffer.Add(new OpConstant<short>(GetOrRegister(lit.Type), Bound++, (short)lit.IntValue)),
+                { Size: <= 32, Signed: false } => Buffer.Add(new OpConstant<uint>(GetOrRegister(lit.Type), Bound++, unchecked((uint)lit.IntValue))),
+                { Size: <= 32, Signed: true } => Buffer.Add(new OpConstant<int>(GetOrRegister(lit.Type), Bound++, lit.IntValue)),
+                { Size: <= 64, Signed: false } => Buffer.Add(new OpConstant<ulong>(GetOrRegister(lit.Type), Bound++, unchecked((uint)lit.LongValue))),
+                { Size: <= 64, Signed: true } => Buffer.Add(new OpConstant<long>(GetOrRegister(lit.Type), Bound++, lit.LongValue)),
+                _ => throw new NotImplementedException()
+            },
+            FloatLiteral lit => lit.Suffix.Size switch
+            {
+                > 32 => Buffer.Add(new OpConstant<double>(GetOrRegister(lit.Type), Bound++, lit.DoubleValue)),
+                _ => Buffer.Add(new OpConstant<float>(GetOrRegister(lit.Type), Bound++, (float)lit.DoubleValue)),
+            },
+            _ => throw new NotImplementedException()
+        };
+
+        result = new(instruction);
+        LiteralConstants.Add((literal.Type, literalValue), result);
+        AddName(result.Id, literal switch
+        {
+            BoolLiteral lit => $"{lit.Type}_{lit.Value}",
+            IntegerLiteral lit => $"{lit.Type}_{lit.Value}",
+            FloatLiteral lit => $"{lit.Type}_{lit.Value}",
+            _ => throw new NotImplementedException()
+        });
+        return result;
     }
 }
