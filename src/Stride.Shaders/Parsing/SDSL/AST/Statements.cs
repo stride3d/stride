@@ -182,9 +182,6 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
 
             table.CurrentFrame.Add(d.Variable, new(new(d.Variable, SymbolKind.Variable), variableType, variable));
 
-            if (builder.CurrentFunction is SpirvFunction f)
-                f.Variables.Add(d.Variable, new(variable, variableTypeId, d.Variable));
-
             // Check initial value
             if (d.Value != null)
             {

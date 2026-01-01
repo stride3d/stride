@@ -105,7 +105,6 @@ public struct SpirvFunction(int id, string name, FunctionType type) : IInstructi
     public bool IsStage { get; set; }
     public FunctionType FunctionType { get; private set; } = type;
     public Dictionary<string, SpirvValue> Parameters { get; } = [];
-    public Dictionary<string, SpirvValue> Variables { get; } = [];
     public SortedList<int, SpirvBlock> BasicBlocks { get; } = [];
 }
 
