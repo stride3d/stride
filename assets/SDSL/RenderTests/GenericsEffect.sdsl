@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#34302425)
+// PSMain(ExpectedResult=#3935292A)
 
 namespace Stride.Shaders.Tests;
 
@@ -34,7 +34,22 @@ shader ComputeFixed3<float4 TVALUE2> : Compute
     }
 }
 
-shader GenericsEffectTest : Compute
+shader ComputeBool<bool T1, bool T2> : Compute
+{
+    override float4 Compute()
+    {
+        if (T1)
+        {
+            if (T2)
+            {
+                return 5.0;
+            }
+        }
+        return 0.0;
+    }
+}
+
+shader GenericsEffectTest : Compute, ComputeBool<true, true>
 {
     stream float4 ColorTarget : SV_Target0;
 

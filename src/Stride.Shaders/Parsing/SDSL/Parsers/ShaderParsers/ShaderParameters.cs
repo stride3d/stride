@@ -112,6 +112,11 @@ public record struct GenericsValueParser : IParser<Expression>
             parsed = number;
             return true;
         }
+        else if (LiteralsParser.Boolean(ref scanner, result, out var boolean))
+        {
+            parsed = boolean;
+            return true;
+        }
         else if (LiteralsParser.Vector(ref scanner, result, out var vector))
         {
             parsed = vector;

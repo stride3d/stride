@@ -123,6 +123,17 @@ public partial class SpirvContext
             return true;
         }
 
+        if (i.Op == Specification.Op.OpConstantTrue)
+        {
+            value = true;
+            return true;
+        }
+        if (i.Op == Specification.Op.OpConstantFalse)
+        {
+            value = false;
+            return true;
+        }
+
         typeId = i.Op switch
         {
             Specification.Op.OpConstant or Specification.Op.OpSpecConstant => i.Data.Memory.Span[1],

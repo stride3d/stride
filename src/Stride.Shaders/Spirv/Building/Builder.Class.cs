@@ -113,6 +113,8 @@ public partial class SpirvBuilder
         {
             if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
             {
+                if (genericParameter.Index >= classSource.GenericArguments.Length)
+                    throw new NotImplementedException($"Not enough generic parameters specified when instantiating {classSource.ToClassName()}");
                 genericParameterRemapping.Add(genericParameter.ResultId, classSource.GenericArguments[genericParameter.Index]);
             }
             if (i.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)
