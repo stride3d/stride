@@ -42,7 +42,7 @@ public class RenderingTests
             return true;
         }
 
-        protected override bool LoadFromCode(string filename, string code, ReadOnlySpan<ShaderMacro> macros, out NewSpirvBuffer buffer)
+        protected override bool LoadFromCode(string filename, string code, ReadOnlySpan<ShaderMacro> macros, out SpirvBytecode buffer)
         {
             var result = base.LoadFromCode(filename, code, macros, out buffer);
 #if DEBUG
@@ -65,7 +65,7 @@ public class RenderingTests
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
 
         // Convert to GLSL
-        var translator = new SpirvTranslator(bytecode.AsMemory().Cast<byte, uint>());
+        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
         var entryPoints = translator.GetEntryPoints();
         var codePS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Fragment));
         var codeVS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex))

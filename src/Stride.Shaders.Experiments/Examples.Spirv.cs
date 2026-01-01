@@ -140,12 +140,12 @@ public static partial class Examples
         buffer.FluentAdd(new OpFunctionEnd());
 
         buffer.Sort();
-        var span = buffer.ToBuffer();
+        var bytecode = buffer.ToBytecode();
 
         Spv.Dis(buffer);
         File.WriteAllBytes(
             "test.spv",
-            MemoryMarshal.Cast<int, byte>(span.Span)
+            bytecode
         );
     }
 
@@ -282,8 +282,8 @@ public static partial class Examples
 
         var bytes = File.ReadAllBytes(path);
 
-        var buffer = new NewSpirvBuffer(MemoryMarshal.Cast<byte, int>(bytes.AsSpan()));
-        var extInst = (OpExtInstImport)buffer[1] ;
+        using var bytecode = SpirvBytecode.CreateBufferFromBytecode(bytes);
+        var extInst = (OpExtInstImport)bytecode.Buffer[1];
         Console.WriteLine(extInst.Name);
     }
 }

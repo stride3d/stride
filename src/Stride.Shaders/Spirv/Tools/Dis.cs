@@ -20,24 +20,31 @@ public enum DisassemblerFlags
 
 public static partial class Spv
 {
-    public static string Dis(NewSpirvBuffer buffer, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = false)
+    public static string Dis(NewSpirvBuffer bytecode, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = false)
     {
-        var writer = new DisWriter(buffer, flags, writeToConsole);
+        var writer = new DisWriter(new(new("undefined", 0, 1), bytecode), flags, writeToConsole);
+        writer.Disassemble();
+        return writer.ToString();
+    }
+
+    public static string Dis(SpirvBytecode bytecode, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = false)
+    {
+        var writer = new DisWriter(bytecode, flags, writeToConsole);
         writer.Disassemble();
         return writer.ToString();
     }
 
     public static string Dis(SpirvReader reader, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = false)
     {
-        using var buffer = new NewSpirvBuffer(reader.Words);
+        using var buffer = SpirvBytecode.CreateBufferFromBytecode(reader.Words);
         var writer = new DisWriter(buffer, flags, writeToConsole);
         writer.Disassemble();
         return writer.ToString();
     }
 
-    struct DisWriter(NewSpirvBuffer buffer, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = true)
+    struct DisWriter(SpirvBytecode bytecode, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = true)
     {
-        DisData data = new(buffer, flags, writeToConsole);
+        DisData data = new(bytecode, flags, writeToConsole);
         readonly StringBuilder builder = new();
 
         readonly DisWriter AppendLine(string text, ConsoleColor? color = null)
@@ -272,7 +279,7 @@ public static partial class Spv
 
         public readonly void DisHeader()
         {
-            var header = data.Buffer.Header;
+            var header = data.Bytecode.Header;
             AppendLine($"; SPIR-V");
             AppendLine($"; Version: {header.VersionNumber >> 16}.{header.VersionNumber & 0xFF}");
             AppendLine($"; Generator: {header.Generator}");
@@ -319,7 +326,7 @@ public static partial class Spv
                                 (OperandQuantifier.ZeroOrMore, _) => AppendLiteralNumbers<int>(operand.Words),
                                 _ => throw new NotImplementedException("Unsupported literal integer quantifier " + operand.Quantifier + " with length " + operand.Words.Length)
                             },
-                        OperandKind.LiteralContextDependentNumber => AppendContextDependentNumber(operand, data, buffer),
+                        OperandKind.LiteralContextDependentNumber => AppendContextDependentNumber(operand, data, bytecode.Buffer),
                         OperandKind.IdRef or OperandKind.IdResultType =>
                             (operand.Quantifier, operand.Words.Length) switch
                             {
@@ -382,16 +389,16 @@ public static partial class Spv
         static int MAX_OFFSET = 16;
         public Dictionary<MemberIndex, string> NameTable { get; }
         public HashSet<string> UsedNames { get; } = new();
-        public NewSpirvBuffer Buffer { get; }
+        public SpirvBytecode Bytecode { get; }
         public int IdOffset { get; private set; }
         public DisassemblerFlags Flags { get; private set; }
         public bool UseNames => (Flags & DisassemblerFlags.Name) != 0;
         public bool UseIds => (Flags & DisassemblerFlags.Id) != 0;
         public bool WriteToConsole { get; private set; }
 
-        public DisData(NewSpirvBuffer buffer, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = false)
+        public DisData(SpirvBytecode buffer, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = false)
         {
-            Buffer = buffer;
+            Bytecode = buffer;
             NameTable = [];
             Flags = flags;
             WriteToConsole = writeToConsole;
@@ -403,7 +410,7 @@ public static partial class Spv
             IdOffset = 9;
             if (!UseNames)
             {
-                var bound = Buffer.Header.Bound;
+                var bound = Bytecode.Header.Bound;
                 IdOffset = 3;
                 while (bound > 0)
                 {
@@ -414,7 +421,7 @@ public static partial class Spv
             else
             {
                 var maxName = 0;
-                foreach (var i in Buffer)
+                foreach (var i in Bytecode.Buffer)
                 {
                     if (i.Op == Op.OpName)
                     {
@@ -431,7 +438,7 @@ public static partial class Spv
             }
             IdOffset = Math.Min(IdOffset, MAX_OFFSET);
         }
-        public readonly NewSpirvBuffer.Enumerator GetEnumerator() => Buffer.GetEnumerator();
+        public readonly NewSpirvBuffer.Enumerator GetEnumerator() => Bytecode.Buffer.GetEnumerator();
 
         public readonly void Dispose()
         {

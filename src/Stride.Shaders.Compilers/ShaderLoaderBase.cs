@@ -30,9 +30,9 @@ public abstract class ShaderLoaderBase : IExternalShaderLoader
         }
     }
 
-    private Dictionary<string, Dictionary<ShaderLoadKey, NewSpirvBuffer>> loadedShaders = [];
+    private Dictionary<string, Dictionary<ShaderLoadKey, SpirvBytecode>> loadedShaders = [];
 
-    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, NewSpirvBuffer buffer)
+    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, SpirvBytecode buffer)
     {
         if (!loadedShaders.TryGetValue(name, out var loadedShadersByName))
             loadedShaders.Add(name, loadedShadersByName = new());
@@ -50,7 +50,7 @@ public abstract class ShaderLoaderBase : IExternalShaderLoader
     protected abstract bool ExternalFileExists(string name);
     protected abstract bool LoadExternalFileContent(string name, out string filename, out string code);
 
-    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer buffer, out bool isFromCache)
+    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out SpirvBytecode buffer, out bool isFromCache)
     {
         if (loadedShaders.TryGetValue(name, out var loadedShadersByName)
             && loadedShadersByName.TryGetValue(new(defines.ToArray()), out buffer))
@@ -78,7 +78,7 @@ public abstract class ShaderLoaderBase : IExternalShaderLoader
         return true;
     }
 
-    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer buffer, out bool isFromCache)
+    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out SpirvBytecode buffer, out bool isFromCache)
     {
         if (loadedShaders.TryGetValue(name, out var loadedShadersByName)
             && loadedShadersByName.TryGetValue(new(defines.ToArray()), out buffer))
@@ -98,7 +98,7 @@ public abstract class ShaderLoaderBase : IExternalShaderLoader
         return true;
     }
 
-    protected virtual bool LoadFromCode(string filename, string code, ReadOnlySpan<ShaderMacro> macros, out NewSpirvBuffer buffer)
+    protected virtual bool LoadFromCode(string filename, string code, ReadOnlySpan<ShaderMacro> macros, out SpirvBytecode buffer)
     {
         var defines = new (string Name, string Definition)[macros.Length];
         for (int i = 0; i < macros.Length; ++i)

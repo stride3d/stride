@@ -576,9 +576,9 @@ public partial class SpirvBuilder
             contextBuffer.RemoveAt(instructionIndex);
 
             // TODO: Try to simplify constant
-            var bound = contextBuffer.Header.Bound;
+            var bound = context.Bound;
             int resultId = InsertBufferWithoutDuplicates(contextBuffer, ref instructionIndex, ref bound, genericParameter.ResultId, bufferWithConstant);
-            contextBuffer.Header = contextBuffer.Header with { Bound = bound };
+            context.Bound = bound;
 
             return true;
         }
@@ -934,7 +934,7 @@ public partial class SpirvBuilder
             // Copy buffers (we don't want to edit original buffer as it might be reloaded through caching
             shaderBuffers.Context = new SpirvContext(CopyBuffer(shaderBuffers.Context.GetBuffer()))
             {
-                Bound = shader.Header.Bound,
+                Bound = shaderBuffers.Context.Bound,
                 Names = new(shaderBuffers.Context.Names),
                 Types = new(shaderBuffers.Context.Types),
                 ReverseTypes = new(shaderBuffers.Context.ReverseTypes),
@@ -943,33 +943,27 @@ public partial class SpirvBuilder
 
             InstantiateGenericShader(ref shaderBuffers, className, genericResolver, shaderLoader, macros);
             //Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
-
-            shaderBuffers.Context.GetBuffer().Header = shaderBuffers.Context.GetBuffer().Header with { Bound = shaderBuffers.Context.Bound };
-            shaderBuffers.Buffer.Header = shaderBuffers.Buffer.Header with { Bound = shaderBuffers.Context.Bound };
         }
 
         return shaderBuffers;
     }
 
-    private static ShaderBuffers CreateShaderBuffers(NewSpirvBuffer shader)
+    private static ShaderBuffers CreateShaderBuffers(SpirvBytecode shader)
     {
         var context = new SpirvContext();
         var buffer = new NewSpirvBuffer();
         var isContext = true;
-        foreach (var i in shader)
+        foreach (var i in shader.Buffer)
         {
             // Find when switching from context to actual shader/effect
             if (i.Op == Op.OpSDSLShader || i.Op == Op.OpSDSLEffect)
                 isContext = false;
 
             if (isContext)
-                context.GetBuffer().Add(i.Data);
+                context.Add(i.Data);
             else
                 buffer.Add(i.Data);
         }
-
-        context.GetBuffer().Header = shader.Header;
-        buffer.Header = shader.Header;
 
         context.Bound = shader.Header.Bound;
 
@@ -1007,7 +1001,7 @@ public partial class SpirvBuilder
         return generics;
     }
 
-    public static NewSpirvBuffer GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, ReadOnlySpan<ShaderMacro> defines, out bool isFromCache)
+    public static SpirvBytecode GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, ReadOnlySpan<ShaderMacro> defines, out bool isFromCache)
     {
         Console.WriteLine($"[Shader] Requesting non-generic class {className}");
 

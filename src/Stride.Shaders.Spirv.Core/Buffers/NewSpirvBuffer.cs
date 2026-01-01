@@ -184,9 +184,93 @@ public record struct OpDataIndex(int Index, NewSpirvBuffer Buffer)
     public readonly ref OpData Data => ref Buffer.GetRef(Index);
 }
 
+public record SpirvBytecode(SpirvHeader Header, NewSpirvBuffer Buffer) : IDisposable
+{
+    public SpirvBytecode(NewSpirvBuffer buffer) : this(CreateHeader(buffer), buffer)
+    {
+    }
+
+    public void Dispose() => Buffer.Dispose();
+
+    public static SpirvHeader CreateHeader(NewSpirvBuffer buffer)
+    {
+        var header = new SpirvHeader("1.4", 0, 1);
+        var bound = 1;
+        foreach (var i in buffer)
+        {
+            ref var data = ref i.Data;
+            if (data.IdResult is int index && index >= bound)
+                bound = index + 1;
+        }
+        return new SpirvHeader("1.4", 0, bound);
+    }
+
+    public Span<byte> ToBytecode()
+    {
+        return CreateBytecodeFromBuffers(Header, false, Buffer);
+    }
+
+    public static SpirvBytecode CreateBufferFromBytecode(Span<byte> span)
+    {
+        return CreateBufferFromBytecode(MemoryMarshal.Cast<byte, int>(span));
+    }
+
+    public static SpirvBytecode CreateBufferFromBytecode(Span<int> span)
+    {
+        if (span[0] != MagicNumber)
+            throw new InvalidOperationException("SPIRV Magic number not found");
+        
+        var header = SpirvHeader.Read(span);
+
+        return new(header, new NewSpirvBuffer(span[SpirvHeader.IntSpanSize..]));
+    }
+
+    public static SpanOwner<int> CreateSpanFromBuffers(SpirvHeader header, bool computeBounds, params Span<NewSpirvBuffer> buffers)
+    {
+        int instructionsMemorySize = 0;
+        var bound = header.Bound;
+        foreach (var buffer in buffers)
+        {
+            foreach (var i in buffer)
+            {
+                ref var data = ref i.Data;
+                if (data.IdResult is int index && index >= bound)
+                    bound = index + 1;
+
+                instructionsMemorySize += data.Memory.Length;
+            }
+        }
+
+        header = header with { Bound = bound };
+
+        var result = SpanOwner<int>.Allocate(5 + instructionsMemorySize);
+        var span = result.Span;
+        header.WriteTo(span);
+        var offset = 5;
+        foreach (var buffer in buffers)
+        {
+            foreach (var i in buffer)
+            {
+                i.Data.Memory.Span.CopyTo(span[offset..]);
+                offset += i.Data.Memory.Length;
+            }
+        }
+        return result;
+    }
+
+    public static Span<byte> CreateBytecodeFromBuffers(params Span<NewSpirvBuffer> buffers)
+    {
+        return CreateBytecodeFromBuffers(new("1.4", 0, 1), true, buffers);
+    }
+
+    public static Span<byte> CreateBytecodeFromBuffers(SpirvHeader header, bool computeBounds, params Span<NewSpirvBuffer> buffers)
+    {
+        return MemoryMarshal.AsBytes(CreateSpanFromBuffers(header, computeBounds, buffers).Span);
+    }
+}
+
 public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
 {
-    public SpirvHeader Header { get; set; } = new("1.4", 0, 1);
     List<OpData> Instructions { get; set; } = [];
     public int Count => Instructions.Count;
 
@@ -198,11 +282,10 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
 
     public ref OpData GetRef(int index) => ref CollectionsMarshal.AsSpan(Instructions)[index];
 
-    public NewSpirvBuffer(Span<int> span) : this()
+    public NewSpirvBuffer(Span<int> instructions) : this()
     {
-        if (span[0] == MagicNumber)
-            Header = SpirvHeader.Read(span);
-        var instructions = span[5..];
+        if (instructions.Length > 0 && instructions[0] == MagicNumber)
+            throw new InvalidOperationException();
 
         int wid = 0;
         while (wid < instructions.Length)
@@ -212,31 +295,21 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         }
     }
 
-
-    void UpdateBound(OpData data)
-    {
-        if (data.IdResult is int index && index >= Header.Bound)
-            Header = Header with { Bound = index + 1 };
-    }
-
     public OpDataIndex Add(OpData data)
     {
         Instructions.Add(data);
-        UpdateBound(data);
         return new OpDataIndex(Instructions.Count - 1, this);
     }
 
     public OpDataIndex Insert(int index, OpData data)
     {
         Instructions.Insert(index, data);
-        UpdateBound(data);
         return new OpDataIndex(index, this);
     }
 
     public OpData Add<T>(in T instruction) where T : struct, IMemoryInstruction, allows ref struct
     {
         Instructions.Add(new(instruction.InstructionMemory));
-        UpdateBound(Instructions[^1]);
         return Instructions[^1];
     }
 
@@ -244,7 +317,6 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
     {
         Instructions.Add(new(instruction.InstructionMemory));
         var tmp = instruction;
-        UpdateBound(Instructions[^1]);
         return this;
     }
     public NewSpirvBuffer FluentAdd<T>(in T instruction, out T result) where T : struct, IMemoryInstruction, allows ref struct
@@ -252,7 +324,6 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         result = instruction;
         Instructions.Add(new(instruction.InstructionMemory));
         instruction.Attach(new(Instructions.Count - 1, this));
-        UpdateBound(Instructions[^1]);
         return this;
     }
 
@@ -261,7 +332,6 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
     {
         Instructions.Insert(index, new(instruction.InstructionMemory));
         instruction.Attach(new(index, this));
-        UpdateBound(Instructions[index]);
         return instruction;
     }
     public OpData InsertData<T>(int index, in T instruction)
@@ -270,7 +340,6 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         var result = new OpData(instruction.InstructionMemory);
         Instructions.Insert(index, result);
         instruction.Attach(new(index, this));
-        UpdateBound(result);
         return result;
     }
 
@@ -302,8 +371,6 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
     public void InsertRange(int index, ReadOnlySpan<OpData> source)
     {
         Instructions.InsertRange(index, source);
-        for (int i = index; i < index + source.Length; ++i)
-            UpdateBound(Instructions[i]);
     }
 
     public OpData Replace(int index, OpData i)
@@ -313,7 +380,6 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
 
         Instructions[index].Dispose();
         Instructions[index] = i;
-        UpdateBound(Instructions[index]);
         return Instructions[index];
     }
 
@@ -324,7 +390,6 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
 
         Instructions[index].Dispose();
         Instructions[index] = new(instruction.InstructionMemory);
-        UpdateBound(Instructions[index]);
         return Instructions[index];
     }
 
@@ -369,23 +434,9 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         Instructions.AddRange(sortedInstructions);
     }
 
-    public byte[] ToBytecode()
+    public Span<byte> ToBytecode()
     {
-        return MemoryMarshal.AsBytes(ToBuffer().Span).ToArray();
-    }
-
-    public SpanOwner<int> ToBuffer()
-    {
-        var result = SpanOwner<int>.Allocate(5 + Instructions.Sum(i => i.Memory.Length));
-        var span = result.Span;
-        Header.WriteTo(span);
-        var offset = 5;
-        foreach (var instruction in Instructions)
-        {
-            instruction.Memory.Span.CopyTo(span[offset..]);
-            offset += instruction.Memory.Length;
-        }
-        return result;
+        return SpirvBytecode.CreateBytecodeFromBuffers(this);
     }
 
     public bool TryGetInstructionById(int typeId, out OpDataIndex instruction)
@@ -412,10 +463,7 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
 
     public static NewSpirvBuffer Merge(NewSpirvBuffer buffer1, NewSpirvBuffer buffer2)
     {
-        var result = new NewSpirvBuffer
-        {
-            Header = new SpirvHeader("1.4", Math.Max(buffer1.Header.Generator, buffer2.Header.Generator), Math.Max(buffer1.Header.Bound, buffer2.Header.Bound))
-        };
+        var result = new NewSpirvBuffer();
         result.Instructions.AddRange(buffer1.Instructions);
         result.Instructions.AddRange(buffer2.Instructions);
         return result;

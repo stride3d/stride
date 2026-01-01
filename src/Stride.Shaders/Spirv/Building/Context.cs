@@ -15,18 +15,19 @@ namespace Stride.Shaders.Spirv.Building;
 
 public interface IExternalShaderLoader
 {
-    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, NewSpirvBuffer buffer);
+    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, SpirvBytecode buffer);
     public bool Exists(string name);
-    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer bytecode, out bool isFromCache);
-    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out NewSpirvBuffer bytecode, out bool isFromCache);
+    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out SpirvBytecode bytecode, out bool isFromCache);
+    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out SpirvBytecode bytecode, out bool isFromCache);
 }
 
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 
 // SPIR-V parameters
 public class SpirvContext
 {
+    private int bound = 1;
     public int ResourceGroupBound { get; set; } = 1;
-    public int Bound { get; set; } = 1;
+    public ref int Bound => ref bound;
     public Dictionary<SymbolType, int> Types { get; init; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; init; } = [];
     public Dictionary<int, string> Names { get; init; } = [];
@@ -464,6 +465,9 @@ public class SpirvContext
     public OpData Add<T>(in T value)
         where T : struct, IMemoryInstruction, allows ref struct
         => Buffer.Add(value);
+
+    public OpDataIndex Add(OpData data)
+        => Buffer.Add(data);
 
 
     public SpirvContext FluentAdd<T>(in T value, out T result)

@@ -41,6 +41,8 @@ public readonly struct SpirvVersion
 /// </summary>
 public readonly struct SpirvHeader
 {
+    public const int IntSpanSize = 5;
+
     public uint MagicNumber { get; init; }
     public SpirvVersion VersionNumber { get; init; }
     public int Generator { get; init; }

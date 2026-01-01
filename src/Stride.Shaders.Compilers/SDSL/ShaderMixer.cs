@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
 using Silk.NET.Direct3D.Compilers;
+using Silk.NET.Direct3D12;
 using Silk.NET.SPIRV.Cross;
 using Stride.Core.Extensions;
 using Stride.Shaders.Compilers.Direct3D;
@@ -28,7 +29,7 @@ namespace Stride.Shaders.Compilers.SDSL;
 public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 {
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
-    public void MergeSDSL(ShaderSource shaderSource, out byte[] bytecode, out EffectReflection effectReflection)
+    public void MergeSDSL(ShaderSource shaderSource, out Span<byte> bytecode, out EffectReflection effectReflection)
     {
         var temp = new NewSpirvBuffer();
 
@@ -81,7 +82,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         temp.Sort();
 
-        bytecode = temp.ToBytecode();
+        bytecode = SpirvBytecode.CreateBytecodeFromBuffers(temp);
 
 #if DEBUG
         //File.WriteAllBytes("test.spv", bytecode);

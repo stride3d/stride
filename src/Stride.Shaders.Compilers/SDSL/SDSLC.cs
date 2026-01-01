@@ -15,7 +15,7 @@ namespace Stride.Shaders.Compilers.SDSL;
 
 public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 {
-    public readonly bool Compile(string code, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out NewSpirvBuffer lastBuffer)
+    public readonly bool Compile(string code, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out SpirvBytecode lastBuffer)
     {
         var parsed = SDSLParser.Parse(code);
         lastBuffer = null;
@@ -47,9 +47,9 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 #if DEBUG
                     var dis = Spv.Dis(merged, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 #endif
-                    lastBuffer = merged;
+                    lastBuffer = new(merged);
 
-                    ShaderLoader.RegisterShader(shader.Name, macros, merged);
+                    ShaderLoader.RegisterShader(shader.Name, macros, lastBuffer);
                 }
                 else if (declaration is ShaderEffect effect)
                 {
@@ -66,9 +66,9 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 #if DEBUG
                     var dis = Spv.Dis(merged, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
 #endif
-                    lastBuffer = merged;
+                    lastBuffer = new(merged);
 
-                    ShaderLoader.RegisterShader(effect.Name, macros, merged);
+                    ShaderLoader.RegisterShader(effect.Name, macros, lastBuffer);
                 }
                 else
                 {

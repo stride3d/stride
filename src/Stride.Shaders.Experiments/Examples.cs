@@ -242,7 +242,7 @@ public static partial class Examples
         if (sdslc.Compile(text, [], out var buffer) && buffer is not null)
         {
             Spirv.Tools.Spv.Dis(buffer, writeToConsole: true);
-            var bytecode = buffer.ToBytecode();
+            var bytecode = buffer.ToBytecode().ToArray();
             File.WriteAllBytes("TestBasic.sdspv", bytecode);
             var code = new SpirvTranslator(bytecode.AsMemory().Cast<byte, uint>());
         }
