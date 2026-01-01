@@ -115,7 +115,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             buffer.Add(new OpSDSLComposition(currentCompositionPath));
 
         var mixinNode = new MixinNode(stage, currentCompositionPath);
-        var contextStart = context.GetBuffer().Count;
+        var contextStart = context.Count;
 
         // Merge all classes from mixinSource.Mixins in main buffer
         ProcessMixinClasses(globalContext, context, buffer, mixinSource, mixinNode);
@@ -166,7 +166,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         mixinNode.StartInstruction = buffer.Count;
         foreach (var shaderClass in mixinSource.Mixins)
         {
-            var contextStart = context.GetBuffer().Count;
+            var contextStart = context.Count;
 
             var shaderInfo = MergeClassInBuffers(globalContext, context, buffer, mixinNode, shaderClass);
 
@@ -174,8 +174,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             mixinNode.Shaders.Add(shaderInfo);
 
             // Note: we process name, types and struct right away, as they might be needed by the next Shader
-            ShaderClass.ProcessNameAndTypes(context, contextStart, context.GetBuffer().Count);
-            PopulateShaderInfo(globalContext, context, contextStart, context.GetBuffer().Count, buffer, shaderInfo.StartInstruction, shaderInfo.EndInstruction, shaderInfo, mixinNode);
+            ShaderClass.ProcessNameAndTypes(context, contextStart, context.Count);
+            PopulateShaderInfo(globalContext, context, contextStart, context.Count, buffer, shaderInfo.StartInstruction, shaderInfo.EndInstruction, shaderInfo, mixinNode);
         }
 
         mixinNode.EndInstruction = buffer.Count;
@@ -196,7 +196,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         // Remember when we started to add instructions in both context and main buffer
         var shaderStart = buffer.Count;
-        var contextStart = context.GetBuffer().Count;
+        var contextStart = context.Count;
         var names = new Dictionary<int, string>();
 
         var forbiddenIds = new HashSet<int>();
@@ -408,16 +408,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                     if (addToContext)
                     {
-                        var i2Index = context.GetBuffer().Add(i2);
+                        context.Add(i2);
                     }
                 }
             }
         }
 
         // Reprocess OpName/OpDecorate (they are defined before the OpType that was remapped, so we need to reprocess them)
-        for (int index = contextStart; index < context.GetBuffer().Count; ++index)
+        for (int index = contextStart; index < context.Count; ++index)
         {
-            var i = context.GetBuffer()[index];
+            var i = context[index];
 
             if (i.Op == Op.OpName
                 || i.Op == Op.OpMemberName

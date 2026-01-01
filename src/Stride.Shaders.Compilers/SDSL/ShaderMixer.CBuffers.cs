@@ -246,7 +246,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 var structId = context.Types[s];
 
                 var hasOffsetDecorations = false;
-                foreach (var i in context.GetBuffer())
+                foreach (var i in context)
                 {
                     if (i.Op == Op.OpMemberDecorate && (OpMemberDecorate)i is { Decoration: { Value: Decoration.Offset } } memberDecorate && memberDecorate.StructureType == structId)
                     {
@@ -300,7 +300,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     var elementType = ConvertType(context, a.BaseType, typeModifier);
 
                     var hasStrideDecoration = false;
-                    foreach (var i in context.GetBuffer())
+                    foreach (var i in context)
                     {
                         if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: { Value: Decoration.ArrayStride } } arrayStrideDecoration && arrayStrideDecoration.Target == typeId)
                         {

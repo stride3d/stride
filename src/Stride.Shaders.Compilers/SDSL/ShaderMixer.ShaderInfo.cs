@@ -89,7 +89,7 @@ public partial class ShaderMixer
         // Second pass to remove OpName
         for (var index = contextStart; index < contextEnd; index++)
         {
-            var i = context.GetBuffer()[index];
+            var i = context[index];
 
             if (i.Data.Op == Op.OpName && (OpName)i is { } nameInstruction)
             {

@@ -81,7 +81,7 @@ public static class ExpressionExtensions
                 i.Data.Memory.Span[0] = (int)Op.OpSpecConstantComposite | (i.Data.Memory.Length << 16);
 
                 // TODO: Check no IdRef to things outside context
-                var instruction = context.GetBuffer().Add(new(i.Data.Memory.Span));
+                var instruction = context.Add(new(i.Data.Memory.Span));
                 result = new(instruction.Data);
             }
             // Rewrite using OpSpecConstantOp when possible
@@ -94,7 +94,7 @@ public static class ExpressionExtensions
                 instruction[0] |= instruction.Length << 16;
 
                 // TODO: Check no IdRef to things outside context
-                context.GetBuffer().Add(new OpData(instruction));
+                context.Add(new OpData(instruction));
                 result = new(resultId, resultType);
             }
             else

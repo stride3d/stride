@@ -32,6 +32,11 @@ public partial class SpirvContext
     public Dictionary<SymbolType, int> Types { get; init; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; init; } = [];
     public Dictionary<int, string> Names { get; init; } = [];
+    
+    public OpDataIndex this[int index] => new(index, Buffer);
+
+    public int Count => Buffer.Count;
+
     NewSpirvBuffer Buffer { get; init; }
 
     public int? GLSLSet { get; private set; }
@@ -392,7 +397,11 @@ public partial class SpirvContext
         return result;
     }
 
-    public OpData Insert<T>(int index, in T value)
+    public T Insert<T>(int index, in T value)
+        where T : struct, IMemoryInstruction, allows ref struct
+        => Buffer.Insert(index, value);
+
+    public OpData InsertData<T>(int index, in T value)
         where T : struct, IMemoryInstruction, allows ref struct
         => Buffer.InsertData(index, value);
 
@@ -406,9 +415,11 @@ public partial class SpirvContext
     public OpDataIndex Add(OpData data)
         => Buffer.Add(data);
 
-    public void RemoveAt(int index, bool dispose)
+    public void RemoveAt(int index, bool dispose = true)
         => Buffer.RemoveAt(index, dispose);
 
+    public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction, allows ref struct
+        => Buffer.Replace(index, instruction);
 
     public SpirvContext FluentAdd<T>(in T value, out T result)
         where T : struct, IMemoryInstruction, allows ref struct

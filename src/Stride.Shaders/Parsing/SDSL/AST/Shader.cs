@@ -43,7 +43,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
     public static void ProcessNameAndTypes(SpirvContext context, IShaderImporter? shaderImporter = null, bool allowReplace = false)
     {
-        ProcessNameAndTypes(context, 0, context.GetBuffer().Count, shaderImporter, allowReplace);
+        ProcessNameAndTypes(context, 0, context.Count, shaderImporter, allowReplace);
     }
 
     public static void ProcessNameAndTypes(SpirvContext context, int start, int end, IShaderImporter? shaderImporter = null, bool allowReplace = false)
@@ -77,7 +77,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         var blocks = new HashSet<int>();
         for (var i = start; i < end; i++)
         {
-            var instruction = context.GetBuffer()[i];
+            var instruction = context[i];
             if (instruction.Op == Op.OpName)
             {
                 OpName nameInstruction = instruction;
@@ -258,7 +258,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         // Second pass (for processing when info from first pass is needed)
         for (var i = start; i < end; i++)
         {
-            var instruction = context.GetBuffer()[i];
+            var instruction = context[i];
 
             // Can be declared before OpTypeStruct, so done in second pass
             if (instruction.Op == Op.OpMemberDecorate && (OpMemberDecorate)instruction is { } memberDecorate)

@@ -228,8 +228,7 @@ public partial class SpirvBuilder
 
         public override bool ResolveGenericValueInBuffer(SymbolType genericParameterType, string genericParameterName, int genericIndex, SpirvContext context, ref int instructionIndex, out string textValue)
         {
-            var contextBuffer = context.GetBuffer();
-            var genericParameter = (OpSDSLGenericParameter)contextBuffer[instructionIndex];
+            var genericParameter = (OpSDSLGenericParameter)context[instructionIndex];
             var genericValue = genericValues![genericIndex];
             textValue = genericValue;
             switch (genericParameterType)
@@ -241,11 +240,11 @@ public partial class SpirvBuilder
                         throw new InvalidOperationException("Can't parse generic value");
                     var localContext = new SpirvContext();
                     var result = expression.CompileConstantValue(new SymbolTable(localContext), localContext, genericParameterType);
-                    contextBuffer.RemoveAt(instructionIndex);
+                    context.RemoveAt(instructionIndex);
                     context.InsertWithoutDuplicates(ref instructionIndex, genericParameter.ResultId, localContext.GetBuffer());
                     return true;
                 case GenericParameterType g:
-                    contextBuffer.Replace(instructionIndex++, new OpConstantStringSDSL(genericParameter.ResultId, genericValue));
+                    context.Replace(instructionIndex++, new OpConstantStringSDSL(genericParameter.ResultId, genericValue));
                     return true;
                 default:
                     throw new NotImplementedException();
@@ -282,7 +281,6 @@ public partial class SpirvBuilder
 
         public override bool ResolveGenericValueInBuffer(SymbolType genericParameterType, string genericParameterName, int genericIndex, SpirvContext context, ref int instructionIndex, out string textValue)
         {
-            var contextBuffer = context.GetBuffer();
             // Check if generic value can already be computed (no OpSDSLGenericParameter and such)
             if (declaringContext.TryGetConstantValue(classSource.GenericArguments[genericIndex], out var constantValue, out _, false))
             {
@@ -294,7 +292,7 @@ public partial class SpirvBuilder
                 textValue = GetIdRefAsString(genericIndex);
             }
 
-            var genericParameter = (OpSDSLGenericParameter)contextBuffer[instructionIndex];
+            var genericParameter = (OpSDSLGenericParameter)context[instructionIndex];
             var bufferWithConstant = declaringContext.ExtractConstantAsSpirvBuffer(classSource.GenericArguments[genericIndex]);
 
             bool resolved = true;
@@ -311,7 +309,7 @@ public partial class SpirvBuilder
                 }
             }
 
-            contextBuffer.RemoveAt(instructionIndex);
+            context.RemoveAt(instructionIndex);
 
             // TODO: Try to simplify constant
             var bound = context.Bound;
@@ -345,9 +343,9 @@ public partial class SpirvBuilder
         var semantics = new Dictionary<string, string>();
 
         var genericParameters = new List<GenericParameter>();
-        for (int index = 0; index < shaderBuffers.Context.GetBuffer().Count; ++index)
+        for (int index = 0; index < shaderBuffers.Context.Count; ++index)
         {
-            var i = shaderBuffers.Context.GetBuffer()[index];
+            var i = shaderBuffers.Context[index];
             if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
             {
                 var genericParameterType = shaderBuffers.Context.ReverseTypes[genericParameter.ResultType];
@@ -409,17 +407,16 @@ public partial class SpirvBuilder
             }
         }
 
-        TransformResolvedSemantics(shaderBuffers.Context.GetBuffer(), semantics);
-        TransformResolvedLinkIdIntoLinkString(shaderBuffers.Context.GetBuffer(), resolvedLinks);
+        TransformResolvedSemantics(shaderBuffers.Context, semantics);
+        TransformResolvedLinkIdIntoLinkString(shaderBuffers.Context, resolvedLinks);
 
         genericResolver.PostProcess(classNameWithGenerics, genericParameters);
     }
 
-    private static void TransformResolvedSemantics(NewSpirvBuffer contextBuffer, Dictionary<string, string> semantics)
+    private static void TransformResolvedSemantics(SpirvContext context, Dictionary<string, string> semantics)
     {
-        for (var index = 0; index < contextBuffer.Count; index++)
+        foreach (var i in context)
         {
-            var i = contextBuffer[index];
             if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: { Value: Decoration.UserSemantic, Parameters: { } m } } decorate)
             {
                 var n = new LiteralValue<string>(m.Span);
@@ -503,18 +500,18 @@ public partial class SpirvBuilder
         }
     }
 
-    private static void TransformResolvedLinkIdIntoLinkString(NewSpirvBuffer contextBuffer, Dictionary<int, string> resolvedLinks)
+    private static void TransformResolvedLinkIdIntoLinkString(SpirvContext context, Dictionary<int, string> resolvedLinks)
     {
         // Try to resolve LinkType generics
-        for (var index = 0; index < contextBuffer.Count; index++)
+        for (var index = 0; index < context.Count; index++)
         {
-            var i = contextBuffer[index];
+            var i = context[index];
             if (i.Op == Op.OpDecorate && ((OpDecorate)i) is { Decoration: { Value: Decoration.LinkIdSDSL, Parameters: { } m } } linkDecorate)
             {
                 using var n = new LiteralValue<int>(m.Span);
                 if (resolvedLinks.TryGetValue(n.Value, out var resolvedValue))
                 {
-                    contextBuffer.Replace(index, new OpDecorateString(linkDecorate.Target, new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words])));
+                    context.Replace(index, new OpDecorateString(linkDecorate.Target, new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words])));
                 }
             }
             else if (i.Op == Op.OpMemberDecorate && ((OpMemberDecorate)i) is { Decoration: { Value: Decoration.LinkIdSDSL, Parameters: { } m2 } } linkDecorate2)
@@ -522,7 +519,7 @@ public partial class SpirvBuilder
                 using var n = new LiteralValue<int>(m2.Span);
                 if (resolvedLinks.TryGetValue(n.Value, out var resolvedValue))
                 {
-                    contextBuffer.Replace(index, new OpMemberDecorateString(linkDecorate2.StructureType, linkDecorate2.Member, new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words])));
+                    context.Replace(index, new OpMemberDecorateString(linkDecorate2.StructureType, linkDecorate2.Member, new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words])));
                 }
             }
         }
