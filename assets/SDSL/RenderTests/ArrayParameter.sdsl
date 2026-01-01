@@ -1,0 +1,75 @@
+// PSMain(ExpectedResult=#1A052510)
+
+namespace Stride.Shaders.Tests;
+
+shader CompositionBase
+{
+	float Compute()
+	{
+		return 3.0 / 255.0;
+	}
+};
+ 
+shader CompositionShaderA : CompositionBase
+{
+	override float Compute()
+	{
+		return 5.0 / 255.0;
+	}
+};
+ 
+shader CompositionShaderB : CompositionBase
+{
+	override float Compute()
+	{
+		return base.Compute() + 13.0 / 255.0;
+	}
+};
+
+shader CompositionTestArray
+{
+	stage compose CompositionBase CompsInheritedStage[];
+	compose CompositionBase CompsInherited[];
+}
+ 
+shader CompositionTest : CompositionTestArray
+{
+    stream float4 ColorTarget : SV_Target0;
+
+	stage compose CompositionBase CompsStage[];
+	compose CompositionBase Comps[];
+
+	void PSMain()
+	{
+		streams.ColorTarget = 0.0;
+		foreach(var comp in CompsStage)
+		{
+			streams.ColorTarget.x += comp.Compute();
+		}
+		foreach(var comp in Comps)
+		{
+			streams.ColorTarget.y += comp.Compute();
+		}
+		foreach(var comp in CompsInheritedStage)
+		{
+			streams.ColorTarget.z += comp.Compute();
+		}
+		foreach(var comp in CompsInherited)
+		{
+			streams.ColorTarget.w += comp.Compute();
+		}
+	}
+};
+
+effect CompositionArray1
+{
+	mixin CompositionTest;
+	mixin compose CompsStage += CompositionShaderA;
+	mixin compose CompsStage += CompositionShaderA;
+	mixin compose CompsStage += CompositionShaderB;
+	mixin compose Comps += CompositionShaderA;
+	mixin compose CompsInheritedStage += CompositionShaderA;
+	mixin compose CompsInheritedStage += CompositionShaderB;
+	mixin compose CompsInheritedStage += CompositionShaderB;
+	mixin compose CompsInherited += CompositionShaderB;
+}

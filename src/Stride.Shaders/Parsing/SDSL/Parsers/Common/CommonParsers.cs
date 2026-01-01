@@ -399,7 +399,7 @@ public static class Parsers
             }
             else break;
         }
-        return true;
+        return arraySizes.Count > 0;
     }
 
     public static bool TypeNameMixinArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out TypeName typeName, out Mixin mixin, out Expression? arraySize, out Expression? value, bool advance = true)

@@ -69,11 +69,11 @@ public record struct LiteralsParser : IParser<Literal>
         var position = scanner.Position;
         if (Tokens.Char('_', ref scanner) || Tokens.Letter(ref scanner))
         {
-            name = new TypeName("", new());
             scanner.Advance(1);
             while (Tokens.LetterOrDigit(ref scanner) || Tokens.Char('_', ref scanner))
                 scanner.Advance(1);
             var identifier = new Identifier(scanner.Memory[position..scanner.Position].ToString(), scanner[position..scanner.Position]);
+            name = new TypeName(identifier.Name, scanner[position..scanner.Position]);
 
             var intermediate = scanner.Position;
 
@@ -83,32 +83,26 @@ public record struct LiteralsParser : IParser<Literal>
                 Parsers.Repeat(ref scanner, result, TypeNameOrNumber, out List<TypeName> generics, 1, withSpaces: true, separator: ",");
                 if (!Parsers.FollowedBy(ref scanner, Tokens.Char('>'), withSpaces: true, advance: true))
                     return Parsers.Exit(ref scanner, result, out name, position);
-                ((TypeName)name).Generics = generics;
-                intermediate = scanner.Position;
-            }
-
-
-            if (
-                Parsers.Spaces0(ref scanner, result, out _)
-                && Tokens.Char('[', ref scanner, advance: true)
-                && Parsers.Spaces0(ref scanner, result, out _)
-                && Parsers.Optional(ref scanner, new ExpressionParser(), result, out _)
-                && Parsers.Spaces0(ref scanner, result, out _)
-                && Tokens.Char(']', ref scanner, advance: true)
-            )
-            {
-                ((TypeName)name).Name = scanner.Memory[position..scanner.Position].ToString().Trim();
                 name.Info = scanner[position..scanner.Position];
-                throw new NotImplementedException();
-                return true;
+                name.Generics = generics;
+                intermediate = scanner.Position;
             }
             else
             {
                 scanner.Position = intermediate;
-                ((TypeName)name).Name = identifier.Name;
-                name.Info = scanner[position..scanner.Position];
-                return true;
             }
+
+            if (Parsers.FollowedByDelList(ref scanner, result, Parsers.ArraySizes, out List<Expression> arraySize, withSpaces: true, advance: true))
+            {
+                name.Info = scanner[position..scanner.Position];
+                name.ArraySize = arraySize;
+            }
+            else
+            {
+                scanner.Position = intermediate;
+            }
+
+            return true;
         }
         else return Parsers.Exit(ref scanner, result, out name, position, orError);
     }
