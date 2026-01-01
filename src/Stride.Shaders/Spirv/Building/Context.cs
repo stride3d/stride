@@ -4,6 +4,7 @@ using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Processing;
 using Stride.Shaders.Spirv.Tools;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -92,46 +93,6 @@ public class SpirvContext
         throw new Exception("Constant has no result id");
     }
 
-    public void AddGlobalVariable(Symbol variable)
-    {
-        throw new NotImplementedException();
-        // var t = GetOrRegister(variable.Type);
-        // if (variable.Id.Storage == Storage.Stream)
-        // {
-        //     foreach(var usage in SymbolProvider.RootSymbols.StreamUsages[variable.Id])
-        //     {
-        //         var i = Buffer.AddOpVariable(
-        //             Bound++, 
-        //             t, 
-        //             usage.IO switch
-        //             {
-        //                 StreamIO.Input => StorageClass.Input,
-        //                 StreamIO.Output => StorageClass.Output,
-        //                 _ => throw new NotImplementedException()
-        //             }, 
-        //             null
-        //         );
-        //         Variables[variable.Id.Name] = i.ResultId!.Value;
-        //         AddName(i, $"{usage.EntryPoint.ToString()}_{usage.IO.ToString()}_{variable.Id.Name}");
-        //     }
-        // }
-        // else
-        // {
-        //     var storage = variable.Id.Storage switch
-        //     {
-        //         Storage.UniformConstant => StorageClass.UniformConstant,
-        //         Storage.Uniform => StorageClass.Uniform,
-        //         Storage.Function => StorageClass.Function,
-        //         Storage.Generic => StorageClass.Generic,
-        //         _ => throw new NotImplementedException("Variable has to have a storage class")
-        //     };
-        //     var i = Buffer.AddOpVariable(Bound++, t, storage, null);
-        //     Variables[variable.Id.Name] = i.ResultId!.Value;
-        //     AddName(i, $"{variable.Id.Name}");
-        // }
-    }
-
-
     public void SetEntryPoint(ExecutionModel model, int function, string name, ReadOnlySpan<Symbol> variables)
     {
         Span<int> pvariables = stackalloc int[variables.Length];
@@ -209,10 +170,7 @@ public class SpirvContext
             var importBuffer = sizeExpression.Buffer;
             if (importBuffer != Buffer)
             {
-                var index = Buffer.Count;
-                var bound = Bound;
-                var resultId = SpirvBuilder.InsertBufferWithoutDuplicates(Buffer, ref index, ref bound, null, importBuffer);
-                Bound = bound;
+                var resultId = InsertWithoutDuplicates(null, importBuffer);
 
                 sizeId = resultId;
             }
@@ -478,6 +436,124 @@ public class SpirvContext
     }
 
     public void Sort() => Buffer.Sort();
+
+    public int InsertWithoutDuplicates(int? desiredResultId, NewSpirvBuffer source)
+    {
+        var index = Buffer.Count;
+        return InsertWithoutDuplicates(ref index, desiredResultId, source);
+    }
+
+    public int InsertWithoutDuplicates(ref int instructionIndex, int? desiredResultId, NewSpirvBuffer source)
+    {
+        // Import in current buffer (without duplicate)
+        var typeDuplicateInserter = new TypeDuplicateHelper(Buffer);
+        var remapIds = new Dictionary<int, int>();
+        int lastResultId = -1;
+        for (int index = 0; index < source.Count; ++index)
+        {
+            var i = source[index];
+            SpirvBuilder.RemapIds(remapIds, ref i.Data);
+
+            //// If it's a generic reference, remap to OpSDSLGenericParameter which has to match during typeDuplicateInserter.CheckForDuplicates()
+            var isGenericReference = i.Op == Op.OpSDSLGenericReference;
+            if (isGenericReference)
+                i.Data.Memory.Span[0] = (int)(i.Data.Memory.Span[0] & 0xFFFF0000) | (int)Op.OpSDSLGenericParameter;
+
+            // Note: we also try to avoid duplciate for constants (which should have been resolved)
+            // otherwise a generic type might have 2 different instantiation with same parameters
+            if ((TypeDuplicateHelper.OpCheckDuplicateForTypesAndImport(i.Op) || TypeDuplicateHelper.OpCheckDuplicateForConstant(i.Op) || isGenericReference)
+                && typeDuplicateInserter.CheckForDuplicates(i.Data, out var existingData))
+            {
+                // Make sure this data is declared at current index, otherwise move it.
+                // Note: it should be safe to do so as the source buffer has all the dependencies and they should have been inserted in previous loops
+                if (existingData.Index > instructionIndex)
+                {
+                    var existingDataCopy = new OpData(existingData.Data.Memory);
+                    typeDuplicateInserter.RemoveInstructionAt(existingData.Index, false);
+                    existingData = typeDuplicateInserter.InsertInstruction(instructionIndex++, existingDataCopy);
+                }
+                remapIds.Add(i.Data.IdResult.Value, existingData.Data.IdResult.Value);
+                lastResultId = existingData.Data.IdResult.Value;
+            }
+            else
+            {
+                if (isGenericReference)
+                    i.Data.Memory.Span[0] = (int)(i.Data.Memory.Span[0] & 0xFFFF0000) | (int)Op.OpSDSLGenericReference;
+
+                if (i.Data.IdResult.HasValue)
+                {
+                    // Make sure to remap last instruction (which we assume is the actual constant) with the desired result ID
+                    var resultId = index == source.Count - 1 && desiredResultId != null
+                        ? desiredResultId.Value
+                        : bound++;
+
+                    remapIds.Add(i.Data.IdResult.Value, resultId);
+                    i.Data.IdResult = resultId;
+                    typeDuplicateInserter.InsertInstruction(instructionIndex++, i.Data);
+
+                    lastResultId = resultId;
+                }
+            }
+        }
+
+        if (lastResultId == -1)
+            throw new InvalidOperationException("Could not find any instruction with a value");
+
+        if (desiredResultId != null && lastResultId != desiredResultId)
+        {
+            // Need to remap all existing references
+            SpirvBuilder.RemapIds(Buffer, 0, Buffer.Count, new Dictionary<int, int> { { lastResultId, desiredResultId.Value } });
+        }
+
+        return lastResultId;
+    }
+
+    public NewSpirvBuffer ExtractConstantAsSpirvBuffer(int constantId)
+    {
+        // First, run a simplification pass
+        // TODO: separate simplification from computing value?
+        SpirvBuilder.TryGetConstantValue(constantId, out _, out _, Buffer, true);
+
+        // Go backward and find any reference
+        var newBuffer = new NewSpirvBuffer();
+        var referenced = new HashSet<int> { constantId };
+        var instructions = new List<OpData>();
+        for (int index = Buffer.Count - 1; index >= 0; --index)
+        {
+            var i = Buffer[index];
+            if (i.Data.IdResult is int resultId && referenced.Remove(resultId))
+            {
+                var i2 = new OpData(i.Data.Memory.Span);
+
+                // Then add IdRef operands to next requested instructions or types
+                foreach (var op in i2)
+                {
+                    if (op.Kind == OperandKind.IdRef
+                        || op.Kind == OperandKind.IdResultType
+                        || op.Kind == OperandKind.PairIdRefIdRef)
+                    {
+                        foreach (ref var word in op.Words)
+                        {
+                            referenced.Add(word);
+                        }
+                    }
+                    else if (op.Kind == OperandKind.PairLiteralIntegerIdRef
+                        || op.Kind == OperandKind.PairIdRefLiteralInteger)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+
+                instructions.Add(i2);
+            }
+        }
+
+        // Since we went backward, reverse the list
+        instructions.Reverse();
+        foreach (var i in instructions)
+            newBuffer.Add(i);
+        return newBuffer;
+    }
 
     [Obsolete("Use the insert method instead")]
     public NewSpirvBuffer GetBuffer() => Buffer;

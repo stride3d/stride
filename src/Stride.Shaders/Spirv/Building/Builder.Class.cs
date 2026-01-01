@@ -104,12 +104,12 @@ public class ConstantVector
 
 public partial class SpirvBuilder
 {
-    public static void BuildInheritanceListWithoutSelf(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, NewSpirvBuffer contextBuffer, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
+    public static void BuildInheritanceListWithoutSelf(IExternalShaderLoader shaderLoader, SpirvContext topLevelContext, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, SpirvContext declaringContext, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
     {
         // Build shader name mapping
         var shaderMapping = new Dictionary<int, ShaderClassInstantiation>();
         var genericParameterRemapping = new Dictionary<int, int>();
-        foreach (var i in contextBuffer)
+        foreach (var i in declaringContext)
         {
             if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
             {
@@ -117,7 +117,7 @@ public partial class SpirvBuilder
             }
             if (i.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)
             {
-                var shaderClassSource = ConvertToShaderClassSource(contextBuffer, 0, contextBuffer.Count, importShader);
+                var shaderClassSource = ConvertToShaderClassSource(declaringContext.GetBuffer(), 0, declaringContext.GetBuffer().Count, importShader);
 
                 shaderMapping[importShader.ResultId] = shaderClassSource;
             }
@@ -129,17 +129,14 @@ public partial class SpirvBuilder
                 return generic;
 
             // Otherwise, assume it's a constsant we need to import
-            var constantBuffer = ExtractConstantAsSpirvBuffer(contextBuffer, localGeneric);
-            int index = context.GetBuffer().Count;
-            var bound = context.Bound;
-            var resultId = InsertBufferWithoutDuplicates(context.GetBuffer(), ref index, ref bound, null, constantBuffer);
-            context.Bound = bound;
+            var constantBuffer = declaringContext.ExtractConstantAsSpirvBuffer(localGeneric);
+            var resultId = topLevelContext.InsertWithoutDuplicates(null, constantBuffer);
 
             return resultId;
         }
 
         // Check inheritance
-        foreach (var i in contextBuffer)
+        foreach (var i in declaringContext)
         {
             if (i.Op == Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)i is { } inherit)
             {
@@ -151,7 +148,7 @@ public partial class SpirvBuilder
                     remappedGenericArguments[index] = RemapGenericParameter(remappedGenericArguments[index]);
 
                 var remappedShaderName = shaderName with { GenericArguments = remappedGenericArguments };
-                BuildInheritanceListIncludingSelf(shaderLoader, context, remappedShaderName, macros, inheritanceList, resolveStep);
+                BuildInheritanceListIncludingSelf(shaderLoader, topLevelContext, remappedShaderName, macros, inheritanceList, resolveStep);
             }
         }
     }
@@ -177,7 +174,7 @@ public partial class SpirvBuilder
             index = inheritanceList.IndexOf(classSource);
             if (index == -1)
             {
-                BuildInheritanceListWithoutSelf(shaderLoader, context, classSource, macros, classSource.Buffer.Value.Context.GetBuffer(), inheritanceList, resolveStep);
+                BuildInheritanceListWithoutSelf(shaderLoader, context, classSource, macros, classSource.Buffer.Value.Context, inheritanceList, resolveStep);
                 index = inheritanceList.Count;
                 inheritanceList.Add(classSource);
             }
@@ -320,53 +317,6 @@ public partial class SpirvBuilder
         throw new Exception("Cannot find type instruction for id " + typeId);
     }
 
-    public static NewSpirvBuffer ExtractConstantAsSpirvBuffer(NewSpirvBuffer buffer, int constantId)
-    {
-        // First, run a simplification pass
-        // TODO: separate simplification from computing value?
-        TryGetConstantValue(constantId, out _, out _, buffer, true);
-
-        // Go backward and find any reference
-        var newBuffer = new NewSpirvBuffer();
-        var referenced = new HashSet<int> { constantId };
-        var instructions = new List<OpData>();
-        for (int index = buffer.Count - 1; index >= 0; --index)
-        {
-            var i = buffer[index];
-            if (i.Data.IdResult is int resultId && referenced.Remove(resultId))
-            {
-                var i2 = new OpData(i.Data.Memory.Span);
-
-                // Then add IdRef operands to next requested instructions or types
-                foreach (var op in i2)
-                {
-                    if (op.Kind == OperandKind.IdRef
-                        || op.Kind == OperandKind.IdResultType
-                        || op.Kind == OperandKind.PairIdRefIdRef)
-                    {
-                        foreach (ref var word in op.Words)
-                        {
-                            referenced.Add(word);
-                        }
-                    }
-                    else if (op.Kind == OperandKind.PairLiteralIntegerIdRef
-                        || op.Kind == OperandKind.PairIdRefLiteralInteger)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-
-                instructions.Add(i2);
-            }
-        }
-
-        // Since we went backward, reverse the list
-        instructions.Reverse();
-        foreach (var i in instructions)
-            newBuffer.Add(i);
-        return newBuffer;
-    }
-
     record struct GenericParameter(SymbolType Type, int ResultId, int ResultType, int Index, string Name, bool Resolved, string Value);
 
     abstract class GenericResolver
@@ -379,82 +329,6 @@ public partial class SpirvBuilder
         public virtual void PostProcess(string classNameWithGenerics, List<GenericParameter> genericParameters)
         {
         }
-    }
-
-    public static int InsertBufferWithoutDuplicates(NewSpirvBuffer target, ref int instructionIndex, ref int bound, int? desiredResultId, NewSpirvBuffer source)
-    {
-        // Import in current buffer (without duplicate)
-        var typeDuplicateInserter = new TypeDuplicateHelper(target);
-        var remapIds = new Dictionary<int, int>();
-        int lastResultId = -1;
-
-        var lastResultIndex = -1;
-        if (desiredResultId != null)
-        {
-            // Find last index returning a value (that's the value we want remapped to desiredResultId)
-            for (int index = 0; index < source.Count; ++index)
-            {
-                var i = source[index];
-                if (i.Data.IdResult is not null)
-                    lastResultIndex = index;
-            }
-        }
-
-        for (int index = 0; index < source.Count; ++index)
-        {
-            var i = source[index];
-            RemapIds(remapIds, ref i.Data);
-            
-            //// If it's a generic reference, remap to OpSDSLGenericParameter which has to match during typeDuplicateInserter.CheckForDuplicates()
-            var isGenericReference = i.Op == Op.OpSDSLGenericReference;
-            if (isGenericReference)
-                i.Data.Memory.Span[0] = (int)(i.Data.Memory.Span[0] & 0xFFFF0000) | (int)Op.OpSDSLGenericParameter;
-
-            // Note: we try to avoid duplicating the last (constant) instruction if there is a desired ID (so that it keeps its name/identity) 
-            if ((TypeDuplicateHelper.OpCheckDuplicateForTypesAndImport(i.Op) || isGenericReference)
-                && typeDuplicateInserter.CheckForDuplicates(i.Data, out var existingData)
-                && (index != lastResultIndex || desiredResultId == null))
-            {
-                // Make sure this data is declared at current index, otherwise move it.
-                // Note: it should be safe to do so as the source buffer has all the dependencies and they should have been inserted in previous loops
-                if (existingData.Index > instructionIndex)
-                {
-                    var existingDataCopy = new OpData(existingData.Data.Memory);
-                    typeDuplicateInserter.RemoveInstructionAt(existingData.Index, false);
-                    existingData = typeDuplicateInserter.InsertInstruction(instructionIndex++, existingDataCopy);
-                }
-                remapIds.Add(i.Data.IdResult.Value, existingData.Data.IdResult.Value);
-                lastResultId = existingData.Data.IdResult.Value;
-            }
-            else
-            {
-                if (isGenericReference)
-                    i.Data.Memory.Span[0] = (int)(i.Data.Memory.Span[0] & 0xFFFF0000) | (int)Op.OpSDSLGenericReference;
-
-                if (i.Data.IdResult.HasValue)
-                {
-                    // Make sure to remap last instruction (which we assume is the actual constant) with the desired result ID
-                    var resultId = index == lastResultIndex && desiredResultId != null
-                        ? desiredResultId.Value
-                        : bound++;
-
-                    remapIds.Add(i.Data.IdResult.Value, resultId);
-                    i.Data.IdResult = resultId;
-                    typeDuplicateInserter.InsertInstruction(instructionIndex++, i.Data);
-
-                    lastResultId = resultId;
-                }
-            }
-        }
-
-        if (lastResultId == -1)
-            throw new InvalidOperationException("Could not find any instruction with a value");
-
-        // Note: we made sure to not copy last instruction which should have the constant we want
-        if (desiredResultId != null && lastResultId != desiredResultId)
-            throw new InvalidOperationException();
-
-        return lastResultId;
     }
 
     /// <summary>
@@ -502,9 +376,7 @@ public partial class SpirvBuilder
                     var localContext = new SpirvContext();
                     var result = expression.CompileConstantValue(new SymbolTable(localContext), localContext, genericParameterType);
                     contextBuffer.RemoveAt(instructionIndex);
-                    var bound = context.Bound;
-                    SpirvBuilder.InsertBufferWithoutDuplicates(contextBuffer, ref instructionIndex, ref bound, genericParameter.ResultId, localContext.GetBuffer());
-                    context.Bound = bound;
+                    context.InsertWithoutDuplicates(ref instructionIndex, genericParameter.ResultId, localContext.GetBuffer());
                     return true;
                 case GenericParameterType g:
                     contextBuffer.Replace(instructionIndex++, new OpConstantStringSDSL(genericParameter.ResultId, genericValue));
@@ -557,7 +429,7 @@ public partial class SpirvBuilder
             }
 
             var genericParameter = (OpSDSLGenericParameter)contextBuffer[instructionIndex];
-            var bufferWithConstant = ExtractConstantAsSpirvBuffer(declaringContext.GetBuffer(), classSource.GenericArguments[genericIndex]);
+            var bufferWithConstant = declaringContext.ExtractConstantAsSpirvBuffer(classSource.GenericArguments[genericIndex]);
 
             bool resolved = true;
 
@@ -577,7 +449,7 @@ public partial class SpirvBuilder
 
             // TODO: Try to simplify constant
             var bound = context.Bound;
-            int resultId = InsertBufferWithoutDuplicates(contextBuffer, ref instructionIndex, ref bound, genericParameter.ResultId, bufferWithConstant);
+            int resultId = context.InsertWithoutDuplicates(ref instructionIndex, genericParameter.ResultId, bufferWithConstant);
             context.Bound = bound;
 
             return true;

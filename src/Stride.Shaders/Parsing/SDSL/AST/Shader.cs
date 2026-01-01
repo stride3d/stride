@@ -170,7 +170,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 else
                 {
                     // Constant can't be computed; we need to save aside all opcodes
-                    var bufferForConstant = SpirvBuilder.ExtractConstantAsSpirvBuffer(context.GetBuffer(), typeArray.Length);
+                    var bufferForConstant = context.ExtractConstantAsSpirvBuffer(typeArray.Length);
                     RegisterType(typeArray.ResultId, new ArrayType(innerType, -1, (typeArray.Length, bufferForConstant)));
                 }
             }
@@ -339,7 +339,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
         // Build full inheritance list
         List<ShaderClassInstantiation> inheritanceList = new();
-        SpirvBuilder.BuildInheritanceListWithoutSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), shaderBuffers.Context.GetBuffer(), inheritanceList, ResolveStep.Compile);
+        SpirvBuilder.BuildInheritanceListWithoutSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), shaderBuffers.Context, inheritanceList, ResolveStep.Compile);
 
         // Load all the inherited shaders
         List<LoadedShaderSymbol> inheritedShaderSymbols = new();
