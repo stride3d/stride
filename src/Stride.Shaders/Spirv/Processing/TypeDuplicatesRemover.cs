@@ -102,7 +102,7 @@ public class TypeDuplicateHelper
                     return comparison;
             }
             // Standard ResultType/ResultId instructions: ignore ResultId (Span[2]) and compare the rest
-            else if (x.Op == Op.OpSDSLGenericParameter)
+            else if (x.Op == Op.OpSDSLGenericParameter || OpCheckDuplicateForConstant(x.Op))
             {
                 comparison = x.Data.Memory.Span[1].CompareTo(y.Data.Memory.Span[1]);
                 if (comparison != 0)
@@ -112,7 +112,7 @@ public class TypeDuplicateHelper
                 if (comparison != 0)
                     return comparison;
             }
-            else if (OpCheckDuplicateForTypesAndImport(x.Op) || OpCheckDuplicateForConstant(x.Op))
+            else if (OpCheckDuplicateForTypesAndImport(x.Op))
             {
                 comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[2..], y.Data.Memory.Span[2..]);
                 if (comparison != 0)

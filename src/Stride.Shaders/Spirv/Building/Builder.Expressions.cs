@@ -308,7 +308,23 @@ public partial class SpirvBuilder
             return value;
 
         if (castType is StructType || valueType is StructType)
-            throw new NotImplementedException("Can't cast between structures (cast from {valueType} to {castType})");
+            throw new NotImplementedException($"Can't cast between structures (cast from {valueType} to {castType})");
+
+        if (castType is ArrayType a1 && valueType is ArrayType a2)
+        {
+            if (a1.BaseType == a2.BaseType)
+            {
+                if (a1.Size != -1 && a1.Size != a2.Size)
+                    throw new InvalidOperationException(($"Can't cast between array of different sizes (cast from {valueType} to {castType})"));
+                // Some sizes are undetermined; this can only happen during compilation due to incomplete generics type
+                // TODO: do a "check pass" later to make sure this won't happen after generics instantiation?
+                return value;
+            }
+            else
+            {
+                throw new InvalidOperationException(($"Can't cast between array of different types (cast from {valueType} to {castType})"));
+            }
+        }
 
         // We don't support cast with object yet, filter for numeral types
         if ((castType is not ScalarType && castType is not VectorType && castType is not MatrixType)

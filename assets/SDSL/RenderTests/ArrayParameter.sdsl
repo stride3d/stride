@@ -1,75 +1,41 @@
-// PSMain(ExpectedResult=#1A052510)
+// PSMain(ExpectedResult=#24242424)
 
 namespace Stride.Shaders.Tests;
 
-shader CompositionBase
+shader SphericalHarmonicsUtils<int TOrder>
 {
-	float Compute()
-	{
-		return 3.0 / 255.0;
-	}
-};
- 
-shader CompositionShaderA : CompositionBase
-{
-	override float Compute()
-	{
-		return 5.0 / 255.0;
-	}
-};
- 
-shader CompositionShaderB : CompositionBase
-{
-	override float Compute()
-	{
-		return base.Compute() + 13.0 / 255.0;
-	}
-};
-
-shader CompositionTestArray
-{
-	stage compose CompositionBase CompsInheritedStage[];
-	compose CompositionBase CompsInherited[];
+    float4 EvaluateSphericalHarmonics(float4 sphericalColors[TOrder * TOrder])
+    {
+        float4 result = 0.0;
+        for (int i = 0; i < TOrder * TOrder; ++i)
+        {
+            sphericalColors[i] = i / 255.0;
+            result += sphericalColors[i];
+        }
+        return result;
+    }
 }
+
+shader SphericalHarmonicsEnvironmentColor<int TOrder> : SphericalHarmonicsUtils<TOrder>
+{
+    cbuffer PerView.Lighting
+    {
+        [Color]
+        float4 SphericalColors[TOrder * TOrder];
+    }
+
+    float4 Compute()
+    {
+        return EvaluateSphericalHarmonics(SphericalColors);
+    }
+};
  
-shader CompositionTest : CompositionTestArray
+shader ArrayParameter : SphericalHarmonicsEnvironmentColor<3>
 {
     stream float4 ColorTarget : SV_Target0;
 
-	stage compose CompositionBase CompsStage[];
-	compose CompositionBase Comps[];
-
 	void PSMain()
 	{
-		streams.ColorTarget = 0.0;
-		foreach(var comp in CompsStage)
-		{
-			streams.ColorTarget.x += comp.Compute();
-		}
-		foreach(var comp in Comps)
-		{
-			streams.ColorTarget.y += comp.Compute();
-		}
-		foreach(var comp in CompsInheritedStage)
-		{
-			streams.ColorTarget.z += comp.Compute();
-		}
-		foreach(var comp in CompsInherited)
-		{
-			streams.ColorTarget.w += comp.Compute();
-		}
+		streams.ColorTarget = Compute();
 	}
 };
-
-effect CompositionArray1
-{
-	mixin CompositionTest;
-	mixin compose CompsStage += CompositionShaderA;
-	mixin compose CompsStage += CompositionShaderA;
-	mixin compose CompsStage += CompositionShaderB;
-	mixin compose Comps += CompositionShaderA;
-	mixin compose CompsInheritedStage += CompositionShaderA;
-	mixin compose CompsInheritedStage += CompositionShaderB;
-	mixin compose CompsInheritedStage += CompositionShaderB;
-	mixin compose CompsInherited += CompositionShaderB;
-}

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Spirv.Core;
@@ -8,6 +9,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using static Stride.Shaders.Spirv.Specification;
 
+[assembly: DebuggerDisplay("{Stride.Shaders.Spirv.Tools.SpirvBufferExtensions.GetDebuggerDisplay(this)}", Target = typeof(NewSpirvBuffer))]
+
 namespace Stride.Shaders.Spirv.Tools;
 
 [Flags]
@@ -16,6 +19,14 @@ public enum DisassemblerFlags
     Id = 1,
     Name = 2,
     InstructionIndex = 4,
+}
+
+public static class SpirvBufferExtensions
+{
+    public static string GetDebuggerDisplay(this NewSpirvBuffer buffer)
+    {
+        return Spv.Dis(buffer, DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex | DisassemblerFlags.Name);
+    }
 }
 
 public static partial class Spv

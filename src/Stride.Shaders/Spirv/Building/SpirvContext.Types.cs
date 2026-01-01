@@ -82,7 +82,11 @@ public partial class SpirvContext
             if (importBuffer != Buffer)
             {
                 var resultId = InsertWithoutDuplicates(null, importBuffer);
-
+                a.SizeExpression = (resultId, Buffer);
+                // Now that we reference a constant in context buffer,
+                // check again if array is not already added (if constants are unified, it should work)
+                if (Types.TryGetValue(a, out var res))
+                    return res;
                 sizeId = resultId;
             }
             else
