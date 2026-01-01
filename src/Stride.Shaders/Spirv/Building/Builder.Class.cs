@@ -117,7 +117,7 @@ public partial class SpirvBuilder
             }
             if (i.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)
             {
-                var shaderClassSource = ConvertToShaderClassSource(declaringContext.GetBuffer(), 0, declaringContext.GetBuffer().Count, importShader);
+                var shaderClassSource = ConvertToShaderClassSource(declaringContext, importShader);
 
                 shaderMapping[importShader.ResultId] = shaderClassSource;
             }
@@ -153,7 +153,7 @@ public partial class SpirvBuilder
         }
     }
 
-    public static ShaderClassInstantiation ConvertToShaderClassSource(NewSpirvBuffer buffer, int shaderStart, int shaderEnd, OpSDSLImportShader importShader)
+    public static ShaderClassInstantiation ConvertToShaderClassSource(SpirvContext declaringContext, OpSDSLImportShader importShader)
     {
         return new ShaderClassInstantiation(importShader.ShaderName, importShader.Values.Elements.Memory.ToArray());
     }
