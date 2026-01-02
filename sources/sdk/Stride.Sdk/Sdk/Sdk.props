@@ -1,0 +1,9 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- ================================================================ -->
+  <!-- Import base Microsoft.NET.Sdk props -->
+  <!-- ================================================================ -->
+  <!-- This gives us all standard .NET SDK functionality -->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+</Project>

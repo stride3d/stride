@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Stride.Sdk.Runtime/Stride.Sdk.Runtime.csproj" />
+  <Project Path="Stride.Sdk.Tests/Stride.Sdk.Tests.csproj" />
+  <Project Path="Stride.Sdk/Stride.Sdk.csproj" />
+</Solution>

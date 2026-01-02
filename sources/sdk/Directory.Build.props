@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+
+    <!-- Package as MSBuild SDK -->
+    <PackageType>MSBuildSdk</PackageType>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+
+    <!-- Output packages to build/packages -->
+    <PackageOutputPath>$(MSBuildThisFileDirectory)../../build/packages</PackageOutputPath>
+
+    <PackageVersion>4.3.0-dev</PackageVersion>
+
+    <!-- Package Metadata -->
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://stride3d.net</PackageProjectUrl>
+    <PackageIcon>nuget-icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/stride3d/stride</RepositoryUrl>
+    <Copyright>Copyright © Stride contributors</Copyright>
+    <Authors>Stride contributors</Authors>
+    <PackageTags>Stride;3D;SDK</PackageTags>
+  </PropertyGroup>
+
+  <!-- Include icon -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)nuget-icon.png" Pack="true" PackagePath="" Visible="false"/>
+  </ItemGroup>
+
+</Project>

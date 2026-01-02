@@ -1,0 +1,11 @@
+<!--
+  Stride.Sdk.Runtime - Targets file
+  
+  Simply imports the base Stride.Sdk targets.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Import base Stride.Sdk targets -->
+  <Import Project="Sdk.targets" Sdk="Stride.Sdk" />
+
+</Project>

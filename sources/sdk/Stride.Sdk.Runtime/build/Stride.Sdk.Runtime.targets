@@ -1,0 +1,13 @@
+<!--
+  Legacy NuGet PackageReference compatibility file.
+  
+  This file is included when Stride.Sdk.Runtime is referenced via <PackageReference>
+  instead of <Project Sdk="Stride.Sdk.Runtime">.
+  
+  It simply imports the SDK targets using explicit import.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Import Project="$(MSBuildThisFileDirectory)../Sdk/Sdk.targets" />
+
+</Project>
