@@ -1,0 +1,11 @@
+$(StrideProjectType)' == 'Cpp' -> there are no projects setting that value to Cpp
+
+strategy -> build the files step by step copying only what's needed for a given project
+that way we will remove evberything that either is not used or doesn't work (e.g. properties evaluated to early).
+
+----
+
+post work cleanup
+
+- rename StrideEditorTargetFramework to StrideEditorFramework
+    - or rename StrideFramework to StrideTargetFramework
