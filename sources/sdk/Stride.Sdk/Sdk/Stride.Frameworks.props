@@ -1,0 +1,30 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Define default frameworks for each target -->
+  <PropertyGroup>
+    <StrideFramework>net10.0</StrideFramework>
+    <StrideFrameworkAndroid>net10.0-android</StrideFrameworkAndroid>
+    <StrideFrameworkiOS>net10.0-ios</StrideFrameworkiOS>
+    <StrideFrameworkUWP>uap10.0.16299</StrideFrameworkUWP>
+    <StrideFrameworkWindows>net10.0-windows</StrideFrameworkWindows>
+
+    <StrideEditorTargetFramework>$(StrideFrameworkWindows)</StrideEditorTargetFramework>
+    <StrideXplatEditorTargetFramework>$(StrideFramework)</StrideXplatEditorTargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <!-- Define target frameworks for runtime -->
+  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">  
+    <!-- Add default framework no matter what (needed for references) -->
+    <StrideRuntimeTargetFrameworks>$(StrideFramework)</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkWindows)</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkAndroid)</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkUWP)</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkiOS)</StrideRuntimeTargetFrameworks>
+
+    <StrideRuntimeTargetFrameworks>$([MSBuild]::Unescape($(StrideRuntimeTargetFrameworks.Trim(';'))))</StrideRuntimeTargetFrameworks>
+
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+</Project>

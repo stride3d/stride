@@ -9,3 +9,15 @@ post work cleanup
 
 - rename StrideEditorTargetFramework to StrideEditorFramework
     - or rename StrideFramework to StrideTargetFramework
+- determine whether some logic should be moved to .targets files
+
+----
+
+in Stride.Frameworks.props
+- removed StrideExplicitWindowsRuntime in StrideRuntimeTargetFrameworks for windows because we can't see that value at that point.
+    - will need to fixup the target frameworks in a .targets file
+
+----
+
+Stride.PackageInfo.props
+- consider putting all info from SharedAssemblyInfo into that props
