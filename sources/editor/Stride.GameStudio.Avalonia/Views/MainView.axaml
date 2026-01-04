@@ -16,7 +16,7 @@
              x:DataType="gsvm:MainViewModel">
   <Design.DataContext>
     <!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+    to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
     <gsvm:MainViewModel/>
   </Design.DataContext>
   <UserControl.Resources>
@@ -27,7 +27,7 @@
     </ResourceDictionary>
   </UserControl.Resources>
 
-  <Grid RowDefinitions="Auto, *, 25"
+  <Grid RowDefinitions="Auto, Auto, *, 25"
         Background="Transparent">
     <!-- Menus -->
     <Menu Grid.Row="0" Grid.Column="0"
@@ -61,8 +61,8 @@
       <!-- Help menu -->
       <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}">
         <MenuItem Header="{sd:LocalizeString Online documentation, Context=Menu}"
-            Command="{Binding OpenWebPageCommand}"
-            CommandParameter="{x:Static gsh:StrideGameStudio.DocumentationUrl}"/>
+                  Command="{Binding OpenWebPageCommand}"
+                  CommandParameter="{x:Static gsh:StrideGameStudio.DocumentationUrl}"/>
         <Separator/>
         <MenuItem Header="{sd:LocalizeString Questions and answers, Context=Menu}"
                   Command="{Binding OpenWebPageCommand}"
@@ -88,17 +88,32 @@
       </MenuItem>
     </Menu>
 
+    <!-- Tool Bar -->
+    <StackPanel Grid.Row="1"
+                Orientation="Horizontal"
+                Margin="4,2"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Spacing="4">
+      <Button Width="32" Height="32"
+              Command="{Binding RunCurrentProjectCommand}"
+              HotKey="F5"
+              ToolTip.Tip="{sd:LocalizeString Start (F5)}">
+        <Image Source="{StaticResource ImageStart}" Width="16" Height="16"/>
+      </Button>
+    </StackPanel>
+
     <!-- Session area -->
-    <Grid Grid.Row="1"
+    <Grid Grid.Row="2"
           RowDefinitions="2*, 2, *">
       <Grid Grid.Row="0"
             ColumnDefinitions="2*, 2, *">
         <!-- Editors -->
         <gsvw:EditorCollectionView Grid.Column="0"
-                                 BorderThickness="2"
-                                 BorderBrush="Red"
-                                 Padding="2"
-                                 DataContext="{Binding Session?.EditorCollection}"/>
+                                   BorderThickness="2"
+                                   BorderBrush="Red"
+                                   Padding="2"
+                                   DataContext="{Binding Session?.EditorCollection}"/>
         <GridSplitter Grid.Column="1" ResizeDirection="Auto"/>
         <Grid Grid.Column="2"
               RowDefinitions="Auto, *">
@@ -113,10 +128,10 @@
           </StackPanel>
           <!-- Property Grid -->
           <gsvw:PropertyGridView Grid.Row="1"
-                               BorderThickness="2"
-                               BorderBrush="Orange"
-                               Padding="2"
-                               DataContext="{Binding Session?.ActiveProperties}"/>
+                                 BorderThickness="2"
+                                 BorderBrush="Orange"
+                                 Padding="2"
+                                 DataContext="{Binding Session?.ActiveProperties}"/>
         </Grid>
       </Grid>
       <GridSplitter Grid.Row="1" ResizeDirection="Auto"/>
@@ -124,18 +139,18 @@
             ColumnDefinitions="*, 2, 2*, 2, *">
         <!-- Solution Explorer -->
         <gsvw:SolutionExplorerView Grid.Column="0"
-                                 BorderThickness="2"
-                                 BorderBrush="Black"
-                                 Padding="2"
-                                 DataContext="{Binding Session}"/>
+                                   BorderThickness="2"
+                                   BorderBrush="Black"
+                                   Padding="2"
+                                   DataContext="{Binding Session}"/>
         <GridSplitter Grid.Column="1" ResizeDirection="Auto"/>
         <!-- Asset view and logs -->
         <TabControl Grid.Column="2">
           <TabItem Header="Asset view">
             <gsvw:AssetExplorerView BorderThickness="2"
-                                  BorderBrush="Blue"
-                                  Padding="2"
-                                  DataContext="{Binding Session?.AssetCollection}"/>
+                                    BorderBrush="Blue"
+                                    Padding="2"
+                                    DataContext="{Binding Session?.AssetCollection}"/>
           </TabItem>
           <TabItem Header="Asset errors">
             <sd:TextLogViewer LogMessages="{Binding Session?.AssetLog.FilteredMessages}"
@@ -150,8 +165,8 @@
         <TabControl Grid.Column="4">
           <TabItem Header="Asset preview">
             <gsvw:AssetPreviewView BorderThickness="2"
-                                 BorderBrush="Cyan"
-                                 Padding="2"/>
+                                   BorderBrush="Cyan"
+                                   Padding="2"/>
           </TabItem>
           <TabItem Header="Edit history">
             <ListBox ItemsSource="{Binding Session?.ActionHistory?.Transactions}"
@@ -219,7 +234,7 @@
     </Grid>
 
     <!-- Status bar -->
-    <Grid Grid.Row="2"
+    <Grid Grid.Row="3"
           IsVisible="{Binding Session, Converter={sd:ObjectToBool}}"
           ColumnDefinitions="2*, Auto, *, Auto, *, 100">
       <TextBlock Grid.Column="0"
