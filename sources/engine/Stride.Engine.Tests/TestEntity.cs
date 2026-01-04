@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Engine.Design;
 using Stride.Rendering;
 
@@ -129,8 +130,6 @@ namespace Stride.Engine.Tests
         [Fact]
         public void TestEntityAndPrefabClone()
         {
-            Prefab prefab = null;
-
             var entity = new Entity("Parent");
             var childEntity = new Entity("Child");
             entity.AddChild(childEntity);
@@ -141,17 +140,25 @@ namespace Stride.Engine.Tests
 
             var newEntity = entity.Clone();
 
-            // NOTE: THE CODE AFTER THIS IS EXECUTED TWO TIMES
-            // 1st time: newEntity = entity.Clone();
-            // 2nd time: newEntity = prefab.Instantiate()[0];
-            check_new_Entity:
+            CheckEntity(newEntity);
+
+            // Check prefab cloning
+            var prefab = new Prefab();
+            prefab.Entities.Add(entity);
+            var newEntities = prefab.Instantiate();
+            Assert.Single(newEntities);
+
+            CheckEntity(newEntities[0]);
+            return;
+
+            void CheckEntity([NotNull] Entity e)
             {
-                Assert.Single(newEntity.Transform.Children);
-                var newChildEntity = newEntity.Transform.Children[0].Entity;
+                Assert.Single(e.Transform.Children);
+                var newChildEntity = e.Transform.Children[0].Entity;
                 Assert.Equal("Child", newChildEntity.Name);
 
-                Assert.NotNull(newEntity.Get<CustomEntityComponent>());
-                var newCustom = newEntity.Get<CustomEntityComponent>();
+                Assert.NotNull(e.Get<CustomEntityComponent>());
+                var newCustom = e.Get<CustomEntityComponent>();
 
                 // Make sure that the old component and the new component are different
                 Assert.NotEqual(custom, newCustom);
@@ -162,19 +169,37 @@ namespace Stride.Engine.Tests
                 // Verify that objects references outside the Entity/Component hierarchy are not cloned (shared)
                 Assert.Equal(custom.CustomObject, newCustom.CustomObject);
             }
+        }
 
-            // Woot, ugly test using a goto, avoid factorizing code in a delegate method, ugly but effective, goto FTW
-            if (prefab == null)
+        [Fact]
+        public void TestCloningBehavior()
+        {
+            var externalEntity = new Entity();
+            var sourceEntity = new Entity();
+            var sourceComponent = new EntityComponentWithPrefab
             {
-                // Check prefab cloning
-                prefab = new Prefab();
-                prefab.Entities.Add(entity);
-                var newEntities = prefab.Instantiate();
-                Assert.Single(newEntities);
+                Prefab = new Prefab(),
+                ExternalEntityRef = externalEntity,
+                // Not yet supported, see commented out ExternalComponentRef declaration further and PR #2914
+                //ExternalComponentRef = externalEntity.Transform
+            };
+            sourceComponent.Prefab.Entities.Add(sourceEntity);
+            sourceEntity.Add(sourceComponent);
 
-                newEntity = newEntities[0];
-                goto check_new_Entity;
-            }
+            var clonedComponent = sourceComponent.Prefab.Instantiate()[0].Get<EntityComponentWithPrefab>();
+
+            // Validate that cloning did clone the entity
+            Assert.NotEqual(clonedComponent.Entity, sourceComponent.Entity);
+
+            // References to prefabs should not be deep cloned as they are content types
+            Assert.Equal(clonedComponent.Prefab, sourceComponent.Prefab);
+
+            // References to entities outside this one's hierarchy should not clone the entity referenced, it should point to the same reference
+            Assert.Equal(clonedComponent.ExternalEntityRef, sourceComponent.ExternalEntityRef);
+
+            // References to entity component outside this one's hierarchy should not clone the component referenced, it should point to the same reference
+            // Not yet supported, see commented out ExternalComponentRef declaration further and PR #2914
+            /*Assert.Equal(clonedComponent.ExternalComponentRef, sourceComponent.ExternalComponentRef);*/
         }
 
         private class DelegateEntityComponentNotify : EntityManager
@@ -269,5 +294,21 @@ namespace Stride.Engine.Tests
     public abstract class CustomEntityComponentBase : EntityComponent
     {
         public Action<CustomEntityComponentEventArgs> Changed;
+    }
+
+    [DataContract]
+    public class EntityComponentWithPrefab : EntityComponent
+    {
+        public required Prefab Prefab { get; set; }
+        public required Entity ExternalEntityRef { get; set; }
+
+        /* TODO:
+         * References to entity component outside of a prefab's hierarchy should not clone the component referenced, it should point to the same reference.
+         * More work is required on that front, particularly with EntityComponent which does not have a specific serializer,
+         * we would need one that derive from DataContentSerializerWithReuse to properly filter external references.
+         * The serializer for TransformComponent derives from a simple DataSerializer for example.
+         * See also PR #2914
+         */
+        /*public required TransformComponent ExternalComponentRef { get; set; }*/
     }
 }

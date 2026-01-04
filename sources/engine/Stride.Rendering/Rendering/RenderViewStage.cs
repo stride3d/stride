@@ -42,7 +42,7 @@ namespace Stride.Rendering
         /// <summary>
         /// Sorted list of render nodes, that should be used during actual drawing.
         /// </summary>
-        public FastList<RenderNodeFeatureReference> SortedRenderNodes;
+        public List<RenderNodeFeatureReference> SortedRenderNodes;
 
         public static implicit operator RenderViewStage(RenderStage renderStage)
         {

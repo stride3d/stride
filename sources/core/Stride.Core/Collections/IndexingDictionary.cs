@@ -16,7 +16,7 @@ namespace Stride.Core.Collections;
 [DataSerializer(typeof(IndexingDictionarySerializer<>), Mode = DataSerializerGenericMode.GenericArguments)]
 public class IndexingDictionary<T> : IDictionary<int, T> where T : class
 {
-    private readonly FastList<T?> items = [];
+    private readonly List<T?> items = [];
     private List<int>? keys;
     private List<T>? values;
 

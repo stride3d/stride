@@ -309,7 +309,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                         if (previousNavigationMesh != null && previousNavigationMesh.Layers.TryGetValue(currentId, out sourceLayer))
                         {
                             NavigationMeshTile oldTile = sourceLayer.FindTile(p.Key);
-                            if (oldTile != null && oldTile.Data.SequenceEqual(tile.Data))
+                            if (oldTile != null && oldTile.Data == tile.Data)
                                 updated = false;
                         }
 

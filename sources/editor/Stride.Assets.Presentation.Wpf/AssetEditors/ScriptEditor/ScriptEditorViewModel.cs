@@ -58,7 +58,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 
         public event EventHandler DocumentOpened;
         public event EventHandler DocumentClosed;
-        public event EventHandler<DiagnosticsUpdatedArgs> ProcessDiagnostics;
+        public event EventHandler<DiagnosticsChangedArgs> ProcessDiagnostics;
 
         /// <inheritdoc/>
         public sealed override async Task<bool> Initialize()

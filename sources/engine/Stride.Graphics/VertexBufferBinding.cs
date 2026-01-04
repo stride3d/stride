@@ -46,7 +46,7 @@ namespace Stride.Graphics
         public Buffer Buffer { get; private set; }
 
         /// <summary>
-        /// Gets the offset (vertex index) between the beginning of the buffer and the vertex data to use.
+        /// Gets the offset in bytes between the beginning of the buffer and the vertex data to use.
         /// </summary>
         public int Offset { get; private set; }
 

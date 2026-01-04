@@ -44,7 +44,7 @@ namespace Stride.GameStudio.Debugging
 
             try
             {
-                var projectWatcher = new ProjectWatcher(currentProject.Session, false);
+                var projectWatcher = new ProjectWatcher(currentProject.Session, logger, false);
                 await projectWatcher.Initialize();
 
                 var executableOutputPath = Path.GetDirectoryName(projectWatcher.CurrentGameExecutable.OutputFilePath);

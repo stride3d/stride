@@ -17,7 +17,7 @@ public sealed class OneBodyLinearServoConstraintComponent : OneBodyConstraintCom
 {
     public OneBodyLinearServoConstraintComponent() => BepuConstraint = new()
     {
-        ServoSettings = new ServoSettings(100, 1, 1000),
+        ServoSettings = new ServoSettings(10, 1, 1000),
         SpringSettings = new SpringSettings(30, 5)
     };
 

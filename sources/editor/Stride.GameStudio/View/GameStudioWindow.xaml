@@ -643,6 +643,17 @@
                         <sd:TabItemActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Messages}"/>
                       </i:Interaction.Behaviors>
                     </TabItem>
+                    <TabItem DataContext="{Binding Debugging.ProjectLog}">
+                      <TabItem.Header>
+                        <TextBlock FontWeight="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam},
+                                    ConverterParameter={x:Static FontWeights.Bold}, FallbackValue={x:Static FontWeights.Normal}}"
+                                   Foreground="{StaticResource SelectedTextBrush}">
+                                    <Run Text="{sd:Localize Project}"/>
+                                    <Run Text="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam}, ConverterParameter=*}"/>
+                        </TextBlock>
+                      </TabItem.Header>
+                      <sd:TextLogViewer LogMessages="{Binding Messages}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="True"/>
+                    </TabItem>
                     <!-- FIXME live scripting is disabled (XK-4309) -->
                     <TabItem DataContext="{Binding Debugging.LiveScriptingLog}" Visibility="Collapsed">
                       <TabItem.Header>
@@ -665,6 +676,7 @@
                   <i:Interaction.Behaviors>
                     <sd:OnEventCommandBehavior Command="{Binding Debugging.ResetOutputTitleCommand, Source={x:Static vm:GameStudioViewModel.GameStudio}}" EventName="IsActiveChanged"/>
                     <gl:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.BuildLog.Messages, Source={x:Static vm:GameStudioViewModel.GameStudio}}"/>
+                    <gl:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.ProjectLog.Messages, Source={x:Static vm:GameStudioViewModel.GameStudio}}"/>
                     <gl:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.LiveScriptingLog.Messages, Source={x:Static vm:GameStudioViewModel.GameStudio}}"/>
                   </i:Interaction.Behaviors>
                 </xcad:LayoutAnchorable>

@@ -51,7 +51,7 @@ internal sealed class Program
             {
                 // First hide the main window
                 ((IClassicDesktopStyleApplicationLifetime?)Application.Current.ApplicationLifetime)?.MainWindow?.Hide();
-                                
+
                 var app = appBuilder.Instance!;
                 app.Run(appMain((TApp)app));
             });

@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
+using BepuPhysics.Trees;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Definitions.Contacts;
@@ -14,6 +15,8 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
+using Stride.BepuPhysics.Definitions.Raycast;
+using Stride.BepuPhysics.Definitions.SimTests;
 using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics;
@@ -43,7 +46,7 @@ public abstract class CollidableComponent : EntityComponent
     private CollisionGroup _collisionGroup;
 
     private ICollider _collider;
-    private IContactEventHandler? _trigger;
+    private IContactHandler? _trigger;
     private ISimulationSelector _simulationSelector = SceneBasedSimulationSelector.Shared;
 
     [DataMemberIgnore]
@@ -212,7 +215,7 @@ public abstract class CollidableComponent : EntityComponent
     /// Provides the ability to collect and mutate contact data when this object collides with other objects.
     /// </summary>
     [Display(category: CategoryContacts)]
-    public IContactEventHandler? ContactEventHandler
+    public IContactHandler? ContactEventHandler
     {
         get
         {
@@ -260,7 +263,7 @@ public abstract class CollidableComponent : EntityComponent
     internal void ReAttach(BepuSimulation onSimulation)
     {
         Versioning = Interlocked.Increment(ref VersioningCounter);
-        Detach(true);
+        Detach();
 
         Debug.Assert(Processor is not null);
 
@@ -288,12 +291,12 @@ public abstract class CollidableComponent : EntityComponent
         Processor?.OnPostAdd?.Invoke(this);
     }
 
-    internal void Detach(bool reAttaching)
+    internal void Detach()
     {
         if (Simulation is null)
             return;
 
-        int getHandleValue = GetHandleValue();
+        uint handleValue = CollidableReference!.Value.Packed;
 
         Versioning = Interlocked.Increment(ref VersioningCounter);
         Processor?.OnPreRemove?.Invoke(this);
@@ -312,12 +315,7 @@ public abstract class CollidableComponent : EntityComponent
         }
 
         DetachInner();
-        if (reAttaching == false)
-        {
-            Simulation.TemporaryDetachedLookup = (getHandleValue, this);
-            Simulation.ContactEvents.ClearCollisionsOf(this); // Ensure that removing this collidable sends the appropriate contact events to listeners
-            Simulation.TemporaryDetachedLookup = (-1, null);
-        }
+        Simulation.ContactEvents.ClearCollisionsOf(this, handleValue); // Ensure that removing this collidable sends the appropriate contact events to listeners
 
         Simulation = null;
     }
@@ -360,8 +358,6 @@ public abstract class CollidableComponent : EntityComponent
     /// </remarks>
     protected abstract void DetachInner();
 
-    protected abstract int GetHandleValue();
-
 
     protected void RegisterContactHandler()
     {
@@ -378,5 +374,96 @@ public abstract class CollidableComponent : EntityComponent
     protected bool IsContactHandlerRegistered()
     {
         return Simulation is not null && Simulation.ContactEvents.IsRegistered(this);
+    }
+
+    /// <summary>
+    /// Finds the closest intersection between the ray provided and this shape.
+    /// </summary>
+    /// <param name="origin">The start position for this ray</param>
+    /// <param name="dir">The normalized direction the ray is facing</param>
+    /// <param name="maxDistance">The maximum distance from the origin that hits will be collected</param>
+    /// <param name="result">An intersection in the world when this method returns true, an undefined value when this method returns false</param>
+    /// <returns>True when the given ray intersects with this shape, false otherwise</returns>
+    public bool RayCast(in Vector3 origin, in Vector3 dir, float maxDistance, out HitInfo result)
+    {
+        if (Simulation is null)
+        {
+            result = default;
+            return false;
+        }
+
+        var handler = new RayClosestHitHandler(Simulation, CollisionMask.Everything) { ShapeHandled = this };
+        RayTest(origin, dir, ref maxDistance, ref handler);
+        if (handler.HitInformation.HasValue)
+        {
+            result = handler.HitInformation.Value;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Collect intersections between the ray provided and this shape in this simulation.
+    /// </summary>
+    /// <remarks>
+    /// When there are more hits than <paramref name="buffer"/> can accomodate, returns only the closest hits.<br/>
+    /// There are no guarantees as to the order hits are returned in.
+    /// </remarks>
+    /// <param name="origin">The start position for this ray</param>
+    /// <param name="dir">The normalized direction the ray is facing</param>
+    /// <param name="maxDistance">The maximum distance from the origin that hits will be collected</param>
+    /// <param name="buffer">
+    /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
+    /// It is used by the returned enumerator as its backing array from which you read
+    /// </param>
+    public unsafe ConversionEnum<ManagedConverter, HitInfoStack, HitInfo> RayCastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, Span<HitInfoStack> buffer)
+    {
+        if (Simulation is null || CollidableReference.HasValue == false)
+            return default;
+
+        fixed (HitInfoStack* ptr = &buffer[0])
+        {
+            var handler = new RayHitsStackHandler(ptr, buffer.Length, Simulation, CollisionMask.Everything)
+            {
+                ShapeHandled = CollidableReference.Value
+            };
+            RayTest(origin, dir, ref maxDistance, ref handler);
+            return new(buffer[..handler.Head], new ManagedConverter(Simulation));
+        }
+    }
+
+    /// <summary>
+    /// Collect intersections between the given ray and this shape. Hits are NOT sorted.
+    /// </summary>
+    /// <remarks> There are no guarantees as to the order hits are returned in. </remarks>
+    /// <param name="origin">The start position for this ray</param>
+    /// <param name="dir">The normalized direction the ray is facing</param>
+    /// <param name="maxDistance">The maximum distance from the origin that hits will be collected</param>
+    /// <param name="collection">The collection used to store hits into, the collection is not cleared before usage, hits are appended to it</param>
+    public void RayCastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, ICollection<HitInfo> collection)
+    {
+        if (Simulation is null)
+            return;
+
+        var handler = new RayHitsCollectionHandler(Simulation, collection, CollisionMask.Everything)
+        {
+            ShapedHandled = this
+        };
+        RayTest(origin, dir, ref maxDistance, ref handler);
+    }
+
+    internal void RayTest<TRayHitHandler>(
+        in Vector3 origin,
+        in Vector3 dir,
+        ref float maximumT,
+        ref TRayHitHandler hitHandler)
+        where TRayHitHandler : struct, IShapeRayHitHandler
+    {
+        if (ShapeIndex.Exists == false || Simulation is null)
+            return;
+
+        Collider.RayTest(Simulation.Simulation.Shapes, ShapeIndex, Pose!.Value, new RayData { Origin = origin, Direction = dir }, ref maximumT, ref hitHandler);
     }
 }

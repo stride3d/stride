@@ -82,10 +82,10 @@ public sealed class VsixVersionViewModel : PackageVersionViewModel
         switch (vsixSupportedVsVersion)
         {
             case NugetStore.VsixSupportedVsVersion.VS2019:
-                vsixTarget = string.Format(vsixTarget,"2019");
+                vsixTarget = string.Format(vsixTarget, "2019");
                 break;
-            case NugetStore.VsixSupportedVsVersion.VS2022:
-                vsixTarget = string.Format(vsixTarget, "2022"); ;
+            case NugetStore.VsixSupportedVsVersion.VS2022AndNext:
+                vsixTarget = string.Format(vsixTarget, "2022+");
                 break;
         }
         return $"{vsixTarget}: {status}";

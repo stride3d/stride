@@ -208,6 +208,135 @@ namespace Stride.Games
 
         public const int PM_REMOVE = 0x0001;
     }
+
+    internal static class TouchUtils
+    {
+        public const int WM_POINTERDOWN = 0x0246;
+        public const int WM_POINTERUP = 0x0247;
+        public const int WM_POINTERUPDATE = 0x0245;
+        public const int WM_POINTERWHEEL = 0x024E;
+        public const int WM_POINTERHWHEEL = 0x024F;
+        public const int WM_POINTERCAPTURECHANGED = 0x024C;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool GetPointerType(uint pointerId, out PointerInputType pointerType);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool GetPointerTouchInfo(uint pointerId, out POINTER_TOUCH_INFO touchInfo);
+
+        [Flags]
+        public enum TouchFlags
+        {
+            TOUCH_FLAG_NONE = 0x00000000
+        }
+
+        [Flags]
+        public enum TouchMask
+        {
+            TOUCH_MASK_NONE = 0x00000000,
+            TOUCH_MASK_CONTACTAREA = 0x00000001,
+            TOUCH_MASK_ORIENTATION = 0x00000002,
+            TOUCH_MASK_PRESSURE = 0x00000004,
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public struct POINTER_TOUCH_INFO
+        {
+            public POINTER_INFO pointerInfo;
+            public TouchFlags touchFlags;
+            public TouchMask touchMask;
+            public int rcContactLeft;
+            public int rcContactTop;
+            public int rcContactRight;
+            public int rcContactBottom;
+            public int rcContactRawLeft;
+            public int rcContactRawTop;
+            public int rcContactRawRight;
+            public int rcContactRawBottom;
+            public uint orientation;
+            public uint pressure;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public struct POINTER_INFO
+        {
+            public PointerInputType pointerType;
+            public uint pointerId;
+            public uint frameId;
+            public PointerFlags pointerFlags;
+            public IntPtr sourceDevice;
+            public IntPtr hwndTarget;
+            public int ptPixelLocationX;
+            public int ptPixelLocationY;
+            public int ptHimetricLocationX;
+            public int ptHimetricLocationY;
+            public int ptPixelLocationRawX;
+            public int ptPixelLocationRawY;
+            public int ptHimetricLocationRawX;
+            public int ptHimetricLocationRawY;
+            public uint dwTime;
+            public uint historyCount;
+            public int inputData;
+            public uint dwKeyStates;
+            public ulong PerformanceCount;
+            public PointerButtonChangeType ButtonChangeType;
+        }
+
+        public enum PointerInputType
+        {
+            PT_NONE = 0x00000000,
+            PT_POINTER = 0x00000001,
+            PT_TOUCH = 0x00000002,
+            PT_PEN = 0x00000003,
+            PT_MOUSE = 0x00000004,
+            PT_TOUCHPAD = 0x00000005
+        }
+
+        [Flags]
+        public enum PointerFlags
+        {
+            POINTER_FLAG_NONE = 0x00000000,
+            POINTER_FLAG_NEW = 0x00000001,
+            POINTER_FLAG_INRANGE = 0x00000002,
+            POINTER_FLAG_INCONTACT = 0x00000004,
+            POINTER_FLAG_FIRSTBUTTON = 0x00000010,
+            POINTER_FLAG_SECONDBUTTON = 0x00000020,
+            POINTER_FLAG_THIRDBUTTON = 0x00000040,
+            POINTER_FLAG_FOURTHBUTTON = 0x00000080,
+            POINTER_FLAG_FIFTHBUTTON = 0x00000100,
+            POINTER_FLAG_PRIMARY = 0x00002000,
+            POINTER_FLAG_CONFIDENCE = 0x00000400,
+            POINTER_FLAG_CANCELED = 0x00000800,
+            POINTER_FLAG_DOWN = 0x00010000,
+            POINTER_FLAG_UPDATE = 0x00020000,
+            POINTER_FLAG_UP = 0x00040000,
+            POINTER_FLAG_WHEEL = 0x00080000,
+            POINTER_FLAG_HWHEEL = 0x00100000,
+            POINTER_FLAG_CAPTURECHANGED = 0x00200000,
+            POINTER_FLAG_HASTRANSFORM = 0x00400000
+        }
+
+        public enum PointerButtonChangeType : ulong
+        {
+            POINTER_CHANGE_NONE,
+            POINTER_CHANGE_FIRSTBUTTON_DOWN,
+            POINTER_CHANGE_FIRSTBUTTON_UP,
+            POINTER_CHANGE_SECONDBUTTON_DOWN,
+            POINTER_CHANGE_SECONDBUTTON_UP,
+            POINTER_CHANGE_THIRDBUTTON_DOWN,
+            POINTER_CHANGE_THIRDBUTTON_UP,
+            POINTER_CHANGE_FOURTHBUTTON_DOWN,
+            POINTER_CHANGE_FOURTHBUTTON_UP,
+            POINTER_CHANGE_FIFTHBUTTON_DOWN,
+            POINTER_CHANGE_FIFTHBUTTON_UP
+        }
+
+        public static ushort LOWORD(ulong l) { return (ushort)(l & 0xFFFF); }
+        public static ushort HIWORD(ulong l) { return (ushort)((l >> 16) & 0xFFFF); }
+        public static ushort GET_POINTERID_WPARAM(ulong wParam) { return LOWORD(wParam); }
+        public static ushort GET_X_LPARAM(ulong lp) { return LOWORD(lp); }
+        public static ushort GET_Y_LPARAM(ulong lp) { return HIWORD(lp); }
+    }
 }
 
 #endif

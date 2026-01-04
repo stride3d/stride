@@ -3,6 +3,7 @@
 #if STRIDE_GRAPHICS_API_OPENGL
 using System;
 using System.Runtime.CompilerServices;
+using Stride.Core;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
@@ -598,7 +599,7 @@ namespace Stride.Graphics
 
                         if (data != IntPtr.Zero)
                         {
-                            Unsafe.CopyBlockUnaligned((void*) (bufferData + offset), (void*) data, (uint) (width * height * depth * TexturePixelSize));
+                            Utilities.CopyWithAlignmentFallback((void*) (bufferData + offset), (void*) data, (uint) (width * height * depth * TexturePixelSize));
                         }
 
                         offset += width*height*TexturePixelSize;

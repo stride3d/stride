@@ -96,6 +96,18 @@ public class LoggerViewModel : DispatcherViewModel, IDebugPage
     }
 
     /// <summary>
+    /// Adds a <see cref="Logger"/> to monitor, and also add previous messages.
+    /// </summary>
+    /// <param name="logger">The <see cref="Logger"/> to monitor.</param>
+    public virtual void AddLoggerWithPast(LoggerResult logger)
+    {
+        AddLogger(logger);
+        var messages = (ObservableList<ILogMessage>)Messages;
+        Loggers[logger].AddRange(logger.Messages);
+        messages.AddRange(logger.Messages);
+    }
+
+    /// <summary>
     /// Removes a <see cref="Logger"/> from monitoring.
     /// </summary>
     /// <param name="logger">The <see cref="Logger"/> to remove from monitoring.</param>

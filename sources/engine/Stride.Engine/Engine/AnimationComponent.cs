@@ -211,6 +211,6 @@ namespace Stride.Engine
 
     public interface IBlendTreeBuilder
     {
-        void BuildBlendTree(FastList<AnimationOperation> animationList);
+        void BuildBlendTree(List<AnimationOperation> animationList);
     }
 }

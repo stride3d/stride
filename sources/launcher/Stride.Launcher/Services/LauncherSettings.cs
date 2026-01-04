@@ -13,7 +13,7 @@ public static class LauncherSettings
 
     private static readonly SettingsKey<bool> CloseLauncherAutomaticallyKey = new("Internal/Launcher/CloseLauncherAutomatically", SettingsContainer, false);
     private static readonly SettingsKey<string> ActiveVersionKey = new("Internal/Launcher/ActiveVersion", SettingsContainer, "");
-    private static readonly SettingsKey<string> PreferredFrameworkKey = new("Internal/Launcher/PreferredFramework", SettingsContainer, "net8.0");
+    private static readonly SettingsKey<string> PreferredFrameworkKey = new("Internal/Launcher/PreferredFramework", SettingsContainer, "net10.0");
     private static readonly SettingsKey<int> CurrentTabKey = new("Internal/Launcher/CurrentTabSessions", SettingsContainer, 0);
     private static readonly SettingsKey<List<UDirectory>> DeveloperVersionsKey = new("Internal/Launcher/DeveloperVersions", SettingsContainer, () => new List<UDirectory>());
 
@@ -39,13 +39,13 @@ public static class LauncherSettings
     }
 
     public static IReadOnlyCollection<UDirectory> DeveloperVersions { get; private set; }
-    
+
     public static bool CloseLauncherAutomatically { get; set; }
-    
+
     public static string ActiveVersion { get; set; }
 
     public static string PreferredFramework { get; set; }
-    
+
     public static int CurrentTab { get; set; }
 
     private static string GetLatestLauncherConfigPath()

@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Stride.VisualStudio.Package</id>
-    <version>4.2.0</version>
+    <version>4.3.0</version>
     <authors>Stride</authors>
     <owners>Stride</owners>
     <license type="expression">MIT</license>
@@ -15,7 +15,7 @@
   </metadata>
   <files>
     <file src="bin\Stride.vsix" target="tools" />
-    <file src="..\Stride.VisualStudio.PackageInstall\bin\Release\packageinstall.exe" target="tools" />
+    <file src="..\Stride.VisualStudio.PackageInstall\bin\Release\packageinstall.*" target="tools" />
     <file src="..\Stride.VisualStudio.PackageInstall\bin\Release\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="tools" />
   </files>
 </package>

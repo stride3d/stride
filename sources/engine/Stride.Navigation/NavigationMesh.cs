@@ -26,7 +26,7 @@ namespace Stride.Navigation
 
         internal float CellSize;
         
-        internal Dictionary<Guid, NavigationMeshLayer> LayersInternal = new Dictionary<Guid, NavigationMeshLayer>();
+        internal Dictionary<Guid, NavigationMeshLayer> LayersInternal = [];
 
         /// <summary>
         /// The layers of this navigation mesh, there will be one layer for each enabled group that a navigation mesh is selected to build for

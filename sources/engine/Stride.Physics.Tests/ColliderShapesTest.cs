@@ -1,8 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
+using System.Collections.Generic;
 using Xunit;
-using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
@@ -30,7 +30,7 @@ namespace Stride.Physics.Tests
             var vectorFar = Vector3.Transform(sPos, invViewProj);
             vectorFar /= vectorFar.W;
 
-            var result = new FastList<HitResult>();
+            var result = new List<HitResult>();
             simulation.RaycastPenetrating(vectorNear.XYZ(), vectorFar.XYZ(), result);
             foreach (var hitResult in result)
             {

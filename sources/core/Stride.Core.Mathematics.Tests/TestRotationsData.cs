@@ -2,9 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Stride.Core.Mathematics.Tests;
 
+[ExcludeFromCodeCoverage]
 public static class TestRotationsData
 {
     private static readonly float[] PrimaryAnglesToTest =

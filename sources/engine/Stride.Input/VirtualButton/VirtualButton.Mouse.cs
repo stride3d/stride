@@ -62,6 +62,11 @@ namespace Stride.Input
             /// </summary>
             public static readonly Mouse DeltaY = new Mouse("DeltaY", 8, true);
 
+            /// <summary>
+            /// Equivalent to <see cref="InputManager.MouseWheelDelta"/>.
+            /// </summary>
+            public static readonly Mouse WheelDelta = new Mouse("WheelDelta", 9, true);
+
             public override float GetValue(InputManager manager)
             {
                 if (Index < 5)
@@ -81,6 +86,8 @@ namespace Stride.Input
                             return manager.MouseDelta.X;
                         case 8:
                             return manager.MouseDelta.Y;
+                        case 9:
+                            return manager.MouseWheelDelta;
                     }
                 }
 
