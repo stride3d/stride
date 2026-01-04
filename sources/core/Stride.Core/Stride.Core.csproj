@@ -1,4 +1,4 @@
-<Project Sdk="Stride.Sdk.Runtime">  
+<Project Sdk="Stride.Sdk">  
   <PropertyGroup>
     <Description>Core assembly for all Stride assemblies.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -6,6 +6,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
+    <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
   
   <PropertyGroup>
