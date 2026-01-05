@@ -399,49 +399,84 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             switch (currentValueType, accessor)
             {
                 case (PointerType { BaseType: TextureType textureType },
-                        MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 }
-                        or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 }
-                        or MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Parameters.Values.Count: 3 }):
+                        MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 or 3 }
+                        or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 or 4 }
+                        or MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Parameters.Values.Count: 3 or 4 }):
                     {
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds);
                         var textureValue = builder.AsValue(context, result);
+                        var textureCoordSize = textureType switch
+                        {
+                            Texture1DType { Arrayed: false } => 1,
+                            Texture2DType { Arrayed: false } => 2,
+                            Texture3DType { Arrayed: false } => 3,
+                        };
+                        var offsetSize = textureCoordSize;
+                        if (textureType.Arrayed)
+                            textureCoordSize++;
 
                         // Load texture as value
                         result = builder.AsValue(context, result);
 
-                        if (accessor is MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 } implicitSampling)
+                        if (accessor is MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 or 3 } implicitSampling)
                         {
                             var resultType = new VectorType(textureType.ReturnType, 4);
 
                             var samplerValue = implicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
                             var texCoordValue = implicitSampling.Parameters.Values[1].CompileAsValue(table, compiler);
+                            texCoordValue = builder.Convert(context, texCoordValue, ScalarType.From("float").GetVectorOrScalar(textureCoordSize));
+                            
                             var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
                             var returnType = context.GetOrRegister(resultType);
-                            var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, ImageOperandsMask.None));
+
+                            ParameterizedFlag<ImageOperandsMask>? flags = null;
+                            if (implicitSampling.Parameters.Values.Count > 2)
+                            {
+                                var offset = implicitSampling.Parameters.Values[2].CompileAsValue(table, compiler);
+                                offset = builder.Convert(context, offset, ScalarType.From("int").GetVectorOrScalar(offsetSize));
+                                // TODO: determine when ConstOffset
+                                flags = new ParameterizedFlag<ImageOperandsMask>(ImageOperandsMask.Offset, [offset.Id]);
+                            }
+                            var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, flags));
 
                             result = new(sample.ResultId, sample.ResultType);
                             accessor.Type = resultType;
                         }
-                        else if (accessor is MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 } explicitSampling)
+                        else if (accessor is MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 or 4 } explicitSampling)
                         {
                             var resultType = new VectorType(textureType.ReturnType, 4);
 
                             var samplerValue = explicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
                             var texCoordValue = explicitSampling.Parameters.Values[1].CompileAsValue(table, compiler);
+                            texCoordValue = builder.Convert(context, texCoordValue, new VectorType(ScalarType.From("float"), textureCoordSize));
+                            
                             var levelValue = explicitSampling.Parameters.Values[2].CompileAsValue(table, compiler);
                             levelValue = builder.Convert(context, levelValue, ScalarType.From("float"));
 
                             var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
                             var returnType = context.GetOrRegister(resultType);
-                            var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, ParameterizedFlags.ImageOperandsLod(levelValue.Id)));
+                            
+                            ParameterizedFlag<ImageOperandsMask> flags;
+                            if (explicitSampling.Parameters.Values.Count > 3)
+                            {
+                                var offset = explicitSampling.Parameters.Values[3].CompileAsValue(table, compiler);
+                                offset = builder.Convert(context, offset, ScalarType.From("int").GetVectorOrScalar(offsetSize));
+                                // TODO: determine when ConstOffset
+                                flags = new ParameterizedFlag<ImageOperandsMask>(ImageOperandsMask.Lod | ImageOperandsMask.Offset, [levelValue.Id, offset.Id]);
+                            }
+                            else
+                            {
+                                flags = new ParameterizedFlag<ImageOperandsMask>(ImageOperandsMask.Lod, [levelValue.Id]);
+                            }
+                            var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, flags));
 
                             result = new(sample.ResultId, sample.ResultType);
                             accessor.Type = resultType;
                         }
-                        else if (accessor is MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Parameters.Values.Count: 3 } sampleCompare)
+                        else if (accessor is MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Parameters.Values.Count: 3 or 4 } sampleCompare)
                         {
                             var resultType = textureType.ReturnType;
                             if (resultType is not ScalarType)
@@ -449,16 +484,29 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
                             var samplerValue = sampleCompare.Parameters.Values[0].CompileAsValue(table, compiler);
                             var texCoordValue = sampleCompare.Parameters.Values[1].CompileAsValue(table, compiler);
+                            texCoordValue = builder.Convert(context, texCoordValue, new VectorType(ScalarType.From("float"), textureCoordSize));
+                            
                             var compareValue = sampleCompare.Parameters.Values[2].CompileAsValue(table, compiler);
 
                             var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
                             var returnType = context.GetOrRegister(resultType);
 
-                            var levelZero = context.CompileConstant(0.0f);
+                            ParameterizedFlag<ImageOperandsMask> flags = sampleCompare.Name.Name == "SampleCmpLevelZero" 
+                                ? ParameterizedFlags.ImageOperandsLod(context.CompileConstant(0.0f).Id)
+                                : ImageOperandsMask.None;
+                                
+                            if (sampleCompare.Parameters.Values.Count > 3)
+                            {
+                                var offset = sampleCompare.Parameters.Values[3].CompileAsValue(table, compiler);
+                                offset = builder.Convert(context, offset, ScalarType.From("int").GetVectorOrScalar(offsetSize));
+                                // TODO: determine when ConstOffset
+                                flags = new ParameterizedFlag<ImageOperandsMask>(flags.Value | ImageOperandsMask.Offset, [..flags.Span, offset.Id]);
+                            }
+
                             var sample = sampleCompare.Name.Name == "SampleCmpLevelZero"
-                                ? builder.InsertData(new OpImageSampleDrefExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, ParameterizedFlags.ImageOperandsLod(levelZero.Id)))
-                                : builder.InsertData(new OpImageSampleDrefImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, ImageOperandsMask.None));
+                                ? builder.InsertData(new OpImageSampleDrefExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, flags))
+                                : builder.InsertData(new OpImageSampleDrefImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, flags));
 
                             result = new(sample.IdResult!.Value, sample.IdResultType!.Value);
                             accessor.Type = resultType;

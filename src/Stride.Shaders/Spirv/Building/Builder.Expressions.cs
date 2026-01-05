@@ -482,6 +482,9 @@ public partial class SpirvBuilder
 
 internal static class SymbolExtensions
 {
+    public static SymbolType GetVectorOrScalar(this ScalarType scalar, int size)
+        => size == 1 ? scalar : new VectorType(scalar, size);
+    
     public static int GetElementCount(this SymbolType symbol) => symbol switch
         {
             ScalarType s => 1,
