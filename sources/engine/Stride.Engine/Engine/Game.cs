@@ -188,8 +188,24 @@ namespace Stride.Engine
         /// <summary>
         /// Initializes a new instance of the <see cref="Game"/> class.
         /// </summary>
-        public Game()
+        public Game(GameContext context = null) : base()
         {
+            Context = context ?? GetDefaultContext();
+            Context.CurrentGame = this;
+            Context.Services = Services;
+
+            // Create Platform
+            Context.GamePlatform = GamePlatform.Create(Context);
+            Context.GamePlatform.Activated += GamePlatform_Activated;
+            Context.GamePlatform.Deactivated += GamePlatform_Deactivated;
+            Context.GamePlatform.Exiting += GamePlatform_Exiting;
+            Context.GamePlatform.WindowCreated += GamePlatformOnWindowCreated;
+
+            // Setup registry
+            Services.AddService<IGame>(this);
+            Services.AddService<IGraphicsDeviceFactory>(Context.GamePlatform);
+            Services.AddService<IGamePlatform>(Context.GamePlatform);
+
             // Register the logger backend before anything else
             logListener = GetLogListener();
 
@@ -205,6 +221,7 @@ namespace Stride.Engine
             Services.AddService(SceneSystem);
 
             Streaming = new StreamingManager(Services);
+            Services.AddService(Streaming);
 
             Audio = new AudioSystem(Services);
             Services.AddService(Audio);
@@ -256,7 +273,7 @@ namespace Stride.Engine
             if (Context.InitializeDatabase)
             {
                 databaseFileProvider = InitializeAssetDatabase();
-                ((DatabaseFileProviderService)Services.GetService<IDatabaseFileProviderService>()).FileProvider = databaseFileProvider;
+                Services.GetService<IDatabaseFileProviderService>().FileProvider = databaseFileProvider;
 
                 var renderingSettings = new RenderingSettings();
                 if (Content.Exists(GameSettings.AssetUrl))
@@ -342,6 +359,7 @@ namespace Stride.Engine
             Input = inputSystem.Manager;
             Services.AddService(Input);
             GameSystems.Add(inputSystem);
+            SetInitialInputSources(Input);
 
             // Initialize the systems
             base.Initialize();
@@ -391,6 +409,49 @@ namespace Stride.Engine
             Content.Serializer.RegisterSerializer(new ImageSerializer());
 
             OnGameStarted(this);
+        }
+
+        private void SetInitialInputSources(InputManager inputManager)
+        {
+            // Add window specific input source
+            var windowInputSource = InputSourceFactory.NewWindowInputSource(Context);
+            inputManager.Sources.Add(windowInputSource);
+
+            // Add platform specific input sources
+            switch (Context.ContextType)
+            {
+#if STRIDE_UI_SDL
+                case AppContextType.DesktopSDL:
+                    break;
+#endif
+#if STRIDE_PLATFORM_ANDROID
+                case AppContextType.Android:
+                    break;
+#endif
+#if STRIDE_PLATFORM_IOS
+                case AppContextType.iOS:
+                    break;
+#endif
+#if STRIDE_PLATFORM_UWP
+                case AppContextType.UWPXaml:
+                case AppContextType.UWPCoreWindow:
+                    break;
+#endif
+                case AppContextType.Desktop:
+#if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
+                    inputManager.Sources.Add(new InputSourceWindowsDirectInput());
+                    if (InputSourceWindowsXInput.IsSupported())
+                        inputManager.Sources.Add(new InputSourceWindowsXInput());
+#if STRIDE_INPUT_RAWINPUT
+                    if (rawInputEnabled && Context is GameContextWinforms gameContextWinforms)
+                        inputManager.Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));
+#endif
+#endif
+                    break;
+                default:
+                    Log.Warning("GameContext type is not supported by the InputManager. Register your own for input to be handled properly.");
+                    break;
+            }
         }
 
         internal static DatabaseFileProvider InitializeAssetDatabase()

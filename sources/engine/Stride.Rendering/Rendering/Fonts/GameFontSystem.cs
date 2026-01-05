@@ -15,11 +15,11 @@ namespace Stride.Rendering.Fonts
     {
         public FontSystem FontSystem { get; private set; }
 
-        public GameFontSystem(IServiceRegistry registry)
+        public GameFontSystem(IServiceRegistry registry, FontSystem fontSystem = null)
             : base(registry)
         {
             Visible = true;
-            FontSystem = new FontSystem();
+            FontSystem = fontSystem ?? new FontSystem();
         }
 
         public override void Draw(GameTime gameTime)

@@ -318,8 +318,6 @@ namespace Stride.Input
         {
             this.gameContext = gameContext ?? throw new ArgumentNullException(nameof(gameContext));
 
-            AddSources();
-
             // After adding initial devices, reassign gamepad id's
             // this creates a beter index assignment in the case where you have both an xbox controller and another controller at startup
             var sortedGamePads = GamePads.OrderBy(x => x.CanChangeIndex);
@@ -626,10 +624,11 @@ namespace Stride.Input
         {
             eventRouters[inputEvent.GetType()].PoolEvent(inputEvent);
         }
-        
+
         /// <summary>
         /// Resets the <see cref="Sources"/> collection back to it's default values
         /// </summary>
+        [Obsolete("This should be managed manually instead by using the Sources collection")]
         public void ResetSources()
         {
             Sources.Clear();
@@ -704,7 +703,8 @@ namespace Stride.Input
 #endif
                     break;
                 default:
-                    throw new InvalidOperationException("GameContext type is not supported by the InputManager");
+                    Logger.Warning("GameContext type is not supported by the InputManager. Register your own for input to be handled properly.");
+                    break;
             }
         }
 

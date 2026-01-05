@@ -14,7 +14,7 @@ namespace Stride.Input
     /// <summary>
     /// Provides support for mouse/touch/keyboard/gamepads using SDL
     /// </summary>
-    internal unsafe class InputSourceSDL : InputSourceBase
+    public unsafe class InputSourceSDL : InputSourceBase
     {
         private static Sdl SDL = Window.SDL;
 

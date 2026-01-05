@@ -137,8 +137,8 @@ namespace Stride.Editor.Preview
 
             initializationSignal.Set();
 
-            PreviewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
             var context = new GameContextWinforms(gameForm) { InitializeDatabase = false };
+            PreviewGame = new PreviewGame(AssetBuilderService.EffectCompiler, context);
 
             // Wait for shaders to be loaded
             AssetBuilderService.WaitForShaders();
