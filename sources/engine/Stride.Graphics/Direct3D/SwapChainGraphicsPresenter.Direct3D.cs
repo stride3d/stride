@@ -382,7 +382,6 @@ namespace Stride.Graphics
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
             // Manually swap the Back-Buffers
-            backBuffer.NativeResource.Release();
 
             // Gets the native Back-Buffer from the Swap-Chain.
             //   This increments the reference count of the COM object,
