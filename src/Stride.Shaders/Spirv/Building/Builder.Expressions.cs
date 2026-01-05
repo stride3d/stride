@@ -245,12 +245,16 @@ public partial class SpirvBuilder
             (Operator.LogicalOR, ScalarType { TypeName: "bool" }, ScalarType { TypeName: "bool" })
                 => Buffer.InsertData(Position++, new OpLogicalOr(resultTypeId, context.Bound++, left.Id, right.Id)),
 
+            (Operator.Equals, ScalarType { TypeName: "bool" }, ScalarType { TypeName: "bool" })
+                => Buffer.InsertData(Position++, new OpLogicalEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
             (Operator.Equals, ScalarType { TypeName: "int" or "uint" }, ScalarType { TypeName: "int" or "uint" })
                 => Buffer.InsertData(Position++, new OpIEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
             (Operator.Equals, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
                 => Buffer.InsertData(Position++, new OpFOrdEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
 
+            (Operator.NotEquals, ScalarType { TypeName: "bool" }, ScalarType { TypeName: "bool" })
+                => Buffer.InsertData(Position++, new OpLogicalNotEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
             (Operator.NotEquals, ScalarType { TypeName: "int" or "uint" }, ScalarType { TypeName: "int" or "uint" })
                 => Buffer.InsertData(Position++, new OpINotEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
             (Operator.NotEquals, ScalarType l, ScalarType r)
