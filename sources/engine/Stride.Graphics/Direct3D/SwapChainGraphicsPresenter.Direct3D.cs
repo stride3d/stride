@@ -754,7 +754,7 @@ namespace Stride.Graphics
 #endif
             ComPtr<IDXGISwapChain1> newSwapChain = default;
 
-            HResult result = nativeFactory.CreateSwapChainForHwnd(GraphicsDevice.NativeDevice.AsIUnknown(), handle, in description, in fullscreenDescription, doNotRestrictOutput, ref newSwapChain);
+            HResult result = nativeFactory.CreateSwapChainForHwnd(device, handle, in description, in fullscreenDescription, doNotRestrictOutput, ref newSwapChain);
 
             if (result.IsFailure)
                 result.Throw();
