@@ -171,7 +171,7 @@ namespace Stride.Shaders.Compiler
             }
 
             // Compute the bytecodeId
-            var newBytecodeId = compiledShader.ByteCode.ComputeId();
+            var newBytecodeId = compiledShader.Bytecode.ComputeId();
 
             // Check if we really need to store the bytecode
             lock (bytecodes)
@@ -179,7 +179,7 @@ namespace Stride.Shaders.Compiler
                 // Using custom serialization to the database to store an object with a custom id
                 // TODO: Check if we really need to write the bytecode everytime even if id is not changed
                 var memoryStream = new MemoryStream();
-                compiledShader.ByteCode.WriteTo(memoryStream);
+                compiledShader.Bytecode.WriteTo(memoryStream);
                 
                 // Write current cache at the end (not part of the pure bytecode, but we use this as meta info)
                 var writer = new BinarySerializationWriter(memoryStream);
@@ -201,7 +201,7 @@ namespace Stride.Shaders.Compiler
                     Interlocked.Increment(ref effectCompileCount);
 
                     // Replace or add new bytecode
-                    bytecodes[newBytecodeId] = new KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>(compiledShader.ByteCode, EffectBytecodeCacheLoadSource.JustCompiled);
+                    bytecodes[newBytecodeId] = new KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>(compiledShader.Bytecode, EffectBytecodeCacheLoadSource.JustCompiled);
                 }
             }
 

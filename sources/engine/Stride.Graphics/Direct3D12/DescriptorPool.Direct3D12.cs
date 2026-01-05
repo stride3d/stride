@@ -93,12 +93,12 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed(bool immediate = false)
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             SafeRelease(ref nativeSrvHeap);
             SafeRelease(ref nativeSamplerHeap);
 
-            base.OnDestroyed(immediate);
+            base.OnDestroyed(immediately);
         }
 
         /// <summary>

@@ -163,23 +163,23 @@ public sealed class PipelineStateDescription : IEquatable<PipelineStateDescripti
     /// <inheritdoc/>
     public override int GetHashCode()
     {
-        HashCode hashCode1 = new();
-        hashCode1.Add(RootSignature);
-        hashCode1.Add(EffectBytecode);
-        hashCode1.Add(BlendState);
-        hashCode1.Add(SampleMask);
-        hashCode1.Add(RasterizerState);
-        hashCode1.Add(DepthStencilState);
+        HashCode hashCode = new();
+        hashCode.Add(RootSignature);
+        hashCode.Add(EffectBytecode);
+        hashCode.Add(BlendState);
+        hashCode.Add(SampleMask);
+        hashCode.Add(RasterizerState);
+        hashCode.Add(DepthStencilState);
 
         if (InputElements is not null)
         {
             foreach (var inputElement in InputElements)
-                hashCode1.Add(inputElement);
+                hashCode.Add(inputElement);
         }
 
-        hashCode1.Add(PrimitiveType);
-        hashCode1.Add(Output);
-        return hashCode1.ToHashCode();
+        hashCode.Add(PrimitiveType);
+        hashCode.Add(Output);
+        return hashCode.ToHashCode();
     }
 
     public static bool operator ==(PipelineStateDescription left, PipelineStateDescription right)

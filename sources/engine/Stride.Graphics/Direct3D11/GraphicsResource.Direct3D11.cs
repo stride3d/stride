@@ -123,12 +123,12 @@ public abstract unsafe partial class GraphicsResource
     ///   This method releases the underlying native resources (<see cref="ID3D11ShaderResourceView"/> and <see cref="ID3D11UnorderedAccessView"/>),
     ///   and then calls <see cref="GraphicsResourceBase.OnDestroyed"/>.
     /// </remarks>
-    protected internal override void OnDestroyed(bool immediate = false)
+    protected internal override void OnDestroyed(bool immediately = false)
     {
         SafeRelease(ref shaderResourceView);
         SafeRelease(ref unorderedAccessView);
 
-        base.OnDestroyed(immediate);
+        base.OnDestroyed(immediately);
     }
 
     /// <summary>

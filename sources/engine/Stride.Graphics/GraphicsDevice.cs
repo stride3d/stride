@@ -28,7 +28,8 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets the features supported by the Graphics Device.
         /// </summary>
-        public GraphicsDeviceFeatures Features;
+        public ref readonly GraphicsDeviceFeatures Features => ref features;
+        private GraphicsDeviceFeatures features;
 
         /// <summary>
         ///   The set of Graphics Resources currently managed by the Graphics Device.
@@ -44,8 +45,6 @@ namespace Stride.Graphics
         // For example, the shared 2x2 White Texture, or the Full-screen Triangle primitive.
         private readonly Dictionary<object, IDisposable> sharedDataPerDevice = [];
         private readonly List<IDisposable> sharedDataToDispose = [];
-
-        private GraphicsPresenter presenter;
 
         /// <summary>
         ///   The default Pipeline State object used by the Graphics Device.
@@ -177,7 +176,7 @@ namespace Stride.Graphics
             InitializePlatformDevice(graphicsProfiles, creationFlags, windowHandle);
 
             // Checks the features supported by the new Graphics Device
-            Features = new GraphicsDeviceFeatures(this);
+            features = new GraphicsDeviceFeatures(this);
 
             // Initialize the internal states of the new Graphics Device
             SamplerStates = new SamplerStateFactory(this);
@@ -311,18 +310,14 @@ namespace Stride.Graphics
         /// </summary>
         public ColorSpace ColorSpace
         {
-            get => Features.HasSRgb ? colorSpace : ColorSpace.Gamma;
+            get => features.HasSRgb ? colorSpace : ColorSpace.Gamma;
             set => colorSpace = value;
         }
 
         /// <summary>
         ///   Gets or sets the current presenter used to display frames with the Graphics Device.
         /// </summary>
-        public virtual GraphicsPresenter Presenter
-        {
-            get => presenter;
-            set => presenter = value;
-        }
+        public virtual GraphicsPresenter Presenter { get; set; }
 
         /// <summary>
         ///   Gets the factory that can be used to retrieve commonly used Sampler States.

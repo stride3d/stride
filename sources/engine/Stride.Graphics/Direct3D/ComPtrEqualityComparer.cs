@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#if STRIDE_GRAPHICS_API_DIRECT3D
+
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
@@ -30,3 +32,5 @@ internal sealed class ComPtrEqualityComparer<T> : IEqualityComparer<ComPtr<T>>
     /// <inheritdoc/>
     public unsafe int GetHashCode([DisallowNull] ComPtr<T> obj) => ((nint) obj.Handle).GetHashCode();
 }
+
+#endif

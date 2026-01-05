@@ -149,9 +149,9 @@ namespace Stride.Shaders.Tests
             var mainBytecode = results.Bytecode.WaitForResult();
             Assert.False(mainBytecode.CompilationLog.HasErrors);
 
-            Assert.NotNull(mainBytecode.ByteCode.Reflection.ConstantBuffers);
-            Assert.Single(mainBytecode.ByteCode.Reflection.ConstantBuffers);
-            var cbuffer = mainBytecode.ByteCode.Reflection.ConstantBuffers[0];
+            Assert.NotNull(mainBytecode.Bytecode.Reflection.ConstantBuffers);
+            Assert.Single(mainBytecode.Bytecode.Reflection.ConstantBuffers);
+            var cbuffer = mainBytecode.Bytecode.Reflection.ConstantBuffers[0];
 
             Assert.NotNull(cbuffer.Members);
             Assert.Equal(2, cbuffer.Members.Length);

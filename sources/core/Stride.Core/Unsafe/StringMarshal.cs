@@ -19,6 +19,21 @@ namespace Stride.Core.UnsafeExtensions;
 public static unsafe class StringMarshal
 {
     /// <summary>
+    ///   Gets a <see cref="string"/> for a pointer to a null-terminated string of bytes,
+    ///   assuming an UTF-8 encoding, the current system codepage, or ANSI.
+    /// </summary>
+    /// <param name="ptr">
+    ///   A pointer to a null-terminated array of 8-bit integers.
+    ///   The integers are interpreted using the current system code page encoding on Windows (referred to as CP_ACP) and as UTF-8 encoding on non-Windows.
+    /// </param>
+    /// <returns>A string created from <paramref name="ptr"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string? GetString(byte* ptr)
+        => ptr is not null
+            ? new string((sbyte*) ptr)
+            : null;
+
+    /// <summary>
     ///   Gets a <see cref="string"/> for a given span of bytes, assuming an UTF-8 encoding.
     /// </summary>
     /// <param name="span">The span for which to create the string.</param>
@@ -38,6 +53,29 @@ public static unsafe class StringMarshal
     public static string? GetString(this ReadOnlySpan<ushort> span)
         => span.GetPointer() is not null
             ? new string(span.As<ushort, char>())
+            : null;
+
+    /// <summary>
+    ///   Gets a <see cref="string"/> for a pointer to a null-terminated string of characters,
+    ///   assuming an UTF-16 encoding.
+    /// </summary>
+    /// <param name="ptr">A pointer to a null-terminated array of 16-bit characters.</param>
+    /// <returns>A string created from <paramref name="ptr"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string? GetString(char* ptr)
+        => ptr is not null
+            ? new string(ptr)
+            : null;
+
+    /// <summary>
+    ///   Gets a <see cref="string"/> for a given span, assuming an UTF-16 encoding.
+    /// </summary>
+    /// <param name="span">The span for which to create the string.</param>
+    /// <returns>A string created from <paramref name="span"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string? GetString(this ReadOnlySpan<char> span)
+        => span.GetPointer() is not null
+            ? new string(span)
             : null;
 
     /// <summary>

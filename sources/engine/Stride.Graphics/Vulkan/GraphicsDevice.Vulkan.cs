@@ -539,7 +539,7 @@ namespace Stride.Graphics
             vkDestroyDevice(nativeDevice, null);
         }
 
-        internal void OnDestroyed(bool immediate = false)
+        internal void OnDestroyed(bool immediately = false)
         {
         }
 

@@ -14,9 +14,7 @@ namespace Stride.Rendering
         private struct QueryEvent
         {
             public QueryPool Pool;
-
             public int Index;
-
             public ProfilingKey ProfilingKey;
         }
 
@@ -54,7 +52,7 @@ namespace Stride.Rendering
                 {
                     ProfilingKey = profilingKey,
                     Pool = currentQueryPool,
-                    Index = currentQueryIndex++,
+                    Index = currentQueryIndex++
                 };
                 queries.Push(query);
 

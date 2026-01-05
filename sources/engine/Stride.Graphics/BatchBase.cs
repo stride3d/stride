@@ -115,18 +115,23 @@ namespace Stride.Graphics
 
         internal const float DepthBiasShiftOneUnit = 0.0001f;
 
-        protected BatchBase(GraphicsDevice device, EffectBytecode defaultEffectByteCode, EffectBytecode defaultEffectByteCodeSRgb, ResourceBufferInfo resourceBufferInfo, VertexDeclaration vertexDeclaration, int indexSize = sizeof(short))
+        protected BatchBase(GraphicsDevice device,
+                            EffectBytecode defaultEffectBytecode,
+                            EffectBytecode defaultEffectBytecodeSRgb,
+                            ResourceBufferInfo resourceBufferInfo,
+                            VertexDeclaration vertexDeclaration,
+                            int indexSize = sizeof(short))
         {
-            if (defaultEffectByteCode == null) throw new ArgumentNullException(nameof(defaultEffectByteCode));
-            if (defaultEffectByteCodeSRgb == null) throw new ArgumentNullException(nameof(defaultEffectByteCodeSRgb));
-            if (resourceBufferInfo == null) throw new ArgumentNullException("resourceBufferInfo");
-            if (vertexDeclaration == null) throw new ArgumentNullException("vertexDeclaration");
+            ArgumentNullException.ThrowIfNull(defaultEffectBytecode);
+            ArgumentNullException.ThrowIfNull(defaultEffectBytecodeSRgb);
+            ArgumentNullException.ThrowIfNull(resourceBufferInfo);
+            ArgumentNullException.ThrowIfNull(vertexDeclaration);
 
             graphicsDevice = device;
             mutablePipeline = new MutablePipelineState(device);
             // TODO GRAPHICS REFACTOR Should we initialize FX lazily?
-            DefaultEffect = new EffectInstance(new Effect(device, defaultEffectByteCode) { Name = "BatchDefaultEffect" });
-            DefaultEffectSRgb = new EffectInstance(new Effect(device, defaultEffectByteCodeSRgb) { Name = "BatchDefaultEffectSRgb" });
+            DefaultEffect = new EffectInstance(new Effect(device, defaultEffectBytecode) { Name = "BatchDefaultEffect" });
+            DefaultEffectSRgb = new EffectInstance(new Effect(device, defaultEffectBytecodeSRgb) { Name = "BatchDefaultEffectSRgb" });
 
             drawsQueue = new ElementInfo[resourceBufferInfo.BatchCapacity];
             drawTextures = new Texture[resourceBufferInfo.BatchCapacity];

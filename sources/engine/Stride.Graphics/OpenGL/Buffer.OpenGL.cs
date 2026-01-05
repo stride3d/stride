@@ -94,7 +94,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed(bool immediate = false)
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             using (GraphicsDevice.UseOpenGLCreationContext())
             {
@@ -109,7 +109,7 @@ namespace Stride.Graphics
                 GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes);
             }
 
-            base.OnDestroyed(immediate);
+            base.OnDestroyed(immediately);
         }
 
         protected void Init(IntPtr dataPointer)

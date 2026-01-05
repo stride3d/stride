@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#if STRIDE_GRAPHICS_API_DIRECT3D
+
 namespace Stride.Graphics;
 
 /// <summary>
@@ -56,3 +58,5 @@ internal static class DxgiConstants
         InvalidCall = unchecked((int) 0x887A0001)           // INVALID_CALL
     }
 }
+
+#endif

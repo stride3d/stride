@@ -4,13 +4,17 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 
 using System;
+
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 using Silk.NET.DXGI;
+
+using D3D12Range = Silk.NET.Direct3D12.Range;
+
 using Stride.Core;
 using Stride.Core.Mathematics;
+
 using static System.Runtime.CompilerServices.Unsafe;
-using D3D12Range = Silk.NET.Direct3D12.Range;
 
 namespace Stride.Graphics
 {
@@ -108,11 +112,11 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed(bool immediate = false)
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             GraphicsDevice?.RegisterBufferMemoryUsage(-SizeInBytes);
 
-            base.OnDestroyed(immediate);
+            base.OnDestroyed(immediately);
         }
 
         /// <inheritdoc/>
@@ -218,7 +222,7 @@ namespace Stride.Graphics
                     if (result.IsFailure)
                         result.Throw();
 
-                    MemoryUtilities.CopyWithAlignmentFallback(uploadMemory, (void*)dataPointer, (uint)SizeInBytes);
+                    MemoryUtilities.CopyWithAlignmentFallback(uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
 
                     NativeResource.Unmap(Subresource: 0, pWrittenRange: ref NullRef<D3D12Range>());
                 }
@@ -226,16 +230,18 @@ namespace Stride.Graphics
             else if (heapType == HeapType.Default)
             {
                 ComPtr<ID3D12Resource> uploadResource = default;
-                int uploadOffset = default;
+                int uploadOffset = 0;
+
                 if (hasInitData)
                 {
-                    // Copy data in upload heap for later copy
+                    // Copy data to the upload heap for later inter-resource copy
                     // TODO: D3D12: Move that to a shared upload heap
                     var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out uploadResource, out uploadOffset);
-                    MemoryUtilities.CopyWithAlignmentFallback((void*)uploadMemory, (void*)dataPointer, (uint)SizeInBytes);
+                    MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
                 }
 
                 var commandList = GraphicsDevice.NativeCopyCommandList;
+
                 lock (GraphicsDevice.NativeCopyCommandListLock)
                 {
                     scoped ref var nullPipelineState = ref NullRef<ID3D12PipelineState>();
@@ -250,16 +256,16 @@ namespace Stride.Graphics
 
                     if (hasInitData)
                     {
-                        // Switch resource to copy state
+                        // Switch resource to CopyDest state
                         resourceBarrier.Transition.StateBefore = initialResourceState;
                         resourceBarrier.Transition.StateAfter = ResourceStates.CopyDest;
                         commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
 
-                        // Copy from upload heap to actual resource
-                        commandList.CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong)uploadOffset, (ulong)SizeInBytes);
+                        // Copy from the upload heap to the actual resource
+                        commandList.CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong) uploadOffset, (ulong) SizeInBytes);
                     }
 
-                    // Once initialized, transition the buffer to its final state
+                    // Once initialized, transition the Buffer to its final state
                     resourceBarrier.Transition.StateBefore = hasInitData ? ResourceStates.CopyDest : initialResourceState;
                     resourceBarrier.Transition.StateAfter = NativeResourceState;
 

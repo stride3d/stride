@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -26,6 +27,11 @@ namespace Stride.Graphics
 {
     public unsafe partial class PipelineState
     {
+        // Per the Microsoft documentation:
+        //  > There is no explicit maximum length defined by the API, but the HLSL compiler and driver implementations
+        //  > typically support up to 32 characters.
+        private const int MAX_SEMANTIC_NAME_LENGTH = 32;
+
         // Effect
         private readonly RootSignature rootSignature;
         private readonly EffectBytecode effectBytecode;
@@ -56,6 +62,14 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="graphicsDevice">The Graphics Device.</param>
         /// <param name="pipelineStateDescription">A description of the Pipeline State to create.</param>
+        /// <exception cref="ArgumentException">
+        ///   One of the input elements described by the <paramref name="pipelineStateDescription"/>
+        ///   has a semantic name that exceeds the maximum allowed length.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///   One of the semantic names in the stream output declarations of the Geometry Shader
+        ///   exceeds the maximum allowed length.
+        /// </exception>
         internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription)
             : base(graphicsDevice)
         {
@@ -80,7 +94,7 @@ namespace Stride.Graphics
             rasterizerState = pipelineStateCache.RasterizerStateCache.Instantiate(pipelineStateDescription.RasterizerState);
             depthStencilState = pipelineStateCache.DepthStencilStateCache.Instantiate(pipelineStateDescription.DepthStencilState);
 
-            CreateInputLayout(pipelineStateDescription.InputElements);
+            CreateInputLayout(pipelineStateDescription.InputElements ?? []);
 
             primitiveTopology = (D3DPrimitiveTopology) pipelineStateDescription.PrimitiveType;
         }
@@ -154,7 +168,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed(bool immediate = false)
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             var pipelineStateCache = GetPipelineStateCache();
 
@@ -181,7 +195,7 @@ namespace Stride.Graphics
             if (inputLayout is not null)
                 inputLayout->Release();
 
-            base.OnDestroyed(immediate);
+            base.OnDestroyed(immediately);
         }
 
         /// <summary>
@@ -196,39 +210,42 @@ namespace Stride.Graphics
         ///     If this parameter is <see langword="null"/>, the method exits without performing any operations.
         ///   </para>
         /// </param>
-        private void CreateInputLayout(InputElementDescription[] inputElements)
+        /// <exception cref="ArgumentException">
+        ///   One of the <paramref name="inputElements"/> has a semantic name that exceeds the maximum allowed length.
+        /// </exception>
+        private void CreateInputLayout(scoped ReadOnlySpan<InputElementDescription> inputElements)
         {
-            if (inputElements is null)
+            if (inputElements.IsEmpty)
                 return;
 
             var numInputElements = inputElements.Length;
-            var nativeInputElements = stackalloc InputElementDesc[numInputElements];
+            scoped Span<InputElementDesc> nativeInputElements = stackalloc InputElementDesc[numInputElements];
 
-            // Per the Microsoft documentation:
-            //  > There is no explicit maximum length defined by the API, but the HLSL compiler and driver implementations
-            //  > typically support up to 32 characters.
-            scoped Span<byte> semanticNamesBytes = stackalloc byte[32 * numInputElements];
+            scoped Span<byte> semanticNamesBytes = stackalloc byte[MAX_SEMANTIC_NAME_LENGTH * numInputElements];
 
             for (int index = 0; index < inputElements.Length; index++)
             {
-                ref var inputElement = ref inputElements[index];
+                scoped ref readonly var inputElement = ref inputElements[index];
 
-                byte* semanticName = EncodeSemanticName(inputElement.SemanticName, ref semanticNamesBytes);
+                byte* semanticNamePtr = EncodeSemanticName(inputElement.SemanticName, ref semanticNamesBytes);
 
-                nativeInputElements[index] = new()
+                nativeInputElements[index] = new InputElementDesc
                 {
                     InputSlot = (uint) inputElement.InputSlot,
-                    SemanticName = semanticName,
+                    SemanticName = semanticNamePtr,
                     SemanticIndex = (uint) inputElement.SemanticIndex,
                     AlignedByteOffset = (uint) inputElement.AlignedByteOffset,
                     Format = (Format) inputElement.Format
                 };
             }
 
+            scoped ReadOnlySpan<byte> inputSignatureBytes = inputSignature ?? [];
+
             ComPtr<ID3D11InputLayout> tempInputLayout = default;
 
-            HResult result = NativeDevice.CreateInputLayout(nativeInputElements, NumElements: (uint) inputElements.Length,
-                                                            in inputSignature[0], (uint) inputSignature.Length, ref tempInputLayout);
+            HResult result = NativeDevice.CreateInputLayout(in nativeInputElements.GetReference(), (uint) inputElements.Length,
+                                                            in inputSignatureBytes.GetReference(), (nuint) inputSignatureBytes.Length,
+                                                            ref tempInputLayout);
             if (result.IsFailure)
                 result.Throw();
 
@@ -243,6 +260,10 @@ namespace Stride.Graphics
         ///   The cache used to store and retrieve Pipeline State objects, including Shader instances.
         ///   If the Effect bytecode is <see langword="null"/>, the method exits without performing any operations.
         /// </param>
+        /// <exception cref="ArgumentException">
+        ///   One of the semantic names in the stream output declarations of the Geometry Shader
+        ///   exceeds the maximum allowed length.
+        /// </exception>
         private void CreateShaders(PipelineStateCache pipelineStateCache)
         {
             if (effectBytecode is null)
@@ -299,20 +320,17 @@ namespace Stride.Graphics
                 Span<SODeclarationEntry> streamOutElements = stackalloc SODeclarationEntry[streamOutElementCount];
                 int index = 0;
 
-                // Per the Microsoft documentation:
-                //  > There is no explicit maximum length defined by the API, but the HLSL compiler and driver implementations
-                //  > typically support up to 32 characters.
-                scoped Span<byte> semanticNamesBytes = stackalloc byte[32 * streamOutElementCount];
+                scoped Span<byte> semanticNamesBytes = stackalloc byte[MAX_SEMANTIC_NAME_LENGTH * streamOutElementCount];
 
                 foreach (var streamOutputElement in reflection.ShaderStreamOutputDeclarations)
                 {
-                    byte* semanticName = EncodeSemanticName(streamOutputElement.SemanticName, ref semanticNamesBytes);
+                    byte* semanticNamePtr = EncodeSemanticName(streamOutputElement.SemanticName, ref semanticNamesBytes);
 
                     streamOutElements[index++] = new SODeclarationEntry
                     {
                         Stream = (uint) streamOutputElement.Stream,
                         SemanticIndex = (uint) streamOutputElement.SemanticIndex,
-                        SemanticName = semanticName,
+                        SemanticName = semanticNamePtr,
                         StartComponent = streamOutputElement.StartComponent,
                         ComponentCount = streamOutputElement.ComponentCount,
                         OutputSlot = streamOutputElement.OutputSlot
@@ -322,10 +340,14 @@ namespace Stride.Graphics
                 ComPtr<ID3D11GeometryShader> tempGeometryShader = default;
                 var bufferStrides = reflection.StreamOutputStrides.AsSpan<int, uint>();
 
+                scoped ref readonly byte inputSignatureRef = ref shaderBytecode.Data.GetReference();
+                scoped ref readonly SODeclarationEntry streamOutElemsRef = ref streamOutElements.GetReference();
+                scoped ref readonly uint bufferStridesRef = ref bufferStrides.GetReference();
+
                 HResult result = NativeDevice.CreateGeometryShaderWithStreamOutput(
-                    in shaderBytecode.Data[0], (nuint) shaderBytecode.Data.Length,
-                    in streamOutElements[0], (uint) streamOutElementCount,
-                    in bufferStrides[0], (uint) bufferStrides.Length,
+                    in inputSignatureRef, (nuint) shaderBytecode.Data.Length,
+                    in streamOutElemsRef, (uint) streamOutElementCount,
+                    in bufferStridesRef, (uint) bufferStrides.Length,
                     (uint) reflection.StreamOutputRasterizedStream, ref NullRef<ID3D11ClassLinkage>(),
                     ref tempGeometryShader);
 
@@ -338,7 +360,8 @@ namespace Stride.Graphics
 
         /// <summary>
         ///   Encodes a semantic name into a null-terminated ASCII byte sequence.
-        ///   The <paramref name="semanticNameBytes"/> span is updated to exclude the bytes used for the encoded name.
+        ///   The <paramref name="semanticNameBytes"/> span is updated to exclude the bytes used for the encoded name
+        ///   so it can be used to encode more semantic names.
         /// </summary>
         /// <param name="semanticName">The semantic name to encode. Must be a non-null string.</param>
         /// <param name="semanticNameBytes">
@@ -353,7 +376,7 @@ namespace Stride.Graphics
         {
             int nameLength = Encoding.ASCII.GetByteCount(semanticName) + 1;  // Ensure to include the null terminator
             if (nameLength > semanticNameBytes.Length)
-                throw new ArgumentException("Semantic name is too long.", nameof(semanticName));
+                ThrowSemanticNameTooLong(semanticName);
 
             // Encode and null-terminate the string
             Encoding.ASCII.GetBytes(semanticName, semanticNameBytes);
@@ -443,7 +466,9 @@ namespace Stride.Graphics
                 {
                     ComPtr<ID3D11VertexShader> vertexShader = default;
 
-                    HResult result = nativeDevice.CreateVertexShader(in source.Data[0], (nuint) source.Data.Length, nullClassLinkage, ref vertexShader);
+                    scoped ref readonly byte sourceDataRef = ref source.Data.GetReference();
+
+                    HResult result = nativeDevice.CreateVertexShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref vertexShader);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -458,7 +483,9 @@ namespace Stride.Graphics
                 {
                     ComPtr<ID3D11HullShader> hullShader = default;
 
-                    HResult result = nativeDevice.CreateHullShader(in source.Data[0], (nuint) source.Data.Length, nullClassLinkage, ref hullShader);
+                    scoped ref readonly byte sourceDataRef = ref source.Data.GetReference();
+
+                    HResult result = nativeDevice.CreateHullShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref hullShader);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -473,7 +500,9 @@ namespace Stride.Graphics
                 {
                     ComPtr<ID3D11DomainShader> domainShader = default;
 
-                    HResult result = nativeDevice.CreateDomainShader(in source.Data[0], (nuint) source.Data.Length, nullClassLinkage, ref domainShader);
+                    scoped ref readonly byte sourceDataRef = ref source.Data.GetReference();
+
+                    HResult result = nativeDevice.CreateDomainShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref domainShader);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -488,7 +517,9 @@ namespace Stride.Graphics
                 {
                     ComPtr<ID3D11PixelShader> pixelShader = default;
 
-                    HResult result = nativeDevice.CreatePixelShader(in source.Data[0], (nuint) source.Data.Length, nullClassLinkage, ref pixelShader);
+                    scoped ref readonly byte sourceDataRef = ref source.Data.GetReference();
+
+                    HResult result = nativeDevice.CreatePixelShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref pixelShader);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -503,7 +534,9 @@ namespace Stride.Graphics
                 {
                     ComPtr<ID3D11ComputeShader> computeShader = default;
 
-                    HResult result = nativeDevice.CreateComputeShader(in source.Data[0], (nuint) source.Data.Length, nullClassLinkage, ref computeShader);
+                    scoped ref readonly byte sourceDataRef = ref source.Data.GetReference();
+
+                    HResult result = nativeDevice.CreateComputeShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref computeShader);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -518,7 +551,9 @@ namespace Stride.Graphics
                 {
                     ComPtr<ID3D11GeometryShader> geometryShader = default;
 
-                    HResult result = nativeDevice.CreateGeometryShader(in source.Data[0], (nuint) source.Data.Length, nullClassLinkage, ref geometryShader);
+                    scoped ref readonly byte sourceDataRef = ref source.Data.GetReference();
+
+                    HResult result = nativeDevice.CreateGeometryShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref geometryShader);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -666,7 +701,7 @@ namespace Stride.Graphics
         private class GraphicsCache<TSource, TKey, TValue>(
             Func<TSource, TKey> computeKey,
             Func<TSource, ComPtr<TValue>> computeValue,
-            Action<ComPtr<TValue>> releaseValue = null) : IDisposable
+            Action<ComPtr<TValue>>? releaseValue = null) : IDisposable
 
             where TKey : notnull
             where TSource : notnull
@@ -674,9 +709,9 @@ namespace Stride.Graphics
         {
             private readonly object lockObject = new();
 
-            // Instantiated objects
+            // Instantiated objects (Id -> ComPtr<TValue>)
             private readonly Dictionary<TKey, ComPtr<TValue>> storage = [];
-            // Reverse lookup for quick removal
+            // Reverse lookup for quick removal (ComPtr<TValue> -> Ids)
             private readonly Dictionary<ComPtr<TValue>, List<TKey>> reverse = new(comparer: ComPtrEqualityComparer<TValue>.Default);
 
             // Reference count for each cached object
@@ -706,27 +741,28 @@ namespace Stride.Graphics
                 {
                     var key = computeKey(source);
 
-                    if (!storage.TryGetValue(key, out ComPtr<TValue> value))
+                    if (!storage.TryGetValue(key, out ComPtr<TValue> valueComPtr))
                     {
-                        // New value: Add it to the cache
-                        value = computeValue(source);
+                        // New value: Add it to the cache with initial reference count of 1
+                        valueComPtr = computeValue(source);
 
-                        storage.Add(key, value);
-                        // Note: multiple separate could end up creating the same value
-                        if (!reverse.TryGetValue(value, out var keys))
-                            reverse.Add(value, keys = new());
-                        keys.Add(key);
-                        referenceCount.Add(value, 1);
+                        storage.Add(key, valueComPtr);
+                        referenceCount.Add(valueComPtr, 1);
+
+                        // NOTE: Multiple keys could map to the same object.
+                        //       To avoid creating the same object multiple times, we keep a reverse lookup
+                        //       for multiple source TSources.
+                        scoped ref var keys = ref CollectionsMarshal.GetValueRefOrAddDefault(reverse, valueComPtr, out _);
+                        keys ??= [ key ];
                     }
                     else
                     {
                         // Old value: Increment reference count
-                        ref int refCount = ref CollectionsMarshal.GetValueRefOrNullRef(referenceCount, value);
-                        if (!Unsafe.IsNullRef(ref refCount))
-                            refCount++;
+                        scoped ref int refCount = ref CollectionsMarshal.GetValueRefOrAddDefault(referenceCount, valueComPtr, out _);
+                        refCount++;
                     }
 
-                    return value;
+                    return valueComPtr;
                 }
             }
 
@@ -744,30 +780,35 @@ namespace Stride.Graphics
                 => Release(ToComPtr(value));
 
             /// <inheritdoc cref="Release(TValue*)"/>
-            public void Release(ComPtr<TValue> value)
+            public void Release(ComPtr<TValue> valueComPtr)
             {
                 lock (lockObject)
                 {
-                    ref int refCount = ref CollectionsMarshal.GetValueRefOrNullRef(referenceCount, value);
+                    scoped ref int refCount = ref CollectionsMarshal.GetValueRefOrAddDefault(referenceCount, valueComPtr, out bool exists);
 
-                    if (Unsafe.IsNullRef(ref refCount))
+                    if (!exists)
                         return;
 
                     // If the reference count reaches 0, no one is using this value anymore. We can remove it from the cache
                     if (--refCount == 0)
                     {
-                        referenceCount.Remove(value);
-                        ref var keys = ref CollectionsMarshal.GetValueRefOrNullRef(reverse, value);
-                        if (!Unsafe.IsNullRef(ref keys))
+                        referenceCount.Remove(valueComPtr);
+
+                        scoped ref var keys = ref CollectionsMarshal.GetValueRefOrNullRef(reverse, valueComPtr);
+                        if (!IsNullRef(ref keys))
                         {
-                            // We can safely remove all the keys that created this value
-                            foreach (var key in keys)
-                                storage.Remove(key);
+                            // We can safely remove all the keys that are associated with this COM object
+                            scoped ReadOnlySpan<TKey> keysSpan = CollectionsMarshal.AsSpan(keys);
+                            for (int i = 0; i < keysSpan.Length; i++)
+                            {
+                                scoped ref readonly var sourceKey = ref keysSpan[i];
+                                storage.Remove(sourceKey);
+                            }
                         }
+                        reverse.Remove(valueComPtr);
 
-                        reverse.Remove(value);
-
-                        releaseValue?.Invoke(value);
+                        // Invoke the action to release the COM object
+                        releaseValue?.Invoke(valueComPtr);
                     }
                 }
             }
@@ -779,9 +820,10 @@ namespace Stride.Graphics
                 {
                     // Release everything
                     if (releaseValue is not null)
-                        foreach ((ComPtr<TValue> value, _) in reverse)
+                        foreach (ComPtr<TValue> valueComPtr in reverse.Keys)
                         {
-                            releaseValue(value);
+                            // Invoke the action to release the COM object
+                            releaseValue?.Invoke(valueComPtr);
                         }
 
                     reverse.Clear();
@@ -789,6 +831,17 @@ namespace Stride.Graphics
                     referenceCount.Clear();
                 }
             }
+        }
+
+        #endregion
+
+        #region Throw helpers
+
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowSemanticNameTooLong(string semanticName, [CallerArgumentExpression(nameof(semanticName))] string? paramName = null)
+        {
+            throw new ArgumentException($"The specified semantic name is too long. Usually it should not be longer than {MAX_SEMANTIC_NAME_LENGTH} bytes.", paramName);
         }
 
         #endregion

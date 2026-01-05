@@ -162,7 +162,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed(bool immediate = false)
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             // As we both track the native buffer and the native device child (they are the same),
             // no need to Release() both
@@ -171,7 +171,7 @@ namespace Stride.Graphics
 
             GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes);
 
-            base.OnDestroyed(immediate);
+            base.OnDestroyed(immediately);
         }
 
         /// <inheritdoc/>
@@ -211,7 +211,7 @@ namespace Stride.Graphics
         {
             var buffer = NullComPtr<ID3D11Buffer>();
 
-            var subresourceData = dataPointer == 0 ? new SubresourceData(dataPointer.ToPointer()) : default;
+            var subresourceData = dataPointer != 0 ? new SubresourceData(dataPointer.ToPointer()) : default;
 
             HResult result = dataPointer == 0
                 ? NativeDevice.CreateBuffer(in nativeDescription, pInitialData: null, ref buffer)

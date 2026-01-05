@@ -199,7 +199,7 @@ namespace Stride.Rendering
 
                 CheckResult(effectBytecodeCompilerResult.CompilationLog);
 
-                var bytecode = effectBytecodeCompilerResult.ByteCode
+                var bytecode = effectBytecodeCompilerResult.Bytecode
                     ?? throw new InvalidOperationException("EffectCompiler returned no shader and no compilation error.");
 
                 if (!cachedEffects.TryGetValue(bytecode, out effect))
@@ -327,7 +327,7 @@ namespace Stride.Rendering
                     {
                         foreach (var bytecode in bytecodeRemoved)
                         {
-                            effectCompilerResults.RemoveAll(results => results.Bytecode.GetCurrentResult().ByteCode == bytecode);
+                            effectCompilerResults.RemoveAll(results => results.Bytecode.GetCurrentResult().Bytecode == bytecode);
                         }
                     }
                 }

@@ -9,35 +9,34 @@ using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Stride.Games;
 
-namespace Stride.Video
+namespace Stride.Video;
+
+public partial class VideoSystem
 {
-    public partial class VideoSystem
+    public DXGIDeviceManager DxgiDeviceManager;   // TODO: Remove when Silk includes Media Foundation
+
+    public override unsafe void Initialize()
     {
-        public DXGIDeviceManager DxgiDeviceManager;   // TODO: Remove when Silk includes Media Foundation
+        base.Initialize();
 
-        public override unsafe void Initialize()
-        {
-            base.Initialize();
+        var graphicsDevice = Services.GetService<IGame>().GraphicsDevice;
 
-            var graphicsDevice = Services.GetService<IGame>().GraphicsDevice;
+        var d3d11Device = graphicsDevice.NativeDevice;
+        var d3d11DeviceSharpDX = new SharpDX.ComObject((IntPtr) d3d11Device.Handle);
 
-            var d3d11Device = graphicsDevice.NativeDevice;
-            var d3d11DeviceSharpDX = new SharpDX.ComObject((IntPtr) d3d11Device.Handle);
+        DxgiDeviceManager = new DXGIDeviceManager();
+        DxgiDeviceManager.ResetDevice(d3d11DeviceSharpDX);
 
-            DxgiDeviceManager = new DXGIDeviceManager();
-            DxgiDeviceManager.ResetDevice(d3d11DeviceSharpDX);
+        // Add multi-thread protection on the device
+        HResult result = d3d11Device.QueryInterface(out ComPtr<ID3D11Multithread> multiThread);
 
-            // Add multi-thread protection on the device
-            HResult result = graphicsDevice.NativeDevice.QueryInterface(out ComPtr<ID3D11Multithread> multiThread);
+        if (result.IsFailure)
+            result.Throw();
 
-            if (result.IsFailure)
-                result.Throw();
+        multiThread.SetMultithreadProtected(true);
+        multiThread.Dispose();
 
-            multiThread.SetMultithreadProtected(true);
-            multiThread.Dispose();
-
-            MediaManager.Startup();
-        }
+        MediaManager.Startup();
     }
 }
 
