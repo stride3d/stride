@@ -194,7 +194,7 @@ namespace Stride.Assets.Presentation.Templates
 
             // Setup GraphicsCompositor using DefaultGraphicsCompositor
             var graphicsProfile = parameters.GetTag(GraphicsProfileKey);
-            var defaultCompositorUrl = graphicsProfile >= GraphicsProfile.Level_10_0 ? StridePackageUpgrader.DefaultGraphicsCompositorLevel10Url : StridePackageUpgrader.DefaultGraphicsCompositorLevel9Url;
+            var defaultCompositorUrl = StridePackageUpgrader.DefaultGraphicsCompositorLevel10Url;
             var defaultCompositor = session.FindAsset(defaultCompositorUrl);
 
             var graphicsCompositor = new AssetItem("GraphicsCompositor", defaultCompositor.CreateDerivedAsset());
@@ -246,9 +246,6 @@ namespace Stride.Assets.Presentation.Templates
 
             var graphicsProfile = parameters.GetTag(GraphicsProfileKey);
             var isHDR = parameters.GetTag(IsHDRKey);
-
-            if (graphicsProfile < GraphicsProfile.Level_10_0)
-                isHDR = false;
 
             // Create the material for the sphere
             var sphereMaterial = new MaterialAsset

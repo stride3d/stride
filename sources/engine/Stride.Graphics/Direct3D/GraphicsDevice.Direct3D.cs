@@ -233,13 +233,6 @@ namespace Stride.Graphics
 
                     nativeDevice = new SharpDX.Direct3D11.Device(Adapter.NativeAdapter, creationFlags, level);
 
-                    // INTEL workaround: force ShaderProfile to be 10+ as well
-                    if (Adapter.VendorId == 0x8086)
-                    {
-                        if (graphicsProfile < GraphicsProfile.Level_10_0 && (!ShaderProfile.HasValue || ShaderProfile.Value < GraphicsProfile.Level_10_0))
-                            ShaderProfile = GraphicsProfile.Level_10_0;
-                    }
-
                     RequestedProfile = graphicsProfile;
                     break;
                 }

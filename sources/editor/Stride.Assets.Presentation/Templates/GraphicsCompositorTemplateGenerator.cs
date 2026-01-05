@@ -15,7 +15,6 @@ namespace Stride.Assets.Presentation.Templates
 
         public static readonly Dictionary<Guid, string> SupportedTemplatesToUrl = new Dictionary<Guid, string>
         {
-            { new Guid("20947F4A-7B50-4716-AC85-D10EFF58CD33"), StridePackageUpgrader.DefaultGraphicsCompositorLevel9Url },
             { new Guid("D4EE3BD3-9B06-460E-9175-D6AFB2459463"), StridePackageUpgrader.DefaultGraphicsCompositorLevel10Url },
             { new Guid("4BC182D7-69D5-4BE2-9AF3-1C82F67B629D"), "GraphicsCompositor/DefaultGraphicsCompositorVoxels" },
         };

@@ -7,13 +7,8 @@ shader ShaderBaseStream
     // Default SV_POSITION output for VS/GS shaders
     stage stream float4 ShadingPosition : SV_Position;
 
-#if STRIDE_GRAPHICS_API_DIRECT3D && STRIDE_GRAPHICS_PROFILE < GRAPHICS_PROFILE_LEVEL_10_0
-    // Positive if this face is a front face, negative otherwise
-    stage stream float IsFrontFace : VFACE;
-#else
     // True if this face is a front face
     stage stream bool IsFrontFace : SV_IsFrontFace;
-#endif
 
     // Default COLOR outputs for PS shader
     stage stream float4 ColorTarget : SV_Target0;
