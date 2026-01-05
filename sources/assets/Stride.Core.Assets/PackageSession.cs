@@ -914,21 +914,29 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
         var cancelToken = loadParameters.CancelToken;
 
-        // Note: list can grow as dependencies get loaded
-        for (int i = 0; i < Projects.Count; ++i)
+        try
         {
-            var project = Projects[i];
-
-            // Output the session only if there is no cancellation
-            if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+            // Note: list can grow as dependencies get loaded
+            for (int i = 0; i < Projects.Count; ++i)
             {
-                return;
-            }
+                var project = Projects[i];
 
-            if (project is SolutionProject solutionProject)
-                PreLoadPackageDependencies(log, solutionProject, loadParameters).Wait();
-            else if (project.Package.State < PackageState.DependenciesReady) // not handling standalone packages yet
-                project.Package.State = PackageState.DependenciesReady;
+                // Output the session only if there is no cancellation
+                if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                if (project is SolutionProject solutionProject)
+                    PreLoadPackageDependencies(log, solutionProject, loadParameters).Wait();
+                else if (project.Package.State < PackageState.DependenciesReady) // not handling standalone packages yet
+                    project.Package.State = PackageState.DependenciesReady;
+            }
+        }
+        finally
+        {
+            // Clean up all cached MSBuild projects
+            ClearAllCachedProjects();
         }
     }
 
@@ -957,6 +965,15 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         }
         foreach (AssetLoadingInfo assetInfo in assetLoadInfos)
         {
+            // Check if the same package exists in the list but with a newer version.
+            var newerPackage = packages.FirstOrDefault(p => p.Meta.Name == assetInfo.package.Meta.Name && p.Meta.Version > assetInfo.package.Meta.Version);
+            if (newerPackage is not null)
+            {
+                // Skip loading assets for this package as a newer version exists in the list.
+                log.Warning($"Newer version of {assetInfo.package.Meta.Name} is already referenced in another package. Using version {newerPackage.Meta.Version} instead of {assetInfo.package.Meta.Version}");
+                continue;
+            }
+
             LoadAssets(assetInfo.session, assetInfo.log, assetInfo.package, assetInfo.loadParameters, assetInfo.pendingPackageUpgrades, assetInfo.newLoadParameters);
         }
     }

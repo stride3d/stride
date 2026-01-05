@@ -37,7 +37,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 1. **Latest [Git](https://git-scm.com/downloads)** with **Large File Support** selected during setup. For convenience, you might also use a Git UI client like [GitExtensions](https://gitextensions.github.io/).
 2. **[.NET 10.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)**
    - Run `dotnet --info` in a console or PowerShell window to see which versions you have installed.
-3. **[Visual Studio 2026](https://visualstudio.microsoft.com/insiders/)** (the Community edition is free), with the following workloads. Follow this link if you would rather use [a different IDE or the command line](#build-stride-without-visual-studio).
+3. **[Visual Studio 2026](https://visualstudio.microsoft.com/downloads/)** (the Community edition is free), with the following workloads. Follow this link if you would rather use [a different IDE or the command line](#build-stride-without-visual-studio).
    - **.NET desktop development** with **.NET Framework 4.7.2 targeting pack** *(should be enabled by default)*
    - **Desktop development with C++** with:
      - **Windows 11 SDK (10.0.22621.0)** or a later version *(should be enabled by default)*
@@ -69,9 +69,9 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 
 ### Build Stride without Visual Studio
 
-1. **Install** [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/) (Go to Tools for Visual Studio and press download next to Build Tools for Visual Studio 2026 once it is out) with the same prerequisites listed above.
+1. **Install** [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/) (Go to *Tools for Visual Studio* and press download next to Build Tools for Visual Studio 2026) with the same prerequisites listed above.
 2. **Add MSBuild to your system's PATH:**
-   - Add MSBuild's directory to your `PATH` environment variable (e.g., `C:\Program Files\Microsoft Visual Studio\18\Insiders\MSBuild\Current\Bin`).
+   - Add MSBuild's directory to your `PATH` environment variable (e.g., `c:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\MSBuild\Current\Bin`).
 3. **Clone the repository:**
    ```bash
    git lfs clone https://github.com/stride3d/stride.git

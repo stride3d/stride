@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using SharpFont;
 using Stride.Core;
@@ -111,6 +112,45 @@ namespace Stride.Graphics.Font
                         bitmapBuildSignal.Set();
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Loads a font from the specified file on the file system and adds it to the internal font cache for use with
+        /// the given font name and style.
+        /// </summary>
+        /// <remarks>
+        /// <para>If a font with the same name and style is already cached, the method does nothing.</para>
+        /// <para>This method is thread-safe when adding new fonts to the cache.</para>
+        /// <para><strong>Memory considerations:</strong> The complete font file data is loaded into memory and kept
+        /// resident for the lifetime of the <see cref="FontManager"/>. Fonts cannot be individually unloaded;
+        /// they are only released when the <see cref="FontManager"/> is disposed. Consider this when loading
+        /// large fonts or many font variants, especially on memory-constrained platforms.</para>
+        /// </remarks>
+        /// <param name="fontName">The name to associate with the loaded font. This name is used to reference the font in subsequent
+        /// operations.</param>
+        /// <param name="filePath">The path to the font file on the file system. The file must exist and be accessible.</param>
+        /// <param name="style">The style to apply to the loaded font, such as regular, bold, or italic.</param>
+        /// <exception cref="FileNotFoundException">Thrown if the file specified by <paramref name="filePath"/> does not exist.</exception>
+        public void LoadFontFromFileSystem(string fontName, string filePath, FontStyle style)
+        {
+            var cacheKey = FontHelper.GetFontPath(fontName, style);
+
+            // Fast path: Return if the font is already cached (avoids lock contention)
+            if (cachedFontFaces.ContainsKey(cacheKey))
+                return;
+
+            lock (freetypeLibrary)
+            {
+                // Check again inside lock to prevent race condition
+                if (cachedFontFaces.ContainsKey(cacheKey))
+                    return;
+
+                // Load font data into memory
+                var fontData = File.ReadAllBytes(filePath);
+
+                // Create FreeType face and add to cache
+                cachedFontFaces[cacheKey] = freetypeLibrary.NewMemoryFace(fontData, 0);
             }
         }
 

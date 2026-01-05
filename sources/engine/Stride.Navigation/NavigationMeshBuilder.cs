@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -30,8 +29,8 @@ namespace Stride.Navigation
 
         private NavigationMesh oldNavigationMesh;
 
-        private readonly List<StaticColliderData> colliders = new();
-        private readonly HashSet<Guid> registeredGuids = new();
+        private readonly List<StaticColliderData> colliders = [];
+        private readonly HashSet<Guid> registeredGuids = [];
 
         /// <summary>
         /// Initializes the builder, optionally with a previous navigation mesh when building incrementally
@@ -80,7 +79,7 @@ namespace Stride.Navigation
         /// Performs the build of a navigation mesh
         /// </summary>
         /// <param name="buildSettings">The build settings to pass to recast</param>
-        /// <param name="agentSettings">A collection of agent settings to use, this will generate a layer in the navigation mesh for every agent settings in this collection (in the same order)</param>
+        /// <param name="groups">A collection of agent settings to use, this will generate a layer in the navigation mesh for every agent settings in this collection (in the same order)</param>
         /// <param name="includedCollisionGroups">The collision groups that will affect which colliders are considered solid</param>
         /// <param name="boundingBoxes">A collection of bounding boxes to use as the region for which to generate navigation mesh tiles</param>
         /// <param name="cancellationToken">A cancellation token to interrupt the build process</param>
@@ -178,7 +177,7 @@ namespace Stride.Navigation
                         return result;
                     }
 
-                    HashSet<Point> tilesToBuild = new HashSet<Point>();
+                    HashSet<Point> tilesToBuild = [];
 
                     foreach (var colliderData in collidersLocal)
                     {
@@ -234,8 +233,6 @@ namespace Stride.Navigation
                         }
                     }
 
-                    long buildTimeStamp = DateTime.UtcNow.Ticks;
-
                     ConcurrentCollector<Tuple<Point, NavigationMeshTile>> builtTiles = new ConcurrentCollector<Tuple<Point, NavigationMeshTile>>(tilesToBuild.Count);
                     Dispatcher.ForEach(tilesToBuild.ToArray(), tileCoordinate =>
                     {
@@ -245,7 +242,7 @@ namespace Stride.Navigation
 
                         // Builds the tile, or returns null when there is nothing generated for this tile (empty tile)
                         NavigationMeshTile meshTile = BuildTile(tileCoordinate, buildSettings, currentAgentSettings, boundingBoxes,
-                            inputVertices, inputIndices, buildTimeStamp);
+                            inputVertices, inputIndices);
 
                         // Add the result to the list of built tiles
                         builtTiles.Add(new Tuple<Point, NavigationMeshTile>(tileCoordinate, meshTile));
@@ -261,7 +258,7 @@ namespace Stride.Navigation
                     var layer = new NavigationMeshLayer();
                     result.NavigationMesh.LayersInternal.Add(currentGroup.Id, layer);
 
-                    // Copy tiles from from the previous build into the current
+                    // Copy tiles from the previous build into the current
                     if (oldNavigationMesh != null && oldNavigationMesh.LayersInternal.TryGetValue(currentGroup.Id, out var sourceLayer))
                     {
                         foreach (var sourceTile in sourceLayer.Tiles)
@@ -327,7 +324,7 @@ namespace Stride.Navigation
         }
 
         private NavigationMeshTile BuildTile(Point tileCoordinate, NavigationMeshBuildSettings buildSettings, NavigationAgentSettings agentSettings,
-            ICollection<BoundingBox> boundingBoxes, Vector3[] inputVertices, int[] inputIndices, long buildTimeStamp)
+            ICollection<BoundingBox> boundingBoxes, Vector3[] inputVertices, int[] inputIndices)
         {
             NavigationMeshTile meshTile = null;
 
@@ -355,67 +352,41 @@ namespace Stride.Navigation
                 tileBoundingBox.Minimum.Y = minimumHeight;
                 tileBoundingBox.Maximum.Y = maximumHeight;
 
-                unsafe
+                // Turn build settings into native structure format
+                BuildSettings internalBuildSettings = new BuildSettings
                 {
-                    var builder = Navigation.CreateBuilder();
+                    // Tile settings
+                    BoundingBox = tileBoundingBox,
+                    TilePosition = tileCoordinate,
+                    TileSize = buildSettings.TileSize,
 
-                    // Turn build settings into native structure format
-                    Navigation.BuildSettings internalBuildSettings = new Navigation.BuildSettings
+                    // General build settings
+                    CellHeight = buildSettings.CellHeight,
+                    CellSize = buildSettings.CellSize,
+                    RegionMinArea = buildSettings.MinRegionArea,
+                    RegionMergeArea = buildSettings.RegionMergeArea,
+                    EdgeMaxLen = buildSettings.MaxEdgeLen,
+                    EdgeMaxError = buildSettings.MaxEdgeError,
+                    DetailSampleDist = buildSettings.DetailSamplingDistance,
+                    DetailSampleMaxError = buildSettings.MaxDetailSamplingError,
+
+                    // Agent settings
+                    AgentHeight = agentSettings.Height,
+                    AgentRadius = agentSettings.Radius,
+                    AgentMaxClimb = agentSettings.MaxClimb,
+                    AgentMaxSlope = agentSettings.MaxSlope.Degrees,
+                };
+
+                var builder = new NavigationBuilder(internalBuildSettings);
+                GeneratedData generatedData = builder.BuildNavmesh(ref inputVertices, ref inputIndices);
+
+                if (generatedData.Success)
+                {
+                    meshTile = new NavigationMeshTile
                     {
-                        // Tile settings
-                        BoundingBox = tileBoundingBox,
-                        TilePosition = tileCoordinate,
-                        TileSize = buildSettings.TileSize,
-
-                        // General build settings
-                        CellHeight = buildSettings.CellHeight,
-                        CellSize = buildSettings.CellSize,
-                        RegionMinArea = buildSettings.MinRegionArea,
-                        RegionMergeArea = buildSettings.RegionMergeArea,
-                        EdgeMaxLen = buildSettings.MaxEdgeLen,
-                        EdgeMaxError = buildSettings.MaxEdgeError,
-                        DetailSampleDist = buildSettings.DetailSamplingDistance,
-                        DetailSampleMaxError = buildSettings.MaxDetailSamplingError,
-
-                        // Agent settings
-                        AgentHeight = agentSettings.Height,
-                        AgentRadius = agentSettings.Radius,
-                        AgentMaxClimb = agentSettings.MaxClimb,
-                        AgentMaxSlope = agentSettings.MaxSlope.Degrees,
+                        // Copy the generated navigationMesh data
+                        Data = generatedData.NavmeshData
                     };
-
-                    Navigation.SetSettings(builder, &internalBuildSettings);
-                    Navigation.GeneratedData* generatedDataPtr;
-                    fixed (Vector3* fInputVertices = inputVertices)
-                    fixed (int* fInputIndices = inputIndices)
-                        generatedDataPtr = Navigation.Build(builder, fInputVertices, inputVertices?.Length ?? 0, fInputIndices, inputIndices?.Length ?? 0);
-
-                    if (generatedDataPtr->Success && generatedDataPtr->NavmeshDataLength > 0)
-                    {
-                        meshTile = new NavigationMeshTile
-                        {
-                            // Copy the generated navigationMesh data
-                            Data = new byte[generatedDataPtr->NavmeshDataLength + sizeof(long)]
-                        };
-                        Marshal.Copy(generatedDataPtr->NavmeshData, meshTile.Data, 0, generatedDataPtr->NavmeshDataLength);
-
-                        // Append time stamp
-                        byte[] timeStamp = BitConverter.GetBytes(buildTimeStamp);
-                        for (int i = 0; i < timeStamp.Length; i++)
-                            meshTile.Data[meshTile.Data.Length - sizeof(long) + i] = timeStamp[i];
-
-                        List<Vector3> outputVerts = new List<Vector3>();
-                        if (generatedDataPtr->NumNavmeshVertices > 0)
-                        {
-                            Vector3* navmeshVerts = (Vector3*)generatedDataPtr->NavmeshVertices;
-                            for (int j = 0; j < generatedDataPtr->NumNavmeshVertices; j++)
-                            {
-                                outputVerts.Add(navmeshVerts[j]);
-                            }
-                        }
-
-                    }
-                    Navigation.DestroyBuilder(builder);
                 }
             }
 
