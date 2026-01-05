@@ -92,6 +92,20 @@ namespace Stride.Graphics
 
             vkAllocateMemory(GraphicsDevice.NativeDevice, &allocateInfo, null, out NativeMemory);
         }
+
+        /// <inheritdoc/>
+        internal override void SwapInternal(GraphicsResourceBase other)
+        {
+            var otherResource = (GraphicsResource)other;
+
+            base.SwapInternal(other);
+
+            (CopyFenceValue, otherResource.CommandListFenceValue)              = (otherResource.CopyFenceValue, CommandListFenceValue);
+            (CommandListFenceValue, otherResource.CommandListFenceValue)       = (otherResource.CommandListFenceValue, CommandListFenceValue);
+            (UpdatingCommandList, otherResource.UpdatingCommandList)           = (otherResource.UpdatingCommandList, UpdatingCommandList);
+            (NativeMemory, otherResource.NativeMemory)                         = (otherResource.NativeMemory, NativeMemory);
+            (NativePipelineStageMask, otherResource.NativePipelineStageMask)   = (otherResource.NativePipelineStageMask, NativePipelineStageMask);
+        }
     }
 }
 

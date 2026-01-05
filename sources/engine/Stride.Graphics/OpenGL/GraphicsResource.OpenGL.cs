@@ -22,7 +22,7 @@ namespace Stride.Graphics
 
 
         // No OpenGL-specific implementation
-        protected internal override void OnDestroyed() { }
+        protected internal override void OnDestroyed(bool immediate = false) { }
     }
 }
 

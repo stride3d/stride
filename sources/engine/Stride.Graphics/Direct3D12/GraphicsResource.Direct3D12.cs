@@ -67,6 +67,21 @@ namespace Stride.Graphics
             return NativeResourceState != targeState &&
                 ((NativeResourceState | targeState) != NativeResourceState || targeState == ResourceStates.Common);
         }
+
+        /// <inheritdoc/>
+        internal override void SwapInternal(GraphicsResourceBase other)
+        {
+            var otherResource = (GraphicsResource)other;
+
+            base.SwapInternal(other);
+
+            (ParentResource, otherResource.ParentResource)                       = (otherResource.ParentResource, ParentResource);
+            (CommandListFenceValue, otherResource.CommandListFenceValue)         = (otherResource.CommandListFenceValue, CommandListFenceValue);
+            (UpdatingCommandList, otherResource.UpdatingCommandList)             = (otherResource.UpdatingCommandList, UpdatingCommandList);
+            (NativeShaderResourceView, otherResource.NativeShaderResourceView)   = (otherResource.NativeShaderResourceView, NativeShaderResourceView);
+            (NativeUnorderedAccessView, otherResource.NativeUnorderedAccessView) = (otherResource.NativeUnorderedAccessView, NativeUnorderedAccessView);
+            (NativeResourceState, otherResource.NativeResourceState)             = (otherResource.NativeResourceState, NativeResourceState);
+        }
     }
 }
 

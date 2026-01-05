@@ -96,7 +96,7 @@ namespace Stride.Assets.Effect
             }
 
             // Register all dependencies
-            var allSources = new HashSet<string>(completedTask.ByteCode.HashSources.Select(keyPair => keyPair.Key));
+            var allSources = new HashSet<string>(completedTask.Bytecode.HashSources.Select(keyPair => keyPair.Key));
             foreach (var className in allSources)
             {
                 commandContext.RegisterInputDependency(new ObjectUrl(UrlType.Content, EffectCompilerBase.GetStoragePathFromShaderType(className)));
@@ -122,7 +122,7 @@ namespace Stride.Assets.Effect
 
                 commandContext.Logger.Verbose($"Writing shader bytecode to .cs source [{fullOutputClassFile}]");
                 using (var stream = new FileStream(fullOutputClassFile, FileMode.Create, FileAccess.Write, FileShare.Write))
-                    EffectByteCodeToSourceCodeWriter.Write(effectName, compilerParameters, compilerResults.Bytecode.WaitForResult().ByteCode, new StreamWriter(stream, System.Text.Encoding.UTF8));
+                    EffectBytecodeToSourceCodeWriter.Write(effectName, compilerParameters, compilerResults.Bytecode.WaitForResult().Bytecode, new StreamWriter(stream, System.Text.Encoding.UTF8));
             }
 
             return Task.FromResult(ResultStatus.Successful);

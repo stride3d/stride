@@ -48,26 +48,25 @@ namespace Stride.Graphics
         ///   Swaps the Texture's internal data with another Texture.
         /// </summary>
         /// <param name="other">The other Texture.</param>
-        internal void SwapInternal(Texture other)
+        internal override void SwapInternal(GraphicsResourceBase other)
         {
-            (NativeImage, other.NativeImage)                             = (other.NativeImage, NativeImage);
-            (NativeBuffer, other.NativeBuffer)                           = (other.NativeBuffer, NativeBuffer);
-            (NativeColorAttachmentView, other.NativeColorAttachmentView) = (other.NativeColorAttachmentView, NativeColorAttachmentView);
-            (NativeDepthStencilView, other.NativeDepthStencilView)       = (other.NativeDepthStencilView, NativeDepthStencilView);
-            (NativeImageView, other.NativeImageView)                     = (other.NativeImageView, NativeImageView);
-            (NativeResourceRange, other.NativeResourceRange)             = (other.NativeResourceRange, NativeResourceRange);
-            (isNotOwningResources, other.isNotOwningResources)           = (other.isNotOwningResources, isNotOwningResources);
-            (IsInitialized, other.IsInitialized)                         = (other.IsInitialized, IsInitialized);
-            (NativeFormat, other.NativeFormat)                           = (other.NativeFormat, NativeFormat);
-            (HasStencil, other.HasStencil)                               = (other.HasStencil, HasStencil);
-            (NativeLayout, other.NativeLayout)                           = (other.NativeLayout, NativeLayout);
-            (NativeAccessMask, other.NativeAccessMask)                   = (other.NativeAccessMask, NativeAccessMask);
-            (NativeImageAspect, other.NativeImageAspect)                 = (other.NativeImageAspect, NativeImageAspect);
-            //
-            (NativeMemory, other.NativeMemory)                           = (other.NativeMemory, NativeMemory);
-            (CommandListFenceValue, other.CommandListFenceValue)                 = (other.CommandListFenceValue, CommandListFenceValue);
-            (UpdatingCommandList, other.UpdatingCommandList)                       = (other.UpdatingCommandList, UpdatingCommandList);
-            (NativePipelineStageMask, other.NativePipelineStageMask)     = (other.NativePipelineStageMask, NativePipelineStageMask);
+            var otherTexture = (Texture)other;
+
+            base.SwapInternal(other);
+
+            (NativeImage, otherTexture.NativeImage)                             = (otherTexture.NativeImage, NativeImage);
+            (NativeBuffer, otherTexture.NativeBuffer)                           = (otherTexture.NativeBuffer, NativeBuffer);
+            (NativeColorAttachmentView, otherTexture.NativeColorAttachmentView) = (otherTexture.NativeColorAttachmentView, NativeColorAttachmentView);
+            (NativeDepthStencilView, otherTexture.NativeDepthStencilView)       = (otherTexture.NativeDepthStencilView, NativeDepthStencilView);
+            (NativeImageView, otherTexture.NativeImageView)                     = (otherTexture.NativeImageView, NativeImageView);
+            (NativeResourceRange, otherTexture.NativeResourceRange)             = (otherTexture.NativeResourceRange, NativeResourceRange);
+            (isNotOwningResources, otherTexture.isNotOwningResources)           = (otherTexture.isNotOwningResources, isNotOwningResources);
+            (IsInitialized, otherTexture.IsInitialized)                         = (otherTexture.IsInitialized, IsInitialized);
+            (NativeFormat, otherTexture.NativeFormat)                           = (otherTexture.NativeFormat, NativeFormat);
+            (HasStencil, otherTexture.HasStencil)                               = (otherTexture.HasStencil, HasStencil);
+            (NativeLayout, otherTexture.NativeLayout)                           = (otherTexture.NativeLayout, NativeLayout);
+            (NativeAccessMask, otherTexture.NativeAccessMask)                   = (otherTexture.NativeAccessMask, NativeAccessMask);
+            (NativeImageAspect, otherTexture.NativeImageAspect)                 = (otherTexture.NativeImageAspect, NativeImageAspect);
         }
 
         internal Texture InitializeFromPersistent(TextureDescription description, VkImage nativeImage)
@@ -397,7 +396,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed(bool immediate = false)
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             if (ParentTexture != null || isNotOwningResources)
             {
@@ -444,7 +443,7 @@ namespace Stride.Graphics
                 }
             }
 
-            base.OnDestroyed(immediate);
+            base.OnDestroyed(immediately);
         }
 
         /// <summary>

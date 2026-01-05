@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
@@ -31,7 +30,10 @@ namespace Stride.Graphics
         private string rendererName;
 
         private ID3D11Device* nativeDevice;
+        private uint nativeDeviceVersion;
+
         private ID3D11DeviceContext* nativeDeviceContext;
+        private uint nativeDeviceContextVersion;
 
         private ID3D11InfoQueue* nativeInfoQueue;
 
@@ -45,6 +47,15 @@ namespace Stride.Graphics
         public ComPtr<ID3D11Device> NativeDevice => ToComPtr(nativeDevice);
 
         /// <summary>
+        ///   Gets the version number of the native Direct3D device supported.
+        /// </summary>
+        /// <value>
+        ///   This indicates the latest Direct3D device interface version supported by this device.
+        ///   For example, if the value is 4, then this device supports up to <see cref="ID3D11Device4"/>.
+        /// </value>
+        internal uint NativeDeviceVersion => nativeDeviceVersion;
+
+        /// <summary>
         ///   Gets the internal Direct3D 11 Device Context.
         /// </summary>
         /// <remarks>
@@ -52,6 +63,15 @@ namespace Stride.Graphics
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<ID3D11DeviceContext> NativeDeviceContext => ToComPtr(nativeDeviceContext);
+
+        /// <summary>
+        ///   Gets the version number of the native Direct3D device context supported.
+        /// </summary>
+        /// <value>
+        ///   This indicates the latest Direct3D device context interface version supported by this device.
+        ///   For example, if the value is 4, then this device context supports up to <see cref="ID3D11DeviceContext4"/>.
+        /// </value>
+        internal uint NativeDeviceContextVersion => nativeDeviceContextVersion;
 
         private readonly Queue<ComPtr<ID3D11Query>> disjointQueries = new(4);
         private readonly Stack<ComPtr<ID3D11Query>> currentDisjointQueries = new(2);
@@ -222,7 +242,9 @@ namespace Stride.Graphics
         /// </summary>
         private unsafe partial void InitializePostFeatures()
         {
-            // Create the main command list
+            // Create the main Command List
+            // NOTE: The lifetime of the Command List is managed by this GraphicsDevice, so the Command List
+            //       should not Release()
             InternalMainCommandList = new CommandList(this).DisposeBy(this);
         }
 
@@ -266,6 +288,13 @@ namespace Stride.Graphics
                         featureLevel = D3DFeatureLevel.Level100;
                 }
 
+                // RenderDoc workaround: Force level 10+ (otherwise it crashes on StartFrameCapture)
+                if (IsRenderDocLoaded())
+                {
+                    if (featureLevel < D3DFeatureLevel.Level100)
+                        featureLevel = D3DFeatureLevel.Level100;
+                }
+
                 var adapter = Adapter.NativeAdapter.AsComPtr<IDXGIAdapter1, IDXGIAdapter>();
                 ComPtr<ID3D11Device> device = default;
                 ComPtr<ID3D11DeviceContext> deviceContext = default;
@@ -283,7 +312,10 @@ namespace Stride.Graphics
                 }
 
                 nativeDevice = device;
+                nativeDeviceVersion = GetLatestDeviceVersion(nativeDevice);
+
                 nativeDeviceContext = deviceContext;
+                nativeDeviceContextVersion = GetLatestDeviceContextVersion(nativeDeviceContext);
 
                 // INTEL workaround: force ShaderProfile to be 10+ as well
                 if (Adapter.VendorId == 0x8086)
@@ -310,6 +342,97 @@ namespace Stride.Graphics
                     infoQueue.SetBreakOnSeverity(MessageSeverity.Error, true);
                     infoQueue.SetBreakOnSeverity(MessageSeverity.Warning, false);
                 }
+            }
+
+            return;
+
+            //
+            // Queries the latest Direct3D 11 device version supported.
+            //
+            static uint GetLatestDeviceVersion(ID3D11Device* device)
+            {
+                HResult result;
+                uint deviceVersion;
+
+                if ((result = device->QueryInterface<ID3D11Device5>(out _)).IsSuccess)
+                {
+                    deviceVersion = 5;
+                    device->Release();
+                }
+                else if ((result = device->QueryInterface<ID3D11Device4>(out _)).IsSuccess)
+                {
+                    deviceVersion = 4;
+                    device->Release();
+                }
+                else if ((result = device->QueryInterface<ID3D11Device3>(out _)).IsSuccess)
+                {
+                    deviceVersion = 3;
+                    device->Release();
+                }
+                else if ((result = device->QueryInterface<ID3D11Device2>(out _)).IsSuccess)
+                {
+                    deviceVersion = 2;
+                    device->Release();
+                }
+                else if ((result = device->QueryInterface<ID3D11Device1>(out _)).IsSuccess)
+                {
+                    deviceVersion = 1;
+                    device->Release();
+                }
+                else
+                {
+                    deviceVersion = 0;
+                }
+
+                return deviceVersion;
+            }
+
+            //
+            // Queries the latest Direct3D 11 device context version supported.
+            //
+            static uint GetLatestDeviceContextVersion(ID3D11DeviceContext* deviceContext)
+            {
+                HResult result;
+                uint deviceContextVersion;
+
+                if ((result = deviceContext->QueryInterface<ID3D11DeviceContext4>(out _)).IsSuccess)
+                {
+                    deviceContextVersion = 4;
+                    deviceContext->Release();
+                }
+                else if ((result = deviceContext->QueryInterface<ID3D11DeviceContext3>(out _)).IsSuccess)
+                {
+                    deviceContextVersion = 3;
+                    deviceContext->Release();
+                }
+                else if ((result = deviceContext->QueryInterface<ID3D11DeviceContext2>(out _)).IsSuccess)
+                {
+                    deviceContextVersion = 2;
+                    deviceContext->Release();
+                }
+                else if ((result = deviceContext->QueryInterface<ID3D11DeviceContext1>(out _)).IsSuccess)
+                {
+                    deviceContextVersion = 1;
+                    deviceContext->Release();
+                }
+                else
+                {
+                    deviceContextVersion = 0;
+                }
+
+                return deviceContextVersion;
+            }
+
+            //
+            // Determines if RenderDoc is loaded in the current process.
+            //
+            static bool IsRenderDocLoaded()
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    return Win32.GetModuleHandle("renderdoc.dll") != 0;
+                }
+                return false;
             }
         }
 
@@ -460,13 +583,17 @@ namespace Stride.Graphics
         /// <summary>
         ///   Called when the Graphics Device is being destroyed.
         /// </summary>
-        internal void OnDestroyed(bool immediate = false)
+        /// <param name="immediately">
+        ///   A value indicating whether the resources used by the Graphics Device should be destroyed immediately
+        ///   (<see langword="true"/>), or if it can be deferred until it's safe to do so (<see langword="false"/>).
+        /// </param>
+        internal void OnDestroyed(bool immediately = false)
         {
         }
 
 
         /// <summary>
-        ///   Tags a Graphics Resource as no having alive references, meaning it should be safe to dispose it
+        ///   Tags a Graphics Resource as having no alive references, meaning it should be safe to dispose it
         ///   or discard its contents during the next <see cref="CommandList.MapSubResource"/> or <c>SetData</c> operation.
         /// </summary>
         /// <param name="resourceLink">
@@ -477,9 +604,6 @@ namespace Stride.Graphics
             if (resourceLink.Resource is GraphicsResource resource)
                 resource.DiscardNextMap = true;
         }
-
-        [DllImport("kernel32.dll", EntryPoint = "GetModuleHandle", CharSet = CharSet.Unicode)]
-        private static extern IntPtr GetModuleHandle(string lpModuleName);
     }
 }
 

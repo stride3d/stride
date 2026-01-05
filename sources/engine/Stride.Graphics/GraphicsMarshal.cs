@@ -27,7 +27,7 @@ public static unsafe class GraphicsMarshal
     ///   A COM pointer to a <see cref="IDXGISwapChain"/> instance representing the native DirectX swap-chain,
     ///   or <see langword="null"/> if the <paramref name="presenter"/> does not encapsulate a DXGI swap-chain.
     /// </returns>
-    public static ComPtr<IDXGISwapChain>? GetNativeSwapChain(GraphicsPresenter presenter)
+    public static ComPtr<IDXGISwapChain1>? GetNativeSwapChain(GraphicsPresenter presenter)
         => presenter is SwapChainGraphicsPresenter swapChainPresenter
             ? swapChainPresenter.NativeSwapChain
             : null;
@@ -96,9 +96,10 @@ public static unsafe class GraphicsMarshal
 
         texture.InitializeFromImpl(dxTexture2D, isSRgb);
 
-        // InitializeFromImpl will already call AddRef(); release it if we're taking ownership (same as doing nothing to ref count)
         if (takeOwnership)
         {
+            // We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+            // compensate with Release() to return the reference count to its previous value
             dxTexture2D->Release();
         }
 

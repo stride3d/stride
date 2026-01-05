@@ -275,14 +275,14 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override unsafe void OnDestroyed(bool immediate = false)
+        protected internal override unsafe void OnDestroyed(bool immediately = false)
         {
             DestroySwapchain();
 
             vkDestroySurfaceKHR(GraphicsDevice.NativeInstance, surface, null);
             surface = VkSurfaceKHR.Null;
 
-            base.OnDestroyed(immediate);
+            base.OnDestroyed(immediately);
         }
 
         /// <inheritdoc/>

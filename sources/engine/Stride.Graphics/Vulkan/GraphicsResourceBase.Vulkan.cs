@@ -18,7 +18,7 @@ namespace Stride.Graphics
         ///   Called when the <see cref="GraphicsDevice"/> has been detected to be internally destroyed,
         ///   or when the <see cref="Destroy"/> methad has been called. Raises the <see cref="Destroyed"/> event.
         /// </summary>
-        protected internal virtual partial void OnDestroyed(bool immediate = false)
+        protected internal virtual partial void OnDestroyed(bool immediately = false)
         {
             Destroyed?.Invoke(this, EventArgs.Empty);
         }
@@ -30,6 +30,14 @@ namespace Stride.Graphics
         protected internal virtual bool OnRecreate()
         {
             return false;
+        }
+
+        /// <summary>
+        ///   Swaps the Graphics Resource's internal data with another Graphics Resource.
+        /// </summary>
+        /// <param name="other">The other Graphics Resource.</param>
+        internal virtual void SwapInternal(GraphicsResourceBase other)
+        {
         }
     }
 }

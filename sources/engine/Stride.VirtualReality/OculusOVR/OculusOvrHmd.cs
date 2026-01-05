@@ -63,10 +63,14 @@ namespace Stride.VirtualReality
 
             if (requireMirror)
             {
-                var mirrorTex = OculusOvr.GetMirrorTexture(ovrSession, Dx11Texture2DGuid);
-                MirrorTexture = new Texture(device);
-                MirrorTexture.InitializeFromImpl((ID3D11Texture2D*) mirrorTex, false);
-                MirrorTexture.NativeDeviceChild.Release(); // do not take ownership
+                var mirrorTex = (ID3D11Texture2D*) OculusOvr.GetMirrorTexture(ovrSession, Dx11Texture2DGuid);
+
+                MirrorTexture = new Texture(device).InitializeFromImpl(mirrorTex, treatAsSrgb: false);
+
+                // We don't need to take ownership of the COM pointer.
+                //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+                //   compensate with Release() to return the reference count to its previous value
+                mirrorTex->Release();
             }
 
             textures = new Texture[texturesCount];

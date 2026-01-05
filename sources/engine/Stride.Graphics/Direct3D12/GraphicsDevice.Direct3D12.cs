@@ -6,13 +6,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D12;
 
-using Stride.Core;
 using Stride.Core.Threading;
 
 using static System.Runtime.CompilerServices.Unsafe;
@@ -22,12 +20,13 @@ namespace Stride.Graphics
 {
     public unsafe partial class GraphicsDevice
     {
-        private static object debugLayerLock = new object();
-        private static bool debugLayerLoaded = false;
-
         internal readonly int ConstantBufferDataPlacementAlignment = D3D12.ConstantBufferDataPlacementAlignment;
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Direct3D12;
+
+        // Lock to ensure the Debug Layer is only initialized once
+        private static object debugLayerLock = new();
+        private static bool debugLayerLoaded = false;
 
         /// <summary>
         ///   Concurrent pool for lists of Graphics Resources that are used for staging operations.
@@ -103,7 +102,8 @@ namespace Stride.Graphics
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<ID3D12GraphicsCommandList> NativeCopyCommandList => ToComPtr(nativeCopyCommandList);
-        internal object NativeCopyCommandListLock = new object();
+
+        internal object NativeCopyCommandListLock = new();
 
         /// <summary>
         ///   Represents the size, in bytes, of the resource heap dedicated to Shader Resource Views.
@@ -177,8 +177,13 @@ namespace Stride.Graphics
         /// </summary>
         internal int SamplerHandleIncrementSize;
 
-        // An event used to signal when the fence has been completed
+        /// <summary>
+        ///   Fence used to track the completion of commands for the current frame.
+        /// </summary>
         internal FenceHelper FrameFence;
+        /// <summary>
+        ///   Fence used to track the completion of in-flight Command Lists for the Command Queue.
+        /// </summary>
         internal FenceHelper CommandListFence;
         internal FenceHelper CopyFence;
 
@@ -242,7 +247,7 @@ namespace Stride.Graphics
         /// </summary>
         public void End()
         {
-            FrameFence.Signal(NativeCommandQueue, FrameFence.NextFenceValue);
+            FrameFence.Signal(nativeCommandQueue, FrameFence.NextFenceValue);
             FrameFence.NextFenceValue++;
         }
 
@@ -275,7 +280,6 @@ namespace Stride.Graphics
         public void ExecuteCommandLists(int count, CompiledCommandList[] commandLists)
         {
             ArgumentNullException.ThrowIfNull(commandLists);
-
             ArgumentOutOfRangeException.ThrowIfGreaterThan(count, commandLists.Length);
 
             var commandListFenceValue = CommandListFence.NextFenceValue++;
@@ -460,9 +464,9 @@ namespace Stride.Graphics
             }
 
             // Prepare pools
-            CommandAllocators = new CommandAllocatorPool(this, true);
-            SrvHeaps = new HeapPool(this, true, SrvHeapSize, DescriptorHeapType.CbvSrvUav);
-            SamplerHeaps = new HeapPool(this, true, SamplerHeapSize, DescriptorHeapType.Sampler);
+            CommandAllocators = new CommandAllocatorPool(this, threadSafe: true);
+            SrvHeaps = new HeapPool(this, threadSafe: true, SrvHeapSize, DescriptorHeapType.CbvSrvUav);
+            SamplerHeaps = new HeapPool(this, threadSafe: true, SamplerHeapSize, DescriptorHeapType.Sampler);
 
             // Prepare descriptor allocators
             SamplerAllocator = new DescriptorAllocator(this, DescriptorHeapType.Sampler);
@@ -487,11 +491,13 @@ namespace Stride.Graphics
 
             commandList.Close();
 
-            // Fence for next frame and resource cleaning
-            FrameFence = new(this);
-            CommandListFence = new(this);
-            CommandListFence.NextFenceValue = 0; // start at 0 for command list (we wait for previous command list signal and 0 is already set by default)
-            CopyFence = new(this);
+            // Fences for next frame and resource cleaning
+            FrameFence = new FenceHelper(this);
+            CommandListFence = new FenceHelper(this);
+
+            // Start at 0 for Command List (we wait for previous Command List signal and 0 is already set by default)
+            CommandListFence.NextFenceValue = 0;
+            CopyFence = new FenceHelper(this);
 
             //
             // Enables the Direct3D 12 debug layer if available.
@@ -503,7 +509,8 @@ namespace Stride.Graphics
                 if (result.IsSuccess && debugInterface.IsNotNull())
                 {
                     debugInterface.EnableDebugLayer();
-                    // Probably should be added as extra debug flags (much slower)
+
+                    // TODO: Probably should be added as extra debug flags (much slower)
                     result = debugInterface.QueryInterface<ID3D12Debug1>(out var debug1);
                     if (result.IsSuccess && debug1.IsNotNull())
                     {
@@ -616,9 +623,9 @@ namespace Stride.Graphics
             var copyFenceValue = CopyFence.NextFenceValue++;
             var nextCopyFenceValue = copyFenceValue + 1;
 
-            // For now, we execute everything on the non-copy command queue otherwise ResourceBarrier won't work
-            // Improvement: on Copy queue: we'll need to make sure to use only Common/Copy (and go back to Common before transfer); then a Signal
-            //              on Graphics queue: Wait for signal and then ResourceBarrier
+            // For now, we execute everything on the non-copy Command Queue otherwise ResourceBarrier won't work
+            // Improvement: on Copy Queue: we'll need to make sure to use only Common/Copy (and go back to Common before transfer); then a Signal
+            //              on Graphics Queue: Wait for Signal and then ResourceBarrier
             //              https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
             var commandList = (ID3D12CommandList*) nativeCopyCommandList;
             nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, in commandList);
@@ -725,7 +732,12 @@ namespace Stride.Graphics
         /// <summary>
         ///   Called when the Graphics Device is being destroyed.
         /// </summary>
-        internal void OnDestroyed(bool immediate = false)
+        /// <param name="immediately">
+        ///   A value indicating whether the resources used by the Graphics Device should be released
+        ///   immediately (<see langword="true"/>), or queued for release once the GPU is done with it
+        ///   (<see langword="false"/>).
+        /// </param>
+        internal void OnDestroyed(bool immediately = false)
         {
         }
 
@@ -750,7 +762,8 @@ namespace Stride.Graphics
             var nativeCommandList = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
             nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, ref nativeCommandList);
 
-            // Wait on GPU side to complete so that next command list (i.e. for a draw) can access the newly copied resources
+            // Wait on GPU side to complete so that the next Command List (i.e. for a draw)
+            // can access the newly copied resources
             CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
 
             // Recycle resources
@@ -813,7 +826,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Tags a Graphics Resource as no having alive references, meaning it should be safe to dispose it
+        ///   Tags a Graphics Resource as having no alive references, meaning it should be safe to dispose it
         ///   or discard its contents during the next <see cref="CommandList.MapSubResource"/> or <c>SetData</c> operation.
         /// </summary>
         /// <param name="resourceLink">
@@ -837,107 +850,6 @@ namespace Stride.Graphics
                 resourceLink.ReferenceCount++;
                 lock (TemporaryResources)
                     TemporaryResources.Enqueue((FrameFence.NextFenceValue, resourceLink));
-            }
-        }
-
-
-        internal struct FenceHelper : IDisposable
-        {
-            private object lockObject = new object();
-            public ID3D12Fence* Fence;
-            public ulong NextFenceValue = 1;
-            public ulong LastCompletedFence;
-
-            [ThreadStatic]
-            private static AutoResetEvent fenceEvent;
-
-            public FenceHelper(GraphicsDevice graphicsDevice)
-            {
-                // Fences for next frame and resource cleaning
-                HResult result = graphicsDevice.nativeDevice->CreateFence(InitialValue: 0, FenceFlags.None, out ComPtr<ID3D12Fence> gfxFence);
-
-                if (result.IsFailure)
-                    result.Throw();
-
-                Fence = gfxFence.Handle;
-            }
-
-            /// <summary>
-            ///   Determines whether the specified fence value has been completed by the graphics Command Queue.
-            /// </summary>
-            /// <param name="fenceValue">The fence value to check for completion.</param>
-            /// <returns>
-            ///   <see langword="true"/> if the specified fence value has been completed;
-            ///   otherwise, <see langword="false"/>.
-            /// </returns>
-            /// <remarks>
-            ///   This method checks the completion status of a fence value by comparing it to the last
-            ///   known completed fence value. It ensures thread safety by updating the last completed
-            ///   fence value when necessary.
-            /// </remarks>
-            internal bool IsFenceCompleteInternal(ulong fenceValue)
-            {
-                // Try to avoid checking the fence if possible
-                if (fenceValue > LastCompletedFence)
-                    LastCompletedFence = Math.Max(LastCompletedFence, Fence->GetCompletedValue()); // Protect against race conditions
-
-                return fenceValue <= LastCompletedFence;
-            }
-
-            /// <summary>
-            ///   Waits for the specified fence value to be signaled by the graphics Command Queue,
-            ///   blocking the calling thread if necessary.
-            /// </summary>
-            /// <param name="fenceValue">
-            ///   The fence value to wait for. Must be greater than the last completed fence value.
-            /// </param>
-            /// <remarks>
-            ///   <para>
-            ///     This method ensures that the specified fence value has been reached before continuing execution.
-            ///     If the fence value is already complete, the method returns immediately. Otherwise, it blocks the
-            ///     calling thread until the fence value is signaled.
-            ///   </para>
-            ///   <para>
-            ///     Note that this method uses a lock to synchronize access to the underlying native fence,
-            ///     which may cause contention in multithreaded scenarios if multiple threads are waiting
-            ///     on different fence values.
-            ///   </para>
-            /// </remarks>
-            internal void WaitForFenceCPUInternal(ulong fenceValue)
-            {
-                if (IsFenceCompleteInternal(fenceValue))
-                    return;
-
-                // TODO D3D12 in case of concurrency, this lock could end up blocking too long a second thread with lower fenceValue then first one
-                lock (lockObject)
-                {
-                    var localFenceEvent = fenceEvent ??= new AutoResetEvent(false);
-
-                    Fence->SetEventOnCompletion(fenceValue, (void*)localFenceEvent.GetSafeWaitHandle().DangerousGetHandle());
-                    localFenceEvent.WaitOne();
-                    LastCompletedFence = fenceValue;
-                }
-            }
-
-            internal void Signal(ID3D12CommandQueue* nativeCommandQueue, ulong fenceValue)
-            {
-                HResult result = nativeCommandQueue->Signal(Fence, fenceValue);
-
-                if (result.IsFailure)
-                    result.Throw();
-            }
-
-            internal void Wait(ID3D12CommandQueue* nativeCommandQueue, ulong fenceValue)
-            {
-                HResult result = nativeCommandQueue->Wait(Fence, fenceValue);
-
-                if (result.IsFailure)
-                    result.Throw();
-            }
-
-            public void Dispose()
-            {
-                Fence->Release();
             }
         }
     }

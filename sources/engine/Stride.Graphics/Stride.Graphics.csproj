@@ -59,7 +59,7 @@
   <Choose>
     <When Condition=" '$(TargetFramework)' == '$(StrideFramework)' And '$(StrideGraphicsApi)' == 'Direct3D12' ">
       <ItemGroup>
-        <StrideNativeLib Include="$(NuGetPackageRoot)winpixeventruntime\1.0.240308001\bin\x64\WinPixEventRuntime.dll">
+        <StrideNativeLib Include="$(NuGetPackageRoot)\winpixeventruntime\1.0.240308001\bin\x64\WinPixEventRuntime.dll">
           <Link>runtimes\win-x64\native\%(Filename)%(Extension)</Link>
           <RelativePath>runtimes\win-x64\native\%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

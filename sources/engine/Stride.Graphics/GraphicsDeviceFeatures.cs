@@ -38,7 +38,7 @@ public partial struct GraphicsDeviceFeatures
     ///   The requested profile when the <see cref="GraphicsDevice"/> was created.
     /// </summary>
     /// <seealso cref="GraphicsProfile"/>
-    public GraphicsProfile RequestedProfile;
+    public readonly GraphicsProfile RequestedProfile;
 
     /// <summary>
     ///   The current profile of the current <see cref="GraphicsDevice"/>, which determines its supported features.
@@ -48,7 +48,7 @@ public partial struct GraphicsDeviceFeatures
     ///   with that requested profile. This one represents the closest supported profile.
     /// </remarks>
     /// <seealso cref="GraphicsProfile"/>
-    public GraphicsProfile CurrentProfile;
+    public readonly GraphicsProfile CurrentProfile;
 
 
     /// <summary>

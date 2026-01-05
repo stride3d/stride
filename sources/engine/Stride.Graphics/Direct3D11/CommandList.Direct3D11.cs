@@ -32,7 +32,6 @@ namespace Stride.Graphics
         private const int UnorderedAcccesViewCount = D3D11.D3D111UavSlotCount;
 
         private ID3D11DeviceContext* nativeDeviceContext;
-        private ID3D11DeviceContext1* nativeDeviceContext1;  // TODO: Unused?
         private ID3DUserDefinedAnnotation* nativeDeviceProfiler;
 
         private readonly ComPtr<ID3D11RenderTargetView>[] currentRenderTargetViews = new ComPtr<ID3D11RenderTargetView>[SimultaneousRenderTargetCount];
@@ -80,17 +79,10 @@ namespace Stride.Graphics
             nativeDeviceContext = device.NativeDeviceContext.Handle;
             SetNativeDeviceChild(NativeDeviceContext.AsDeviceChild());
 
-            HResult result = nativeDeviceContext->QueryInterface(out ComPtr<ID3D11DeviceContext1> deviceContext1);
-
-            if (result.IsFailure)
-                result.Throw();
-
-            nativeDeviceContext1 = deviceContext1;
-
             ComPtr<ID3DUserDefinedAnnotation> deviceProfiler = default;
             if (device.IsDebugMode)
             {
-                result = nativeDeviceContext->QueryInterface(out deviceProfiler);
+                HResult result = nativeDeviceContext->QueryInterface(out deviceProfiler);
                 if (result.IsFailure)
                     deviceProfiler = null;
             }
@@ -100,16 +92,14 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed(bool immediate = false)
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             // Forget the native device context, as it will be released by the Graphics Device
             UnsetNativeDeviceChild();
 
-            SafeRelease(ref nativeDeviceContext);
-            SafeRelease(ref nativeDeviceContext1);
             SafeRelease(ref nativeDeviceProfiler);
 
-            base.OnDestroyed(immediate);
+            base.OnDestroyed(immediately);
         }
 
 
@@ -197,9 +187,15 @@ namespace Stride.Graphics
             for (int i = 0; i < renderTargetViews.Length; i++)
                 currentRenderTargetViews[i] = renderTargetViews[i].NativeRenderTargetView;
 
+            ref var renderTargetsToSet = ref renderTargetViews.Length > 0
+                ? ref currentRenderTargetViews.GetReference()
+                : ref NullRef<ComPtr<ID3D11RenderTargetView>>();
+
+            var depthStencilToSet = depthStencilView?.NativeDepthStencilView ?? NullComPtr<ID3D11DepthStencilView>();
+
             nativeDeviceContext->OMSetRenderTargets(NumViews: (uint) currentRenderTargetViewsActiveCount,
-                                                    ppRenderTargetViews: ref currentRenderTargetViews.GetReference(),
-                                                    pDepthStencilView: depthStencilView?.NativeDepthStencilView ?? NullComPtr<ID3D11DepthStencilView>());
+                                                    ref renderTargetsToSet,
+                                                    depthStencilToSet);
         }
 
         /// <summary>
@@ -219,11 +215,11 @@ namespace Stride.Graphics
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
         private unsafe partial void SetScissorRectanglesImpl(ReadOnlySpan<Rectangle> scissorRectangles)
         {
-            var scissorBoxes = stackalloc SilkBox2I[scissorRectangles.Length];
-            for (int i = 0; i <  scissorRectangles.Length; i++)
-                scissorBoxes[i] = new SilkBox2I(scissorRectangles[i].Left, scissorRectangles[i].Top, scissorRectangles[i].Right, scissorRectangles[i].Bottom);
+            scoped Span<SilkBox2I> scissorRects = stackalloc SilkBox2I[scissorRectangles.Length];
+            for (int i = 0; i < scissorRectangles.Length; i++)
+                scissorRects[i] = new SilkBox2I(scissorRectangles[i].Left, scissorRectangles[i].Top, scissorRectangles[i].Right, scissorRectangles[i].Bottom);
 
-            nativeDeviceContext->RSSetScissorRects((uint)scissorRectangles.Length, in scissorBoxes[0]);
+            nativeDeviceContext->RSSetScissorRects((uint) scissorRectangles.Length, in scissorRects.GetReference());
         }
 
         /// <summary>
@@ -270,7 +266,7 @@ namespace Stride.Graphics
             uint viewportCount = renderTargetCount > 0 ? (uint) renderTargetCount : 1;
             var viewportsToSet = viewports.AsSpan<Viewport, D3D11Viewport>();
 
-            nativeDeviceContext->RSSetViewports(viewportCount, in viewportsToSet[0]);
+            nativeDeviceContext->RSSetViewports(viewportCount, in viewportsToSet.GetReference());
         }
 
         /// <summary>
@@ -419,7 +415,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Sets an Unordered Access View to the shader pipeline, without affecting ones that are already set.
+        ///   Sets an Unordered Access View to the shader pipeline in the output-merger state
+        ///   without affecting ones that are already set, so it can be used as Render Targets in Pixel Shaders.
         /// </summary>
         /// <param name="slot">The binding slot.</param>
         /// <param name="view">The Unordered Access View to set.</param>
@@ -435,32 +432,29 @@ namespace Stride.Graphics
         ///   This parameter is only relevant for UAVs which have the <see cref="BufferFlags.StructuredAppendBuffer"/> or
         ///   <see cref="BufferFlags.StructuredCounterBuffer"/> Buffer flags.
         /// </param>
-        internal unsafe void OMSetSingleUnorderedAccessView(int slot, ComPtr<ID3D11UnorderedAccessView> view, int uavInitialOffset)
+        private void OMSetSingleUnorderedAccessView(int slot, ComPtr<ID3D11UnorderedAccessView> view, int uavInitialOffset)
         {
             currentUARenderTargetViews[slot] = view;
 
             int remainingSlots = currentUARenderTargetViews.Length - currentRenderTargetViewsActiveCount;
 
-            Span<ComPtr<ID3D11UnorderedAccessView>> uavs = stackalloc ComPtr<ID3D11UnorderedAccessView>[remainingSlots];
+            scoped var uavs = currentUARenderTargetViews.AsSpan(start: currentRenderTargetViewsActiveCount, length: remainingSlots);
+            scoped ref var uavsRef = ref uavs.GetReference();
 
-            for (int fromIndex = currentRenderTargetViewsActiveCount, toIndex = 0;
-                 toIndex < remainingSlots;
-                 fromIndex++, toIndex++)
-            {
-                uavs[toIndex] = currentUARenderTargetViews[fromIndex];
-            }
-
-            Span<uint> uavInitialCounts = stackalloc uint[remainingSlots];
-
-            for (int i = 0; i < remainingSlots; i++)
-                uavInitialCounts[i] = unchecked((uint) -1);
-
+            scoped Span<uint> uavInitialCounts = stackalloc uint[remainingSlots];
+            uavInitialCounts.Fill(unchecked((uint)-1));
             uavInitialCounts[slot - currentRenderTargetViewsActiveCount] = (uint) uavInitialOffset;
+            scoped ref readonly var uavInitialCountsRef = ref uavInitialCounts.GetReference();
 
-            nativeDeviceContext->CSSetUnorderedAccessViews((uint) currentRenderTargetViewsActiveCount,
-                                                           NumUAVs: (uint) remainingSlots,
-                                                           ref uavs.GetReference(),
-                                                           ref uavInitialCounts.GetReference());
+            const uint D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL = 0xffffffff;
+
+            ref var noRenderTargets = ref NullRef<ComPtr<ID3D11RenderTargetView>>();
+            var noDepthStencilView = NullComPtr<ID3D11DepthStencilView>();
+
+            nativeDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
+                D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, ref noRenderTargets, noDepthStencilView,
+                UAVStartSlot: (uint) currentRenderTargetViewsActiveCount, NumUAVs: (uint) remainingSlots,
+                ref uavsRef, in uavInitialCountsRef);
         }
 
         /// <summary>
@@ -502,7 +496,7 @@ namespace Stride.Graphics
                     nativeDeviceContext->CSSetUnorderedAccessViews((uint) slot, NumUAVs: 1, ref nativeUnorderedAccessView, (uint*) &uavInitialOffset);
                 }
             }
-            else
+            else // stage == ShaderStage.Pixel
             {
                 if (currentUARenderTargetViews[slot].Handle != nativeUnorderedAccessView.Handle)
                 {
@@ -557,10 +551,12 @@ namespace Stride.Graphics
         /// <seealso cref="SetPipelineState(PipelineState)"/>
         public void SetStencilReference(int stencilReference)
         {
-            SkipInit(out uint stencilRef);
+            SkipInit(out ComPtr<ID3D11DepthStencilState> depthState);
 
-            nativeDeviceContext->OMGetDepthStencilState(ppDepthStencilState: null, ref stencilRef);
-            nativeDeviceContext->OMSetDepthStencilState(pDepthStencilState: null, (uint) stencilReference);
+            nativeDeviceContext->OMGetDepthStencilState(ref depthState, pStencilRef: null); // AddRef() on depthState
+            nativeDeviceContext->OMSetDepthStencilState(depthState, (uint) stencilReference);
+
+            SafeRelease(ref depthState);
         }
 
         /// <summary>
@@ -580,13 +576,13 @@ namespace Stride.Graphics
         /// <seealso cref="SetPipelineState(PipelineState)"/>
         public void SetBlendFactor(Color4 blendFactor)
         {
-            var blendState = NullComPtr<ID3D11BlendState>();
+            SkipInit(out uint sampleMask);
+            SkipInit(out ComPtr<ID3D11BlendState> blendState);
 
             scoped Span<float> blendFactorFloats = blendFactor.AsSpan<Color4, float>();
-            SkipInit(out uint sampleMask);
 
-            nativeDeviceContext->OMGetBlendState(ppBlendState: null, BlendFactor: null, ref sampleMask);
-            nativeDeviceContext->OMSetBlendState(pBlendState: null, ref blendFactorFloats.GetReference(), sampleMask);
+            nativeDeviceContext->OMGetBlendState(ref blendState, BlendFactor: null, ref sampleMask);
+            nativeDeviceContext->OMSetBlendState(blendState, ref blendFactorFloats.GetReference(), sampleMask);
         }
 
         /// <summary>
@@ -1093,7 +1089,7 @@ namespace Stride.Graphics
         ///    </item>
         ///   </list>
         /// </remarks>
-        public void CopyMultisample(Texture sourceMultiSampledTexture, int sourceSubResourceIndex,
+        public void CopyMultiSample(Texture sourceMultiSampledTexture, int sourceSubResourceIndex,
                                      Texture destinationTexture, int destinationSubResourceIndex,
                                      PixelFormat format = PixelFormat.None)
         {

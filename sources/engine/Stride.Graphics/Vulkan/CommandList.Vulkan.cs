@@ -1494,7 +1494,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed(bool immediate = false)
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             GraphicsDevice.CheckResult(vkDeviceWaitIdle(GraphicsDevice.NativeDevice));
 
@@ -1506,7 +1506,7 @@ namespace Stride.Graphics
 
             CommandBufferPool.Dispose();
 
-            base.OnDestroyed(immediate);
+            base.OnDestroyed(immediately);
         }
 
         private unsafe void EnsureRenderPass()

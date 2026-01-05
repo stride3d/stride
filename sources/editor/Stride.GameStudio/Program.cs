@@ -116,10 +116,12 @@ public static class Program
                     {
                         GameStudioPreviewService.DisablePreview = true;
                     }
+#if STRIDE_GRAPHICS_API_DIRECT3D12
                     else if (args[i] == "/PixGpuCapturer")
                     {
                         WinPixNative.LoadPixGpuCapturer();
                     }
+#endif
                     else if (args[i] == "/RenderDoc")
                     {
                         // TODO: RenderDoc is not working here (when not in debug)

@@ -173,13 +173,34 @@ internal static unsafe class ComPtrHelpers
 
     /// <summary>
     ///   Reinterprets a <see cref="ComPtr{T}"/> to an interface of type <typeparamref name="TFrom"/> as a
-    ///   COM pointer to an interface of type <typeparamref name="TTo"/> which it inherits from.
+    ///   COM pointer to an interface of type <typeparamref name="TTo"/> which it inherits from
+    ///   (i.e., from a more <strong>specific type</strong> to a more <strong>generic type</strong>).
     /// </summary>
     /// <param name="comPtr">The COM pointer to reinterpret.</param>
     /// <returns>The COM pointer reinterpreted as a <see cref="ComPtr{T}"/> of type <typeparamref name="TTo"/>.</returns>
     public static ComPtr<TTo> AsComPtr<TFrom, TTo>(this ComPtr<TFrom> comPtr)
         where TFrom : unmanaged, IComVtbl<TFrom>, IComVtbl<TTo>
         where TTo : unmanaged, IComVtbl<TTo>
+    {
+        return new ComPtr<TTo> { Handle = (TTo*) comPtr.Handle };
+    }
+
+    /// <summary>
+    ///   Reinterprets a <see cref="ComPtr{T}"/> to an interface of type <typeparamref name="TFrom"/> as a
+    ///   COM pointer to an interface of type <typeparamref name="TTo"/> which inherits from it
+    ///   (i.e., from a more <strong>generic type</strong> to a more <strong>specific type</strong>).
+    /// </summary>
+    /// <param name="comPtr">The COM pointer to reinterpret.</param>
+    /// <returns>The COM pointer reinterpreted as a <see cref="ComPtr{T}"/> of type <typeparamref name="TTo"/>.</returns>
+    /// <remarks>
+    ///   ⚠️ Warning: This method is unsafe because it allows casting to a more specific interface type.
+    ///   Only use this method if you are certain that the underlying COM object actually implements
+    ///   the <typeparamref name="TTo"/> interface; otherwise, using the resulting COM pointer may lead to
+    ///   undefined behavior, memory corruption, or application crashes.
+    /// </remarks>
+    public static ComPtr<TTo> AsComPtrUnsafe<TFrom, TTo>(this ComPtr<TFrom> comPtr)
+        where TTo : unmanaged, IComVtbl<TTo>, IComVtbl<TFrom>
+        where TFrom : unmanaged, IComVtbl<TFrom>
     {
         return new ComPtr<TTo> { Handle = (TTo*) comPtr.Handle };
     }

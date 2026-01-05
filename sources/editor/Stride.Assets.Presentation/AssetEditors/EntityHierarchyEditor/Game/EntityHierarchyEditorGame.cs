@@ -160,7 +160,8 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     : fallbackColorMaterial;
 
                 // High priority
-                var compilerParameters = new CompilerParameters { EffectParameters = { TaskPriority = -1 } };
+                var compilerParameters = new CompilerParameters();
+                compilerParameters.EffectParameters.TaskPriority = -1;
 
                 // Support skinning
                 if (renderMesh.Mesh.Skinning != null && renderMesh.Mesh.Skinning.Bones.Length <= 56)

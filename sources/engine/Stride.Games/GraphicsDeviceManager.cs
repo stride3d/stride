@@ -39,7 +39,9 @@ namespace Stride.Games
     /// </summary>
     public class GraphicsDeviceManager : ComponentBase, IGraphicsDeviceManager, IGraphicsDeviceService
     {
-        private bool delayWindowEvents = true;
+        // Switch to indicate if window events should be delayed until the beginning of frames,
+        // just before running the Game.Window.RunCallback
+        private const bool DelayWindowEvents = true;
 
         /// <summary>
         ///   Default width for the Back-Buffer.
@@ -71,9 +73,9 @@ namespace Stride.Games
         private int                preferredFullScreenOutputIndex; // Populated when ranking devices
         private DisplayOrientation supportedOrientations;          // Populated when ranking devices
 
-        private bool windowClientSizeChanged;
-        private bool windowOrientationChanged;
-        private bool windowFullscreenChanged;
+        private bool hasWindowClientSizeChanged;
+        private bool hasWindowOrientationChanged;
+        private bool hasWindowFullscreenChanged;
 
         private bool isChangingDevice;
 
@@ -99,6 +101,7 @@ namespace Stride.Games
         internal GraphicsDeviceManager(GameBase game)
         {
             ArgumentNullException.ThrowIfNull(game);
+
             this.game = game;
 
             lockDeviceCreation = new object();
@@ -140,8 +143,9 @@ namespace Stride.Games
         private void GameOnWindowCreated(object sender, EventArgs eventArgs)
         {
             // Place ourselves first (in case drawing/present is after, we better rebuild device before that if necessary)
-            if (delayWindowEvents)
+            if (DelayWindowEvents)
                 game.Window.RunCallback = Window_ProcessEventsDelayed + game.Window.RunCallback;
+
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
             game.Window.OrientationChanged += Window_OrientationChanged;
             game.Window.FullscreenChanged += Window_FullscreenChanged;
@@ -926,28 +930,34 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Process windows events that require a device recreation.
+        ///   Processes windows events that require the Graphics Device to be recreated.
         /// </summary>
         private void Window_ProcessEventsDelayed()
         {
-            // If embedding a forms/game in editor, various events such as WM_SIZE might be forwarded by InputSourceWinforms.
-            // Since this is done using CallWindowProc, those events might be raised outside of the usual Translate/Peek message loop and happen during an unfortunate wait or I/O call during rendering (i.e. shader compiling wait).
-            // This is a big no no if we try to resize a swap chain in the middle of rendering!
-            // So we delay their process during Run() callback (which is before/after swap chain Present).
+            // When embedding a Form / Game in the Editor, various events such as WM_SIZE
+            // might be forwarded by InputSourceWinforms.
+            //
+            // Since this is done using CallWindowProc, those events might be raised outside of the usual
+            // Translate / Peek message loop and happen during an unfortunate wait or I/O call during rendering
+            // (i.e. waiting on Shader compilation).
+            //
+            // This is a big no no if we try to resize a Swap Chain in the middle of rendering!
+            // So we delay their process during Run() callback (which is before/after Swap Chain Present).
             bool needApplyChanges = false;
-            if (windowClientSizeChanged)
+
+            if (hasWindowClientSizeChanged)
             {
-                windowClientSizeChanged = false;
+                hasWindowClientSizeChanged = false;
                 needApplyChanges |= ProcessClientSizeChanged();
             }
-            if (windowOrientationChanged)
+            if (hasWindowOrientationChanged)
             {
-                windowOrientationChanged = false;
+                hasWindowOrientationChanged = false;
                 needApplyChanges |= ProcessOrientationChanged();
             }
-            if (windowFullscreenChanged)
+            if (hasWindowFullscreenChanged)
             {
-                windowFullscreenChanged = false;
+                hasWindowFullscreenChanged = false;
                 needApplyChanges |= ProcessOrientationChanged();
             }
 
@@ -968,14 +978,25 @@ namespace Stride.Games
             if (isChangingDevice)
                 return;
 
-            if (delayWindowEvents)
-                windowClientSizeChanged = true;
+            if (DelayWindowEvents)
+                hasWindowClientSizeChanged = true;
+
             else if (ProcessClientSizeChanged())
                 ApplyChanges();
         }
 
+        /// <summary>
+        ///   Method called when the Window's client size changes,
+        ///   which may require to reinitialize the Graphics Device with a new Back-Buffer size.
+        /// </summary>
+        /// <returns>
+        ///   <see langword="true"/> if the client size change requires a reinitialization of the Graphics Device;
+        ///   <see langword="false"/> otherwise.
+        /// </returns>
         private bool ProcessClientSizeChanged()
         {
+            // The client size can be zero in some cases (minimized window...)
+            // We only process it when we have a valid size
             if (game.Window.ClientBounds.Height != 0 || game.Window.ClientBounds.Width != 0)
             {
                 resizedBackBufferWidth = game.Window.ClientBounds.Width;
@@ -1002,14 +1023,25 @@ namespace Stride.Games
             if (isChangingDevice)
                 return;
 
-            if (delayWindowEvents)
-                windowOrientationChanged = true;
+            if (DelayWindowEvents)
+                hasWindowOrientationChanged = true;
+
             else if (ProcessOrientationChanged())
                 ApplyChanges();
         }
 
+        /// <summary>
+        ///   Method called when the Window's orientation changes,
+        ///   which may require to reinitialize the Graphics Device with a new Back-Buffer size.
+        /// </summary>
+        /// <returns>
+        ///   <see langword="true"/> if the orientation change requires a reinitialization of the Graphics Device;
+        ///   <see langword="false"/> otherwise.
+        /// </returns>
         private bool ProcessOrientationChanged()
         {
+            // The client size can be zero in some cases (minimized window...)
+            // We only process it when we have a valid size, and the orientation actually changed
             if ((game.Window.ClientBounds.Height != 0 || game.Window.ClientBounds.Width != 0) &&
                 game.Window.CurrentOrientation != currentWindowOrientation)
             {
@@ -1028,14 +1060,14 @@ namespace Stride.Games
         }
 
         /// <summary>
-        ///   Method called when the Window's fullscreen state changes, whick may require a resize of the Back-Buffer.
+        ///   Method called when the Window's full-screen state changes, whick may require a resize of the Back-Buffer.
         /// </summary>
         private void Window_FullscreenChanged(object sender, EventArgs eventArgs)
         {
             if (sender is GameWindow window)
             {
-                if (delayWindowEvents)
-                    windowFullscreenChanged = true;
+                if (DelayWindowEvents)
+                    hasWindowFullscreenChanged = true;
                 else
                 {
                     ProcessFullscreenChanged(window);
@@ -1044,9 +1076,13 @@ namespace Stride.Games
             }
         }
 
+        /// <summary>
+        ///   Method called when the Window's full-screen state changes,
+        ///   which may require to reinitialize the Graphics Device with a new Back-Buffer size.
+        /// </summary>
         private void ProcessFullscreenChanged(GameWindow window)
         {
-            // The new state is the Window's fullscreen state
+            // The new state is the Window's full-screen state
             IsFullScreen = window.IsFullscreen;
 
             if (IsFullScreen)

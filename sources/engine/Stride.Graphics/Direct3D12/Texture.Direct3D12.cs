@@ -30,12 +30,12 @@ using Silk.NET.Direct3D12;
 
 using Format = Silk.NET.DXGI.Format;
 
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.UnsafeExtensions;
 
 using static System.Runtime.CompilerServices.Unsafe;
 using static Stride.Graphics.ComPtrHelpers;
-using Stride.Core;
 
 namespace Stride.Graphics
 {
@@ -93,28 +93,17 @@ namespace Stride.Graphics
             return device.Features.CurrentProfile >= GraphicsProfile.Level_11_0;
         }
 
-        /// <summary>
-        ///   Swaps the Texture's internal data with another Texture.
-        /// </summary>
-        /// <param name="other">The other Texture.</param>
-        internal void SwapInternal(Texture other)
+        /// <inheritdoc/>
+        internal override void SwapInternal(GraphicsResourceBase other)
         {
-            // GraphicsResourceBase
+            var otherTexture = (Texture)other;
+
             base.SwapInternal(other);
 
-            // GraphicsResource
-            (ParentResource, other.ParentResource)                       = (other.ParentResource, ParentResource);
-            (CommandListFenceValue, other.CommandListFenceValue)         = (other.CommandListFenceValue, CommandListFenceValue);
-            (UpdatingCommandList, other.UpdatingCommandList)             = (other.UpdatingCommandList, UpdatingCommandList);
-            (NativeShaderResourceView, other.NativeShaderResourceView)   = (other.NativeShaderResourceView, NativeShaderResourceView);
-            (NativeUnorderedAccessView, other.NativeUnorderedAccessView) = (other.NativeUnorderedAccessView, NativeUnorderedAccessView);
-            (NativeResourceState, other.NativeResourceState)             = (other.NativeResourceState, NativeResourceState);
-
-            // Texture
-            (NativeRenderTargetView, other.NativeRenderTargetView)       = (other.NativeRenderTargetView, NativeRenderTargetView);
-            (NativeDepthStencilView, other.NativeDepthStencilView)       = (other.NativeDepthStencilView, NativeDepthStencilView);
-            (NativeTextureDescription, other.NativeTextureDescription)   = (other.NativeTextureDescription, NativeTextureDescription);
-            (HasStencil, other.HasStencil)                               = (other.HasStencil, HasStencil);
+            (NativeRenderTargetView, otherTexture.NativeRenderTargetView)     = (otherTexture.NativeRenderTargetView, NativeRenderTargetView);
+            (NativeDepthStencilView, otherTexture.NativeDepthStencilView)     = (otherTexture.NativeDepthStencilView, NativeDepthStencilView);
+            (NativeTextureDescription, otherTexture.NativeTextureDescription) = (otherTexture.NativeTextureDescription, NativeTextureDescription);
+            (HasStencil, otherTexture.HasStencil)                             = (otherTexture.HasStencil, HasStencil);
         }
 
         /// <summary>
@@ -213,7 +202,7 @@ namespace Stride.Graphics
                 {
                     // Per our own definition of staging resource (read-back only)
                     if (dataBoxes?.Length > 0)
-                        throw new NotSupportedException("D3D12: Staging textures can't be created with initial data.");
+                        throw new NotSupportedException("D3D12: Staging Textures can't be created with initial data.");
 
                     // If it is a staging Texture, initialize it and finish
                     //   (staging resources do not need to have views, they are only intermediate buffers to copy
@@ -262,7 +251,7 @@ namespace Stride.Graphics
             void InitializeTexture(DataBox[] initialData)
             {
                 bool hasClearValue = GetClearValue(out ClearValue clearValue);
-                scoped ref readonly var pClearValue = ref hasClearValue
+                scoped ref readonly var clearValueRef = ref hasClearValue
                     ? ref clearValue
                     : ref NullRef<ClearValue>();
 
@@ -278,11 +267,11 @@ namespace Stride.Graphics
                 if (hasInitData)
                     currentResourceState = ResourceStates.CopyDest;
 
-                // TODO D3D12 move that to a global allocator in bigger committed resources
+                // TODO: D3D12: Move that to a global allocator in bigger committed resources
                 var heap = new HeapProperties { Type = HeapType.Default };
 
                 HResult result = NativeDevice.CreateCommittedResource(in heap, HeapFlags.None, in nativeDescription, currentResourceState,
-                                                                      in pClearValue, out ComPtr<ID3D12Resource> textureResource);
+                                                                      in clearValueRef, out ComPtr<ID3D12Resource> textureResource);
                 if (result.IsFailure)
                     result.Throw();
 
@@ -309,43 +298,47 @@ namespace Stride.Graphics
 
                             ulong textureCopySize = 0;
 
-                            NativeDevice.GetCopyableFootprints(in nativeDescription, FirstSubresource: 0, (uint)subresourceCount, BaseOffset: 0,
-                                                            ref placedSubresources.GetReference(),
-                                                            ref rowCounts.GetReference(),
-                                                            ref rowSizeInBytes.GetReference(),
-                                                            ref textureCopySize);
+                            NativeDevice.GetCopyableFootprints(in nativeDescription, FirstSubresource: 0, (uint) subresourceCount, BaseOffset: 0,
+                                                               ref placedSubresources.GetReference(),
+                                                               ref rowCounts.GetReference(),
+                                                               ref rowSizeInBytes.GetReference(),
+                                                               ref textureCopySize);
 
-                            nint uploadMemory = GraphicsDevice.AllocateUploadBuffer((int)textureCopySize, out var uploadResource, out var uploadOffset,
+                            nint uploadMemory = GraphicsDevice.AllocateUploadBuffer((int) textureCopySize,
+                                                                                    out ComPtr<ID3D12Resource> uploadResource,
+                                                                                    out int uploadOffset,
                                                                                     D3D12.TextureDataPlacementAlignment);
-
                             for (int i = 0; i < subresourceCount; ++i)
                             {
-                                var databox = initialData[i];
+                                scoped ref readonly var databox = ref initialData[i];
+                                scoped ref var placedSubresource = ref placedSubresources[i];
+
                                 var dataPointer = databox.DataPointer;
 
                                 var rowCount = rowCounts[i];
-                                var sliceCount = placedSubresources[i].Footprint.Depth;
-                                var rowSize = (int)rowSizeInBytes[i];
-                                var destRowPitch = placedSubresources[i].Footprint.RowPitch;
+                                var sliceCount = placedSubresource.Footprint.Depth;
+                                var rowSize = (int) rowSizeInBytes[i];
+                                var destRowPitch = placedSubresource.Footprint.RowPitch;
 
                                 // Copy the init data to the upload buffer
-                                for (int z = 0; z < sliceCount; ++z)
+                                for (int zSlice = 0; zSlice < sliceCount; zSlice++)
                                 {
-                                    var uploadMemoryCurrent = uploadMemory + (int)placedSubresources[i].Offset + z * destRowPitch * rowCount;
-                                    var dataPointerCurrent = dataPointer + z * databox.SlicePitch;
-                                    for (int y = 0; y < rowCount; ++y)
+                                    var uploadMemoryCurrent = uploadMemory + (int) placedSubresource.Offset + zSlice * destRowPitch * rowCount;
+                                    var dataPointerCurrent = dataPointer + zSlice * databox.SlicePitch;
+
+                                    for (int row = 0; row < rowCount; ++row)
                                     {
-                                        MemoryUtilities.CopyWithAlignmentFallback((void*)uploadMemoryCurrent, (void*)dataPointerCurrent, (uint)rowSize);
+                                        MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemoryCurrent, (void*) dataPointerCurrent, (uint) rowSize);
                                         uploadMemoryCurrent += destRowPitch;
                                         dataPointerCurrent += databox.RowPitch;
                                     }
                                 }
 
                                 // Adjust upload offset (circular dependency between GetCopyableFootprints and AllocateUploadBuffer)
-                                placedSubresources[i].Offset += (ulong)uploadOffset;
+                                placedSubresource.Offset += (ulong) uploadOffset;
 
-                                var dest = new TextureCopyLocation { Type = TextureCopyType.SubresourceIndex, PResource = NativeResource, SubresourceIndex = (uint)i };
-                                var src = new TextureCopyLocation { Type = TextureCopyType.PlacedFootprint, PResource = uploadResource, PlacedFootprint = placedSubresources[i] };
+                                var dest = new TextureCopyLocation { Type = TextureCopyType.SubresourceIndex, PResource = NativeResource, SubresourceIndex = (uint) i };
+                                var src = new TextureCopyLocation { Type = TextureCopyType.PlacedFootprint, PResource = uploadResource, PlacedFootprint = placedSubresource };
 
                                 commandList.CopyTextureRegion(in dest, DstX: 0, DstY: 0, DstZ: 0, in src, pSrcBox: in NullRef<Box>());
                             }
@@ -767,8 +760,8 @@ namespace Stride.Graphics
             {
                 // Special case for Depth-Stencil Shader Resource View that are bound as Float
                 var viewFormat = IsDepthStencil
-                ? (Format) ComputeShaderResourceFormatFromDepthFormat(ViewFormat)
-                : (Format) ViewFormat;
+                    ? (Format) ComputeShaderResourceFormatFromDepthFormat(ViewFormat)
+                    : (Format) ViewFormat;
 
                 return viewFormat;
             }
@@ -808,6 +801,10 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc cref="GraphicsResourceBase.OnDestroyed" path="/summary"/>
+        /// <param name="immediately">
+        ///   A value indicating whether the Texture should be destroyed immediately (<see langword="true"/>),
+        ///   or if it can be deferred until it's safe to do so (<see langword="false"/>).
+        /// </param>
         /// <remarks>
         ///   This method releases all the native resources associated with the Texture:
         ///   <list type="bullet">
@@ -819,7 +816,7 @@ namespace Stride.Graphics
         ///     </item>
         ///   </list>
         /// </remarks>
-        protected internal override void OnDestroyed(bool immediate = false)
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             // If it was a View, do not release reference
             if (ParentTexture is not null)
@@ -831,7 +828,7 @@ namespace Stride.Graphics
                 GraphicsDevice?.RegisterTextureMemoryUsage(-SizeInBytes);
             }
 
-            base.OnDestroyed(immediate);
+            base.OnDestroyed(immediately);
         }
 
         /// <summary>

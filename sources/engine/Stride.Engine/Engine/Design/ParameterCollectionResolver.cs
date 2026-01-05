@@ -2,48 +2,58 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Unsafe = System.Runtime.CompilerServices.Unsafe;
 using Stride.Core;
 using Stride.Rendering;
 using Stride.Updater;
 
+using static System.Runtime.CompilerServices.Unsafe;
+
 namespace Stride.Engine.Design
 {
+    /// <summary>
+    ///   Describes how to parse and resolve an <see cref="UpdatableMember"/> of type <see cref="ParameterCollection"/>
+    ///   when parsing an <see cref="UpdateEngine"/> property path.
+    /// </summary>
     public class ParameterCollectionResolver : UpdateMemberResolver
     {
-        [ModuleInitializer]
-        internal static void InitializeModule()
-        {
-            UpdateEngine.RegisterMemberResolver(new ParameterCollectionResolver());
-        }
-
+        /// <inheritdoc/>
         public override Type SupportedType => typeof(ParameterCollection);
 
+
+        /// <inheritdoc/>
+        /// <exception cref="InvalidOperationException">
+        ///   Could not parse the indexer value in the property path.
+        /// </exception>
+        /// <exception cref="NotSupportedException">
+        ///   This resolver can only handle <see cref="ParameterKeyType.Value"/> and <see cref="ParameterKeyType.Object"/> keys.
+        /// </exception>
         public override UpdatableMember ResolveIndexer(string indexerName)
         {
-            var key = ParameterKeys.FindByName(indexerName);
-            if (key == null)
-                throw new InvalidOperationException($"Property Key path parse error: could not parse indexer value '{indexerName}'");
+            // TODO: PropertyKeyParseException from UpdateEngine should be thrown here
+            var key = ParameterKeys.FindByName(indexerName)
+                ?? throw new InvalidOperationException($"Property Key path parse error: could not parse indexer value '{indexerName}'");
 
             switch (key.Type)
             {
                 case ParameterKeyType.Value:
                     var accessorType = typeof(ValueParameterCollectionAccessor<>).MakeGenericType(key.PropertyType);
-                    return (UpdatableMember)Activator.CreateInstance(accessorType, key);
+                    return (UpdatableMember) Activator.CreateInstance(accessorType, key);
+
                 case ParameterKeyType.Object:
                     return new ObjectParameterCollectionAccessor(key);
+
                 default:
                     throw new NotSupportedException($"{nameof(ParameterCollectionResolver)} can only handle Value and Object keys");
             }
         }
 
         // Needed for AOT platforms
-        public static void InstantiateValueAccessor<T>() where T : struct
+        public static void InstantiateValueAccessor<T>() where T : unmanaged
         {
-            new ValueParameterCollectionAccessor<T>(null);
+            new ValueParameterCollectionAccessor<T>(parameterKey: null);
         }
 
-        private class ValueParameterCollectionAccessor<T> : UpdatableCustomAccessor where T : struct
+        private class ValueParameterCollectionAccessor<T> : UpdatableCustomAccessor where T : unmanaged
         {
             private readonly ValueParameterKey<T> parameterKey;
 
@@ -66,7 +76,7 @@ namespace Stride.Engine.Design
             {
                 var parameterCollection = UpdateEngineHelper.PointerToObject<ParameterCollection>(obj);
 
-                var value = Unsafe.ReadUnaligned<T>((void*)data);
+                var value = ReadUnaligned<T>((void*)data);
                 parameterCollection.Set(parameterKey, ref value);
             }
 
@@ -81,11 +91,11 @@ namespace Stride.Engine.Design
             {
                 var parameterCollection = UpdateEngineHelper.PointerToObject<ParameterCollection>(obj);
 
-                ref var valuePtr = ref Unsafe.Unbox<T>(data);
+                ref var valuePtr = ref Unbox<T>(data);
 
                 valuePtr = parameterCollection.Get(parameterKey);
 
-                return (nint)Unsafe.AsPointer(ref valuePtr);
+                return (nint)AsPointer(ref valuePtr);
             }
 
             /// <inheritdoc/>
@@ -151,5 +161,15 @@ namespace Stride.Engine.Design
                 parameterCollection.SetObject(parameterKey, data);
             }
         }
+
+        #region Module Initializer
+
+        [ModuleInitializer]
+        internal static void InitializeModule()
+        {
+            UpdateEngine.RegisterMemberResolver(new ParameterCollectionResolver());
+        }
+
+        #endregion
     }
 }

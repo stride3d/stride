@@ -83,11 +83,14 @@ namespace Stride.Shaders.Compiler.Direct3D
 
             if (isDebug)
             {
-                // We could also specify D3DCOMPILE_SKIP_OPTIMIZATION, but that makes shaders sometimes
-                // use more registers and ALU ops than maximum allowed on Graphics Profiles <= 9.3
                 shaderFlags = D3DCOMPILE_DEBUG;
+
+                // We only specify D3DCOMPILE_SKIP_OPTIMIZATION on Graphics Profiles >= 10.0, as below that
+                // shaders sometimes use more registers and ALU ops than maximum allowed
+                if (profile >= GraphicsProfile.Level_10_0)
+                    shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
             }
-            switch (optimLevel)
+            else switch (optimLevel)
             {
                 case 0: shaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL0; break;
                 case 1: shaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL1; break;
@@ -95,39 +98,38 @@ namespace Stride.Shaders.Compiler.Direct3D
                 case 3: shaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL3; break;
             }
 
-            var shaderBytes = shaderSource.GetAsciiSpan();
-
-            ComPtr<ID3D10Blob> byteCode = default;
+            ComPtr<ID3D10Blob> bytecode = default;
             ComPtr<ID3D10Blob> compileErrors = default;
-            var byteCodeResult = new ShaderBytecodeResult();
+            var bytecodeResult = new ShaderBytecodeResult();
 
             HResult result = Compile();
 
-            if (result.IsSuccess && byteCode.Handle is not null)
+            if (result.IsSuccess && bytecode.Handle is not null)
             {
                 // TODO: Make this optional
-                byteCodeResult.DisassembleText = Disassemble(byteCode);
+                bytecodeResult.DisassembleText = Disassemble(bytecode);
 
-                // As effect bytecode binary can change when having debug info (with d3dcompiler_47), we are calculating a bytecodeId on the stripped version
-                using ComPtr<ID3D10Blob> strippedByteCode = Strip(byteCode);
-                var byteCodeId = ObjectId.FromBytes(strippedByteCode.Handle->Buffer);
+                // As Effect bytecode binary can change when having debug info (with d3dcompiler_47),
+                // we are calculating a bytecodeId on the stripped version
+                using ComPtr<ID3D10Blob> strippedBytecode = Strip(bytecode);
+                var bytecodeId = ObjectId.FromBytes(strippedBytecode.Handle->Buffer);
 
-                var byteCodeBuffer = byteCode.Handle->Buffer;
-                byteCodeResult.Bytecode = new ShaderBytecode(byteCodeId, byteCodeBuffer.ToArray()) { Stage = stage };
+                var bytecodeBuffer = bytecode.Handle->Buffer;
+                bytecodeResult.Bytecode = new ShaderBytecode(bytecodeId, bytecodeBuffer.ToArray()) { Stage = stage };
 
                 // If compilation succeeded, then we can update reflection
-                UpdateReflection(byteCodeResult.Bytecode, reflection, byteCodeResult);
+                UpdateReflection(bytecodeResult.Bytecode, reflection, bytecodeResult);
 
                 if (compileErrors.Handle is not null)
                 {
-                    byteCodeResult.Warning(GetTextFromBlob(compileErrors));
+                    bytecodeResult.Warning(GetTextFromBlob(compileErrors));
                 }
             }
 
-            byteCode.Dispose();
+            bytecode.Dispose();
             compileErrors.Dispose();
 
-            return byteCodeResult;
+            return bytecodeResult;
 
 
             //
@@ -175,9 +177,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                 var shaderSourceSpan = shaderSource.GetAsciiSpan();
                 var shaderSourceLength = (nuint) shaderSourceSpan.Length;
 
-                ref var noSourceName = ref Unsafe.NullRef<byte>();
+                ref var noSourceName = ref NullRef<byte>();
 
-                ref var noDefines = ref Unsafe.NullRef<D3DShaderMacro>();
+                ref var noDefines = ref NullRef<D3DShaderMacro>();
                 var noIncludes = default(ComPtr<ID3DInclude>);
 
                 var entryPointSpan = entryPoint.GetUtf8Span();
@@ -187,14 +189,14 @@ namespace Stride.Shaders.Compiler.Direct3D
                 HResult result = d3dCompiler.Compile(in shaderSourceSpan[0], shaderSourceLength, in noSourceName,
                                                      in noDefines, noIncludes, in entryPointSpan[0], in shaderModelSpan[0],
                                                      shaderFlags, effectFlags,
-                                                     ref byteCode, ref compileErrors);
+                                                     ref bytecode, ref compileErrors);
 
-                if (result.IsFailure || byteCode.Handle is null)
+                if (result.IsFailure || bytecode.Handle is null)
                 {
                     // Log compilation errors
                     if (compileErrors.Handle is not null)
                     {
-                        byteCodeResult.Error(GetTextFromBlob(compileErrors));
+                        bytecodeResult.Error(GetTextFromBlob(compileErrors));
                     }
                 }
 
@@ -204,13 +206,13 @@ namespace Stride.Shaders.Compiler.Direct3D
             //
             // Disassembles a blob of Shader byte-code to its textual equivalent in HLSL code.
             //
-            string Disassemble(ComPtr<ID3D10Blob> byteCode)
+            string Disassemble(ComPtr<ID3D10Blob> bytecode)
             {
-                ref var noComments = ref Unsafe.NullRef<byte>();
+                ref var noComments = ref NullRef<byte>();
 
                 ComPtr<ID3D10Blob> disassembly = default;
 
-                d3dCompiler.Disassemble(byteCode.GetBufferPointer(), byteCode.GetBufferSize(), Flags: 0,
+                d3dCompiler.Disassemble(bytecode.GetBufferPointer(), bytecode.GetBufferSize(), Flags: 0,
                                         in noComments, ref disassembly);
 
                 string shaderDisassembly = GetTextFromBlob(disassembly);
@@ -222,21 +224,21 @@ namespace Stride.Shaders.Compiler.Direct3D
             //
             // Gets a blob of Shader byte-code with debug and reflection data stripped out.
             //
-            ComPtr<ID3D10Blob> Strip(ComPtr<ID3D10Blob> byteCode)
+            ComPtr<ID3D10Blob> Strip(ComPtr<ID3D10Blob> bytecode)
             {
                 const uint StripDebugAndReflection = (uint) (CompilerStripFlags.ReflectionData | CompilerStripFlags.DebugInfo);
 
-                var byteCodePointer = byteCode.Handle->GetBufferPointer();
-                var byteCodeSize = byteCode.Handle->GetBufferSize();
+                var bytecodePointer = bytecode.Handle->GetBufferPointer();
+                var bytecodeSize = bytecode.Handle->GetBufferSize();
 
-                ComPtr<ID3D10Blob> strippedByteCode = default;
+                ComPtr<ID3D10Blob> strippedBytecode = default;
 
-                HResult result = d3dCompiler.StripShader(byteCodePointer, byteCodeSize,
-                                                         StripDebugAndReflection, ref strippedByteCode);
+                HResult result = d3dCompiler.StripShader(bytecodePointer, bytecodeSize,
+                                                         StripDebugAndReflection, ref strippedBytecode);
                 if (result.IsFailure)
                     return null;
 
-                return strippedByteCode;
+                return strippedBytecode;
             }
 
             //
@@ -244,9 +246,9 @@ namespace Stride.Shaders.Compiler.Direct3D
             //
             void UpdateReflection(ShaderBytecode shaderBytecode, EffectReflection effectReflection, LoggerResult log)
             {
-                var byteCode = shaderBytecode.Data;
+                var bytecode = shaderBytecode.Data;
 
-                ComPtr<ID3D11ShaderReflection> shaderReflection = Reflect(byteCode);
+                ComPtr<ID3D11ShaderReflection> shaderReflection = Reflect(bytecode);
 
                 SkipInit(out ShaderDesc shaderReflectionDesc);
                 shaderReflection.GetDesc(ref shaderReflectionDesc);
@@ -320,9 +322,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                 //
                 // Gets reflection information about a Shader from its byte-code.
                 //
-                ComPtr<ID3D11ShaderReflection> Reflect(byte[] byteCode)
+                ComPtr<ID3D11ShaderReflection> Reflect(byte[] bytecode)
                 {
-                    HResult result = d3dCompiler.Reflect(in byteCode[0], (nuint) byteCode.Length,
+                    HResult result = d3dCompiler.Reflect(in bytecode[0], (nuint) bytecode.Length,
                                                          out ComPtr<ID3D11ShaderReflection> shaderReflection);
                     if (result.IsFailure)
                         result.Throw();
@@ -418,13 +420,13 @@ namespace Stride.Shaders.Compiler.Direct3D
                             var parameter = new EffectValueDescription()
                             {
                                 Type =
-                        {
-                            Class = (EffectParameterClass) variableTypeDescription.Class,
-                            Type = ConvertVariableValueType(variableTypeDescription.Type, log),
-                            Elements = (int) variableTypeDescription.Elements,
-                            RowCount = (byte) variableTypeDescription.Rows,
-                            ColumnCount = (byte) variableTypeDescription.Columns
-                        },
+                                {
+                                    Class = (EffectParameterClass) variableTypeDescription.Class,
+                                    Type = ConvertVariableValueType(variableTypeDescription.Type, log),
+                                    Elements = (int) variableTypeDescription.Elements,
+                                    RowCount = (byte) variableTypeDescription.Rows,
+                                    ColumnCount = (byte) variableTypeDescription.Columns
+                                },
                                 RawName = variableName,
                                 Offset = (int) variableDescription.StartOffset,
                                 Size = (int) variableDescription.Size

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 
@@ -38,26 +39,9 @@ public unsafe partial class GraphicsDevice
     {
         // A queue to hold live objects that will be reused when it is safe to do so
         private readonly Queue<LiveObject> liveObjects = new();
-        private readonly bool threadsafe;
 
-        #region LiveObject structure
-
-        /// <summary>
-        ///   A live object with an associated fence value.
-        /// </summary>
-        /// <param name="FenceValue">The fence value that must be reached before the object can be reused.</param>
-        /// <param name="Object">The COM pointer to the object.</param>
-        private readonly record struct LiveObject(ulong FenceValue, ComPtr<T> Object) : IDisposable
-        {
-            /// <inheritdoc/>
-            public void Dispose()
-            {
-                if (Object.IsNotNull())
-                    Object.Dispose();
-            }
-        }
-
-        #endregion
+        // Indicates whether the pool should be accessed in a thread-safe manner
+        private readonly bool threadSafe;
 
         /// <summary>
         ///   Gets the Graphics Device associated with the resource pool.
@@ -69,16 +53,20 @@ public unsafe partial class GraphicsDevice
         ///   Initializes a new instance of the <see cref="ResourcePool{T}"/> class.
         /// </summary>
         /// <param name="graphicsDevice">The Graphics Device to associate with this resource pool.</param>
-        protected ResourcePool(GraphicsDevice graphicsDevice, bool threadsafe)
+        /// <param name="threadSafe">
+        ///   A value indicating whether the pool should be accessed in a thread-safe manner.
+        ///   If <see langword="true"/>, access to the pool will be synchronized using locks.
+        /// </param>
+        protected ResourcePool(GraphicsDevice graphicsDevice, bool threadSafe)
         {
             GraphicsDevice = graphicsDevice;
-            this.threadsafe = threadsafe;
+            this.threadSafe = threadSafe;
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            using (OptionalLock.Lock(liveObjects, threadsafe))
+            using (OptionalLock.Lock(liveObjects, useLock: threadSafe))
             {
                 foreach (var (_, liveObject) in liveObjects)
                 {
@@ -92,19 +80,23 @@ public unsafe partial class GraphicsDevice
         /// <summary>
         ///   Retrieves an object from the pool, resetting it for reuse if necessary.
         /// </summary>
+        /// <param name="completedFenceValue">
+        ///   The fence value to determine if objects to return are safe to use (ready to be reused),
+        ///   inticating the GPU is not doing any work with them.
+        /// </param>
+        /// <returns>
+        ///   A COM pointer to the retrieved object. If no reusable object is available, a new
+        ///   object is created and returned.
+        /// </returns>
         /// <remarks>
         ///   If a previously used object is available and its associated fence value indicates it
         ///   is ready for reuse, the method resets and returns that object.
         ///   Otherwise, a new object is created and returned.
         /// </remarks>
-        /// <returns>
-        ///   A COM pointer to the retrieved object. If no reusable object is available, a new
-        ///   object is created and returned.
-        /// </returns>
         public ComPtr<T> GetObject(ulong completedFenceValue)
         {
             // TODO: D3D12: SpinLock
-            using (OptionalLock.Lock(liveObjects, threadsafe))
+            using (OptionalLock.Lock(liveObjects, useLock: threadSafe))
             {
                 // Check if first pooled object is ready for reuse
                 if (liveObjects.TryPeek(out LiveObject liveObject))
@@ -161,15 +153,48 @@ public unsafe partial class GraphicsDevice
         public void RecycleObject(ulong fenceValue, ComPtr<T> obj)
         {
             // TODO D3D12: SpinLock
-            using (OptionalLock.Lock(liveObjects, threadsafe))
+            using (OptionalLock.Lock(liveObjects, useLock: threadSafe))
             {
                 // Enqueue for reuse when the fence value is reached
                 liveObjects.Enqueue(new LiveObject(fenceValue, obj));
             }
         }
 
-        // TODO: do we want to use spinlock instead? (need to measure impact, not good if too long wait)
-        private struct OptionalLock : IDisposable
+        #region LiveObject structure
+
+        /// <summary>
+        ///   A live object with an associated fence value.
+        /// </summary>
+        /// <param name="FenceValue">The fence value that must be reached before the object can be reused.</param>
+        /// <param name="Object">The COM pointer to the object.</param>
+        private readonly record struct LiveObject(ulong FenceValue, ComPtr<T> Object) : IDisposable
+        {
+            /// <inheritdoc/>
+            public void Dispose()
+            {
+                if (Object.IsNotNull())
+                    Object.Dispose();
+            }
+        }
+
+        #endregion
+
+        #region OptionalLock structure
+
+        // TODO: Do we want to use spinlock instead? (need to measure impact, not good if too long wait)
+
+        /// <summary>
+        ///   Provides a disposable value type that conditionally acquires and releases a monitor lock
+        ///   on a specified object, enabling optional locking patterns (for example, based on runtime conditions).
+        /// </summary>
+        /// <remarks>
+        ///   This structure implements the <see cref="IDisposable"/> interface to allow usage within
+        ///   a C# <see langword="using"/> statement. When disposed, it releases the lock if it was acquired.
+        ///   <para/>
+        ///   If used without the <see langword="using"/> statement, calling code should not forget to
+        ///   call <see cref="Dispose"/> to release the lock if it was acquired.
+        /// </remarks>
+        private readonly struct OptionalLock : IDisposable
         {
             private readonly object lockObject;
             private readonly bool locked;
@@ -181,7 +206,8 @@ public unsafe partial class GraphicsDevice
                 this.locked = locked;
             }
 
-            public void Dispose()
+            /// <inheritdoc/>
+            public readonly void Dispose()
             {
                 if (locked)
                 {
@@ -189,7 +215,19 @@ public unsafe partial class GraphicsDevice
                 }
             }
 
-            // Factory method for a locked scope
+            /// <summary>
+            ///   Acquires an optional lock on the specified object and returns an
+            ///   <see cref="OptionalLock"/> instance representing the lock state.
+            /// </summary>
+            /// <param name="lockObject">
+            ///   The object on which to acquire the lock. Cannot be <see langword="null"/>.
+            /// </param>
+            /// <param name="useLock">
+            ///   A value indicating whether to acquire the lock.
+            ///   If <see langword="true"/>, the method attempts to enter a monitor lock on <paramref name="lockObject"/>;
+            ///   otherwise, no lock is acquired.
+            /// </param>
+            /// <returns>An <see cref="OptionalLock"/> instance that represents the acquired lock.</returns>
             public static OptionalLock Lock(object lockObject, bool useLock)
             {
                 if (useLock)
@@ -200,18 +238,25 @@ public unsafe partial class GraphicsDevice
                 return new OptionalLock(lockObject, useLock);
             }
         }
+
+        #endregion
     }
 
     /// <summary>
     ///   Internal pool of reusable <see cref="ID3D12CommandAllocator"/>s.
     /// </summary>
     /// <param name="graphicsDevice">The Graphics Device to associate with this resource pool.</param>
+    /// <param name="threadSafe">
+    ///   A value indicating whether the pool should be accessed in a thread-safe manner.
+    ///   If <see langword="true"/>, access to the pool will be synchronized using locks.
+    /// </param>
     /// <remarks>
     ///   This class manages the lifecycle of <see cref="ID3D12CommandAllocator"/> instances, creating
     ///   new allocators as needed and resetting them for reuse. It is designed to optimize resource
     ///   usage in scenarios where multiple command allocators are required.
     /// </remarks>
-    internal class CommandAllocatorPool(GraphicsDevice graphicsDevice, bool threadsafe) : ResourcePool<ID3D12CommandAllocator>(graphicsDevice, threadsafe)
+    internal class CommandAllocatorPool(GraphicsDevice graphicsDevice, bool threadSafe)
+        : ResourcePool<ID3D12CommandAllocator>(graphicsDevice, threadSafe)
     {
         /// <inheritdoc/>
         protected override ComPtr<ID3D12CommandAllocator> CreateObject()
@@ -241,6 +286,10 @@ public unsafe partial class GraphicsDevice
     ///   Internal pool of reusable <see cref="ID3D12DescriptorHeap"/>s.
     /// </summary>
     /// <param name="graphicsDevice">The Graphics Device to associate with this resource pool.</param>
+    /// <param name="threadSafe">
+    ///   A value indicating whether the pool should be accessed in a thread-safe manner.
+    ///   If <see langword="true"/>, access to the pool will be synchronized using locks.
+    /// </param>
     /// <param name="heapSize">The number of Descriptors for the pooled Descriptor heaps.</param>
     /// <param name="heapType">The type of the pooled Descriptor heaps.</param>
     /// <remarks>
@@ -248,7 +297,8 @@ public unsafe partial class GraphicsDevice
     ///   new Descriptor Heaps as needed and resetting them for reuse. It is designed to optimize resource
     ///   usage in scenarios where multiple Descriptor Heaps are required.
     /// </remarks>
-    internal class HeapPool(GraphicsDevice graphicsDevice, bool threadsafe, int heapSize, DescriptorHeapType heapType) : ResourcePool<ID3D12DescriptorHeap>(graphicsDevice, threadsafe)
+    internal class HeapPool(GraphicsDevice graphicsDevice, bool threadSafe, int heapSize, DescriptorHeapType heapType)
+        : ResourcePool<ID3D12DescriptorHeap>(graphicsDevice, threadSafe)
     {
         private readonly int heapSize = heapSize;
         private readonly DescriptorHeapType heapType = heapType;
