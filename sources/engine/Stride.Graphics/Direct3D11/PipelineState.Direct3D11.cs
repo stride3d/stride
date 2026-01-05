@@ -747,7 +747,6 @@ namespace Stride.Graphics
                         valueComPtr = computeValue(source);
 
                         storage.Add(key, valueComPtr);
-                        referenceCount.Add(valueComPtr, 1);
 
                         // NOTE: Multiple keys could map to the same object.
                         //       To avoid creating the same object multiple times, we keep a reverse lookup
@@ -755,12 +754,9 @@ namespace Stride.Graphics
                         scoped ref var keys = ref CollectionsMarshal.GetValueRefOrAddDefault(reverse, valueComPtr, out _);
                         keys ??= [ key ];
                     }
-                    else
-                    {
-                        // Old value: Increment reference count
-                        scoped ref int refCount = ref CollectionsMarshal.GetValueRefOrAddDefault(referenceCount, valueComPtr, out _);
-                        refCount++;
-                    }
+
+                    scoped ref int refCount = ref CollectionsMarshal.GetValueRefOrAddDefault(referenceCount, valueComPtr, out _);
+                    refCount++;
 
                     return valueComPtr;
                 }
