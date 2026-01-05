@@ -6,7 +6,7 @@
     <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(Linux))'">Linux</StridePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Vulkan</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(StridePlatform)' == 'Linux'">
