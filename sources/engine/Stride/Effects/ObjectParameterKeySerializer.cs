@@ -5,16 +5,8 @@ using Stride.Core.Serialization;
 
 namespace Stride.Rendering;
 
-/// <summary>
-///   Provides functionality to serialize and deserialize <see cref="ObjectParameterKey{T}"/> objects.
-/// </summary>
 public class ObjectParameterKeySerializer<T> : DataSerializer<ObjectParameterKey<T>>
 {
-    /// <summary>
-    ///   Serializes or deserializes a <see cref="ObjectParameterKey{T}"/> object.
-    /// </summary>
-    /// <param name="objectParameterKey">The object to serialize or deserialize.</param>
-    /// <inheritdoc/>
     public override void Serialize(ref ObjectParameterKey<T> objectParameterKey, ArchiveMode mode, SerializationStream stream)
     {
         if (mode == ArchiveMode.Serialize)

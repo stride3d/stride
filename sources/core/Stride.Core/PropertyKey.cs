@@ -143,14 +143,6 @@ public abstract class PropertyKey : IComparable
         }
     }
 
-    /// <summary>
-    ///   Configures the metadata for a property given a <see cref="PropertyKeyMetadata"/>
-    ///   by assigning specific recognized metadata types in this property key.
-    /// </summary>
-    /// <param name="metadata">The metadata object to be processed.</param>
-    /// <remarks>
-    ///   This method is designed to be overridden in derived classes to extend or modify the metadata setup process.
-    /// </remarks>
     protected virtual void SetupMetadata(PropertyKeyMetadata metadata)
     {
         if (metadata is DefaultValueMetadata defaultValueMetadata)
@@ -171,11 +163,6 @@ public abstract class PropertyKey : IComparable
         }
     }
 
-    /// <summary>
-    ///   Creates an object that can hold a value for the parameter key.
-    /// </summary>
-    /// <param name="value">The value to hold.</param>
-    /// <returns>A <see cref="PropertyContainer.ValueHolder"/> containing the <paramref name="value"/>.</returns>
     internal abstract PropertyContainer.ValueHolder CreateValueHolder(object value);
 }
 

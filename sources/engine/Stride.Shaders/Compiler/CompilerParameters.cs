@@ -13,46 +13,27 @@ using Stride.Rendering;
 namespace Stride.Shaders.Compiler
 {
     /// <summary>
-    ///   A collection of parameters used for configuring Effect / Shader compilation.
+    /// Parameters used for compilation.
     /// </summary>
-    /// <remarks>
-    ///   This class extends <see cref="ParameterCollection"/> and implements <see cref="IDictionary{ParameterKey, object}"/>,
-    ///   allowing to set and retrieve any parameter using a <see cref="ParameterKey"/> key.
-    /// </remarks>
     [DataSerializer(typeof(DictionaryAllSerializer<CompilerParameters, ParameterKey, object>))]
     public sealed class CompilerParameters : ParameterCollection, IDictionary<ParameterKey, object>
     {
         /// <summary>
-        ///   Gets or sets the parameters used by the Effect compiler.
+        /// Initializes a new instance of the <see cref="CompilerParameters"/> class.
         /// </summary>
-        [DataMemberIgnore]
-        public ref EffectCompilerParameters EffectParameters => ref effectParameters;
-        private EffectCompilerParameters effectParameters = EffectCompilerParameters.Default;
+        public CompilerParameters()
+        {
+        }
 
-
-        /// <summary>
-        ///   Initializes a new instance of the <see cref="CompilerParameters"/> class.
-        /// </summary>
-        public CompilerParameters() { }
-
-        /// <summary>
-        ///   Initializes a new instance of the <see cref="CompilerParameters"/> class.
-        /// </summary>
-        /// <param name="compilerParameters">A <see cref="CompilerParameters"/> instance to copy values from.</param>
         public CompilerParameters(CompilerParameters compilerParameters) : base(compilerParameters)
         {
             EffectParameters = compilerParameters.EffectParameters;
         }
 
-        #region IDictionary<ParameterKey, object> implementation
+        [DataMemberIgnore]
+        public EffectCompilerParameters EffectParameters = EffectCompilerParameters.Default;
 
-        /// <summary>
-        ///   Adds a key-value pair to the dictionary.
-        /// </summary>
-        /// <remarks>If the key already exists in the dictionary, the value will be updated to the new
-        /// value provided.</remarks>
-        /// <param name="key">The key associated with the value to add. Cannot be null.</param>
-        /// <param name="value">The value to associate with the specified key. Can be null.</param>
+        #region IDictionary<ParameterKey, object> implementation
         public void Add(ParameterKey key, object value)
         {
             SetObject(key, value);

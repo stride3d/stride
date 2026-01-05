@@ -10,23 +10,11 @@ using static System.Runtime.CompilerServices.Unsafe;
 
 namespace Stride.Engine.Design
 {
-    /// <summary>
-    ///   Describes how to parse and resolve an <see cref="UpdatableMember"/> of type <see cref="ParameterCollection"/>
-    ///   when parsing an <see cref="UpdateEngine"/> property path.
-    /// </summary>
     public class ParameterCollectionResolver : UpdateMemberResolver
     {
-        /// <inheritdoc/>
         public override Type SupportedType => typeof(ParameterCollection);
 
 
-        /// <inheritdoc/>
-        /// <exception cref="InvalidOperationException">
-        ///   Could not parse the indexer value in the property path.
-        /// </exception>
-        /// <exception cref="NotSupportedException">
-        ///   This resolver can only handle <see cref="ParameterKeyType.Value"/> and <see cref="ParameterKeyType.Object"/> keys.
-        /// </exception>
         public override UpdatableMember ResolveIndexer(string indexerName)
         {
             // TODO: PropertyKeyParseException from UpdateEngine should be thrown here

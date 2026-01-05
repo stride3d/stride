@@ -4,11 +4,6 @@
 namespace Stride.Core;
 
 /// <summary>
-///   Specifies metadata for a <see cref="PropertyKey"/>.
+/// Specifies metadata for an <see cref="PropertyKey"/>.
 /// </summary>
-/// <remarks>
-///   This class is used to provide additional information about a property key.
-///   Derived classes can implement specific metadata types, such as a default value (<see cref="DefaultValueMetadata"/>),
-///   description, or other attributes.
-/// </remarks>
 public abstract class PropertyKeyMetadata;

@@ -16,8 +16,7 @@ using Stride.Core.UnsafeExtensions;
 namespace Stride.Rendering
 {
     /// <summary>
-    ///   A collection of parameters used by Effects and Shaders, such as resources and data.
-    ///   It can force a specific data and resource layout (usually by the consuming Effect).
+    /// Manage several effect parameters (resources and data). A specific data and resource layout can be forced (usually by the consuming effect).
     /// </summary>
     [DataSerializerGlobal(null, typeof(List<ParameterKeyInfo>))]
     [DataSerializer(typeof(Serializer))]
@@ -33,68 +32,32 @@ namespace Stride.Rendering
 
         // Constants and resources
 
-        /// <summary>
-        ///   Gets the data buffer where the values (<see langword="float"/>s, <see langword="int"/>s, etc.)
-        ///   of the parameters are stored.
-        /// </summary>
         [DataMemberIgnore]
         public ReadOnlySpan<byte> DataValues => dataValues;
         private byte[] dataValues = [];
 
-        /// <summary>
-        ///   Gets the data buffer where the objects (like Graphics Resources, <c>Texture</c>s, <c>Buffer</c>s, <c>SamplerState</c>s,
-        ///   etc.) of the object or permutation parameters are stored.
-        /// </summary>
         [DataMemberIgnore]
         public ReadOnlySpan<object> ObjectValues => objectValues;
         private object[] objectValues;
 
-        /// <summary>
-        ///   Gets a counter that is incremented each time the permutation parameters change.
-        ///   This can be used by consuming code to detect when the permutation has changed and
-        ///   react accordingly (e.g., recompile the Effect or update the graphics pipeline).
-        /// </summary>
         [DataMemberIgnore]
         public int PermutationCounter { get; private set; } = 1; // TODO: Shoud be named PermutationVersion, as it is to know when the permutation has changed
 
-        /// <summary>
-        ///   Gets a counter that is incremented each time the <see cref="Layout"/> change.
-        ///   This can be used by consuming code to detect when the data has been reorganized and
-        ///   react accordingly (e.g., recompile the Root Signature or update the graphics pipeline).
-        /// </summary>
         [DataMemberIgnore]
         public int LayoutCounter { get; private set; } = 1;  // TODO: Shoud be named LayoutVersion, as it is to know when the layout has changed
 
-        /// <summary>
-        ///   Gets the list of <see cref="ParameterKeyInfo"/> that describes the parameters in the collection.
-        /// </summary>
         [DataMemberIgnore]
         public List<ParameterKeyInfo> ParameterKeyInfos => parameterKeyInfos;
 
-        /// <summary>
-        ///   Gets the layout of the parameters in the collection, including information about
-        ///   how parameters are organized and accessed, the size of the buffer used to store
-        ///   the values of these parameters, and the number of resources used.
-        /// </summary>
         [DataMemberIgnore]
         public ParameterCollectionLayout? Layout { get; private set; }
 
-        /// <summary>
-        ///   Gets a value indicating whether the layout is defined.
-        /// </summary>
         [DataMemberIgnore]
         public bool HasLayout => Layout is not null;
 
 
-        /// <summary>
-        ///   Initializes a new instance of the <see cref="ParameterCollection"/> class.
-        /// </summary>
         public ParameterCollection() { }
 
-        /// <summary>
-        ///   Initializes a new instance of the <see cref="ParameterCollection"/> class.
-        /// </summary>
-        /// <param name="parameterCollection">A <see cref="ParameterCollection"/> instance to copy values from.</param>
         public ParameterCollection(ParameterCollection parameterCollection)
         {
             // Copy layout
@@ -119,12 +82,17 @@ namespace Stride.Rendering
             }
         }
 
-        /// <summary>
-        ///   Adjusts a value to be aligned to the specified <see cref="Alignment"/>,
-        ///   meaning it is increased to the next multiple of <see cref="Alignment"/>,
-        ///   if it is not already a multiple.
-        /// </summary>
+        /// <summary>Increases <paramref name="value"/> to the next multiple of <see cref="Alignment"/>,
+        /// if it is not already a multiple.
+        /// <para>It is blindly assumed <see cref="Alignment"/> is a power of 2.</para></summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        /// <summary>Computes the buffer size required for a single parameter value
+        /// or an array of parameters of the same type.
+        /// <para>This is an incremental size for buffers that contain
+        /// more than one type of parameter.</para></summary>
+        /// <returns>The size of a buffer required to store <paramref name="elementCount"/>
+        /// elements of size <paramref name="elementSize"/>, including padding to
+        /// <see cref="Alignment"/> for all but the last element.</returns>
         private static int Align(int value)
         {
             Debug.Assert(int.IsPow2(Alignment), "Alignment must be a power of 2");
@@ -132,15 +100,6 @@ namespace Stride.Rendering
             return (value + AlignmentMask) & ~AlignmentMask;
         }
 
-        /// <summary>
-        ///   Computes the buffer size required for a single parameter value or
-        ///   an array of parameters of the same type.
-        /// </summary>
-        /// <returns>
-        ///   The size of a buffer required to store <paramref name="elementCount"/> elements
-        ///   of size <paramref name="elementSize"/>, including padding to <see cref="Alignment"/>
-        ///   for all but the last element.
-        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int ComputeAlignedSizeMinusTrailingPadding(int elementSize, int elementCount)
         {
@@ -152,7 +111,6 @@ namespace Stride.Rendering
             return result;
         }
 
-        /// <inheritdoc/>
         public override string ToString()
         {
             var parameterKeysByType = ParameterKeyInfos
@@ -165,16 +123,11 @@ namespace Stride.Rendering
         #region Accessors
 
         /// <summary>
-        ///   Gets an object that can be used to more efficiently access (get and set) an object
-        ///   with a given parameter key.
+        /// Gets an accessor to get and set objects more quickly.
         /// </summary>
-        /// <typeparam name="T">The type of object parameter to access.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the object to access.</param>
-        /// <returns>
-        ///   An <see cref="ObjectParameterAccessor{T}"/> that provides fast access to the object
-        ///   with the specified parameter key.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameterKey"></param>
+        /// <returns></returns>
         public ObjectParameterAccessor<T> GetAccessor<T>(ObjectParameterKey<T> parameterKey, bool createIfNew = true)
         {
             var accessor = GetObjectParameterHelper(parameterKey, createIfNew);
@@ -182,16 +135,11 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Gets an object that can be used to more efficiently access (get and set) a permutation
-        ///   with a given parameter key.
+        /// Gets an accessor to get and set permutations more quickly.
         /// </summary>
-        /// <typeparam name="T">The type of permutation parameter to access.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the permutation to access.</param>
-        /// <returns>
-        ///   An <see cref="PermutationParameterAccessor{T}"/> that provides fast access to the permutation
-        ///   with the specified parameter key.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameterKey"></param>
+        /// <returns></returns>
         public PermutationParameterAccessor<T> GetAccessor<T>(PermutationParameterKey<T> parameterKey, bool createIfNew = true)
         {
             // Remap it as PermutationParameter
@@ -200,43 +148,17 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Gets an object that can be used to more efficiently access (get and set) a
-        ///   <em>blittable</em> or <em><see langword="unmanaged"/></em> value with a given parameter key.
+        /// Gets an accessor to get and set blittable values more quickly.
         /// </summary>
-        /// <typeparam name="T">The type of value parameter to access.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the value to access.</param>
-        /// <returns>
-        ///   An <see cref="ValueParameterAccessor{T}"/> that provides fast access to the value
-        ///   with the specified parameter key.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameterKey"></param>
+        /// <returns></returns>
         public ValueParameterAccessor<T> GetAccessor<T>(ValueParameterKey<T> parameterKey, int elementCount = 1) where T : unmanaged
         {
             var accessor = GetValueAccessorHelper(parameterKey, elementCount);
             return new ValueParameterAccessor<T>(accessor.Offset, accessor.Count);
         }
 
-        /// <summary>
-        ///   Retrieves a <see cref="ParameterAccessor"/> for an object (resource or permutation)
-        ///   with the specified parameter key.
-        /// </summary>
-        /// <param name="parameterKey">
-        ///   The parameter key identifying the parameter for which to retrieve the accessor.
-        /// </param>
-        /// <param name="createIfNew">
-        ///   A value indicating whether to create a new parameter accessor if one does not already exist for the specified key.
-        ///   Defaults to <see langword="true"/>.
-        /// </param>
-        /// <returns>
-        ///   A <see cref="ParameterAccessor"/> associated with the specified <paramref name="parameterKey"/>.
-        ///   If <paramref name="createIfNew"/> is <see langword="false"/> and the key does not exist,
-        ///   returns <see cref="ParameterAccessor.Invalid"/>.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
-        /// <remarks>
-        ///   If the parameter key is of type <see cref="ParameterKeyType.Permutation"/>, the permutation counter is incremented.
-        ///   The layout counter is incremented for each call.
-        /// </remarks>
         protected ParameterAccessor GetObjectParameterHelper(ParameterKey parameterKey, bool createIfNew = true)
         {
             ArgumentNullException.ThrowIfNull(parameterKey);
@@ -286,20 +208,6 @@ namespace Stride.Rendering
             return new ParameterAccessor(resourceValuesSize, 1);
         }
 
-        /// <summary>
-        ///   Retrieves a <see cref="ParameterAccessor"/> for a value (data) with the specified parameter key.
-        /// </summary>
-        /// <param name="parameterKey">
-        ///   The parameter key identifying the parameter for which to retrieve the accessor.
-        /// </param>
-        /// <param name="elementCount">The number of elements to allocate for the parameter. Defaults to 1.</param>
-        /// <returns>A <see cref="ParameterAccessor"/> associated with the specified <paramref name="parameterKey"/>.</returns>
-        /// <remarks>
-        ///   If an existing accessor for the <paramref name="parameterKey"/> is found, it is returned.
-        ///   Otherwise, a new accessor is created, and the parameter is added to the collection.
-        ///   The method ensures that the data storage is resized to accommodate new parameters and initializes the default value
-        ///   if metadata is provided.
-        /// </remarks>
         private unsafe ParameterAccessor GetValueAccessorHelper(ParameterKey parameterKey, int elementCount = 1)
         {
             ArgumentNullException.ThrowIfNull(parameterKey);
@@ -352,29 +260,22 @@ namespace Stride.Rendering
         #endregion
 
         /// <summary>
-        ///   Sets an object with a given parameter key.
+        /// Sets an object.
         /// </summary>
-        /// <typeparam name="T">The type of object parameter to set.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the object to set.</param>
-        /// <param name="value">The value to set to the parameter.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="value"></param>
         public void Set<T>(ObjectParameterKey<T> parameterKey, T value)
         {
             Set(GetAccessor(parameterKey), value);
         }
 
         /// <summary>
-        ///   Gets an object with a given parameter key.
+        /// Gets an object.
         /// </summary>
-        /// <typeparam name="T">The type of object parameter to get.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the object to get.</param>
-        /// <param name="createIfNew">
-        ///   A value indicating whether to create a new object parameter if it does not exist.
-        ///   Default is <see langword="false"/>, meaning it will return the default value
-        ///   defined by any <see cref="DefaultValueMetadata"/> on the <paramref name="parameterKey"/>.
-        /// </param>
-        /// <returns>The value of the object parameter.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         public T Get<T>(ObjectParameterKey<T> parameterKey, bool createIfNew = false)
         {
             var accessor = GetAccessor(parameterKey, createIfNew);
@@ -385,29 +286,22 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Sets a permutation with a given parameter key.
+        /// Sets a permutation.
         /// </summary>
-        /// <typeparam name="T">The type of permutation parameter to set.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the permutation to set.</param>
-        /// <param name="value">The value to set to the parameter.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="value"></param>
         public void Set<T>(PermutationParameterKey<T> parameterKey, T value)
         {
             Set(GetAccessor(parameterKey), value);
         }
 
         /// <summary>
-        ///   Gets an permutation with a given parameter key.
+        /// Gets a permutation.
         /// </summary>
-        /// <typeparam name="T">The type of permutation parameter to get.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the permutation to get.</param>
-        /// <param name="createIfNew">
-        ///   A value indicating whether to create a new permutation parameter if it does not exist.
-        ///   Default is <see langword="false"/>, meaning it will return the default value
-        ///   defined by any <see cref="DefaultValueMetadata"/> on the <paramref name="parameterKey"/>.
-        /// </param>
-        /// <returns>The value of the permutation parameter.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         public T Get<T>(PermutationParameterKey<T> parameterKey, bool createIfNew = false)
         {
             var accessor = GetAccessor(parameterKey, createIfNew);
@@ -418,97 +312,71 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Sets a <em>blittable</em> or <em><see langword="unmanaged"/></em> value with a given parameter key.
+        /// Sets a blittable value.
         /// </summary>
-        /// <typeparam name="T">The type of value parameter to set.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the value to set.</param>
-        /// <param name="value">The value to set to the parameter.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="value"></param>
         public void Set<T>(ValueParameterKey<T> parameterKey, T value) where T : unmanaged
         {
             Set(GetAccessor(parameterKey), value);
         }
 
-        /// <summary>
-        ///   Sets a <em>blittable</em> or <em><see langword="unmanaged"/></em> value with a given parameter key.
-        /// </summary>
-        /// <typeparam name="T">The type of value parameter to set.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the value to set.</param>
-        /// <param name="value">The value to set to the parameter.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
         public void Set<T>(ValueParameterKey<T> parameterKey, ref readonly T value) where T : unmanaged
         {
             Set(GetAccessor(parameterKey), in value);
         }
 
         /// <summary>
-        ///   Sets a span of <em>blittable</em> or <em><see langword="unmanaged"/></em> values
-        ///   with a given parameter key.
+        /// Sets a blittable value.
         /// </summary>
-        /// <typeparam name="T">The type of value parameter to set.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the values to set.</param>
-        /// <param name="values">The values to set to the parameter.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="value"></param>
         public void Set<T>(ValueParameterKey<T> parameterKey, ReadOnlySpan<T> values) where T : unmanaged
         {
             Set(GetAccessor(parameterKey, values.Length), values.Length, in values[0]);
         }
 
         /// <summary>
-        ///   Sets an array of <em>blittable</em> or <em><see langword="unmanaged"/></em> values
-        ///   with a given parameter key.
+        /// Sets blittable values.
         /// </summary>
-        /// <typeparam name="T">The type of value parameter to set.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the values to set.</param>
-        /// <param name="values">The values to set to the parameter.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="values"></param>
         public void Set<T>(ValueParameterKey<T> parameterKey, T[] values) where T : unmanaged
         {
             Set(GetAccessor(parameterKey, values.Length), values.Length, ref values.GetReference());
         }
 
         /// <summary>
-        ///   Sets a number of <em>blittable</em> or <em><see langword="unmanaged"/></em> values
-        ///   with a given parameter key.
+        /// Sets blittable values.
         /// </summary>
-        /// <typeparam name="T">The type of value parameter to set.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the values to set.</param>
-        /// <param name="count">The number of elements to set to the parameter.</param>
-        /// <param name="firstValue">A reference to the first value to set to the parameter.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentException">
-        ///   The <paramref name="count"/> exceeds the maximum allowed count for the parameter.
-        /// </exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="values"></param>
         public void Set<T>(ValueParameterKey<T> parameterKey, int count, ref readonly T firstValue) where T : unmanaged
         {
             Set(GetAccessor(parameterKey, count), count, in firstValue);
         }
 
         /// <summary>
-        ///   Gets a <em>blittable</em> or <em><see langword="unmanaged"/></em> value with a given parameter key.
+        /// Gets a blittable value.
         /// </summary>
-        /// <typeparam name="T">The type of value parameter to get.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the value to get.</param>
-        /// <returns>The value of the value parameter.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         public T Get<T>(ValueParameterKey<T> parameterKey) where T : unmanaged
         {
             return Get(GetAccessor(parameterKey));
         }
 
         /// <summary>
-        ///   Gets a span of <em>blittable</em> or <em><see langword="unmanaged"/></em> values with a given parameter key.
+        /// Gets blittable values.
         /// </summary>
-        /// <typeparam name="T">The type of value parameter to get.</typeparam>
-        /// <param name="parameter">An accessor that gives access to the parameter values to get.</param>
-        /// <param name="valuesSpan">
-        ///   A span to be filled with the values of the value parameter.
-        ///   It must be large enough to hold all values of the parameter.
-        /// </param>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentException">
-        ///   <paramref name="valuesSpan"/> is not large enough to hold the values of the specified parameter.
-        /// </exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
         private unsafe void GetValues<T>(ValueParameterAccessor<T> parameter, Span<T> valuesSpan) where T : unmanaged
         {
             if (valuesSpan.Length < parameter.Count)
@@ -531,19 +399,6 @@ namespace Stride.Rendering
             }
         }
 
-        /// <summary>
-        ///   Gets a span of <em>blittable</em> or <em><see langword="unmanaged"/></em> values with a given parameter key.
-        /// </summary>
-        /// <typeparam name="T">The type of value parameter to get.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the values to get.</param>
-        /// <param name="valuesSpan">
-        ///   A span to be filled with the values of the value parameter.
-        ///   It must be large enough to hold all values of the parameter.
-        /// </param>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentException">
-        ///   <paramref name="valuesSpan"/> is not large enough to hold the values of the specified parameter.
-        /// </exception>
         public unsafe void GetValues<T>(ValueParameterKey<T> parameterKey, Span<T> valuesSpan) where T : unmanaged
         {
             var parameter = GetAccessor(parameterKey);
@@ -552,12 +407,7 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Gets a span of <em>blittable</em> or <em><see langword="unmanaged"/></em> values with a given parameter key.
-        /// </summary>
-        /// <typeparam name="T">The type of value parameter to get.</typeparam>
-        /// <param name="parameterKey">The parameter key that identifies the values to get.</param>
-        /// <returns>The values of the value parameter.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
+        /// Copies all blittable values of a given key to the specified <see cref="ParameterCollection"/>.
         public unsafe T[] GetValues<T>(ValueParameterKey<T> parameterKey) where T : unmanaged
         {
             var parameter = GetAccessor(parameterKey);
@@ -568,21 +418,11 @@ namespace Stride.Rendering
             return values;
         }
 
-        /// <summary>
-        ///   Copies all the <em>blittable</em> or <em><see langword="unmanaged"/></em> values of a given parameter
-        ///   to the specified parameter in another <see cref="ParameterCollection"/>.
         /// </summary>
-        /// <typeparam name="T">The type of value parameter to get.</typeparam>
-        /// <param name="sourceParameterKey">The parameter key that identifies the values to copy.</param>
-        /// <param name="destination">The parameter collection to copy the values to.</param>
-        /// <param name="destinationParameterKey">
-        ///   The parameter key that identifies the destination parameter in the <paramref name="destination"/> collection.
-        /// </param>
-        /// <exception cref="ArgumentNullException"><paramref name="destination"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="destinationParameterKey"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentException">
-        ///   The source parameter has more elements than the destination parameter can hold.
-        /// </exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key">The key for the values to copy.</param>
+        /// <param name="destination">The collection to copy the values to.</param>
+        /// <param name="destinationKey">The key for the values of the destination collection.</param>
         public unsafe void CopyTo<T>(ValueParameterKey<T> sourceParameterKey,
                                      ParameterCollection destination, ValueParameterKey<T> destinationParameterKey)
             where T : unmanaged
@@ -614,11 +454,11 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Sets a <em>blittable</em> or <em><see langword="unmanaged"/></em> parameter value.
+        /// Sets a blittable value.
         /// </summary>
-        /// <typeparam name="T">The type of value parameter to set.</typeparam>
-        /// <param name="parameter">An accessor to the parameter to set.</param>
-        /// <param name="value">The value to set to the parameter.</param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="value"></param>
         public unsafe void Set<T>(ValueParameterAccessor<T> parameter, T value) where T : unmanaged
         {
             Debug.Assert(parameter.Offset <= dataValues.Length - sizeof(T));
@@ -627,11 +467,11 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Sets a <em>blittable</em> or <em><see langword="unmanaged"/></em> parameter value.
+        /// Sets a blittable value.
         /// </summary>
-        /// <typeparam name="T">The type of value parameter to set.</typeparam>
-        /// <param name="parameter">An accessor to the parameter to set.</param>
-        /// <param name="value">The value to set to the parameter.</param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="value"></param>
         public unsafe void Set<T>(ValueParameterAccessor<T> parameter, ref readonly T value) where T : unmanaged
         {
             Debug.Assert(parameter.Offset + sizeof(T) <= dataValues.Length);
@@ -640,15 +480,12 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Sets a number of <em>blittable</em> or <em><see langword="unmanaged"/></em> parameter values.
+        /// Sets blittable values.
         /// </summary>
-        /// <typeparam name="T">The type of value parameter to set.</typeparam>
-        /// <param name="parameter">An accessor to the parameter to set.</param>
-        /// <param name="count">The number of elements to set to the parameter.</param>
-        /// <param name="firstValue">A reference to the first value to set to the parameter.</param>
-        /// <exception cref="ArgumentException">
-        ///   The <paramref name="count"/> exceeds the maximum allowed count for the parameter.
-        /// </exception>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="count"></param>
+        /// <param name="firstValue"></param>
         public unsafe void Set<T>(ValueParameterAccessor<T> parameter, int count, ref readonly T firstValue) where T : unmanaged
         {
             int bufferSize = dataValues.Length;
@@ -680,11 +517,11 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Sets a permutation.
+        /// Sets a permutation.
         /// </summary>
-        /// <typeparam name="T">The type of permutation parameter to set.</typeparam>
-        /// <param name="parameter">An accessor to the parameter to set.</param>
-        /// <param name="value">The value to set to the permutation parameter.</param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="value"></param>
         public void Set<T>(PermutationParameterAccessor<T> parameter, T value)
         {
             Debug.Assert(parameter.BindingSlot < objectValues.Length);
@@ -703,11 +540,11 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Sets an object (a Graphics Resource, a <c>Texture</c>, a <c>Buffer</c>, a <c>SamplerState</c>, etc.)
+        /// Sets an object.
         /// </summary>
-        /// <typeparam name="T">The type of object parameter to set.</typeparam>
-        /// <param name="parameter">An accessor to the parameter to set.</param>
-        /// <param name="value">The value to set to the parameter.</param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameterAccessor"></param>
+        /// <param name="value"></param>
         public void Set<T>(ObjectParameterAccessor<T> parameter, T value)
         {
             Debug.Assert(parameter.BindingSlot < objectValues.Length);
@@ -716,11 +553,11 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Gets a <em>blittable</em> or <em><see langword="unmanaged"/></em> value.
+        /// Gets a value.
         /// </summary>
-        /// <typeparam name="T">The type of value parameter to get.</typeparam>
-        /// <param name="parameter">An accessor to the parameter to get.</param>
-        /// <returns>The value of the value parameter.</returns>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         public unsafe T Get<T>(ValueParameterAccessor<T> parameter) where T : unmanaged
         {
             Debug.Assert(parameter.Offset + sizeof(T) <= dataValues.Length);
@@ -729,11 +566,11 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Gets a permutation.
+        /// Gets a permutation.
         /// </summary>
-        /// <typeparam name="T">The type of permutation parameter to get.</typeparam>
-        /// <param name="parameter">An accessor to the parameter to get.</param>
-        /// <returns>The value of the permutation parameter.</returns>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         public T Get<T>(PermutationParameterAccessor<T> parameter)
         {
             Debug.Assert(parameter.BindingSlot < objectValues.Length);
@@ -742,11 +579,11 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Gets an object (a Graphics Resource, a <c>Texture</c>, a <c>Buffer</c>, a <c>SamplerState</c>, etc.)
+        /// Gets an object.
         /// </summary>
-        /// <typeparam name="T">The type of object parameter to get.</typeparam>
-        /// <param name="parameter">An accessor to the parameter to get.</param>
-        /// <returns>The value of the object parameter.</returns>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameterAccessor"></param>
+        /// <returns></returns>
         public T Get<T>(ObjectParameterAccessor<T> parameter)
         {
             Debug.Assert(parameter.BindingSlot < objectValues.Length);
@@ -754,21 +591,6 @@ namespace Stride.Rendering
             return (T) objectValues[parameter.BindingSlot];
         }
 
-        /// <summary>
-        ///   Sets an object (a Graphics Resource, a <c>Texture</c>, a <c>Buffer</c>, a <c>SamplerState</c>, etc.)
-        ///   or a permutation with the specified parameter key.
-        /// </summary>
-        /// <param name="parameterKey">
-        ///   The parameter key that identifies the parameter to set.
-        ///   It must be of type <see cref="ParameterKeyType.Permutation"/> or <see cref="ParameterKeyType.Object"/>.
-        /// </param>
-        /// <param name="value">The value to set to the parameter. Can be <see langword="null"/>.</param>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="parameterKey"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        ///   The <paramref name="parameterKey"/> is not of type <see cref="ParameterKeyType.Permutation"/> or <see cref="ParameterKeyType.Object"/>.
-        /// </exception>
         public void SetObject(ParameterKey parameterKey, object? value)
         {
             ArgumentNullException.ThrowIfNull(parameterKey);
@@ -790,25 +612,7 @@ namespace Stride.Rendering
             objectValues[accessor.Offset] = value;
         }
 
-        /// <summary>
-        ///   Gets an object (a Graphics Resource, a <c>Texture</c>, a <c>Buffer</c>, a <c>SamplerState</c>, etc.)
-        ///   or a permutation with the specified parameter key.
-        /// </summary>
-        /// <param name="parameterKey">
-        ///   The parameter key that identifies the parameter to set.
-        ///   It must be of type <see cref="ParameterKeyType.Permutation"/> or <see cref="ParameterKeyType.Object"/>.
-        /// </param>
-        /// <returns>
-        ///   The value of the object or permutation parameter (which can be <see langword="null"/>),
-        ///   or <see langword="null"/> if the parameter does not exist.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="parameterKey"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        ///   The <paramref name="parameterKey"/> is not of type <see cref="ParameterKeyType.Permutation"/> or <see cref="ParameterKeyType.Object"/>.
-        /// </exception>
-        public object? GetObject(ParameterKey parameterKey)
+        public object? GetObject(ParameterKey parameterKey) //------------------------ Return null if not found
         {
             ArgumentNullException.ThrowIfNull(parameterKey);
 
@@ -822,17 +626,6 @@ namespace Stride.Rendering
             return objectValues[accessor.Offset];
         }
 
-        /// <summary>
-        ///   Removes the specified parameter from the collection.
-        /// </summary>
-        /// <param name="parameterKey">The parameter key identifying the parameter to remove from the collection.</param>
-        /// <returns>
-        ///   <see langword="true"/> if the parameter was successfully removed;
-        ///   otherwise, <see langword="false"/>.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="parameterKey"/> is <see langword="null"/>.
-        /// </exception>
         public bool Remove(ParameterKey parameterKey)
         {
             ArgumentNullException.ThrowIfNull(parameterKey);
@@ -851,7 +644,7 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Clears the parameter collection, removing all parameters, data, and the layout information.
+        /// Clears the collection, including the layout.
         /// </summary>
         public void Clear()
         {
@@ -862,16 +655,10 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Determines whether the collection contains a parameter.
+        /// Determines whether current collection contains a value for this key.
         /// </summary>
-        /// <param name="parameterKey">The parameter key identifying the parameter to look for.</param>
-        /// <returns>
-        ///   <see langword="true"/> if the collection contains a parameter with the specified key;
-        ///   <see langword="false"/> otherwise.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="parameterKey"/> is <see langword="null"/>.
-        /// </exception>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public bool ContainsKey(ParameterKey parameterKey)
         {
             ArgumentNullException.ThrowIfNull(parameterKey);
@@ -888,10 +675,9 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Reorganizes the internal data and resources to match the given layout,
-        ///   and appends any extra values at the end.
+        /// Reorganizes internal data and resources to match the given objects, and append extra values at the end.
         /// </summary>
-        /// <param name="collectionLayout">The new layout.</param>
+        /// <param name="collectionLayout"></param>
         public unsafe void UpdateLayout(ParameterCollectionLayout collectionLayout)
         {
             var oldLayout = Layout;
@@ -1049,10 +835,6 @@ namespace Stride.Rendering
             objectValues = newResourceValues;
         }
 
-        /// <summary>
-        ///   Notifies that a change in the permutations has occurred.
-        ///   This can be used to trigger updates in dependent systems, like recompiling Effects or Shaders.
-        /// </summary>
         public void NotifyPermutationChange()
         {
             PermutationCounter++;
@@ -1060,16 +842,8 @@ namespace Stride.Rendering
 
         #region Serializer
 
-        /// <summary>
-        ///   Provides functionality to serialize and deserialize <see cref="ParameterCollection"/> objects.
-        /// </summary>
         public class Serializer : ClassDataSerializer<ParameterCollection>
         {
-            /// <summary>
-            ///   Serializes or deserializes a <see cref="ParameterCollection"/> object.
-            /// </summary>
-            /// <param name="parameterCollection">The object to serialize or deserialize.</param>
-            /// <inheritdoc/>
             public override void Serialize(ref ParameterCollection parameterCollection, ArchiveMode mode, SerializationStream stream)
             {
                 stream.Serialize(ref parameterCollection.parameterKeyInfos, mode);
@@ -1082,21 +856,20 @@ namespace Stride.Rendering
 
         #region DebugView
 
-        /// <summary>
-        ///   Debug type proxy for <see cref="ParameterCollection"/>.
-        /// </summary>
-        /// <param name="collection">The parameter collection.</param>
         private class DebugView(ParameterCollection collection)
         {
             /// <summary>
-            ///   The layout of the parameter collection.
+            /// Copies data from source to destination according to previously compiled layout.
             /// </summary>
+            /// <param name="source"></param>
             public ParameterCollectionLayout Layout => collection.Layout;
 
             /// <summary>
-            ///   A counter that identifies the permutation of the parameter collection.
-            ///   It is incremented each time a permutation is changed / added / removed.
+            /// Compute copy operations. Assumes destination layout is sequential.
             /// </summary>
+            /// <param name="dest"></param>
+            /// <param name="source"></param>
+            /// <param name="keyRoot"></param>
             public int PermutationCounter => collection.PermutationCounter;
 
             // NOTE: This should be named "Parameters", but since its name is hidden and we want it

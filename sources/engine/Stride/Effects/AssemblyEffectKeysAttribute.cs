@@ -3,11 +3,11 @@
 
 using System;
 
+    /// <summary>
+    /// Assembly attribute used to mark assembly that has been preprocessed using the <see cref="ParameterKeyProcessor"/>.
+    /// Assemblies without this attribute will have all of their type members tagged with <see cref="EffectKeysAttribute"/> scanned for <see cref="ParameterKey"/>.
+    /// </summary>
 namespace Stride.Rendering;
 
-/// <summary>
-///   Indicates that an assembly that has been preprocessed using the Assembly Processor's
-///   <c>ParameterKeyProcessor</c>.
-/// </summary>
 [AttributeUsage(AttributeTargets.Assembly)]
 public class AssemblyEffectKeysAttribute : Attribute;

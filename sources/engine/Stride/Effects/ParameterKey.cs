@@ -14,7 +14,7 @@ using Stride.Core.UnsafeExtensions;
 namespace Stride.Rendering
 {
     /// <summary>
-    ///   A key that identifies an Effect / Shader parameter.
+    /// Key of an effect parameter.
     /// </summary>
     public abstract class ParameterKey : PropertyKey
     {
@@ -22,37 +22,24 @@ namespace Stride.Rendering
         public ulong HashCode;
 
         /// <summary>
-        ///   Gets an optional metadata that can be used to store a default value for the parameter
-        ///   identified by the parameter key.
+        /// Initializes a new instance of the <see cref="ParameterKey" /> class.
         /// </summary>
+        /// <param name="propertyType">Type of the property.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="length">The length.</param>
+        /// <param name="metadatas">The metadatas.</param>
         [DataMemberIgnore]
         public new ParameterKeyValueMetadata DefaultValueMetadata { get; private set; }
 
         /// <summary>
-        ///   Gets the number of elements the parameter identified by the parameter key is composed of.
+        /// Gets the number of elements for this key.
         /// </summary>
         public int Length { get; private set; }
 
-        /// <summary>
-        ///   Gets a value indicating the type of the parameter key.
-        /// </summary>
         public ParameterKeyType Type { get; protected set; }
 
-        /// <summary>
-        ///   The size in bytes of the parameter identified by the parameter key.
-        /// </summary>
         public abstract int Size { get; }
 
-
-        /// <summary>
-        ///   Initializes a new instance of the <see cref="ParameterKey" /> class.
-        /// </summary>
-        /// <param name="propertyType">The type of the parameter.</param>
-        /// <param name="name">The name with which to identify the parameter key.</param>
-        /// <param name="length">The number of elements the parameter is composed of.</param>
-        /// <param name="metadatas">
-        ///   Optional metadata objects providing additional information about the parameter or its type.
-        /// </param>
         protected ParameterKey(Type propertyType, string name, int length, params PropertyKeyMetadata[]? metadatas)
             : base(name, propertyType, ownerType: null, metadatas)
         {
@@ -65,21 +52,34 @@ namespace Stride.Rendering
 
 
         /// <summary>
-        ///   Sets the <see cref="PropertyKey.Name"/> of the parameter key.
+        /// Determines whether the specified <see cref="object"/> is equal to this instance.
         /// </summary>
-        /// <param name="name">The new name to set. Cannot be <see langword="null"/>.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="name"/> is <see langword="null"/>.</exception>
+        /// <param name="obj">The <see cref="object"/> to compare with this instance.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
         internal void SetName(string name)
         {
             ArgumentNullException.ThrowIfNull(name);
 
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// </returns>
             base.name = string.Intern(name);
             UpdateName();
         }
 
         /// <summary>
-        ///   Updates the cached hash code of the current <see cref="PropertyKey.Name"/>.
+        /// Implements the operator ==.
         /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         private void UpdateName()
         {
             var objectIdBuilder = new ObjectIdBuilder();
@@ -91,10 +91,13 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Sets the type where the parameter key is defined, i.e. the owner type, if any.
+        /// Implements the operator !=.
         /// </summary>
-        /// <param name="ownerType">
-        ///   The <see cref="System.Type"/> representing the owner of the parameter key.</param>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         internal void SetOwnerType(Type? ownerType)
         {
             OwnerType = ownerType;
@@ -102,23 +105,13 @@ namespace Stride.Rendering
 
         //public abstract ParameterKey AppendKeyOverride(object obj);
 
+
         /// <summary>
-        ///   Converts a value to the expected type of the parameter key.
+        /// Converts the value passed by parameter to the expecting value of this parameter key (for example, if value is
+        /// an integer while this parameter key is expecting a float)
         /// </summary>
-        /// <param name="value">The value to convert.</param>
-        /// <returns>
-        ///   An <see langword="object"/> with the <paramref name="value"/> converted to the type of the parameter key.
-        ///   You should cast the returned value to the expected type before using it.
-        ///   If the type is a value type, it will be boxed.
-        /// </returns>
-        /// <remarks>
-        ///   This method is used to convert a value to the expected type of the parameter key.
-        ///   For example, if <paramref name="value"/> is an <see langword="int"/> and the parameter key
-        ///   is expecting a <see langword="float"/>, it is converted to a <see langword="float"/>.
-        /// </remarks>
-        /// <exception cref="InvalidCastException">
-        ///   Thrown when the value cannot be converted to the expected type of the parameter key.
-        /// </exception>
+        /// <param name="value">The value.</param>
+        /// <returns>System.Object.</returns>
         public object ConvertValue(object value)
         {
             // If not a value type, return the value as-is
@@ -146,7 +139,6 @@ namespace Stride.Rendering
             return value;
         }
 
-        /// <inheritdoc/>
         protected override void SetupMetadata(PropertyKeyMetadata metadata)
         {
             if (metadata is ParameterKeyValueMetadata defaultValueMetadata)
@@ -156,54 +148,42 @@ namespace Stride.Rendering
             else base.SetupMetadata(metadata);
         }
 
-        /// <summary>
-        ///   Reads the value of the parameter identified by the parameter key
-        ///   from the specified data pointer.
-        /// </summary>
-        /// <param name="data">A pointer to the data from which the value is to be read.</param>
-        /// <returns>
-        ///   The value read from the specified data pointer as an <see langword="object"/> (can be boxed).
-        /// </returns>
         internal virtual object ReadValue(IntPtr data)
         {
             throw new NotSupportedException("Only implemented for ValueParameterKey");
         }
 
+    /// <summary>
+    /// Key of an gereric effect parameter.
+    /// </summary>
+    /// <typeparam name="T">Type of the parameter key.</typeparam>
         /// <summary>
-        ///   Reads the value of the parameter identified by the parameter key
-        ///   from the specified data reference.
+        /// Initializes a new instance of the <see cref="ParameterKey{T}"/> class.
         /// </summary>
-        /// <param name="data">A reference to the data from which the value is to be read.</param>
-        /// <returns>
-        ///   The value read from the specified data reference as an <see langword="object"/> (can be boxed).
-        /// </returns>
+        /// <param name="type"></param>
+        /// <param name="name">The name.</param>
+        /// <param name="length">The length.</param>
+        /// <param name="metadata">The metadata.</param>
         internal virtual object ReadValue(scoped ref readonly byte data)
         {
             throw new NotSupportedException("Only implemented for ValueParameterKey");
         }
 
         /// <summary>
-        ///   Reads the value of the parameter identified by the parameter key
-        ///   from the specified span.
+        /// Initializes a new instance of the <see cref="ParameterKey{T}"/> class.
         /// </summary>
-        /// <param name="data">A span of data from which the value is to be read.</param>
-        /// <returns>
-        ///   The value read from the specified span as an <see langword="object"/> (can be boxed).
-        /// </returns>
+        /// <param name="type"></param>
+        /// <param name="name">The name.</param>
+        /// <param name="length">The length.</param>
+        /// <param name="metadatas">The metadatas.</param>
         internal virtual object ReadValue(scoped ReadOnlySpan<byte> data)
         {
             throw new NotSupportedException("Only implemented for ValueParameterKey");
         }
 
-        /// <summary>
-        ///   Serializes a parameter value.
-        /// </summary>
-        /// <param name="stream">The serialization stream to write the value to.</param>
-        /// <param name="value">The value to serialize.</param>
         internal abstract void Serialize(SerializationStream stream, object value);
 
 
-        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (obj is null)
@@ -214,7 +194,6 @@ namespace Stride.Rendering
             return obj is ParameterKey parameterKey && Equals(parameterKey.Name, Name);
         }
 
-        /// <inheritdoc/>
         public override int GetHashCode() => (int) HashCode;
 
         public static bool operator ==(ParameterKey left, ParameterKey right)
@@ -228,11 +207,10 @@ namespace Stride.Rendering
         }
     }
 
-
     /// <summary>
-    ///   A key that identifies an Effect / Shader parameter.
+    /// A blittable value effect key, usually for use by shaders (.sdsl).
     /// </summary>
-    /// <typeparam name="T">The type of the parameter.</typeparam>
+    /// <typeparam name="T">Type of the parameter key.</typeparam>
     public abstract class ParameterKey<T> : ParameterKey
     {
         // Serializer for the parameter type T
@@ -268,15 +246,6 @@ namespace Stride.Rendering
         {
         }
 
-        /// <summary>
-        ///   Initializes a new instance of the <see cref="ParameterKey{T}"/> class.
-        /// </summary>
-        /// <param name="type">The type of parameter key.</param>
-        /// <param name="name">The name with which to identify the parameter key.</param>
-        /// <param name="length">The number of elements the parameter is composed of.</param>
-        /// <param name="metadatas">
-        ///   Optional metadata objects providing additional information about the parameter or its type.
-        /// </param>
         protected ParameterKey(ParameterKeyType type, string name, int length = 1, params PropertyKeyMetadata[]? metadatas)
             : base(typeof(T), name, length, metadatas?.Length > 0 ? metadatas : [ new ParameterKeyValueMetadata<T>() ])
         {
@@ -284,7 +253,10 @@ namespace Stride.Rendering
         }
 
 
-        /// <inheritdoc/>
+    /// <summary>
+    /// An object (or boxed value) effect key, usually for use by shaders (.sdsl).
+    /// </summary>
+    /// <typeparam name="T">Type of the parameter key.</typeparam>
         public override string ToString() => Name;
 
         /// <inheritdoc/>
@@ -295,7 +267,10 @@ namespace Stride.Rendering
             currentDataSerializer.Serialize(ref value, ArchiveMode.Serialize, stream);
         }
 
-        /// <inheritdoc/>
+    /// <summary>
+    /// An effect permutation key, usually for use by effects (.sdfx).
+    /// </summary>
+    /// <typeparam name="T">Type of the parameter key.</typeparam>
         protected override void SetupMetadata(PropertyKeyMetadata metadata)
         {
             if (metadata is ParameterKeyValueMetadata<T> defaultValueMetadataT)
@@ -307,13 +282,6 @@ namespace Stride.Rendering
             base.SetupMetadata(metadata);
         }
 
-        /// <inheritdoc/>
-        /// <exception cref="NotImplementedException">
-        ///   This method is not implemented for this type of parameter key.
-        /// </exception>
-        /// <remarks>
-        ///   This method is not implemented for this type of parameter key.
-        /// </remarks>
         internal override PropertyContainer.ValueHolder CreateValueHolder(object value)
         {
             throw new NotImplementedException();

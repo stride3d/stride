@@ -8,21 +8,6 @@ using System.Linq;
 
 namespace Stride.Rendering
 {
-    /// <summary>
-    ///   Provides methods for creating, managing, and retrieving parameter keys.
-    /// </summary>
-    /// <remarks>
-    ///   <para>
-    ///     The <see cref="ParameterKeys"/> class offers a variety of static methods to create different
-    ///     types of parameter keys, such as permutation, value, and object keys.
-    ///     It also provides the ability to create composed keys with names and indices, indexed keys,
-    ///     and finding keys by name.
-    ///   </para>
-    ///   <para>
-    ///     The class also serves like an internal registry for all parameter keys, allowing it
-    ///     to manage the keys and ensure their uniqueness and integrity.
-    ///   </para>
-    /// </remarks>
     public static partial class ParameterKeys
     {
         private static long keysVersion = 0;
@@ -35,16 +20,10 @@ namespace Stride.Rendering
 
 
         /// <summary>
-        ///   Gets all the parameter keys.
+        /// Returns property keys matching a given type
         /// </summary>
-        /// <returns>
-        ///   A collection of all the <see cref="ParameterKey"/>s that are not composed keys.
-        /// </returns>
-        /// <remarks>
-        ///   This method returns a snapshot of the keys at the time of the call. If no keys are added or removed,
-        ///   the returned collection will remain the same across multiple calls. However, if keys are added or removed,
-        ///   the parameter keys will be re-evaluated and the collection will be updated accordingly.
-        /// </remarks>
+        /// <param name="keyType">Type of the key.</param>
+        /// <returns></returns>
         public static IEnumerable<ParameterKey> GetKeys()
         {
             lock (keys)
@@ -70,19 +49,6 @@ namespace Stride.Rendering
         }
 
 
-        /// <summary>
-        ///   Creates a new permutation parameter key.
-        /// </summary>
-        /// <typeparam name="T">The type of the permutation parameter.</typeparam>
-        /// <param name="defaultValue">
-        ///   An optional default value for the permutation parameter.
-        ///   If <typeparamref name="T"/> is an array, its length is used to determine the key's <see cref="ParameterKey.Length"/>.
-        /// </param>
-        /// <param name="name">
-        ///   An optional name for the permutation parameter key. If <see langword="null"/>,
-        ///   an empty string is used.
-        /// </param>
-        /// <returns>A new <see cref="PermutationParameterKey{T}"/>.</returns>
         public static PermutationParameterKey<T> NewPermutation<T>(T defaultValue = default, string? name = null)
         {
             name ??= string.Empty;
@@ -94,22 +60,6 @@ namespace Stride.Rendering
             return new PermutationParameterKey<T>(name, length, new ParameterKeyValueMetadata<T>(defaultValue));
         }
 
-        /// <summary>
-        ///   Creates a new value parameter key.
-        /// </summary>
-        /// <typeparam name="T">
-        ///   The type of the permutation parameter.
-        ///   Must be a <em>blittable</em> type (i.e. <see langword="unmanaged"/>).
-        /// </typeparam>
-        /// <param name="defaultValue">
-        ///   An optional default value for the permutation parameter.
-        ///   If not specified, the default value for <typeparamref name="T"/> is used.
-        /// </param>
-        /// <param name="name">
-        ///   An optional name for the permutation parameter key.
-        ///   If <see langword="null"/>, an empty string is used.
-        /// </param>
-        /// <returns>A new <see cref="ValueParameterKey{T}"/>.</returns>
         public static ValueParameterKey<T> NewValue<T>(T defaultValue = default, string? name = null) where T : unmanaged
         {
             name ??= string.Empty;
@@ -117,19 +67,6 @@ namespace Stride.Rendering
             return new ValueParameterKey<T>(name, 1, new ParameterKeyValueMetadata<T>(defaultValue));
         }
 
-        /// <summary>
-        ///   Creates a new object parameter key.
-        /// </summary>
-        /// <typeparam name="T">The type of the object parameter.</typeparam>
-        /// <param name="defaultValue">
-        ///   An optional default value for the object parameter.
-        ///   If <typeparamref name="T"/> is an array, its length is used to determine the key's <see cref="ParameterKey.Length"/>.
-        /// </param>
-        /// <param name="name">
-        ///   An optional name for the object parameter key. If <see langword="null"/>,
-        ///   an empty string is used.
-        /// </param>
-        /// <returns>A new <see cref="ObjectParameterKey{T}"/>.</returns>
         public static ObjectParameterKey<T> NewObject<T>(T defaultValue = default, string? name = null)
         {
             name ??= string.Empty;
@@ -143,15 +80,10 @@ namespace Stride.Rendering
 
 
         /// <summary>
-        ///   Creates a key equal to another parameter key with an added index.
+        /// Creates the key with specified index.
         /// </summary>
-        /// <param name="index">
-        ///   The index.
-        ///   If <c>0</c>, the original key is returned.
-        /// </param>
-        /// <returns>
-        ///   A new key with the same name but the <paramref name="index"/> appended to its name.
-        /// </returns>
+        /// <param name="index">The index.</param>
+        /// <returns></returns>
         public static T NewIndexedKey<T>(T key, int index) where T : ParameterKey
         {
             if (index == 0)
@@ -165,25 +97,6 @@ namespace Stride.Rendering
         }
 
 
-        /// <summary>
-        ///   Registers a parameter key with the provided name and owner type, or
-        ///   updates it if it already exists.
-        /// </summary>
-        /// <param name="key">The <see cref="ParameterKey"/> to be merged.</param>
-        /// <param name="ownerType">
-        ///   The type that owns the parameter key.
-        ///   If <see langword="null"/>, the key will not be assigned an owner type,
-        ///   so it will keep its current owner type.
-        /// </param>
-        /// <param name="name">
-        ///   The name to associate with the parameter key.
-        ///   Must not be <see langword="null"/> or empty.
-        /// </param>
-        /// <returns>The registered or updated <see cref="ParameterKey"/>.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentException">
-        ///   <paramref name="name"/> is <see langword="null"/>, or an empty string, or contains only whitespace.
-        /// </exception>
         public static ParameterKey Merge(ParameterKey key, Type? ownerType, string name)
         {
             ArgumentNullException.ThrowIfNull(key);
@@ -220,19 +133,17 @@ namespace Stride.Rendering
 
 
         /// <summary>
-        ///   Creates a composed parameter key from a parameter key and a name.
+        /// Compose a key with a name (e.g  if key is `MyKey.MyKeyName` and name is `MyName`, the result key will be `MyKey.MyKeyName.MyName`)
         /// </summary>
-        /// <typeparam name="TKey">Type of the key value</typeparam>
-        /// <param name="parameterKey">The parameter key to compose.</param>
-        /// <param name="name">The name to compose the parameter key with.</param>
-        /// <returns>The composition of <paramref name="parameterKey"/> and <paramref name="name"/>.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="name"/> is <see langword="null"/>.</exception>
-        /// <remarks>
-        ///   This method creates a new key that is a composition of the provided key and name.
-        ///   For example, if the key is <c>"MyKey.MyKeyName"</c> and the name is <c>"MyName"</c>, the result
-        ///   will be <c>"MyKey.MyKeyName.MyName"</c>.
-        /// </remarks>
+        /// <typeparam name="T">Type of the key value</typeparam>
+        /// <param name="key">The key.</param>
+        /// <param name="name">The name to append to the key.</param>
+        /// <returns>The composition of key and name</returns>
+        /// <exception cref="System.ArgumentNullException">
+        /// key
+        /// or
+        /// name
+        /// </exception>
         public static TKey ComposeWith<TKey>(this TKey parameterKey, string name) where TKey : ParameterKey
         {
             ArgumentNullException.ThrowIfNull(parameterKey);
@@ -243,23 +154,19 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        ///   Creates a composed parameter key from a parameter key, a name, and an index.
+        /// Compose a key with a name and index (e.g  if key is `MyKey.MyKeyName` and name is `MyName` and index is 5, the result key will be `MyKey.MyKeyName.MyName[5]`)
         /// </summary>
-        /// <typeparam name="TKey">Type of the key value</typeparam>
-        /// <param name="parameterKey">The parameter key to compose.</param>
-        /// <param name="name">The name to compose the parameter key with.</param>
-        /// <param name="index">The index to append to the composed key.</param>
-        /// <returns>
-        ///   The composition of <paramref name="parameterKey"/>, <paramref name="name"/>, and <paramref name="index"/>.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="parameterKey"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="name"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">index;Must be >= 0</exception>
-        /// <remarks>
-        ///   This method creates a new key that is a composition of the provided key, the name, and the index.
-        ///   For example, if the key is <c>"MyKey.MyKeyName"</c>, the name is <c>"MyName"</c>, and the index is <c>5</c>,
-        ///   the result will be <c>"MyKey.MyKeyName.MyName[5]"</c>.
-        /// </remarks>
+        /// <typeparam name="T">Type of the key value</typeparam>
+        /// <param name="key">The key.</param>
+        /// <param name="name">The name to append to the key.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>T.</returns>
+        /// <exception cref="System.ArgumentNullException">
+        /// key
+        /// or
+        /// name
+        /// </exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">index;Must be >= 0</exception>
         public static TKey ComposeIndexer<TKey>(this TKey parameterKey, string name, int index) where TKey : ParameterKey
         {
             ArgumentNullException.ThrowIfNull(parameterKey);
@@ -269,16 +176,6 @@ namespace Stride.Rendering
             return (TKey) GetOrCreateComposedKey(in composedKey);
         }
 
-        /// <summary>
-        ///   Retrieves an existing composed parameter key or creates a new one if it does not exist.
-        /// </summary>
-        /// <param name="composedKey">
-        ///   A composed key structure that includes the base key and additional composition details.
-        /// </param>
-        /// <returns>The <see cref="ParameterKey"/> associated with the specified composed key.</returns>
-        /// <exception cref="ArgumentException">
-        ///   Thrown if the composed key cannot be found or created.
-        /// </exception>
         private static ParameterKey GetOrCreateComposedKey(ref readonly ParameterComposedKey composedKey)
         {
             lock (composedKeys)
@@ -341,14 +238,6 @@ namespace Stride.Rendering
             }
         }
 
-        /// <summary>
-        ///   Attempts to find a parameter key by its name.
-        /// </summary>
-        /// <param name="name">The name of the parameter key to search for.</param>
-        /// <returns>
-        ///   The <see cref="ParameterKey"/> associated with the specified name,
-        ///   or <see langword="null"/> if no such key exists.
-        /// </returns>
         public static ParameterKey? TryFindByName(string name)
         {
             if (name is null)
@@ -361,21 +250,6 @@ namespace Stride.Rendering
             }
         }
 
-        /// <summary>
-        ///   Finds and returns a parameter key based on the specified name.
-        /// </summary>
-        /// <param name="name">
-        ///   The name of the parameter key to find.
-        ///   The name must be in the format <c>"XXX.YYY{.ZZZ}"</c>, where <c>"ZZZ"</c> can be
-        ///   any number of identifiers separated by dots.
-        /// </param>
-        /// <returns>
-        ///   A <see cref="ParameterKey"/> corresponding to the specified name, or <see langword="null"/>
-        ///   if the name is not valid or the key cannot be found.
-        /// </returns>
-        /// <remarks>
-        ///   If the key is not found, it attempts to create a new key using the base key's default value metadata.
-        /// </remarks>
         public static ParameterKey FindByName(string name)
         {
             // Name must be XXX.YYY{.ZZZ}

@@ -9,19 +9,10 @@ using System.Text;
 namespace Stride.Rendering
 {
     /// <summary>
-    ///   Provides extension methods for <see cref="ParameterCollection"/>.
+    /// Extensions for <see cref="ParameterCollection"/>.
     /// </summary>
     public static class ParameterCollectionExtensions
     {
-        /// <summary>
-        ///   Generates a detailed string representation of the permutation parameters within
-        ///   a parameter collection.
-        /// </summary>
-        /// <param name="parameterCollection">The parameter collection to process.</param>
-        /// <returns>
-        ///   A string detailing the permutation parameters and their values.
-        ///   Each parameter is prefixed with <c>"@P"</c>.
-        /// </returns>
         public static string ToStringPermutationsDetailed(this ParameterCollection parameterCollection)
         {
             var builder = new StringBuilder();
