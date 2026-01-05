@@ -2,14 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering
 {
-    public struct ObjectParameterAccessor<T>
+    public struct ValueParameter<T> where T : struct
     {
-        internal readonly int BindingSlot;
+        internal readonly int Offset;
         internal readonly int Count;
 
-        internal ObjectParameterAccessor(int bindingSlot, int count)
+        internal ValueParameter(int offset, int count)
         {
-            this.BindingSlot = bindingSlot;
+            this.Offset = offset;
             this.Count = count;
         }
     }

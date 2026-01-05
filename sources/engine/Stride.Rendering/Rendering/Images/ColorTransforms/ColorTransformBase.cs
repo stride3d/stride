@@ -115,7 +115,7 @@ namespace Stride.Rendering.Images
 
             // Compute associated layout ranges
             parameterCompositionCopier = new ParameterCollection.CompositionCopier();
-            parameterCompositionCopier.CompileCopyRanges(parentCollection, Parameters, keyRoot);
+            parameterCompositionCopier.Compile(parentCollection, Parameters, keyRoot);
         }
 
         /// <summary>

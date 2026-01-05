@@ -50,7 +50,7 @@ namespace Stride.Rendering
                 if (layout == null)
                     continue;
 
-                if (!parameters.ObjectValues.IsEmpty)
+                if (parameters.ObjectValues != null)
                 {
                     for (int resourceSlot = 0; resourceSlot < layout.ElementCount; ++resourceSlot)
                     {

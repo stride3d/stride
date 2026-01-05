@@ -34,7 +34,7 @@ namespace Stride.Importer.Common
                 logger.Warning($"The texture '{sourceTextureFile}' referenced in the mesh material can not be found on the system. Loading will probably fail at run time.", CallerInfo.Get());
             }
 
-            parameterKey = ParameterKeys.NewIndexedKey(surfaceMaterialKey, textureCount++);
+            parameterKey = ParameterKeys.IndexedKey(surfaceMaterialKey, textureCount++);
             var uvSetName = "TEXCOORD";
             if (textureUVSetIndex != 0)
                 uvSetName += textureUVSetIndex;

@@ -3,13 +3,12 @@
 
 using Stride.Core.Collections;
 
-namespace Stride.Rendering;
-
-public class ParameterCollectionLayout
+namespace Stride.Rendering
 {
-    public FastListStruct<ParameterKeyInfo> LayoutParameterKeyInfos = [];
-
-    public int ResourceCount;
-
-    public int BufferSize;
+    public class ParameterCollectionLayout
+    {
+        public FastListStruct<ParameterKeyInfo> LayoutParameterKeyInfos = new FastListStruct<ParameterKeyInfo>(0);
+        public int ResourceCount;
+        public int BufferSize;
+    }
 }

@@ -25,7 +25,7 @@ namespace Stride.Rendering.Data
                 parameterKeySerializer.Serialize(parameter.Key, stream);
 
                 var value = parameterCollection.ObjectValues[parameter.BindingSlot];
-                parameter.Key.Serialize(stream, value);
+                parameter.Key.SerializeHash(stream, value);
             }
         }
     }
