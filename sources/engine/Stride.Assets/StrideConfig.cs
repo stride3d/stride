@@ -240,14 +240,14 @@ namespace Stride.Assets
             {
                 if (pair.Key == VS2015Version)
                 {
-                    if(IsFileInProgramFilesx86Exist(pair.Value))
+                    if (IsFileInProgramFilesx86Exist(pair.Value))
                     {
                         return true;
                     }
                     continue;
                 }
 
-                if(VisualStudioVersions.AvailableInstances.Any(
+                if (VisualStudioVersions.AvailableInstances.Any(
                     ideInfo => ideInfo.PackageVersions.ContainsKey(pair.Value)
                 ))
                 {
