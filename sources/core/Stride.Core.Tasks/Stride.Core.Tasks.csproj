@@ -24,10 +24,6 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </PackageReference>
     <PackageReference Include="Mono.Options" />
-    <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Runtime" />
-    <PackageReference Include="System.Runtime.InteropServices" />
-    <PackageReference Include="System.Threading.Thread" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\assets\Stride.Core.Assets.CompilerApp\Tasks\PackAssets.cs" Link="PackAssets.cs" />

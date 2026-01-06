@@ -56,7 +56,6 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.12.0" />
-    <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.8.2112" />
     <PackageVersion Include="Mono.Cecil" Version="0.11.5" />
@@ -72,37 +71,10 @@
     <PackageVersion Include="Stride.GNU.Gettext" Version="2.0.0" />
     <PackageVersion Include="Stride.Mono.TextTemplating" Version="2.1.0-preview-0009-g0d0b6db3ca" />
     <PackageVersion Include="SSH.NET" Version="2023.0.1" />
-    <PackageVersion Include="System.AppContext" Version="4.3.0" />
-    <PackageVersion Include="System.Collections.Immutable" Version="10.0.0" />
-    <PackageVersion Include="System.Console" Version="4.3.1" />
-    <PackageVersion Include="System.Diagnostics.FileVersionInfo" Version="4.3.0" />
-    <PackageVersion Include="System.Diagnostics.StackTrace" Version="4.3.0" />
-    <PackageVersion Include="System.Diagnostics.Tracing" Version="4.3.0" />
-    <PackageVersion Include="System.IO" Version="4.3.0" />
-    <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
-    <PackageVersion Include="System.IO.FileSystem" Version="4.3.0" />
-    <PackageVersion Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
     <PackageVersion Include="System.Management" Version="10.0.0" />
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="System.Reactive.Linq" Version="6.1.0" />
-    <PackageVersion Include="System.Reflection" Version="4.3.0" />
-    <PackageVersion Include="System.Reflection.Emit" Version="4.7.0" />
-    <PackageVersion Include="System.Reflection.Metadata" Version="10.0.0" />
-    <PackageVersion Include="System.Resources.Extensions" Version="10.0.0" />
-    <PackageVersion Include="System.Runtime" Version="4.3.1" />
-    <PackageVersion Include="System.Runtime.Extensions" Version="4.3.1" />
-    <PackageVersion Include="System.Runtime.InteropServices" Version="4.3.0" />
-    <PackageVersion Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
-    <PackageVersion Include="System.Security.Cryptography.Encoding" Version="4.3.0" />
-    <PackageVersion Include="System.Security.Cryptography.Primitives" Version="4.3.0" />
-    <PackageVersion Include="System.Security.Cryptography.X509Certificates" Version="4.3.2" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="10.0.0" />
-    <PackageVersion Include="System.Text.Encoding.CodePages" Version="10.0.0" />
-    <PackageVersion Include="System.Threading.Thread" Version="4.3.0" />
-    <PackageVersion Include="System.Xml.ReaderWriter" Version="4.3.1" />
-    <PackageVersion Include="System.Xml.XmlDocument" Version="4.3.0" />
-    <PackageVersion Include="System.Xml.XPath" Version="4.3.0" />
-    <PackageVersion Include="System.Xml.XPath.XDocument" Version="4.3.0" />
   </ItemGroup>
   <!-- Visual Studio dependencies -->
   <ItemGroup>
