@@ -110,6 +110,21 @@ namespace Stride.Shaders.Compilers.SDSL
                     entryPoint.Values = new([..entryPoint.Values, cbufferVariable.ResultId]);
                 }
             }
+            
+            // Remap decorations
+            foreach (var i in context)
+            {
+                if (i.Op == Op.OpDecorate && (OpDecorate)i is {} decorate)
+                {
+                    if (variableToMemberIndices.TryGetValue(decorate.Target, out var memberIndex))
+                        i.Buffer.Replace(i.Index, new OpMemberDecorate(globalCBufferTypeId, memberIndex, decorate.Decoration));
+                }
+                else if (i.Op == Op.OpDecorateString && (OpDecorateString)i is {} decorateString)
+                {
+                    if (variableToMemberIndices.TryGetValue(decorateString.Target, out var memberIndex))
+                        i.Buffer.Replace(i.Index, new OpMemberDecorateString(globalCBufferTypeId, memberIndex, decorateString.Decoration));
+                }
+            }
         }
 
         private static void MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
