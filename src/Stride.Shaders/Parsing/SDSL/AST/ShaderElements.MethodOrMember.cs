@@ -111,11 +111,13 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
                 }
             }
 
-            var register = builder.Insert(new OpVariableSDSL(registeredType, variableId, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
-            context.AddName(register.ResultId, Name);
+            var variable = builder.Insert(new OpVariableSDSL(registeredType, variableId, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
+            context.AddName(variable.ResultId, Name);
+            
+            RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
 
             var sid = new SymbolID(Name, SymbolKind.SamplerState);
-            var symbol = new Symbol(sid, Type, register.ResultId);
+            var symbol = new Symbol(sid, Type, variable.ResultId);
             table.CurrentShader.Variables.Add((symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
         }
         else throw new Exception($"SamplerState {Name} already defined");
