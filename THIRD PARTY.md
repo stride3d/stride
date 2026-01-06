@@ -62,6 +62,7 @@ Stride uses the following open-source products.
 * [SLNTools](https://slntools.codeplex.com) (MIT License)
 * [WPFToolKit](http://wpftoolkit.codeplex.com/) (Ms-PL)
 * [XamlMarkdown](https://github.com/Kryptos-FR/XamlMarkdown/) (MIT License)
+* [DotRecast](https://github.com/ikpil/DotRecast) (Zlib license)
 
 ### Fugue Icons
 
@@ -146,7 +147,7 @@ respective owners.
   
 ### ModernUIIcons.com
 
-Please carefully understand the license and download the latest icons at ModernUIIcons.com.
+Please carefully understand the license and download the latest icons at https://github.com/Templarian/WindowsIcons
 
 #### Understand Your Rights
 No Attribution and No Derived Works

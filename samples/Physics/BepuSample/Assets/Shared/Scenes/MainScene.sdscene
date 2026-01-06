@@ -1,0 +1,66 @@
+!SceneAsset
+Id: 1bd2dca5-6e73-443e-8613-afd501bfdd05
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! e47ba863-93d7-40e6-8daf-f353f3579fbc
+        - ref!! 3d847b20-ff76-4d27-8f13-a80a514e7c4b
+        - ref!! 2eb4a00d-4f8b-44aa-815c-651a2059a7c5
+    Parts:
+        -   Entity:
+                Id: 2eb4a00d-4f8b-44aa-815c-651a2059a7c5
+                Name: Camera
+                Components:
+                    6633b194932797c75dfe9d3ea87fd0ae: !TransformComponent
+                        Id: c378162f-fe84-4140-b91b-4d831a79d8f6
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    325682ca41b1a7b3ef8b5c096275c55c: !CameraComponent
+                        Id: c3c3753c-2930-4a4a-b695-ed58516762ae
+                        Name: Main
+                        Projection: Perspective
+                        Slot: be74c9be-5861-4bea-90b0-b175535210f7
+        -   Entity:
+                Id: 3d847b20-ff76-4d27-8f13-a80a514e7c4b
+                Name: SceneSelectPage
+                Components:
+                    a349fa1e7484919dce7fd8640bbf823f: !TransformComponent
+                        Id: c5317cab-9939-4ce8-aba4-27af46d5d23a
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e0c15a158fd73aa93aa0e1be41af0772: !UIComponent
+                        Id: b2f7a2ba-5c75-403c-b9e6-62df0cd68658
+                        Page: f55ca6f3-e8c0-4ed0-9605-76ff5b19809e:UI/SceneSelectPage
+                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+                        Size: {X: 1.28, Y: 0.72, Z: 1.0}
+                        ResolutionStretch: FixedHeightAdaptableWidth
+        -   Entity:
+                Id: e47ba863-93d7-40e6-8daf-f353f3579fbc
+                Name: Main
+                Components:
+                    7d5c16e106632ac27f7fc929e55cecfd: !TransformComponent
+                        Id: ee7435c7-bdf4-4791-863a-bfabeb38aff8
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    99f7331d1cf146f05b19f1ac112490eb: !BepuSample.Game.Components.SceneSelectorComponent,BepuSample.Game
+                        Id: 72220342-9ff8-4f01-8f40-6c7a34fd3f9c
+                        MainScene: 1bd2dca5-6e73-443e-8613-afd501bfdd05:Scenes/MainScene
+                        SceneList:
+                            7582cfe9a4c57b2e233325c00608b56c: 1534e89e-d5de-4e57-97c8-acbe1ea9bded:Scenes/Colliders
+                            62a582534c56a429747c4762262fbbad: 7cb13063-abc0-4ef8-8a34-f62408d295c3:Scenes/Convex And Mesh Collider
+                            112a8e86c25d35d5e29d1dbec59b9823: d6936be1-c5a5-4841-abbe-434854c720ef:Scenes/Material Properties
+                            a4938c5c9a50a67a4f5d37d03b9057c2: 6f113a3b-3bfd-4a33-8775-7a44cc88bccc:Scenes/Constraint
+                            18440c93beb5695e71be4863d730efb4: 7afd942c-0aff-4677-8158-84d944e85d67:Scenes/Ropes
+                            6177c187ab200d109c8e3ee68b616a87: d25e2b43-7e2e-4f5e-a50e-8a7784bb3e03:Scenes/Cube Fountain
+                            ee370a344503a769a3c0ee9ef2e5fe99: 6f2b7463-a14b-4dbd-88c2-9230bc45bc53:Scenes/Cube Mixer
+                        Library: d127222f-e216-460a-b67a-433ff013200c:UILibrary
+                        SelectorUI: ref!! b2f7a2ba-5c75-403c-b9e6-62df0cd68658

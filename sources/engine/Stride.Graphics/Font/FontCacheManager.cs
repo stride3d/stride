@@ -87,7 +87,7 @@ namespace Stride.Graphics.Font
             {
                 var dataBox = new DataBox(character.Bitmap.Buffer, character.Bitmap.Pitch, character.Bitmap.Pitch * character.Bitmap.Rows);
                 var region = new ResourceRegion(character.Glyph.Subrect.Left, character.Glyph.Subrect.Top, 0, character.Glyph.Subrect.Right, character.Glyph.Subrect.Bottom, 1);
-                commandList.UpdateSubresource(cacheTextures[0], 0, dataBox, region);
+                commandList.UpdateSubResource(cacheTextures[0], 0, dataBox, region);
             }
 
             // update the glyph data

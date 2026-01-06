@@ -20,42 +20,28 @@ public abstract class ConstraintComponent<T> : ConstraintComponentBase where T :
     internal override void Activate(BepuConfiguration bepuConfig)
     {
         _bepuConfig = bepuConfig;
-
-        foreach (var component in Bodies)
-        {
-            if (component is null)
-                continue;
-
-            component.BoundConstraints ??= new();
-            component.BoundConstraints.Add(this);
-            _attachedBodies.Add(component);
-        }
-
-        TryReattachConstraint();
+        BodiesChanged();
     }
 
     internal override void Deactivate()
     {
-        foreach (var component in Bodies)
-        {
-            if (component is null)
-                continue;
+        foreach (var component in _attachedBodies)
+            component.BoundConstraints!.Remove(this);
 
-            component.BoundConstraints ??= new();
-            component.BoundConstraints.Add(this);
-            _attachedBodies.Add(component);
-        }
+        _attachedBodies.Clear();
 
         DetachConstraint();
+        _bepuConfig = null;
     }
 
     protected override void BodiesChanged()
     {
+        if (_bepuConfig is null)
+            return;
+
         foreach (var component in _attachedBodies)
-        {
-            Debug.Assert(component.BoundConstraints is not null);
-            component.BoundConstraints.Remove(this);
-        }
+            component.BoundConstraints!.Remove(this);
+
         _attachedBodies.Clear();
 
         foreach (var component in Bodies)
@@ -77,7 +63,6 @@ public abstract class ConstraintComponent<T> : ConstraintComponentBase where T :
 
         if (_bepuConfig is null)
             return ConstraintState.ConstraintNotInScene;
-
 
         if (!Enabled)
             return ConstraintState.ConstraintDisabled;
@@ -139,6 +124,27 @@ public abstract class ConstraintComponent<T> : ConstraintComponentBase where T :
         {
             _bepuSimulation.Simulation.Solver.ApplyDescription(_cHandle, BepuConstraint);
         }
+    }
+
+    /// <inheritdoc/>
+    public override float GetAccumulatedImpulseMagnitude()
+    {
+        if (_bepuSimulation != null && Attached)
+            return MathF.Sqrt(_bepuSimulation.Simulation.Solver.GetAccumulatedImpulseMagnitudeSquared(_cHandle));
+
+        return 0;
+    }
+
+    /// <inheritdoc/>
+    public override float GetAccumulatedForceMagnitude()
+    {
+        if (_bepuSimulation != null && Attached)
+        {
+            float impulses = GetAccumulatedImpulseMagnitude();
+            return 1f / (float)_bepuSimulation.FixedTimeStep.TotalSeconds * _bepuSimulation.SolverSubStep * impulses;
+        }
+
+        return 0;
     }
 
     protected ConstraintComponent(int bodies) : base(bodies) { }

@@ -247,7 +247,7 @@
         <MenuItem Header="{sd:Localize Solution, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
         <MenuItem Header="{sd:Localize New project..., Context=Menu}" Command="{Binding Session.NewProjectCommand}" Icon="{sd:Image {StaticResource ImageAddNewPackage}}"/>
         <MenuItem Header="{sd:Localize Add existing project..., Context=Menu}" Command="{Binding Session.AddExistingProjectCommand}" Icon="{sd:Image {StaticResource ImageAddExistingProject}}"/>
-        <MenuItem Header="{sd:Localize Open in IDE, Context=Menu}" Command="{Binding Session.OpenInIDECommand}" Icon="{sd:Image {StaticResource ImageVisualStudio}}"/>
+        <MenuItem Header="{sd:Localize Open in IDE, Context=Menu}" Command="{Binding Session.OpenInIDECommand}" Icon="{sd:Image {StaticResource ImageCodeEditor}}"/>
         <MenuItem Header="{sd:Localize Reload game assemblies, Context=Menu}" Command="{Binding Debugging.ReloadAssembliesCommand}" Icon="{sd:Image {StaticResource ImageReloadAssemblies}}"/>
 
         <MenuItem Header="{sd:Localize Actions, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
@@ -369,7 +369,7 @@
         <ToolBar>
           <Button Command="{Binding Session.OpenInIDECommand}" Margin="2,0,0,0"
                   ToolTip="{sd:Localize Open in IDE, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
-            <Image Source="{StaticResource ImageVisualStudio}" Width="16" Height="16" />
+            <Image Source="{StaticResource ImageCodeEditor}" Width="16" Height="16" />
           </Button>
           <Menu Background="Transparent"
                 ToolTip="{sd:Localize Open with..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
@@ -515,7 +515,7 @@
                             <MenuItem Header="{sd:Localize Solution, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{sd:MultiBinding {Binding Session.NewPackageCommand.IsEnabled}, {Binding Session.AddExistingPackageCommand.IsEnabled}, {Binding Session.OpenInIDECommand.IsEnabled}, Converter={sd:MultiChained {sd:OrMultiConverter}, {sd:VisibleOrCollapsed}}}"/>
                             <MenuItem Header="{sd:Localize New project..., Context=Menu}" Command="{Binding Session.NewProjectCommand}" Icon="{sd:Image {StaticResource ImageAddNewPackage}}" Visibility="{Binding Session.NewProjectCommand.IsEnabled, Converter={sd:VisibleOrCollapsed}}"/>
                             <MenuItem Header="{sd:Localize Add existing project..., Context=Menu}" Command="{Binding Session.AddExistingProjectCommand}" Icon="{sd:Image {StaticResource ImageAddExistingProject}}" Visibility="{Binding Session.AddExistingProjectCommand.IsEnabled, Converter={sd:VisibleOrCollapsed}}"/>
-                            <MenuItem Header="{sd:Localize Open in IDE, Context=Menu}" Command="{Binding Session.OpenInIDECommand}" Icon="{sd:Image {StaticResource ImageVisualStudio}}" Visibility="{Binding Session.OpenInIDECommand.IsEnabled, Converter={sd:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{sd:Localize Open in IDE, Context=Menu}" Command="{Binding Session.OpenInIDECommand}" Icon="{sd:Image {StaticResource ImageCodeEditor}}" Visibility="{Binding Session.OpenInIDECommand.IsEnabled, Converter={sd:VisibleOrCollapsed}}"/>
 
                             <MenuItem Header="{sd:Localize Actions, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
                             <MenuItem Header="{sd:Localize Cut, Context=Menu}" Command="ApplicationCommands.Cut" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{sd:Image {StaticResource ImageCut}}"/>
@@ -643,6 +643,17 @@
                         <sd:TabItemActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Messages}"/>
                       </i:Interaction.Behaviors>
                     </TabItem>
+                    <TabItem DataContext="{Binding Debugging.ProjectLog}">
+                      <TabItem.Header>
+                        <TextBlock FontWeight="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam},
+                                    ConverterParameter={x:Static FontWeights.Bold}, FallbackValue={x:Static FontWeights.Normal}}"
+                                   Foreground="{StaticResource SelectedTextBrush}">
+                                    <Run Text="{sd:Localize Project}"/>
+                                    <Run Text="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam}, ConverterParameter=*}"/>
+                        </TextBlock>
+                      </TabItem.Header>
+                      <sd:TextLogViewer LogMessages="{Binding Messages}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="True"/>
+                    </TabItem>
                     <!-- FIXME live scripting is disabled (XK-4309) -->
                     <TabItem DataContext="{Binding Debugging.LiveScriptingLog}" Visibility="Collapsed">
                       <TabItem.Header>
@@ -665,6 +676,7 @@
                   <i:Interaction.Behaviors>
                     <sd:OnEventCommandBehavior Command="{Binding Debugging.ResetOutputTitleCommand, Source={x:Static vm:GameStudioViewModel.GameStudio}}" EventName="IsActiveChanged"/>
                     <gl:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.BuildLog.Messages, Source={x:Static vm:GameStudioViewModel.GameStudio}}"/>
+                    <gl:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.ProjectLog.Messages, Source={x:Static vm:GameStudioViewModel.GameStudio}}"/>
                     <gl:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.LiveScriptingLog.Messages, Source={x:Static vm:GameStudioViewModel.GameStudio}}"/>
                   </i:Interaction.Behaviors>
                 </xcad:LayoutAnchorable>

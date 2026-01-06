@@ -1,7 +1,7 @@
 <Project>
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>Stride.Audio.Tests</AssemblyName>
     <RootNamespace>Stride.Audio.Tests</RootNamespace>
@@ -78,6 +78,5 @@
     <None Include="AudioAssets\wave2.sdsnd" />
     <None Include="Stride.Audio.Tests.sdpkg" />
   </ItemGroup>
-  <Import Project="..\Stride.Shared\Refactor\Stride.Refactor.projitems" Label="Shared" />
   <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>

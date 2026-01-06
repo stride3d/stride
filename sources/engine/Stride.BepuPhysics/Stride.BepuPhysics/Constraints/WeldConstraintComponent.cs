@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -14,10 +13,20 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>
+public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>, ISpring
 {
-    public WeldConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+    public WeldConstraintComponent() => BepuConstraint = new()
+    {
+        LocalOrientation = Quaternion.Identity,
+        SpringSettings = new SpringSettings(30, 5)
+    };
 
+    /// <summary>
+    /// Offset from body A to body B in the local space of A
+    /// </summary>
+    /// <usedoc>
+    /// Offset from body A to body B in the local space of A
+    /// </usedoc>
     public Vector3 LocalOffset
     {
         get
@@ -31,6 +40,12 @@ public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>
         }
     }
 
+    /// <summary>
+    /// Target orientation of body B in body A's local space
+    /// </summary>
+    /// <usedoc>
+    /// Target orientation of body B in body A's local space
+    /// </usedoc>
     public Quaternion LocalOrientation
     {
         get
@@ -44,6 +59,7 @@ public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -57,6 +73,7 @@ public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get

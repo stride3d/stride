@@ -18,6 +18,6 @@ public unsafe struct B
     public fixed byte T[12];
 }
 ";
-        await TestHelper.ExpectDiagnosticsErrorAsync(sourceCode, STRDIAG008FixedFieldInStructs.DiagnosticId);
+        await TestHelper.ExpectDiagnosticAsync(sourceCode, STRDIAG008FixedFieldInStructs.DiagnosticId);
     }
 }

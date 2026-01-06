@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -14,10 +13,26 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<TwistServo>
+public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<TwistServo>, IServo, ISpring
 {
-    public TwistServoConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5), ServoSettings = new ServoSettings(10, 1, 1000) };
+    public TwistServoConstraintComponent() => BepuConstraint = new()
+    {
+        LocalBasisA = Quaternion.Identity,
+        LocalBasisB = Quaternion.Identity,
+        SpringSettings = new SpringSettings(30, 5),
+        ServoSettings = new ServoSettings(10, 1, 1000)
+    };
 
+    /// <summary>
+    /// Local space basis attached to body A against which to measure body B's transformed axis.
+    /// Expressed as a 3x3 rotation matrix, the X axis corresponds with 0 degrees, the Y axis corresponds to 90 degrees, and the -Z axis is the twist axis.
+    /// When viewed along the twist axis, positive change in angle causes counterclockwise rotation in right handed coordinates.
+    /// </summary>
+    /// <userdoc>
+    /// Local space basis attached to body A against which to measure body B's transformed axis.
+    /// Expressed as a 3x3 rotation matrix, the X axis corresponds with 0 degrees, the Y axis corresponds to 90 degrees, and the -Z axis is the twist axis.
+    /// When viewed along the twist axis, positive change in angle causes counterclockwise rotation in right handed coordinates.
+    /// </userdoc>
     public Quaternion LocalBasisA
     {
         get
@@ -31,6 +46,16 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <summary>
+    /// Local space basis attached to body B that will be measured against body A's basis.
+    /// Expressed as a 3x3 rotation matrix, the transformed X axis will be measured against A's X and Y axes.
+    /// The Z axis is the twist axis.
+    /// </summary>
+    /// <userdoc>
+    /// Local space basis attached to body B that will be measured against body A's basis.
+    /// Expressed as a 3x3 rotation matrix, the transformed X axis will be measured against A's X and Y axes.
+    /// The Z axis is the twist axis.
+    /// </userdoc>
     public Quaternion LocalBasisB
     {
         get
@@ -44,6 +69,9 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <summary>
+    /// Target angle between B's axis to measure and A's measurement axis.
+    /// </summary>
     public float TargetAngle
     {
         get { return BepuConstraint.TargetAngle; }
@@ -54,6 +82,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -67,6 +96,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get
@@ -80,6 +110,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumSpeed
     {
         get
@@ -93,6 +124,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <inheritdoc/>
     public float ServoBaseSpeed
     {
         get
@@ -106,6 +138,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumForce
     {
         get

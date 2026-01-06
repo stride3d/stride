@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
@@ -10,7 +11,6 @@ using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
 using Stride.Rendering;
 using Stride.Shaders;
-using Stride.Shaders.Compiler;
 
 namespace Stride.Graphics
 {
@@ -104,12 +104,14 @@ namespace Stride.Graphics
 
         private static void PrepareReflection(EffectReflection reflection)
         {
+            var resourceBindingsSpan = CollectionsMarshal.AsSpan(reflection.ResourceBindings);
+
             // prepare resource bindings used internally
-            for (int i = 0; i < reflection.ResourceBindings.Count; i++)
+            for (int i = 0; i < resourceBindingsSpan.Length; i++)
             {
                 // it is fine if multiple threads do this at the same time (same result)
                 // we use ref to avoid reassigning to the list (which cause a Collection modified during enumeration exception)
-                UpdateResourceBindingKey(ref reflection.ResourceBindings.Items[i]);
+                UpdateResourceBindingKey(ref resourceBindingsSpan[i]);
             }
             foreach (var constantBuffer in reflection.ConstantBuffers)
             {
@@ -249,7 +251,7 @@ namespace Stride.Graphics
                         switch (binding.Type.Type)
                         {
                             case EffectParameterType.Float:
-                                binding.KeyInfo.Key = 
+                                binding.KeyInfo.Key =
                                     componentCount == 4 ? FindOrCreateValueKey<Color4>(ref binding) :
                                     componentCount == 3 ? FindOrCreateValueKey<Color3>(ref binding) : null;
                                 break;
@@ -269,13 +271,13 @@ namespace Stride.Graphics
                                     componentCount == 2 ? FindOrCreateValueKey<Int2>(ref binding) : null;
                                 break;
                             case EffectParameterType.UInt:
-                                binding.KeyInfo.Key = 
+                                binding.KeyInfo.Key =
                                     componentCount == 4 ? FindOrCreateValueKey<UInt4>(ref binding) : null;
                                 break;
                             case EffectParameterType.Float:
-                                binding.KeyInfo.Key = 
+                                binding.KeyInfo.Key =
                                     componentCount == 4 ? FindOrCreateValueKey<Vector4>(ref binding) :
-                                    componentCount == 3 ? FindOrCreateValueKey<Vector3>(ref binding) : 
+                                    componentCount == 3 ? FindOrCreateValueKey<Vector3>(ref binding) :
                                     componentCount == 2 ? FindOrCreateValueKey<Vector2>(ref binding) : null;
                                 break;
                             case EffectParameterType.Double:
@@ -307,7 +309,7 @@ namespace Stride.Graphics
             return ParameterKeys.FindByName(name) ?? ParameterKeys.NewObject<T>(default(T), name);
         }
 
-        private static ParameterKey FindOrCreateValueKey<T>(ref EffectValueDescription binding) where T : struct
+        private static ParameterKey FindOrCreateValueKey<T>(ref EffectValueDescription binding) where T : unmanaged
         {
             var name = binding.KeyInfo.KeyName;
             var key = ParameterKeys.FindByName(name) as ValueParameterKey<T> ?? ParameterKeys.NewValue<T>(name: name);

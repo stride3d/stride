@@ -1150,14 +1150,19 @@ namespace Stride.Core.Assets.Editor.ViewModel
             List<AssetFilterViewModelData> listData = new List<AssetFilterViewModelData>();
 
             // Run through our currentAssetFilters and store out the data
-            for (int i = 0; i < currentAssetFilters.Count; i++)
+            foreach (var filter in currentAssetFilters)
             {
-                AssetFilterViewModelData obj = new AssetFilterViewModelData();
+                if (filter.IsReadOnly)
+                    continue; // Skip engine defined filters
+                
+                AssetFilterViewModelData obj = new AssetFilterViewModelData
+                {
+                    DisplayName = filter.DisplayName, 
+                    Filter = filter.Filter, 
+                    IsActive = filter.IsActive,
+                    category = filter.Category
+                };
 
-                obj.DisplayName = currentAssetFilters[i].DisplayName;
-                obj.Filter = currentAssetFilters[i].Filter;
-                obj.IsActive = currentAssetFilters[i].IsActive;
-                obj.category = currentAssetFilters[i].Category;
                 listData.Add(obj);
             }
             InternalSettings.ViewFilters.SetValue(listData);

@@ -3,14 +3,15 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
-
 using Stride.Core;
 using Stride.Core.Threading;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -31,7 +32,7 @@ namespace Stride.Graphics
         internal VkQueue NativeCommandQueue;
         internal object QueueLock = new object();
 
-        internal ThreadLocal<VkCommandPool> NativeCopyCommandPools;
+        internal ThreadLocal<CommandBufferPool> NativeCopyCommandPools;
         private NativeResourceCollector nativeResourceCollector;
         private GraphicsResourceLinkCollector graphicsResourceLinkCollector;
 
@@ -40,27 +41,29 @@ namespace Stride.Graphics
         private IntPtr nativeUploadBufferStart;
         private int nativeUploadBufferSize;
         private int nativeUploadBufferOffset;
+        private object nativeUploadBufferLock = new();
 
-        private Queue<KeyValuePair<long, VkFence>> nativeFences = new Queue<KeyValuePair<long, VkFence>>();
-        private long lastCompletedFence;
-        internal long NextFenceValue = 1;
+        internal FenceHelper FrameFence;
+        internal FenceHelper CommandListFence;
+        internal FenceHelper CopyFence;
+        internal ulong LastGPUSyncCopyFenceToCommandFence;
 
         internal HeapPool DescriptorPools;
         internal const uint MaxDescriptorSetCount = 256;
-        internal readonly uint[] MaxDescriptorTypeCounts = new uint[DescriptorSetLayout.DescriptorTypeCount]
-        {
+        internal readonly uint[] MaxDescriptorTypeCounts =
+        [
             256, // Sampler
             0, // CombinedImageSampler
             512, // SampledImage
-            0, // StorageImage
+            64, // StorageImage
             64, // UniformTexelBuffer
-            0, // StorageTexelBuffer
+            64, // StorageTexelBuffer
             512, // UniformBuffer
-            0, // StorageBuffer
+            64, // StorageBuffer
             0, // UniformBufferDynamic
             0, // StorageBufferDynamic
             0 // InputAttachment
-        };
+        ];
 
         internal Buffer EmptyTexelBufferInt, EmptyTexelBufferFloat;
         internal Texture EmptyTexture;
@@ -158,9 +161,9 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Enables profiling.
+        ///   Enables or disables profiling.
         /// </summary>
-        /// <param name="enabledFlag">if set to <c>true</c> [enabled flag].</param>
+        /// <param name="enabledFlag"><see langword="true"/> to enable profiling; <see langword="false"/> to disable it.</param>
         public void EnableProfile(bool enabledFlag)
         {
         }
@@ -168,8 +171,39 @@ namespace Stride.Graphics
         /// <summary>
         ///     Unmarks context as active on the current thread.
         /// </summary>
-        public void End()
+        public unsafe void End()
         {
+            lock (QueueLock)
+            {
+                // Add a dependency between command list fence and frame fence
+                var commandListFenceValue = CommandListFence.NextFenceValue;
+                var frameFenceValue = FrameFence.NextFenceValue++;
+
+                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                {
+                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    waitSemaphoreValueCount = 1,
+                    pWaitSemaphoreValues = &commandListFenceValue,
+                    signalSemaphoreValueCount = 1,
+                    pSignalSemaphoreValues = &frameFenceValue,
+                };
+
+                var commandListSemaphore = CommandListFence.Semaphore;
+                var frameSemaphore = FrameFence.Semaphore;
+                var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    pNext = &timelineInfo,
+                    waitSemaphoreCount = 1,
+                    pWaitSemaphores = &commandListSemaphore,
+                    pWaitDstStageMask = &pipelineStageFlags,
+                    signalSemaphoreCount = 1,
+                    pSignalSemaphores = &frameSemaphore,
+                };
+
+                CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+            }
         }
 
         /// <summary>
@@ -191,48 +225,76 @@ namespace Stride.Graphics
             if (commandLists == null) throw new ArgumentNullException(nameof(commandLists));
             if (count > commandLists.Length) throw new ArgumentOutOfRangeException(nameof(count));
 
-            var fenceValue = NextFenceValue++;
-
-            // Create a fence
-            var fenceCreateInfo = new VkFenceCreateInfo { sType = VkStructureType.FenceCreateInfo };
-            vkCreateFence(nativeDevice, &fenceCreateInfo, null, out var fence);
-            nativeFences.Enqueue(new KeyValuePair<long, VkFence>(fenceValue, fence));
-
-            // Collect resources
             var commandBuffers = stackalloc VkCommandBuffer[count];
             for (int i = 0; i < count; i++)
-            {
                 commandBuffers[i] = commandLists[i].NativeCommandBuffer;
-                RecycleCommandListResources(commandLists[i], fenceValue);
+
+            ulong nextCommandListFenceValue;
+            lock (QueueLock)
+            {
+                var commandListFenceValue = CommandListFence.NextFenceValue++;
+                nextCommandListFenceValue = commandListFenceValue + 1;
+                // Make sure all copies are done as well
+                var copyFenceValue = CopyFence.NextFenceValue;
+                var waitFenceValues = stackalloc ulong[] { commandListFenceValue, copyFenceValue };
+
+                // Do we need to wait for CopyFence?
+                var semaphoreCount = copyFenceValue > LastGPUSyncCopyFenceToCommandFence ? 2 : 1;
+                // Remember that we waited 
+                LastGPUSyncCopyFenceToCommandFence = copyFenceValue;
+
+                // Submit commands
+                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                {
+                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    waitSemaphoreValueCount = 2,
+                    pWaitSemaphoreValues = &waitFenceValues[0],
+                    signalSemaphoreValueCount = 1,
+                    pSignalSemaphoreValues = &nextCommandListFenceValue,
+                };
+
+                var semaphores = stackalloc VkSemaphore[] { CommandListFence.Semaphore, CopyFence.Semaphore };
+                var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    pNext = &timelineInfo,
+                    commandBufferCount = (uint)count,
+                    pCommandBuffers = commandBuffers,
+                    waitSemaphoreCount = 2,
+                    pWaitSemaphores = &semaphores[0],
+                    pWaitDstStageMask = &pipelineStageFlags[0],
+                    signalSemaphoreCount = 1,
+                    pSignalSemaphores = &semaphores[0],
+                };
+
+                CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
             }
 
-            // Submit commands
-            var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
-            var presentSemaphoreCopy = presentSemaphore;
-            var submitInfo = new VkSubmitInfo
+            // Collect resources
+            for (int i = 0; i < count; i++)
             {
-                sType = VkStructureType.SubmitInfo,
-                commandBufferCount = (uint)count,
-                pCommandBuffers = commandBuffers,
-                waitSemaphoreCount = presentSemaphore != VkSemaphore.Null ? 1U : 0U,
-                pWaitSemaphores = &presentSemaphoreCopy,
-                pWaitDstStageMask = &pipelineStageFlags,
-            };
-            vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, fence);
+                RecycleCommandListResources(commandLists[i], nextCommandListFenceValue);
+            }
 
-            presentSemaphore = VkSemaphore.Null;
             nativeResourceCollector.Release();
             graphicsResourceLinkCollector.Release();
         }
 
-        private void InitializePostFeatures()
+        internal void CheckResult(VkResult vkResult, [CallerArgumentExpression("vkResult")] string call = null)
+        {
+            if (vkResult != VkResult.Success)
+                throw new InvalidOperationException($"Vulkan call {call} returned {vkResult}");
+        }
+
+        /// <summary>
+        ///   Initializes the platform-specific features of the Graphics Device once it has been fully initialized.
+        /// </summary>
+        private unsafe partial void InitializePostFeatures()
         {
         }
 
-        private string GetRendererName()
-        {
-            return rendererName;
-        }
+        private partial string GetRendererName() => rendererName;
 
         public void SimulateReset()
         {
@@ -240,12 +302,12 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///     Initializes the specified device.
+        ///   Initialize the platform-specific implementation of the Graphics Device.
         /// </summary>
-        /// <param name="graphicsProfiles">The graphics profiles.</param>
+        /// <param name="graphicsProfiles">A non-<see langword="null"/> list of the graphics profiles to try, in order of preference.</param>
         /// <param name="deviceCreationFlags">The device creation flags.</param>
         /// <param name="windowHandle">The window handle.</param>
-        private unsafe void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
+        private unsafe partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
             if (nativeDevice != VkDevice.Null)
             {
@@ -258,6 +320,22 @@ namespace Stride.Graphics
             vkGetPhysicalDeviceProperties(NativePhysicalDevice, out var physicalDeviceProperties);
             ConstantBufferDataPlacementAlignment = (int)physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
             TimestampFrequency = (long)(1.0e9 / physicalDeviceProperties.limits.timestampPeriod); // Resolution in nanoseconds
+
+            // Configure descriptor type max counts
+            void SetMaxDescriptorTypeCount(VkDescriptorType type, uint limit)
+                => MaxDescriptorTypeCounts[(int)type] = Math.Min(MaxDescriptorTypeCounts[(int)type], limit);
+
+            SetMaxDescriptorTypeCount(VkDescriptorType.Sampler, physicalDeviceProperties.limits.maxDescriptorSetSamplers);
+            SetMaxDescriptorTypeCount(VkDescriptorType.CombinedImageSampler, 0); // Not defined.
+            SetMaxDescriptorTypeCount(VkDescriptorType.SampledImage, physicalDeviceProperties.limits.maxDescriptorSetSampledImages);
+            SetMaxDescriptorTypeCount(VkDescriptorType.StorageImage, physicalDeviceProperties.limits.maxDescriptorSetStorageImages);
+            SetMaxDescriptorTypeCount(VkDescriptorType.UniformTexelBuffer, physicalDeviceProperties.limits.maxDescriptorSetSampledImages); // No individual limit
+            SetMaxDescriptorTypeCount(VkDescriptorType.StorageTexelBuffer, physicalDeviceProperties.limits.maxDescriptorSetStorageImages); // No individual limit
+            SetMaxDescriptorTypeCount(VkDescriptorType.UniformBuffer, physicalDeviceProperties.limits.maxDescriptorSetUniformBuffers);
+            SetMaxDescriptorTypeCount(VkDescriptorType.StorageBuffer, physicalDeviceProperties.limits.maxDescriptorSetStorageBuffers);
+            SetMaxDescriptorTypeCount(VkDescriptorType.UniformBufferDynamic, physicalDeviceProperties.limits.maxDescriptorSetUniformBuffersDynamic);
+            SetMaxDescriptorTypeCount(VkDescriptorType.StorageBufferDynamic, physicalDeviceProperties.limits.maxDescriptorSetStorageBuffersDynamic);
+            SetMaxDescriptorTypeCount(VkDescriptorType.InputAttachment, physicalDeviceProperties.limits.maxDescriptorSetInputAttachments);
 
             RequestedProfile = graphicsProfiles.First();
 
@@ -287,74 +365,68 @@ namespace Stride.Graphics
                 depthClamp = true,
             };
 
-            var extensionProperties = vkEnumerateDeviceExtensionProperties(NativePhysicalDevice);
-            var availableExtensionNames = new List<string>();
-            var desiredExtensionNames = new List<string>();
+            vkGetPhysicalDeviceFeatures(NativePhysicalDevice, out var deviceFeatures);
 
-            fixed (VkExtensionProperties* extensionPropertiesPtr = extensionProperties)
+            if (deviceFeatures.shaderStorageImageReadWithoutFormat)
             {
-                for (int index = 0; index < extensionProperties.Length; index++)
-                {
-                    var namePointer = new IntPtr(extensionPropertiesPtr[index].extensionName);
-                    var name = Marshal.PtrToStringAnsi(namePointer);
-                    availableExtensionNames.Add(name);
-                }
+                enabledFeature.shaderStorageImageReadWithoutFormat = true;
             }
 
-            desiredExtensionNames.Add(KHRSwapchainExtensionName);
-            if (!availableExtensionNames.Contains(KHRSwapchainExtensionName))
-                throw new InvalidOperationException();
-
-            if (availableExtensionNames.Contains(EXTDebugMarkerExtensionName) && IsDebugMode)
+            if (deviceFeatures.shaderStorageImageWriteWithoutFormat)
             {
-                desiredExtensionNames.Add(EXTDebugMarkerExtensionName);
+                enabledFeature.shaderStorageImageWriteWithoutFormat = true;
+            }
+
+            Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
+            {
+                VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                VK_EXT_DEBUG_MARKER_EXTENSION_NAME,
+            };
+
+            var availableExtensionProperties = GetAvailableExtensionProperties(supportedExtensionProperties);
+            ValidateExtensionPropertiesAvailability(availableExtensionProperties);
+            var desiredExtensionProperties = new HashSet<VkUtf8String>
+            {
+                VK_KHR_SWAPCHAIN_EXTENSION_NAME
+            };
+
+            if (availableExtensionProperties.Contains(VK_EXT_DEBUG_MARKER_EXTENSION_NAME) && IsDebugMode)
+            {
+                desiredExtensionProperties.Add(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
                 IsProfilingSupported = true;
             }
 
-            var enabledExtensionNames = desiredExtensionNames.Select(Marshal.StringToHGlobalAnsi).ToArray();
+            var timelineSemaphoreFeatures = new VkPhysicalDeviceTimelineSemaphoreFeatures();
+            timelineSemaphoreFeatures.sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures;
+            timelineSemaphoreFeatures.timelineSemaphore = VkBool32.True;
 
-            try
+            using VkStringArray ppEnabledExtensionNames = new(desiredExtensionProperties);
+            var deviceCreateInfo = new VkDeviceCreateInfo
             {
-                // fixed yields null if array is empty or null
-                fixed (void* fEnabledExtensionNames = enabledExtensionNames) {
-                    var deviceCreateInfo = new VkDeviceCreateInfo
-                    {
-                        sType = VkStructureType.DeviceCreateInfo,
-                        queueCreateInfoCount = 1,
-                        pQueueCreateInfos = &queueCreateInfo,
-                        enabledExtensionCount = (uint)enabledExtensionNames.Length,
-                        ppEnabledExtensionNames = (byte**)fEnabledExtensionNames,
-                        pEnabledFeatures = &enabledFeature,
-                    };
+                sType = VkStructureType.DeviceCreateInfo,
+                pNext = &timelineSemaphoreFeatures,
+                queueCreateInfoCount = 1,
+                pQueueCreateInfos = &queueCreateInfo,
+                enabledExtensionCount = ppEnabledExtensionNames.Length,
+                ppEnabledExtensionNames = ppEnabledExtensionNames,
+                pEnabledFeatures = &enabledFeature,
+            };
 
-                    vkCreateDevice(NativePhysicalDevice, &deviceCreateInfo, null, out nativeDevice);
-                }
-            }
-            finally
-            {
-                foreach (var enabledExtensionName in enabledExtensionNames)
-                {
-                    Marshal.FreeHGlobal(enabledExtensionName);
-                }
-            }
+            CheckResult(vkCreateDevice(NativePhysicalDevice, in deviceCreateInfo, null, out nativeDevice));
+
+            vkLoadDevice(nativeDevice);
 
             vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 
-            NativeCopyCommandPools = new ThreadLocal<VkCommandPool>(() =>
-            {
-                //// Prepare copy command list (start it closed, so that every new use start with a Reset)
-                var commandPoolCreateInfo = new VkCommandPoolCreateInfo
-                {
-                    sType = VkStructureType.CommandPoolCreateInfo,
-                    queueFamilyIndex = 0, //device.NativeCommandQueue.FamilyIndex
-                    flags = VkCommandPoolCreateFlags.ResetCommandBuffer
-                };
+            NativeCopyCommandPools = new(() => new CommandBufferPool(this, false), true);
 
-                vkCreateCommandPool(NativeDevice, &commandPoolCreateInfo, null, out var result);
-                return result;
-            }, true);
+            DescriptorPools = new HeapPool(this, true);
 
-            DescriptorPools = new HeapPool(this);
+            // Fence for next frame and resource cleaning
+            FrameFence = new(this);
+            CopyFence = new(this);
+            CommandListFence = new(this);
+            CommandListFence.NextFenceValue = 0; // start at 0 for command list (we wait for previous command list signal and 0 is already set by default)
 
             nativeResourceCollector = new NativeResourceCollector(this);
             graphicsResourceLinkCollector = new GraphicsResourceLinkCollector(this);
@@ -364,43 +436,104 @@ namespace Stride.Graphics
             EmptyTexture = Texture.New2D(this, 1, 1, PixelFormat.R8G8B8A8_UNorm_SRgb, TextureFlags.ShaderResource);
         }
 
-        internal unsafe IntPtr AllocateUploadBuffer(int size, out VkBuffer resource, out int offset)
+        private unsafe HashSet<VkUtf8String> GetAvailableExtensionProperties(Span<VkUtf8String> supportedExtensionProperties)
         {
-            // TODO D3D12 thread safety, should we simply use locks?
-            if (nativeUploadBuffer == VkBuffer.Null || nativeUploadBufferOffset + size > nativeUploadBufferSize)
+            var availableExtensionProperties = new HashSet<VkUtf8String>();
+            var extensionProperties = vkEnumerateDeviceExtensionProperties(NativePhysicalDevice);
+
+            for (int index = 0; index < extensionProperties.Length; index++)
             {
-                if (nativeUploadBuffer != VkBuffer.Null)
-                {
-                    vkUnmapMemory(NativeDevice, nativeUploadBufferMemory);
-                    Collect(nativeUploadBuffer);
-                    Collect(nativeUploadBufferMemory);
-                }
+                var properties = extensionProperties[index];
+                var name = new VkUtf8String(properties.extensionName);
+                var indexOfExtensionName = supportedExtensionProperties.IndexOf(name);
 
-                // Allocate new buffer
-                // TODO D3D12 recycle old ones (using fences to know when GPU is done with them)
-                // TODO D3D12 ResourceStates.CopySource not working?
-                nativeUploadBufferSize = Math.Max(4 * 1024 * 1024, size);
-
-                var bufferCreateInfo = new VkBufferCreateInfo
-                {
-                    sType = VkStructureType.BufferCreateInfo,
-                    size = (ulong)nativeUploadBufferSize,
-                    flags = VkBufferCreateFlags.None,
-                    usage = VkBufferUsageFlags.TransferSrc,
-                };
-                vkCreateBuffer(NativeDevice, &bufferCreateInfo, null, out nativeUploadBuffer);
-                AllocateMemory(VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent);
-
-                fixed (IntPtr* nativeUploadBufferStartPtr = &nativeUploadBufferStart)
-                    vkMapMemory(NativeDevice, nativeUploadBufferMemory, 0, (ulong)nativeUploadBufferSize, VkMemoryMapFlags.None, (void**)nativeUploadBufferStartPtr);
-                nativeUploadBufferOffset = 0;
+                if (indexOfExtensionName >= 0)
+                    availableExtensionProperties.Add(supportedExtensionProperties[indexOfExtensionName]);
             }
 
-            // Bump allocate
-            resource = nativeUploadBuffer;
-            offset = nativeUploadBufferOffset;
-            nativeUploadBufferOffset += size;
-            return nativeUploadBufferStart + offset;
+            return availableExtensionProperties;
+        }
+
+        private static void ValidateExtensionPropertiesAvailability(HashSet<VkUtf8String> availableExtensionProperties)
+        {
+            if (!availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
+            {
+                string extensionName = Encoding.UTF8.GetString(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+                throw new NotSupportedException($"Required Vulkan extension {extensionName} is not supported by the current physical device.");
+            }
+        }
+
+        internal unsafe IntPtr AllocateUploadBuffer(int size, out VkBuffer resource, out int offset)
+        {
+            lock (nativeUploadBufferLock)
+            {
+                if (nativeUploadBuffer == VkBuffer.Null || nativeUploadBufferOffset + size > nativeUploadBufferSize)
+                {
+                    if (nativeUploadBuffer != VkBuffer.Null)
+                    {
+                        vkUnmapMemory(NativeDevice, nativeUploadBufferMemory);
+                        Collect(nativeUploadBuffer);
+                        Collect(nativeUploadBufferMemory);
+                    }
+
+                    // Allocate new buffer
+                    // TODO D3D12 recycle old ones (using fences to know when GPU is done with them)
+                    // TODO D3D12 ResourceStates.CopySource not working?
+                    nativeUploadBufferSize = Math.Max(4 * 1024 * 1024, size);
+
+                    var bufferCreateInfo = new VkBufferCreateInfo
+                    {
+                        sType = VkStructureType.BufferCreateInfo,
+                        size = (ulong)nativeUploadBufferSize,
+                        flags = VkBufferCreateFlags.None,
+                        usage = VkBufferUsageFlags.TransferSrc,
+                    };
+                    CheckResult(vkCreateBuffer(NativeDevice, &bufferCreateInfo, null, out nativeUploadBuffer));
+                    AllocateMemory(VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent);
+
+                    fixed (IntPtr* nativeUploadBufferStartPtr = &nativeUploadBufferStart)
+                        vkMapMemory(NativeDevice, nativeUploadBufferMemory, 0, (ulong)nativeUploadBufferSize, VkMemoryMapFlags.None, (void**)nativeUploadBufferStartPtr);
+                    nativeUploadBufferOffset = 0;
+                }
+
+                // Bump allocate
+                resource = nativeUploadBuffer;
+                offset = nativeUploadBufferOffset;
+                nativeUploadBufferOffset += size;
+
+                return nativeUploadBufferStart + offset;
+            }
+        }
+
+        internal unsafe ulong ExecuteAndWaitCopyQueueGPU(VkCommandBuffer commandBuffer)
+        {
+            lock (QueueLock)
+            {
+                var copyFenceValue = CopyFence.NextFenceValue++;
+                var nextCopyFenceValue = copyFenceValue + 1;
+
+                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                {
+                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    signalSemaphoreValueCount = 1,
+                    pSignalSemaphoreValues = &nextCopyFenceValue,
+                };
+                var copySemaphore = CopyFence.Semaphore;
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    pNext = &timelineInfo,
+                    commandBufferCount = 1,
+                    pCommandBuffers = &commandBuffer,
+                    signalSemaphoreCount = 1,
+                    pSignalSemaphores = &copySemaphore,
+                };
+                
+                CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+
+                return nextCopyFenceValue;
+            }
         }
 
         protected unsafe void AllocateMemory(VkMemoryPropertyFlags memoryProperties)
@@ -423,7 +556,7 @@ namespace Stride.Graphics
                 if ((typeBits & 1) == 1)
                 {
                     // Type is available, does it match user properties?
-                    var memoryType = *(&physicalDeviceMemoryProperties.memoryTypes_0 + i);
+                    var memoryType = *(&physicalDeviceMemoryProperties.memoryTypes[0] + i);
                     if ((memoryType.propertyFlags & memoryProperties) == memoryProperties)
                     {
                         allocateInfo.memoryTypeIndex = i;
@@ -437,11 +570,18 @@ namespace Stride.Graphics
             vkBindBufferMemory(NativeDevice, nativeUploadBuffer, nativeUploadBufferMemory, 0);
         }
 
-        private void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription)
+        /// <summary>
+        ///   Makes Vulkan-specific adjustments to the Pipeline State objects created by the Graphics Device.
+        /// </summary>
+        /// <param name="pipelineStateDescription">A Pipeline State description that can be modified and adjusted.</param>
+        private partial void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription)
         {
         }
 
-        protected void DestroyPlatformDevice()
+        /// <summary>
+        ///   Releases the platform-specific Graphics Device and all its associated resources.
+        /// </summary>
+        protected partial void DestroyPlatformDevice()
         {
             ReleaseDevice();
         }
@@ -457,17 +597,14 @@ namespace Stride.Graphics
             EmptyTexture = null;
 
             // Wait for all queues to be idle
-            vkDeviceWaitIdle(nativeDevice);
-
-            // Destroy all remaining fences
-            GetCompletedValue();
+            CheckResult(vkDeviceWaitIdle(nativeDevice));
 
             // Mark upload buffer for destruction
             if (nativeUploadBuffer != VkBuffer.Null)
             {
                 vkUnmapMemory(NativeDevice, nativeUploadBufferMemory);
-                nativeResourceCollector.Add(lastCompletedFence, nativeUploadBuffer);
-                nativeResourceCollector.Add(lastCompletedFence, nativeUploadBufferMemory);
+                nativeResourceCollector.Add(FrameFence.LastCompletedFence, nativeUploadBuffer);
+                nativeResourceCollector.Add(FrameFence.LastCompletedFence, nativeUploadBufferMemory);
 
                 nativeUploadBuffer = VkBuffer.Null;
                 nativeUploadBufferMemory = VkDeviceMemory.Null;
@@ -477,18 +614,22 @@ namespace Stride.Graphics
             nativeResourceCollector.Dispose();
             DescriptorPools.Dispose();
 
+            FrameFence.Dispose();
+            CopyFence.Dispose();
+            CommandListFence.Dispose();
+
             foreach (var nativeCopyCommandPool in NativeCopyCommandPools.Values)
-                vkDestroyCommandPool(nativeDevice, nativeCopyCommandPool, null);
+                nativeCopyCommandPool.Dispose();
             NativeCopyCommandPools.Dispose();
             NativeCopyCommandPools = null;
             vkDestroyDevice(nativeDevice, null);
         }
 
-        internal void OnDestroyed()
+        internal void OnDestroyed(bool immediately = false)
         {
         }
 
-        internal unsafe long ExecuteCommandListInternal(CompiledCommandList commandList)
+        internal unsafe ulong ExecuteCommandListInternal(CompiledCommandList commandList)
         {
             //if (nativeUploadBuffer != VkBuffer.Null)
             //{
@@ -499,45 +640,61 @@ namespace Stride.Graphics
             //    nativeUploadBufferMemory = VkDeviceMemory.Null;
             //}
 
-            var fenceValue = NextFenceValue++;
+            ulong nextCommandListFenceValue;
+            lock (QueueLock)
+            {
+                var commandListFenceValue = CommandListFence.NextFenceValue++;
+                nextCommandListFenceValue = commandListFenceValue + 1;
+                // Make sure all copies are done as well
+                var copyFenceValue = CopyFence.NextFenceValue;
+                var waitFenceValues = stackalloc ulong[] { commandListFenceValue, copyFenceValue };
 
-            // Create new fence
-            var fenceCreateInfo = new VkFenceCreateInfo { sType = VkStructureType.FenceCreateInfo };
-            vkCreateFence(nativeDevice, &fenceCreateInfo, null, out var fence);
-            nativeFences.Enqueue(new KeyValuePair<long, VkFence>(fenceValue, fence));
+                // Do we need to wait for CopyFence?
+                var semaphoreCount = copyFenceValue > LastGPUSyncCopyFenceToCommandFence ? 2 : 1;
+                // Remember that we waited 
+                LastGPUSyncCopyFenceToCommandFence = copyFenceValue;
+
+                // Submit commands
+                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                {
+                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    waitSemaphoreValueCount = 2,
+                    pWaitSemaphoreValues = &waitFenceValues[0],
+                    signalSemaphoreValueCount = 1,
+                    pSignalSemaphoreValues = &nextCommandListFenceValue,
+                };
+
+                var semaphores = stackalloc VkSemaphore[] { CommandListFence.Semaphore, CopyFence.Semaphore };
+                var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
+                var nativeCommandBufferCopy = commandList.NativeCommandBuffer;
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    pNext = &timelineInfo,
+                    commandBufferCount = 1,
+                    pCommandBuffers = &nativeCommandBufferCopy,
+                    waitSemaphoreCount = 2,
+                    pWaitSemaphores = &semaphores[0],
+                    pWaitDstStageMask = &pipelineStageFlags[0],
+                    signalSemaphoreCount = 1,
+                    pSignalSemaphores = &semaphores[0],
+                };
+                
+                CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+            }
 
             // Collect resources
-            RecycleCommandListResources(commandList, fenceValue);
+            RecycleCommandListResources(commandList, nextCommandListFenceValue);
 
-            // Submit commands
-            var nativeCommandBufferCopy = commandList.NativeCommandBuffer;
-            var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
-
-            var presentSemaphoreCopy = presentSemaphore;
-            var submitInfo = new VkSubmitInfo
-            {
-                sType = VkStructureType.SubmitInfo,
-                commandBufferCount = 1,
-                pCommandBuffers = &nativeCommandBufferCopy,
-                waitSemaphoreCount = presentSemaphore != VkSemaphore.Null ? 1U : 0U,
-                pWaitSemaphores = &presentSemaphoreCopy,
-                pWaitDstStageMask = &pipelineStageFlags,
-            };
-            vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, fence);
-
-            presentSemaphore = VkSemaphore.Null;
-            nativeResourceCollector.Release();
-            graphicsResourceLinkCollector.Release();
-
-            return fenceValue;
+            return nextCommandListFenceValue;
         }
 
-        private void RecycleCommandListResources(CompiledCommandList commandList, long fenceValue)
+        private void RecycleCommandListResources(CompiledCommandList commandList, ulong commandListFenceValue)
         {
             // Set fence on staging textures
             foreach (var stagingResource in commandList.StagingResources)
             {
-                stagingResource.StagingFenceValue = fenceValue;
+                stagingResource.CommandListFenceValue = commandListFenceValue;
             }
 
             StagingResourceLists.Release(commandList.StagingResources);
@@ -546,86 +703,27 @@ namespace Stride.Graphics
             // Recycle all resources
             foreach (var descriptorPool in commandList.DescriptorPools)
             {
-                DescriptorPools.RecycleObject(fenceValue, descriptorPool);
+                DescriptorPools.RecycleObject(commandListFenceValue, descriptorPool);
             }
             DescriptorPoolLists.Release(commandList.DescriptorPools);
             commandList.DescriptorPools.Clear();
 
-            commandList.Builder.CommandBufferPool.RecycleObject(fenceValue, commandList.NativeCommandBuffer);
-        }
-
-        internal bool IsFenceCompleteInternal(long fenceValue)
-        {
-            // Try to avoid checking the fence if possible
-            if (fenceValue > lastCompletedFence)
-            {
-                GetCompletedValue();
-            }
-
-            return fenceValue <= lastCompletedFence;
-        }
-
-        private SpinLock spinLock = new SpinLock();
-
-        internal unsafe long GetCompletedValue()
-        {
-            bool lockTaken = false;
-            try
-            {
-                spinLock.Enter(ref lockTaken);
-
-                while (nativeFences.Count > 0 && vkGetFenceStatus(NativeDevice, nativeFences.Peek().Value) == VkResult.Success)
-                {
-                    var fence = nativeFences.Dequeue();
-                    vkDestroyFence(NativeDevice, fence.Value, null);
-                    lastCompletedFence = Math.Max(lastCompletedFence, fence.Key);
-                }
-
-                return lastCompletedFence;
-            }
-            finally
-            {
-                if (lockTaken)
-                    spinLock.Exit(false);
-            }
-        }
-
-        internal unsafe void WaitForFenceInternal(long fenceValue)
-        {
-            if (IsFenceCompleteInternal(fenceValue))
-                return;
-
-            // TODO D3D12 in case of concurrency, this lock could end up blocking too long a second thread with lower fenceValue then first one
-            lock (nativeFences)
-            {
-                while (nativeFences.Count > 0 && nativeFences.Peek().Key <= fenceValue)
-                {
-                    var fence = nativeFences.Dequeue();
-                    var fenceCopy = fence.Value;
-
-                    vkWaitForFences(NativeDevice, 1, &fenceCopy, true, ulong.MaxValue);
-                    vkDestroyFence(NativeDevice, fence.Value, null);
-                    lastCompletedFence = fenceValue;
-                }
-            }
-        }
-
-        private VkSemaphore presentSemaphore;
-
-        public unsafe VkSemaphore GetNextPresentSemaphore()
-        {
-            var createInfo = new VkSemaphoreCreateInfo { sType = VkStructureType.SemaphoreCreateInfo };
-            vkCreateSemaphore(NativeDevice, &createInfo, null, out presentSemaphore);
-            Collect(presentSemaphore);
-            return presentSemaphore;
+            commandList.Builder.CommandBufferPool.RecycleObject(commandListFenceValue, commandList.NativeCommandBuffer);
         }
 
         internal void Collect(NativeResource nativeResource)
         {
-            nativeResourceCollector.Add(NextFenceValue, nativeResource);
+            nativeResourceCollector.Add(FrameFence.NextFenceValue, nativeResource);
         }
 
-        internal void TagResource(GraphicsResourceLink resourceLink)
+        /// <summary>
+        ///   Tags a Graphics Resource as no having alive references, meaning it should be safe to dispose it
+        ///   or discard its contents during the next <see cref="CommandList.MapSubResource"/> or <c>SetData</c> operation.
+        /// </summary>
+        /// <param name="resourceLink">
+        ///   A <see cref="GraphicsResourceLink"/> object identifying the Graphics Resource along some related allocation information.
+        /// </param>
+        internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink)
         {
             switch (resourceLink.Resource)
             {
@@ -634,7 +732,7 @@ namespace Stride.Graphics
                     {
                         // Increase the reference count until GPU is done with the resource
                         resourceLink.ReferenceCount++;
-                        graphicsResourceLinkCollector.Add(NextFenceValue, resourceLink);
+                        graphicsResourceLinkCollector.Add(FrameFence.NextFenceValue, resourceLink);
                     }
                     break;
 
@@ -643,14 +741,74 @@ namespace Stride.Graphics
                     {
                         // Increase the reference count until GPU is done with the resource
                         resourceLink.ReferenceCount++;
-                        graphicsResourceLinkCollector.Add(NextFenceValue, resourceLink);
+                        graphicsResourceLinkCollector.Add(FrameFence.NextFenceValue, resourceLink);
                     }
                     break;
 
                 case QueryPool _:
                     resourceLink.ReferenceCount++;
-                    graphicsResourceLinkCollector.Add(NextFenceValue, resourceLink);
+                    graphicsResourceLinkCollector.Add(FrameFence.NextFenceValue, resourceLink);
                     break;
+            }
+        }
+
+        internal unsafe struct FenceHelper : IDisposable
+        {
+            private GraphicsDevice graphicsDevice;
+            public VkSemaphore Semaphore;
+            public ulong NextFenceValue = 1;
+            public ulong LastCompletedFence;
+
+            public FenceHelper(GraphicsDevice graphicsDevice)
+            {
+                this.graphicsDevice = graphicsDevice;
+                var timelineInfo = new VkSemaphoreTypeCreateInfo { sType = VkStructureType.SemaphoreTypeCreateInfo, semaphoreType = VkSemaphoreType.Timeline };
+                var createInfo = new VkSemaphoreCreateInfo { sType = VkStructureType.SemaphoreCreateInfo, pNext = &timelineInfo };
+                graphicsDevice.CheckResult(vkCreateSemaphore(graphicsDevice.NativeDevice, &createInfo, null, out Semaphore));
+            }
+
+            internal ulong GetCompletedValue()
+            {
+                ulong result = 0;
+                vkGetSemaphoreCounterValue(graphicsDevice.NativeDevice, Semaphore, &result);
+                return result;
+            }
+
+            internal bool IsFenceCompleteInternal(ulong fenceValue)
+            {
+                // Try to avoid checking the fence if possible
+                if (fenceValue > LastCompletedFence)
+                    LastCompletedFence = Math.Max(LastCompletedFence, GetCompletedValue()); // Protect against race conditions
+
+                return fenceValue <= LastCompletedFence;
+            }
+
+            internal void WaitForFenceCPUInternal(ulong fenceValue)
+            {
+                if (IsFenceCompleteInternal(fenceValue))
+                    return;
+
+                // TODO D3D12 in case of concurrency, this lock could end up blocking too long a second thread with lower fenceValue then first one
+                //lock (Fence)
+                {
+                    fixed (VkSemaphore* semaphore = &Semaphore)
+                    {
+                        var waitInfo = new VkSemaphoreWaitInfo
+                        {
+                            sType = VkStructureType.SemaphoreWaitInfo,
+                            semaphoreCount = 1,
+                            pSemaphores = semaphore,
+                            pValues = &fenceValue,
+                        };
+                        vkWaitSemaphores(graphicsDevice.NativeDevice, &waitInfo, ulong.MaxValue);
+                        LastCompletedFence = fenceValue;
+                    }
+                }
+            }
+
+            public void Dispose()
+            {
+                vkDestroySemaphore(graphicsDevice.NativeDevice, Semaphore);
             }
         }
     }
@@ -658,22 +816,24 @@ namespace Stride.Graphics
     internal abstract class ResourcePool<T> : ComponentBase
     {
         protected readonly GraphicsDevice GraphicsDevice;
-        private readonly Queue<KeyValuePair<long, T>> liveObjects = new Queue<KeyValuePair<long, T>>();
+        private readonly Queue<KeyValuePair<ulong, T>> liveObjects = new();
+        private readonly bool threadsafe;
 
-        protected ResourcePool(GraphicsDevice graphicsDevice)
+        protected ResourcePool(GraphicsDevice graphicsDevice, bool threadsafe)
         {
             GraphicsDevice = graphicsDevice;
+            this.threadsafe = threadsafe;
         }
 
-        public T GetObject()
+        public T GetObject(ulong completedFenceValue)
         {
-            lock (liveObjects)
+            using (OptionalLock.Lock(liveObjects, threadsafe))
             {
                 // Check if first allocator is ready for reuse
                 if (liveObjects.Count > 0)
                 {
                     var firstAllocator = liveObjects.Peek();
-                    if (firstAllocator.Key <= GraphicsDevice.GetCompletedValue())
+                    if (firstAllocator.Key <= completedFenceValue)
                     {
                         liveObjects.Dequeue();
                         ResetObject(firstAllocator.Value);
@@ -685,11 +845,11 @@ namespace Stride.Graphics
             }
         }
 
-        public void RecycleObject(long fenceValue, T obj)
+        public void RecycleObject(ulong fenceValue, T obj)
         {
-            lock (liveObjects)
+            using (OptionalLock.Lock(liveObjects, threadsafe))
             {
-                liveObjects.Enqueue(new KeyValuePair<long, T>(fenceValue, obj));
+                liveObjects.Enqueue(new KeyValuePair<ulong, T>(fenceValue, obj));
             }
         }
 
@@ -703,7 +863,7 @@ namespace Stride.Graphics
 
         protected override void Destroy()
         {
-            lock (liveObjects)
+            using (OptionalLock.Lock(liveObjects, threadsafe))
             { 
                 foreach (var item in liveObjects)
                 {
@@ -713,13 +873,47 @@ namespace Stride.Graphics
 
             base.Destroy();
         }
+
+        // TODO: do we want to use spinlock instead? (need to measure impact, not good if too long wait)
+        private struct OptionalLock : IDisposable
+        {
+            private readonly object lockObject;
+            private readonly bool locked;
+
+            // Use a private constructor to force usage through the static factory methods
+            private OptionalLock(object lockObject, bool locked)
+            {
+                this.lockObject = lockObject;
+                this.locked = locked;
+            }
+
+            public void Dispose()
+            {
+                if (locked)
+                {
+                    Monitor.Exit(lockObject);
+                }
+            }
+
+            // Factory method for a locked scope
+            public static OptionalLock Lock(object lockObject, bool useLock)
+            {
+                // TODO: do we want to use spinlock instead?
+                if (useLock)
+                {
+                    useLock = false;
+                    Monitor.Enter(lockObject, ref useLock);
+                }
+                return new OptionalLock(lockObject, useLock);
+            }
+        }
     }
 
     internal class CommandBufferPool : ResourcePool<VkCommandBuffer>
     {
         private readonly VkCommandPool commandPool;
 
-        public unsafe CommandBufferPool(GraphicsDevice graphicsDevice) : base(graphicsDevice)
+        public unsafe CommandBufferPool(GraphicsDevice graphicsDevice, bool threadsafe) : base(graphicsDevice, threadsafe)
         {
             var commandPoolCreateInfo = new VkCommandPoolCreateInfo
             {
@@ -728,7 +922,7 @@ namespace Stride.Graphics
                 flags = VkCommandPoolCreateFlags.ResetCommandBuffer
             };
 
-            vkCreateCommandPool(graphicsDevice.NativeDevice, &commandPoolCreateInfo, null, out commandPool);
+            GraphicsDevice.CheckResult(vkCreateCommandPool(graphicsDevice.NativeDevice, &commandPoolCreateInfo, null, out commandPool));
         }
 
         protected override unsafe VkCommandBuffer CreateObject()
@@ -762,7 +956,7 @@ namespace Stride.Graphics
 
     internal class HeapPool : ResourcePool<VkDescriptorPool>
     {
-        public HeapPool(GraphicsDevice graphicsDevice) : base(graphicsDevice)
+        public HeapPool(GraphicsDevice graphicsDevice, bool threadsafe) : base(graphicsDevice, threadsafe)
         {
         }
 
@@ -782,7 +976,7 @@ namespace Stride.Graphics
                     pPoolSizes = fPoolSizes,
                     maxSets = GraphicsDevice.MaxDescriptorSetCount,
                 };
-                vkCreateDescriptorPool(GraphicsDevice.NativeDevice, &descriptorPoolCreateInfo, null, out var descriptorPool);
+                GraphicsDevice.CheckResult(vkCreateDescriptorPool(GraphicsDevice.NativeDevice, &descriptorPoolCreateInfo, null, out var descriptorPool));
                 return descriptorPool;
             }
         }
@@ -903,7 +1097,7 @@ namespace Stride.Graphics
     internal class GraphicsResourceLinkCollector : TemporaryResourceCollector<GraphicsResourceLink>
     {
         public GraphicsResourceLinkCollector(GraphicsDevice graphicsDevice) : base(graphicsDevice)
-        {
+    {
         }
 
         protected override void ReleaseObject(GraphicsResourceLink item)
@@ -915,7 +1109,7 @@ namespace Stride.Graphics
     internal class NativeResourceCollector : TemporaryResourceCollector<NativeResource>
     {
         public NativeResourceCollector(GraphicsDevice graphicsDevice) : base(graphicsDevice)
-        {
+    {
         }
 
         protected override void ReleaseObject(NativeResource item)
@@ -923,22 +1117,22 @@ namespace Stride.Graphics
             item.Destroy(GraphicsDevice);
         }
     }
-    
+
     internal abstract class TemporaryResourceCollector<T> : IDisposable
     {
         protected readonly GraphicsDevice GraphicsDevice;
-        private readonly Queue<KeyValuePair<long, T>> items = new Queue<KeyValuePair<long, T>>();
+        private readonly Queue<KeyValuePair<ulong, T>> items = new();
 
         protected TemporaryResourceCollector(GraphicsDevice graphicsDevice)
         {
             GraphicsDevice = graphicsDevice;
         }
 
-        public void Add(long fenceValue, T item)
+        public void Add(ulong frameFenceValue, T item)
         {
             lock (items)
             {
-                items.Enqueue(new KeyValuePair<long, T>(fenceValue, item));
+                items.Enqueue(new KeyValuePair<ulong, T>(frameFenceValue, item));
             }
         }
 
@@ -946,7 +1140,7 @@ namespace Stride.Graphics
         {
             lock (items)
             {
-                while (items.Count > 0 && GraphicsDevice.IsFenceCompleteInternal(items.Peek().Key))
+                while (items.Count > 0 && GraphicsDevice.FrameFence.IsFenceCompleteInternal(items.Peek().Key))
                 {
                     ReleaseObject(items.Dequeue().Value);
                 }

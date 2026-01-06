@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -33,7 +33,7 @@ namespace Stride.Core.Mathematics;
 [DataContract("Int4")]
 [DataStyle(DataStyle.Compact)]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct Int4 : IEquatable<Int4>, IFormattable
+public struct Int4 : IEquatable<Int4>, ISpanFormattable
 {
     /// <summary>
     ///   The size of the <see cref = "Int4" /> type, in bytes.
@@ -574,65 +574,50 @@ public struct Int4 : IEquatable<Int4>, IFormattable
     {
         return new Vector4(value.X, value.Y, value.Z, value.W);
     }
-
+    
     /// <summary>
-    ///   Returns a <see cref = "string" /> that represents this instance.
+    /// Returns a <see cref="string"/> that represents this instance.
     /// </summary>
     /// <returns>
-    ///   A <see cref = "string" /> that represents this instance.
+    /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
+    public override readonly string ToString() => $"{this}";
+
+    /// <summary>
+    /// Returns a <see cref="string"/> that represents this instance.
+    /// </summary>
+    /// <param name="format">The format.</param>
+    /// <param name="formatProvider">The format provider.</param>
+    /// <returns>
+    /// A <see cref="string"/> that represents this instance.
+    /// </returns>
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2} W:{3}", X, Y, Z, W);
+        var handler = new DefaultInterpolatedStringHandler(11, 4, formatProvider);
+        handler.AppendLiteral("X:");
+        handler.AppendFormatted(X, format);
+        handler.AppendLiteral(" Y:");
+        handler.AppendFormatted(Y, format);
+        handler.AppendLiteral(" Z:");
+        handler.AppendFormatted(Z, format);
+        handler.AppendLiteral(" W:");
+        handler.AppendFormatted(W, format);
+        return handler.ToStringAndClear();
     }
 
-    /// <summary>
-    ///   Returns a <see cref = "string" /> that represents this instance.
-    /// </summary>
-    /// <param name = "format">The format.</param>
-    /// <returns>
-    ///   A <see cref = "string" /> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format)
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
-        if (format == null)
-            return ToString();
-
-        return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2} W:{3}",
-                             X.ToString(format, CultureInfo.CurrentCulture),
-                             Y.ToString(format, CultureInfo.CurrentCulture),
-                             Z.ToString(format, CultureInfo.CurrentCulture),
-                             W.ToString(format, CultureInfo.CurrentCulture));
-    }
-
-    /// <summary>
-    ///   Returns a <see cref = "string" /> that represents this instance.
-    /// </summary>
-    /// <param name = "formatProvider">The format provider.</param>
-    /// <returns>
-    ///   A <see cref = "string" /> that represents this instance.
-    /// </returns>
-    public readonly string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, "X:{0} Y:{1} Z:{2} W:{3}", X, Y, Z, W);
-    }
-
-    /// <summary>
-    ///   Returns a <see cref = "string" /> that represents this instance.
-    /// </summary>
-    /// <param name = "format">The format.</param>
-    /// <param name = "formatProvider">The format provider.</param>
-    /// <returns>
-    ///   A <see cref = "string" /> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format, IFormatProvider? formatProvider)
-    {
-        if (format == null)
-            ToString(formatProvider);
-
-        return string.Format(formatProvider, "X:{0} Y:{1} Z:{2} W:{3}", X.ToString(format, formatProvider),
-                             Y.ToString(format, formatProvider), Z.ToString(format, formatProvider),
-                             W.ToString(format, formatProvider));
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(11, 4, destination, provider, out _);
+        handler.AppendLiteral("X:");
+        handler.AppendFormatted(X, format1);
+        handler.AppendLiteral(" Y:");
+        handler.AppendFormatted(Y, format1);
+        handler.AppendLiteral(" Z:");
+        handler.AppendFormatted(Z, format1);
+        handler.AppendLiteral(" W:");
+        handler.AppendFormatted(W, format1);
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>

@@ -3,7 +3,7 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 
 using System;
-using SharpDX.Direct3D11;
+using Silk.NET.Direct3D11;
 using Stride.Graphics;
 using CommandList = Stride.Graphics.CommandList;
 
@@ -15,12 +15,11 @@ namespace Stride.VirtualReality
         internal IntPtr OverlayPtr;
         private readonly Texture[] textures;
 
-        public OculusOverlay(IntPtr ovrSession, GraphicsDevice device, int width, int height, int mipLevels, int sampleCount)
+        public unsafe OculusOverlay(IntPtr ovrSession, GraphicsDevice device, int width, int height, int mipLevels, int sampleCount)
         {
-            int textureCount;
             this.ovrSession = ovrSession;
 
-            OverlayPtr = OculusOvr.CreateQuadLayerTexturesDx(ovrSession, device.NativeDevice.NativePointer, out textureCount, width, height, mipLevels, sampleCount);
+            OverlayPtr = OculusOvr.CreateQuadLayerTexturesDx(ovrSession, (nint) device.NativeDevice.Handle, out var textureCount, width, height, mipLevels, sampleCount);
             if (OverlayPtr == IntPtr.Zero)
             {
                 throw new Exception(OculusOvr.GetError());
@@ -29,14 +28,18 @@ namespace Stride.VirtualReality
             textures = new Texture[textureCount];
             for (var i = 0; i < textureCount; i++)
             {
-                var ptr = OculusOvr.GetQuadLayerTextureDx(ovrSession, OverlayPtr, OculusOvrHmd.Dx11Texture2DGuid, i);
-                if (ptr == IntPtr.Zero)
+                var dxTexture2D = (ID3D11Texture2D*) OculusOvr.GetQuadLayerTextureDx(ovrSession, OverlayPtr, OculusOvrHmd.Dx11Texture2DGuid, i);
+                if (dxTexture2D is null)
                 {
                     throw new Exception(OculusOvr.GetError());
                 }
 
-                textures[i] = new Texture(device);
-                textures[i].InitializeFromImpl(new Texture2D(ptr), false);
+                textures[i] = new Texture(device).InitializeFromImpl(dxTexture2D, treatAsSrgb: false);
+
+                // We don't need to take ownership of the COM pointer.
+                //   We are already AddRef()ing in Texture.InitializeFromImpl when storing the COM pointer;
+                //   compensate with Release() to return the reference count to its previous value
+                dxTexture2D->Release();
             }
         }
 

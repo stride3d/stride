@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Annotations;
@@ -229,7 +230,7 @@ namespace Stride.Rendering.Images
         {
         }
 
-        public void Draw(RenderDrawContext drawContext, RenderOutputValidator outputValidator, Texture[] inputs, Texture inputDepthStencil, Texture outputTarget)
+        public void Draw(RenderDrawContext drawContext, RenderOutputValidator outputValidator, Span<Texture> inputs, Texture inputDepthStencil, Texture outputTarget)
         {
             var colorIndex = outputValidator.Find<ColorTargetSemantic>();
             if (colorIndex < 0)
@@ -449,6 +450,9 @@ namespace Stride.Rendering.Images
 
                 // Set this parameter that will be used by the tone mapping
                 colorTransformsGroup.Parameters.Set(LuminanceEffect.LuminanceResult, new LuminanceResult(luminanceEffect.AverageLuminance, luminanceTexture));
+
+                if (luminanceTexture != null)
+                    context.CommandList.ResourceBarrierTransition(luminanceTexture, GraphicsResourceState.PixelShaderResource);
             }
 
             if (BrightFilter.Enabled && (Bloom.Enabled || LightStreak.Enabled || LensFlare.Enabled))

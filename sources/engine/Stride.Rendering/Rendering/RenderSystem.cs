@@ -10,6 +10,7 @@ using Stride.Core.Collections;
 using Stride.Core.Threading;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
+using System.Runtime.InteropServices;
 
 namespace Stride.Rendering
 {
@@ -22,7 +23,7 @@ namespace Stride.Rendering
         private readonly ConcurrentPool<PrepareThreadLocals> prepareThreadLocals = new ConcurrentPool<PrepareThreadLocals>(() => new PrepareThreadLocals());
 
         private readonly ConcurrentPool<ConcurrentCollector<RenderNodeFeatureReference>> renderNodePool = new ConcurrentPool<ConcurrentCollector<RenderNodeFeatureReference>>(() => new ConcurrentCollector<RenderNodeFeatureReference>());
-        private readonly ConcurrentPool<FastList<RenderNodeFeatureReference>> sortedRenderNodePool = new ConcurrentPool<FastList<RenderNodeFeatureReference>>(() => new FastList<RenderNodeFeatureReference>());
+        private readonly ConcurrentPool<List<RenderNodeFeatureReference>> sortedRenderNodePool = new ConcurrentPool<List<RenderNodeFeatureReference>>(() => []);
 
         private CompiledCommandList[] commandLists;
         private Texture[] renderTargets;
@@ -189,7 +190,7 @@ namespace Stride.Rendering
                             renderViewStage.RenderNodes.Add(new RenderNodeFeatureReference(renderFeature, renderNode, renderObject), batch.ViewStageRenderNodeCache);
                         }
                     }
-                }, batch => batch.Flush());            
+                }, batch => batch.Flush());
                 // Finish collectin of view feature nodes
                 foreach (var viewFeature in view.Features)
                 {
@@ -204,7 +205,7 @@ namespace Stride.Rendering
                     using (Profiler.Begin(SortRenderNodesKey))
                     {
                         Dispatcher.Sort(renderViewStage.RenderNodes, RenderNodeFeatureReferenceComparer.Default);
-                    }                    
+                    }
                 }
             });
 
@@ -285,8 +286,7 @@ namespace Stride.Rendering
                         var renderStage = RenderStages[renderViewStage.Index];
                         var sortedRenderNodes = renderViewStage.SortedRenderNodes;
 
-                        // Fast clear, since it's cleared properly in Reset()
-                        sortedRenderNodes.Resize(renderViewStage.RenderNodes.Count, true);                        
+                        CollectionsMarshal.SetCount(sortedRenderNodes, renderNodes.Count);
 
                         if (renderStage.SortMode != null)
                         {
@@ -386,22 +386,24 @@ namespace Stride.Rendering
                 int batchSize = (renderNodeCount + (batchCount - 1)) / batchCount;
                 batchCount = (renderNodeCount + (batchSize - 1)) / batchSize;
 
+                var commandList = renderDrawContext.CommandList;
+
                 // Remember state
-                var depthStencilBuffer = renderDrawContext.CommandList.DepthStencilBuffer;
-                int renderTargetCount = renderDrawContext.CommandList.RenderTargetCount;
-                if (renderTargets == null)
-                    renderTargets = new Texture[renderDrawContext.CommandList.RenderTargets.Length];
-                for (int i = 0; i < renderTargetCount; ++i)
-                    renderTargets[i] = renderDrawContext.CommandList.RenderTargets[i];
-                var viewport = renderDrawContext.CommandList.Viewport;
-                var scissor = renderDrawContext.CommandList.Scissor;
+                var depthStencilBuffer = commandList.DepthStencilBuffer;
+
+                int renderTargetCount = commandList.RenderTargetCount;
+                renderTargets ??= new Texture[CommandList.MaxRenderTargetCount];
+                commandList.RenderTargets.CopyTo(renderTargets);
+
+                var viewport = commandList.Viewport;
+                var scissor = commandList.Scissor;
 
                 // Collect one command list per batch and the main one up to this point
-                if (commandLists == null || commandLists.Length < batchCount + 1)
+                if (commandLists == null || (commandLists.Length < batchCount + 1))
                 {
                     Array.Resize(ref commandLists, batchCount + 1);
                 }
-                commandLists[0] = renderDrawContext.CommandList.Close();
+                commandLists[0] = commandList.Close();
 
                 Dispatcher.For(0, batchCount, () => renderDrawContext.RenderContext.GetThreadContext(), (batchIndex, threadContext) =>
                 {
@@ -410,7 +412,8 @@ namespace Stride.Rendering
                     threadContext.CommandList.ClearState();
 
                     // Transfer state to all command lists
-                    threadContext.CommandList.SetRenderTargets(depthStencilBuffer, renderTargetCount, renderTargets);
+                    scoped ReadOnlySpan<Texture> renderTargetsToSet = renderTargets.AsSpan(0, renderTargetCount);
+                    threadContext.CommandList.SetRenderTargets(depthStencilBuffer, renderTargetsToSet);
                     threadContext.CommandList.SetViewport(viewport);
                     threadContext.CommandList.SetScissorRectangle(scissor);
 
@@ -440,13 +443,14 @@ namespace Stride.Rendering
 
                 GraphicsDevice.ExecuteCommandLists(batchCount + 1, commandLists);
 
-                renderDrawContext.CommandList.Reset();
-                renderDrawContext.CommandList.ClearState();
+                commandList.Reset();
+                commandList.ClearState();
 
                 // Reapply previous state
-                renderDrawContext.CommandList.SetRenderTargets(depthStencilBuffer, renderTargetCount, renderTargets);
-                renderDrawContext.CommandList.SetViewport(viewport);
-                renderDrawContext.CommandList.SetScissorRectangle(scissor);
+                scoped ReadOnlySpan<Texture> renderTargetsToSet = renderTargets.AsSpan(0, renderTargetCount);
+                commandList.SetRenderTargets(depthStencilBuffer, renderTargetsToSet);
+                commandList.SetViewport(viewport);
+                commandList.SetScissorRectangle(scissor);
             }
         }
 
@@ -525,7 +529,7 @@ namespace Stride.Rendering
                     {
                         // Slow clear, since type contains references
                         renderViewStage.RenderNodes?.Clear(false);
-                        renderViewStage.SortedRenderNodes?.Clear(false);
+                        renderViewStage.SortedRenderNodes?.Clear();
 
                         if (renderViewStage.RenderNodes != null) renderNodePool.Release(renderViewStage.RenderNodes);
                         if (renderViewStage.SortedRenderNodes != null) sortedRenderNodePool.Release(renderViewStage.SortedRenderNodes);

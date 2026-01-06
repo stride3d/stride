@@ -1,0 +1,44 @@
+!UIPageAsset
+Id: f55ca6f3-e8c0-4ed0-9605-76ff5b19809e
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+Design:
+    Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+Hierarchy:
+    RootParts:
+        - !Grid ref!! bbf1b2a3-df6e-4e81-a571-5f12754c1b23
+    Parts:
+        -   UIElement: !StackPanel
+                Id: a5c63225-def2-4f29-bdb5-b27874ca0df3
+                DependencyProperties:
+                    d69b68dad4122d19ac5c4471870d9150~GridBase.RowSpanPropertyKey: 2
+                    64cbbcbf15bbb3dc586e3f77b51c4bb0~GridBase.RowPropertyKey: 1
+                    fec9ccbd4042b416ef49c6586be7f7c8~GridBase.ColumnPropertyKey: 2
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Name: SceneStackPanel
+                Children: {}
+        -   UIElement: !Grid
+                Id: bbf1b2a3-df6e-4e81-a571-5f12754c1b23
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Children:
+                    74cc1a8f6cdc3f533e5d558a56e1abfd: !StackPanel ref!! a5c63225-def2-4f29-bdb5-b27874ca0df3
+                RowDefinitions:
+                    243a2ab8bf5b7e425091f7cf1c8d855b: {}
+                    4cbe1ad28d37029c9f967529f719e547: {}
+                    c126a0cbe5e3e108ec3d1a88239455e9: {}
+                ColumnDefinitions:
+                    86420bf588d300208d0a818846866dbf:
+                        Type: Auto
+                        SizeValue: 100.0
+                    f95e1fe96c388e1e14bb37bb6cbcb289: {}
+                    2e4ed838674050da54fc27221cad6742: {}
+                LayerDefinitions: {}

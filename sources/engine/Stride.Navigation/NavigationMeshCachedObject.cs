@@ -32,6 +32,6 @@ namespace Stride.Navigation
         /// <summary>
         /// List of infinite planes contained on this object
         /// </summary>
-        public List<Plane> Planes = new List<Plane>();
+        public List<Plane> Planes = [];
     }
 }

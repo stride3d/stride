@@ -87,7 +87,7 @@ public sealed partial class ContentManager : IContentManager
         return FileProvider.ContentIndexMap.TryGetValue(url, out _);
     }
 
-    public Stream OpenAsStream(string url, StreamFlags streamFlags)
+    public Stream OpenAsStream(string url, StreamFlags streamFlags = StreamFlags.None)
     {
         return FileProvider.OpenStream(url, VirtualFileMode.Open, VirtualFileAccess.Read, streamFlags: streamFlags);
     }

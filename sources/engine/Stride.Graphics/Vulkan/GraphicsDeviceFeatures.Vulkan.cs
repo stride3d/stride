@@ -1,10 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_VULKAN
-using System;
-using System.Collections.Generic;
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -39,13 +36,13 @@ namespace Stride.Graphics
 
             HasDepthAsSRV = true;
             HasDepthAsReadOnlyRT = true;
-            HasMultisampleDepthAsSRV = true;
+            HasMultiSampleDepthAsSRV = true;
 
             HasResourceRenaming = false;
 
             // TODO D3D12
             for (int i = 0; i < mapFeaturesPerFormat.Length; i++)
-                mapFeaturesPerFormat[i] = new FeaturesPerFormat((PixelFormat)i, MultisampleCount.None, FormatSupport.None);
+                mapFeaturesPerFormat[i] = new FeaturesPerFormat((PixelFormat) i, MultisampleCount.None, ComputeShaderFormatSupport.None, FormatSupport.None);
             //// Check features for each DXGI.Format
             //foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
             //{
@@ -69,4 +66,5 @@ namespace Stride.Graphics
         }
     }
 }
+
 #endif

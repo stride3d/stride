@@ -33,8 +33,9 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
             }
             if (AssetRegistry.CanPropertyHandleAssets(node.Type, out var assetTypes))
             {
-                var thumbnailService = session.ServiceProvider.Get<IThumbnailService>();
-                node.AttachedProperties.Add(SessionData.DynamicThumbnailKey, !assetTypes.All(thumbnailService.HasStaticThumbnail));
+                var thumbnailService = session.ServiceProvider.TryGet<IThumbnailService>();
+                if (thumbnailService != null)
+                    node.AttachedProperties.Add(SessionData.DynamicThumbnailKey, !assetTypes.All(thumbnailService.HasStaticThumbnail));
             }
         }
     }

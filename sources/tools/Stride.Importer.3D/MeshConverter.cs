@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using Silk.NET.Assimp;
 using Stride.Animations;
 using Stride.Assets.Materials;
@@ -15,7 +14,6 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
-using Stride.Engine;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Importer.Common;
@@ -563,7 +561,7 @@ namespace Stride.Importer.ThreeD
             string targetNodeName = null;
             if (duplicateNodeNameToNodeIndices.TryGetValue(nodeName, out var nodeIndices))
             {
-                // Node name has remapped to be unique 
+                // Node name has remapped to be unique
                 // For animation we assume the target is most likely a bone so we choose the bone node as a higher priority
                 if (!boneNameToNodeIndex.TryGetValue(nodeName, out int nodeIndex))
                 {
@@ -826,7 +824,7 @@ namespace Stride.Importer.ThreeD
             var hasSkinningNormal = false;
             var totalClusterCount = 0;
             var drawData = new MeshDraw();
-            // Build the bone's indices/weights and attach bones to NodeData 
+            // Build the bone's indices/weights and attach bones to NodeData
             //(bones info are present in the mesh so that is why we have to perform that here)
 
             var vertexIndexToBoneIdWeight = new List<List<(short boneIndex, float weight)>>();
@@ -874,7 +872,10 @@ namespace Stride.Importer.ThreeD
 
                 totalClusterCount = (int)mesh->MNumBones;
                 if (totalClusterCount > 0)
+                {
                     hasSkinningPosition = true;
+                    hasSkinningNormal = mesh->MNormals != null;
+                }
             }
 
             // Build the vertex declaration
@@ -945,7 +946,7 @@ namespace Stride.Importer.ThreeD
                 vertexStride += sizeof(float) * 4;
             }
 
-            // Build the vertices data buffer 
+            // Build the vertices data buffer
             var vertexBuffer = new byte[vertexStride * mesh->MNumVertices];
             fixed (byte* vertexBufferPtr = &vertexBuffer[0])
             {
@@ -1032,9 +1033,9 @@ namespace Stride.Importer.ThreeD
             int arraySize = is32BitIndex ? sizeof(uint) * nbIndices : sizeof(ushort) * nbIndices;
 
             //Mesh has no vertices
-            if(arraySize < 1) 
-            { 
-                return null; 
+            if(arraySize < 1)
+            {
+                return null;
             }
 
             byte[] indexBuffer = new byte[arraySize];
@@ -1157,7 +1158,7 @@ namespace Stride.Importer.ThreeD
             fixed (byte* bufferPointer = buffer)
             {
                 var sourcePointer = (byte*)texture->PcData;
-                System.Runtime.CompilerServices.Unsafe.CopyBlockUnaligned(bufferPointer, sourcePointer, arraySize);
+                MemoryUtilities.CopyWithAlignmentFallback(bufferPointer, sourcePointer, arraySize);
             }
             System.IO.File.WriteAllBytes(path, buffer);
         }
@@ -1170,7 +1171,9 @@ namespace Stride.Importer.ThreeD
             for (uint i = 0; i < scene->MNumMaterials; i++)
             {
                 var lMaterial = scene->MMaterials[i];
-                var materialName = materialNames[(IntPtr)lMaterial];
+                // Replace slashes with an underscore to indicate it is not absolute to Strides asset system.
+                var materialName = materialNames[(IntPtr)lMaterial].Replace('/', '_');
+
                 materials.Add(materialName, ProcessMeshMaterial(scene, lMaterial));
             }
             return materials;

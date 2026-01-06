@@ -651,7 +651,7 @@ namespace Stride.Engine
 
             if (ColliderShapes.Count == 0 && ColliderShape == null)
             {
-                logger.Error($"Entity {{Entity.Name}} has a PhysicsComponent without any collider shape.");
+                logger.Error($"Entity {Entity.Name} has a PhysicsComponent without any collider shape.");
                 attachInProgress = false;
                 return; //no shape no purpose
             }

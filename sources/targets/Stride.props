@@ -15,7 +15,7 @@
     <!-- When working in a specific API in the Stride Runtime or in the Stride solution (not in a game or app),
          you can uncomment this property and set its value to the name of that graphics API so it becomes
          the active one that Visual Studio and IntelliSense takes into account -->
-    <!--<StrideDefaultGraphicsApiDesignTime>Vulkan</StrideDefaultGraphicsApiDesignTime>-->
+    <!--<StrideDefaultGraphicsApiDesignTime>Direct3D11</StrideDefaultGraphicsApiDesignTime>-->
 
     <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And ('$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)')">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
 
@@ -81,7 +81,7 @@
 
   <PropertyGroup>
     <StrideUI Condition="'$(TargetFramework)' != '$(StrideFrameworkUWP)'">SDL</StrideUI>
-    <StrideUI Condition="'$(TargetFramework)' == '$(StrideFrameworkWindows)' AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
+    <StrideUI Condition="'$(TargetFramework)' == '$(StrideFrameworkWindows)' AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12' Or '$(StrideGraphicsApi)' == 'Vulkan')">$(StrideUI);WINFORMS;WPF</StrideUI>
 
     <DefineConstants Condition="$(StrideUI.Contains('SDL'))">$(DefineConstants);STRIDE_UI_SDL</DefineConstants>
     <DefineConstants Condition="$(StrideUI.Contains('WINFORMS'))">$(DefineConstants);STRIDE_UI_WINFORMS</DefineConstants>

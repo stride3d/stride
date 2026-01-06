@@ -26,11 +26,12 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class OneBodyAngularServoConstraintComponent : OneBodyConstraintComponent<OneBodyAngularServo>
+public sealed class OneBodyAngularServoConstraintComponent : OneBodyConstraintComponent<OneBodyAngularServo>, IServo, ISpring, IOneBody
 {
     public OneBodyAngularServoConstraintComponent() => BepuConstraint = new()
     {
-        ServoSettings = new ServoSettings(),
+        TargetOrientation = Quaternion.Identity,
+        ServoSettings = new ServoSettings(10, 1, 1000),
         SpringSettings = new SpringSettings(30, 5)
     };
 
@@ -47,6 +48,7 @@ public sealed class OneBodyAngularServoConstraintComponent : OneBodyConstraintCo
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -60,6 +62,7 @@ public sealed class OneBodyAngularServoConstraintComponent : OneBodyConstraintCo
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get
@@ -73,6 +76,7 @@ public sealed class OneBodyAngularServoConstraintComponent : OneBodyConstraintCo
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumSpeed
     {
         get
@@ -86,6 +90,7 @@ public sealed class OneBodyAngularServoConstraintComponent : OneBodyConstraintCo
         }
     }
 
+    /// <inheritdoc/>
     public float ServoBaseSpeed
     {
         get
@@ -99,6 +104,7 @@ public sealed class OneBodyAngularServoConstraintComponent : OneBodyConstraintCo
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumForce
     {
         get

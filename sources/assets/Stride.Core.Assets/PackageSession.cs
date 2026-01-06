@@ -9,6 +9,7 @@ using Stride.Core;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Tracking;
+using Stride.Core.Solutions;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -291,19 +292,19 @@ public class SolutionProject : PackageContainer
     public SolutionProject(Package package, Guid projectGuid, string fullPath)
         : this(package)
     {
-        VSProject = new VisualStudio.Project(projectGuid, VisualStudio.KnownProjectTypeGuid.CSharp, Path.GetFileNameWithoutExtension(fullPath), fullPath, Guid.Empty,
+        VSProject = new Project(projectGuid, KnownProjectTypeGuid.CSharp, Path.GetFileNameWithoutExtension(fullPath), fullPath, Guid.Empty,
             [],
             [],
             []);
     }
 
-    public SolutionProject(Package package, VisualStudio.Project vsProject)
+    public SolutionProject(Package package, Project vsProject)
         : this(package)
     {
         VSProject = vsProject;
     }
 
-    public VisualStudio.Project VSProject { get; set; }
+    public Project VSProject { get; set; }
 
     public Guid Id => VSProject.Guid;
 
@@ -430,14 +431,14 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public event DirtyFlagChangedDelegate<AssetItem> AssetDirtyChanged;
     private TaskCompletionSource<int> saveCompletion;
 
-    internal VisualStudio.Solution VSSolution;
+    internal Solution VSSolution;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PackageSession"/> class.
     /// </summary>
     public PackageSession()
     {
-        VSSolution = new VisualStudio.Solution();
+        VSSolution = new Solution();
         VSSolution.Headers.Add(SolutionHeader);
 
         Projects = [];
@@ -790,7 +791,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             if (string.Equals(Path.GetExtension(filePath), ".sln", StringComparison.InvariantCultureIgnoreCase))
             {
                 // The session should save back its changes to the solution
-                var solution = session.VSSolution = VisualStudio.Solution.FromFile(filePath);
+                var solution = session.VSSolution = Solution.FromFile(filePath);
 
                 // Keep header
                 var versionHeader = solution.Properties.FirstOrDefault(x => x.Name == "VisualStudioVersion");
@@ -802,7 +803,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 // Note: using ToList() because upgrade from old package system might change Projects list
                 foreach (var vsProject in solution.Projects.ToList())
                 {
-                    if (vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharpNewSystem)
+                    if (vsProject.TypeGuid == KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == KnownProjectTypeGuid.CSharpNewSystem)
                     {
                         var project = (SolutionProject)session.LoadProject(sessionResult, vsProject.FullPath, loadParameters);
                         project.VSProject = vsProject;
@@ -913,21 +914,29 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
         var cancelToken = loadParameters.CancelToken;
 
-        // Note: list can grow as dependencies get loaded
-        for (int i = 0; i < Projects.Count; ++i)
+        try
         {
-            var project = Projects[i];
-
-            // Output the session only if there is no cancellation
-            if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+            // Note: list can grow as dependencies get loaded
+            for (int i = 0; i < Projects.Count; ++i)
             {
-                return;
-            }
+                var project = Projects[i];
 
-            if (project is SolutionProject solutionProject)
-                PreLoadPackageDependencies(log, solutionProject, loadParameters).Wait();
-            else if (project.Package.State < PackageState.DependenciesReady) // not handling standalone packages yet
-                project.Package.State = PackageState.DependenciesReady;
+                // Output the session only if there is no cancellation
+                if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                if (project is SolutionProject solutionProject)
+                    PreLoadPackageDependencies(log, solutionProject, loadParameters).Wait();
+                else if (project.Package.State < PackageState.DependenciesReady) // not handling standalone packages yet
+                    project.Package.State = PackageState.DependenciesReady;
+            }
+        }
+        finally
+        {
+            // Clean up all cached MSBuild projects
+            ClearAllCachedProjects();
         }
     }
 
@@ -956,6 +965,15 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         }
         foreach (AssetLoadingInfo assetInfo in assetLoadInfos)
         {
+            // Check if the same package exists in the list but with a newer version.
+            var newerPackage = packages.FirstOrDefault(p => p.Meta.Name == assetInfo.package.Meta.Name && p.Meta.Version > assetInfo.package.Meta.Version);
+            if (newerPackage is not null)
+            {
+                // Skip loading assets for this package as a newer version exists in the list.
+                log.Warning($"Newer version of {assetInfo.package.Meta.Name} is already referenced in another package. Using version {newerPackage.Meta.Version} instead of {assetInfo.package.Meta.Version}");
+                continue;
+            }
+
             LoadAssets(assetInfo.session, assetInfo.log, assetInfo.package, assetInfo.loadParameters, assetInfo.pendingPackageUpgrades, assetInfo.newLoadParameters);
         }
     }

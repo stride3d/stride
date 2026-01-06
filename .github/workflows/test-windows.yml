@@ -1,0 +1,74 @@
+name: Test Windows
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/test-windows.yml'
+      - 'build/Stride.Tests.*.slnf'
+      - 'deps/**'
+      - 'sources/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build 
+        default: Release
+        type: choice
+        options:
+          - Debug
+          - Release
+      test-category:
+        description: Category of tests
+        default: Simple
+        type: choice
+        options:
+          - Simple
+          - Game
+          - VSPackage
+  workflow_call:
+    inputs:
+      build-type:
+        default: Release
+        type: string
+      test-category:
+        default: Simple
+        type: string
+
+concurrency:
+  group: test-windows-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}
+  cancel-in-progress: true
+
+jobs:
+  #
+  # Test Stride on Windows
+  #
+  Windows-Tests:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
+    name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }})
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: microsoft/setup-msbuild@v2
+      - name: Build
+        run: |
+          msbuild build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
+            -restore -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatforms=Windows `
+            -p:StrideGraphicsApis=Direct3D11
+      - name: Test
+        run: |
+          dotnet test build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
+            --no-build `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}

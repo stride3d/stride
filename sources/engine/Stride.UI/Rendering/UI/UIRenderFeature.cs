@@ -126,7 +126,7 @@ namespace Stride.Rendering.UI
 
             // see UIElementUnderMouseCursor property
             UIElement elementUnderMouseCursor = null;
-            
+
 
             // update view parameters and perform UI picking
             foreach (var uiElementState in uiElementStates)
@@ -137,7 +137,7 @@ namespace Stride.Rendering.UI
                     continue;
 
                 UIElement loopedElementUnderMouseCursor = null;
-                
+
                 // calculate the size of the virtual resolution depending on target size (UI canvas)
                 var virtualResolution = renderObject.Resolution;
 
@@ -161,12 +161,12 @@ namespace Stride.Rendering.UI
                         uiElementState.Update(renderObject, cameraComponent);
                 }
 
-                
+
                 // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
                 using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
                 {
                     PickingUpdate(uiElementState.RenderObject, context.CommandList.Viewport, ref uiElementState.WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
-                    
+
                     // only update result element, when this one has a value
                     if (loopedElementUnderMouseCursor != null)
                         elementUnderMouseCursor = loopedElementUnderMouseCursor;
@@ -266,8 +266,8 @@ namespace Stride.Rendering.UI
 
             PickingClear();
 
-            // revert the depth stencil buffer to the default value
-            context.CommandList.SetRenderTargets(context.CommandList.DepthStencilBuffer, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
+            // Revert the Depth-Stencil buffer to the default value
+            context.CommandList.SetRenderTargets(context.CommandList.DepthStencilBuffer, context.CommandList.RenderTargets);
 
             // Release scroped texture
             if (scopedDepthBuffer != null)

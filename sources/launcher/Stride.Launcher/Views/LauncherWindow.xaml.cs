@@ -8,12 +8,12 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Xml.Linq;
+using Stride.Core.CodeEditorSupport.VisualStudio;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Dialogs;
 using Stride.Core.Presentation.Extensions;
 using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.ViewModels;
-using Stride.Core.VisualStudio;
 using Stride.LauncherApp.Services;
 using Stride.LauncherApp.ViewModels;
 
@@ -85,7 +85,7 @@ namespace Stride.LauncherApp.Views
 
         private void TextBlockVisualStudioDownloadPage_Loaded(object sender, RoutedEventArgs e)
         {
-            bool hasCompatibleVersion = VisualStudioVersions.AvailableVisualStudioInstances
+            bool hasCompatibleVersion = VisualStudioVersions.AvailableInstances
                 .Any(ide => ide.InstallationVersion.Major == 16 || ide.InstallationVersion.Major == 17);
 
             if (sender is TextBlock textBlockVisualStudioDownloadPage && hasCompatibleVersion)

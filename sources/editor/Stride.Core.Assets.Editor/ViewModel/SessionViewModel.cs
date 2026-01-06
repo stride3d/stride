@@ -9,8 +9,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Components.Transactions;
@@ -22,12 +20,11 @@ using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Templates;
-using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.CodeEditorSupport;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
-using Stride.Core.VisualStudio;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Dirtiables;
@@ -512,7 +509,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var documentationService = ServiceProvider.Get<UserDocumentationService>();
             foreach (var packageAssembly in LocalPackages.SelectMany(p => p.LoadedAssemblies))
             {
-                Task.Run(() => documentationService.CacheAssemblyDocumentation(packageAssembly.Assembly));
+                if (packageAssembly.Assembly != null)
+                    Task.Run(() => documentationService.CacheAssemblyDocumentation(packageAssembly.Assembly));
             }
         }
 
@@ -1786,7 +1784,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private Task OpenInIDE(IDEInfo ideInfo)
         {
-            return VisualStudioService.StartOrToggleVisualStudio(this, ideInfo);
+            return CodeEditorOpenerService.StartOrToggle(this, ideInfo);
         }
 
         private void ToggleIsRootOnSelectedAsset()

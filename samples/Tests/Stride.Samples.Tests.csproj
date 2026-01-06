@@ -13,8 +13,11 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="xunit" Version="2.6.5" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\sources\shared\SharedAssemblyInfo.cs">
@@ -33,7 +36,7 @@
   <Import Project="..\..\sources\targets\Stride.UnitTests.targets" />
   <!-- Override the references set in Stride.UnitTests.targets -->
   <ItemGroup>
-    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Update="TeamCity.VSTest.TestAdapter" Version="1.0.39" />
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Update="TeamCity.VSTest.TestAdapter" Version="1.0.41" />
   </ItemGroup>
 </Project>

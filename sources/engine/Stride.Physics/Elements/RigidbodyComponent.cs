@@ -365,7 +365,7 @@ namespace Stride.Physics
                 return;
 
             //Remove constraints safely
-            var toremove = new FastList<Constraint>();
+            var toremove = new List<Constraint>();
             foreach (var c in LinkedConstraints)
             {
                 toremove.Add(c);

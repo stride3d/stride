@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -14,10 +13,11 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<SwivelHinge>
+public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<SwivelHinge>, ISpring, IWithTwoLocalOffset
 {
     public SwivelHingeConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
+    /// <inheritdoc/>
     public Vector3 LocalOffsetA
     {
         get
@@ -44,6 +44,7 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
         }
     }
 
+    /// <inheritdoc/>
     public Vector3 LocalOffsetB
     {
         get
@@ -70,6 +71,7 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -83,6 +85,7 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get

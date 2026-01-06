@@ -25,8 +25,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <PackageReference Include="SharpDX.MediaFoundation" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
-    <PackageReference Include="SharpDX.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
-    <PackageReference Include="SharpDX.Direct3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
+    <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="Silk.NET.Direct3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
   </ItemGroup>
   <Choose>
     <When Condition="$(DefineConstants.Contains(STRIDE_VIDEO_FFMPEG))">

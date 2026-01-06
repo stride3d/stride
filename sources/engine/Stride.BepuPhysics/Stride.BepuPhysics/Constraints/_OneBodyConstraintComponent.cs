@@ -5,7 +5,7 @@ using BepuPhysics.Constraints;
 
 namespace Stride.BepuPhysics.Constraints;
 
-public abstract class OneBodyConstraintComponent<T> : ConstraintComponent<T> where T : unmanaged, IConstraintDescription<T>, IOneBodyConstraintDescription<T>
+public abstract class OneBodyConstraintComponent<T> : ConstraintComponent<T>, IOneBody where T : unmanaged, IConstraintDescription<T>, IOneBodyConstraintDescription<T>
 {
     public BodyComponent? A
     {

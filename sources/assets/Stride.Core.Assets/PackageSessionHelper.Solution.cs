@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using NuGet.ProjectModel;
 using Stride.Core.Extensions;
-using Stride.Core.VisualStudio;
+using Stride.Core.Solutions;
 
 namespace Stride.Core.Assets;
 

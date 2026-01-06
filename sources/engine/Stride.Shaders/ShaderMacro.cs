@@ -76,5 +76,15 @@ namespace Stride.Shaders
                 return ((Name != null ? Name.GetHashCode() : 0) * 397) ^ (Definition != null ? Definition.GetHashCode() : 0);
             }
         }
+
+        public static bool operator ==(ShaderMacro left, ShaderMacro right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(ShaderMacro left, ShaderMacro right)
+        {
+            return !(left == right);
+        }
     }
 }

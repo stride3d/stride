@@ -3,22 +3,36 @@
 
 using Stride.Core;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+/// <summary>
+///   Defines the color space used for Textures, Materials, lighting calculations, etc.
+/// </summary>
+[DataContract("ColorSpace")]
+public enum ColorSpace
 {
     /// <summary>
-    /// The colorspace used for textures, materials, lighting...
+    ///   Use a <strong>linear color space</strong>, i.e. treat color values as linear values, without
+    ///   applying any gamma correction.
     /// </summary>
-    [DataContract("ColorSpace")]
-    public enum ColorSpace
-    {
-        /// <summary>
-        /// Use a linear colorspace.
-        /// </summary>
-        Linear,
+    /// <remarks>
+    ///   The linear color space is useful when the output of the rendering (or the input
+    ///   Textures) represent values that can be transformed in a post-processing step
+    ///   (such as tone-mapping, color-correction, etc.) or if they represent non-final
+    ///   color values (like intermediate buffers) or non-color values (like heights,
+    ///   roughness, etc.)
+    /// </remarks>
+    Linear,
 
-        /// <summary>
-        /// Use a gamma colorspace.
-        /// </summary>
-        Gamma,
-    }
+    /// <summary>
+    ///   Use a <strong>gamma color space</strong>.
+    /// </summary>
+    /// <remarks>
+    ///   A gamma color space is a color space in which colors are applied a gamma curve
+    ///   (like sRGB) so they are perceptually linear. This is useful when the output of
+    ///   the rendering (or the input Textures) represent final color values that will
+    ///   be presented to a non-HDR screen, or if they represent color values that won't
+    ///   be transformed in a post-processing step.
+    /// </remarks>
+    Gamma
 }

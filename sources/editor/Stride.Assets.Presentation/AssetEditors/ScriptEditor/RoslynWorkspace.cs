@@ -26,16 +26,16 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
     /// <summary>
     /// A workspace specific to Stride script editor.
     /// </summary>
-    public class RoslynWorkspace : Workspace
+    public class RoslynWorkspace : RoslynPad.Roslyn.RoslynWorkspace // workaround: need to inherit from this due to RoslynPad DocumentTrackingServiceFactory casting workspace to this type... we'll need to review/reconsider RoslynPad seriously
     {
         private readonly RoslynHost host;
-        private readonly ConcurrentDictionary<DocumentId, Action<DiagnosticsUpdatedArgs>> diagnosticsUpdatedNotifiers = new ConcurrentDictionary<DocumentId, Action<DiagnosticsUpdatedArgs>>();
+        private readonly ConcurrentDictionary<DocumentId, Action<DiagnosticsChangedArgs>> diagnosticsChangedNotifiers = new ConcurrentDictionary<DocumentId, Action<DiagnosticsChangedArgs>>();
         private readonly ConcurrentDictionary<DocumentId, TrackDocumentCallback> trackDocumentCallbacks = new ConcurrentDictionary<DocumentId, TrackDocumentCallback>();
 
         public RoslynWorkspace(RoslynHost host) : base(host.HostServices, WorkspaceKind.Host)
         {
             this.host = host;
-            host.GetService<IDiagnosticService>().DiagnosticsUpdated += OnDiagnosticsUpdated;
+            Services.GetRequiredService<IDiagnosticsUpdater>().DiagnosticsChanged += OnDiagnosticsChanged;
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         /// <summary>
         /// Opens an existing document.
         /// </summary>
-        public DocumentId OpenDocument(SourceTextContainer sourceTextContainer, DocumentId documentId, Action<DiagnosticsUpdatedArgs> onDiagnosticsUpdated)
+        public DocumentId OpenDocument(SourceTextContainer sourceTextContainer, DocumentId documentId, Action<DiagnosticsChangedArgs> onDiagnosticsChanged)
         {
             if (documentId != null && CurrentSolution.ContainsDocument(documentId) && !IsDocumentOpen(documentId))
             {
@@ -172,8 +172,8 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
                     OnDocumentContextUpdated(documentId);
                 }
 
-                if (onDiagnosticsUpdated != null)
-                    diagnosticsUpdatedNotifiers.TryAdd(documentId, onDiagnosticsUpdated);
+                if (onDiagnosticsChanged != null)
+                    diagnosticsChangedNotifiers.TryAdd(documentId, onDiagnosticsChanged);
 
                 return documentId;
             }
@@ -232,8 +232,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
             if (IsDocumentOpen(documentId))
             {
                 // Unregister callbacks
-                Action<DiagnosticsUpdatedArgs> diagnosticUpdatedNotifier;
-                diagnosticsUpdatedNotifiers.TryRemove(documentId, out diagnosticUpdatedNotifier);
+                diagnosticsChangedNotifiers.TryRemove(documentId, out var diagnosticChangedNotifier);
 
                 var currentDoc = this.CurrentSolution.GetDocument(documentId);
                 OnDocumentClosed(documentId, TextLoader.From(TextAndVersion.Create(currentDoc.GetTextAsync().Result, currentDoc.GetTextVersionAsync().Result)));
@@ -307,15 +306,14 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         /// <summary>
         /// Notify listener that diagnostics changed.
         /// </summary>
-        private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs diagnosticsUpdatedArgs)
+        private void OnDiagnosticsChanged(DiagnosticsChangedArgs diagnosticsChangedArgs)
         {
-            var documentId = diagnosticsUpdatedArgs?.DocumentId;
+            var documentId = diagnosticsChangedArgs?.DocumentId;
             if (documentId == null) return;
 
-            Action<DiagnosticsUpdatedArgs> notifier;
-            if (diagnosticsUpdatedNotifiers.TryGetValue(documentId, out notifier))
+            if (diagnosticsChangedNotifiers.TryGetValue(documentId, out var notifier))
             {
-                notifier(diagnosticsUpdatedArgs);
+                notifier(diagnosticsChangedArgs);
             }
         }
 

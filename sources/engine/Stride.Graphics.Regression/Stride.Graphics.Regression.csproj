@@ -3,7 +3,10 @@
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
+
   <Import Project="..\..\targets\Stride.props" />
+  <Import Project="..\..\targets\Stride.UnitTests.Debug.props" />
+
   <PropertyGroup>
     <StridePlatformFilter>Windows;Android;iOS;Linux;macOS;UWP</StridePlatformFilter>
     <DefineConstants>$(DefineConstants);XAMCORE_2_0</DefineConstants>
@@ -13,7 +16,7 @@
     <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true'">false</StrideCompilerTargetsEnable>
     <StrideBuildTags>*</StrideBuildTags>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
@@ -27,7 +30,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Xunit.SkippableFact" />
-    <ProjectReference Include="..\..\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj" Condition="$(TargetFramework.StartsWith('net'))" />
+
+    <ProjectReference Include="..\..\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
   </ItemGroup>
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -51,7 +51,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             return Task.FromResult(true);
         }
 
-        public override Task DisposeAsync()
+        public override ValueTask DisposeAsync()
         {
             settingsProvider.GameSettingsChanged -= GameSettingsChanged;
             editor.Session.AssetPropertiesChanged -= AssetPropertyChanged;

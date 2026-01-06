@@ -1,35 +1,32 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Stride.Core;
 
 /// <summary>
-/// A struct to dispose <see cref="IDisposable"/>, <see cref="IReferencable"/> instances and allocated unmanaged memory.
+///   A struct to collect objects implementing the <see cref="IDisposable"/>, or <see cref="IReferencable"/> interfaces, or
+///   pointers to memory allocated with <see cref="MemoryUtilities.Allocate"/>, so they can be disposed in bulk at a later time.
 /// </summary>
+[DebuggerDisplay("Instances: {Count}")]
 public struct ObjectCollector : IDisposable
 {
     private List<object> disposables;
 
     /// <summary>
-    /// Gets the number of elements to dispose.
+    ///   Gets the number of elements collected to be disposed.
     /// </summary>
-    /// <value>The number of elements to dispose.</value>
-    public readonly int Count => disposables.Count;
+    public readonly int Count => disposables?.Count ?? 0;
 
     /// <summary>
-    /// Disposes all object collected by this class and clear the list. The collector can still be used for collecting.
+    ///   Disposes all the objects collected by this collector and clears the list. The collector can still be used for collecting.
     /// </summary>
-    /// <remarks>
-    /// To completely dispose this instance and avoid further dispose, use <see cref="Dispose"/> method instead.
-    /// </remarks>
     public readonly void Dispose()
     {
-        if (disposables == null)
-        {
+        if (disposables is null)
             return;
-        }
 
         for (var i = disposables.Count - 1; i >= 0; i--)
         {
@@ -40,27 +37,33 @@ public struct ObjectCollector : IDisposable
         disposables.Clear();
     }
 
+    /// <summary>
+    ///   Ensures this collector is ready to be used for collecting object instances.
+    /// </summary>
     public void EnsureValid()
     {
         disposables ??= [];
     }
 
     /// <summary>
-    /// Adds a <see cref="IDisposable"/> object or a <see cref="IntPtr"/> allocated using <see cref="Utilities.AllocateMemory"/> to the list of the objects to dispose.
+    ///   Adds an object implementing the <see cref="IDisposable"/> or <see cref="IReferencable"/> interfaces,
+    ///   or a <see cref="IntPtr"/> to an object allocated using <see cref="MemoryUtilities.Allocate"/>
+    ///   to the list of the objects to dispose.
     /// </summary>
-    /// <param name="objectToDispose">To dispose.</param>
-    /// <exception cref="ArgumentException">If objectToDispose argument is not IDisposable or a valid memory pointer allocated by <see cref="Utilities.AllocateMemory"/></exception>
-    public T Add<T>(T objectToDispose)
-        where T : notnull
+    /// <typeparam name="T">The type of the object to add.</typeparam>
+    /// <param name="objectToDispose">The object to add to the collector to be disposed at a later time.</param>
+    /// <exception cref="ArgumentException">
+    ///   <paramref name="objectToDispose"/> does not implement the interface <see cref="IDisposable"/>, <see cref="IReferencable"/>,
+    ///   and is not a valid memory pointer allocated by <see cref="MemoryUtilities.Allocate"/>.
+    /// </exception>
+    public T Add<T>(T objectToDispose) where T : notnull
     {
-        if (!(objectToDispose is IDisposable || objectToDispose is IntPtr || objectToDispose is IReferencable))
-            throw new ArgumentException("Argument must be IDisposable, IReferenceable or IntPtr");
+        if (objectToDispose is not (IDisposable or IReferencable or IntPtr))
+            throw new ArgumentException("The object must be IDisposable, IReferenceable, or IntPtr", nameof(objectToDispose));
 
         // Check memory alignment
-        if (objectToDispose is IntPtr memoryPtr && !Utilities.IsMemoryAligned(memoryPtr))
-        {
-            throw new ArgumentException("Memory pointer is invalid. Memory must have been allocated with Utilties.AllocateMemory");
-        }
+        if (objectToDispose is IntPtr memoryPtr && !MemoryUtilities.IsAligned(memoryPtr))
+            throw new ArgumentException("The memory pointer is invalid. Memory must have been allocated with MemoryUtilities.Allocate", nameof(objectToDispose));
 
         EnsureValid();
 
@@ -71,13 +74,22 @@ public struct ObjectCollector : IDisposable
     }
 
     /// <summary>
-    /// Dispose a disposable object and set the reference to null. Removes this object from this instance..
+    ///   Removes a disposable object from the list of the objects to dispose.
     /// </summary>
-    /// <param name="objectToDispose">Object to dispose.</param>
-    public readonly void RemoveAndDispose<T>([MaybeNull] ref T objectToDispose)
-        where T : notnull
+    /// <typeparam name="T">The type of the object to remove.</typeparam>
+    /// <param name="objectToDispose">The object to be removed from the list of objects to dispose.</param>
+    public readonly void Remove<T>(T objectToDispose) where T : notnull
     {
-        if (disposables != null)
+        disposables?.Remove(objectToDispose);
+    }
+
+    /// <summary>
+    ///   Removes an object from this collector and disposes it immediately, setting the reference to <see langword="null"/>.
+    /// </summary>
+    /// <param name="objectToDispose">The object to remove and dispose.</param>
+    public readonly void RemoveAndDispose<T>([MaybeNull] ref T objectToDispose) where T : notnull
+    {
+        if (disposables is not null)
         {
             Remove(objectToDispose);
             DisposeObject(objectToDispose);
@@ -86,33 +98,28 @@ public struct ObjectCollector : IDisposable
     }
 
     /// <summary>
-    /// Removes a disposable object to the list of the objects to dispose.
+    ///   Disposes an object that implements <see cref="IReferencable"/>, or <see cref="IDisposable"/>, or
+    ///   a pointer to allocated memory.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="objectToDispose">To dispose.</param>
-    public readonly void Remove<T>(T objectToDispose)
-        where T : notnull
-    {
-        disposables?.Remove(objectToDispose);
-    }
-
     private static void DisposeObject(object objectToDispose)
     {
-        if (objectToDispose is IReferencable referenceableObject)
+        switch (objectToDispose)
         {
-            referenceableObject.Release();
-            return;
-        }
+            case null:
+                return;
 
-        if (objectToDispose is IDisposable disposableObject)
-        {
-            disposableObject.Dispose();
-        }
-        else
-        {
-            var localData = objectToDispose;
-            var dataPointer = (IntPtr)localData;
-            Utilities.FreeMemory(dataPointer);
+            case IReferencable referenceableObject:
+                referenceableObject.Release();
+                break;
+
+            case IDisposable disposableObject:
+                disposableObject.Dispose();
+                break;
+
+            default:
+                var dataPointer = (nint) objectToDispose;
+                MemoryUtilities.Free(dataPointer);
+                break;
         }
     }
 }

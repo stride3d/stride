@@ -1,5 +1,5 @@
 !Texture
-Id: b7f73672-f9bf-44ae-8a04-0017010b4ca1
+Id: b7f73672-f9bf-44ae-8a04-0017010b4ca2
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: !file ../../Resources/skybox_texture_hdr.dds

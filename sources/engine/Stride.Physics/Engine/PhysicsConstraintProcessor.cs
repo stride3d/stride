@@ -2,8 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Stride.Core.Annotations;
-using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Engine;
 using Stride.Games;
@@ -14,7 +14,7 @@ namespace Stride.Physics.Engine
     {
         private static readonly Logger logger = GlobalLogger.GetLogger(nameof(PhysicsConstraintProcessor));
 
-        private readonly FastList<PhysicsConstraintComponent> detachedComponents = new FastList<PhysicsConstraintComponent>();
+        private readonly List<PhysicsConstraintComponent> detachedComponents = [];
 
         public PhysicsConstraintProcessor()
         {

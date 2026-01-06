@@ -17,25 +17,25 @@ public class STRDIAG009_Test
         foreach(var type in Types)
         {
             string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, $"[DataMember] public System.Collections.Generic.Dictionary<{type},object> Value {{ get; }}");
-            await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
+            await TestHelper.ExpectNoDiagnosticsAsync(sourceCode);
         }
     }
     [Fact]
     public async Task No_Error_On_Enum_As_Key()
     {
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, $"public enum TestEnumKey {{ Yes,No }}[DataMember] public System.Collections.Generic.Dictionary<TestEnumKey,object> Value {{ get; }}");
-        await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
+        await TestHelper.ExpectNoDiagnosticsAsync(sourceCode);
     }
     [Fact]
     public async Task Error_On_Reference_Type()
     {
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMember] public System.Collections.Generic.Dictionary<object,object> Value { get; }");
-        await TestHelper.ExpectDiagnosticsErrorAsync(sourceCode, STRDIAG009InvalidDictionaryKey.DiagnosticId);
+        await TestHelper.ExpectDiagnosticAsync(sourceCode, STRDIAG009InvalidDictionaryKey.DiagnosticId);
     }
     [Fact]
     public async Task Error_On_Interface_Type()
     {
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMember] public System.Collections.Generic.Dictionary<ICloneable,object> Value { get; }");
-        await TestHelper.ExpectDiagnosticsErrorAsync(sourceCode, STRDIAG009InvalidDictionaryKey.DiagnosticId);
+        await TestHelper.ExpectDiagnosticAsync(sourceCode, STRDIAG009InvalidDictionaryKey.DiagnosticId);
     }
 }

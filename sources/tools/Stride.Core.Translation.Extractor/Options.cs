@@ -14,17 +14,17 @@ namespace Stride.Core.Translation.Extractor
         /// <summary>
         /// Patterns to exclude from the list of inputs.
         /// </summary>
-        public List<string> Excludes { get; } = new List<string>();
+        public List<string> Excludes { get; } = [];
 
         /// <summary>
         /// Directories to search for input files.
         /// </summary>
-        public List<string> InputDirs { get; } = new List<string>();
+        public List<string> InputDirs { get; } = [];
 
         /// <summary>
-        /// Patterns or input filnames to extract the messages from.
+        /// Patterns or input file names to extract the messages from.
         /// </summary>
-        public List<string> InputFiles { get; } = new List<string>();
+        public List<string> InputFiles { get; } = [];
 
         /// <summary>
         /// Name of generated catalog file.

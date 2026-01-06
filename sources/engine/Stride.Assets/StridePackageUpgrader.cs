@@ -22,6 +22,8 @@ using Stride.Assets.Effect;
 using Stride.Assets.Templates;
 using Stride.Graphics;
 using System.Text;
+using Microsoft.Build.Evaluation;
+using Stride.Core.Annotations;
 
 namespace Stride.Assets
 {
@@ -145,7 +147,7 @@ namespace Stride.Assets
                 {
                     var project = VSProjectHelper.LoadProject(projectFullPath.ToOSPath());
                     var isProjectDirty = false;
-                    
+
                     List<Microsoft.Build.Evaluation.ProjectItem> packageReferences = new();
                     foreach(var package in project.GetItems("PackageReference"))
                     {
@@ -243,16 +245,14 @@ namespace Stride.Assets
                             if (tfm.EvaluatedValue == "netstandard2.0"
                                 || (tfm.EvaluatedValue.StartsWith("net4", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library))
                             {
-                                // In case it's a single TargetFramework, add the "s" at the end
-                                tfm.Xml.Name = "TargetFrameworks";
-                                tfm.Xml.Value = "net6.0";
+                                tfm.UnevaluatedValue = "net6.0";
                                 isProjectDirty = true;
                                 project.ReevaluateIfNecessary();
                             }
                             // Executable
                             else if ((tfm.EvaluatedValue.StartsWith("net4", StringComparison.Ordinal) || tfm.EvaluatedValue.StartsWith("net5", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
                             {
-                                tfm.Xml.Value = solutionProject.Platform == PlatformType.Windows ? "net6.0-windows" : "net6.0";
+                                tfm.UnevaluatedValue = solutionProject.Platform == PlatformType.Windows ? "net6.0-windows" : "net6.0";
                                 isProjectDirty = true;
                                 project.ReevaluateIfNecessary();
                             }
@@ -261,22 +261,39 @@ namespace Stride.Assets
 
                     if (dependency.Version.MinVersion < new PackageVersion("4.2.0.0") && solutionProject != null)
                     {
-                        var tfm = project.GetProperty("TargetFramework")
-                            ?? project.GetProperty("TargetFrameworks");
-                        if (tfm != null)
+                        if (GetTargetFramework(project) is { } tfm)
                         {
                             // Library
                             if (tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library)
                             {
-                                // In case it's a single TargetFramework, add the "s" at the end
-                                tfm.Xml.Name = "TargetFrameworks";
-                                tfm.Xml.Value = "net8.0";
+                                tfm.UnevaluatedValue = "net8.0";
                                 isProjectDirty = true;
+                                project.ReevaluateIfNecessary();
                             }
                             // Executable
                             else if ((tfm.EvaluatedValue.StartsWith("net6", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
                             {
-                                tfm.Xml.Value = solutionProject.Platform == PlatformType.Windows ? "net8.0-windows" : "net8.0";
+                                tfm.UnevaluatedValue = solutionProject.Platform == PlatformType.Windows ? "net8.0-windows" : "net8.0";
+                                isProjectDirty = true;
+                                project.ReevaluateIfNecessary();
+                            }
+                        }
+                    }
+
+                    if (dependency.Version.MinVersion < new PackageVersion("4.3.0.0") && solutionProject != null)
+                    {
+                        if (GetTargetFramework(project) is { } tfm)
+                        {
+                            // Library
+                            if (tfm.EvaluatedValue.StartsWith("net8", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library)
+                            {
+                                tfm.UnevaluatedValue = "net10.0";
+                                isProjectDirty = true;
+                            }
+                            // Executable
+                            else if ((tfm.EvaluatedValue.StartsWith("net8", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
+                            {
+                                tfm.UnevaluatedValue = solutionProject.Platform == PlatformType.Windows ? "net10.0-windows" : "net10.0";
                                 isProjectDirty = true;
                             }
                         }
@@ -295,6 +312,16 @@ namespace Stride.Assets
             }
 
             return true;
+        }
+
+        [CanBeNull]
+        private static ProjectProperty GetTargetFramework(Project project)
+        {
+            var tfm = project.GetProperty("TargetFramework");
+            if (tfm is null || tfm.IsGlobalProperty)
+                tfm = project.GetProperty("TargetFrameworks");
+
+            return tfm.IsGlobalProperty ? null : tfm;
         }
     }
 }

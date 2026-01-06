@@ -11,13 +11,13 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
+using Stride.Core.CodeEditorSupport.VisualStudio;
 using Stride.Core.Extensions;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
-using Stride.Core.VisualStudio;
 using Stride.LauncherApp.Resources;
 using Stride.LauncherApp.Services;
 using Stride.Metrics;
@@ -56,7 +56,7 @@ namespace Stride.LauncherApp.ViewModels
             DisplayReleaseAnnouncement();
 
             VsixPackage2019 = new VsixVersionViewModel(this, store, store.VsixPackageId, NugetStore.VsixSupportedVsVersion.VS2019);
-            VsixPackage2022 = new VsixVersionViewModel(this, store, store.VsixPackageId, NugetStore.VsixSupportedVsVersion.VS2022);
+            VsixPackage2022 = new VsixVersionViewModel(this, store, store.VsixPackageId, NugetStore.VsixSupportedVsVersion.VS2022AndNext);
             // Commands
             InstallLatestVersionCommand = new AnonymousTaskCommand(ServiceProvider, InstallLatestVersion) { IsEnabled = false };
             OpenUrlCommand = new AnonymousTaskCommand<string>(ServiceProvider, OpenUrl);
@@ -511,8 +511,8 @@ namespace Stride.LauncherApp.ViewModels
                         var versionToInstall = StrideVersions.First(x => x.CanBeDownloaded);
                         await versionToInstall.Download(true);
 
-                        // if VS2022 is installed (version 17.x)
-                        if (!VsixPackage2022.IsLatestVersionInstalled && VsixPackage2022.CanBeDownloaded && VisualStudioVersions.AvailableVisualStudioInstances.Any(ide => ide.InstallationVersion.Major == 17))
+                        // if VS2022+ is installed (version 17.x+)
+                        if (!VsixPackage2022.IsLatestVersionInstalled && VsixPackage2022.CanBeDownloaded && VisualStudioVersions.AvailableInstances.Any(ide => ide.InstallationVersion.Major >= 17))
                         {
                             result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.AskInstallVSIX, "2022"), MessageBoxButton.YesNo, MessageBoxImage.Question);
                             if (result == MessageBoxResult.Yes)
@@ -522,7 +522,7 @@ namespace Stride.LauncherApp.ViewModels
                         }
 
                         // if VS2019 is installed (version 16.x)
-                        if (!VsixPackage2019.IsLatestVersionInstalled && VsixPackage2019.CanBeDownloaded && VisualStudioVersions.AvailableVisualStudioInstances.Any(ide => ide.InstallationVersion.Major == 16))
+                        if (!VsixPackage2019.IsLatestVersionInstalled && VsixPackage2019.CanBeDownloaded && VisualStudioVersions.AvailableInstances.Any(ide => ide.InstallationVersion.Major == 16))
                         {
                             result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.AskInstallVSIX, "2019"), MessageBoxButton.YesNo, MessageBoxImage.Question);
                             if (result == MessageBoxResult.Yes)

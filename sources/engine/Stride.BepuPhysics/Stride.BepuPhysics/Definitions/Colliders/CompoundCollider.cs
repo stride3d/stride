@@ -1,23 +1,33 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
+using BepuPhysics.Trees;
 using BepuUtilities.Memory;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.BepuPhysics.Systems;
+using Stride.Core.Annotations;
 using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
-
+/// <summary>
+/// Represents a compound collider that combines multiple child colliders into a single collider.
+/// </summary>
 [DataContract]
 public sealed class CompoundCollider : ICollider
 {
     private readonly ListOfColliders _colliders;
     private CollidableComponent? _component;
 
+    /// <summary>
+    /// Gets the collection of child colliders that make up this compound collider.
+    /// </summary>
+    /// <value>A list of collider bases that form this compound shape.</value>
+    [MemberCollection(NotNullItems = true)]
     [DataMember]
     public IList<ColliderBase> Colliders => _colliders;
 
@@ -114,6 +124,19 @@ public sealed class CompoundCollider : ICollider
                 ConvexHullCollider con => shapeCache.BorrowHull(con),
                 _ => throw new NotImplementedException($"{nameof(ICollider.AppendModel)} could not handle '{collider.GetType()}', please file an issue or fix this"),
             });
+        }
+    }
+
+    void ICollider.RayTest<TRayHitHandler>(Shapes shapes, TypedIndex shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler)
+    {
+        if (shapeIndex.Type == Compound.TypeId)
+        {
+            shapes.GetShape<Compound>(shapeIndex.Index).RayTest(pose, in ray, ref maximumT, shapes, ref hitHandler);
+        }
+        else
+        {
+            Debug.Assert(shapeIndex.Type == BigCompound.TypeId);
+            shapes.GetShape<BigCompound>(shapeIndex.Index).RayTest(pose, in ray, ref maximumT, shapes, ref hitHandler);
         }
     }
 }

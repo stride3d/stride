@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using Stride.Core;
 
 namespace Stride.Particles.VertexLayouts
 {
@@ -62,7 +63,7 @@ namespace Stride.Particles.VertexLayouts
         /// <param name="ptrRef">Pointer to the source data</param>
         public unsafe void SetAttribute(AttributeAccessor accessor, nint ptrRef)
         {
-            Unsafe.CopyBlockUnaligned((byte*)VertexBuffer + accessor.Offset, (void*)ptrRef, (uint)accessor.Size);
+            MemoryUtilities.CopyWithAlignmentFallback((byte*)VertexBuffer + accessor.Offset, (void*)ptrRef, (uint)accessor.Size);
         }
 
         /// <summary>
@@ -74,7 +75,7 @@ namespace Stride.Particles.VertexLayouts
         {
             for (var i = 0; i < vertexBuilder.VerticesPerParticle; i++)
             {
-                Unsafe.CopyBlockUnaligned((byte*)VertexBuffer + accessor.Offset + i * VertexStride, (void*)ptrRef, (uint)accessor.Size);
+                MemoryUtilities.CopyWithAlignmentFallback((byte*)VertexBuffer + accessor.Offset + i * VertexStride, (void*)ptrRef, (uint)accessor.Size);
             }
         }
 
@@ -87,7 +88,7 @@ namespace Stride.Particles.VertexLayouts
         {
             for (var i = 0; i < VerticesPerSegCurrent; i++)
             {
-                Unsafe.CopyBlockUnaligned((byte*)VertexBuffer + accessor.Offset + i * VertexStride, (void*)ptrRef, (uint)accessor.Size);
+                MemoryUtilities.CopyWithAlignmentFallback((byte*)VertexBuffer + accessor.Offset + i * VertexStride, (void*)ptrRef, (uint)accessor.Size);
             }
         }
 
@@ -98,7 +99,7 @@ namespace Stride.Particles.VertexLayouts
         /// <param name="accessorTo">Vertex attribute accessor to the destination attribute</param>
         /// <param name="accessorFrom">Vertex attribute accessor to the source attribute</param>
         /// <param name="transformMethod">Transform method for the type data</param>
-        public unsafe void TransformAttributePerSegment<T, U>(AttributeAccessor accessorFrom, AttributeAccessor accessorTo, IAttributeTransformer<T, U> transformMethod, ref U transformer) 
+        public unsafe void TransformAttributePerSegment<T, U>(AttributeAccessor accessorFrom, AttributeAccessor accessorTo, IAttributeTransformer<T, U> transformMethod, ref U transformer)
             where T : struct
             where U : struct
         {
@@ -112,7 +113,7 @@ namespace Stride.Particles.VertexLayouts
             }
         }
 
-        public unsafe void TransformAttributePerParticle<T, U>(AttributeAccessor accessorFrom, AttributeAccessor accessorTo, IAttributeTransformer<T, U> transformMethod, ref U transformer) 
+        public unsafe void TransformAttributePerParticle<T, U>(AttributeAccessor accessorFrom, AttributeAccessor accessorTo, IAttributeTransformer<T, U> transformMethod, ref U transformer)
             where T : struct
             where U : struct
         {

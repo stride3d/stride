@@ -133,6 +133,10 @@ public abstract class CollectionWithIdsSerializerBase : DictionarySerializer
     {
         var dictionaryDescriptor = (DictionaryDescriptor)objectContext.Descriptor;
 
+        // The collection may contain some initial data from its containing instance's ctor,
+        // let's replace the existing data with the data we have serialized
+        dictionaryDescriptor.Clear(objectContext.Instance);
+
         var deletedItems = new HashSet<ItemId>();
 
         var reader = objectContext.Reader;

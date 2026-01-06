@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
@@ -16,9 +15,9 @@ using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Translation;
-using Stride.Core.VisualStudio;
 using Stride.Assets.Effect;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Core.CodeEditorSupport;
 using Stride.GameStudio.Services;
 using Stride.GameStudio.Helpers;
 using Stride.Core.Presentation.ViewModels;
@@ -27,8 +26,6 @@ namespace Stride.GameStudio.ViewModels
 {
     public class GameStudioViewModel : EditorViewModel
     {
-        private PreviewViewModel preview;
-        private DebuggingViewModel debugging;
         private string restartArguments;
         private readonly List<IDEInfo> availableIDEs;
 
@@ -36,8 +33,8 @@ namespace Stride.GameStudio.ViewModels
             : base(serviceProvider, mru, StrideGameStudio.EditorName, StrideGameStudio.EditorVersionMajor)
         {
             Panels = new EditionPanelViewModel(ServiceProvider);
-            availableIDEs = new List<IDEInfo> { VisualStudioVersions.DefaultIDE };
-            availableIDEs.AddRange(VisualStudioVersions.AvailableVisualStudioInstances);
+            availableIDEs = [IDEInfo.DefaultIDE];
+            availableIDEs.AddRange(IDEInfoVersions.AvailableIDEs());
             NewSessionCommand = new AnonymousCommand(serviceProvider, RestartAndCreateNewSession);
             OpenAboutPageCommand = new AnonymousCommand(serviceProvider, OpenAboutPage);
             OpenSessionCommand = new AnonymousTaskCommand<UFile>(serviceProvider, RestartAndOpenSession);
@@ -51,9 +48,9 @@ namespace Stride.GameStudio.ViewModels
 
         public StrideAssetsViewModel StrideAssets => StrideAssetsViewModel.Instance;
 
-        public PreviewViewModel Preview { get => preview; set => SetValue(ref preview, value); }
+        public PreviewViewModel Preview { get; set => SetValue(ref field, value); }
 
-        public DebuggingViewModel Debugging { get => debugging; set => SetValue(ref debugging, value); }
+        public DebuggingViewModel Debugging { get; set => SetValue(ref field, value); }
 
         [NotNull]
         public IReadOnlyList<IDEInfo> AvailableIDEs => availableIDEs;

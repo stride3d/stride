@@ -12,10 +12,16 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<VolumeConstraint>
+public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<VolumeConstraint>, ISpring
 {
     public VolumeConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
+    /// <summary>
+    /// 6 times the target volume of the tetrahedra. Computed from (ab x ac) * ad; this may be negative depending on the winding of the tetrahedron.
+    /// </summary>
+    /// <userdoc>
+    /// 6 times the target volume of the tetrahedra. Computed from (ab x ac) * ad; this may be negative depending on the winding of the tetrahedron.
+    /// </userdoc>
     public float TargetScaledVolume
     {
         get { return BepuConstraint.TargetScaledVolume; }
@@ -26,6 +32,7 @@ public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<Volu
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -39,6 +46,7 @@ public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<Volu
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get

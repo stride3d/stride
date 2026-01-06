@@ -15,7 +15,7 @@ class PropertyKeySerializerProcessor : ICecilSerializerProcessor
         {
             foreach (var member in type.Fields)
             {
-                if (!member.IsStatic || !member.IsPublic)
+                if (!member.IsStatic || member.IsPrivate)
                     continue;
 
                 if (ComplexSerializerRegistry.IsMemberIgnored(member.CustomAttributes, ComplexTypeSerializerFlags.SerializePublicFields, DataMemberMode.Default))

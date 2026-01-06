@@ -38,7 +38,7 @@ namespace Stride.Assets.Textures
             public bool IsSizeInPercentage;
 
             public bool ShouldCompress;
-            
+
             public AlphaFormat DesiredAlpha;
 
             public TextureHint TextureHint;
@@ -66,7 +66,7 @@ namespace Stride.Assets.Textures
                 var asset = textureParameters.Texture;
 
                 // Compute SRgb usage
-                // If Texture is in auto mode, use the global settings, else use the settings overridden by the texture asset. 
+                // If Texture is in auto mode, use the global settings, else use the settings overridden by the texture asset.
                 IsSRgb = textureParameters.Texture.Type.IsSRgb(textureParameters.ColorSpace);
                 DesiredSize = new Size2((int)asset.Width, (int)asset.Height);
                 IsSizeInPercentage = asset.IsSizeInPercentage;
@@ -90,7 +90,7 @@ namespace Stride.Assets.Textures
                 var asset = spriteSheetParameters.SheetAsset;
 
                 // Compute SRgb usage
-                // If Texture is in auto mode, use the global settings, else use the settings overridden by the texture asset. 
+                // If Texture is in auto mode, use the global settings, else use the settings overridden by the texture asset.
                 IsSRgb = asset.IsSRGBTexture(spriteSheetParameters.ColorSpace);
 
                 DesiredSize = new Size2(100, 100);
@@ -205,7 +205,7 @@ namespace Stride.Assets.Textures
                     {
                         case PlatformType.Android:
                         case PlatformType.iOS:
-                            if (inputImageFormat.IsHDR())
+                            if (inputImageFormat.IsHDR)
                             {
                                 outputFormat = inputImageFormat;
                             }
@@ -304,7 +304,7 @@ namespace Stride.Assets.Textures
                                         {
                                             outputFormat = PixelFormat.BC4_UNorm;
                                         }
-                                        else if (inputImageFormat.IsHDR())
+                                        else if (inputImageFormat.IsHDR)
                                         {
                                             // BC6H is too slow to compile
                                             //outputFormat = parameters.GraphicsProfile >= GraphicsProfile.Level_11_0 && alphaMode == AlphaFormat.None ? PixelFormat.BC6H_Uf16 : inputImageFormat;
@@ -314,7 +314,7 @@ namespace Stride.Assets.Textures
                                     }
                                     break;
                                 case GraphicsPlatform.OpenGLES: // OpenGLES on Windows
-                                    if (inputImageFormat.IsHDR())
+                                    if (inputImageFormat.IsHDR)
                                     {
                                         outputFormat = inputImageFormat;
                                     }
@@ -451,8 +451,8 @@ namespace Stride.Assets.Textures
             if (cancellationToken.IsCancellationRequested) // abort the process if cancellation is demanded
                 return ResultStatus.Cancelled;
 
-            // Pre-multiply alpha only for relevant formats 
-            if (parameters.PremultiplyAlpha && texImage.Format.HasAlpha32Bits())
+            // Pre-multiply alpha only for relevant formats
+            if (parameters.PremultiplyAlpha && texImage.Format.Is32bppWithAlpha)
                 textureTool.PreMultiplyAlpha(texImage);
 
             if (cancellationToken.IsCancellationRequested) // abort the process if cancellation is demanded
@@ -462,10 +462,10 @@ namespace Stride.Assets.Textures
             // Generate mipmaps
             if (parameters.GenerateMipmaps)
             {
-                var boxFilteringIsSupported = !texImage.Format.IsSRgb() || (MathUtil.IsPow2(targetSize.Width) && MathUtil.IsPow2(targetSize.Height));
+                var boxFilteringIsSupported = !texImage.Format.IsSRgb || (MathUtil.IsPow2(targetSize.Width) && MathUtil.IsPow2(targetSize.Height));
                 textureTool.GenerateMipMaps(texImage, boxFilteringIsSupported? Filter.MipMapGeneration.Box: Filter.MipMapGeneration.Linear);
             }
-                
+
             if (cancellationToken.IsCancellationRequested) // abort the process if cancellation is demanded
                 return ResultStatus.Cancelled;
 
@@ -501,7 +501,7 @@ namespace Stride.Assets.Textures
 
             return ResultStatus.Successful;
         }
-        
+
         public static ResultStatus ImportStreamableTextureImage(ContentManager assetManager, TextureTool textureTool, TexImage texImage, TextureHelper.ImportParameters convertParameters, CancellationToken cancellationToken, ICommandContext commandContext)
         {
             // Perform normal texture importing (but don't save it to file now)

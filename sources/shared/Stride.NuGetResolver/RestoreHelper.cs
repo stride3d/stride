@@ -114,6 +114,12 @@ namespace Stride.Core.Assets
                 {
                     return true;
                 }
+                // Also handle executables (i.e. glslangValidator)
+                if (path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(".bin", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
                 return false;
             }
         }
@@ -148,18 +154,17 @@ namespace Stride.Core.Assets
             {
                 Name = Path.GetFileNameWithoutExtension(projectPath), // make sure this package never collides with a dependency
                 FilePath = projectPath,
-                Dependencies = new List<LibraryDependency>()
-                {
-                    new LibraryDependency
-                    {
-                        LibraryRange = new LibraryRange(packageName, versionRange, LibraryDependencyTarget.Package),
-                    }
-                },
                 TargetFrameworks =
                 {
                     new TargetFrameworkInformation
                     {
                         FrameworkName = nugetFramework,
+                        Dependencies = [
+                            new LibraryDependency
+                            {
+                                LibraryRange = new LibraryRange(packageName, versionRange, LibraryDependencyTarget.Package),
+                            }
+                        ],
                     }
                 },
                 RestoreMetadata = new ProjectRestoreMetadata

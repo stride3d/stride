@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <ApplicationIcon>Resources\GameIcon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <RootNamespace>MaterialShader</RootNamespace>
@@ -12,7 +12,7 @@
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MaterialShader.sdpkg</StrideCurrentPackagePath>
     <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>Windows</StridePlatform>
-  </PropertyGroup> 
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\MaterialShader.Game\MaterialShader.Game.csproj" />
   </ItemGroup>

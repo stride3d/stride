@@ -3,6 +3,7 @@
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideNativeOutputName>libstridevr</StrideNativeOutputName>
+    <StrideNativeWindowsArm64Enabled>false</StrideNativeWindowsArm64Enabled>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>

@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
+using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Constraints;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
@@ -124,6 +126,43 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public static void ConstraintsForceTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var e1 = new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+                var c = new OneBodyLinearMotorConstraintComponent
+                {
+                    A = e1,
+                    LocalOffset = Vector3.Zero,
+                    MotorMaximumForce = 3,
+                    MotorDamping = 1,
+                };
+
+                Assert.Equal(0f, c.GetAccumulatedForceMagnitude());
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new EntityComponent[] { e1, c }.Select(x => new Entity { x }));
+
+                Assert.Equal(0f, c.GetAccumulatedForceMagnitude());
+
+                do
+                {
+                    await e1.Simulation!.AfterUpdate();
+
+                    // Given current gravity, the constraint should pull the body in under 5 seconds,
+                    // otherwise something is wrong and this loop would likely continue indefinitely
+                    Assert.True(game.UpdateTime.Total.TotalSeconds < 5d);
+                } while (c.GetAccumulatedForceMagnitude() < float.BitDecrement(c.MotorMaximumForce));
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
         public static void OnContactRemovalTest()
         {
             var game = new GameTest();
@@ -157,6 +196,44 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public static void OnContactRollTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                int contactStarted = 0, contactStopped = 0, passedGoal = 0;
+                var killTrigger = new ContactEvents { NoContactResponse = true };
+                var contacts = new ContactEvents { NoContactResponse = false };
+                var sphere = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new SphereCollider() } } } };
+                var slope = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new(2, 0.1f, 2) } } }, ContactEventHandler = contacts } };
+                var goal = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new(10, 0.1f, 10) } } }, ContactEventHandler = killTrigger } };
+                contacts.StartedTouching += (_, _) => contactStarted++;
+                contacts.StoppedTouching += (_, _) => contactStopped++;
+                killTrigger.StoppedTouching += (_, _) => passedGoal++;
+
+                sphere.Transform.Position.Y = 3;
+                slope.Transform.Rotation = Quaternion.RotationZ(10);
+                goal.Transform.Position.Y = -10;
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { sphere, slope, goal });
+
+                var simulation = sphere.GetSimulation();
+
+                while (passedGoal == 0)
+                    await simulation.AfterUpdate();
+
+                Assert.Equal(1, contactStarted);
+
+                Assert.Equal(contactStarted, contactStopped);
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
         public static void OnTriggerRemovalTest()
         {
             var game = new GameTest();
@@ -164,19 +241,15 @@ namespace Stride.BepuPhysics.Tests
             {
                 game.ScreenShotAutomationEnabled = false;
 
-                int pairEnded = 0, pairCreated = 0, contactAdded = 0, contactRemoved = 0, startedTouching = 0, stoppedTouching = 0;
-                var trigger = new Trigger();
+                int startedTouching = 0, stoppedTouching = 0;
+                var trigger = new ContactEvents { NoContactResponse = true };
                 var e1 = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = trigger } };
                 var e2 = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } } };
-                trigger.PairCreated += () => pairCreated++;
-                trigger.PairEnded += () => pairEnded++;
-                trigger.ContactAdded += () => contactAdded++;
-                trigger.ContactRemoved += () => contactRemoved++;
-                trigger.StartedTouching += () => startedTouching++;
-                trigger.StoppedTouching += () => stoppedTouching++;
+                trigger.StartedTouching += (_, _) => startedTouching++;
+                trigger.StoppedTouching += (_, _) => stoppedTouching++;
 
                 // Remove the component as soon as it enters the trigger to test if the system handles that case properly
-                trigger.PairCreated += () => e1.Scene = null;
+                trigger.StartedTouching += (_, _) => e1.Scene = null;
 
                 e1.Transform.Position.Y = 3;
 
@@ -184,20 +257,72 @@ namespace Stride.BepuPhysics.Tests
 
                 var simulation = e1.GetSimulation();
 
-                while (pairEnded == 0)
+                while (stoppedTouching == 0)
                     await simulation.AfterUpdate();
 
-                Assert.Equal(1, pairCreated);
-                Assert.Equal(0, contactAdded);
-                Assert.Equal(0, startedTouching);
+                Assert.Equal(1, startedTouching);
 
-                Assert.Equal(pairCreated, pairEnded);
-                Assert.Equal(contactAdded, contactRemoved);
                 Assert.Equal(startedTouching, stoppedTouching);
 
                 game.Exit();
             });
             RunGameTest(game);
+        }
+
+        [Fact]
+        public void ContactImpulseTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var contactE = new ContactSampleForces();
+                var e1 = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = contactE } };
+                var e2 = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } } };
+
+                var source = e1.Get<BodyComponent>()!;
+                source.ContinuousDetectionMode = ContinuousDetectionMode.Continuous;
+                e1.Transform.Position.Y = 3;
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { e1, e2 });
+                source.LinearVelocity = new Vector3(0, -100, 0);
+
+                var simulation = e1.GetSimulation();
+
+                while (contactE.Exit == false)
+                    await simulation.AfterUpdate();
+
+                Assert.NotEmpty(contactE.ImpactForces.Where(x => x.Length() > 100));
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        private class ContactSampleForces : IContactHandler
+        {
+            public bool NoContactResponse => false;
+
+            public List<Vector3> ImpactForces = new();
+            public bool Exit;
+
+            public void OnStartedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
+            {
+                foreach (var contact in contacts)
+                {
+                    ImpactForces.Add(contacts.ComputeImpactForce(contact));
+                }
+            }
+
+            public void OnTouching<TManifold>(Contacts<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+            {
+            }
+
+            public void OnStoppedTouching<TManifold>(Contacts<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+            {
+                Exit = true;
+            }
         }
 
         [Fact]
@@ -208,16 +333,12 @@ namespace Stride.BepuPhysics.Tests
             {
                 game.ScreenShotAutomationEnabled = false;
 
-                int pairEnded = 0, pairCreated = 0, contactAdded = 0, contactRemoved = 0, startedTouching = 0, stoppedTouching = 0;
-                var trigger = new Trigger();
+                int startedTouching = 0, stoppedTouching = 0;
+                var trigger = new ContactEvents { NoContactResponse = true };
                 var e1 = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = trigger } };
                 var e2 = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } } };
-                trigger.PairCreated += () => pairCreated++;
-                trigger.PairEnded += () => pairEnded++;
-                trigger.ContactAdded += () => contactAdded++;
-                trigger.ContactRemoved += () => contactRemoved++;
-                trigger.StartedTouching += () => startedTouching++;
-                trigger.StoppedTouching += () => stoppedTouching++;
+                trigger.StartedTouching += (_, _) => startedTouching++;
+                trigger.StoppedTouching += (_, _) => stoppedTouching++;
 
                 e1.Transform.Position.Y = 3;
 
@@ -225,15 +346,11 @@ namespace Stride.BepuPhysics.Tests
 
                 var simulation = e1.GetSimulation();
 
-                while (pairEnded == 0)
+                while (stoppedTouching == 0)
                     await simulation.AfterUpdate();
 
-                Assert.Equal(1, pairCreated);
-                Assert.NotEqual(0, contactAdded);
                 Assert.Equal(1, startedTouching);
 
-                Assert.Equal(pairCreated, pairEnded);
-                Assert.Equal(contactAdded, contactRemoved);
                 Assert.Equal(startedTouching, stoppedTouching);
 
                 game.Exit();
@@ -281,40 +398,122 @@ namespace Stride.BepuPhysics.Tests
             }
         }
 
-        private class Trigger : IContactEventHandler
+        [Fact]
+        public static void OnSimulationUpdateRemovalTest()
         {
-            public bool NoContactResponse => true;
-
-            public event Action? ContactAdded, ContactRemoved, StartedTouching, StoppedTouching, PairCreated, PairEnded;
-
-            public void OnStartedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
             {
-                StartedTouching?.Invoke();
+                game.ScreenShotAutomationEnabled = false;
+
+                var listOfUpdate = new List<int>();
+                var c2 = new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+
+                var allEntities = game.SceneSystem.SceneInstance.RootScene.Entities;
+
+                Entity a, b, c, d, e;
+                allEntities.AddRange(new[]
+                {
+                    a = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(0); } } },
+                    b = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(1); } } },
+                    c = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(2); } } },
+                    d = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(3); } } },
+                    new Entity { c2 },
+                });
+
+                var simulation = allEntities[0].GetSimulation();
+
+
+                // First test, check if every component received its update
+                {
+                    await simulation.AfterUpdate();
+
+                    Assert.Equal([0, 1, 2, 3], listOfUpdate);
+                }
+
+
+                // Second test, check if removing works appropriately
+                {
+                    listOfUpdate.Clear();
+                    allEntities.Remove(b);
+                    allEntities.Remove(c);
+
+                    await simulation.AfterUpdate();
+
+                    // We've removed the second and third before running sim,
+                    // so only the first and fourth should report as having received the update
+                    Assert.Equal([0, 3], listOfUpdate);
+                }
+
+
+                // Clearing multiple listeners while running a listener
+                {
+                    listOfUpdate.Clear();
+                    allEntities.Remove(a);
+                    allEntities.Remove(d);
+
+                    var toRemove = new List<Entity>();
+                    allEntities.AddRange(new[]
+                    {
+                        a = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(0); } } },
+                        b = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(1); } } },
+                        c = new Entity
+                        {
+                            new SimUpdateListener
+                            {
+                                SimUpdate = () =>
+                                {
+                                    listOfUpdate.Add(2);
+                                    foreach (var entity in toRemove)
+                                        allEntities.Remove(entity);
+                                }
+                            }
+                        },
+                        d = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(3); } } },
+                        e = new Entity { new SimUpdateListener { SimUpdate = () => { listOfUpdate.Add(4); } } }
+                    });
+
+                    toRemove.AddRange([a, b, c, e]);
+
+                    await simulation.AfterUpdate();
+
+                    // We've removed a, b and c right after running them, e before it could run and haven't removed d
+                    Assert.Equal([0, 1, 2, 3], listOfUpdate);
+                }
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        private class SimUpdateListener : ScriptComponent, ISimulationUpdate
+        {
+            public Action? SimUpdate, AfterSimUpdate;
+
+            public void SimulationUpdate(BepuSimulation simulation, float simTimeStep) => SimUpdate?.Invoke();
+
+            public void AfterSimulationUpdate(BepuSimulation simulation, float simTimeStep) => AfterSimUpdate?.Invoke();
+        }
+
+        private class ContactEvents : IContactHandler
+        {
+            public required bool NoContactResponse { get; init; }
+
+            public event Action<CollidableComponent, CollidableComponent>? StartedTouching, Touching, StoppedTouching;
+
+            public void OnStartedTouching<TManifold>(Contacts<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+            {
+                StartedTouching?.Invoke(manifold.EventSource, manifold.Other);
             }
 
-            public void OnStoppedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+            public void OnTouching<TManifold>(Contacts<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
             {
-                StoppedTouching?.Invoke();
+                Touching?.Invoke(manifold.EventSource, manifold.Other);
             }
 
-            public void OnContactAdded<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+            public void OnStoppedTouching<TManifold>(Contacts<TManifold> manifold) where TManifold : unmanaged, IContactManifold<TManifold>
             {
-                ContactAdded?.Invoke();
-            }
-
-            public void OnContactRemoved<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
-            {
-                ContactRemoved?.Invoke();
-            }
-
-            public void OnPairCreated<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
-            {
-                PairCreated?.Invoke();
-            }
-
-            public void OnPairEnded(CollidableComponent eventSource, CollidableComponent other, BepuSimulation bepuSimulation)
-            {
-                PairEnded?.Invoke();
+                StoppedTouching?.Invoke(manifold.EventSource, manifold.Other);
             }
         }
     }

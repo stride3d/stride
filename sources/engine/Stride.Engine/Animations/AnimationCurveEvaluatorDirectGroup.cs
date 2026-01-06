@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single class
 using System;
+using System.Runtime.InteropServices;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Updater;
@@ -66,24 +67,24 @@ namespace Stride.Animations
             var currentIndex = channel.CurrentIndex;
             var keyFrames = channel.Curve.KeyFrames;
 
-            var keyFramesItems = keyFrames.Items;
+            var keyFramesSpan = CollectionsMarshal.AsSpan(keyFrames);
             var keyFramesCount = keyFrames.Count;
 
             if (newTime > currentTime)
             {
-                while (currentIndex + 1 < keyFramesCount - 1 && newTime >= keyFramesItems[currentIndex + 1].Time)
+                while (currentIndex + 1 < keyFramesCount - 1 && newTime >= keyFramesSpan[currentIndex + 1].Time)
                 {
                     ++currentIndex;
                 }
             }
-            else if (newTime <= keyFramesItems[0].Time)
+            else if (newTime <= keyFramesSpan[0].Time)
             {
                 // Special case: fast rewind to beginning of animation
                 currentIndex = 0;
             }
             else // newTime < currentTime
             {
-                while (currentIndex - 1 >= 0 && newTime < keyFramesItems[currentIndex].Time)
+                while (currentIndex - 1 >= 0 && newTime < keyFramesSpan[currentIndex].Time)
                 {
                     --currentIndex;
                 }
@@ -139,7 +140,7 @@ namespace Stride.Animations
             var keyFrames = channel.Curve.KeyFrames;
             var currentIndex = channel.CurrentIndex;
 
-            objects[channel.Offset].Value = keyFrames.Items[currentIndex].Value;
+            objects[channel.Offset].Value = keyFrames[currentIndex].Value;
         }
     }
 }

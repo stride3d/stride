@@ -16,7 +16,7 @@ namespace Stride.Graphics
             fixed (long* dataPointer = &dataArray[0])
             {
                 // Read back all results
-                var result = vkGetQueryPoolResults(GraphicsDevice.NativeDevice, NativeQueryPool, 0, (uint)QueryCount, (uint)QueryCount * 8, dataPointer, 8, VkQueryResultFlags._64);
+                var result = vkGetQueryPoolResults(GraphicsDevice.NativeDevice, NativeQueryPool, 0, (uint)QueryCount, (uint)QueryCount * 8, dataPointer, 8, VkQueryResultFlags.Bit64);
 
                 // Some queries are not ready yet
                 if (result == VkResult.NotReady)
@@ -26,7 +26,13 @@ namespace Stride.Graphics
             return true;
         }
 
-        private unsafe void Recreate()
+        /// <summary>
+        ///   Implementation in Vulkan that recreates the queries in the pool.
+        /// </summary>
+        /// <exception cref="NotImplementedException">
+        ///   Only GPU queries of type <see cref="QueryType.Timestamp"/> are supported.
+        /// </exception>
+        private unsafe partial void Recreate()
         {
             var createInfo = new VkQueryPoolCreateInfo
             {
@@ -44,16 +50,16 @@ namespace Stride.Graphics
                     throw new NotImplementedException();
             }
 
-            vkCreateQueryPool(GraphicsDevice.NativeDevice, &createInfo, null, out NativeQueryPool);
+            GraphicsDevice.CheckResult(vkCreateQueryPool(GraphicsDevice.NativeDevice, &createInfo, null, out NativeQueryPool));
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             GraphicsDevice.Collect(NativeQueryPool);
             NativeQueryPool = VkQueryPool.Null;
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
     }
 }

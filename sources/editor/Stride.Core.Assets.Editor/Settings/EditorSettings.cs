@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Stride.Core.Annotations;
+using Stride.Core.CodeEditorSupport;
 using Stride.Core.IO;
 using Stride.Core.Settings;
-using Stride.Core.VisualStudio;
 using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.Settings
@@ -37,12 +37,12 @@ namespace Stride.Core.Assets.Editor.Settings
             {
                 DisplayName = $"{ExternalTools}/{Tr._p("Settings", "Shader editor")}",
             };
-            DefaultIDE = new SettingsKey<string>("ExternalTools/DefaultIDE", SettingsContainer, VisualStudioVersions.DefaultIDE.DisplayName)
+            DefaultIDE = new SettingsKey<string>("ExternalTools/DefaultIDE", SettingsContainer, IDEInfo.DefaultIDE.DisplayName)
             {
                 GetAcceptableValues = () =>
                 {
-                    var names = new List<string> { VisualStudioVersions.DefaultIDE.DisplayName };
-                    names.AddRange(VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasDevenv).Select(x => x.DisplayName));
+                    var names = new List<string> { IDEInfo.DefaultIDE.DisplayName };
+                    names.AddRange(IDEInfoVersions.AvailableIDEs().Where(x => x.HasProgram).Select(x => x.DisplayName));
                     return names;
                 },
                 DisplayName = $"{ExternalTools}/{Tr._p("Settings", "Default IDE")}",
@@ -71,11 +71,6 @@ namespace Stride.Core.Assets.Editor.Settings
             {
                 DisplayName = $"{Interface}/{Tr._p("Settings", "Usage Analytics")}",
                 Description = Tr._p("Settings", "Anonymous usage analytics to help the Stride community improve the software. Statistics on installation, version-specific usage, and platform popularity. The data is open-source at https://metrics.stride3d.net")
-            };
-            StoreCrashEmail = new SettingsKey<string>("Interface/StoreCrashEmail", SettingsContainer, "")
-            {
-                DisplayName = $"{Interface}/{Tr._p("Settings", "Crash report e-mail")}",
-                Description = Tr._p("Settings", "Crash report e-mail"),
             };
             Language = new SettingsKey<SupportedLanguage>("Interface/Language", SettingsContainer, SupportedLanguage.MachineDefault)
             {
@@ -111,8 +106,6 @@ namespace Stride.Core.Assets.Editor.Settings
         public static SettingsKey<bool> AutoReloadAssemblies { get; }
 
         public static SettingsKey<bool> AskBeforeSavingNewScripts { get; }
-
-        public static SettingsKey<string> StoreCrashEmail { get; }
 
         public static SettingsKey<SupportedLanguage> Language { get; }
 

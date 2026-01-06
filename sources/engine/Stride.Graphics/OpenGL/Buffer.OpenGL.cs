@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_GRAPHICS_API_OPENGL 
+#if STRIDE_GRAPHICS_API_OPENGL
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -25,7 +25,7 @@ namespace Stride.Graphics
         /// <param name="viewFlags">Type of the buffer.</param>
         /// <param name="viewFormat">The view format.</param>
         /// <param name="dataPointer">The data pointer.</param>
-        protected Buffer InitializeFromImpl(BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
+        protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
             bufferDescription = description;
             ViewFlags = viewFlags;
@@ -70,7 +70,7 @@ namespace Stride.Graphics
             else if ((ViewFlags & BufferFlags.ShaderResource) == BufferFlags.ShaderResource && GraphicsDevice.HasTextureBuffers)
             {
 #if STRIDE_GRAPHICS_API_OPENGLES
-                Internal.Refactor.ThrowNotImplementedException();
+                throw new NotSupportedException();
 #else
                 BufferTarget = BufferTargetARB.TextureBuffer;
 #endif
@@ -94,7 +94,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             using (GraphicsDevice.UseOpenGLCreationContext())
             {
@@ -109,7 +109,7 @@ namespace Stride.Graphics
                 GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes);
             }
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         protected void Init(IntPtr dataPointer)
@@ -143,7 +143,7 @@ namespace Stride.Graphics
                     GL.TexParameter(TextureTarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
                     GL.TexParameter(TextureTarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
-                    UpdateTextureSubresource(dataPointer, 0, 0, SizeInBytes);
+                    UpdateTextureSubResource(dataPointer, 0, 0, SizeInBytes);
 
                     GL.BindTexture(TextureTarget, 0);
 
@@ -168,7 +168,7 @@ namespace Stride.Graphics
                     if ((Flags & BufferFlags.ShaderResource) != 0)
                     {
 #if STRIDE_GRAPHICS_API_OPENGLES
-                        Internal.Refactor.ThrowNotImplementedException();
+                        throw new NotSupportedException();
 #else
                         TextureTarget = TextureTarget.TextureBuffer;
                         GL.GenTextures(1, out TextureId);
@@ -181,7 +181,7 @@ namespace Stride.Graphics
             }
         }
 
-        internal void UpdateTextureSubresource(IntPtr dataPointer, int subresouceLevel, int offset, int count)
+        internal void UpdateTextureSubResource(IntPtr dataPointer, int subresouceLevel, int offset, int count)
         {
             // If overwriting everything, create a new texture
             if (offset == 0 && count == SizeInBytes)
@@ -226,5 +226,5 @@ namespace Stride.Graphics
             }
         }
     }
-} 
+}
 #endif

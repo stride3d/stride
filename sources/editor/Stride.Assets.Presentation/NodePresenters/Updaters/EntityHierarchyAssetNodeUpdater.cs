@@ -78,7 +78,8 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                     componentCount[type] = ++count;
                 }
             }
-            if (typeof(EntityComponent).IsAssignableFrom(node.Type))
+            if (typeof(EntityComponent).IsAssignableFrom(node.Type) 
+                || node.Type.IsInterface && node.Type.IsImplementedOnAny<EntityComponent>())
             {
                 node.AttachedProperties.Add(ReferenceData.Key, new ComponentReferenceViewModel());
             }

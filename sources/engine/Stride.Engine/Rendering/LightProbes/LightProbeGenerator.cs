@@ -26,7 +26,7 @@ namespace Stride.Rendering.LightProbes
     {
         public const int LambertHamonicOrder = 3;
 
-        public static Dictionary<LightProbeComponent, FastList<Color3>> GenerateCoefficients(ISceneRendererContext context)
+        public static Dictionary<LightProbeComponent, List<Color3>> GenerateCoefficients(ISceneRendererContext context)
         {
             using (var cubemapRenderer = new CubemapSceneRenderer(context, 256))
             {
@@ -40,7 +40,7 @@ namespace Stride.Rendering.LightProbes
                     RadianceMap = cubeTexture,
                 };
 
-                var lightProbesCoefficients = new Dictionary<LightProbeComponent, FastList<Color3>>();
+                var lightProbesCoefficients = new Dictionary<LightProbeComponent, List<Color3>>();
 
                 using (cubemapRenderer.DrawContext.PushRenderTargetsAndRestore())
                 {
@@ -68,7 +68,7 @@ namespace Stride.Rendering.LightProbes
                         lambertFiltering.Draw(cubemapRenderer.DrawContext);
 
                         var coefficients = lambertFiltering.PrefilteredLambertianSH.Coefficients;
-                        var lightProbeCoefficients = new FastList<Color3>();
+                        var lightProbeCoefficients = new List<Color3>();
                         for (int i = 0; i < coefficients.Length; i++)
                         {
                             lightProbeCoefficients.Add(coefficients[i] * SphericalHarmonics.BaseCoefficients[i]);
@@ -113,13 +113,13 @@ namespace Stride.Rendering.LightProbes
             }
         }
 
-        public static unsafe LightProbeRuntimeData GenerateRuntimeData(FastList<LightProbeComponent> lightProbes)
+        public static unsafe LightProbeRuntimeData GenerateRuntimeData(List<LightProbeComponent> lightProbes)
         {
             // TODO: Better check: coplanar, etc... (maybe the check inside BowyerWatsonTetrahedralization might be enough -- tetrahedron won't be in positive order)
             if (lightProbes.Count < 4)
                 throw new InvalidOperationException("Can't generate lightprobes if less than 4 of them exists.");
 
-            var lightProbePositions = new FastList<Vector3>();
+            var lightProbePositions = new List<Vector3>();
             var lightProbeCoefficients = new Color3[lightProbes.Count * LambertHamonicOrder * LambertHamonicOrder];
             var destColors = lightProbeCoefficients.AsSpan();
             #if false

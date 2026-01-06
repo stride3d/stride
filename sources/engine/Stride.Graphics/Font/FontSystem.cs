@@ -22,6 +22,16 @@ namespace Stride.Graphics.Font
         internal readonly HashSet<SpriteFont> AllocatedSpriteFonts = new HashSet<SpriteFont>();
 
         /// <summary>
+        /// Gets the runtime font provider for registering and managing fonts loaded from the file system.
+        /// </summary>
+        /// <remarks>
+        /// <para>Use this to register custom fonts at runtime that are not part of the content pipeline
+        /// via <see cref="RuntimeFontProvider.RegisterFont"/>.</para>
+        /// <para>Once registered, fonts can be loaded using the <see cref="LoadRuntimeFont"/> method.</para>
+        /// </remarks>
+        public RuntimeFontProvider RuntimeFonts { get; private set; }
+
+        /// <summary>
         /// Create a new instance of <see cref="FontSystem" /> base on the provided <see cref="Stride.Graphics.GraphicsDevice" />.
         /// </summary>
         public FontSystem()
@@ -40,6 +50,23 @@ namespace Stride.Graphics.Font
             GraphicsDevice = graphicsDevice;
             FontManager = new FontManager(fileProviderService);
             FontCacheManager = new FontCacheManager(this);
+            RuntimeFonts = new RuntimeFontProvider(this);
+        }
+
+        /// <summary>
+        /// Loads a runtime-registered font by name.
+        /// This bypasses the content pipeline entirely.
+        /// </summary>
+        /// <param name="fontName">The registered font name. If the font is not registered, the method returns <c>null</c>.</param>
+        /// <param name="defaultSize">The default font size in pixels.</param>
+        /// <param name="style">The font style.</param>
+        /// <returns>A <see cref="SpriteFont"/> instance if the font is registered; otherwise, <c>null</c>.</returns>
+        public SpriteFont? LoadRuntimeFont(string fontName, float defaultSize = 16f, FontStyle style = FontStyle.Regular)
+        {
+            if (!RuntimeFonts.IsRegistered(fontName, style))
+                return null;
+
+            return NewDynamic(defaultSize, fontName, style);
         }
 
         public void Draw()

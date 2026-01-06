@@ -141,6 +141,8 @@ namespace Stride.Core.Yaml.Serialization.Serializers
         {
             var dictionaryDescriptor = (DictionaryDescriptor)objectContext.Descriptor;
 
+            dictionaryDescriptor.Clear(objectContext.Instance);
+
             var reader = objectContext.Reader;
             while (!reader.Accept<MappingEnd>())
             {

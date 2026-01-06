@@ -79,7 +79,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         }
 
         /// <inheritdoc/>
-        public Task<Dictionary<Guid, FastList<Color3>>> RequestLightProbesStep()
+        public Task<Dictionary<Guid, List<Color3>>> RequestLightProbesStep()
         {
             return editor.Controller.InvokeAsync(() =>
             {
@@ -89,7 +89,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 // Note: we only process first LightProbeProcessor
                 var runtimeData = game.SceneSystem.SceneInstance.GetProcessor<LightProbeProcessor>()?.VisibilityGroup.Tags.Get(LightProbeRenderer.CurrentLightProbes);
                 if (runtimeData == null)
-                    return new Dictionary<Guid, FastList<Color3>>();
+                    return new Dictionary<Guid, List<Color3>>();
 
                 var editorCompositor = game.EditorSceneSystem.GraphicsCompositor.Game;
                 try
@@ -177,7 +177,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             return Task.FromResult(true);
         }
 
-        public override Task DisposeAsync()
+        public override ValueTask DisposeAsync()
         {
             Cleanup();
             game.EditorScene.Entities.Remove(debugEntity);
@@ -368,9 +368,9 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             var meshDraw = new MeshDraw
             {
                 IndexBuffer = new IndexBufferBinding(Buffer.Index.New(graphicsDevice, indices).RecreateWith(indices), true, indices.Length),
-                VertexBuffers = new[] { new VertexBufferBinding(Buffer.New(graphicsDevice, vertices, BufferFlags.VertexBuffer).RecreateWith(vertices), layout, vertices.Length) },
+                VertexBuffers = [ new VertexBufferBinding(Buffer.Vertex.New(graphicsDevice, vertices).RecreateWith(vertices), layout, vertices.Length) ],
                 DrawCount = indices.Length,
-                PrimitiveType = primitiveType,
+                PrimitiveType = primitiveType
             };
 
             wireframeResources.Add(meshDraw.VertexBuffers[0].Buffer);

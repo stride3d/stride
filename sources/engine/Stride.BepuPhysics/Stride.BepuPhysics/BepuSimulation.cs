@@ -54,9 +54,6 @@ public sealed class BepuSimulation : IDisposable
     internal List<BodyComponent?> Bodies { get; } = new();
     internal List<StaticComponent?> Statics { get; } = new();
 
-    /// <summary> Required when a component is removed from the simulation and must have its contacts flushed </summary>
-    internal (int value, CollidableComponent? component) TemporaryDetachedLookup { get; set; }
-
     /// <inheritdoc cref="Stride.BepuPhysics.Definitions.CollisionMatrix"/>
     [DataMemberIgnore]
     public CollisionMatrix CollisionMatrix = CollisionMatrix.All; // Keep this as a field, user need ref access for writes
@@ -292,7 +289,7 @@ public sealed class BepuSimulation : IDisposable
         #warning Consider wrapping stride's threadpool/dispatcher into an IThreadDispatcher and passing that over to bepu instead of using their dispatcher
         _threadDispatcher = new ThreadDispatcher(targetThreadCount);
         BufferPool = new BufferPool();
-        ContactEvents = new ContactEventsManager(BufferPool, this);
+        ContactEvents = new ContactEventsManager(BufferPool, this, targetThreadCount);
 
         var strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks(this, ContactEvents, CollidableMaterials);
         var stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks(CollidableMaterials);
@@ -322,9 +319,6 @@ public sealed class BepuSimulation : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public BodyComponent GetComponent(BodyHandle handle)
     {
-        if (TemporaryDetachedLookup.component is BodyComponent detachedBody && handle.Value == TemporaryDetachedLookup.value)
-            return detachedBody;
-
         var body = Bodies[handle.Value];
         Debug.Assert(body is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
         return body;
@@ -332,9 +326,6 @@ public sealed class BepuSimulation : IDisposable
 
     public StaticComponent GetComponent(StaticHandle handle)
     {
-        if (TemporaryDetachedLookup.component is StaticComponent detachedStatic && handle.Value == TemporaryDetachedLookup.value)
-            return detachedStatic;
-
         var statics = Statics[handle.Value];
         Debug.Assert(statics is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
         return statics;
@@ -368,7 +359,7 @@ public sealed class BepuSimulation : IDisposable
     /// </summary>
     /// <param name="origin">The start position for this ray</param>
     /// <param name="dir">The normalized direction the ray is facing</param>
-    /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
+    /// <param name="maxDistance">The maximum distance from the origin that hits will be collected</param>
     /// <param name="result">An intersection in the world when this method returns true, an undefined value when this method returns false</param>
     /// <param name="collisionMask">Which layer should be hit</param>
     /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
@@ -395,7 +386,7 @@ public sealed class BepuSimulation : IDisposable
     /// </remarks>
     /// <param name="origin">The start position for this ray</param>
     /// <param name="dir">The normalized direction the ray is facing</param>
-    /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
+    /// <param name="maxDistance">The maximum distance from the origin that hits will be collected</param>
     /// <param name="buffer">
     /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
     /// It is used by the returned enumerator as its backing array from which you read
@@ -417,7 +408,7 @@ public sealed class BepuSimulation : IDisposable
     /// <remarks> There are no guarantees as to the order hits are returned in. </remarks>
     /// <param name="origin">The start position for this ray</param>
     /// <param name="dir">The normalized direction the ray is facing</param>
-    /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
+    /// <param name="maxDistance">The maximum distance from the origin that hits will be collected</param>
     /// <param name="collection">The collection used to store hits into, the collection is not cleared before usage, hits are appended to it</param>
     /// <param name="collisionMask">Which layer should be hit</param>
     public void RayCastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, ICollection<HitInfo> collection, CollisionMask collisionMask = CollisionMask.Everything)
@@ -726,6 +717,8 @@ public sealed class BepuSimulation : IDisposable
 
             Elider.SimulationUpdate(_simulationUpdateComponents, this, simTimeStepInSec);
 
+            Dispatcher.ForBatched(Bodies.Count, new UpdatePreviousVelocities { Bodies = Bodies });
+
             Simulation.Timestep(simTimeStepInSec, _threadDispatcher); //perform physic simulation using SimulationFixedStep
             ContactEvents.Flush(); //Fire event handler stuff.
 
@@ -744,8 +737,10 @@ public sealed class BepuSimulation : IDisposable
             foreach (var body in _interpolatedBodies)
             {
                 body.PreviousPose = body.CurrentPose;
-                if (body.BodyReference is {} bRef)
-                    body.CurrentPose = bRef.Pose;
+
+                Debug.Assert(body.BodyReference.HasValue);
+
+                body.CurrentPose = body.BodyReference.Value.Pose;
             }
         }
 
@@ -861,11 +856,9 @@ public sealed class BepuSimulation : IDisposable
     {
         _interpolatedBodies.Add(body);
 
-        body.Entity.Transform.UpdateWorldMatrix();
-        body.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion collidableWorldRotation, out Vector3 collidableWorldTranslation);
-        body.CurrentPose.Position = (collidableWorldTranslation + body.CenterOfMass).ToNumeric();
-        body.CurrentPose.Orientation = collidableWorldRotation.ToNumeric();
-        body.PreviousPose = body.CurrentPose;
+        Debug.Assert(body.BodyReference.HasValue);
+
+        body.PreviousPose = body.CurrentPose = body.BodyReference.Value.Pose;
     }
 
     internal void UnregisterInterpolated(BodyComponent body)
@@ -916,24 +909,49 @@ public sealed class BepuSimulation : IDisposable
         private sealed class Handler<T> : Elider where T : ISimulationUpdate // This class get specialized to a concrete type
         {
             private List<T> _abstraction = [];
-            protected override void Add(ISimulationUpdate obj) => _abstraction.Add((T)obj);
-            protected override bool Remove(ISimulationUpdate obj) => _abstraction.Remove((T)obj);
+            private int _processingIndex, _removedWhileProcessing;
+            protected override void Add(ISimulationUpdate obj)
+            {
+                _abstraction.Add((T)obj);
+            }
+
+            protected override bool Remove(ISimulationUpdate obj)
+            {
+                int idx = _abstraction.IndexOf((T)obj);
+                if (idx < 0)
+                    return false;
+
+                // If this occured as part of a SimulationUpdate,
+                // ensure execution of said update continues from the right component
+                if (idx <= _processingIndex)
+                {
+                    _removedWhileProcessing++;
+                    _processingIndex--;
+                }
+
+                _abstraction.RemoveAt(idx);
+                return true;
+            }
+
             protected override void SimulationUpdate(BepuSimulation sim, float deltaTime)
             {
-                foreach (var abstraction in _abstraction)
-                    abstraction.SimulationUpdate(sim, deltaTime);
+                _processingIndex = _removedWhileProcessing = 0;
+                for (int i = 0; i < _abstraction.Count; i += 1 - _removedWhileProcessing, _removedWhileProcessing = 0, _processingIndex = i)
+                    _abstraction[i].SimulationUpdate(sim, deltaTime);
             }
+
             protected override void AfterSimulationUpdate(BepuSimulation sim, float deltaTime)
             {
-                foreach (var abstraction in _abstraction)
-                    abstraction.AfterSimulationUpdate(sim, deltaTime);
+                _processingIndex = _removedWhileProcessing = 0;
+                for (int i = 0; i < _abstraction.Count; i += 1 - _removedWhileProcessing, _removedWhileProcessing = 0, _processingIndex = i)
+                    _abstraction[i].AfterSimulationUpdate(sim, deltaTime);
             }
         }
     }
 
     internal class AwaitRunner
     {
-        private object _addLock = new();
+        private Lock _addLock = new();
         private List<Action> _scheduled = new();
         private List<Action> _processed = new();
 
@@ -978,5 +996,23 @@ public sealed class BepuSimulation : IDisposable
         public void GetResult() { }
 
         public TickAwaiter GetAwaiter() => this;
+    }
+
+    private readonly struct UpdatePreviousVelocities : Dispatcher.IBatchJob
+    {
+        public required List<BodyComponent?> Bodies { get; init; }
+
+        public void Process(int start, int endExclusive)
+        {
+            for (; start < endExclusive; start++)
+            {
+                var body = Bodies[start];
+                if (body is not null)
+                {
+                    body.PreviousAngularVelocity = body.AngularVelocity;
+                    body.PreviousLinearVelocity = body.LinearVelocity;
+                }
+            }
+        }
     }
 }

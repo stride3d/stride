@@ -31,7 +31,7 @@ public class ValidModifiersOnMutableMemberTests
         foreach (var combination in combinations)
         {
             string sourceCode = PublicFormat(combination);
-            await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
+            await TestHelper.ExpectNoDiagnosticsAsync(sourceCode);
         }
     }
     /// <summary>
@@ -62,7 +62,7 @@ public class ValidModifiersOnMutableMemberTests
         foreach (var combination in combinations)
         {
             string sourceCode = PublicFormatWithDataMember(combination);
-            await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
+            await TestHelper.ExpectNoDiagnosticsAsync(sourceCode);
         }
     }
 
@@ -86,7 +86,7 @@ public class ValidModifiersOnMutableMemberTests
         foreach (var combination in combinations)
         {
             string sourceCode = InternalFormatWithDataMember(combination);
-            await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
+            await TestHelper.ExpectNoDiagnosticsAsync(sourceCode);
         }
     }
     /// <summary>
@@ -104,7 +104,7 @@ public class ValidModifiersOnMutableMemberTests
         foreach (var combination in combinations)
         {
             string sourceCode = string.Format(ClassTemplates.AccessorTemplate, combination, "object");
-            await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
+            await TestHelper.ExpectNoDiagnosticsAsync(sourceCode);
         }
     }
 }
