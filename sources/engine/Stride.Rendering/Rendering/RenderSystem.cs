@@ -392,7 +392,7 @@ namespace Stride.Rendering
                 var depthStencilBuffer = commandList.DepthStencilBuffer;
 
                 int renderTargetCount = commandList.RenderTargetCount;
-                renderTargets ??= new Texture[renderTargetCount];
+                renderTargets ??= new Texture[CommandList.MaxRenderTargetCount];
                 commandList.RenderTargets.CopyTo(renderTargets);
 
                 var viewport = commandList.Viewport;
