@@ -170,16 +170,8 @@
     <RemoveDir Condition="Exists('$(StrideCompileAssetOutputPath)')" ContinueOnError="true"  Directories="$(StrideCompileAssetOutputPath)"/>
   </Target>
 
-  <!-- UWP: Adjust Appx folders -->
-  <PropertyGroup Condition="'$(StrideIsExecutable)' == 'true' And '$(StridePlatform)' == 'UWP'">
-    <!-- Use OutputPath to define AppxPackage directory -->
-    <AppxPackageDir>$(OutputPath)\$(AppxPackageDirName)\</AppxPackageDir>
-    <AppxPackageTestDir>$(AppxPackageDir)Test\</AppxPackageTestDir>
-    <AppxPackageName>$(AssemblyName)</AppxPackageName>
-  </PropertyGroup>
-
-  <!-- UWP & iOS: Compile and Transform Assets into Content during PrepareResources phase -->
-  <PropertyGroup Condition="'$(StrideIsExecutable)' == 'true' And ('$(StridePlatform)' == 'UWP' Or '$(StridePlatform)' == 'Android')">
+  <!-- iOS: Compile and Transform Assets into Content during PrepareResources phase -->
+  <PropertyGroup Condition="'$(StrideIsExecutable)' == 'true' And '$(StridePlatform)' == 'Android'">
     <PrepareResourcesDependsOn>
       _StrideDeployAssetsAsContent;
       $(PrepareResourcesDependsOn)

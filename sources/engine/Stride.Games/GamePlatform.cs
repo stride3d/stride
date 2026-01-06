@@ -50,9 +50,7 @@ namespace Stride.Games
 
         public static GamePlatform Create(GameBase game)
         {
-#if STRIDE_PLATFORM_UWP
-            return new GamePlatformUWP(game);
-#elif STRIDE_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             return new GamePlatformAndroid(game);
 #elif STRIDE_PLATFORM_IOS
             return new GamePlatformiOS(game);
@@ -331,19 +329,8 @@ namespace Stride.Games
         {
             var graphicsDevice = GraphicsDevice.New(deviceInformation.Adapter, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow, deviceInformation.GraphicsProfile);
             graphicsDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
-
-#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
-            if (game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
-            {
-                graphicsDevice.Recreate(deviceInformation.Adapter, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags |= DeviceCreationFlags.BgraSupport, gameWindow.NativeWindow);
-                graphicsDevice.Presenter = new WindowsMixedRealityGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
-            }
-            else
-#endif
-            {
-                graphicsDevice.Presenter = new SwapChainGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
-            }
-
+            graphicsDevice.Presenter = new SwapChainGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
+            
             return graphicsDevice;
         }
 

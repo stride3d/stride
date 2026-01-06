@@ -1,7 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <StrideNativePathLibsWindows>libCompilerRt.lib libCelt.lib Recast.lib Detour.lib</StrideNativePathLibsWindows>
-    <StrideNativePathLibsUWP>libCompilerRt.lib libCelt.lib Xaudio2.lib Recast.lib Detour.lib</StrideNativePathLibsUWP>
   </PropertyGroup>
 
   <ItemGroup>

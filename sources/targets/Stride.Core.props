@@ -11,13 +11,12 @@
     <StrideFrameworkWindows>net10.0-windows</StrideFrameworkWindows>
     <StrideFrameworkAndroid>net10.0-android</StrideFrameworkAndroid>
     <StrideFrameworkiOS>net10.0-ios</StrideFrameworkiOS>
-    <StrideFrameworkUWP>uap10.0.16299</StrideFrameworkUWP>
 
     <!-- Default values -->
     <StridePlatformOriginal>$(StridePlatform)</StridePlatformOriginal>
-    <StridePlatform>Windows</StridePlatform>
-    <StridePlatform Condition=" '$([MSBuild]::IsOSPlatform(Linux))' Or '$(RuntimeIdentifier.StartsWith(linux))' ">Linux</StridePlatform>
-    <StridePlatform Condition="  $(RuntimeIdentifier.StartsWith('osx')) ">macOS</StridePlatform>
+    <StridePlatform Condition=" $(TargetFramework.StartsWith('net')) ">Windows</StridePlatform>
+    <StridePlatform Condition=" $(TargetFramework.StartsWith('net')) And $(RuntimeIdentifier.StartsWith('linux')) ">Linux</StridePlatform>
+    <StridePlatform Condition=" $(TargetFramework.StartsWith('net')) And $(RuntimeIdentifier.StartsWith('osx')) ">macOS</StridePlatform>
     <StridePlatform Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">UWP</StridePlatform>
     <StridePlatform Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">Android</StridePlatform>
     <StridePlatform Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' ">iOS</StridePlatform>
@@ -25,7 +24,6 @@
     <StridePlatformFullName Condition="'$(StridePlatformFullName)' == ''">$(StridePlatform)</StridePlatformFullName>
 
     <StridePlatformDeps Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' ">dotnet</StridePlatformDeps>
-    <StridePlatformDeps Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">UWP</StridePlatformDeps>
     <StridePlatformDeps Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">Android</StridePlatformDeps>
     <StridePlatformDeps Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' ">iOS</StridePlatformDeps>
   </PropertyGroup>
@@ -47,20 +45,12 @@
     <StridePlatforms>$([MSBuild]::Unescape('$(StridePlatforms)'))</StridePlatforms>
     <_StridePlatforms>;$(StridePlatforms);</_StridePlatforms>
   </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">
-    <!-- Fixes for GetPackagingOutputs (note: not sure if still necessary) -->
-    <WindowsAppContainer>false</WindowsAppContainer>
-    <AppxPackage>false</AppxPackage>
-    <Platform>AnyCPU</Platform>
-  </PropertyGroup>
 
   <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">  
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <!-- Add net10.0 no matter what (needed for references) -->
     <StrideRuntimeTargetFrameworks>net10.0</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);net10.0-windows</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);uap10.0.16299</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);net10.0-android</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);net10.0-ios</StrideRuntimeTargetFrameworks>
 
@@ -142,15 +132,6 @@
     <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP</StridePlatformDefines>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <StridePlatformDefines>STRIDE_PLATFORM_UWP</StridePlatformDefines>
-    <ExtrasUwpMetaPackageVersion>6.2.12</ExtrasUwpMetaPackageVersion>
-    <TargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
-    <GenerateLibraryLayout>false</GenerateLibraryLayout>
-  </PropertyGroup>
-
   <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">
     <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</StridePlatformDefines>
     <AndroidStoreUncompressedFileExtensions />
@@ -189,17 +170,6 @@
     <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</StridePlatformDefines>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
   </PropertyGroup>
-
-  <Choose>
-    <When Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">
-      <ItemGroup>
-        <Reference Include="System" />
-        <Reference Include="System.Core" />
-        <Reference Include="System.Xml" />
-        <Reference Include="System.Xml.Linq" />
-      </ItemGroup>
-    </When>
-  </Choose>
 
   <!-- Create empty project platform configuration so that MSBuild and Visual Studio Configuration Manager know about it -->
   <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhone' "/>

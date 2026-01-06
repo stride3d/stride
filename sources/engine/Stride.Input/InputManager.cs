@@ -687,11 +687,6 @@ namespace Stride.Input
                 case AppContextType.iOS:
                     break;
 #endif
-#if STRIDE_PLATFORM_UWP
-                case AppContextType.UWPXaml:
-                case AppContextType.UWPCoreWindow:
-                    break;
-#endif
                 case AppContextType.Desktop:
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
                     Sources.Add(new InputSourceWindowsDirectInput());

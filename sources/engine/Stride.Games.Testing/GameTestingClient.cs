@@ -48,9 +48,6 @@ namespace Stride.Games.Testing
                 case PlatformType.iOS:
                     platformName = "iOS";
                     break;
-                case PlatformType.UWP:
-                    platformName = "UWP";
-                    break;
                 default:
                     platformName = "";
                     break;

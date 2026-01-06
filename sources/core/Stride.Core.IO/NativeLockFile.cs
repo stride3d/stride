@@ -26,11 +26,7 @@ public static partial class NativeLockFile
             count = (count + offset > int.MaxValue) ? int.MaxValue - offset : count;
         }
 
-#if STRIDE_PLATFORM_UWP
-        if (Platform.Type = PlatformType.UWP)
-#else
         if (OperatingSystem.IsWindows())
-#endif
         {
             var countLow = (uint)count;
             var countHigh = (uint)(count >> 32);
@@ -71,11 +67,7 @@ public static partial class NativeLockFile
             count = (count + offset > int.MaxValue) ? int.MaxValue - offset : count;
         }
 
-#if STRIDE_PLATFORM_UWP
-        if (Platform.Type = PlatformType.UWP)
-#else
         if (OperatingSystem.IsWindows())
-#endif
         {
             var countLow = (uint)count;
             var countHigh = (uint)(count >> 32);

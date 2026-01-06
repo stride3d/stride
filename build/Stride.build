@@ -98,7 +98,7 @@ Example of use:
   </Target>
   
   <!--
-  Build Stride: Windows, Android, iOS, Windows 10 (UWP)
+  Build Stride: Windows, Android, iOS
   -->
   <Target Name="Clean">
     <Exec Command="RMDIR /Q /S $(StrideRoot)\Bin"/>
@@ -189,15 +189,6 @@ Example of use:
   <Target Name="BuildiOS">
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=iOS;StrideSolution=$(StrideSolution).iOS"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).iOS.sln" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
-  </Target>
-  
-  <Target Name="BuildUWP">
-    <PropertyGroup>
-      <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
-      <StridePlatforms>UWP</StridePlatforms>
-    </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
   
   <Target Name="BuildWindowsVulkan">

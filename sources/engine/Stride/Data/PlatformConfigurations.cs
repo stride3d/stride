@@ -42,9 +42,6 @@ namespace Stride.Data
                 case PlatformType.iOS:
                     platform = ConfigPlatforms.iOS;
                     break;
-                case PlatformType.UWP:
-                    platform = ConfigPlatforms.UWP;
-                    break;
                 case PlatformType.Linux:
                     platform = ConfigPlatforms.Linux;
                     break;

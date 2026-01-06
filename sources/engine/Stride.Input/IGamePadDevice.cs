@@ -62,7 +62,7 @@ namespace Stride.Input
         /// <param name="largeLeft">The large left side motor</param>
         /// <param name="largeRight">The large right side motor</param>
         /// <remarks>Values range from 0 to 1, where 0 is off and 1 is maximum vibration</remarks>
-        /// <remarks>Currently vibration is only supported on windows for XInput devices and UWP supported gamepads</remarks>
+        /// <remarks>Currently vibration is only supported on windows for XInput devices</remarks>
         void SetVibration(float smallLeft, float smallRight, float largeLeft, float largeRight);
     }
 }

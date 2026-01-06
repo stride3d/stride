@@ -25,11 +25,6 @@ namespace Stride.Assets.Tests2
             { Tuple.Create(PlatformType.Windows, AlphaFormat.Explicit), PixelFormat.BC2_UNorm },
             { Tuple.Create(PlatformType.Windows, AlphaFormat.Interpolated), PixelFormat.BC3_UNorm },
 
-            { Tuple.Create(PlatformType.UWP, AlphaFormat.None), PixelFormat.BC1_UNorm },
-            { Tuple.Create(PlatformType.UWP, AlphaFormat.Mask), PixelFormat.BC1_UNorm },
-            { Tuple.Create(PlatformType.UWP, AlphaFormat.Explicit), PixelFormat.BC2_UNorm },
-            { Tuple.Create(PlatformType.UWP, AlphaFormat.Interpolated), PixelFormat.BC3_UNorm },
-
             { Tuple.Create(PlatformType.Android, AlphaFormat.None), PixelFormat.ETC1 },
             { Tuple.Create(PlatformType.Android, AlphaFormat.Mask), PixelFormat.ETC2_RGB_A1 },
             { Tuple.Create(PlatformType.Android, AlphaFormat.Explicit), PixelFormat.ETC2_RGBA },

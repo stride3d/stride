@@ -143,9 +143,6 @@ namespace Stride.Assets
                 case PlatformType.iOS:
                     configPlatform = ConfigPlatforms.iOS;
                     break;
-                case PlatformType.UWP:
-                    configPlatform = ConfigPlatforms.UWP;
-                    break;
                 case PlatformType.Linux:
                     configPlatform = ConfigPlatforms.Linux;
                     break;

@@ -1,7 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <StrideNativePathLibsWindows>libCelt.lib</StrideNativePathLibsWindows>
-    <StrideNativePathLibsUWP>libCelt.lib Xaudio2.lib</StrideNativePathLibsUWP>
   </PropertyGroup>
 
   <ItemGroup>

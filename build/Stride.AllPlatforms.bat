@@ -1,2 +1,2 @@
-set StridePlatforms=Windows;UWP;Android;iOS;Linux
+set StridePlatforms=Windows;Android;iOS;Linux
 Stride.sln

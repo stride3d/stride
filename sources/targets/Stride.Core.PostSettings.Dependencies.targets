@@ -65,8 +65,8 @@
   *****************************************************************************************************************************
   -->
   <Target Name="_StrideSetupNativeLibraries" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(StrideDependenciesCopy)' != 'false'">
-    <!-- Windows, UWP, Linux & macOS -->
-    <ItemGroup Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">
+    <!-- Windows, Linux & macOS -->
+    <ItemGroup Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' ">
       <None Include="@(_StrideDependencyNativeLib)">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
