@@ -7,13 +7,16 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
-using Silk.NET.Direct3D11;
 using Silk.NET.OpenXR;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Diagnostics;
 using Stride.Games;
 using Stride.Graphics;
+
+#if STRIDE_GRAPHICS_API_DIRECT3D11
+using Silk.NET.Direct3D11;
+#endif
 
 namespace Stride.VirtualReality
 {
@@ -540,7 +543,7 @@ namespace Stride.VirtualReality
             if (baseDevice is null || projection_views is null || views is null)
                 return;
 
-            #if STRIDE_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
             if (render_targets is null)
                 return;
 #endif
