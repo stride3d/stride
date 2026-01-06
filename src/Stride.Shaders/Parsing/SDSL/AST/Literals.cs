@@ -146,7 +146,9 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
         var (builder, context) = compiler;
 
         Type = GenerateType(table, context, expectedType);
-
+        if (Type is ArrayType t2 && t2.Size == -1)
+            Type = new ArrayType(t2.BaseType, Values.Count);
+        
         (var compositeCount, var totalCount, var expectedElementType) = Type switch
         {
             VectorType v => (v.Size, v.Size, v.BaseType),

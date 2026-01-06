@@ -16,6 +16,10 @@ namespace Stride.Shaders.Spirv.Processing
     /// </summary>
     public class InterfaceProcessor
     {
+        public delegate void CodeInsertedDelegate(int index, int count);
+
+        public CodeInsertedDelegate CodeInserted { get; set; }
+        
         class StreamInfo(string? semantic, string name, SymbolType type, int variableId)
         {
             public string? Semantic { get; } = semantic;
@@ -472,25 +476,6 @@ namespace Stride.Shaders.Spirv.Processing
                     }
                 }
 
-                // CBuffer
-                // Encoded in this format:
-                // OpDecorate %type_CBuffer1 Block
-                // %_ptr_Uniform_type_CBuffer1 = OpTypePointer Uniform %type_CBuffer1
-                // %CBuffer1 = OpVariable %_ptr_Uniform_type_CBuffer1 Uniform
-                {
-                    if (i.Op == Op.OpDecorate
-                        && ((OpDecorate)i) is { Decoration: { Value: Decoration.Block }, Target: var bufferType })
-                    {
-                        blockTypes.Add(bufferType);
-                    }
-                    else if (i.Op == Op.OpTypePointer
-                        && ((OpTypePointer)i) is { Storageclass: StorageClass.Uniform, ResultId: var pointerType, Type: var bufferType2 }
-                        && blockTypes.Contains(bufferType2))
-                    {
-                        blockPointerTypes.Add(pointerType, bufferType2);
-                    }
-                }
-
                 // Semantic
                 {
                     if (i.Op == Op.OpDecorateString
@@ -516,7 +501,7 @@ namespace Stride.Shaders.Spirv.Processing
             {
                 if (i.Op == Op.OpVariableSDSL
                     && ((OpVariableSDSL)i) is { Storageclass: StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
-                    && blockPointerTypes.TryGetValue(pointerType2, out var bufferType3))
+                    && context.ReverseTypes[pointerType2] is PointerType { BaseType: ConstantBufferSymbol })
                 {
                     var name = nameTable[bufferId];
                     // Note: cbuffer names might be suffixed with .0 .1 (as in Shader.RenameCBufferVariables)
@@ -871,7 +856,9 @@ namespace Stride.Shaders.Spirv.Processing
 
                 liveAnalysis.ExtraReferencedMethods.Add(methodInfo.ThisStageMethodId.Value);
 
+                // TODO: adjust mixin instructions ranges
                 buffer.InsertRange(methodEnd, copiedInstructions.AsSpan());
+                CodeInserted?.Invoke(methodEnd, copiedInstructions.Count);
             }
         }
 
@@ -920,7 +907,7 @@ namespace Stride.Shaders.Spirv.Processing
             {
                 var i = buffer[index];
 
-                if (i.Op == Op.OpStreamsSDSL && (OpAccessChain)i is { } streamsInstruction)
+                if (i.Op == Op.OpStreamsSDSL && (OpStreamsSDSL)i is { } streamsInstruction)
                 {
                     streamsInstructionIds.Add(streamsInstruction.ResultId);
                     remapIds.Add(streamsInstruction.ResultId, streamsVariableId);
@@ -1061,7 +1048,7 @@ namespace Stride.Shaders.Spirv.Processing
                     if (analysisResult.CBuffers.TryGetValue(pointer, out var cbufferInfo))
                         cbufferInfo.UsedThisStage = true;
                 }
-                else if (i.Op == Op.OpStreamsSDSL && new OpAccessChain(ref i) is { } streamsInstruction)
+                else if (i.Op == Op.OpStreamsSDSL && new OpStreamsSDSL(ref i) is { } streamsInstruction)
                 {
                     streamsInstructionIds.Add(streamsInstruction.ResultId);
                     methodInfo.HasStreamAccess = true;

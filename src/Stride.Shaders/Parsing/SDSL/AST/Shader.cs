@@ -492,7 +492,9 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     memberType = svar.TypeName.ResolveType(table, context);
                 }
 
-                var storageClass = Specification.StorageClass.Private;
+                var storageClass = svar.StorageClass == StorageClass.Static || svar.StreamKind == StreamKind.Stream
+                    ? Specification.StorageClass.Private
+                    : Specification.StorageClass.Uniform;
                 if (memberType is TextureType || memberType is BufferType)
                     storageClass = Specification.StorageClass.UniformConstant;
 

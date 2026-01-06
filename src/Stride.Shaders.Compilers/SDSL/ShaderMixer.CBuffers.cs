@@ -11,12 +11,108 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using static Stride.Shaders.Spirv.Specification;
+using StorageClass = Stride.Shaders.Parsing.SDSL.AST.StorageClass;
 
 namespace Stride.Shaders.Compilers.SDSL
 {
     partial class ShaderMixer
     {
-        private void MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
+        private void GenerateDefaultCBuffer(MixinNode rootMixin, MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
+        {
+            var members = new List<StructuredTypeMember>();
+            // Remap from variable ID to member index in our new struct
+            var variableToMemberIndices = new Dictionary<int, int>(); 
+            // Collect any variable not a stream, not static and not a block
+            HashSet<int> blockTypes = [];
+            int firstVariableIndex = -1;
+            foreach (var i in temp)
+            {
+                if (i.Op == Op.OpVariableSDSL
+                    && ((OpVariableSDSL)i) is { Storageclass: Specification.StorageClass.Uniform } variable
+                    && context.ReverseTypes[variable.ResultType] is PointerType { BaseType: var variableType }
+                    && variableType is not ConstantBufferSymbol)
+                {
+                    firstVariableIndex = i.Index;
+                    variableToMemberIndices.Add(variable.ResultId, members.Count);
+                    members.Add(new(context.Names[variable.ResultId], variableType, TypeModifier.None));
+                    SetOpNop(i.Data.Memory.Span);
+                }
+            }
+
+            // No global members? Let's finish now
+            if (members.Count == 0)
+                return;
+
+            var globalCBufferType = new ConstantBufferSymbol("Globals", members);
+            var globalCBufferTypeId = context.DeclareCBuffer(globalCBufferType);
+            for (var index = 0; index < members.Count; index++)
+            {
+                var member = members[index];
+                context.AddMemberName(globalCBufferTypeId, index, member.Name);
+            }
+            
+            // Note: we make sure to add at a previous variable index, otherwise the OpVariableSDSL won't be inside the root MixinNode.StartInstruction/EndInstruction
+            temp.FluentReplace(firstVariableIndex, new OpVariableSDSL(context.GetOrRegister(new PointerType(globalCBufferType, Specification.StorageClass.Uniform)), context.Bound++, Specification.StorageClass.Uniform, VariableFlagsMask.Stage, null), out var cbufferVariable);
+            context.AddName(cbufferVariable.ResultId, "Globals");
+            
+            // Replace all accesses
+            int instructionsAddedInThisMethod = 0;
+            for (var index = 0; index < temp.Count; index++)
+            {
+                var i = temp[index];
+                if (i.Op == Op.OpFunctionEnd)
+                {
+                    // Since we might have inserted instructions, offset all Start/End instructions indices
+                    AdjustIndicesAfterAppendInstructions(rootMixin, i.Index, instructionsAddedInThisMethod);
+                    instructionsAddedInThisMethod = 0;
+                }
+                if (i.Op is Op.OpLoad && (OpLoad)i is { } load)
+                {
+                    if (variableToMemberIndices.TryGetValue(load.Pointer, out var memberIndex))
+                    {
+                        load.Pointer = context.Bound;
+                        instructionsAddedInThisMethod++;
+                        temp.Insert(index++, new OpAccessChain(
+                            context.GetOrRegister(new PointerType(members[memberIndex].Type, Specification.StorageClass.Uniform)),
+                            context.Bound++,
+                            cbufferVariable.ResultId,
+                            [context.CompileConstant(memberIndex).Id]));
+                    }
+                }
+                else if (i.Op is Op.OpStore && (OpStore)i is { } store)
+                {
+                    if (variableToMemberIndices.TryGetValue(store.Pointer, out var memberIndex))
+                    {
+                        store.Pointer = context.Bound;
+                        instructionsAddedInThisMethod++;
+                        temp.Insert(index++, new OpAccessChain(
+                            context.GetOrRegister(new PointerType(members[memberIndex].Type, Specification.StorageClass.Uniform)),
+                            context.Bound++,
+                            cbufferVariable.ResultId,
+                            [context.CompileConstant(memberIndex).Id]));
+                    }
+                }
+                else if (i.Op == Op.OpAccessChain && (OpAccessChain)i is { } accessChain)
+                {
+                    if (variableToMemberIndices.TryGetValue(accessChain.BaseId, out var memberIndex))
+                    {
+                        accessChain.Values = new([context.CompileConstant(memberIndex).Id, ..accessChain.Values.Elements.Span]);
+                        accessChain.BaseId = cbufferVariable.ResultId;
+                    }
+                }
+            }
+
+            // Update entry points to include this cbuffer
+            foreach (var i in context)
+            {
+                if (i.Op == Op.OpEntryPoint && (OpEntryPoint)i is {} entryPoint)
+                {
+                    entryPoint.Values = new([..entryPoint.Values, cbufferVariable.ResultId]);
+                }
+            }
+        }
+
+        private static void MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
         {
             // Collect Decorations
             Dictionary<int, string> logicalGroups = new();

@@ -55,10 +55,19 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         context.Insert(3, new OpExtension("SPV_GOOGLE_hlsl_functionality1"));
 
         // Process streams and remove unused code/cbuffer/variable/resources
-        new InterfaceProcessor().Process(table, temp, context);
+        var interfaceProcessor = new InterfaceProcessor
+        {
+            CodeInserted = (int index, int count) => AdjustIndicesAfterAppendInstructions(rootMixin, index, count)
+        };
+        interfaceProcessor.Process(table, temp, context);
+
+        // Any non-static variable is moved to a "Globals" default cbuffer
+        // TODO: future language improvement:
+        //       force cbuffer to be epxlicit? (and not need "static" anymore for mixin nodes member, which is weird)
+        //       It's a breaking change and will require some changes to Stride shaders (esp. in post effects) 
+        GenerateDefaultCBuffer(rootMixin, globalContext, context, temp);
 
         // Merge cbuffers and rgroups
-        // TODO: remove unused cbuffers (before merging them)
         MergeCBuffers(globalContext, context, temp);
         ComputeCBufferOffsets(globalContext, context, temp);
 
@@ -606,25 +615,40 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
         buffer.InsertRange(index, foreachBufferCopy.AsSpan());
-        AdjustIndicesAfterAddingInstructions(mixinNode, index, foreachBufferCopy.Count - foreachBuffer.Count);
+        AdjustIndicesAfterAppendInstructions(mixinNode.Stage ?? mixinNode, index, foreachBufferCopy.Count - foreachBuffer.Count);
 
         foreach (var inst in foreachBuffer)
             inst.Dispose();
     }
 
-    private static void AdjustIndicesAfterAddingInstructions(MixinNode mixinNode, int insertIndex, int insertCount)
+    // Note: if added between two mixin, it will belong to the one before (as if appending)
+    //       it also means adding before anything else is not supported
+    private static void AdjustIndicesAfterAppendInstructions(MixinNode mixinNode, int insertIndex, int insertCount)
     {
+        if (insertIndex == 0)
+            throw new NotImplementedException();
+
+        // Nothing to shift
+        if (insertCount == 0)
+            return;
+        
         if (mixinNode.StartInstruction > insertIndex)
             mixinNode.StartInstruction += insertCount;
-        if (mixinNode.EndInstruction > insertIndex)
+        if (mixinNode.EndInstruction >= insertIndex)
             mixinNode.EndInstruction += insertCount;
         foreach (var shader in mixinNode.Shaders)
         {
             if (shader.StartInstruction > insertIndex)
                 shader.StartInstruction += insertCount;
-            if (shader.EndInstruction > insertIndex)
+            if (shader.EndInstruction >= insertIndex)
                 shader.EndInstruction += insertCount;
         }
+
+        foreach (var composition in mixinNode.Compositions)
+            AdjustIndicesAfterAppendInstructions(composition.Value, insertIndex, insertCount);
+        foreach (var compositions in mixinNode.CompositionArrays)
+            foreach (var composition in compositions.Value)
+                AdjustIndicesAfterAppendInstructions(composition, insertIndex, insertCount);
     }
 
     private static void ProcessMemberAccessAndForeach(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp, MixinNode mixinNode)

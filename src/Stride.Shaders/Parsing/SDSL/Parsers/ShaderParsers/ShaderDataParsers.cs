@@ -39,6 +39,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
                         IsCompose = isCompose,
                         Interpolation = interpolation,
                         StreamKind = streamKind,
+                        StorageClass = storageClass,
                         TypeModifier = typeModifier,
                     };
                     return true;
@@ -53,6 +54,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
                     IsStaged = isStaged,
                     Interpolation = interpolation,
                     StreamKind = streamKind,
+                    StorageClass = storageClass,
                     TypeModifier = typeModifier,
                 };
                 return true;

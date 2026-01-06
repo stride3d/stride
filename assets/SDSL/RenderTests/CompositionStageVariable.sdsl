@@ -4,13 +4,13 @@ namespace Stride.Shaders.Tests;
 
 shader CompositionBase2
 {
-	stage float A;
+	stage static float A;
 }
 
 shader CompositionBase : CompositionBase2
 {
-	stage float B;
-	stage float C;
+	stage static float B;
+	stage static float C;
 
 	float Compute()
 	{

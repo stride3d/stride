@@ -393,6 +393,14 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         return Instructions[index];
     }
 
+    public NewSpirvBuffer FluentReplace<T>(int index, in T instruction, out T result) where T : struct, IMemoryInstruction, allows ref struct
+    {
+        Replace(index, instruction);
+        instruction.Attach(new(index, this));
+        result = instruction;
+        return this;
+    }
+    
     public Enumerator GetEnumerator() => new(this);
 
     public struct Enumerator(NewSpirvBuffer buffer) : IEnumerator<OpDataIndex>

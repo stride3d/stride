@@ -4,7 +4,7 @@ namespace Stride.Shaders.Tests;
 
 shader CompositionBase
 {
-	float A;
+	static float A;
 	void SetupA()
 	{
 		A = 1.0;

@@ -173,10 +173,7 @@ public sealed class ShaderMember(
         var registeredType = context.GetOrRegister(Type);
         var variable = context.Bound++;
 
-        // TODO: Add a StreamSDSL storage class?
-        var storageClass = Specification.StorageClass.Private;
-        if (Type is PointerType pointerType)
-            storageClass = pointerType.StorageClass;
+        var pointerType = (PointerType)Type;
 
         var variableFlags = IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None;
         if (StreamKind == StreamKind.Stream)
@@ -185,7 +182,7 @@ public sealed class ShaderMember(
         int? initializerMethod = null;
         if (Value != null)
         {
-            var valueType = ((PointerType)Type).BaseType;
+            var valueType = pointerType.BaseType;
 
             // TODO: differentiate const from code that needs to go in entry point?
             // TODO: move to entry point
@@ -194,7 +191,7 @@ public sealed class ShaderMember(
             builder.Insert(new OpLabel(context.Bound++));
 
             var initialValue = Value.CompileAsValue(table, compiler);
-            initialValue = builder.Convert(context, initialValue, ((PointerType)Type).BaseType);
+            initialValue = builder.Convert(context, initialValue, pointerType.BaseType);
 
             builder.Return(initialValue);
             builder.Insert(new OpFunctionEnd());
@@ -202,7 +199,7 @@ public sealed class ShaderMember(
             context.AddName(initializerMethod.Value, $"{Name}_Initializer");
         }
 
-        builder.Insert(new OpVariableSDSL(registeredType, variable, storageClass, variableFlags, initializerMethod));
+        builder.Insert(new OpVariableSDSL(registeredType, variable, pointerType.StorageClass, variableFlags, initializerMethod));
         if (Semantic != null)
             context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(Semantic.Name)));
         context.AddName(variable, Name);
@@ -221,7 +218,7 @@ public sealed class ShaderMember(
                 },
                 IsStage: IsStaged
             );
-        var symbol = new Symbol(sid, Type, variable);
+        var symbol = new Symbol(sid, pointerType, variable);
         table.CurrentShader.Variables.Add((symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
     }
 
