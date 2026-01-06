@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="300"
+             x:Class="Stride.Core.Assets.Editor.Avalonia.ObjectBrowserUserControl">
+    <Grid ColumnDefinitions="*,5,3*,5,220">
+        <TreeView Grid.Column="0" SelectionMode="Single"
+                    ItemsSource="{Binding HierarchyItemsSource, ElementName=ObjectBrowser, Mode=TwoWay}"
+                    SelectedItem="{Binding SelectedHierarchyItem, ElementName=ObjectBrowser, Mode=TwoWay}"
+                    ItemTemplate="{Binding HierarchyItemTemplate, ElementName=ObjectBrowser, Mode=TwoWay}" />
+
+        <GridSplitter Grid.Column="1" ResizeBehavior="PreviousAndNext" VerticalAlignment="Stretch" Width="5"/>
+
+        <ListBox Grid.Column="2"
+                ItemsSource="{Binding ObjectItemsSource, ElementName=ObjectBrowser, Mode=TwoWay}"
+                SelectedItem="{Binding SelectedObjectItem, ElementName=ObjectBrowser, Mode=TwoWay}"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+
+        <GridSplitter Grid.Column="3" ResizeBehavior="PreviousAndNext" VerticalAlignment="Stretch" Width="5"/>
+
+        <DockPanel Grid.Column="4" Background="{DynamicResource ControlBackgroundBrush}">
+        <ScrollViewer x:Name="DescriptionScrollViewer" VerticalScrollBarVisibility="Auto">
+            <ContentPresenter Content="{Binding SelectedObjectItem, ElementName=ObjectBrowser, Mode=TwoWay}"
+                            ContentTemplate="{Binding ObjectDescriptionTemplate, ElementName=ObjectBrowser, Mode=TwoWay}"/>
+        </ScrollViewer>
+        </DockPanel>
+    </Grid>
+</UserControl>
+
