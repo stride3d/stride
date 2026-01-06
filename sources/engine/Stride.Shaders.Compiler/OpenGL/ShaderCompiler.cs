@@ -18,6 +18,7 @@ using Stride.Core.Shaders.Convertor;
 
 using ConstantBuffer = Stride.Core.Shaders.Ast.Hlsl.ConstantBuffer;
 using GlslStorageQualifier = Stride.Core.Shaders.Ast.Glsl.StorageQualifier;
+using System.Runtime.InteropServices;
 
 namespace Stride.Shaders.Compiler.OpenGL
 {
@@ -111,23 +112,8 @@ namespace Stride.Shaders.Compiler.OpenGL
                 File.WriteAllBytes(inputFileName, Encoding.ASCII.GetBytes(shader));
 
                 // Run shader compiler
-                string filename;
-                switch (Platform.Type)
-                {
-                    case PlatformType.Windows:
-                    case PlatformType.UWP:
-                        filename = @"win-x64\glslangValidator.exe";
-                        break;
-                    case PlatformType.Linux:
-                        filename = @"linux-x64/glslangValidator.bin";
-                        break;
-                    case PlatformType.macOS:
-                        filename = @"osx-x64/glslangValidator.bin";
-                        break;
-                    default:
-                        throw new PlatformNotSupportedException();
-                }
-                ShellHelper.RunProcessAndRedirectToLogger(filename, $"-V -o {outputFileName} {inputFileName}", null, shaderBytecodeResult);
+                string glslangValidatorPath = Core.NativeLibraryHelper.LocateExecutable(Platform.Type == PlatformType.Windows ? "glslangValidator.exe" : "glslangValidator.bin", typeof(ShaderCompiler));
+                ShellHelper.RunProcessAndRedirectToLogger(glslangValidatorPath, $"-V -o {outputFileName} {inputFileName}", null, shaderBytecodeResult);
 
                 if (!File.Exists(outputFileName))
                 {

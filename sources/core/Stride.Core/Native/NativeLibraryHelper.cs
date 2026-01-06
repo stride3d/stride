@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -10,7 +11,25 @@ public static class NativeLibraryHelper
 {
     private const string UNIX_LIB_PREFIX = "lib";
     private static readonly Dictionary<string, IntPtr> LoadedLibraries = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly Dictionary<string, string> NativeDependencies = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, string> NativeDependenciesWithoutExtensions = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, string> NativeDependenciesWithExtensions = new(StringComparer.OrdinalIgnoreCase);
+
+    public static string LocateExecutable(string executableName, Type owner)
+    {
+        // Nuget native libraries
+        if (NativeDependenciesWithExtensions.TryGetValue(executableName, out var path))
+            return path;
+
+        // Try in current path
+        if (File.Exists(executableName))
+            return executableName;
+
+        // Try runtimes specific path
+        if (LocateLibraryInFolders(owner, executableName, out path))
+            return path;
+
+        throw new InvalidOperationException($"Could not locate native executable {executableName}");
+    }
 
     /// <summary>
     /// Try to preload the library.
@@ -32,7 +51,7 @@ public static class NativeLibraryHelper
 
             // Was the dependency registered beforehand?
             {
-                if (NativeDependencies.TryGetValue(libraryName, out var path) && NativeLibrary.TryLoad(path, out var result))
+                if (NativeDependenciesWithoutExtensions.TryGetValue(libraryName, out var path) && NativeLibrary.TryLoad(path, out var result))
                 {
                     LoadedLibraries.Add(libraryName, result);
                     return;
@@ -48,21 +67,11 @@ public static class NativeLibraryHelper
                 }
             }
 
-            var cpu = RuntimeInformation.ProcessArchitecture switch
+            var extension = Platform.Type switch
             {
-                Architecture.X86 => "x86",
-                Architecture.X64 => "x64",
-                Architecture.Arm => "ARM",
-                Architecture.Arm64 => "arm64",
-                _ => throw new PlatformNotSupportedException(),
-            };
-
-            string platform, extension;
-            (platform, extension) = Platform.Type switch
-            {
-                PlatformType.Windows => ("win",".dll"),
-                PlatformType.Linux => ("linux",".so"),
-                PlatformType.macOS => ("osx",".dylib"),
+                PlatformType.Windows => ".dll",
+                PlatformType.Linux => ".so",
+                PlatformType.macOS => ".dylib",
                 _ => throw new PlatformNotSupportedException(),
             };
 
@@ -87,18 +96,8 @@ public static class NativeLibraryHelper
 
             // We are trying to load the dll from a shadow path if it is already registered, otherwise we use it directly from the folder
             {
-                var platformNativeLibsFolder = Path.Combine("runtimes", $"{platform}-{cpu}", "native");
-                foreach (var libraryPath in new[]
+                if (LocateLibraryInFolders(owner, libraryNameWithExtension, out var libraryFilename))
                 {
-                    Path.Combine(Path.GetDirectoryName(owner.GetTypeInfo().Assembly.Location) ?? string.Empty, platformNativeLibsFolder),
-                    Path.Combine(Environment.CurrentDirectory ?? string.Empty, platformNativeLibsFolder),
-                    Path.Combine(Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty, platformNativeLibsFolder),
-                    // Also try without platform for Windows-only packages (backward compat for editor packages)
-                    Path.Combine(Path.GetDirectoryName(owner.GetTypeInfo().Assembly.Location) ?? string.Empty, cpu),
-                    Path.Combine(Environment.CurrentDirectory ?? string.Empty, cpu),
-                })
-                {
-                    var libraryFilename = Path.Combine(libraryPath, libraryNameWithExtension);
                     if (NativeLibrary.TryLoad(libraryFilename, out var result))
                     {
                         LoadedLibraries.Add(libraryName, result);
@@ -118,9 +117,51 @@ public static class NativeLibraryHelper
                 }
             }
 
-            throw new InvalidOperationException($"Could not load native library {libraryName} using CPU architecture {cpu}.");
+            throw new InvalidOperationException($"Could not locate or load native library {libraryName}");
         }
 #endif
+    }
+
+    private static bool LocateLibraryInFolders(Type owner, string libraryNameWithExtension, [MaybeNullWhen(false)] out string result)
+    {
+        var platform = Platform.Type switch
+        {
+            PlatformType.Windows => "win",
+            PlatformType.Linux => "linux",
+            PlatformType.macOS => "osx",
+            _ => throw new PlatformNotSupportedException(),
+        };
+
+        var cpu = RuntimeInformation.ProcessArchitecture switch
+        {
+            Architecture.X86 => "x86",
+            Architecture.X64 => "x64",
+            Architecture.Arm => "ARM",
+            Architecture.Arm64 => "arm64",
+            _ => throw new PlatformNotSupportedException(),
+        };
+
+        var platformNativeLibsFolder = Path.Combine("runtimes", $"{platform}-{cpu}", "native");
+        foreach (var libraryPath in new[]
+        {
+            Path.Combine(Path.GetDirectoryName(owner.GetTypeInfo().Assembly.Location) ?? string.Empty, platformNativeLibsFolder),
+            Path.Combine(Environment.CurrentDirectory ?? string.Empty, platformNativeLibsFolder),
+            Path.Combine(Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty, platformNativeLibsFolder),
+            // Also try without platform for Windows-only packages (backward compat for editor packages)
+            Path.Combine(Path.GetDirectoryName(owner.GetTypeInfo().Assembly.Location) ?? string.Empty, cpu),
+            Path.Combine(Environment.CurrentDirectory ?? string.Empty, cpu),
+        })
+        {
+            var libraryFilename = Path.Combine(libraryPath, libraryNameWithExtension);
+            if (File.Exists(libraryFilename))
+            {
+                result = libraryFilename;
+                return true;
+            }
+        }
+
+        result = null;
+        return false;
     }
 
     /// <summary>
@@ -169,8 +210,10 @@ public static class NativeLibraryHelper
 
         lock (LoadedLibraries)
         {
-            var libraryName = Path.GetFileNameWithoutExtension(libraryPath);
-            NativeDependencies[libraryName] = libraryPath;
+            var libraryNameWithoutExtension = Path.GetFileNameWithoutExtension(libraryPath);
+            var libraryNameWithExtension = Path.GetFileName(libraryPath);
+            NativeDependenciesWithoutExtensions[libraryNameWithoutExtension] = libraryPath;
+            NativeDependenciesWithExtensions[libraryNameWithExtension] = libraryPath;
         }
     }
 }
