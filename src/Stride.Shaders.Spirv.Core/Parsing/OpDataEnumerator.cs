@@ -36,13 +36,46 @@ public ref struct OpDataEnumerator
                 combinedLogicalOperands.Add(innerLogicalOperands[i]);
             }
             logicalOperands = new LogicalOperandArray(logicalOperands.ClassName, combinedLogicalOperands);
-        }            
+        }
         oid = -1;
         pid = -1;
         wid = 0;
     }
 
     public SpvOperand Current => ParseCurrent();
+
+    public bool FindOperandInfo(OperandParameters p, ParameterizedOperandKey key, out ParameterizedOperand[] operands)
+    {
+        if (p.TryGetValue(key, out operands))
+            return true;
+
+        // ImageOperands is used as a flag. Each flag set will expect corresponding operand(s) (flags should be tested in ascending order)
+        // TODO: Does it apply to other operand kinds as well?
+        if (key.Kind == OperandKind.ImageOperands)
+        {
+            // In case it's run multithreaded
+            lock (p)
+            {
+                // First time we encounter this combination, build it using flags
+                var operandsList = new List<ParameterizedOperand>();
+                foreach (var parameter in p)
+                {
+                    if ((parameter.Key.Value & key.Value) != 0)
+                    {
+                        operandsList.AddRange(parameter.Value);
+                    }
+                }
+
+                operands = operandsList.ToArray();
+                
+                // Add to cache for next query
+                p.Add(key, operands);
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public bool MoveNext()
     {
@@ -58,10 +91,12 @@ public ref struct OpDataEnumerator
             var logOp = logicalOperands[oid];
             (int newWid, int newOid, int newPid, startOperand) = logOp switch
             {
-                { Parameters: OperandParameters { Count: > 0 } p } when pid == -1 && p.ContainsKey(new(logOp.Kind ?? OperandKind.None, Operands[wid])) && p[new(logOp.Kind ?? OperandKind.None, Operands[wid])].Length > 0 =>
+                { Parameters: OperandParameters { Count: > 0 } p }
+                        when pid == -1 && FindOperandInfo(p, new(logOp.Kind ?? OperandKind.None, Operands[wid]), out var operands) && operands.Length > 0 =>
                     (wid + 1, oid, 0, wid),
-                { Parameters: OperandParameters { Count: > 0 } p } when p.ContainsKey(new(logOp.Kind ?? OperandKind.None, Operands[wid])) && pid < p[new(logOp.Kind ?? OperandKind.None, Operands[startOperand])].Length =>
-                    p[new(logOp.Kind ?? OperandKind.None, Operands[startOperand])][pid] switch
+                { Parameters: OperandParameters { Count: > 0 } p }
+                        when startOperand != -1 && FindOperandInfo(p, new(logOp.Kind ?? OperandKind.None, Operands[startOperand]), out var operands) && pid < operands.Length =>
+                    operands[pid] switch
                     {
                         { Kind: OperandKind.PairIdRefIdRef or OperandKind.PairIdRefLiteralInteger or OperandKind.PairLiteralIntegerIdRef } => (wid + 2, oid, pid + 1, startOperand),
                         { Kind: OperandKind.LiteralString } => (wid + Operands[wid..].LengthOfString(), oid, pid + 1, startOperand),
