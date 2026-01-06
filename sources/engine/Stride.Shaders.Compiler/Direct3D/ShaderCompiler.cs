@@ -85,10 +85,9 @@ namespace Stride.Shaders.Compiler.Direct3D
             {
                 shaderFlags = D3DCOMPILE_DEBUG;
 
-                // We only specify D3DCOMPILE_SKIP_OPTIMIZATION on Graphics Profiles >= 10.0, as below that
-                // shaders sometimes use more registers and ALU ops than maximum allowed
-                if (profile >= GraphicsProfile.Level_10_0)
-                    shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+                // Somehow, this makes the compiler crash with internal errors in some cases when using loops
+                //if (profile >= GraphicsProfile.Level_10_0)
+                //    shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
             }
             else switch (optimLevel)
             {
