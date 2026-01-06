@@ -1,62 +1,90 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
 using System;
-
+using System.Runtime.InteropServices;
 using Stride.Core;
+using Stride.Core.Serialization;
 
-namespace Stride.Shaders;
-
-[DataContract]
-public readonly struct ShaderMacro(string name, object definition) : IEquatable<ShaderMacro>
+namespace Stride.Shaders
 {
     /// <summary>
     /// Preprocessor macro.
     /// </summary>
-    public readonly string Name = name ?? throw new ArgumentNullException(nameof(name));
-
-    public readonly string Definition = definition is not null
-                                            ? definition is bool
-                                                ? definition.ToString().ToLowerInvariant()
-                                                : definition.ToString()
-                                            : string.Empty;
-
-
-    public readonly bool Equals(ShaderMacro other)
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [DataContract]
+    public struct ShaderMacro : IEquatable<ShaderMacro>
     {
-        return Equals(other.Name, Name)
-            && Equals(other.Definition, Definition);
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ShaderMacro"/> struct.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="definition">The definition.</param>
+        public ShaderMacro(string name, object definition)
+        {
+            this.Name = name;
+            this.Definition = definition == null ? string.Empty : definition.ToString();
+        }
+
+        /// <summary>
+        /// Name of the macro to set.
+        /// </summary>
+        [MarshalAs(UnmanagedType.LPStr)]
+        public string Name;
+
+        /// <summary>
+        /// Value of the macro to set.
+        /// </summary>
+        [MarshalAs(UnmanagedType.LPStr)]
+        public string Definition;
+
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same type.
+        /// </summary>
+        /// <param name="other">An object to compare with this object.</param>
+        /// <returns>
+        /// true if the current object is equal to the <paramref name="other"/> parameter; otherwise, false.
+        /// </returns>
+        public bool Equals(ShaderMacro other)
+        {
+            return Equals(other.Name, Name) && Equals(other.Definition, Definition);
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="object"/> is equal to this instance.
+        /// </summary>
+        /// <param name="obj">The <see cref="object"/> to compare with this instance.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (obj.GetType() != typeof(ShaderMacro)) return false;
+            return Equals((ShaderMacro)obj);
+        }
+
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// </returns>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return ((Name != null ? Name.GetHashCode() : 0) * 397) ^ (Definition != null ? Definition.GetHashCode() : 0);
+            }
+        }
+
+        public static bool operator ==(ShaderMacro left, ShaderMacro right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(ShaderMacro left, ShaderMacro right)
+        {
+            return !(left == right);
+        }
     }
-
-    public override readonly bool Equals(object obj)
-    {
-        if (obj is null)
-            return false;
-
-        return obj is ShaderMacro other && Equals(other);
-    }
-
-    public override readonly int GetHashCode()
-    {
-        return HashCode.Combine(Name, Definition);
-    }
-
-    public override readonly string ToString()
-    {
-        return $"{Name} = {Definition}";
-    }
-
-    #region Operators
-
-    public static bool operator ==(ShaderMacro left, ShaderMacro right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(ShaderMacro left, ShaderMacro right)
-    {
-        return !(left == right);
-    }
-
-    #endregion
 }
