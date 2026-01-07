@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,18 +20,39 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+
 #if STRIDE_PLATFORM_DESKTOP
+
 using System;
 using System.IO;
+
 using Stride.Core;
 
 namespace Stride.Games
 {
+    /// <summary>
+    ///   Represents the desktop-specific implementation of the Game Platform.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     This class provides platform-specific functionality for running Games on desktop environments.
+    ///     It ensures proper initialization of platform-dependent subsystems. and configures the platform's
+    ///     run loop to be blocking by default.
+    ///   </para>
+    ///   <para>
+    ///     Use this class when targeting desktop platforms such as Windows.
+    ///   </para>
+    /// </remarks>
     internal class GamePlatformDesktop : GamePlatform
     {
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="GamePlatformDesktop"/> class.
+        /// </summary>
+        /// <param name="game">The Game associated with this platform.</param>
         public GamePlatformDesktop(GameBase game) : base(game)
         {
             IsBlockingRun = true;
+
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
             if (Platform.Type == PlatformType.Windows)
             {
@@ -41,6 +62,7 @@ namespace Stride.Games
 #endif
         }
 
+        /// <inheritdoc/>
         public override string DefaultAppDirectory
         {
             get
@@ -51,6 +73,7 @@ namespace Stride.Games
             }
         }
 
+        /// <inheritdoc/>
         internal override GameWindow GetSupportedGameWindow(AppContextType type)
         {
             switch (type)
@@ -81,4 +104,5 @@ namespace Stride.Games
         }
     }
 }
+
 #endif

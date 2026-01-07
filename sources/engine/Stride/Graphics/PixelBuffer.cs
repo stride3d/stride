@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -71,7 +71,7 @@ namespace Stride.Graphics
             this.rowStride = rowStride;
             this.bufferStride = bufferStride;
             this.dataPointer = dataPointer;
-            this.pixelSize = format.SizeInBytes();
+            this.pixelSize = format.SizeInBytes;
             this.isStrictRowStride = (pixelSize * width) == rowStride;
         }
 
@@ -150,7 +150,7 @@ namespace Stride.Graphics
             // If buffers have same size, than we can copy it directly
             if (this.BufferStride == pixelBuffer.BufferStride)
             {
-                Utilities.CopyWithAlignmentFallback((void*)pixelBuffer.DataPointer, source: (void*)DataPointer, (uint)BufferStride);
+                MemoryUtilities.CopyWithAlignmentFallback((void*)pixelBuffer.DataPointer, source: (void*)DataPointer, (uint)BufferStride);
             }
             else
             {
@@ -161,7 +161,7 @@ namespace Stride.Graphics
                 // Copy per scanline
                 for (int i = 0; i < Height; i++)
                 {
-                    Utilities.CopyWithAlignmentFallback(dstPointer, srcPointer, (uint)rowStride);
+                    MemoryUtilities.CopyWithAlignmentFallback(dstPointer, srcPointer, (uint)rowStride);
                     srcPointer += this.RowStride;
                     dstPointer += pixelBuffer.RowStride;
                 }
@@ -223,7 +223,7 @@ namespace Stride.Graphics
         /// <returns>Scanline pixels from the buffer</returns>
         /// <exception cref="System.ArgumentException">If the sizeof(T) is an invalid size</exception>
         /// <remarks>
-        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get 
+        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get
         /// the pixels from.
         /// </remarks>
         public T[] GetPixels<T>(int yOffset = 0) where T : struct
@@ -247,7 +247,7 @@ namespace Stride.Graphics
         /// <returns>Scanline pixels from the buffer</returns>
         /// <exception cref="System.ArgumentException">If the sizeof(T) is an invalid size</exception>
         /// <remarks>
-        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get 
+        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get
         /// the pixels from.
         /// </remarks>
         public void GetPixels<T>(T[] pixels, int yOffset = 0) where T : struct
@@ -265,7 +265,7 @@ namespace Stride.Graphics
         /// <param name="pixelCount">Number of pixels to write into the destination <paramref name="pixels"/> buffer.</param>
         /// <exception cref="System.ArgumentException">If the sizeof(T) is an invalid size</exception>
         /// <remarks>
-        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get 
+        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get
         /// the pixels from.
         /// </remarks>
         public unsafe void GetPixels<T>(T[] pixels, int yOffset, int pixelIndex, int pixelCount) where T : struct
@@ -301,7 +301,7 @@ namespace Stride.Graphics
         /// <param name="yOffset">The y line offset.</param>
         /// <exception cref="System.ArgumentException">If the sizeof(T) is an invalid size</exception>
         /// <remarks>
-        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get 
+        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get
         /// the pixels from.
         /// </remarks>
         public void SetPixels<T>(T[] sourcePixels, int yOffset = 0) where T : struct
@@ -319,7 +319,7 @@ namespace Stride.Graphics
         /// <param name="pixelCount">Number of pixels to write into the source <paramref name="sourcePixels"/> buffer.</param>
         /// <exception cref="System.ArgumentException">If the sizeof(T) is an invalid size</exception>
         /// <remarks>
-        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get 
+        /// This method is working on a row basis. The <paramref name="yOffset"/> is specifying the first row to get
         /// the pixels from.
         /// </remarks>
         public unsafe void SetPixels<T>(T[] sourcePixels, int yOffset, int pixelIndex, int pixelCount) where T : struct

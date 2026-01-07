@@ -20,6 +20,7 @@ using Monitor = System.Threading.Monitor;
 #if STRIDE_UI_SDL
 using Silk.NET.SDL;
 using WindowState = Stride.Graphics.SDL.FormWindowState;
+using System.Diagnostics;
 #endif
 
 namespace Stride.Graphics
@@ -83,7 +84,7 @@ namespace Stride.Graphics
         private int contextBeginCounter = 0;
 
         // TODO: Use some LRU scheme to clean up FBOs if not used frequently anymore.
-        internal Dictionary<FBOKey, uint> existingFBOs = new Dictionary<FBOKey, uint>(); 
+        internal Dictionary<FBOKey, uint> existingFBOs = new Dictionary<FBOKey, uint>();
 
         private static GraphicsDevice _currentGraphicsDevice = null;
 
@@ -132,7 +133,7 @@ namespace Stride.Graphics
         internal float[] SquareVertices = {
             0.0f, 0.0f,
             1.0f, 0.0f,
-            0.0f, 1.0f, 
+            0.0f, 1.0f,
             1.0f, 1.0f,
         };
 
@@ -219,7 +220,7 @@ namespace Stride.Graphics
         {
             if (SquareBuffer == null)
             {
-                SquareBuffer = Buffer.New(this, SquareVertices, BufferFlags.VertexBuffer);
+                SquareBuffer = Buffer.Vertex.New(this, SquareVertices);
             }
 
             return SquareBuffer;
@@ -319,6 +320,10 @@ namespace Stride.Graphics
             return program;
         }
 
+        /// <summary>
+        ///   Enables or disables profiling.
+        /// </summary>
+        /// <param name="enabledFlag"><see langword="true"/> to enable profiling; <see langword="false"/> to disable it.</param>
         public void EnableProfile(bool enabledFlag)
         {
             ProfileEnabled = true;
@@ -358,7 +363,7 @@ namespace Stride.Graphics
             var texture = graphicsResource as Texture;
             if (texture != null)
             {
-                return FindOrCreateFBO(new FBOTexture(texture, subresource / texture.MipLevels, subresource % texture.MipLevels));
+                return FindOrCreateFBO(new FBOTexture(texture, subresource / texture.MipLevelCount, subresource % texture.MipLevelCount));
             }
 
             throw new NotSupportedException();
@@ -486,7 +491,7 @@ namespace Stride.Graphics
         {
             FramebufferAttachment attachment = FramebufferAttachment.ColorAttachment0 + i;
 
-            if (renderTarget.Texture.IsMultisample)
+            if (renderTarget.Texture.IsMultiSampled)
             {
                 if (renderTarget.Texture.IsRenderbuffer)
                 {
@@ -521,7 +526,7 @@ namespace Stride.Graphics
                 case TextureTarget.TextureCubeMap:
                     // We don't make use of the "TextureTarget.Texture2DMultisample" enum value on purpose, because it
                     // allows for better code sharing between OpenGL ES and OpenGL. We simply use "TextureTarget.Texture2D"
-                    // and check the value of "IsMultisample" instead. This is because OpenGL ES doesn't support
+                    // and check the value of "IsMultiSampled" instead. This is because OpenGL ES doesn't support
                     // multisample textures, but only multisample renderbuffers.
                     BindColorAttachment(framebufferTarget, i, renderTarget);
                     break;
@@ -553,7 +558,7 @@ namespace Stride.Graphics
             else
             {
                 var textureTarget2d = TextureTarget.Texture2D;
-                if (depthStencilBuffer.Texture.IsMultisample)
+                if (depthStencilBuffer.Texture.IsMultiSampled)
                 {
 #if STRIDE_GRAPHICS_API_OPENGLES
                     throw new NotSupportedException("Multisample textures are not supported on OpenGL ES.");
@@ -621,14 +626,17 @@ namespace Stride.Graphics
             }
         }
 
-        private string renderer;
+        private string rendererName;
 
-        private string GetRendererName()
-        {
-            return renderer;
-        }
+        private partial string GetRendererName() => rendererName;
 
-        protected unsafe void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
+        /// <summary>
+        ///   Initialize the OpenGL-specific implementation of the Graphics Device.
+        /// </summary>
+        /// <param name="graphicsProfiles">A non-<see langword="null"/> list of the graphics profiles to try, in order of preference.</param>
+        /// <param name="deviceCreationFlags">The device creation flags.</param>
+        /// <param name="windowHandle">The window handle.</param>
+        private unsafe partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
             // set default values
             version = 100;
@@ -650,7 +658,7 @@ namespace Stride.Graphics
 
             // check what is actually created
             currentVersion = Adapter.OpenGLVersion;
-            renderer = Adapter.OpenGLRenderer;
+            rendererName = Adapter.OpenGLRenderer;
 
 #if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
             //gameWindow.Load += OnApplicationResumed;
@@ -658,8 +666,11 @@ namespace Stride.Graphics
 #endif
 
 #if STRIDE_UI_SDL
+            Debug.Assert(windowHandle is WindowHandle);
+            var handle = (WindowHandle) windowHandle;
+
             // NOTE : This null handling is specific for Linux AssetCompiler #2504 (refactor required?)
-            gameWindow = windowHandle?.NativeWindow as SDL.Window ?? new SDL.Window("");
+            gameWindow = handle?.NativeWindow as SDL.Window ?? new SDL.Window("");
 
             var SDL = Graphics.SDL.Window.SDL;
 
@@ -706,7 +717,10 @@ namespace Stride.Graphics
             DefaultSamplerState = SamplerState.New(this, new SamplerStateDescription(TextureFilter.MinPointMagMipLinear, TextureAddressMode.Wrap) { MaxAnisotropy = 1 }).DisposeBy(this);
         }
 
-        private unsafe void InitializePostFeatures()
+        /// <summary>
+        ///   Initializes the platform-specific features of the Graphics Device once it has been fully initialized.
+        /// </summary>
+        private unsafe partial void InitializePostFeatures()
         {
             // Create and bind default VAO
             GL.GenVertexArrays(1, out defaultVAO);
@@ -742,7 +756,11 @@ namespace Stride.Graphics
             InternalMainCommandList = CommandList.New(this);
         }
 
-        private void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription)
+        /// <summary>
+        ///   Makes OpenGL-specific adjustments to the Pipeline State objects created by the Graphics Device.
+        /// </summary>
+        /// <param name="pipelineStateDescription">A Pipeline State description that can be modified and adjusted.</param>
+        private partial void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription)
         {
         }
 
@@ -755,7 +773,10 @@ namespace Stride.Graphics
             }
         }
 
-        protected void DestroyPlatformDevice()
+        /// <summary>
+        ///   Releases the platform-specific Graphics Device and all its associated resources.
+        /// </summary>
+        protected partial void DestroyPlatformDevice()
         {
             // Hack: Reset the lock so that UseOpenGLCreationContext works (even if locked by previously called OnApplicationPaused, which might have been done in an unaccessible event thread)
             // TODO: Does it work with Tegra3?
@@ -770,7 +791,7 @@ namespace Stride.Graphics
 #endif
         }
 
-        internal void OnDestroyed()
+        internal void OnDestroyed(bool immediately = false)
         {
             // Clear existing FBOs
             lock (existingFBOs)
@@ -801,7 +822,14 @@ namespace Stride.Graphics
             //boundProgram = 0;
         }
 
-        internal void TagResource(GraphicsResourceLink resourceLink)
+        /// <summary>
+        ///   Tags a Graphics Resource as no having alive references, meaning it should be safe to dispose it
+        ///   or discard its contents during the next <see cref="CommandList.MapSubResource"/> or <c>SetData</c> operation.
+        /// </summary>
+        /// <param name="resourceLink">
+        ///   A <see cref="GraphicsResourceLink"/> object identifying the Graphics Resource along some related allocation information.
+        /// </param>
+        internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink)
         {
             if (resourceLink.Resource is GraphicsResource resource)
                 resource.DiscardNextMap = true;
@@ -937,7 +965,7 @@ namespace Stride.Graphics
 
                 return new FBOTexture(texture, arraySlice, mipLevel);
             }
-            
+
             public bool Equals(FBOTexture other)
             {
                 return Texture == other.Texture && ArraySlice == other.ArraySlice && MipLevel == other.MipLevel;

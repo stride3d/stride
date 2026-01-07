@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,122 +24,152 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+/// <summary>
+///   Describes the number of mipmap levels of a Texture.
+/// </summary>
+/// <remarks>
+///   <see cref="MipMapCount"/> allows implicit conversion from several types of values:
+///   <list type="bullet">
+///     <item>
+///       Set to <see langword="true"/> to specify <strong>all mipmaps</strong> (i.e. the whole mipchain).
+///       This is equivalent to <see cref="Auto"/>.
+///     </item>
+///     <item>
+///       Set to <see langword="false"/> to specify <strong>a single mipmap</strong>.
+///       This is equivalent to <see cref="One"/>.
+///     </item>
+///     <item>Set to any positive non-zero integer to indicate a specific number of mipmaps.</item>
+///   </list>
+/// </remarks>
+[StructLayout(LayoutKind.Sequential, Size = 4)]
+public readonly struct MipMapCount : IEquatable<MipMapCount>
 {
     /// <summary>
-    /// A simple wrapper to specify number of mipmaps.
-    ///  Set to true to specify all mipmaps or sets an integer value >= 1
-    /// to specify the exact number of mipmaps.
+    ///   Automatic mipmap count based on the size of the Texture (i.e. the <strong>whole mipchain</strong>).
+    /// </summary>
+    public static readonly MipMapCount Auto = new(allMipMaps: true);
+
+    /// <summary>
+    ///   Just a single mipmap.
+    /// </summary>
+    public static readonly MipMapCount One = new(allMipMaps: false);
+
+
+    /// <summary>
+    ///   The number of mipmaps.
     /// </summary>
     /// <remarks>
-    /// This structure use implicit conversion:
-    /// <ul>
-    /// <li>Set to <c>true</c> to specify all mipmaps.</li>
-    /// <li>Set to <c>false</c> to specify a single mipmap.</li>
-    /// <li>Set to an integer value >=1 to specify an exact count of mipmaps.</li>
-    /// </ul>
+    ///   A value of zero (0) means that <strong>all mipmaps</strong> (the whole mipchain) will be generated.
+    ///   A value of one (1) means only <strong>a single mipmap</strong> is generated.
+    ///   Any other number indicates the number of mipmaps to generate.
     /// </remarks>
-    [StructLayout(LayoutKind.Sequential, Size = 4)]
-    public struct MipMapCount : IEquatable<MipMapCount>
+    public readonly int Count;
+
+
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="MipMapCount"/> struct.
+    /// </summary>
+    /// <param name="allMipMaps">
+    ///   <see langword="true"/> to indicate that all mipmap levels should be generated;
+    ///   <see langword="false"/> to indicate only a single level.
+    /// </param>
+    public MipMapCount(bool allMipMaps)
     {
-        /// <summary>
-        /// Automatic mipmap level based on texture size.
-        /// </summary>
-        public static readonly MipMapCount Auto = new MipMapCount(true);
+        Count = allMipMaps ? 0 : 1;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MipMapCount" /> struct.
-        /// </summary>
-        /// <param name="allMipMaps">if set to <c>true</c> generates all mip maps.</param>
-        public MipMapCount(bool allMipMaps)
-        {
-            this.Count = allMipMaps ? 0 : 1;
-        }
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="MipMapCount"/> struct.
+    /// </summary>
+    /// <param name="count">The mipmap count.</param>
+    public MipMapCount(int count)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(count, 0);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MipMapCount" /> struct.
-        /// </summary>
-        /// <param name="count">The count.</param>
-        public MipMapCount(int count)
-        {
-            if (count < 0)
-                throw new ArgumentException("mipCount must be >= 0");
-            this.Count = count;
-        }
+        Count = count;
+    }
 
-        /// <summary>
-        /// Number of mipmaps.
-        /// </summary>
-        /// <remarks>
-        /// Zero(0) means generate all mipmaps. One(1) generates a single mipmap... etc.
-        /// </remarks>
-        public readonly int Count;
 
-        public bool Equals(MipMapCount other)
-        {
-            return this.Count == other.Count;
-        }
+    /// <inheritdoc/>
+    public readonly bool Equals(MipMapCount other)
+    {
+        return Count == other.Count;
+    }
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj))
-                return false;
-            return obj is MipMapCount && Equals((MipMapCount)obj);
-        }
+    /// <inheritdoc/>
+    public override readonly bool Equals(object obj)
+    {
+        if (obj is null)
+            return false;
 
-        public override int GetHashCode()
-        {
-            return this.Count;
-        }
+        return obj is MipMapCount count && Equals(count);
+    }
 
-        public static bool operator ==(MipMapCount left, MipMapCount right)
-        {
-            return left.Equals(right);
-        }
+    /// <inheritdoc/>
+    public override readonly int GetHashCode()
+    {
+        return Count;
+    }
 
-        public static bool operator !=(MipMapCount left, MipMapCount right)
-        {
-            return !left.Equals(right);
-        }
+    public static bool operator ==(MipMapCount left, MipMapCount right)
+    {
+        return left.Equals(right);
+    }
 
-        /// <summary>
-        /// Performs an explicit conversion from <see cref="MipMapCount"/> to <see cref="bool"/>.
-        /// </summary>
-        /// <param name="mipMap">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator bool(MipMapCount mipMap)
-        {
-            return mipMap.Count == 0;
-        }
+    public static bool operator !=(MipMapCount left, MipMapCount right)
+    {
+        return !left.Equals(right);
+    }
 
-        /// <summary>
-        /// Performs an explicit conversion from <see cref="bool"/> to <see cref="MipMapCount"/>.
-        /// </summary>
-        /// <param name="mipMapAll">True to generate all mipmaps, false to use a single mipmap.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator MipMapCount(bool mipMapAll)
-        {
-            return new MipMapCount(mipMapAll);
-        }
+    /// <summary>
+    ///   Performs an implicit conversion from <see cref="MipMapCount"/> to <see cref="bool"/>.
+    /// </summary>
+    /// <param name="mipMap">The value to convert.</param>
+    /// <returns>
+    ///   <see langword="true"/> if <strong>all mipmap levels</strong> should be generated;
+    ///   <see langword="false"/> <strong>a single level or more</strong> should be generated.
+    /// </returns>
+    public static implicit operator bool(MipMapCount mipMap)
+    {
+        return mipMap.Count == 0;
+    }
 
-        /// <summary>
-        /// Performs an explicit conversion from <see cref="MipMapCount"/> to <see cref="int"/>.
-        /// </summary>
-        /// <param name="mipMap">The value.</param>
-        /// <returns>The count of mipmap (0 means all mipmaps).</returns>
-        public static implicit operator int(MipMapCount mipMap)
-        {
-            return mipMap.Count;
-        }
+    /// <summary>
+    ///   Performs an implicit conversion from <see cref="bool"/> to <see cref="MipMapCount"/>.
+    /// </summary>
+    /// <param name="allMipMaps">
+    ///   <see langword="true"/> to indicate that all mipmap levels should be generated;
+    ///   <see langword="false"/> to indicate only a single level.
+    /// </param>
+    /// <returns>The result of the conversion.</returns>
+    public static implicit operator MipMapCount(bool allMipMaps)
+    {
+        return new MipMapCount(allMipMaps);
+    }
 
-        /// <summary>
-        /// Performs an explicit conversion from <see cref="int"/> to <see cref="MipMapCount"/>.
-        /// </summary>
-        /// <param name="mipMapCount">True to generate all mipmaps, false to use a single mipmap.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator MipMapCount(int mipMapCount)
-        {
-            return new MipMapCount(mipMapCount);
-        }
+    /// <summary>
+    ///   Performs an implicit conversion from <see cref="MipMapCount"/> to <see cref="int"/>.
+    /// </summary>
+    /// <param name="mipMap">The value to convert.</param>
+    /// <returns>
+    ///   The number of mipmaps. A value of zero (0) means <strong>all mipmaps</strong>.
+    /// </returns>
+    public static implicit operator int(MipMapCount mipMap)
+    {
+        return mipMap.Count;
+    }
+
+    /// <summary>
+    ///   Performs an implicit conversion from <see cref="int"/> to <see cref="MipMapCount"/>.
+    /// </summary>
+    /// <param name="mipMapCount">
+    ///   The number of mipmaps. A value of zero (0) means <strong>all mipmaps</strong>.
+    /// </param>
+    /// <returns>The result of the conversion.</returns>
+    public static implicit operator MipMapCount(int mipMapCount)
+    {
+        return new MipMapCount(mipMapCount);
     }
 }

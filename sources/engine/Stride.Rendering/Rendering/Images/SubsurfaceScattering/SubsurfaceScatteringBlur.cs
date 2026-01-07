@@ -84,25 +84,25 @@ namespace Stride.Rendering.SubsurfaceScattering
             materialScatteringKernelBuffer = null;
         }
 
-        private void SetPermutationParameterForBothShaders<T>(PermutationParameterKey<T> parameter, T value) where T : struct
+        private void SetPermutationParameterForBothShaders<T>(PermutationParameterKey<T> parameter, T value) where T : unmanaged
         {
             blurHShader.Parameters.Set(parameter, value);
             blurVShader.Parameters.Set(parameter, value);
         }
 
-        private void SetValueParameterForBothShaders<T>(ValueParameterKey<T> parameter, T value) where T : struct
+        private void SetValueParameterForBothShaders<T>(ValueParameterKey<T> parameter, T value) where T : unmanaged
         {
             blurHShader.Parameters.Set(parameter, value);
             blurVShader.Parameters.Set(parameter, value);
         }
 
-        private void SetValueParameterForBothShaders<T>(ValueParameterKey<T> parameter, ref T value) where T : struct
+        private void SetValueParameterForBothShaders<T>(ValueParameterKey<T> parameter, ref T value) where T : unmanaged
         {
             blurHShader.Parameters.Set(parameter, ref value);
             blurVShader.Parameters.Set(parameter, ref value);
         }
 
-        private void SetValueParameterForBothShaders<T>(ValueParameterKey<T> parameter, T[] value) where T : struct
+        private void SetValueParameterForBothShaders<T>(ValueParameterKey<T> parameter, T[] value) where T : unmanaged
         {
             blurHShader.Parameters.Set(parameter, value);
             blurVShader.Parameters.Set(parameter, value);
@@ -183,7 +183,7 @@ namespace Stride.Rendering.SubsurfaceScattering
             {
                 DataBox dataBox = new DataBox((IntPtr)dataPtr, 0, 0);
                 ResourceRegion resourceRegion = new ResourceRegion(0, 0, 0, bufferSize, 1, 1);  // TODO: PERFORMANCE: Only upload the actual number of elements active in the buffer?
-                context.CommandList.UpdateSubresource(materialScatteringKernelBuffer, 0, dataBox, resourceRegion);
+                context.CommandList.UpdateSubResource(materialScatteringKernelBuffer, 0, dataBox, resourceRegion);
             }
 
             SetValueParameterForBothShaders(SubsurfaceScatteringBlurShaderKeys.KernelBuffer, materialScatteringKernelBuffer);
@@ -276,7 +276,7 @@ namespace Stride.Rendering.SubsurfaceScattering
 
             scatteringKernel.CopyTo(materialScatteringKernels, (int)materialIndex * SubsurfaceScatteringSettings.SamplesPerScatteringKernel2);   // Insert into the global scattering kernel array.
         }
-        
+
         /// <summary>
         /// If active, the the light won't scatter across large depth differences.
         /// The depth falloff can be configured using "Depth falloff strength".
@@ -305,7 +305,7 @@ namespace Stride.Rendering.SubsurfaceScattering
         [DataMemberRange(1, 10, 1, 1, 0)]
         [Display("Number of passes")]
         public int NumberOfPasses { get; set; } = 1;
-        
+
         /// <summary>
         /// This reduces the banding artifacts caused by undersampling (visible on closeups) by introducing a bit of noise.
         /// This might create a less mathematically correct falloff, since it messes with the sample offsets.

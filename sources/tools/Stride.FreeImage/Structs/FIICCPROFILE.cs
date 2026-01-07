@@ -37,6 +37,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
+using Stride.Core.UnsafeExtensions;
 
 namespace FreeImageAPI
 {
@@ -72,7 +73,7 @@ namespace FreeImageAPI
 			{
 				throw new ArgumentNullException("dib");
 			}
-			
+
 			size = Math.Min(size, data.Length);
 			FIICCPROFILE prof = *(FIICCPROFILE*)FreeImage.CreateICCProfile(dib, data, size);
 			this.Flags = prof.Flags;
@@ -104,10 +105,10 @@ namespace FreeImageAPI
 			{
 				byte[] result = new byte[Size];
 
-				ref byte dst = ref result[0];
+				ref byte dst = ref result.GetReference();
 				ref byte src = ref Unsafe.AsRef<byte>((void*) DataPointer);
 
-				Utilities.CopyWithAlignmentFallback(ref dst, ref src, Size);
+                MemoryUtilities.CopyWithAlignmentFallback(ref dst, ref src, Size);
 
 				return result;
 			}

@@ -42,7 +42,7 @@ namespace Stride.Rendering.Images
         /// </userdoc>
         [DataMemberRange(1, 64, 1, 1, 0)]
         public int BoundingVolumeBufferDownsampleLevel { get; set; } = 8;
-        
+
         /// <summary>
         /// Size of the orthographic projection used to find minimum bounding volume distance behind the camera
         /// </summary>
@@ -90,7 +90,7 @@ namespace Stride.Rendering.Images
             var meshRenderFeature = Context.RenderSystem.RenderFeatures.OfType<MeshRenderFeature>().FirstOrDefault();
             if (meshRenderFeature == null)
                 throw new InvalidOperationException("Missing mesh render feature");
-            
+
             var forwardLightingFeature = meshRenderFeature.RenderFeatures.OfType<ForwardLightingRenderFeature>().FirstOrDefault();
             if (forwardLightingFeature == null)
                 throw new InvalidOperationException("Missing forward lighting render feature");
@@ -102,11 +102,11 @@ namespace Stride.Rendering.Images
                 var minmaxPipelineState = new MutablePipelineState(Context.GraphicsDevice);
                 minmaxPipelineState.State.SetDefaults();
 
-                minmaxPipelineState.State.BlendState.RenderTarget0.BlendEnable = true;
-                minmaxPipelineState.State.BlendState.RenderTarget0.ColorSourceBlend = Blend.One;
-                minmaxPipelineState.State.BlendState.RenderTarget0.ColorDestinationBlend = Blend.One;
-                minmaxPipelineState.State.BlendState.RenderTarget0.ColorBlendFunction = i == 0 ? BlendFunction.Min : BlendFunction.Max;
-                minmaxPipelineState.State.BlendState.RenderTarget0.ColorWriteChannels = i == 0 ? ColorWriteChannels.Red : ColorWriteChannels.Green;
+                minmaxPipelineState.State.BlendState.RenderTargets[0].BlendEnable = true;
+                minmaxPipelineState.State.BlendState.RenderTargets[0].ColorSourceBlend = Blend.One;
+                minmaxPipelineState.State.BlendState.RenderTargets[0].ColorDestinationBlend = Blend.One;
+                minmaxPipelineState.State.BlendState.RenderTargets[0].ColorBlendFunction = i == 0 ? BlendFunction.Min : BlendFunction.Max;
+                minmaxPipelineState.State.BlendState.RenderTargets[0].ColorWriteChannels = i == 0 ? ColorWriteChannels.Red : ColorWriteChannels.Green;
 
                 minmaxPipelineState.State.DepthStencilState.DepthBufferEnable = false;
                 minmaxPipelineState.State.DepthStencilState.DepthBufferWriteEnable = false;
@@ -193,13 +193,13 @@ namespace Stride.Rendering.Images
                     var currentBoundingVolumes = (lightShaft.SeparateBoundingVolumes) ? singleBoundingVolume : lightShaft.BoundingVolumes;
                     if (lightShaft.SeparateBoundingVolumes)
                         singleBoundingVolume[0] = lightShaft.BoundingVolumes[i];
-                    
+
                     using (context.PushRenderTargetsAndRestore())
                     {
                         // Clear bounding box buffer
                         context.CommandList.Clear(boundingBoxBuffer, new Color4(1.0f, 0.0f, 0.0f, 0.0f));
                         context.CommandList.SetRenderTargetAndViewport(null, boundingBoxBuffer);
-                        
+
                         // If nothing visible, skip second part
                         if (!DrawBoundingVolumeMinMax(context, currentBoundingVolumes))
                             continue;
@@ -221,7 +221,7 @@ namespace Stride.Rendering.Images
                     {
                         // Then: add
                         var desc = BlendStates.Additive;
-                        desc.RenderTarget0.ColorSourceBlend = Blend.One; // But without multiplying alpha
+                        desc.RenderTargets[0].ColorSourceBlend = Blend.One; // But without multiplying alpha
                         lightShaftsEffectShader.BlendState = desc;
                     }
 

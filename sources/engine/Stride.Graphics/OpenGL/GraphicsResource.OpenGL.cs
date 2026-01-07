@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if STRIDE_GRAPHICS_API_OPENGL 
+#if STRIDE_GRAPHICS_API_OPENGL
 
 namespace Stride.Graphics
 {
@@ -19,7 +19,11 @@ namespace Stride.Graphics
         internal PixelFormatGl TextureFormat;
         internal PixelType TextureType;
         internal int TexturePixelSize;
+
+
+        // No OpenGL-specific implementation
+        protected internal override void OnDestroyed(bool immediate = false) { }
     }
 }
- 
+
 #endif

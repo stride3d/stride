@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Runtime.InteropServices;
 
@@ -68,7 +69,7 @@ namespace Stride.Graphics
                 using (new DefaultCommandListLock(commandList))
                 {
                     this.commandList = commandList;
-                    mappedConstantBuffer = commandList.MapSubresource(constantBuffer, 0, MapMode.WriteNoOverwrite);
+                    mappedConstantBuffer = commandList.MapSubResource(constantBuffer, 0, MapMode.WriteNoOverwrite);
                     Data = mappedConstantBuffer.DataBox.DataPointer;
                 }
             }
@@ -82,7 +83,7 @@ namespace Stride.Graphics
             {
                 using (new DefaultCommandListLock(commandList))
                 {
-                    commandList.UnmapSubresource(mappedConstantBuffer);
+                    commandList.UnmapSubResource(mappedConstantBuffer);
                     mappedConstantBuffer = new MappedResource();
                 }
             }
@@ -173,6 +174,6 @@ namespace Stride.Graphics
         /// In practice, on older D3D11 (not 11.1) and OpenGL ES 2.0 hardware, we will use a dedicated cbuffer.
         /// This has no effect on new API where we can bind cbuffer offsets.
         /// </summary>
-        UsedMultipleTime,
+        UsedMultipleTime
     }
 }

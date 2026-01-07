@@ -275,12 +275,14 @@ namespace Stride.Rendering.Images
 
             if (boundViewportCount > 0)
             {
-                context.CommandList.SetViewports(boundViewportCount, viewports);
+                scoped ReadOnlySpan<Viewport> boundViewports = viewports.AsSpan(0, boundViewportCount);
+                context.CommandList.SetViewports(boundViewports);
             }
 
             if (boundScissorCount > 0)
             {
-                context.CommandList.SetScissorRectangles(boundScissorCount, scissors);
+                scoped ReadOnlySpan<Rectangle> boundScissorRects = scissors.AsSpan(0, boundScissorCount);
+                context.CommandList.SetScissorRectangles(boundScissorRects);
             }
         }
 

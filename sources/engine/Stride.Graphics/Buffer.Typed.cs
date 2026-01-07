@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,77 +22,93 @@
 // THE SOFTWARE.
 
 using System;
-using Stride.Games;
 
 namespace Stride.Graphics
 {
     public partial class Buffer
     {
         /// <summary>
-        /// Typed buffer helper methods.
+        ///   Helper methods for creating <strong>Typed Buffers</strong>.
         /// </summary>
         /// <remarks>
-        /// Example in HLSL: Buffer&lt;float4&gt;.
+        ///   A <strong>Typed Buffer</strong> is a <see cref="Buffer"/> that is accessed through a Shader Resource View with a specific format.
+        ///   Because of this, they are created with that specific format.
+        ///   <para>
+        ///     An example of this kind of Buffer in SDSL would be:
+        ///     <code>
+        ///       Buffer&lt;float4&gt; tb;
+        ///     </code>
+        ///   </para>
         /// </remarks>
+        /// <seealso cref="Buffer"/>
+        /// <seealso cref="Buffer{T}"/>
         public static class Typed
         {
             /// <summary>
-            /// Creates a new Typed buffer <see cref="GraphicsResourceUsage.Default" /> uasge.
+            ///   Creates a new <strong>Typed Buffer</strong> of a given size.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="count">The number of data with the following viewFormat.</param>
-            /// <param name="viewFormat">The view format of the buffer.</param>
-            /// <param name="isUnorderedAccess">if set to <c>true</c> this buffer supports unordered access (RW in HLSL).</param>
-            /// <param name="usage">The usage.</param>
-            /// <returns>A Typed buffer</returns>
-            public static Buffer New(GraphicsDevice device, int count, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            /// <param name="elementCount">The number of data with the following viewFormat.</param>
+            /// <param name="elementFormat">The format of the typed elements in the Buffer.</param>
+            /// <param name="unorderedAccess"><see langword="true"/> if the Buffer should support unordered access (<c>RW</c> in SDSL).</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer New(GraphicsDevice device, int elementCount, PixelFormat elementFormat, bool unorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device, count * viewFormat.SizeInBytes(), BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
+                return Buffer.New(device, bufferSize: elementCount * elementFormat.SizeInBytes, BufferFlags.ShaderResource | (unorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), elementFormat, usage);
             }
 
             /// <summary>
-            /// Creates a new Typed buffer <see cref="GraphicsResourceUsage.Default" /> uasge.
+            ///   Creates a new <strong>Typed Buffer</strong> with initial data.
             /// </summary>
-            /// <typeparam name="T">Type of the Typed buffer to get the sizeof from</typeparam>
+            /// <typeparam name="T">Type of the data stored in the Buffer.</typeparam>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="value">The value to initialize the Typed buffer.</param>
-            /// <param name="viewFormat">The view format of the buffer.</param>
-            /// <param name="isUnorderedAccess">if set to <c>true</c> this buffer supports unordered access (RW in HLSL).</param>
-            /// <param name="usage">The usage of this resource.</param>
-            /// <returns>A Typed buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, T[] value, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            /// <param name="data">The data to initialize the Typed Buffer.</param>
+            /// <param name="elementFormat">The format of the typed elements in the Buffer.</param>
+            /// <param name="unorderedAccess"><see langword="true"/> if the Buffer should support unordered access (<c>RW</c> in SDSL).</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer<T> New<T>(GraphicsDevice device, T[] data, PixelFormat elementFormat, bool unorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New(device, (ReadOnlySpan<T>)value, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
+                return Buffer.New(device, (ReadOnlySpan<T>)data, BufferFlags.ShaderResource | (unorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), elementFormat, usage);
             }
 
             /// <summary>
-            /// Creates a new Typed buffer <see cref="GraphicsResourceUsage.Default" /> uasge.
+            ///   Creates a new <strong>Typed Buffer</strong> with initial data.
             /// </summary>
-            /// <typeparam name="T">Type of the Typed buffer to get the sizeof from</typeparam>
+            /// <typeparam name="T">Type of the data stored in the Buffer.</typeparam>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="value">The value to initialize the Typed buffer.</param>
-            /// <param name="viewFormat">The view format of the buffer.</param>
-            /// <param name="isUnorderedAccess">if set to <c>true</c> this buffer supports unordered access (RW in HLSL).</param>
-            /// <param name="usage">The usage of this resource.</param>
-            /// <returns>A Typed buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, ReadOnlySpan<T> value, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            /// <param name="data">The data to initialize the Typed Buffer.</param>
+            /// <param name="elementFormat">The format of the typed elements in the Buffer.</param>
+            /// <param name="unorderedAccess"><see langword="true"/> if the Buffer should support unordered access (<c>RW</c> in SDSL).</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer<T> New<T>(GraphicsDevice device, ReadOnlySpan<T> data, PixelFormat elementFormat, bool unorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New(device, value, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
+                return Buffer.New(device, data, BufferFlags.ShaderResource | (unorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), elementFormat, usage);
             }
 
             /// <summary>
-            /// Creates a new Typed buffer <see cref="GraphicsResourceUsage.Default" /> uasge.
+            ///   Creates a new <strong>Typed Buffer</strong> with initial data.
             /// </summary>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-            /// <param name="value">The value to initialize the Typed buffer.</param>
-            /// <param name="viewFormat">The view format of the buffer.</param>
-            /// <param name="isUnorderedAccess">if set to <c>true</c> this buffer supports unordered access (RW in HLSL).</param>
-            /// <param name="usage">The usage of this resource.</param>
-            /// <returns>A Typed buffer</returns>
-            [Obsolete("Use span instead")]
-            public static Buffer New(GraphicsDevice device, DataPointer value, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            /// <param name="dataPointer">The data pointer to the data to initialize the Typed Buffer.</param>
+            /// <param name="elementFormat">The format of the typed elements in the Buffer.</param>
+            /// <param name="unorderedAccess"><see langword="true"/> if the Buffer should support unordered access (<c>RW</c> in SDSL).</param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            [Obsolete("This method is obsolete. Use the span-based methods instead")]
+            public static Buffer New(GraphicsDevice device, DataPointer dataPointer, PixelFormat elementFormat, bool unorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device, value, 0, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
+                return Buffer.New(device, dataPointer, 0, BufferFlags.ShaderResource | (unorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), elementFormat, usage);
             }
         }
     }

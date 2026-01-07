@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_GRAPHICS_API_OPENGL 
+#if STRIDE_GRAPHICS_API_OPENGL
 using System;
 
 namespace Stride.Graphics
@@ -12,16 +12,20 @@ namespace Stride.Graphics
     {
         protected internal GL GL;
 
-        private void Initialize()
+
+        /// <summary>
+        ///   Perform OpenGL-specific initialization of the Graphics Resource.
+        /// </summary>
+        private partial void Initialize()
         {
             GL = GraphicsDevice?.GL;
         }
-        
+
         /// <summary>
-        /// Called when graphics device has been detected to be internally destroyed.
+        ///   Called when the <see cref="GraphicsDevice"/> has been detected to be internally destroyed,
+        ///   or when the <see cref="Destroy"/> methad has been called. Raises the <see cref="Destroyed"/> event.
         /// </summary>
-        /// <inheritdoc/>
-        protected internal virtual void OnDestroyed()
+        protected internal virtual partial void OnDestroyed(bool immediately = false)
         {
             Destroyed?.Invoke(this, EventArgs.Empty);
         }
@@ -36,5 +40,5 @@ namespace Stride.Graphics
         }
     }
 }
- 
+
 #endif

@@ -10,7 +10,6 @@ using static Vortice.Vulkan.Vulkan;
 using Stride.Shaders;
 using Stride.Core.Serialization;
 using Encoding = System.Text.Encoding;
-using System.IO.IsolatedStorage;
 
 namespace Stride.Graphics
 {
@@ -78,7 +77,7 @@ namespace Stride.Graphics
                     };
 
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
-                        vkCreateComputePipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, 1, &createInfo, allocator: null, nativePipelinePtr);
+                        GraphicsDevice.CheckResult(vkCreateComputePipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, 1, &createInfo, allocator: null, nativePipelinePtr));
                 }
             }
             else
@@ -151,23 +150,24 @@ namespace Stride.Graphics
                 var renderTargetCount = Description.Output.RenderTargetCount;
                 var colorBlendAttachments = new VkPipelineColorBlendAttachmentState[renderTargetCount];
 
-                var renderTargetBlendState = &description.RenderTarget0;
-                for (int i = 0; i < renderTargetCount; i++)
+                for (int i = 0, j = 0; i < renderTargetCount; i++)
                 {
+                    scoped ref readonly var renderTargetBlendState = ref description.RenderTargets[j];
+
                     colorBlendAttachments[i] = new VkPipelineColorBlendAttachmentState
                     {
-                        blendEnable = renderTargetBlendState->BlendEnable,
-                        alphaBlendOp = VulkanConvertExtensions.ConvertBlendFunction(renderTargetBlendState->AlphaBlendFunction),
-                        colorBlendOp = VulkanConvertExtensions.ConvertBlendFunction(renderTargetBlendState->ColorBlendFunction),
-                        dstAlphaBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->AlphaDestinationBlend),
-                        dstColorBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->ColorDestinationBlend),
-                        srcAlphaBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->AlphaSourceBlend),
-                        srcColorBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->ColorSourceBlend),
-                        colorWriteMask = VulkanConvertExtensions.ConvertColorWriteChannels(renderTargetBlendState->ColorWriteChannels)
+                        blendEnable = renderTargetBlendState.BlendEnable,
+                        alphaBlendOp = VulkanConvertExtensions.ConvertBlendFunction(renderTargetBlendState.AlphaBlendFunction),
+                        colorBlendOp = VulkanConvertExtensions.ConvertBlendFunction(renderTargetBlendState.ColorBlendFunction),
+                        dstAlphaBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState.AlphaDestinationBlend),
+                        dstColorBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState.ColorDestinationBlend),
+                        srcAlphaBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState.AlphaSourceBlend),
+                        srcColorBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState.ColorSourceBlend),
+                        colorWriteMask = VulkanConvertExtensions.ConvertColorWriteChannels(renderTargetBlendState.ColorWriteChannels)
                     };
 
                     if (description.IndependentBlendEnable)
-                        renderTargetBlendState++;
+                        j++;
                 }
 
                 var viewportState = new VkPipelineViewportStateCreateInfo
@@ -226,7 +226,7 @@ namespace Stride.Graphics
                         subpass = 0
                     };
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
-                        vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr);
+                        GraphicsDevice.CheckResult(vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr));
                 }
             }
 
@@ -258,7 +258,7 @@ namespace Stride.Graphics
             var colorAttachmentReferences = new VkAttachmentReference[renderTargetCount];
 
             fixed (PixelFormat* renderTargetFormat = &pipelineStateDescription.Output.RenderTargetFormat0)
-            fixed (BlendStateRenderTargetDescription* blendDescription = &pipelineStateDescription.BlendState.RenderTarget0)
+            fixed (BlendStateRenderTargetDescription* blendDescription = &pipelineStateDescription.BlendState.RenderTargets[0])
             {
                 for (int i = 0; i < renderTargetCount; i++)
                 {
@@ -325,12 +325,12 @@ namespace Stride.Graphics
                     subpassCount = 1,
                     pSubpasses = &subpass
                 };
-                vkCreateRenderPass(GraphicsDevice.NativeDevice, &renderPassCreateInfo, allocator: null, out NativeRenderPass);
+                GraphicsDevice.CheckResult(vkCreateRenderPass(GraphicsDevice.NativeDevice, &renderPassCreateInfo, allocator: null, out NativeRenderPass));
             }
         }
 
         /// <inheritdoc/>
-        protected internal override unsafe void OnDestroyed()
+        protected internal override unsafe void OnDestroyed(bool immediately = false)
         {
             if (NativePipeline != VkPipeline.Null)
             {
@@ -341,7 +341,7 @@ namespace Stride.Graphics
                 vkDestroyDescriptorSetLayout(GraphicsDevice.NativeDevice, NativeDescriptorSetLayout, allocator: null);
             }
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         internal struct DescriptorSetInfo
@@ -432,7 +432,7 @@ namespace Stride.Graphics
                 setLayoutCount = 1,
                 pSetLayouts = &nativeDescriptorSetLayout
             };
-            vkCreatePipelineLayout(GraphicsDevice.NativeDevice, &pipelineLayoutCreateInfo, allocator: null, out NativeLayout);
+            GraphicsDevice.CheckResult(vkCreatePipelineLayout(GraphicsDevice.NativeDevice, &pipelineLayoutCreateInfo, allocator: null, out NativeLayout));
         }
 
         private unsafe VkPipelineShaderStageCreateInfo[] CreateShaderStages(PipelineStateDescription pipelineStateDescription, out Dictionary<int, string> inputAttributeNames)
@@ -461,7 +461,7 @@ namespace Stride.Graphics
                         stage = VulkanConvertExtensions.Convert(stages[i].Stage),
                         pName = entryPointPointer
                     };
-                    vkCreateShaderModule(GraphicsDevice.NativeDevice, shaderBytecode.Data, allocator: null, out nativeStages[i].module);
+                    GraphicsDevice.CheckResult(vkCreateShaderModule(GraphicsDevice.NativeDevice, shaderBytecode.Data, allocator: null, out nativeStages[i].module));
                 }
             }
 

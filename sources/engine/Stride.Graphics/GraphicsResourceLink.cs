@@ -3,49 +3,47 @@
 
 using System;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+/// <summary>
+///   An object linking a Graphics Resource allocated by a <see cref="GraphicsResourceAllocator"/>
+///   and providing allocation information.
+/// </summary>
+public sealed class GraphicsResourceLink
 {
     /// <summary>
-    /// A resource allocated by <see cref="GraphicsResourceAllocator"/> providing allocation informations.
+    ///   Initializes a new instance of the <see cref="GraphicsResourceLink"/> class.
     /// </summary>
-    public sealed class GraphicsResourceLink
+    /// <param name="resource">The allocated Graphics Resource.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="resource"/> is <see langword="null"/>.</exception>
+    internal GraphicsResourceLink(GraphicsResourceBase resource)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GraphicsResourceLink"/> class.
-        /// </summary>
-        /// <param name="resource">The graphics resource.</param>
-        /// <exception cref="System.ArgumentNullException">resource</exception>
-        internal GraphicsResourceLink(GraphicsResourceBase resource)
-        {
-            Resource = resource ?? throw new ArgumentNullException(nameof(resource));
-        }
-
-        /// <summary>
-        /// The graphics resource.
-        /// </summary>
-        public GraphicsResourceBase Resource { get; }
-
-        /// <summary>
-        /// Gets the last time this resource was accessed.
-        /// </summary>
-        /// <value>The last access time.</value>
-        public DateTime LastAccessTime { get; internal set; }
-
-        /// <summary>
-        /// Gets the total count of access to this resource (include Increment and Decrement)
-        /// </summary>
-        /// <value>The access total count.</value>
-        public long AccessTotalCount { get; internal set; }
-
-        /// <summary>
-        /// Gets the access count since last recycle policy was run.
-        /// </summary>
-        /// <value>The access count since last recycle.</value>
-        public long AccessCountSinceLastRecycle { get; internal set; }
-
-        /// <summary>
-        /// The number of active reference to this resource.
-        /// </summary>
-        public int ReferenceCount { get; internal set; }
+        Resource = resource ?? throw new ArgumentNullException(nameof(resource));
     }
+
+
+    /// <summary>
+    ///   Gets the allocated Graphics Resource.
+    /// </summary>
+    public GraphicsResourceBase Resource { get; }
+
+    /// <summary>
+    ///   Gets the last time the Graphics Resource was accessed.
+    /// </summary>
+    public DateTime LastAccessTime { get; internal set; }
+
+    /// <summary>
+    ///   Gets the total number of times the Graphics Resource has been accessed (including Increment and Decrement).
+    /// </summary>
+    public long AccessTotalCount { get; internal set; }
+
+    /// <summary>
+    ///   Gets the number of times the Graphics Resource has been accessed since the last recycle policy was run.
+    /// </summary>
+    public long AccessCountSinceLastRecycle { get; internal set; }
+
+    /// <summary>
+    ///   Gets the number of active references to the Graphics Resource.
+    /// </summary>
+    public int ReferenceCount { get; internal set; }
 }

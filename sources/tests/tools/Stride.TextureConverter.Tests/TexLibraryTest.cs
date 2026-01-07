@@ -66,9 +66,9 @@ namespace Stride.TextureConverter.Tests
 
         public static void SwitchChannelsTest(TexImage image, ITexLibrary library)
         {
-            var isInRgbaOrder = image.Format.IsRGBAOrder();
+            var isInRgbaOrder = image.Format.IsRgbaOrder;
             library.Execute(image, new SwitchingBRChannelsRequest());
-            Assert.True(image.Format.IsRGBAOrder() != isInRgbaOrder);
+            Assert.True(image.Format.IsRgbaOrder != isInRgbaOrder);
 
             //Console.WriteLine("SwitchChannelsTest_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
             Assert.Equal(TestTools.GetInstance().Checksum["SwitchChannelsTest_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
@@ -84,7 +84,7 @@ namespace Stride.TextureConverter.Tests
 
         public static void DecompressTest(TexImage image, ITexLibrary library)
         {
-            Assert.True(image.Format.IsCompressed());
+            Assert.True(image.Format.IsCompressed);
             library.Execute(image, new DecompressingRequest(false));
             Assert.True(image.Format == PixelFormat.R8G8B8A8_UNorm);
             Assert.Equal(TestTools.GetInstance().Checksum["DecompressTest_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
@@ -93,7 +93,7 @@ namespace Stride.TextureConverter.Tests
 
         public static void CompressTest(TexImage image, ITexLibrary library, PixelFormat format)
         {
-            Assert.True(!image.Format.IsCompressed());
+            Assert.True(!image.Format.IsCompressed);
             library.Execute(image, new CompressingRequest(format));
 
             Assert.True(image.Format == format);
@@ -104,7 +104,7 @@ namespace Stride.TextureConverter.Tests
         public static void GenerateMipMapTest(TexImage image, ITexLibrary library, Filter.MipMapGeneration filter)
         {
             Assert.True(image.MipmapCount == 1);
-            if (image.Format.IsCompressed()) library.Execute(image, new DecompressingRequest(false));
+            if (image.Format.IsCompressed) library.Execute(image, new DecompressingRequest(false));
             library.Execute(image, new MipMapsGenerationRequest(filter));
             Assert.True(image.MipmapCount > 1);
             Assert.Equal(TestTools.GetInstance().Checksum["GenerateMipMapTest_" + filter + "_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));

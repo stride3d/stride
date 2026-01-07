@@ -120,7 +120,7 @@ namespace Stride.Shaders.Parser.Mixins
                 return true;
             }
 
-            IsXkfx = blockVisitor.HasMixin;
+            IsSdfx = blockVisitor.HasMixin;
 
             // Header of usings declaration
             // TODO: Should probably be better to use fully qualified name of types to avoid conflicts.

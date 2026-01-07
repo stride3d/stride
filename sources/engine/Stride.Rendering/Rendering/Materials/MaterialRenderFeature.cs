@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -29,7 +28,7 @@ namespace Stride.Rendering.Materials
 
         // Material instantiated
         private readonly Dictionary<MaterialPass, MaterialInfo> allMaterialInfos = new Dictionary<MaterialPass, MaterialInfo>();
-        
+
         private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("MaterialRenderFeature.PrepareEffectPermutations");
 
         public class MaterialInfoBase
@@ -357,7 +356,7 @@ namespace Stride.Rendering.Materials
             // First time we use the material with a valid effect, let's update layouts
             if (materialInfo.PerMaterialLayout == null || materialInfo.PerMaterialLayout.Hash != renderEffect.Reflection.ResourceGroupDescriptions[materialSlotIndex].Hash)
             {
-                materialInfo.PerMaterialLayout = ResourceGroupLayout.New(renderSystem.GraphicsDevice, resourceGroupDescription, renderEffect.Effect.Bytecode);
+                materialInfo.PerMaterialLayout = ResourceGroupLayout.New(renderSystem.GraphicsDevice, resourceGroupDescription);
 
                 var parameterCollectionLayout = materialInfo.ParameterCollectionLayout = new ParameterCollectionLayout();
                 parameterCollectionLayout.ProcessResources(resourceGroupDescription.DescriptorSetLayout);
@@ -398,7 +397,7 @@ namespace Stride.Rendering.Materials
             {
                 var mappedCB = (byte*)materialInfo.Resources.ConstantBuffer.Data;
                 fixed (byte* dataValues = materialInfo.ParameterCollection.DataValues)
-                    Utilities.CopyWithAlignmentFallback(mappedCB, dataValues, (uint)materialInfo.Resources.ConstantBuffer.Size);
+                    MemoryUtilities.CopyWithAlignmentFallback(mappedCB, dataValues, (uint)materialInfo.Resources.ConstantBuffer.Size);
             }
 
             return true;

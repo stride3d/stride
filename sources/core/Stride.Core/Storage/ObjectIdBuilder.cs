@@ -419,7 +419,7 @@ public unsafe struct ObjectIdBuilder
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static uint RotateLeft(uint x, byte r)
     {
-#if NETCOREAPP3_0_OR_GREATER              
+#if NETCOREAPP3_0_OR_GREATER
         return BitOperations.RotateLeft(x, r);
 #else
         return (x << r) | (x >> (32 - r));

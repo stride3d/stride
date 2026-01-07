@@ -15,7 +15,7 @@ public class UnmanagedArray<T> : IDisposable where T : struct
     {
         Length = length;
         var finalSize = length * Unsafe.SizeOf<T>();
-        Pointer = Utilities.AllocateMemory(finalSize);
+        Pointer = MemoryUtilities.Allocate(finalSize);
         isShared = false;
     }
 
@@ -23,7 +23,7 @@ public class UnmanagedArray<T> : IDisposable where T : struct
     {
         if (!isShared)
         {
-            Utilities.FreeMemory(Pointer);
+            MemoryUtilities.Free(Pointer);
         }
     }
 

@@ -18,6 +18,11 @@ namespace Stride.Assets
 
         public static readonly PackageVersion LatestPackageVersion = new PackageVersion(StrideVersion.NuGetVersion);
 
+        /// <summary>
+        /// All created embedded games (preview, scene, etc...) and asset compilers will have <see cref="DeviceCreationFlags.Debug"/> set.
+        /// </summary>
+        public static bool GraphicsDebugMode { get; set; } = false;
+
         private static readonly string ProgramFilesX86 = Environment.GetEnvironmentVariable(Environment.Is64BitOperatingSystem ? "ProgramFiles(x86)" : "ProgramFiles");
 
         private static readonly Version VS2015Version = new Version(14, 0);

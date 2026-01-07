@@ -22,7 +22,9 @@ namespace Stride.Graphics
         /// <param name="device">The device.</param>
         /// <param name="name">The name.</param>
         /// <param name="samplerStateDescription">The sampler state description.</param>
-        private SamplerState(GraphicsDevice device, SamplerStateDescription samplerStateDescription) : base(device)
+        /// <param name="name">An optional name that can be used to identify the Sampler State.</param>
+        private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription samplerStateDescription, string? name = null)
+            : base(device, name)
         {
             Description = samplerStateDescription;
 
@@ -38,12 +40,12 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             GraphicsDevice.Collect(NativeSampler);
             NativeSampler = VkSampler.Null;
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         private unsafe void CreateNativeSampler()
@@ -77,7 +79,7 @@ namespace Stride.Graphics
 
             ConvertMinFilter(Description.Filter, out createInfo.minFilter, out createInfo.magFilter, out createInfo.mipmapMode, out createInfo.compareEnable, out createInfo.anisotropyEnable);
 
-            vkCreateSampler(GraphicsDevice.NativeDevice, &createInfo, null, out NativeSampler);
+            GraphicsDevice.CheckResult(vkCreateSampler(GraphicsDevice.NativeDevice, &createInfo, null, out NativeSampler));
         }
 
         private static VkSamplerAddressMode ConvertAddressMode(TextureAddressMode addressMode)
@@ -198,5 +200,5 @@ namespace Stride.Graphics
             }
         }
     }
-} 
+}
 #endif

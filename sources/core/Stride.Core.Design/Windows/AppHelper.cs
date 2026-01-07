@@ -76,6 +76,11 @@ public static class AppHelper
 
     public static Dictionary<string, string> GetVideoConfig()
     {
+        return OperatingSystem.IsWindows() ? GetVideoConfigWindows() : [];
+    }
+
+    private static Dictionary<string, string> GetVideoConfigWindows()
+    {
         var result = new Dictionary<string, string>();
 
         try

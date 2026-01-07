@@ -244,9 +244,9 @@ namespace Stride.Rendering.Compositing
                 fixed (Vector4* matrices = lightProbesData.Matrices)
                 fixed (Int4* probeIndices = lightProbesData.LightProbeIndices)
                 {
-                    drawContext.CommandList.UpdateSubresource(lightprobesCoefficients, 0, new DataBox((IntPtr)lightProbeCoefficients, 0, 0));
-                    drawContext.CommandList.UpdateSubresource(tetrahedronProbeIndices, 0, new DataBox((IntPtr)probeIndices, 0, 0));
-                    drawContext.CommandList.UpdateSubresource(tetrahedronMatrices, 0, new DataBox((IntPtr)matrices, 0, 0));
+                    drawContext.CommandList.UpdateSubResource(lightprobesCoefficients, 0, new DataBox((IntPtr)lightProbeCoefficients, 0, 0));
+                    drawContext.CommandList.UpdateSubResource(tetrahedronProbeIndices, 0, new DataBox((IntPtr)probeIndices, 0, 0));
+                    drawContext.CommandList.UpdateSubResource(tetrahedronMatrices, 0, new DataBox((IntPtr)matrices, 0, 0));
 
                     // Find which probe we are currently in
                     // TODO: Optimize (use previous coherency info?)
@@ -279,7 +279,7 @@ namespace Stride.Rendering.Compositing
                 var vertexBuffer = PushScopedResource(Context.Allocator.GetTemporaryBuffer(new BufferDescription((tetraResult.Count * 4 + 3) * LightProbeVertex.Size, BufferFlags.VertexBuffer, GraphicsResourceUsage.Dynamic)));
                 var indexBuffer = PushScopedResource(Context.Allocator.GetTemporaryBuffer(new BufferDescription(tetraResult.Count * 12 * sizeof(uint), BufferFlags.IndexBuffer, GraphicsResourceUsage.Dynamic)));
 
-                var mappedVertexBuffer = drawContext.CommandList.MapSubresource(vertexBuffer, 0, MapMode.WriteDiscard);
+                var mappedVertexBuffer = drawContext.CommandList.MapSubResource(vertexBuffer, 0, MapMode.WriteDiscard);
                 var vertices = (LightProbeVertex*)mappedVertexBuffer.DataBox.DataPointer;
                 // Upload sorted tetrahedron indices
                 for (int i = 0; i < tetraResult.Count; ++i)
@@ -296,9 +296,9 @@ namespace Stride.Rendering.Compositing
                     vertices[tetraResult.Count * 4 + 1] = new LightProbeVertex(new Vector3(3, 1, 0), (uint)tetraInsideIndex);
                     vertices[tetraResult.Count * 4 + 2] = new LightProbeVertex(new Vector3(-1, -3, 0), (uint)tetraInsideIndex);
                 }
-                drawContext.CommandList.UnmapSubresource(mappedVertexBuffer);
+                drawContext.CommandList.UnmapSubResource(mappedVertexBuffer);
 
-                var mappedIndexBuffer = drawContext.CommandList.MapSubresource(indexBuffer, 0, MapMode.WriteDiscard);
+                var mappedIndexBuffer = drawContext.CommandList.MapSubResource(indexBuffer, 0, MapMode.WriteDiscard);
                 var indices = (int*)mappedIndexBuffer.DataBox.DataPointer;
                 for (int i = 0; i < tetraResult.Count; ++i)
                 {
@@ -318,7 +318,7 @@ namespace Stride.Rendering.Compositing
                     indices[i * 12 + 10] = i * 4 + 0;
                     indices[i * 12 + 11] = i * 4 + 1;
                 }
-                drawContext.CommandList.UnmapSubresource(mappedIndexBuffer);
+                drawContext.CommandList.UnmapSubResource(mappedIndexBuffer);
 
                 drawContext.CommandList.SetVertexBuffer(0, vertexBuffer, 0, LightProbeVertex.Size);
                 drawContext.CommandList.SetIndexBuffer(indexBuffer, 0, true);

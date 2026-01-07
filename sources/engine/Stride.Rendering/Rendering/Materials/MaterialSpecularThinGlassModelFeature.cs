@@ -1,5 +1,7 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
-using System.Collections.Generic;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Graphics;
@@ -52,7 +54,7 @@ namespace Stride.Rendering.Materials
                 context.MaterialPass.CullMode = context.PassIndex < 2 ? CullMode.Back : CullMode.Front;
             else
                 context.MaterialPass.CullMode = attributes.CullMode;
-            
+
             // Compute transmittance
             context.GetShading(this).LightDependentExtraModels.Add(new ShaderClassSource("MaterialTransmittanceReflectanceStream"));
 
@@ -61,7 +63,10 @@ namespace Stride.Rendering.Materials
             if (glassPassIndex == 0)
             {
                 // Transmittance pass
-                context.MaterialPass.BlendState = new BlendStateDescription(Blend.Zero, Blend.SourceColor) { RenderTarget0 = { AlphaSourceBlend = Blend.One, AlphaDestinationBlend = Blend.Zero } };
+                var blendState = new BlendStateDescription(sourceBlend: Blend.Zero, destinationBlend: Blend.SourceColor);
+                blendState.RenderTargets[0] = new BlendStateRenderTargetDescription { AlphaSourceBlend = Blend.One, AlphaDestinationBlend = Blend.Zero };
+
+                context.MaterialPass.BlendState = blendState;
 
                 // Shader output is matTransmittance
                 // Note: we make sure to run after MaterialTransparencyBlendFeature so that shadingColorAlpha is fully updated

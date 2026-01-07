@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Runtime.ExceptionServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Xunit;
@@ -18,53 +20,127 @@ using Stride.Games;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
-using System.Text.RegularExpressions;
 
 namespace Stride.Graphics.Regression
 {
+    /// <summary>
+    ///   Provides a base class for creating and running game tests.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     The <see cref="GameTestBase"/> class is designed to facilitate the creation of automated game tests
+    ///     by providing a framework for managing test execution, capturing screenshots, and simulating input.
+    ///   </para>
+    ///   This class extends the <see cref="Game"/> class and includes additional functionality for:
+    ///   <list type="bullet">
+    ///     <item>Registering and executing tests at specific frames using the <see cref="FrameGameSystem"/>.</item>
+    ///     <item>Saving images (e.g., textures or back-buffers) for comparison in regression tests.</item>
+    ///     <item>Simulating input sources (keyboard and mouse) for automated testing.</item>
+    ///     <item>Configuring graphics settings and managing test artifacts.</item>
+    ///   </list>
+    ///   Derived classes can override the <see cref="RegisterTests"/> method to define their own test logic.
+    /// </remarks>
     public abstract class GameTestBase : Game
     {
-        public static bool ForceInteractiveMode;
+        /// <summary>
+        ///   Gets the logger instance used for logging test game-related messages.
+        /// </summary>
+        public static Logger TestGameLogger { get; } = GlobalLogger.GetLogger(nameof(TestGameLogger));
 
-        public static readonly Logger TestGameLogger = GlobalLogger.GetLogger("TestGameLogger");
+        /// <summary>
+        ///   Gets or sets a value indicating whether to force interactive mode, i.e. a mode
+        ///   where the Game does not use a simulated input source and the user is responsible
+        ///   for manipulating the test Game and take screenshots if appropriate.
+        /// </summary>
+        public static bool ForceInteractiveMode { get; set; }
 
+
+        /// <summary>
+        ///   Gets the instance of the <see cref="FrameGameSystem"/> where the tests
+        ///   can be registered to be executed at specific frames, and where screenshots
+        ///   can be scheduled to be taken.
+        /// </summary>
         public FrameGameSystem FrameGameSystem { get; }
 
+        /// <summary>
+        ///   Gets or sets the frame count at which the Game should stop. When this frame
+        ///   is reached in the <see cref="Update"/> method, the Game will exit.
+        /// </summary>
         public int StopOnFrameCount { get; set; }
 
+        /// <summary>
+        ///   Gets or sets the name of the test. It will be reflected in the saved images.
+        /// </summary>
         public string TestName { get; set; }
 
+        /// <summary>
+        ///   Gets the input source used for testing or emulating input behavior.
+        /// </summary>
         public InputSourceSimulated InputSourceSimulated { get; private set; }
+        /// <summary>
+        ///   Gets an object that can be used to simulate mouse input.
+        /// </summary>
         public MouseSimulated MouseSimulated { get; private set; }
+        /// <summary>
+        ///   Gets an object that can be used to simulate keyboard input.
+        /// </summary>
         public KeyboardSimulated KeyboardSimulated { get; private set; }
 
-        public int FrameIndex;
+        /// <summary>
+        ///   Gets the index of the current frame.
+        /// </summary>
+        public int FrameIndex { get; private set; }
 
         private bool screenshotAutomationEnabled;
-        private List<string> comparisonMissingMessages = new List<string>();
-        private List<string> comparisonFailedMessages = new List<string>();
+        private readonly List<string> comparisonMissingMessages = [];
+        private readonly List<string> comparisonFailedMessages = [];
 
         private BackBufferSizeMode backBufferSizeMode;
+
 #if STRIDE_PLATFORM_DESKTOP
-        // Note: it might cause OOM on 32-bit processes
-        public static bool CaptureRenderDocOnError = string.Compare(Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR"), "true", StringComparison.OrdinalIgnoreCase) == 0;
+        /// <summary>
+        ///   Gets or sets a value indicating whether RenderDoc should capture a frame when an error occurs
+        ///   or a test fails.
+        /// </summary>
+        /// <remarks>Enabling this feature may cause an Out-of-Memory exception on 32-bit processes.</remarks>
+        public static bool CaptureRenderDocOnError =
+  #if STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR
+            true;
+  #else
+            string.Equals(Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR"), "true", StringComparison.OrdinalIgnoreCase);
+  #endif
 
         private RenderDocManager renderDocManager;
 #endif
 
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="GameTestBase"/> class,
+        ///   setting up the default graphics device manager and game systems for testing purposes.
+        /// </summary>
+        /// <remarks>
+        ///   This constructor configures the game environment for testing by overriding the
+        ///   default Graphics Device manager with a custom implementation and setting up essential
+        ///   services and systems.
+        ///   The Graphics Device settings are set to a Back-Buffer size of 800 by 480 pixels,
+        ///   a 24-bit Depth Buffer with a 8-bit Stencil Buffer, and it is configured with the
+        ///   <see cref="DeviceCreationFlags.Debug"/> flag and the <see cref="GraphicsProfile.Level_9_1"/>
+        ///   profile.
+        /// </remarks>
         protected GameTestBase()
         {
             ConsoleLogMode = ConsoleLogMode.Always;
 
-            // Override the default graphic device manager
+            // Override the default Graphic Device manager and settings
             GraphicsDeviceManager.Dispose();
             GraphicsDeviceManager = new TestGraphicsDeviceManager(this)
             {
                 PreferredBackBufferWidth = 800,
                 PreferredBackBufferHeight = 480,
                 PreferredDepthStencilFormat = PixelFormat.D24_UNorm_S8_UInt,
+#if DEBUG
                 DeviceCreationFlags = DeviceCreationFlags.Debug,
-                PreferredGraphicsProfile = new[] { GraphicsProfile.Level_9_1 }
+#endif
+                PreferredGraphicsProfile = [ GraphicsProfile.Level_9_1 ]
             };
             Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
             Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);
@@ -103,58 +179,102 @@ namespace Stride.Graphics.Regression
             SceneSystem.SplashScreenEnabled = false;
         }
 
+
         /// <summary>
-        /// Save the image locally or on the server.
+        ///   Saves a Texture locally or on the test server.
         /// </summary>
-        /// <param name="textureToSave">The texture to save.</param>
-        /// <param name="testName">The name of the test corresponding to the image to save</param>
-        public void SaveImage(Texture textureToSave, string testName = null)
+        /// <param name="textureToSave">The <see cref="Texture"/> to save.</param>
+        /// <param name="testName">
+        ///   An optional name for the test that is wanting to save the <paramref name="textureToSave"/>.
+        /// </param>
+        /// <remarks>
+        ///   A test Game can call this method to save any <see cref="Texture"/> it wants
+        ///   so it can be compared to a reference image. This is useful for regression tests.
+        /// </remarks>
+        public void SaveImage(Texture textureToSave, string? testName = null)
         {
-            if (textureToSave == null)
+            if (textureToSave is null)
                 return;
 
             TestGameLogger.Info(@"Saving image");
-            using (var image = textureToSave.GetDataAsImage(GraphicsContext.CommandList))
+
+            using var image = textureToSave.GetDataAsImage(GraphicsContext.CommandList);
+            SaveImage(image, testName);
+        }
+
+        /// <summary>
+        ///   Saves the Back-Buffer locally or on the test server.
+        /// </summary>
+        /// <param name="testName">
+        ///   An optional name for the test that is wanting to save the Back-Buffer.
+        /// </param>
+        /// <remarks>
+        ///   A test Game can call this method to save the Back-Buffer
+        ///   so it can be compared to a reference image. This is useful for regression tests.
+        /// </remarks>
+        public void SaveBackBuffer(string? testName = null)
+        {
+            TestGameLogger.Info(@"Saving the Back-Buffer");
+
+            // TODO: GRAPHICS REFACTOR: Switched to presenter backbuffer, need to check if it's good
+            var backBuffer = GraphicsDevice.Presenter.BackBuffer;
+            using var image = backBuffer.GetDataAsImage(GraphicsContext.CommandList);
+            SaveImage(image, testName);
+        }
+
+        /// <summary>
+        ///   Saves an Image locally or on the test server.
+        /// </summary>
+        /// <param name="imageToSave">The <see cref="Image"/> to save.</param>
+        /// <param name="testName">
+        ///   An optional name for the test that is wanting to save the <paramref name="textureToSave"/>.
+        /// </param>
+        private void SaveImage(Image imageToSave, string? testName = null)
+        {
+            try
             {
-                try
-                {
-                    SendImage(image, testName);
-                }
-                catch (Exception)
-                {
-                    TestGameLogger.Error(@"An error occurred when trying to send the data to the server.");
-                    throw;
-                }
+                SendImage(imageToSave, testName);
+            }
+            catch
+            {
+                TestGameLogger.Error(@"An error occurred when trying to send the data to the server.");
+                throw;
             }
         }
 
-        /// <summary>
-        /// Save the image locally or on the server.
-        /// </summary>
-        public void SaveBackBuffer(string testName = null)
-        {
-            TestGameLogger.Info(@"Saving the backbuffer");
-            // TODO GRAPHICS REFACTOR switched to presenter backbuffer, need to check if it's good
-            SaveImage(GraphicsDevice.Presenter.BackBuffer, testName);
-        }
 
         /// <summary>
-        /// Gets or sets the value indicating if the screen shots automation should be enabled or not.
+        ///   Gets or sets the value indicating if the screenshots automation is enabled.
         /// </summary>
+        /// <value>
+        ///   <list type="bullet">
+        ///     <item>
+        ///       If <see langword="true"/>, the screenshots automation is enabled. The game
+        ///       can use <see cref="FrameGameSystem"/> to schedule screenshots and run tests
+        ///       at specific frames.
+        ///     </item>
+        ///     <item>
+        ///       If <see langword="false"/>, the screenshots automation is disabled.
+        ///     </item>
+        ///   </list>
+        /// </value>
         public bool ScreenShotAutomationEnabled
         {
-            get { return screenshotAutomationEnabled; }
+            get => screenshotAutomationEnabled;
             set
             {
-                FrameGameSystem.Visible = value;
-                FrameGameSystem.Enabled = value;
+                FrameGameSystem.Enabled = value;      // No Update
+                FrameGameSystem.Visible = value;      // No Draw
                 screenshotAutomationEnabled = value;
             }
         }
 
+        /// <summary>
+        ///   Gets or sets the mode used to determine the size of the Back-Buffer.
+        /// </summary>
         public BackBufferSizeMode BackBufferSizeMode
         {
-            get { return backBufferSizeMode; }
+            get => backBufferSizeMode;
             set
             {
                 backBufferSizeMode = value;
@@ -173,28 +293,42 @@ namespace Stride.Graphics.Regression
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-#endif // TODO implement it other mobile platforms
+#endif // TODO: Implement it for other mobile platforms
             }
         }
 
+        /// <summary>
+        ///   Enables the use of a simulated input source (keyboard and mouse) for tests.
+        /// </summary>
+        /// <remarks>
+        ///   This method can be used to switch the system to use a simulated input source
+        ///   instead of a real one. This allows tests to simulate user input programmatically,
+        ///   like sending mouse clicks or key presses.
+        /// </remarks>
         protected internal void EnableSimulatedInputSource()
         {
             InputSourceSimulated = new InputSourceSimulated();
-            if (Input != null)
+            if (Input is not null)
                 InitializeSimulatedInputSource();
         }
 
+        /// <summary>
+        ///   Initializes and configures a <strong>simulated input source</strong> as only active input source,
+        ///   enabling the use of simulated mouse and keyboard devices for testing purposes.
+        /// </summary>
         private void InitializeSimulatedInputSource()
         {
-            if (InputSourceSimulated != null)
+            if (InputSourceSimulated is not null)
             {
                 Input.Sources.Clear();
                 Input.Sources.Add(InputSourceSimulated);
+
                 MouseSimulated = InputSourceSimulated.AddMouse();
                 KeyboardSimulated = InputSourceSimulated.AddKeyboard();
             }
         }
 
+#if STRIDE_PLATFORM_ANDROID
         private void FitPresentationParametersToDesiredValues(int windowWidth, int windowHeight, PresentationParameters parameters)
         {
             // nothing to do (default behavior)
@@ -220,18 +354,24 @@ namespace Stride.Graphics.Regression
                 parameters.BackBufferWidth = (int)(desiredHeight * (float)windowWidth / (float)windowHeight);
             }
         }
+#endif
 
+        /// <inheritdoc/>
         protected override async Task LoadContent()
         {
             await base.LoadContent();
 
 #if STRIDE_PLATFORM_DESKTOP
             // Setup RenderDoc capture
-            if (renderDocManager != null)
+            if (renderDocManager is not null)
             {
-                var renderdocCaptureFile = GenerateTestArtifactFileName(Path.Combine(FindStrideRootFolder(), @"tests\local"), null, GetPlatformSpecificFolder(), ".rdc");
+                var localTestsDir = Path.Combine(FindStrideSolutionRootDirectory(), @"tests\local");
+                var renderdocCaptureFile = GenerateTestArtifactFileName(testArtifactPath: localTestsDir,
+                                                                        frameName: null,
+                                                                        platformSpecificDir: GetPlatformSpecificDirectory(),
+                                                                        extension: ".rdc");
                 renderDocManager.Initialize(renderdocCaptureFile);
-                renderDocManager.StartFrameCapture(GraphicsDevice, IntPtr.Zero);
+                renderDocManager.StartFrameCapture(GraphicsDevice, hwndPtr: IntPtr.Zero);
             }
 #endif
 
@@ -245,34 +385,48 @@ namespace Stride.Graphics.Regression
 #endif
 
             Script.AddTask(RegisterTestsInternal);
+
+            //
+            // Registers the tests specified by a derived class if not already in feeding mode.
+            //
+            Task RegisterTestsInternal()
+            {
+                if (!FrameGameSystem.IsUnitTestFeeding)
+                    RegisterTests();
+
+                return Task.CompletedTask;
+            }
         }
 
+        /// <inheritdoc/>
         protected override void Destroy()
         {
-#if STRIDE_PLATFORM_DESKTOP
-            if (renderDocManager != null)
-            {
-                // Note: if no comparison error, let's discard the capture
-                if (comparisonFailedMessages.Count == 0 && comparisonMissingMessages.Count == 0)
-                    renderDocManager.DiscardFrameCapture(GraphicsDevice, IntPtr.Zero);
-                else
-                    renderDocManager.EndFrameCapture(GraphicsDevice, IntPtr.Zero);
-                // Note: we don't remove hooks in case another unit test need them later
-                //renderDocManager.RemoveHooks();
-            }
-#endif
+            // NOTE: We don't remove RenderDoc hooks in case another unit test needs them later
+            //renderDocManager.RemoveHooks();
 
             base.Destroy();
         }
 
-        private Task RegisterTestsInternal()
+        /// <summary>
+        ///   Ends the current frame RenderDoc capture session, finalizing the capture of rendering data,
+        ///   allowing the captured data to be saved or processed.
+        /// </summary>
+        /// <remarks>A frame capture session was previously started before calling this method.</remarks>
+        private void EndFrameCapture()
         {
-            if (!FrameGameSystem.IsUnitTestFeeding)
-                RegisterTests();
-
-            return Task.FromResult(true);
+            renderDocManager?.EndFrameCapture(GraphicsDevice, IntPtr.Zero);
         }
 
+        /// <summary>
+        ///   Ends the current frame RenderDoc capture session, discarding any captured rendering data.
+        /// </summary>
+        /// <remarks>A frame capture session was previously started before calling this method.</remarks>
+        private void DiscardFrameCapture()
+        {
+            renderDocManager?.DiscardFrameCapture(GraphicsDevice, IntPtr.Zero);
+        }
+
+        /// <inheritdoc/>
         protected override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
@@ -283,10 +437,10 @@ namespace Stride.Graphics.Regression
             }
         }
 
+        /// <inheritdoc/>
         /// <summary>
         /// Loop through all the tests and save the images.
         /// </summary>
-        /// <param name="gameTime">the game time.</param>
         protected override void Draw(GameTime gameTime)
         {
             GraphicsContext.CommandList.BeginProfile(Color.Orange, $"Frame #{gameTime.FrameCount}");
@@ -299,162 +453,281 @@ namespace Stride.Graphics.Regression
                 GraphicsContext.CommandList.EndProfile();
             }
 
+            // If allowed, take any scheduled screenshot
             if (!ScreenShotAutomationEnabled)
                 return;
 
-            string testName;
-
             if (FrameGameSystem.AllTestsCompleted)
                 Exit();
-            else if (FrameGameSystem.IsScreenshotNeeded(out testName))
+            else if (FrameGameSystem.IsScreenshotNeeded(out string? testName))
                 SaveBackBuffer(testName);
         }
 
-        protected void PerformTest(Action<GameTestBase> testAction, GraphicsProfile? profileOverride = null, bool takeSnapshot = false)
+        /// <summary>
+        ///   Executes a test action within the context of a game test environment.
+        /// </summary>
+        /// <param name="testAction">
+        ///   The action to perform during the test in the <see cref="Draw"/> method.
+        ///   This action receives an instance of <see cref="GameTestBase"/> to interact with the test environment.
+        /// </param>
+        /// <param name="profileOverride">
+        ///   An optional graphics profile to override the default graphics settings.
+        ///   If specified, the test will use the provided <see cref="GraphicsProfile"/>.
+        /// </param>
+        /// <param name="takeSnapshot">
+        ///   A value indicating whether to capture a screenshot once the test has finished.
+        ///   <see langword="true"/> to take a screenshot; otherwise, <see langword="false"/>.
+        /// </param>
+        protected void PerformTest(Action<GameTestBase> testAction,
+                                   GraphicsProfile? profileOverride = null,
+                                   bool takeSnapshot = false)
         {
-            // create the game instance
+            // Create a new test game instance
             var typeGame = GetType();
-            var game = (GameTestBase)Activator.CreateInstance(typeGame);
-            if (profileOverride.HasValue)
-                game.GraphicsDeviceManager.PreferredGraphicsProfile = new[] { profileOverride.Value };
+            var game = (GameTestBase) Activator.CreateInstance(typeGame);
 
-            // register the tests.
+            if (profileOverride.HasValue)
+                game.GraphicsDeviceManager.PreferredGraphicsProfile = [ profileOverride.Value ];
+
+            // Register the tests to be executed
             game.FrameGameSystem.IsUnitTestFeeding = true;
             game.FrameGameSystem.Draw(() => testAction(game));
             if (takeSnapshot)
                 game.FrameGameSystem.TakeScreenshot();
 
+            // Run the test
             RunGameTest(game);
         }
 
-        protected void PerformDrawTest(Action<GameTestBase, RenderDrawContext> drawTestAction, GraphicsProfile? profileOverride = null, string subTestName = null, bool takeSnapshot = true)
+        /// <summary>
+        ///   Executes a rendering test within the context of a game test environment.
+        /// </summary>
+        /// <param name="drawTestAction">
+        ///   The action to perform during the rendering test in the <see cref="Draw"/> method.
+        ///   This action receives an instance of <see cref="GameTestBase"/> and the rendering context
+        ///   to interact with the test environment.
+        /// </param>
+        /// <param name="profileOverride">
+        ///   An optional graphics profile to override the default graphics settings.
+        ///   If specified, the test will use the provided <see cref="GraphicsProfile"/>.
+        /// </param>
+        /// <param name="subTestName">
+        ///   An optional name for the sub-test, used to differentiate between multiple test cases.
+        ///   Can be <see langword="null"/>.
+        /// </param>
+        /// <param name="takeSnapshot">
+        ///   A value indicating whether to capture a screenshot once the test has finished.
+        ///   <see langword="true"/> to take a screenshot; otherwise, <see langword="false"/>.
+        /// </param>
+        /// <remarks>
+        ///   This method initializes a new test game instance, sets up an empty scene, and configures
+        ///   a very simple graphics compositor to use the provided rendering callback.
+        /// </remarks>
+        protected void PerformDrawTest(Action<GameTestBase, RenderDrawContext> drawTestAction,
+                                       GraphicsProfile? profileOverride = null,
+                                       string? subTestName = null,
+                                       bool takeSnapshot = true)
         {
-            // create the game instance
+            // Create a new test game instance
             var typeGame = GetType();
-            var game = (GameTestBase)Activator.CreateInstance(typeGame);
-            if (profileOverride.HasValue)
-                game.GraphicsDeviceManager.PreferredGraphicsProfile = new[] { profileOverride.Value };
+            var game = (GameTestBase) Activator.CreateInstance(typeGame);
 
-            // register the tests.
+            if (profileOverride.HasValue)
+                game.GraphicsDeviceManager.PreferredGraphicsProfile = [profileOverride.Value];
+
+            // Register the tests to be executed
             game.FrameGameSystem.IsUnitTestFeeding = true;
             if (takeSnapshot)
                 game.FrameGameSystem.TakeScreenshot();
 
-            // setup empty scene
+            // Setup an empty scene
             var scene = new Scene();
             game.SceneSystem.SceneInstance = new SceneInstance(Services, scene);
 
-            // add the render callback
+            // Add the render callback to a simple graphics compositor
             game.SceneSystem.GraphicsCompositor = new GraphicsCompositor
             {
                 Game = new DelegateSceneRenderer(context => drawTestAction(game, context)),
             };
 
+            // Run the test
             RunGameTest(game);
         }
 
         /// <summary>
-        /// Method to register the tests.
+        ///   Method called to register the tests that will be executed by the test game.
         /// </summary>
+        /// <remarks>
+        ///   Derived classes can override this method to register their own tests using the
+        ///   <see cref="FrameGameSystem"/>, where they can schedule methods to be executed
+        ///   at specific frames, and schedule screenshots to be taken.
+        /// </remarks>
         protected virtual void RegisterTests()
         {
         }
 
+        /// <summary>
+        ///   Executes a game test using the specified <see cref="GameTestBase"/> instance.
+        /// </summary>
+        /// <param name="game">The game test instance to run. Must not be <see langword="null"/>.</param>
         protected static void RunGameTest(GameTestBase game)
         {
             game.EnableSimulatedInputSource();
 
             game.ScreenShotAutomationEnabled = !ForceInteractiveMode;
 
-            GameTester.RunGameTest(game);
+            ExceptionDispatchInfo exceptionOrFailedAssert = null;
 
+            try
+            {
+                GameTester.RunGameTest(game);
+            }
+            catch (Exception ex)
+            {
+                // This catches both errors in the test execution and assertion failures
+                exceptionOrFailedAssert = ExceptionDispatchInfo.Capture(ex);
+            }
+
+#if STRIDE_PLATFORM_DESKTOP
+            if (CaptureRenderDocOnError)
+            {
+                // If no comparison errors, and no test errors, discard the capture
+                if (game.comparisonFailedMessages.Count == 0 &&
+                    game.comparisonMissingMessages.Count == 0 &&
+                    exceptionOrFailedAssert is null)
+                {
+                    game.DiscardFrameCapture();
+                }
+                else game.EndFrameCapture();
+            }
+#endif
+            // If there was an exception, rethrow it now
+            exceptionOrFailedAssert?.Throw();
+
+            // If there were comparison failures, assert them now
             if (game.ScreenShotAutomationEnabled)
             {
-                Assert.True(game.comparisonFailedMessages.Count == 0, "Some image comparison failed:" + Environment.NewLine + string.Join(Environment.NewLine, game.comparisonFailedMessages));
-                Assert.True(game.comparisonMissingMessages.Count == 0, "Some reference images are missing, please copy them manually:" + Environment.NewLine + string.Join(Environment.NewLine, game.comparisonMissingMessages));
-            }
-        }
+                if (game.comparisonFailedMessages.Count > 0)
+                    AssertImageComparisonFailed();
+                if (game.comparisonMissingMessages.Count > 0)
+                    AssertMissingComparisonImages();
 
-        private static string FindStrideRootFolder()
-        {
-            // Make sure our nuget local store is added to nuget config
-            var folder = PlatformFolders.ApplicationBinaryDirectory;
-            while (folder != null)
-            {
-                if (File.Exists(Path.Combine(folder, @"build\Stride.sln")))
-                    return folder;
-                folder = Path.GetDirectoryName(folder);
-            }
+                [DoesNotReturn]
+                void AssertImageComparisonFailed()
+                {
+                    var failedImages = string.Join(Environment.NewLine, game.comparisonFailedMessages);
+                    Assert.Fail("Some image comparison failed:" + Environment.NewLine + failedImages);
+                }
 
-            throw new InvalidOperationException("Could not locate Stride folder");
+                [DoesNotReturn]
+                void AssertMissingComparisonImages()
+                {
+                    var missingImages = string.Join(Environment.NewLine, game.comparisonMissingMessages);
+                    Assert.Fail("Some reference images are missing, please copy them manually:" + Environment.NewLine + missingImages);
+                }
+            }
         }
 
         /// <summary>
-        /// Send the data of the test to the server.
+        ///   Searches for the root folder of the Stride solution by traversing upward from the test's binary directory.
         /// </summary>
-        /// <param name="image">The image to send.</param>
-        /// <param name="testName">The name of the test.</param>
-        public void SendImage(Image image, string testName)
+        /// <returns>The full path to the root folder of the Stride solution.</returns>
+        /// <exception cref="InvalidOperationException">The Stride solution root folder could not be located.</exception>
+        private static string FindStrideSolutionRootDirectory()
         {
-            var frame = testName;
-            if (frame == null && FrameIndex++ > 0)
-                frame = "f" + (FrameIndex - 1);
+            var dir = PlatformFolders.ApplicationBinaryDirectory;
+            while (dir is not null)
+            {
+                if (File.Exists(Path.Combine(dir, @"build\Stride.sln")))
+                    return dir;
+
+                dir = Path.GetDirectoryName(dir);
+            }
+
+            throw new InvalidOperationException("Could not locate the Stride solution root directory");
+        }
+
+        /// <summary>
+        ///   Send the test result image data to the server for verification.
+        /// </summary>
+        /// <param name="image">The Image to send.</param>
+        /// <param name="testName">
+        ///   An optional name for the test. If not provided, the frame index will be used.
+        /// </param>
+        public void SendImage(Image image, string? testName)
+        {
+            // Use the test name, or the frame index if no name provided
+            var frameName = testName;
+            if (frameName is null && FrameIndex++ > 0)
+                frameName = "f" + (FrameIndex - 1);
 
             // Register 3D card name
             // TODO: This doesn't work well because ImageTester.ImageTestResultConnection is static, this will need improvements
             //if (!ImageTester.ImageTestResultConnection.DeviceName.Contains("_"))
             //    ImageTester.ImageTestResultConnection.DeviceName += "_" + GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' '); // Workaround for sharpDX bug: Description ends with an series trailing of '\0' characters
 
-            var platformSpecific = GetPlatformSpecificFolder();
-            var rootFolder = FindStrideRootFolder();
+            var platformSpecificDir = GetPlatformSpecificDirectory();
+            var strideRootDir = FindStrideSolutionRootDirectory();
 
-            var testFilename = GenerateTestArtifactFileName(Path.Combine(rootFolder, "tests"), frame, platformSpecific, ".png");
-            var testFilenameUser = GenerateTestArtifactFileName(Path.Combine(rootFolder, @"tests\local"), frame, platformSpecific, ".png");
+            var testsBaseDir = Path.Combine(strideRootDir, "tests");
+            var testFileName = GenerateTestArtifactFileName(testsBaseDir, frameName, platformSpecificDir, ".png");
 
-            var testFilenames = new List<string> { testFilename };
+            var testsLocalBaseDir = Path.Combine(testsBaseDir, "local");
+            var testLocalFileName = GenerateTestArtifactFileName(testsLocalBaseDir, frameName, platformSpecificDir, ".png");
+
+            var testFileNames = new List<string> { testFileName };
 
             // First, if exact match doesn't exist, test any other pattern
             // TODO: We might want to sort/filter partially (platform, etc...)?
-            var matchingImage = File.Exists(testFilename);
+            var matchingImage = File.Exists(testFileName);
             if (!matchingImage)
             {
-                testFilenames.Clear();
+                testFileNames.Clear();
 
-                var testFilenamePattern = GenerateTestArtifactFileName(Path.Combine(rootFolder, "tests"), frame, @"*\*", ".png");
-                var testFilenameRoot = testFilenamePattern.Substring(0, testFilenamePattern.IndexOf('*'));
-                var testFilenameRegex = new Regex("^" + Regex.Escape(testFilenamePattern).Replace(@"\*", @"[^\\]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-                foreach (var file in Directory.EnumerateFiles(testFilenameRoot, "*.*", SearchOption.AllDirectories))
+                var testFileNamePattern = GenerateTestArtifactFileName(testsBaseDir, frameName, @"*\*", ".png");
+                var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern).Replace(@"\*", @"[^\\]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                var testFileNameRoot = testFileNamePattern[..testFileNamePattern.IndexOf('*')];
+
+                foreach (var file in Directory.EnumerateFiles(testFileNameRoot, "*.*", SearchOption.AllDirectories))
                 {
-                    if (testFilenameRegex.IsMatch(file))
+                    if (testFileNameRegex.IsMatch(file))
                     {
-                        testFilenames.Add(file);
+                        testFileNames.Add(file);
                     }
                 }
             }
 
-            if (testFilenames.Count == 0)
+            if (testFileNames.Count == 0)
             {
                 // No source image, save this one so that user can later copy it to validated folder
-                ImageTester.SaveImage(image, testFilenameUser);
-                comparisonMissingMessages.Add($"* {testFilenameUser} (current)");
+                ImageTester.SaveImage(image, testLocalFileName);
+                comparisonMissingMessages.Add($"* {testLocalFileName} (current)");
             }
-            else if (!testFilenames.Any(file => ImageTester.CompareImage(image, file)))
+            else if (!testFileNames.Any(file => ImageTester.CompareImage(image, file)))
             {
-                // Comparison failed, save current version so that user can compare/promote it manually
-                ImageTester.SaveImage(image, testFilenameUser);
-                comparisonFailedMessages.Add($"* {testFilenameUser} (current)");
-                foreach (var file in testFilenames)
+                // Comparison failed, save current version so that user can compare / promote it manually
+                ImageTester.SaveImage(image, testLocalFileName);
+                comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
+                foreach (var file in testFileNames)
                     comparisonFailedMessages.Add($"  {file} ({ (matchingImage ? "reference" : "different platform/device") })");
             }
             else
             {
                 // If test is a success, let's delete the local file if it was previously generated
-                if (File.Exists(testFilenameUser))
-                    File.Delete(testFilenameUser);
+                if (File.Exists(testLocalFileName))
+                    File.Delete(testLocalFileName);
             }
         }
 
-        private string GetPlatformSpecificFolder()
+        /// <summary>
+        ///   Retrieves the platform-specific directory path based on the current platform type
+        ///   and Graphics Adapter description. This is used to organize test artifacts.
+        /// </summary>
+        /// <returns>
+        ///   A string representing the platform-specific directory path.
+        /// </returns>
+        /// <exception cref="NotImplementedException">The current platform type is not supported.</exception>
+        private string GetPlatformSpecificDirectory()
         {
             if (Platform.Type == PlatformType.Windows)
                 return $"Windows.{GraphicsDevice.Platform}\\{GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ')}";
@@ -462,42 +735,66 @@ namespace Stride.Graphics.Regression
                 throw new NotImplementedException();
         }
 
-        private string GenerateTestArtifactFileName(string testArtifactPath, string frame, string platformSpecific, string extension)
+        /// <summary>
+        ///   Generates a file name for a test artifact based on the class name, test name, frame name, and other parameters.
+        /// </summary>
+        /// <param name="testArtifactPath">
+        ///   The base directory where test artifacts are stored.
+        /// </param>
+        /// <param name="frameName">
+        ///   The name of the frame associated with the test,
+        ///   or <see langword="null"/> if no frame is specified.
+        /// </param>
+        /// <param name="platformSpecificDir">
+        ///   A platform-specific subdirectory to include in the file path.
+        /// </param>
+        /// <param name="extension">
+        ///   The file extension to append to the generated file name (e.g., ".txt", ".log").
+        /// </param>
+        /// <returns>
+        ///   A fully qualified file path for the test artifact, including the namespace, class name,
+        ///   test name, frame name, and platform-specific directory.
+        /// </returns>
+        private string GenerateTestArtifactFileName(string testArtifactPath, string frameName, string platformSpecificDir, string extension)
         {
             var fullClassName = GetType().FullName;
             var classNameIndex = fullClassName.LastIndexOf('.');
-            var @namespace = classNameIndex != -1 ? fullClassName.Substring(0, classNameIndex) : string.Empty;
-            var className = fullClassName.Substring(classNameIndex + 1);
+            var @namespace = classNameIndex != -1 ? fullClassName[..classNameIndex] : string.Empty;
+            var className = fullClassName[(classNameIndex + 1)..];
 
-            var testFolder = Path.Combine(testArtifactPath, @namespace);
-            var testFilename = className;
-            if (TestName != null)
-                testFilename += $".{TestName}";
-            if (frame != null)
-                testFilename += $".{frame}";
-            testFilename += extension;
-            testFilename = Path.Combine(testFolder, platformSpecific, testFilename);
+            var testFileName = className;
+            if (TestName is not null)
+                testFileName += $".{TestName}";
+            if (frameName is not null)
+                testFileName += $".{frameName}";
+            testFileName += extension;
 
-            // Collapse parent directories
-            return testFilename;
+            var testDir = Path.Combine(testArtifactPath, @namespace);
+            testFileName = Path.Combine(testDir, platformSpecificDir, testFileName);
+            return testFileName;
         }
 
-        protected void SaveTexture(Texture texture, string filename)
+        /// <summary>
+        ///   Saves the specified Texture to a file in PNG format.
+        /// </summary>
+        /// <param name="texture">The <see cref="Texture"/> to be saved. Must not be <see langword="null"/>.</param>
+        /// <param name="filePath">
+        ///   The full path of the file where the Texture will be saved.
+        ///   Must not be <see langword="null"/> or empty.
+        /// </param>
+        protected void SaveTexture(Texture texture, string filePath)
         {
             if (Platform.Type == PlatformType.Windows)
             {
-                using (var image = texture.GetDataAsImage(GraphicsContext.CommandList))
-                {
-                    using (var resultFileStream = File.OpenWrite(filename))
-                    {
-                        image.Save(resultFileStream, ImageFileType.Png);
-                    }
-                }
+                using var image = texture.GetDataAsImage(GraphicsContext.CommandList);
+                using var resultFileStream = File.OpenWrite(filePath);
+
+                image.Save(resultFileStream, ImageFileType.Png);
             }
         }
 
         /// <summary>
-        /// A structure to store information about the connected test devices.
+        ///   Stores information about a connected test device.
         /// </summary>
         public struct ConnectedDevice
         {
@@ -505,42 +802,42 @@ namespace Stride.Graphics.Regression
             public string Name;
             public TestPlatform Platform;
 
-            public override string ToString()
+            public override readonly string ToString()
             {
                 return Name + " " + Serial + " " + PlatformPermutator.GetPlatformName(Platform);
             }
         }
 
         /// <summary>
-        /// Ignore the test on the given platform
+        ///   Skips the test if it is running on a specific platform.
         /// </summary>
-        public static void IgnorePlatform(PlatformType platform)
+        public static void SkipTestForPlatform(PlatformType platform)
         {
-            Skip.If(Platform.Type == platform, $"This test is not valid for the '{platform}' platform. It has been ignored");
+            Skip.If(Platform.Type == platform, $"This test is not valid for the '{platform}' platform. It has been skipped");
         }
 
         /// <summary>
-        /// Ignore the test on any other platform than the provided one.
+        ///   Skips the test on any other platform than the provided one.
         /// </summary>
         public static void RequirePlatform(PlatformType platform)
         {
-            Skip.If(Platform.Type != platform, $"This test requires the '{platform}' platform. It has been ignored");
+            Skip.IfNot(Platform.Type == platform, $"This test requires the '{platform}' platform. It has been skipped");
         }
 
         /// <summary>
-        /// Ignore the test on the given graphic platform
+        ///   Skips the test if it is using the given graphic platform
         /// </summary>
-        public static void IgnoreGraphicPlatform(GraphicsPlatform platform)
+        public static void SkipTestForGraphicPlatform(GraphicsPlatform platform)
         {
-            Skip.If(GraphicsDevice.Platform == platform, $"This test is not valid for the '{platform}' graphic platform. It has been ignored");
+            Skip.If(GraphicsDevice.Platform == platform, $"This test is not valid for the '{platform}' graphic platform. It has been skipped");
         }
 
         /// <summary>
-        /// Ignore the test on any other graphic platform than the provided one.
+        ///   Skips the test on any other graphics platform than the provided one.
         /// </summary>
         public static void RequireGraphicPlatform(GraphicsPlatform platform)
         {
-            Skip.If(GraphicsDevice.Platform != platform, $"This test requires the '{platform}' platform. It has been ignored");
+            Skip.IfNot(GraphicsDevice.Platform == platform, $"This test requires the '{platform}' graphics platform. It has been skipped");
         }
     }
 }

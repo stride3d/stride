@@ -9,6 +9,7 @@ using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using System.Text;
+using System.Diagnostics;
 
 namespace Stride.Graphics
 {
@@ -168,7 +169,7 @@ namespace Stride.Graphics
                 var createInfo = new VkDebugUtilsMessengerCreateInfoEXT
                 {
                     sType = VkStructureType.DebugUtilsMessengerCreateInfoEXT,
-                    messageSeverity = VkDebugUtilsMessageSeverityFlagsEXT.Verbose | VkDebugUtilsMessageSeverityFlagsEXT.Error | VkDebugUtilsMessageSeverityFlagsEXT.Warning,
+                    messageSeverity = VkDebugUtilsMessageSeverityFlagsEXT.Verbose | VkDebugUtilsMessageSeverityFlagsEXT.Info | VkDebugUtilsMessageSeverityFlagsEXT.Error | VkDebugUtilsMessageSeverityFlagsEXT.Warning,
                     messageType = VkDebugUtilsMessageTypeFlagsEXT.General | VkDebugUtilsMessageTypeFlagsEXT.Validation | VkDebugUtilsMessageTypeFlagsEXT.Performance,
                     pfnUserCallback = &DebugReport
                 };
@@ -253,6 +254,7 @@ namespace Stride.Graphics
         private unsafe static uint DebugReport(VkDebugUtilsMessageSeverityFlagsEXT severity, VkDebugUtilsMessageTypeFlagsEXT types, VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* userData)
         {
             var message = new VkUtf8String(pCallbackData->pMessage).ToString();
+            Debug.WriteLine($"Vulkan: {severity} {message}");
 
             // Redirect to log
             if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Error)
