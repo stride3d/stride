@@ -1,9 +1,10 @@
 using ServiceWire;
+using Stride.Core.Serialization;
 
-namespace Stride.Core.Serialization.Serializers;
+namespace Stride.Core.BuildEngine;
 
-[DataSerializerGlobal(typeof(ServiceWireSerializer))]
-public class ServiceWireSerializer : DataSerializer<ServiceSyncInfo>
+[DataSerializerGlobal(typeof(ServiceWireSyncInfoSerializer))]
+public class ServiceWireSyncInfoSerializer : DataSerializer<ServiceSyncInfo>
 {
     public override void PreSerialize(ref ServiceSyncInfo obj, ArchiveMode mode, SerializationStream stream)
     {

@@ -410,36 +410,34 @@ namespace Stride.Shaders.Compiler.Direct3D
                         var binding = constantBuffer.Members[i];
 
                         // Retrieve Link Member
-                        if (binding.RawName != variableName)
+                        // TODO: name output by spirv-cross might not match what we expect so skip name check for now
+                        //if (!variableName.EndsWith(binding.RawName))
+                        //{
+                        //    log.Error($"Variable [{variableName}] in Constant Buffer [{constantBuffer.Name}] has no link");
+                        //}
+                        var parameter = new EffectValueDescription()
                         {
-                            log.Error($"Variable [{variableName}] in Constant Buffer [{constantBuffer.Name}] has no link");
-                        }
-                        else
-                        {
-                            var parameter = new EffectValueDescription()
-                            {
-                                Type =
-                                {
-                                    Class = (EffectParameterClass) variableTypeDescription.Class,
-                                    Type = ConvertVariableValueType(variableTypeDescription.Type, log),
-                                    Elements = (int) variableTypeDescription.Elements,
-                                    RowCount = (byte) variableTypeDescription.Rows,
-                                    ColumnCount = (byte) variableTypeDescription.Columns
-                                },
-                                RawName = variableName,
-                                Offset = (int) variableDescription.StartOffset,
-                                Size = (int) variableDescription.Size
-                            };
+                            Type =
+                                    {
+                                        Class = (EffectParameterClass) variableTypeDescription.Class,
+                                        Type = ConvertVariableValueType(variableTypeDescription.Type, log),
+                                        Elements = (int) variableTypeDescription.Elements,
+                                        RowCount = (byte) variableTypeDescription.Rows,
+                                        ColumnCount = (byte) variableTypeDescription.Columns
+                                    },
+                            RawName = variableName,
+                            Offset = (int) variableDescription.StartOffset,
+                            Size = (int) variableDescription.Size
+                        };
 
-                            if (parameter.Offset != binding.Offset ||
-                                parameter.Size != binding.Size ||
-                                parameter.Type.Elements != binding.Type.Elements ||
-                                // Ignore columns/rows if it's a struct (sometimes it contains weird data)
-                                ((parameter.Type.Class != EffectParameterClass.Struct) &&
-                                 (parameter.Type.RowCount != binding.Type.RowCount || parameter.Type.ColumnCount != binding.Type.ColumnCount)))
-                            {
-                                log.Error($"Variable [{variableName}] in Constant Buffer [{constantBuffer.Name}] binding doesn't match what was expected");
-                            }
+                        if (parameter.Offset != binding.Offset ||
+                            parameter.Size != binding.Size ||
+                            parameter.Type.Elements != binding.Type.Elements ||
+                            // Ignore columns/rows if it's a struct (sometimes it contains weird data)
+                            ((parameter.Type.Class != EffectParameterClass.Struct) &&
+                                (parameter.Type.RowCount != binding.Type.RowCount || parameter.Type.ColumnCount != binding.Type.ColumnCount)))
+                        {
+                            log.Error($"Variable [{variableName}] in Constant Buffer [{constantBuffer.Name}] binding doesn't match what was expected");
                         }
                     }
                     if (constantBuffer.Size != constantBufferRawDesc.Size)

@@ -31,7 +31,7 @@ namespace Stride.Graphics.Tests
             GraphicsDeviceManager.PreferredBackBufferHeight = 480;
             GraphicsDeviceManager.DeviceCreationFlags = DeviceCreationFlags.Debug;
             GraphicsDeviceManager.PreferredDepthStencilFormat = PixelFormat.D24_UNorm_S8_UInt;
-            GraphicsDeviceManager.PreferredGraphicsProfile = [ GraphicsProfile.Level_9_1 ];
+            GraphicsDeviceManager.PreferredGraphicsProfile = [ GraphicsProfile.Level_11_0 ];
         }
 
 

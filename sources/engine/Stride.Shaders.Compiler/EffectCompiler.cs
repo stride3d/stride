@@ -3,22 +3,33 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CommunityToolkit.HighPerformance;
+using Silk.NET.SPIRV;
+using Silk.NET.SPIRV.Cross;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Serialization.Contents;
-using Stride.Core.Storage;
-using Stride.Rendering;
-using Stride.Graphics;
-using Stride.Shaders.Parser;
 using Stride.Core.Shaders.Ast;
 using Stride.Core.Shaders.Ast.Hlsl;
 using Stride.Core.Shaders.Utility;
+using Stride.Core.Storage;
+using Stride.Graphics;
+using Stride.Rendering;
+using Stride.Shaders.Compilers;
+using Stride.Shaders.Compilers.SDSL;
+using Stride.Shaders.Parser;
+using Stride.Shaders.Parser.Mixins;
+using Stride.Shaders.Parsing;
+using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Tools;
 using Encoding = System.Text.Encoding;
 using LoggerResult = Stride.Core.Diagnostics.LoggerResult;
 
@@ -85,6 +96,62 @@ namespace Stride.Shaders.Compiler
             }
         }
 
+        class ShaderLoader(IVirtualFileProvider FileProvider) : ShaderLoaderBase(new ShaderCache())
+        {
+            protected override bool ExternalFileExists(string name)
+            {
+                var path = $"shaders/{name}.sdsl";
+                return FileProvider.FileExists(path);
+            }
+
+            public override bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash)
+            {
+                var path = $"shaders/{name}.sdsl";
+                
+                using var sourceStream = FileProvider.OpenStream(path, VirtualFileMode.Open, VirtualFileAccess.Read);
+                using var reader = new StreamReader(sourceStream);
+                code = reader.ReadToEnd();
+
+                var databaseStream = sourceStream as IDatabaseStream;
+                if (databaseStream == null)
+                {
+                    sourceStream.Position = 0;
+                    var data = new byte[sourceStream.Length];
+                    var readBytes = sourceStream.Read(data, 0, (int)sourceStream.Length);
+                    if (readBytes != sourceStream.Length)
+                        throw new InvalidOperationException();
+                    hash = ObjectId.FromBytes(data);
+                }
+                else
+                {
+                    hash = databaseStream.ObjectId;
+                }
+
+                filename = path;
+                return true;
+            }
+        }
+
+        //Parsing.SDSL.ShaderMixinSource ConvertAndEnsureMixin(ShaderSource shaderSource)
+        //{
+        //    var result = Convert(shaderSource);
+        //    return result switch
+        //    {
+        //        Parsing.SDSL.ShaderMixinSource mixinSource => mixinSource,
+        //        Parsing.SDSL.ShaderClassSource classSource => new Parsing.SDSL.ShaderMixinSource { Mixins = { classSource } },
+        //    };
+        //}
+
+        //Parsing.SDSL.ShaderSource Convert(ShaderSource shaderSource)
+        //{
+        //    return shaderSource switch
+        //    {
+        //        ShaderClassSource classSource => new Parsing.SDSL.ShaderClassSource(classSource.ClassName) { GenericArguments = classSource.GenericArguments },
+        //        ShaderMixinSource mixinSource => new Parsing.SDSL.ShaderMixinSource { Compositions = new Dictionary<string, Parsing.SDSL.ShaderMixinSource>(mixinSource.Compositions.Select(x => KeyValuePair.Create(x.Key, ConvertAndEnsureMixin(x.Value)))) },
+        //    };
+        //}
+
+
         public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters)
         {
             var log = new LoggerResult();
@@ -137,7 +204,13 @@ namespace Stride.Shaders.Compiler
             // In .sdsl, class has been renamed to shader to avoid ambiguities with HLSL
             shaderMixinSource.AddMacro("class", "shader");
 
-            var parsingResult = GetMixinParser().Parse(shaderMixinSource, shaderMixinSource.Macros.ToArray());
+            var shaderMixer = new ShaderMixer(new ShaderLoader(FileProvider));
+            shaderMixer.MergeSDSL(shaderMixinSource, out var spirvBytecode, out var effectReflection, out var usedHashSources);
+
+            var translator = new SpirvTranslator(spirvBytecode.ToArray().AsMemory().Cast<byte, uint>());
+            var entryPoints = translator.GetEntryPoints();
+
+            /*var parsingResult = GetMixinParser().Parse(shaderMixinSource, shaderMixinSource.Macros.ToArray());
 
             // Copy log from parser results to output
             CopyLogs(parsingResult, log);
@@ -160,13 +233,13 @@ namespace Stride.Shaders.Compiler
             {
                 log.Error($"No code generated for effect [{fullEffectName}]");
                 return new EffectBytecodeCompilerResult(null, log);
-            }
+            }*/
 
             // -------------------------------------------------------
             // Save shader log
             // TODO: TEMP code to allow debugging generated shaders on Windows Desktop
 #if STRIDE_PLATFORM_DESKTOP
-            var shaderId = ObjectId.FromBytes(Encoding.UTF8.GetBytes(shaderSourceText));
+            var shaderId = ObjectId.FromBytes(spirvBytecode);
 
             var logDir = Path.Combine(PlatformFolders.ApplicationBinaryDirectory, "log");
             if (!Directory.Exists(logDir))
@@ -179,15 +252,13 @@ namespace Stride.Shaders.Compiler
                 // Write shader before generating to make sure that we are having a trace before compiling it (compiler may crash...etc.)
                 if (!File.Exists(shaderSourceFilename))
                 {
-                    File.WriteAllText(shaderSourceFilename, shaderSourceText);
+                    File.WriteAllBytes(Path.ChangeExtension(shaderSourceFilename, ".spv"), spirvBytecode);
+                    File.WriteAllText(Path.ChangeExtension(shaderSourceFilename, ".spvdis"), Spirv.Tools.Spv.Dis(SpirvBytecode.CreateBufferFromBytecode(spirvBytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
                 }
             }
 #else
             string shaderSourceFilename = null;
 #endif
-            // -------------------------------------------------------
-
-            var bytecode = new EffectBytecode { Reflection = parsingResult.Reflection, HashSources = parsingResult.HashSources };
 
             // Select the correct backend compiler
             IShaderCompiler compiler;
@@ -213,12 +284,39 @@ namespace Stride.Shaders.Compiler
 #if STRIDE_PLATFORM_DESKTOP
             var stageStringBuilder = new StringBuilder();
 #endif
-            foreach (var stageBinding in parsingResult.EntryPoints)
+
+            var bytecode = new EffectBytecode { Reflection = effectReflection, HashSources = usedHashSources };
+
+            var shaderSourceText = new StringBuilder();
+            foreach (var stageBinding in entryPoints)
             {
+                var code = translator.Translate(Backend.Hlsl, stageBinding);
+
                 // Compile
                 // TODO: We could compile stages in different threads to improve compiler throughput?
-                var result = compiler.Compile(shaderSourceText, stageBinding.Value, stageBinding.Key, effectParameters, bytecode.Reflection, shaderSourceFilename);
+                var shaderStage = stageBinding.ExecutionModel switch
+                {
+                    ExecutionModel.Vertex => ShaderStage.Vertex,
+                    ExecutionModel.TessellationControl => ShaderStage.Hull,
+                    ExecutionModel.TessellationEvaluation => ShaderStage.Domain,
+                    ExecutionModel.Geometry => ShaderStage.Geometry,
+                    ExecutionModel.Fragment => ShaderStage.Pixel,
+                    ExecutionModel.GLCompute => ShaderStage.Compute,
+                };
+                var result = compiler.Compile(code, stageBinding.TranslatedName, shaderStage, effectParameters, bytecode.Reflection, shaderSourceFilename);
                 result.CopyTo(log);
+
+                shaderSourceText.AppendLine("// ==========================================");
+                shaderSourceText.AppendLine($"//         {shaderStage} shader");
+                shaderSourceText.AppendLine(code);
+                shaderSourceText.AppendLine();
+
+                shaderSourceText.AppendLine($"// {result.Messages.Count} errors & messages:");
+                foreach (var message in result.Messages)
+                {
+                    shaderSourceText.AppendLine($"[{message.Type}] {message.Text}");
+                    shaderSourceText.AppendLine();
+                }
 
                 if (result.HasErrors)
                 {
@@ -228,7 +326,7 @@ namespace Stride.Shaders.Compiler
                 // -------------------------------------------------------
                 // Append bytecode id to shader log
 #if STRIDE_PLATFORM_DESKTOP
-                stageStringBuilder.AppendLine("@G    {0} => {1}".ToFormat(stageBinding.Key, result.Bytecode.Id));
+                stageStringBuilder.AppendLine("@G    {0} => {1}".ToFormat(shaderStage, result.Bytecode.Id));
                 if (result.DisassembleText != null)
                 {
                     stageStringBuilder.Append(result.DisassembleText);
@@ -239,7 +337,7 @@ namespace Stride.Shaders.Compiler
                 shaderStageBytecodes.Add(result.Bytecode);
 
                 // When this is a compute shader, there is no need to scan other stages
-                if (stageBinding.Key == ShaderStage.Compute)
+                if (shaderStage == ShaderStage.Compute)
                     break;
             }
 
@@ -272,7 +370,7 @@ namespace Stride.Shaders.Compiler
                         builder.AppendFormat("cbuffer {0} [Size: {1}]", cBuffer.Name, cBuffer.Size).AppendLine();
                         foreach (var parameter in cBuffer.Members)
                         {
-                            builder.AppendFormat("@C    {0} => {1}", parameter.RawName, parameter.KeyInfo.KeyName).AppendLine();
+                            builder.AppendFormat("@C    {0} => {1} [LogicalGroup: {2}]", parameter.RawName, parameter.KeyInfo.KeyName, parameter.LogicalGroup).AppendLine();
                         }
                     }
                     builder.AppendLine("***************************");
@@ -284,7 +382,7 @@ namespace Stride.Shaders.Compiler
                     builder.AppendLine("***************************");
                     foreach (var resource in bytecode.Reflection.ResourceBindings)
                     {
-                        builder.AppendFormat("@R    {0} => {1} [Stage: {2}, Slot: ({3}-{4})]", resource.RawName, resource.KeyInfo.KeyName, resource.Stage, resource.SlotStart, resource.SlotStart + resource.SlotCount - 1).AppendLine();
+                        builder.AppendFormat("@R    {0} => {1} [LogicalGroup: {2} Stage: {3}, Slot: ({4}-{5})]", resource.RawName, resource.KeyInfo.KeyName, resource.LogicalGroup, resource.Stage, resource.SlotStart, resource.SlotStart + resource.SlotCount - 1).AppendLine();
                     }
                     builder.AppendLine("***************************");
                 }
@@ -315,6 +413,7 @@ namespace Stride.Shaders.Compiler
                 builder.Append(shaderSourceText);
 
                 outputShaderLog = builder.ToString();
+
                 File.WriteAllText(shaderSourceFilename, outputShaderLog);
             }
 
@@ -409,7 +508,7 @@ namespace Stride.Shaders.Compiler
                     || resourceBinding.Class == EffectParameterClass.TextureBuffer)
                 {
                     // Mark associated cbuffer/tbuffer as used
-                    usedConstantBuffers.Add(resourceBinding.KeyInfo.KeyName);
+                    usedConstantBuffers.Add(resourceBinding.RawName);
                 }
             }
 

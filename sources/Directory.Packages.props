@@ -5,6 +5,7 @@
   <!-- Runtime dependencies -->
   <ItemGroup>
     <PackageVersion Include="BepuPhysics" Version="2.5.0-beta.25" />
+    <PackageVersion Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
     <PackageVersion Include="DotRecast.Core" Version="2025.2.1" />
     <PackageVersion Include="DotRecast.Detour" Version="2025.2.1" />
     <PackageVersion Include="DotRecast.Recast" Version="2025.2.1" />
@@ -31,6 +32,7 @@
     <PackageVersion Include="Silk.NET.OpenXR" Version="2.22.0" />
     <PackageVersion Include="Silk.NET.OpenXR.Extensions.FB" Version="2.22.0" />
     <PackageVersion Include="Silk.NET.Sdl" Version="2.22.0" />
+    <PackageVersion Include="Silk.NET.SPIRV.Cross" Version="2.22.0" />
     <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="2.22.0" />
     <PackageVersion Include="Stride.SharpFont" Version="1.0.1" />
     <PackageVersion Include="System.Drawing.Common" Version="8.0.1" />

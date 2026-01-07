@@ -22,7 +22,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="ServiceWire" />
     <PackageReference Include="System.ValueTuple" />
     <PackageReference Include="Microsoft.NETCore.Platforms" />
   </ItemGroup>

@@ -91,7 +91,7 @@ namespace Stride.Shaders.Compiler.OpenGL
                 File.WriteAllBytes(inputFileName, Encoding.ASCII.GetBytes(shader));
 
                 // Run shader compiler
-                string glslangValidatorPath = Core.NativeLibraryHelper.LocateExecutable(Platform.Type == PlatformType.Windows ? "glslangValidator.exe" : "glslangValidator.bin", typeof(ShaderCompiler));
+                string glslangValidatorPath = NativeLibraryHelper.LocateExecutable(Platform.Type == PlatformType.Windows ? "glslangValidator.exe" : "glslangValidator.bin", typeof(ShaderCompiler));
                 ShellHelper.RunProcessAndRedirectToLogger(glslangValidatorPath, $"-V -o {outputFileName} {inputFileName}", null, shaderBytecodeResult);
 
                 if (!File.Exists(outputFileName))
