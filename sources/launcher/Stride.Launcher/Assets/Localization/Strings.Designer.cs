@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Stride.LauncherApp.Resources {
+namespace Stride.Launcher.Assets.Localization {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Stride.LauncherApp.Resources {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.LauncherApp.Resources.Strings", typeof(Strings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.Launcher.Assets.Localization.Strings", typeof(Strings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -139,9 +139,9 @@ namespace Stride.LauncherApp.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Fork on GitHub.
         /// </summary>
-        public static string ButtonGithub {
+        public static string ButtonGitHub {
             get {
-                return ResourceManager.GetString("ButtonGithub", resourceCulture);
+                return ResourceManager.GetString("ButtonGitHub", resourceCulture);
             }
         }
         

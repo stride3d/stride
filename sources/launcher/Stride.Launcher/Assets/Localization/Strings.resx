@@ -133,7 +133,7 @@
     <value>Discuss about Stride</value>
     <comment>/!\ Text must be short</comment>
   </data>
-  <data name="ButtonGithub" xml:space="preserve">
+  <data name="ButtonGitHub" xml:space="preserve">
     <value>Fork on GitHub</value>
     <comment>/!\ Text must be short</comment>
   </data>
