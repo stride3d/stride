@@ -44,8 +44,6 @@ public partial class App : Application
                 DataContext = InitializeMainViewModel()
             };
         }
-
-        base.OnFrameworkInitializationCompleted();
     }
 
     private static MainViewModel InitializeMainViewModel()
@@ -63,4 +61,10 @@ public partial class App : Application
         };
         return new ViewModelServiceProvider(services);
     }
+}
+
+// This app is used for the crash report or for the notification when an instance is already running
+internal sealed class MinimalApp : App
+{
+    public override void OnFrameworkInitializationCompleted() { }
 }

@@ -101,7 +101,7 @@ internal static class Launcher
         static void DisplayError(string message, MessageBoxImage image)
         {
             // Note: because we are not running from the main loop, we have to start a new app
-            Program.RunNewApp<Application>(AppMain);
+            Program.RunNewApp<MinimalApp>(AppMain);
 
             CancellationToken AppMain(Application app)
             {
@@ -194,7 +194,7 @@ internal static class Launcher
 
     private static void CrashReport(CrashReportArgs args)
     {
-        Program.RunNewApp<Application>(AppMain);
+        Program.RunNewApp<MinimalApp>(AppMain);
 
         CancellationToken AppMain(Application app)
         {
