@@ -134,7 +134,7 @@
     <value>https://doc.stride3d.net/{0}/studio_getting_started_links.txt</value>
     <comment>{0}: the major version of Stride (eg. 1.2)</comment>
   </data>
-  <data name="Github" xml:space="preserve">
+  <data name="GitHub" xml:space="preserve">
     <value>https://github.com/stride3d/stride/</value>
   </data>
   <data name="Issues" xml:space="preserve">

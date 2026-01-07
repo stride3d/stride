@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+             xmlns:vm="using:Stride.Launcher.ViewModels"
+             mc:Ignorable="d"
+             x:Class="Stride.Launcher.Views.Announcement"
+             x:DataType="vm:AnnouncementViewModel">
+  <Grid>
+    <DockPanel>
+      <DockPanel DockPanel.Dock="Bottom">
+        <Button DockPanel.Dock="Right"
+                Content="OK"
+                Command="{Binding CloseAnnouncementCommand}" />
+        <CheckBox IsChecked="{Binding DontShowAgain}"
+                  Content="Don't show me this again" />
+      </DockPanel>
+      <md:MarkdownScrollViewer Markdown="{Binding MarkdownAnnouncement}" />
+    </DockPanel>
+  </Grid>
+</UserControl>
