@@ -106,7 +106,7 @@
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Xaml.Behaviors.Avalonia" Version="$(AvaloniaBehaviorVersion)" />
     <PackageVersion Include="Xaml.Behaviors.Interactions" Version="$(AvaloniaBehaviorVersion)" />
-    <PackageVersion Include="Markdown.Avalonia.Tight" Version="11.0.2" />
+    <PackageVersion Include="ClassIsland.Markdown.Avalonia.Tight" Version="11.0.3.4" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />
   </ItemGroup>
   <!-- Windows/WPF dependencies -->
