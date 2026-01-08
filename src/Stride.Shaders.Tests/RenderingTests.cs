@@ -45,13 +45,20 @@ public class RenderingTests
         protected override bool LoadFromCode(string filename, string code, ReadOnlySpan<ShaderMacro> macros, out SpirvBytecode buffer)
         {
             var result = base.LoadFromCode(filename, code, macros, out buffer);
-#if DEBUG
             if (result)
             {
+                Console.WriteLine($"Loading shader {filename}");
                 Spv.Dis(buffer, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
             }
-#endif
             return result;
+        }
+
+        public override void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, SpirvBytecode bytecode)
+        {
+            base.RegisterShader(name, defines, bytecode);
+
+            Console.WriteLine($"Registering shader {name}");
+            Spv.Dis(bytecode, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
         }
     }
 
@@ -62,7 +69,9 @@ public class RenderingTests
         // Compiler shader
         var shaderMixer = new ShaderMixer(new ShaderLoader());
         shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), out var bytecode, out var effectReflection);
+
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
+        File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateBufferFromBytecode(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
 
         // Convert to GLSL
         var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());

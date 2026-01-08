@@ -44,9 +44,6 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                         throw new Exception("Some parse errors");
 
                     var merged = compiler.ToBuffer();
-#if DEBUG
-                    var dis = Spv.Dis(merged, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
-#endif
                     lastBuffer = new(merged);
 
                     ShaderLoader.RegisterShader(shader.Name, macros, lastBuffer);
@@ -63,9 +60,6 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     effect.Compile(table, compiler);
 
                     var merged = compiler.ToBuffer();
-#if DEBUG
-                    var dis = Spv.Dis(merged, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
-#endif
                     lastBuffer = new(merged);
 
                     ShaderLoader.RegisterShader(effect.Name, macros, lastBuffer);

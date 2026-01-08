@@ -16,7 +16,7 @@ namespace Stride.Shaders.Spirv.Building;
 
 public interface IExternalShaderLoader
 {
-    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, SpirvBytecode buffer);
+    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, SpirvBytecode bytecode);
     public bool Exists(string name);
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out SpirvBytecode bytecode, out bool isFromCache);
     public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out SpirvBytecode bytecode, out bool isFromCache);

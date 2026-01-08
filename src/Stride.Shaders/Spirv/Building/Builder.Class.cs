@@ -660,9 +660,6 @@ public partial class SpirvBuilder
 
         // Split context and buffer
 
-        //if (!isFromCache)
-        //    Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
-
         // TODO: generics cache?
         if (genericResolver.NeedsResolve())
         {
@@ -679,7 +676,6 @@ public partial class SpirvBuilder
             shaderBuffers.Buffer = CopyBuffer(shaderBuffers.Buffer);
 
             InstantiateGenericShader(ref shaderBuffers, className, genericResolver, shaderLoader, macros);
-            //Spv.Dis(shader, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
         }
 
         return shaderBuffers;

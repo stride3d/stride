@@ -87,12 +87,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         bytecode = SpirvBytecode.CreateBytecodeFromBuffers(temp);
 
-#if DEBUG
-        //File.WriteAllBytes("test.spv", bytecode);
-        //File.WriteAllText("test.spvdis", Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
-        Spv.Dis(temp, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
-#endif
-
         effectReflection = globalContext.Reflection;
     }
 

@@ -32,11 +32,11 @@ public abstract class ShaderLoaderBase : IExternalShaderLoader
 
     private Dictionary<string, Dictionary<ShaderLoadKey, SpirvBytecode>> loadedShaders = [];
 
-    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, SpirvBytecode buffer)
+    public virtual void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, SpirvBytecode bytecode)
     {
         if (!loadedShaders.TryGetValue(name, out var loadedShadersByName))
             loadedShaders.Add(name, loadedShadersByName = new());
-        loadedShadersByName.Add(new(defines.ToArray()), buffer);
+        loadedShadersByName.Add(new(defines.ToArray()), bytecode);
     }
 
     public bool Exists(string name)
