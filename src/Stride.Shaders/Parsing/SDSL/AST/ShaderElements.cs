@@ -390,8 +390,8 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
         var linkInfo = CBuffer.ProcessLinkAttributes(table, info, attributes);
         if (linkInfo.LinkId is int linkId)
             context.Add(new OpDecorate(variableId, ParameterizedFlags.DecorationLinkIdSDSL(linkId)));
-        else
-            context.Add(new OpDecorateString(variableId, ParameterizedFlags.DecorationLinkSDSL(linkInfo.LinkName ?? $"{shaderClass.Name}.{memberName}")));
+        else if (linkInfo.LinkName != null)
+            context.Add(new OpDecorateString(variableId, ParameterizedFlags.DecorationLinkSDSL(linkInfo.LinkName)));
     }
 }
 

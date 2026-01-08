@@ -184,6 +184,18 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         mixinNode.EndInstruction = buffer.Count;
     }
 
+    private static string GenerateLinkName(string shaderName, string variableName)
+    {
+        return $"{TypeName.GetTypeNameWithoutGenerics(shaderName)}.{variableName}";
+    }
+
+    private static string ComposeLinkName(bool isStaging, string linkName, string? compositionPath = null)
+    {
+        if (!isStaging && compositionPath != null)
+            linkName += $".{compositionPath}";
+        return linkName;
+    }
+    
     private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass)
     {
         var isRootMixin = mixinNode.Stage == null;
@@ -434,21 +446,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 var target = i.Data.Memory.Span[1];
                 if (removedIds.Contains(target))
                     SetOpNop(i.Data.Memory.Span);
-            }
-        }
-
-        // Link attribute: postfix with composition path
-        if (mixinNode.CompositionPath != null)
-        {
-            foreach (var i in buffer)
-            {
-                if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LinkSDSL, Parameters: { } m } } memberDecorate)
-                {
-                    var n = new LiteralValue<string>(m.Span);
-                    n.Value = $"{n.Value}.{mixinNode.CompositionPath}";
-                    memberDecorate.Decoration = new(memberDecorate.Decoration.Value, n.Words);
-                    n.Dispose();
-                }
             }
         }
 
@@ -989,9 +986,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     var name = context.Names[variable.ResultId];
                     linkInfos.TryGetValue(variable.ResultId, out var linkInfo);
-                    var linkName = linkInfo.LinkName ?? $"{TypeName.GetTypeNameWithoutGenerics(currentShaderName)}.{name}";
-                    if (mixinNode.CompositionPath != null)
-                        linkName = $"{linkName}.{mixinNode.CompositionPath}";
+                    var linkName = linkInfo.LinkName ?? GenerateLinkName(currentShaderName, name);
+                    linkName = ComposeLinkName((variable.Flags & VariableFlagsMask.Stage) != 0, linkName, mixinNode.CompositionPath);
 
                     var effectResourceBinding = new EffectResourceBindingDescription
                     {

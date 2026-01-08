@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#01050304, cbuffer.Test=(TestBase=01,LinkValue1=05, LinkValue2=03, LinkValue3=04))
+// PSMain(ExpectedResult=#01050304, cbuffer.Test=(TestBase=01,LinkValue1=05, LinkValue2=03, LinkValue3.Comp2=04))
 
 namespace Stride.Shaders.Tests;
 
@@ -10,12 +10,26 @@ shader Compute
     }
 }
 
-shader ComputeLink<LinkType Link1> : Compute
+shader ComputeLinkStage<LinkType Link1> : Compute
 {
     cbuffer Test
     {
         [Link("Link1")]
         stage int Test1;
+    }
+
+    override float Compute()
+    {
+        return (float)Test1;
+    }
+}
+
+shader ComputeLink<LinkType Link1> : Compute
+{
+    cbuffer Test
+    {
+        [Link("Link1")]
+        int Test1;
     }
 
     override float Compute()
@@ -46,7 +60,7 @@ shader GenericsLinkType
 effect CompositionGenericLinkType
 {
 	mixin GenericsLinkType;
-	mixin compose Comp0 = ComputeLink<"LinkValue1">;
-	mixin compose Comp1 = ComputeLink<"LinkValue2">;
+	mixin compose Comp0 = ComputeLinkStage<"LinkValue1">;
+	mixin compose Comp1 = ComputeLinkStage<"LinkValue2">;
 	mixin compose Comp2 = ComputeLink<"LinkValue3">;
 }
