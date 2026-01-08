@@ -408,9 +408,9 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         var textureValue = builder.AsValue(context, result);
                         var textureCoordSize = textureType switch
                         {
-                            Texture1DType { Arrayed: false } => 1,
-                            Texture2DType { Arrayed: false } => 2,
-                            Texture3DType { Arrayed: false } => 3,
+                            Texture1DType => 1,
+                            Texture2DType => 2,
+                            Texture3DType or TextureCubeType => 3,
                         };
                         var offsetSize = textureCoordSize;
                         if (textureType.Arrayed)
