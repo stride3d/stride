@@ -601,7 +601,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     public static LoadedShaderSymbol LoadAndCacheExternalShaderType(SymbolTable table, SpirvContext context, ShaderClassInstantiation classSource)
     {
         // Already processed?
-        if (table.DeclaredTypes.TryGetValue(classSource.ToClassName(), out var symbolType))
+        if (table.DeclaredTypes.TryGetValue(classSource.ToClassNameWithGenerics(), out var symbolType))
             return (LoadedShaderSymbol)symbolType;
 
         if (classSource.Buffer == null)
@@ -614,7 +614,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     public static LoadedShaderSymbol LoadAndCacheExternalShaderType(SymbolTable table, SpirvContext context, ShaderClassInstantiation classSource, SpirvContext declaringContext)
     {
         // Already processed?
-        if (table.DeclaredTypes.TryGetValue(classSource.ToClassName(), out var symbolType))
+        if (table.DeclaredTypes.TryGetValue(classSource.ToClassNameWithGenerics(), out var symbolType))
             return (LoadedShaderSymbol)symbolType;
 
         if (classSource.Buffer == null)

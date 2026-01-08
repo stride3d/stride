@@ -179,7 +179,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             var shaderInfo = MergeClassInBuffers(globalContext, context, buffer, mixinNode, shaderClass);
 
-            mixinNode.ShadersByName.Add(shaderClass.ToClassName(), shaderInfo);
+            mixinNode.ShadersByName.Add(shaderClass.ToClassNameWithGenerics(), shaderInfo);
             mixinNode.Shaders.Add(shaderInfo);
 
             // Note: we process name, types and struct right away, as they might be needed by the next Shader
@@ -229,7 +229,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // If a stage member is skipped in a composition mixin, we want to remap to the version in the root mixin
             if (isStage && !isRootMixin)
             {
-                var stageShader = mixinNode.Stage.ShadersByName[shaderClass.ToClassName()];
+                var stageShader = mixinNode.Stage.ShadersByName[shaderClass.ToClassNameWithGenerics()];
                 var memberOrTypeName = names[memberId];
                 var stageMemberOrTypeId = stageShader.StructTypes.TryGetValue(memberOrTypeName, out var structTypeId)
                     ? structTypeId

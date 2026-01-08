@@ -300,7 +300,7 @@ public partial record ShaderSymbol(string Name, int[] GenericArguments) : Symbol
             return Name;
 
         var className = new ShaderClassInstantiation(Name, GenericArguments);
-        return className.ToClassName();
+        return className.ToClassNameWithGenerics();
     }
 
     public override string ToString()

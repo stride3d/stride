@@ -266,14 +266,14 @@ public class Identifier(string name, TextLocation info) : Literal(info)
     {
         var (builder, context) = compiler;
 
-        return CompileSymbol(table, builder.GetBuffer(), ref builder.Position, context, builder.CurrentFunction == null);
+        return CompileSymbol(table, builder, context, builder.CurrentFunction == null);
     }
 
-    private SpirvValue CompileSymbol(SymbolTable table, NewSpirvBuffer? buffer, ref int position, SpirvContext context, bool constantOnly)
+    private SpirvValue CompileSymbol(SymbolTable table, SpirvBuilder builder, SpirvContext context, bool constantOnly)
     {
         if (Name == "streams")
         {
-            var result = buffer.Insert(position++, new OpStreamsSDSL(context.Bound++));
+            var result = builder.Insert(new OpStreamsSDSL(context.Bound++));
             return new(result.ResultId, context.GetOrRegister(new PointerType(new StreamsType(), Specification.StorageClass.Private)));
         }
 
@@ -306,10 +306,10 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         if (symbol.Id.Storage == Storage.Stream && !AllowStreamVariables)
             throw new InvalidOperationException($"Streams member {Name} used without an object");
         Type = symbol.Type;
-        return EmitSymbol(buffer, ref position, context, symbol, constantOnly);
+        return EmitSymbol(builder, context, symbol, constantOnly);
     }
 
-    public static SpirvValue EmitSymbol(NewSpirvBuffer? buffer, ref int position, SpirvContext context, Symbol symbol, bool constantOnly, int? instance = null)
+    public static SpirvValue EmitSymbol(SpirvBuilder builder, SpirvContext context, Symbol symbol, bool constantOnly, int? instance = null)
     {
         var resultType = context.GetOrRegister(symbol.Type);
         var result = new SpirvValue(symbol.IdRef, resultType, symbol.Id.Name);
@@ -321,7 +321,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
                 throw new NotImplementedException();
 
             if (instance == null)
-                instance = buffer.Insert(position++, new OpThisSDSL(context.Bound++)).ResultId;
+                instance = builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
             result.Id = instance.Value;
             return result;
         }
@@ -335,10 +335,10 @@ public class Identifier(string name, TextLocation info) : Literal(info)
             if (instance == null)
             {
                 instance = isStage
-                    ? buffer.Insert(position++, new OpStageSDSL(context.Bound++)).ResultId
-                    : buffer.Insert(position++, new OpThisSDSL(context.Bound++)).ResultId;
+                    ? builder.Insert(new OpStageSDSL(context.Bound++)).ResultId
+                    : builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
             }
-            result.Id = buffer.Insert(position++, new OpMemberAccessSDSL(context.GetOrRegister(thisType), context.Bound++, instance.Value, result.Id));
+            result.Id = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(thisType), context.Bound++, instance.Value, result.Id));
         }
         if (symbol.AccessChain is int accessChainIndex)
         {
@@ -346,7 +346,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
                 throw new NotImplementedException();
 
             var index = context.CompileConstant(accessChainIndex).Id;
-            result.Id = buffer.Insert(position++, new OpAccessChain(resultType, context.Bound++, result.Id, [index]));
+            result.Id = builder.Insert(new OpAccessChain(resultType, context.Bound++, result.Id, [index]));
         }
 
         return result;

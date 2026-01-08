@@ -41,7 +41,7 @@ public record class ShaderClassInstantiation(string ClassName, int[] GenericArgu
 
     public LoadedShaderSymbol Symbol { get; set; }
 
-    public string ToClassName()
+    public string ToClassNameWithGenerics()
     {
         if ((GenericArguments == null || GenericArguments.Length == 0) && !ImportStageOnly)
             return ClassName;
@@ -58,7 +58,7 @@ public record class ShaderClassInstantiation(string ClassName, int[] GenericArgu
         return result.ToString();
     }
 
-    public override string ToString() => $"{(ImportStageOnly ? "stage " : string.Empty)}{ToClassName()} Symbol: {Symbol} Buffer: {(Buffer != null ? "set" : "empty")}";
+    public override string ToString() => $"{(ImportStageOnly ? "stage " : string.Empty)}{ToClassNameWithGenerics()} Symbol: {Symbol} Buffer: {(Buffer != null ? "set" : "empty")}";
 
     public virtual bool Equals(ShaderClassInstantiation? shaderClassSource)
     {
@@ -114,7 +114,7 @@ public partial class SpirvBuilder
             if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
             {
                 if (genericParameter.Index >= classSource.GenericArguments.Length)
-                    throw new NotImplementedException($"Not enough generic parameters specified when instantiating {classSource.ToClassName()}");
+                    throw new NotImplementedException($"Not enough generic parameters specified when instantiating {classSource.ToClassNameWithGenerics()}");
                 genericParameterRemapping.Add(genericParameter.ResultId, classSource.GenericArguments[genericParameter.Index]);
             }
             if (i.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)

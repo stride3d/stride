@@ -1,3 +1,4 @@
+using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv;
@@ -209,7 +210,33 @@ public class MixinAccess(Mixin mixin, TextLocation info) : Expression(info)
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        
+        // MixinAccess is same as Identifier static variable case, except we have generics (which is why MixinAccess was chosen over Identifier)
+        var generics = SDFX.AST.ShaderEffect.CompileGenerics(table, compiler, Mixin.Generics);
+        var classSource = new ShaderClassInstantiation(Mixin.Name, generics);
+        if (!table.TryResolveSymbol(classSource.ToClassNameWithGenerics(), out var symbol))
+        {
+            if (!table.ShaderLoader.Exists(classSource.ClassName))
+                throw new InvalidOperationException($"Symbol [{classSource.ClassName}] could not be found.");
+
+            // Shader is inherited (TODO: do we want to do something more "selective", i.e. import only the required variable if it's a cbuffer?)
+            var inheritedShaderCount = table.InheritedShaders.Count;
+            classSource = SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile);
+            for (int i = inheritedShaderCount; i < table.InheritedShaders.Count; ++i)
+            {
+                table.InheritedShaders[i].Symbol = ShaderClass.LoadAndCacheExternalShaderType(table, context, table.InheritedShaders[i]);
+                ShaderClass.Inherit(table, context, table.InheritedShaders[i].Symbol, false);
+            }
+
+            // We add the typename as a symbol (similar to static access in C#)
+            var shaderId = context.GetOrRegister(classSource.Symbol);
+            symbol = new Symbol(new(classSource.Symbol.Name, SymbolKind.Shader), new PointerType(classSource.Symbol, Specification.StorageClass.Private), shaderId);
+            table.CurrentFrame.Add(classSource.ToClassNameWithGenerics(), symbol);
+        }
+
+        Type = symbol.Type;
+        return Identifier.EmitSymbol(builder, context, symbol, builder.CurrentFunction == null);
     }
     public override string ToString()
     {
@@ -549,7 +576,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         throw new InvalidOperationException();
 
                     // TODO: figure out instance (this vs composition)
-                    result = Identifier.EmitSymbol(builder.GetBuffer(), ref builder.Position, context, matchingComponent, false, result.Id);
+                    result = Identifier.EmitSymbol(builder, context, matchingComponent, false, result.Id);
                     accessor.Type = matchingComponent.Type;
 
                     break;
