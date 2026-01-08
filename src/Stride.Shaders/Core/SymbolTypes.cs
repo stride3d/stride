@@ -120,7 +120,8 @@ public sealed partial record MatrixType(ScalarType BaseType, int Rows, int Colum
     public int Rows { get; } = Rows >= 2 ? Rows : throw new ArgumentException("Argument must be at least 2.", nameof(Rows));
     public int Columns { get; } = Columns >= 2 ? Columns : throw new ArgumentException("Argument must be at least 2.", nameof(Columns));
 
-    public override string ToString() => $"{BaseType}{Rows}x{Columns}";
+    // Note: this is HLSL-style so Rows/Columns meaning is swapped
+    public override string ToString() => $"{BaseType}{Columns}x{Rows}";
 }
 /// <summary>
 /// Array type.

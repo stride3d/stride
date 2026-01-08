@@ -399,11 +399,13 @@ namespace Stride.Shaders.Compilers.SDSL
                     ArrayType a => ConvertArrayType(context, a, typeModifier),
                     StructType s => ConvertStructType(context, s),
                     // TODO: should we use RowCount instead? (need to update Stride)
-                    VectorType v => ConvertType(context, v.BaseType, typeModifier) with { Class = EffectParameterClass.Vector, ColumnCount = v.Size },
+                    VectorType v => ConvertType(context, v.BaseType, typeModifier) with { Class = EffectParameterClass.Vector, RowCount = 1, ColumnCount = v.Size },
+                    // Note: this is HLSL-style so Rows/Columns meaning is swapped
+                    //       however, for type/class, both TypeModifier and EffectParameterType are following HLSL
                     MatrixType m when typeModifier == TypeModifier.ColumnMajor || typeModifier == TypeModifier.None
-                        => ConvertType(context, m.BaseType, typeModifier) with { Class = EffectParameterClass.MatrixColumns, RowCount = m.Rows, ColumnCount = m.Columns },
+                        => ConvertType(context, m.BaseType, typeModifier) with { Class = EffectParameterClass.MatrixColumns, RowCount = m.Columns, ColumnCount = m.Rows },
                     MatrixType m when typeModifier == TypeModifier.RowMajor
-                        => ConvertType(context, m.BaseType, typeModifier) with { Class = EffectParameterClass.MatrixRows, RowCount = m.Rows, ColumnCount = m.Columns },
+                        => ConvertType(context, m.BaseType, typeModifier) with { Class = EffectParameterClass.MatrixRows, RowCount = m.Columns, ColumnCount = m.Rows },
                 };
 
                 EffectTypeDescription ConvertArrayType(SpirvContext context, ArrayType a, TypeModifier typeModifier)
@@ -499,9 +501,12 @@ namespace Stride.Shaders.Compilers.SDSL
             context.Add(new OpMemberDecorate(structTypeId, index, ParameterizedFlags.DecorationOffset(offset)));
             if (memberType is MatrixType or ArrayType { BaseType: MatrixType })
             {
-                if (memberTypeModifier != TypeModifier.ColumnMajor)
+                // HLSL row_major    => SPIR-V ColMajor
+                // HLSL column_major => SPIR-V RowMajor
+                // HLSL nothing      => SPIR-V RowMajor
+                if (memberTypeModifier == TypeModifier.RowMajor)
                     context.Add(new OpMemberDecorate(structTypeId, index, new ParameterizedFlag<Decoration>(Decoration.ColMajor, [])));
-                else if (memberTypeModifier != TypeModifier.RowMajor)
+                else
                     context.Add(new OpMemberDecorate(structTypeId, index, new ParameterizedFlag<Decoration>(Decoration.RowMajor, [])));
                 context.Add(new OpMemberDecorate(structTypeId, index, ParameterizedFlags.DecorationMatrixStride(16)));
             }

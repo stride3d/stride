@@ -264,10 +264,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             if (instruction.Op == Op.OpMemberDecorate && (OpMemberDecorate)instruction is { } memberDecorate)
             {
                 var structType = (StructuredType)context.ReverseTypes[memberDecorate.StructureType];
+                // Note: SPIR-V and HLSL have opposite meaning for Rows/Columns 
                 if (memberDecorate.Decoration == Decoration.ColMajor)
-                    structType.Members[memberDecorate.Member] = structType.Members[memberDecorate.Member] with { TypeModifier = TypeModifier.ColumnMajor };
-                else if (memberDecorate.Decoration == Decoration.RowMajor)
                     structType.Members[memberDecorate.Member] = structType.Members[memberDecorate.Member] with { TypeModifier = TypeModifier.RowMajor };
+                else if (memberDecorate.Decoration == Decoration.RowMajor)
+                    structType.Members[memberDecorate.Member] = structType.Members[memberDecorate.Member] with { TypeModifier = TypeModifier.ColumnMajor };
             }
         }
     }

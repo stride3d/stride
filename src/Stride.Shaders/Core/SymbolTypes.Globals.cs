@@ -49,7 +49,7 @@ public partial record VectorType
     {
         var arr = new KeyValuePair<string, VectorType>[ScalarType.names.Length * 3];
         for(int i = 0; i < ScalarType.names.Length; i++)
-            for(int x = 2; x < 5; x++)
+            for(int x = 2; x <= 4; x++)
                 arr[i * 3 + (x - 2)] = new($"{ScalarType.names[i]}{x}", new(ScalarType.From(ScalarType.names[i]),x));
         return arr.ToFrozenDictionary();
     }
@@ -64,9 +64,10 @@ public partial record MatrixType
     {
         var arr = new List<KeyValuePair<string, MatrixType>>(ScalarType.names.Length * 3 * 3);
         for(int i = 0; i < ScalarType.names.Length; i++)
-            for(int x = 2; x < 5; x++)
-            for(int y = 2; y < 5; y++)
-                arr.Add(new($"{ScalarType.names[i]}{x}x{y}", new(ScalarType.From(ScalarType.names[i]),x,y)));
+            for(int x = 2; x <= 4; x++)
+                for(int y = 2; y <= 4; y++)
+                    // Note: this is HLSL-style so Rows/Columns meaning is swapped
+                    arr.Add(new($"{ScalarType.names[i]}{y}x{x}", new(ScalarType.From(ScalarType.names[i]),x,y)));
         return arr.ToFrozenDictionary(); 
     }
 }

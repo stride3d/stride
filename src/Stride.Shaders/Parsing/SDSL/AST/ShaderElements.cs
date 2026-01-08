@@ -33,6 +33,9 @@ public enum StorageClass
     Volatile
 }
 
+/// <summary>
+/// Note: row/column major is defined from HLSL point of view (SPIR-V will have opposite)
+/// </summary>
 public enum TypeModifier
 {
     None,

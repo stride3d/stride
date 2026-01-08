@@ -1044,6 +1044,7 @@ public class MulCall(ShaderExpressionList parameters, TextLocation info) : Metho
             throw new NotImplementedException("Only implemented for floating types");
 
         // Version on https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-mul
+        // Note: SPIR-V and HLSL have opposite meaning for Rows/Columns and multiplication order need to be swapped
         var result = (xType, yType) switch
         {
             (ScalarType type1, ScalarType type2) => builder.InsertData(new OpFMul(x.TypeId, context.Bound++, x.Id, y.Id)),
@@ -1051,10 +1052,10 @@ public class MulCall(ShaderExpressionList parameters, TextLocation info) : Metho
             (ScalarType type1, MatrixType type2) => builder.InsertData(new OpMatrixTimesScalar(y.TypeId, context.Bound++, y.Id, x.Id)),
             (VectorType type1, ScalarType type2) => builder.InsertData(new OpVectorTimesScalar(x.TypeId, context.Bound++, x.Id, y.Id)),
             (VectorType type1, VectorType type2) when type1.Size == type2.Size => builder.InsertData(new OpDot(x.TypeId, context.Bound++, x.Id, y.Id)),
-            (VectorType type1, MatrixType type2) when type1.Size == type2.Rows => builder.InsertData(new OpVectorTimesMatrix(context.GetOrRegister(new VectorType(type1.BaseType, type2.Columns)), context.Bound++, x.Id, y.Id)),
+            (VectorType type1, MatrixType type2) when type1.Size == type2.Columns => builder.InsertData(new OpMatrixTimesVector(context.GetOrRegister(new VectorType(type1.BaseType, type2.Rows)), context.Bound++, y.Id, x.Id)),
             (MatrixType type1, ScalarType type2) => builder.InsertData(new OpMatrixTimesScalar(x.TypeId, context.Bound++, x.Id, y.Id)),
-            (MatrixType type1, VectorType type2) when type1.Columns == type2.Size => builder.InsertData(new OpMatrixTimesVector(context.GetOrRegister(new VectorType(type1.BaseType, type1.Rows)), context.Bound++, x.Id, y.Id)),
-            (MatrixType type1, MatrixType type2) when type1.Columns == type2.Rows => builder.InsertData(new OpMatrixTimesMatrix(context.GetOrRegister(new MatrixType(type1.BaseType, type1.Rows, type2.Columns)), context.Bound++, x.Id, y.Id)),
+            (MatrixType type1, VectorType type2) when type1.Rows == type2.Size => builder.InsertData(new OpVectorTimesMatrix(context.GetOrRegister(new VectorType(type1.BaseType, type1.Columns)), context.Bound++, y.Id, x.Id)),
+            (MatrixType type1, MatrixType type2) when type1.Columns == type2.Rows => builder.InsertData(new OpMatrixTimesMatrix(context.GetOrRegister(new MatrixType(type1.BaseType, type2.Rows, type1.Columns)), context.Bound++, y.Id, x.Id)),
         };
 
         return new SpirvValue(result);
