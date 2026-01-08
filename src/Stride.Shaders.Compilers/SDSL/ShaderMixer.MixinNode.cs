@@ -1,4 +1,5 @@
-﻿using Stride.Shaders.Core;
+﻿using System.Text;
+using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Building;
 
 namespace Stride.Shaders.Compilers.SDSL;
@@ -44,6 +45,27 @@ public partial class ShaderMixer
         
         public Dictionary<int, MixinNode> Compositions { get; } = new();
         public Dictionary<int, MixinNode[]> CompositionArrays { get; } = new();
+
+        public override string ToString()
+            => $"MixinNode ({(CompositionPath != null ? $" {CompositionPath} " : "")}{StartInstruction}..{EndInstruction}) ({Shaders.Count} shaders, {Compositions.Count} compositions, {CompositionArrays.Count} composition arrays)";
+
+        public string ToDetailedString()
+        {
+            var sb = new StringBuilder();
+            Recurse(sb, this);
+            return sb.ToString();
+
+            static void Recurse(StringBuilder sb, MixinNode node, int indent = 0)
+            {
+                sb.Append(' ', indent * 2);
+                sb.AppendLine(node.ToString());
+                foreach (var composition in node.Compositions)
+                    Recurse(sb, composition.Value, indent + 1);
+                foreach (var compositions in node.CompositionArrays)
+                    foreach (var composition in compositions.Value)
+                        Recurse(sb, composition, indent + 1);
+            }
+        }
     }
 
     class MethodGroup

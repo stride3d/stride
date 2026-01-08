@@ -63,7 +63,8 @@ namespace Stride.Shaders.Compilers.SDSL
                 if (i.Op == Op.OpFunctionEnd)
                 {
                     // Since we might have inserted instructions, offset all Start/End instructions indices
-                    AdjustIndicesAfterAppendInstructions(rootMixin, i.Index, instructionsAddedInThisMethod);
+                    if (instructionsAddedInThisMethod > 0)
+                        AdjustIndicesAfterAppendInstructions(rootMixin, i.Index, instructionsAddedInThisMethod);
                     instructionsAddedInThisMethod = 0;
                 }
                 if (i.Op is Op.OpLoad && (OpLoad)i is { } load)

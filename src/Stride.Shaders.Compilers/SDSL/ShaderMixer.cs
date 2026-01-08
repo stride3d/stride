@@ -579,7 +579,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         // Extract foreach buffer (with the foreach start/end)
         var foreachBuffer = buffer[index..endIndex];
-        buffer.RemoveRange(index, endIndex - index, false);
+        buffer.RemoveRange(index, foreachBuffer.Count, false);
 
         var foreachBufferCopy = new List<OpData>();
         // Note: Make sure we replace the OpForeachSDSL with a first OpNop, so that if a for() loop works fine and don't miss an instruction without having to do index--
@@ -615,40 +615,50 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
         buffer.InsertRange(index, foreachBufferCopy.AsSpan());
-        AdjustIndicesAfterAppendInstructions(mixinNode.Stage ?? mixinNode, index, foreachBufferCopy.Count - foreachBuffer.Count);
+        // Note: mixinNode is not added to rootMixin hierarchy yet
+        //       Moreover, we are the last mixin (or one of our child is)
+        //       So we need (and it's safe) to call this on mixinNode rather than root node
+        AdjustIndicesAfterAppendInstructions(mixinNode, index, foreachBufferCopy.Count - foreachBuffer.Count);
 
         foreach (var inst in foreachBuffer)
             inst.Dispose();
     }
 
-    // Note: if added between two mixin, it will belong to the one before (as if appending)
-    //       it also means adding before anything else is not supported
-    private static void AdjustIndicesAfterAppendInstructions(MixinNode mixinNode, int insertIndex, int insertCount)
+    // Note: Make sure to call it on propre node (i.e. either last mixin node (if just added) or root, otherwise it won't increment the MixinNode after current one 
+    //       If added between two mixin, it will belong to the one before (as if appending)
+    //       it also means adding before or at the start the first (root) mixin is forbidden
+    private static void AdjustIndicesAfterAppendInstructions(MixinNode rootMixin, int insertIndex, int insertCount)
     {
-        if (insertIndex == 0)
-            throw new NotImplementedException();
-
+        // Check bounds: we can't add before or at start of first mixin
+        if (insertIndex <= rootMixin.StartInstruction)
+            throw new ArgumentOutOfRangeException(nameof(insertIndex));
+        
         // Nothing to shift
         if (insertCount == 0)
             return;
-        
-        if (mixinNode.StartInstruction > insertIndex)
-            mixinNode.StartInstruction += insertCount;
-        if (mixinNode.EndInstruction >= insertIndex)
-            mixinNode.EndInstruction += insertCount;
-        foreach (var shader in mixinNode.Shaders)
-        {
-            if (shader.StartInstruction > insertIndex)
-                shader.StartInstruction += insertCount;
-            if (shader.EndInstruction >= insertIndex)
-                shader.EndInstruction += insertCount;
-        }
 
-        foreach (var composition in mixinNode.Compositions)
-            AdjustIndicesAfterAppendInstructions(composition.Value, insertIndex, insertCount);
-        foreach (var compositions in mixinNode.CompositionArrays)
-            foreach (var composition in compositions.Value)
-                AdjustIndicesAfterAppendInstructions(composition, insertIndex, insertCount);
+        AdjustIndicesAfterAppendInstructionsInner(rootMixin, insertIndex, insertCount);
+        
+        static void AdjustIndicesAfterAppendInstructionsInner(MixinNode mixinNode, int insertIndex, int insertCount)
+        {
+            if (mixinNode.StartInstruction > insertIndex)
+                mixinNode.StartInstruction += insertCount;
+            if (mixinNode.EndInstruction >= insertIndex)
+                mixinNode.EndInstruction += insertCount;
+            foreach (var shader in mixinNode.Shaders)
+            {
+                if (shader.StartInstruction > insertIndex)
+                    shader.StartInstruction += insertCount;
+                if (shader.EndInstruction >= insertIndex)
+                    shader.EndInstruction += insertCount;
+            }
+
+            foreach (var composition in mixinNode.Compositions)
+                AdjustIndicesAfterAppendInstructionsInner(composition.Value, insertIndex, insertCount);
+            foreach (var compositions in mixinNode.CompositionArrays)
+                foreach (var composition in compositions.Value)
+                    AdjustIndicesAfterAppendInstructionsInner(composition, insertIndex, insertCount);
+        }
     }
 
     private static void ProcessMemberAccessAndForeach(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp, MixinNode mixinNode)
