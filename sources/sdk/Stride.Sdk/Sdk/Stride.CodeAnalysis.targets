@@ -1,0 +1,24 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    ================================================================
+    Stride.Sdk - Code Analysis Integration (Stride.CodeAnalysis.targets)
+    ================================================================
+
+    EVALUATION PHASE: Late (AFTER project file)
+
+    This file integrates Stride's custom code analysis ruleset.
+    Projects opt-in by setting StrideCodeAnalysis=true.
+
+    Migrated from: sources/targets/Stride.Core-extended.targets:40-43
+    ================================================================
+  -->
+
+  <!-- ================================================================ -->
+  <!-- Code Analysis Ruleset Integration (lines 40-43 from extended.targets) -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Stride.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,85 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    ================================================================
+    Stride.Sdk - Platform Detection and Configuration (Sdk.Platform.props)
+    ================================================================
+
+    EVALUATION PHASE: Early (BEFORE project file)
+
+    This file sets platform-specific defaults that can be overridden by projects.
+    Desktop platforms only (Windows, Linux, macOS) - mobile/UWP deferred to Phase 2.
+
+    Migrated from: sources/targets/Stride.Core-extended.props
+    ================================================================
+  -->
+
+  <!-- Framework constants are defined in Stride.Frameworks.props -->
+
+  <!-- ================================================================ -->
+  <!-- Platform Auto-Detection - Desktop Only (lines 17-20, 27 from extended) -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <!-- Preserve original platform if already set -->
+    <StridePlatformOriginal>$(StridePlatform)</StridePlatformOriginal>
+
+    <!-- Default to Windows, override based on OS detection -->
+    <StridePlatform>Windows</StridePlatform>
+    <StridePlatform Condition=" '$([MSBuild]::IsOSPlatform(Linux))' Or '$(RuntimeIdentifier.StartsWith(linux))' ">Linux</StridePlatform>
+    <StridePlatform Condition=" $(RuntimeIdentifier.StartsWith('osx')) ">macOS</StridePlatform>
+
+    <!-- Platform full name (may be extended with build dir suffix) -->
+    <StridePlatformFullName Condition="'$(StridePlatformFullName)' == ''">$(StridePlatform)</StridePlatformFullName>
+
+    <!-- Platform dependencies - desktop uses "dotnet" -->
+    <StridePlatformDeps Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' ">dotnet</StridePlatformDeps>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- StridePlatforms Default Detection (lines 37-39, 72-75 from extended) -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <StrideCommonPreSettingsName Condition="'$(StrideCommonPreSettingsName)' == ''">Stride</StrideCommonPreSettingsName>
+
+    <!-- Set default StridePlatforms based on OS (if not already set by user/build system) -->
+    <!-- Note: This MUST be set to enable multi-targeting with StrideRuntime=true -->
+    <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
+    <StridePlatforms Condition="'$([MSBuild]::IsOSPlatform(Linux))'">Linux</StridePlatforms>
+
+    <!-- Unescape in case it was passed from Stride.build with escaped characters -->
+    <StridePlatforms>$([MSBuild]::Unescape('$(StridePlatforms)'))</StridePlatforms>
+
+    <!-- Create delimited version for .Contains() checks in Stride.Frameworks.targets -->
+    <_StridePlatforms>;$(StridePlatforms);</_StridePlatforms>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Graphics API Defaults for Desktop (lines 40-45 from extended) -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Linux'">
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">OpenGL</StrideGraphicsApis>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Output Path Configuration (lines 171-174 from extended) -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">bin\</BaseOutputPath>
+    <OutputPath Condition="'$(OutputPath)' == ''">$(BaseOutputPath)$(Configuration)\</OutputPath>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">obj\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' == ''">$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Configuration Defaults -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <StrideProjectType Condition="'$(MSBuildProjectExtension)' == '.vcxproj'">Cpp</StrideProjectType>
+    <StrideProjectType Condition="'$(StrideProjectType)' == ''">CSharp</StrideProjectType>
+  </PropertyGroup>
+
+</Project>

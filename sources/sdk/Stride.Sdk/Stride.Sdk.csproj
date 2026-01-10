@@ -10,6 +10,9 @@
     <None Include="$(MSBuildThisFileDirectory)Sdk/**/*.props" Pack="true" PackagePath="Sdk/" />
     <None Include="$(MSBuildThisFileDirectory)Sdk/**/*.targets" Pack="true" PackagePath="Sdk/" />
 
+    <!-- Include Code Analysis ruleset -->
+    <None Include="$(MSBuildThisFileDirectory)..\..\targets\Stride.ruleset" Pack="true" PackagePath="Sdk\" />
+
     <!-- Include build/ files for legacy NuGet PackageReference support -->
     <None Include="$(MSBuildThisFileDirectory)build/**/*.props" Pack="true" PackagePath="build/" />
     <None Include="$(MSBuildThisFileDirectory)build/**/*.targets" Pack="true" PackagePath="build/" />

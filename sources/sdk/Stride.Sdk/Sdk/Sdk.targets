@@ -31,6 +31,9 @@
   <!-- Import supporting targets files -->
   <!-- ================================================================ -->
   <Import Project="Stride.Frameworks.targets" />
+  <Import Project="Stride.Platform.targets" />
+  <Import Project="Stride.AssemblyProcessor.targets" />
+  <Import Project="Stride.CodeAnalysis.targets" />
   <Import Project="Stride.PackageInfo.targets" />
 
   <!-- ================================================================ -->

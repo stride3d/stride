@@ -1,0 +1,72 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    ================================================================
+    Stride.Sdk - Platform-Specific Build Logic (Sdk.Platform.targets)
+    ================================================================
+
+    EVALUATION PHASE: Late (AFTER project file)
+
+    This file applies platform-specific compiler defines and build settings.
+    Desktop platforms only (Windows, Linux, macOS) - mobile/UWP deferred to Phase 2.
+
+    Migrated from: sources/targets/Stride.Core-extended.props (lines 194-196, 266-274)
+    ================================================================
+  -->
+
+  <!-- ================================================================ -->
+  <!-- Platform Defines - Desktop Frameworks (line 195 from extended) -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' ">
+    <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP</StridePlatformDefines>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- .NET Runtime Defines (lines 266-268 from extended) -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('net10'))">
+    <StrideNETRuntimeDefines>STRIDE_RUNTIME_CORECLR</StrideNETRuntimeDefines>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Apply Defines to DefineConstants (lines 270-274 from extended) -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <DefineConstants>$(StridePlatformDefines);$(DefineConstants)</DefineConstants>
+    <DefineConstants Condition="'$(StrideNETRuntimeDefines)' != ''">$(DefineConstants);$(StrideNETRuntimeDefines)</DefineConstants>
+    <DefineConstants Condition="'$(StridePackageBuild)' == 'true'">$(DefineConstants);STRIDE_PACKAGE_BUILD</DefineConstants>
+  </PropertyGroup>
+
+  <!--
+    ================================================================
+    TODO: Phase 2 - Mobile/UWP Platform Support
+    ================================================================
+
+    The following platform-specific settings are deferred to Phase 2:
+
+    1. UWP Platform (lines 198-204 from extended):
+       - Platform = x86 default
+       - StridePlatformDefines = STRIDE_PLATFORM_UWP
+       - TargetPlatformVersion detection
+       - ExtrasUwpMetaPackageVersion
+
+    2. Android Platform (lines 207-238 from extended):
+       - StridePlatformDefines = STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID
+       - AndroidStoreUncompressedFileExtensions, MandroidI18n
+       - DesignTimeBuild=False
+       - AndroidResgenNamespace, AndroidHttpClientHandlerType
+       - OutputPath customization for build directory
+
+    3. iOS Platform (lines 240-244 from extended):
+       - Platform = iPhone default
+       - StridePlatformDefines = STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS
+       - IPhoneResourcePrefix
+
+    When implementing Phase 2, add PropertyGroup blocks here conditioned on:
+    - '$(TargetFramework)' == '$(StrideFrameworkUWP)'
+    - '$(TargetFramework)' == '$(StrideFrameworkAndroid)'
+    - '$(TargetFramework)' == '$(StrideFrameworkiOS)'
+    ================================================================
+  -->
+
+</Project>

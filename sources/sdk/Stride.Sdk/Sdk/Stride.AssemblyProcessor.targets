@@ -1,0 +1,95 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    ================================================================
+    Stride.Sdk - Assembly Processor Integration (Stride.AssemblyProcessor.targets)
+    ================================================================
+
+    EVALUATION PHASE: Late (AFTER project file)
+
+    This file provides defaults for the Stride Assembly Processor.
+    STUB IMPLEMENTATION - Full task execution deferred to Phase 2.
+
+    The Assembly Processor is critical for Stride's functionality:
+    - Adds module initializers (auto-registration code)
+    - Processes serialization attributes
+    - Modifies IL for Stride-specific features
+
+    For full implementation, see: sources/targets/Stride.Core-extended.targets:98-141
+    ================================================================
+  -->
+
+  <!-- ================================================================ -->
+  <!-- Assembly Processor Property Defaults (line 179 from extended.props) -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <!-- Disabled by default - projects must opt-in -->
+    <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">false</StrideAssemblyProcessor>
+
+    <!-- Default options: module initializers + serialization -->
+    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+  </PropertyGroup>
+
+  <!--
+    ================================================================
+    TODO: Phase 2 - Full Assembly Processor Implementation
+    ================================================================
+
+    To complete this file, migrate from sources/targets/Stride.Core-extended.targets:98-141:
+
+    1. UsingTask Declaration (line 99):
+       - AssemblyProcessorTask
+       - AssemblyFile="$(StrideAssemblyProcessorTempPath)"
+       - Conditional on StrideAssemblyProcessorDev mode
+
+    2. RunStrideAssemblyProcessor Target (lines 100-127):
+       - BeforeTargets="CopyFilesToOutputDirectory"
+       - Conditions: StrideAssemblyProcessor=true, paths configured, global mode
+
+       Steps:
+       a) Add Stride.Core to assembly search path (lines 101-104)
+       b) Write references to cache file (line 106)
+       c) Build processor options string (lines 109-114):
+          - Platform parameter
+          - References file path
+          - Documentation file path (if exists)
+          - Target assembly path
+       d) Copy processor files to temp directory (lines 116-120)
+          - Avoids MSBuild file locking
+          - Only if not already copied
+       e) Execute processor (lines 122-126):
+          - Via task if not dev mode
+          - Via Exec if dev mode (avoids file lock)
+
+    3. Copy .usrdoc Files (lines 128-140):
+       - User documentation files for public APIs
+       - Only if StridePublicApi=true
+       - Copy from intermediate to output directory
+
+    4. Required Properties (set in Stride.Core.Build.targets):
+       - StrideAssemblyProcessorGlobal=true
+       - StrideAssemblyProcessorBasePath (path to processor binaries)
+       - StrideAssemblyProcessorFramework (target framework subfolder)
+       - StrideAssemblyProcessorTempPath (temp execution location)
+       - StrideAssemblyProcessorTempBasePath (temp base directory)
+       - StrideCoreAssemblyPath (Stride.Core.dll location)
+
+    5. Dev Mode Support:
+       - StrideAssemblyProcessorDev=true uses Exec instead of Task
+       - Prevents file locking during development
+
+    DEPENDENCIES:
+    - Assembly processor binaries in deps/AssemblyProcessor/
+    - Stride.Core.dll must be available at StrideCoreAssemblyPath
+    - Proper setup of temp paths and framework selection
+
+    TESTING:
+    After implementation, verify:
+    - Module initializers are generated
+    - Serialization attributes are processed
+    - Build output shows processor execution
+    - .usrdoc files are copied for public API projects
+    ================================================================
+  -->
+
+</Project>

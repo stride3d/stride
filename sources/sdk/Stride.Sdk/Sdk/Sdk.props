@@ -29,6 +29,7 @@
   <!-- Import supporting props files -->
   <!-- ================================================================ -->
   <Import Project="Stride.Frameworks.props" />
+  <Import Project="Stride.Platform.props" />
 
   <!-- ================================================================ -->
   <!-- Import base Microsoft.NET.Sdk props -->

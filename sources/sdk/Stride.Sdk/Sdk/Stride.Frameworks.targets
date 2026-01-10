@@ -13,10 +13,16 @@
   -->
 
   <!-- Define target frameworks for runtime -->
-  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">  
+  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
     <!-- Add default framework no matter what (needed for references) -->
     <StrideRuntimeTargetFrameworks>$(StrideFramework)</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkWindows)</StrideRuntimeTargetFrameworks>
+
+    <!-- Desktop platforms: Add net10.0-windows if Windows is in the platform list -->
+    <!-- Note: StrideExplicitWindowsRuntime controls whether to include net10.0-windows -->
+    <!-- For desktop-only SDK migration, we include it by default when Windows is detected -->
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkWindows)</StrideRuntimeTargetFrameworks>
+
+    <!-- Mobile/UWP platforms (deferred to Phase 2) -->
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkAndroid)</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkUWP)</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkiOS)</StrideRuntimeTargetFrameworks>
