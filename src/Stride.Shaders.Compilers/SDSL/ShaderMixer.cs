@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static Stride.Shaders.Spirv.Specification;
 
@@ -60,16 +61,19 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             CodeInserted = (int index, int count) => AdjustIndicesAfterAppendInstructions(rootMixin, index, count)
         };
         interfaceProcessor.Process(table, temp, context);
-
+        
         // Any non-static variable is moved to a "Globals" default cbuffer
         // TODO: future language improvement:
         //       force cbuffer to be epxlicit? (and not need "static" anymore for mixin nodes member, which is weird)
         //       It's a breaking change and will require some changes to Stride shaders (esp. in post effects) 
         GenerateDefaultCBuffer(rootMixin, globalContext, context, temp);
 
+        // Process Link (add CompositionPath, generate missing ones, etc.)
+        ProcessLinks(context, temp);
+
         // Merge cbuffers and rgroups
         MergeCBuffers(globalContext, context, temp);
-        ComputeCBufferOffsets(globalContext, context, temp);
+        ComputeCBufferReflection(globalContext, context, temp);
 
         // Try to give variables more sensible names
         // Note: since we mutate OpName and globalContext.Names, try to do that as late as possible because some code earlier use names to match variables/types
@@ -104,13 +108,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         public MixinNode? Result { get; }
     }
 
-    struct LinkInfo
-    {
-        public string LinkName;
-        public string ResourceGroup;
-        public string LogicalGroup;
-    }
-
     MixinNode MergeMixinNode(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, NewSpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode? stage = null, string? currentCompositionPath = null)
     {
         // We emit OPSDSLEffect for any non-root composition
@@ -122,7 +119,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         // Merge all classes from mixinSource.Mixins in main buffer
         ProcessMixinClasses(globalContext, context, buffer, mixinSource, mixinNode);
-
+        
         BuildTypesAndMethodGroups(globalContext, context, table, buffer, mixinNode);
 
         // Compositions (recursive)
@@ -189,13 +186,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         return $"{TypeName.GetTypeNameWithoutGenerics(shaderName)}.{variableName}";
     }
 
-    private static string ComposeLinkName(bool isStaging, string linkName, string? compositionPath = null)
+    private static string ComposeLinkName(string linkName, string? compositionPath = null)
     {
-        if (!isStaging && compositionPath != null)
+        if (compositionPath != null)
             linkName += $".{compositionPath}";
         return linkName;
     }
     
+    // Append CompositionPath to "Link" for any non-stage variable
+    // Also force-emit the missing "Link" decorations
+
     private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass)
     {
         var isRootMixin = mixinNode.Stage == null;
@@ -807,289 +807,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
 
             SpirvBuilder.RemapIds(memberAccesses, ref i.Data);
-        }
-    }
-
-    private void RenameVariables(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
-    {
-        // Collect variables by names
-        string? compositionPath = null;
-        var shaderNameWithComposition = string.Empty;
-        Dictionary<int, string> prefixes = new();
-        foreach (var i in temp)
-        {
-            if (i.Op == Op.OpSDSLComposition && (OpSDSLComposition)i is { } composition)
-            {
-                compositionPath = composition.CompositionPath;
-            }
-            else if (i.Op == Op.OpSDSLCompositionEnd)
-            {
-                compositionPath = null;
-            }
-            else if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shader)
-            {
-                shaderNameWithComposition = compositionPath != null
-                    ? $"{compositionPath}.{shader.ShaderName}"
-                    : shader.ShaderName;
-            }
-            else if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { Storageclass: Specification.StorageClass.UniformConstant } variable)
-            {
-                // Note: we don't rename cbuffer as they have been merged and don't belong to a specific shader/composition anymore
-                var type = context.ReverseTypes[variable.ResultType];
-                if (type is not ConstantBufferSymbol)
-                    prefixes[variable.ResultId] = shaderNameWithComposition;
-            }
-            else if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } structType)
-            {
-                prefixes[structType.ResultId] = shaderNameWithComposition;
-            }
-            else if (i.Op == Op.OpFunction && (OpFunction)i is { } function)
-            {
-                prefixes[function.ResultId] = shaderNameWithComposition;
-            }
-        }
-
-        // Now, reprocess context with those names
-        foreach (var i in context)
-        {
-            if (i.Op == Op.OpName && (OpName)i is { } name)
-            {
-                if (prefixes.TryGetValue(name.Target, out var prefix))
-                {
-                    var updatedName = $"{prefix}.{name.Name}";
-                    name.Name = updatedName;
-
-                    // Now, make sure it's all valid HLSL/GLSL characters (this will replace multiple invalid characters with a single underscore)
-                    // Otherwise, EffectReflection RawName won't match
-                    updatedName = SpirvBuilder.RemoveInvalidCharactersFromSymbol(updatedName);
-                    context.Names[name.Target] = updatedName;
-                }
-            }
-        }
-    }
-
-    private static void ProcessReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode)
-    {
-        // First, figure out latest used bindings (assume they are filled in order)
-        int srvSlot = 0;
-        int samplerSlot = 0;
-        int cbufferSlot = 0;
-        foreach (var resourceBinding in globalContext.Reflection.ResourceBindings)
-        {
-            switch (resourceBinding)
-            {
-                case { Class: EffectParameterClass.ShaderResourceView }:
-                    srvSlot = resourceBinding.SlotStart + resourceBinding.SlotCount;
-                    break;
-                case { Class: EffectParameterClass.Sampler }:
-                    samplerSlot = resourceBinding.SlotStart + resourceBinding.SlotCount;
-                    break;
-                case { Class: EffectParameterClass.ConstantBuffer }:
-                    cbufferSlot = resourceBinding.SlotStart + resourceBinding.SlotCount;
-                    break;
-            }
-        }
-
-        // TODO: do this once at root level and reuse for child mixin
-        Dictionary<int, LinkInfo> linkInfos = new();
-        var samplerStates = new Dictionary<int, Graphics.SamplerStateDescription>();
-        foreach (var i in context)
-        {
-            // Fill linkInfos
-            if (i.Op == Op.OpDecorateString && (OpDecorateString)i is
-                {
-                    Target: int t,
-                    Decoration:
-                    {
-                        Value: Decoration.LinkSDSL or Decoration.ResourceGroupSDSL or Decoration.LogicalGroupSDSL,
-                        Parameters: { } m
-                    }
-                } decoration)
-            {
-                using var n = new LiteralValue<string>(m.Span);
-                ref var linkInfo = ref CollectionsMarshal.GetValueRefOrAddDefault(linkInfos, t, out _);
-                if (decoration.Decoration.Value == Decoration.LinkSDSL)
-                    linkInfo.LinkName = n.Value;
-                else if (decoration.Decoration.Value == Decoration.ResourceGroupSDSL)
-                    linkInfo.ResourceGroup = n.Value;
-                else if (decoration.Decoration.Value == Decoration.LogicalGroupSDSL)
-                    linkInfo.LogicalGroup = n.Value;
-            }
-            else if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && (OpDecorate)i is
-                {
-                    Decoration:
-                    {
-                        Value: Decoration.SamplerStateFilter or Decoration.SamplerStateAddressU or Decoration.SamplerStateAddressV or Decoration.SamplerStateAddressW
-                            or Decoration.SamplerStateMipLODBias or Decoration.SamplerStateMaxAnisotropy or Decoration.SamplerStateComparisonFunc or Decoration.SamplerStateMinLOD or Decoration.SamplerStateMaxLOD,
-                        Parameters: { } p
-                    }
-                } decorate)
-            {
-                ref var samplerState = ref CollectionsMarshal.GetValueRefOrAddDefault(samplerStates, decorate.Target, out var exists);
-                if (!exists)
-                    samplerState = Graphics.SamplerStateDescription.Default;
-                switch (decorate.Decoration.Value)
-                {
-                    case Decoration.SamplerStateFilter:
-                        samplerState.Filter = (Graphics.TextureFilter)p.Span[0];
-                        break;
-                    case Decoration.SamplerStateAddressU:
-                        samplerState.AddressU = (Graphics.TextureAddressMode)p.Span[0];
-                        break;
-                    case Decoration.SamplerStateAddressV:
-                        samplerState.AddressV = (Graphics.TextureAddressMode)p.Span[0];
-                        break;
-                    case Decoration.SamplerStateAddressW:
-                        samplerState.AddressW = (Graphics.TextureAddressMode)p.Span[0];
-                        break;
-                    case Decoration.SamplerStateMipLODBias:
-                        {
-                            using var n = new LiteralValue<string>(p.Span);
-                            samplerState.MipMapLevelOfDetailBias = float.Parse(n.Value);
-                            break;
-                        }
-                    case Decoration.SamplerStateMaxAnisotropy:
-                        samplerState.MaxAnisotropy = p.Span[0];
-                        break;
-                    case Decoration.SamplerStateComparisonFunc:
-                        samplerState.CompareFunction = (Graphics.CompareFunction)p.Span[0];
-                        break;
-                    case Decoration.SamplerStateMinLOD:
-                        {
-                            using var n = new LiteralValue<string>(p.Span);
-                            samplerState.MinMipLevel = float.Parse(n.Value);
-                            break;
-                        }
-                    case Decoration.SamplerStateMaxLOD:
-                        {
-                            using var n = new LiteralValue<string>(p.Span);
-                            samplerState.MaxMipLevel = float.Parse(n.Value);
-                            break;
-                        }
-                }
-            }
-        }
-
-        string currentShaderName = string.Empty;
-        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
-        {
-            var i = buffer[index];
-
-            if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shader)
-            {
-                currentShaderName = shader.ShaderName;
-            }
-            else if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
-            {
-                var type = context.ReverseTypes[variable.ResultType];
-                if (type is PointerType pointerType)
-                {
-                    var name = context.Names[variable.ResultId];
-                    linkInfos.TryGetValue(variable.ResultId, out var linkInfo);
-                    var linkName = linkInfo.LinkName ?? GenerateLinkName(currentShaderName, name);
-                    linkName = ComposeLinkName((variable.Flags & VariableFlagsMask.Stage) != 0, linkName, mixinNode.CompositionPath);
-
-                    var effectResourceBinding = new EffectResourceBindingDescription
-                    {
-                        KeyInfo = new EffectParameterKeyInfo { KeyName = linkName },
-                        ElementType = default,
-                        RawName = name,
-                        ResourceGroup = linkInfo.ResourceGroup,
-                        //Stage = , // filed by ShaderCompiler
-                        LogicalGroup = linkInfo.LogicalGroup,
-                    };
-
-                    if (pointerType.BaseType is TextureType t)
-                    {
-                        var slot = globalContext.Reflection.ResourceBindings.Count;
-                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
-                        {
-                            Class = EffectParameterClass.ShaderResourceView,
-                            Type = (t, t.Multisampled) switch
-                            {
-                                (Texture1DType, false) => EffectParameterType.Texture1D,
-                                (Texture2DType, false) => EffectParameterType.Texture2D,
-                                (Texture2DType, true) => EffectParameterType.Texture2DMultisampled,
-                                (Texture3DType, false) => EffectParameterType.Texture3D,
-                                (TextureCubeType, false) => EffectParameterType.TextureCube,
-                            },
-                            SlotStart = srvSlot,
-                            SlotCount = 1,
-                        });
-
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationDescriptorSet(0)));
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationBinding(srvSlot)));
-
-                        srvSlot++;
-                    }
-                    else if (pointerType.BaseType is BufferType)
-                    {
-                        var slot = globalContext.Reflection.ResourceBindings.Count;
-                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
-                        {
-                            Class = EffectParameterClass.ShaderResourceView,
-                            Type = EffectParameterType.Buffer,
-                            SlotStart = srvSlot,
-                            SlotCount = 1,
-                        });
-
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationDescriptorSet(0)));
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationBinding(srvSlot)));
-
-                        srvSlot++;
-                    }
-                    else if (pointerType.BaseType is SamplerType)
-                    {
-                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
-                        {
-                            Class = EffectParameterClass.Sampler,
-                            Type = EffectParameterType.Sampler,
-                            SlotStart = samplerSlot,
-                            SlotCount = 1,
-                        });
-
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationDescriptorSet(0)));
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationBinding(samplerSlot)));
-
-                        if (samplerStates.TryGetValue(variable.ResultId, out var samplerState))
-                            globalContext.Reflection.SamplerStates.Add(new EffectSamplerStateBinding(linkName, samplerState));
-
-                        samplerSlot++;
-                    }
-                    else if (pointerType.BaseType is ConstantBufferSymbol)
-                    {
-                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
-                        {
-                            Class = EffectParameterClass.ConstantBuffer,
-                            Type = EffectParameterType.ConstantBuffer,
-                            SlotStart = cbufferSlot,
-                            SlotCount = 1,
-                            // TODO: Special case, Stride EffectCompiler.CleanupReflection() expect a different format here (let's fix that later in Stride)
-                            //       Anyway, since buffer is merged, KeyName with form ShaderName.VariableName doesn't make sense as it doesn't belong to a specific shader anymore
-                            KeyInfo = new EffectParameterKeyInfo { KeyName = name },
-                            ResourceGroup = name,
-                        });
-
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationDescriptorSet(0)));
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationBinding(cbufferSlot)));
-
-                        cbufferSlot++;
-                    }
-                }
-            }
-        }
-
-        // Process compositions recursively
-        foreach (var composition in mixinNode.Compositions)
-        {
-            ProcessReflection(globalContext, context, buffer, composition.Value);
-        }
-        foreach (var compositionArray in mixinNode.CompositionArrays)
-        {
-            foreach (var composition in compositionArray.Value)
-            {
-                ProcessReflection(globalContext, context, buffer, composition);
-            }
         }
     }
 

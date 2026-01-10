@@ -23,7 +23,6 @@ namespace Stride.Shaders.Compilers.SDSL
             // Remap from variable ID to member index in our new struct
             var variableToMemberIndices = new Dictionary<int, int>(); 
             // Collect any variable not a stream, not static and not a block
-            HashSet<int> blockTypes = [];
             int firstVariableIndex = -1;
             foreach (var i in temp)
             {
@@ -128,10 +127,9 @@ namespace Stride.Shaders.Compilers.SDSL
             }
         }
 
-        private static void MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
+        private void MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
         {
             // Collect Decorations
-            Dictionary<int, string> logicalGroups = new();
             Dictionary<(int StructType, int Member), (Dictionary<Decoration, string> StringDecorations, Dictionary<Decoration, MemoryOwner<int>> Decorations)> decorations = new();
             foreach (var i in context)
             {
@@ -148,17 +146,12 @@ namespace Stride.Shaders.Compilers.SDSL
                         decorations.Add((memberDecorate2.StructureType, memberDecorate2.Member), decorationsForThisMember = new(new(), new()));
                     decorationsForThisMember.Decorations.Add(memberDecorate2.Decoration.Value, m2);
                 }
-                else if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: { Value: Decoration.LogicalGroupSDSL, Parameters: var m3 } } decorateLogicalGroup)
-                {
-                    using var n = new LiteralValue<string>(m3.Span);
-                    logicalGroups.Add(decorateLogicalGroup.Target, n.Value);
-                }
             }
 
             string? GetCBufferLogicalGroup(int variableId)
             {
-                logicalGroups.TryGetValue(variableId, out var logicalGroup);
-                return logicalGroup;
+                resourceLinks.TryGetValue(variableId, out var linkName);
+                return linkName.LogicalGroup;
             }
 
             // OpSDSLEffect is emitted for any non-root composition
@@ -181,75 +174,56 @@ namespace Stride.Shaders.Compilers.SDSL
                     CompositionPath: compositionNodes.LastOrDefault(mixinNode => x.Index >= mixinNode.StartIndex).CompositionPath,
                     ShaderName: shaders.LastOrDefault(shader => x.Index >= shader.StartIndex).ShaderName,
                     StructTypePtrId: x.Variable.Data.IdResultType.Value,
-                    StructType: context.ReverseTypes[x.Variable.Data.IdResultType.Value] is PointerType p && p.StorageClass == Specification.StorageClass.Uniform && p.BaseType is StructuredType s ? s : null,
+                    StructType: context.ReverseTypes[x.Variable.Data.IdResultType.Value] is PointerType p && p.StorageClass == Specification.StorageClass.Uniform && p.BaseType is ConstantBufferSymbol s ? s : null,
                     MemberIndexOffset: 0,
                     LogicalGroup: GetCBufferLogicalGroup(x.Variable.Data.IdResult.Value)))
                 // TODO: Check Decoration.Block?
                 .Where(x => x.StructType != null)
                 .GroupBy(x => ShaderClass.GetCBufferRealName(context.Names[x.Variable.Data.IdResult.Value]));
 
-            var cbufferStructTypes = cbuffersByNames.SelectMany(x => x).Select(x => context.Types[x.StructType]).ToHashSet();
-
-            // Transfer decorations to new type, and also update Link decorations
-            void ProcessDecorations(Span<(OpDataIndex Variable, string CompositionPath, string ShaderName, int StructTypePtrId, StructuredType? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, int cbufferStructId, bool newStructure)
+            // This helper method will transfer decorations from the old structure to the new merged structure
+            // Also, it will add a default "Link" decoration if none was set
+            void ProcessDecorations(Span<(OpDataIndex Variable, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct, bool newStructure)
             {
+                var cbufferStructId = context.Types[cbufferStruct];
                 int mergedMemberIndex = 0;
+                var links = new string[cbufferStruct.Members.Count];
                 foreach (ref var cbuffer in cbuffersSpan)
                 {
-                    var variable = (OpVariableSDSL)cbuffer.Variable.Buffer[cbuffer.Variable.Index]; 
-                    var compositionPath = cbuffer.CompositionPath;
-
                     for (int memberIndex = 0; memberIndex < cbuffer.StructType.Members.Count; memberIndex++, mergedMemberIndex++)
                     {
-                        var member = cbuffer.StructType.Members[memberIndex];
-
                         if (!decorations.TryGetValue((context.Types[cbuffer.StructType], memberIndex), out var decorationsForThisMember))
                             decorations.Add((context.Types[cbuffer.StructType], memberIndex), decorationsForThisMember = new(new(), new()));
 
-                        bool hasLink = decorationsForThisMember.StringDecorations.TryGetValue(Decoration.LinkSDSL, out var linkValue);
-                        bool linkUpdated = false;
-                        // If not specified, add default Link info
-                        if (!hasLink)
-                            linkValue = GenerateLinkName(cbuffer.ShaderName, member.Name);
-                        if (!compositionPath.IsNullOrEmpty())
-                        {
-                            linkUpdated = true;
-                            linkValue = ComposeLinkName((variable.Flags & VariableFlagsMask.Stage) != 0, linkValue, compositionPath);
-                        }
-
                         if (newStructure)
                         {
-                            // Note: We don't mutate decorationsForThisMember because multiple cbuffer might share the same struct
-                            //       We emit OpMemberDecorateString directly on the resulting cbufferStructId
-                            if (!hasLink || linkUpdated)
-                                context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, ParameterizedFlags.DecorationLinkSDSL(linkValue)));
-
-                            // Also transfer LogicalGroup (from name)
-                            if (cbuffer.LogicalGroup != null)
-                                context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, ParameterizedFlags.DecorationLogicalGroupSDSL(cbuffer.LogicalGroup)));
-
+                            // Transfer previous decorations
                             foreach (var stringDecoration in decorationsForThisMember.StringDecorations)
-                            {
-                                if (stringDecoration.Key == Decoration.LinkSDSL && !linkUpdated)
-                                    context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, new ParameterizedFlag<Decoration>(stringDecoration.Key, [.. stringDecoration.Value.AsDisposableLiteralValue().Words])));
-                            }
+                                context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, new ParameterizedFlag<Decoration>(stringDecoration.Key, [.. stringDecoration.Value.AsDisposableLiteralValue().Words])));
                             foreach (var decoration in decorationsForThisMember.Decorations)
                                 context.Add(new OpMemberDecorate(cbufferStructId, mergedMemberIndex, new ParameterizedFlag<Decoration>(decoration.Key, decoration.Value)));
-                        }
-                        else
-                        {
-                            if (!hasLink)
-                                context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, ParameterizedFlags.DecorationLinkSDSL(linkValue)));
-                            else if (linkUpdated)
-                            {
-                                // Need to mutate LinkSDSL with new value
-                                throw new NotImplementedException();
-                            }
                         }
                     }
                 }
             }
 
+            // Transfer cbufferMemberLinks to new structure
+            (string Link, string LogicalGroup)[] GenerateCBufferLinks(int cbufferVariableId, Span<(OpDataIndex Variable, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct)
+            {
+                var cbufferStructId = context.Types[cbufferStruct];
+                int mergedMemberIndex = 0;
+                var links = new (string Link, string LogicalGroup)[cbufferStruct.Members.Count];
+                foreach (ref var cbuffer in cbuffersSpan)
+                {
+                    for (int memberIndex = 0; memberIndex < cbuffer.StructType.Members.Count; memberIndex++, mergedMemberIndex++)
+                    {
+                        links[mergedMemberIndex] = cbufferMemberLinks[cbuffer.Variable.Data.IdResult.Value][memberIndex];
+                    }
+                }
+
+                return links;
+            }
+            
             var idRemapping = new Dictionary<int, int>();
             var removedIds = new HashSet<int>();
             foreach (var cbuffersEntry in cbuffersByNames)
@@ -261,13 +235,12 @@ namespace Stride.Shaders.Compilers.SDSL
                 // (we do it even for case count == 1 because all buffer except one might have been optimized away)
                 context.Names[cbuffersSpan[0].Variable.Data.IdResult.Value] = cbuffersEntry.Key;
 
-                // Optimization (not fully implemented, cf NotImplementedException in ProcessDecorations(), so disabled for now)
-                //if (cbuffersEntry.Count() == 1)
-                //{
-                //    ProcessDecorations(cbuffersSpan, context.Types[cbuffersEntry.First().StructType], false);
-                //}
+                if (cbuffersEntry.Count() == 1)
+                {
+                    ProcessDecorations(cbuffersSpan, cbuffersEntry.First().StructType, false);
+                }
                 // More than 1 cbuffers with same name
-                //else
+                else
                 {
                     int offset = 0;
                     // TODO: Analyze and skip cbuffers parts which are unused
@@ -284,8 +257,8 @@ namespace Stride.Shaders.Compilers.SDSL
                     var mergedCbufferPtrStruct = new PointerType(mergedCbufferStruct, Specification.StorageClass.Uniform);
                     var mergedCbufferPtrStructId = context.GetOrRegister(mergedCbufferPtrStruct);
 
-                    ProcessDecorations(cbuffersSpan, mergedCbufferStructId, true);
-
+                    ProcessDecorations(cbuffersSpan, mergedCbufferStruct, true);
+                    
                     // Remap member ids
                     foreach (var i in buffer)
                     {
@@ -318,6 +291,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                     // Update first variable to use new type
                     cbuffersSpan[0].Variable.Data.IdResultType = mergedCbufferPtrStructId;
+                    cbufferMemberLinks[cbuffersSpan[0].Variable.Data.IdResult.Value] = GenerateCBufferLinks(cbuffersSpan[0].Variable.Data.IdResult.Value, cbuffersSpan, mergedCbufferStruct);
                     foreach (var i in buffer)
                     {
                         if (i.Op == Op.OpName && (OpName)i is { } name)
@@ -352,7 +326,7 @@ namespace Stride.Shaders.Compilers.SDSL
             SpirvBuilder.RemapIds(context.GetBuffer(), 0, context.GetBuffer().Count, idRemapping);
         }
 
-        private void ComputeCBufferOffsets(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
+        private void ComputeCBufferReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
         {
             var cbuffers = buffer
                 .Where(x => x.Op == Op.OpVariableSDSL)
@@ -445,23 +419,6 @@ namespace Stride.Shaders.Compilers.SDSL
                 }
             }
 
-            // Scan LinkSDSL and LogicalGroupSDSL decorations
-            Dictionary<(int StructType, int Member), string> links = new();
-            Dictionary<(int StructType, int Member), string> logicalGroups = new();
-            foreach (var i in context)
-            {
-                if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LinkSDSL, Parameters: { } m } } memberDecorate)
-                {
-                    using var n = new LiteralValue<string>(m.Span);
-                    links.Add((memberDecorate.StructType, memberDecorate.Member), n.Value);
-                }
-                else if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.LogicalGroupSDSL, Parameters: { } m2 } } memberDecorate2)
-                {
-                    using var n = new LiteralValue<string>(m2.Span);
-                    logicalGroups.Add((memberDecorate2.StructType, memberDecorate2.Member), n.Value);
-                }
-            }
-
             foreach (var cbuffer in cbuffers)
             {
                 int constantBufferOffset = 0;
@@ -469,6 +426,9 @@ namespace Stride.Shaders.Compilers.SDSL
                 var structTypeId = context.Types[cb];
 
                 var memberInfos = new EffectValueDescription[cb.Members.Count];
+                if (!cbufferMemberLinks.TryGetValue(cbuffer.Variable.Data.IdResult.Value, out var cbufferLinks))
+                    throw new InvalidOperationException($"Could not find cbuffer member link info for {context.Names[cbuffer.Variable.Data.IdResult.Value]}; it should have been generated during {MergeCBuffers}");
+                
                 for (var index = 0; index < cb.Members.Count; index++)
                 {
                     // Properly compute size and offset according to DirectX rules
@@ -477,19 +437,16 @@ namespace Stride.Shaders.Compilers.SDSL
 
                     DecorateMember(context, structTypeId, index, constantBufferOffset, memberSize, member.Type, member.TypeModifier);
 
-                    if (!links.TryGetValue((structTypeId, index), out var linkName))
-                        throw new InvalidOperationException($"Could not find cbuffer member link info; it should have been generated during {MergeCBuffers}");
-                    // Allowed to be not set (in which case logicalGroup == null)
-                    logicalGroups.TryGetValue((structTypeId, index), out var logicalGroup);
+                    var linkInfo = cbufferLinks[index];
 
                     memberInfos[index] = new EffectValueDescription
                     {
                         Type = ConvertType(context, member.Type, member.TypeModifier),
                         RawName = member.Name,
-                        KeyInfo = new EffectParameterKeyInfo { KeyName = linkName },
+                        KeyInfo = new EffectParameterKeyInfo { KeyName = linkInfo.Link },
                         Offset = constantBufferOffset,
                         Size = memberSize,
-                        LogicalGroup = logicalGroup,
+                        LogicalGroup = linkInfo.LogicalGroup,
                     };
 
                     // Adjust offset for next item
