@@ -9,7 +9,7 @@ namespace Stride.Shaders.Compilers.SDSL;
 
 public partial class ShaderMixer
 {
-    private Dictionary<int, (string? Link, string? ResourceGroup, string? LogicalGroup)> resourceLinks = new();
+    private Dictionary<int, (string? Link, string? ResourceGroup, string? LogicalGroup)> variableLinks = new();
     // Note: cbuffer might share same struct, which is why we store this info per variable instead of per struct (as per OpMemberDecorate was doing)
     private Dictionary<int, (string? Link, string? LogicalGroup)[]> cbufferMemberLinks = new();
 
@@ -78,35 +78,32 @@ public partial class ShaderMixer
                 var variablePointerType = (PointerType)context.ReverseTypes[variableInstruction.ResultType];
                 var variableType = variablePointerType.BaseType;
 
-                if (IsResourceType(variableType))
+                if (!variableDecorationLinks.TryGetValue(variableInstruction.ResultId, out var linkInfo)
+                    || linkInfo.Link == null)
+                    linkInfo.Link = GenerateLinkName(shaderName, context.Names[variableInstruction.ResultId]);
+
+                if (!isStage)
+                    linkInfo.Link = ComposeLinkName(linkInfo.Link, compositionPath);
+
+                variableLinks[variableInstruction.ResultId] = linkInfo;
+                
+                if (variableType is ConstantBufferSymbol cb)
                 {
-                    if (!variableDecorationLinks.TryGetValue(variableInstruction.ResultId, out var linkInfo)
-                        || linkInfo.Link == null)
-                        linkInfo.Link = GenerateLinkName(shaderName, context.Names[variableInstruction.ResultId]);
-
-                    if (!isStage)
-                        linkInfo.Link = ComposeLinkName(linkInfo.Link, compositionPath);
-
-                    resourceLinks[variableInstruction.ResultId] = linkInfo;
-                    
-                    if (variableType is ConstantBufferSymbol cb)
+                    var constantBufferStructId = context.Types[cb];
+                    (string Link, string LogicalGroup)[] memberLinks = new (string Link, string LogicalGroup)[cb.Members.Count];
+                    for (var index = 0; index < cb.Members.Count; index++)
                     {
-                        var constantBufferStructId = context.Types[cb];
-                        (string Link, string LogicalGroup)[] memberLinks = new (string Link, string LogicalGroup)[cb.Members.Count];
-                        for (var index = 0; index < cb.Members.Count; index++)
-                        {
-                            var member = cb.Members[index];
-                            if (!structDecorationLinks.TryGetValue((constantBufferStructId, index), out var memberLink)
-                                || memberLink == null)
-                                memberLink = GenerateLinkName(shaderName, member.Name);
+                        var member = cb.Members[index];
+                        if (!structDecorationLinks.TryGetValue((constantBufferStructId, index), out var memberLink)
+                            || memberLink == null)
+                            memberLink = GenerateLinkName(shaderName, member.Name);
 
-                            if (!isStage)
-                                memberLink = ComposeLinkName(memberLink, compositionPath);
-                            memberLinks[index] = (memberLink, linkInfo.LogicalGroup);
-                        }
-
-                        cbufferMemberLinks.Add(variableInstruction.ResultId, memberLinks);
+                        if (!isStage)
+                            memberLink = ComposeLinkName(memberLink, compositionPath);
+                        memberLinks[index] = (memberLink, linkInfo.LogicalGroup);
                     }
+
+                    cbufferMemberLinks.Add(variableInstruction.ResultId, memberLinks);
                 }
             }
         }
@@ -172,7 +169,7 @@ public partial class ShaderMixer
     }
 
     // Emit reflection (except ConstantBuffers which was emitted during ComputeCBufferReflection)
-    private void ProcessReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode)
+    private void ProcessReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
     {
         // First, figure out latest used bindings (assume they are filled in order)
         int srvSlot = 0;
@@ -263,10 +260,8 @@ public partial class ShaderMixer
         }
 
         string currentShaderName = string.Empty;
-        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
+        foreach (var i in buffer)
         {
-            var i = buffer[index];
-
             if (i.Op == Specification.Op.OpSDSLShader && (OpSDSLShader)i is { } shader)
             {
                 currentShaderName = shader.ShaderName;
@@ -280,7 +275,7 @@ public partial class ShaderMixer
                 {
                     var name = context.Names[variable.ResultId];
                     
-                    resourceLinks.TryGetValue(variable.ResultId, out var linkInfo);
+                    variableLinks.TryGetValue(variable.ResultId, out var linkInfo);
                     var linkName = variableType switch
                     {
                         // TODO: Special case, Stride EffectCompiler.CleanupReflection() expect a different format here (let's fix that later in Stride)
@@ -376,20 +371,6 @@ public partial class ShaderMixer
                         cbufferSlot++;
                     }
                 }
-            }
-        }
-
-        // Process compositions recursively
-        foreach (var composition in mixinNode.Compositions)
-        {
-            ProcessReflection(globalContext, context, buffer, composition.Value);
-        }
-
-        foreach (var compositionArray in mixinNode.CompositionArrays)
-        {
-            foreach (var composition in compositionArray.Value)
-            {
-                ProcessReflection(globalContext, context, buffer, composition);
             }
         }
     }

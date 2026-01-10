@@ -62,15 +62,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         };
         interfaceProcessor.Process(table, temp, context);
         
+        // Process Link (add CompositionPath, generate missing ones, etc.)
+        ProcessLinks(context, temp);
+
         // Any non-static variable is moved to a "Globals" default cbuffer
         // TODO: future language improvement:
         //       force cbuffer to be epxlicit? (and not need "static" anymore for mixin nodes member, which is weird)
         //       It's a breaking change and will require some changes to Stride shaders (esp. in post effects) 
         GenerateDefaultCBuffer(rootMixin, globalContext, context, temp);
-
-        // Process Link (add CompositionPath, generate missing ones, etc.)
-        ProcessLinks(context, temp);
-
+        
         // Merge cbuffers and rgroups
         MergeCBuffers(globalContext, context, temp);
         ComputeCBufferReflection(globalContext, context, temp);
@@ -80,7 +80,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         RenameVariables(globalContext, context, temp);
 
         // Process reflection
-        ProcessReflection(globalContext, context, temp, rootMixin);
+        ProcessReflection(globalContext, context, temp);
 
         foreach (var inst in context)
             temp.Add(inst.Data);

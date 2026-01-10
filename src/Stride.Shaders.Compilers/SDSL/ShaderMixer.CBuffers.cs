@@ -21,7 +21,8 @@ namespace Stride.Shaders.Compilers.SDSL
         {
             var members = new List<StructuredTypeMember>();
             // Remap from variable ID to member index in our new struct
-            var variableToMemberIndices = new Dictionary<int, int>(); 
+            var variables = new List<int>();
+            var variableToMemberIndices = new Dictionary<int, int>();
             // Collect any variable not a stream, not static and not a block
             int firstVariableIndex = -1;
             foreach (var i in temp)
@@ -34,6 +35,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     firstVariableIndex = i.Index;
                     variableToMemberIndices.Add(variable.ResultId, members.Count);
                     members.Add(new(context.Names[variable.ResultId], variableType, TypeModifier.None));
+                    variables.Add(variable.ResultId);
                     SetOpNop(i.Data.Memory.Span);
                 }
             }
@@ -44,15 +46,22 @@ namespace Stride.Shaders.Compilers.SDSL
 
             var globalCBufferType = new ConstantBufferSymbol("Globals", members);
             var globalCBufferTypeId = context.DeclareCBuffer(globalCBufferType);
+            var links = new (string? Link, string? LogicalGroup)[members.Count];
             for (var index = 0; index < members.Count; index++)
             {
                 var member = members[index];
                 context.AddMemberName(globalCBufferTypeId, index, member.Name);
+
+                var linkInfo = variableLinks[variables[index]];
+                links[index] = (linkInfo.Link, linkInfo.LogicalGroup);
             }
-            
+
             // Note: we make sure to add at a previous variable index, otherwise the OpVariableSDSL won't be inside the root MixinNode.StartInstruction/EndInstruction
             temp.FluentReplace(firstVariableIndex, new OpVariableSDSL(context.GetOrRegister(new PointerType(globalCBufferType, Specification.StorageClass.Uniform)), context.Bound++, Specification.StorageClass.Uniform, VariableFlagsMask.Stage, null), out var cbufferVariable);
             context.AddName(cbufferVariable.ResultId, "Globals");
+            
+            // Update cbuffer links
+            cbufferMemberLinks[cbufferVariable.ResultId] = links;
             
             // Replace all accesses
             int instructionsAddedInThisMethod = 0;
@@ -150,7 +159,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
             string? GetCBufferLogicalGroup(int variableId)
             {
-                resourceLinks.TryGetValue(variableId, out var linkName);
+                variableLinks.TryGetValue(variableId, out var linkName);
                 return linkName.LogicalGroup;
             }
 
