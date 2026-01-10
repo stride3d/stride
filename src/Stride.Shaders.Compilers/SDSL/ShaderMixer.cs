@@ -138,9 +138,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     var compositionResults = new MixinNode[compositionMixins.Length];
                     for (int i = 0; i < compositionMixins.Length; ++i)
                     {
-                        var compositionPath = currentCompositionPath != null ? $"{currentCompositionPath}.{variable.Key}" : variable.Key;
+                        var localKey = variable.Key;
                         if (isCompositionArray)
-                            compositionPath += $"[{i}]";
+                            localKey += $"[{i}]";
+                        // TODO: Review: it seems like Stride compose variable the opposite way that we expect
+                        //       Let's change it so that it becomes {currentCompositionPath}.{localKey}!
+                        var compositionPath = currentCompositionPath != null ? $"{localKey}.{currentCompositionPath}" : localKey;
                         compositionResults[i] = MergeMixinNode(globalContext, context, table, buffer, compositionMixins[i], mixinNode.IsRoot ? mixinNode : mixinNode.Stage, compositionPath);
                     }
 
