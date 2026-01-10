@@ -16,5 +16,16 @@
     <!-- Include build/ files for legacy NuGet PackageReference support -->
     <None Include="$(MSBuildThisFileDirectory)build/**/*.props" Pack="true" PackagePath="build/" />
     <None Include="$(MSBuildThisFileDirectory)build/**/*.targets" Pack="true" PackagePath="build/" />
+
+    <!-- Package Assembly Processor binaries with SDK (interim until standalone package) -->
+    <None Include="..\..\..\deps\AssemblyProcessor\netstandard2.0\**"
+          PackagePath="tools/AssemblyProcessor/netstandard2.0/"
+          Pack="true" />
+    <None Include="..\..\..\deps\AssemblyProcessor\net8.0\**"
+          PackagePath="tools/AssemblyProcessor/net8.0/"
+          Pack="true" />
+    <None Include="..\..\..\deps\AssemblyProcessor\net10.0\**"
+          PackagePath="tools/AssemblyProcessor/net10.0/"
+          Pack="true" />
   </ItemGroup>
 </Project>

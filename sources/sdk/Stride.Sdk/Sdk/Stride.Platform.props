@@ -74,6 +74,14 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
+  <!-- Multi-OS Compatibility -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <!-- Temp directory path for cross-platform builds -->
+    <TEMP Condition="'$(TEMP)' == ''">$([System.IO.Path]::GetTempPath())</TEMP>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Configuration Defaults -->
   <!-- ================================================================ -->
   <PropertyGroup>
