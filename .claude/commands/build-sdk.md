@@ -80,4 +80,16 @@ C:\Users\musse\.nuget\packages\ (cache)
 Project uses cached SDK
 ```
 
+### SDK Work Context
+
+This is part of the **WIP SDK-style build system rework** on branch `feature/stride-sdk`.
+
+**Goal:** Consolidate Stride's complex build system (17 .props/.targets files, ~3500 lines) into a versioned SDK package, simplifying project files from ~100 lines to ~10 lines.
+
+**Current status:**
+- Migrating `Stride.Core.csproj` as proof of concept
+- Moving platform/API targeting logic from `sources/targets/` into SDK
+
+**For more details, see:** `build/docs/SDK-WORK-GUIDE.md`
+
 Report success/failure and list the packages that were built.

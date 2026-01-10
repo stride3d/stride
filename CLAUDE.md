@@ -31,6 +31,16 @@ MSBuild path: "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Cur
 **Run Game Studio:**
 Build and run `Stride.GameStudio` project from `build\Stride.sln` (located in `60-Editor` solution folder).
 
+**Build SDK packages (WIP):**
+```bash
+# Use /build-sdk skill or manually:
+dotnet build sources\sdk\Stride.Sdk.slnx
+
+# IMPORTANT: Clear NuGet cache after SDK changes
+rmdir /s /q "C:\Users\musse\.nuget\packages\stride.sdk" 2>nul
+rmdir /s /q "C:\Users\musse\.nuget\packages\stride.sdk.runtime" 2>nul
+```
+
 ## Testing
 
 **Run tests via MSBuild:**
@@ -56,8 +66,8 @@ Build and run `Stride.GameStudio` project from `build\Stride.sln` (located in `6
 | `presentation/` | WPF-based UI framework |
 | `buildengine/` | Asset build pipeline infrastructure |
 | `shaders/` | Shader parsing and compilation |
-| `sdk/` | **WIP** - MSBuild SDK-style build system rework |
-| `targets/` | MSBuild props/targets files |
+| `sdk/` | **WIP** - MSBuild SDK-style build system rework (see [SDK-WORK-GUIDE.md](build/docs/SDK-WORK-GUIDE.md)) |
+| `targets/` | MSBuild props/targets files (17 files, ~3500 lines - being consolidated into SDK) |
 
 ### Entity-Component System
 
@@ -103,6 +113,65 @@ Multi-API support through abstraction layer in `Stride.Graphics`:
 - **Assets:** `sources/assets/Stride.Core.Assets/`
 - **Editor:** `sources/editor/Stride.GameStudio/`
 - **Build config:** `sources/targets/Stride.props`, `sources/Directory.Build.props`
+- **SDK work:** `sources/sdk/` and `build/docs/SDK-WORK-GUIDE.md`
+
+## Build System
+
+### Multi-Targeting Complexity
+
+Stride supports **6 platforms** × **5 graphics APIs** = 30 build configurations:
+
+**Platforms:** Windows, Linux, macOS, Android, iOS, UWP
+**Graphics APIs:** Direct3D 11, Direct3D 12, OpenGL, OpenGLES, Vulkan
+
+### Key Build Properties
+
+**Platform targeting:**
+- `StridePlatform` - Current platform (Windows, Linux, etc.)
+- `StridePlatforms` - List of target platforms
+- `StrideRuntime=true` - Auto-generates `TargetFrameworks` for multi-platform
+
+**Graphics API targeting:**
+- `StrideGraphicsApi` - Current API (Direct3D11, Vulkan, etc.)
+- `StrideGraphicsApis` - List of target APIs
+- `StrideGraphicsApiDependent=true` - Enables custom inner build system for multiple APIs
+
+**Build control:**
+- `StrideSkipUnitTests=true` - Skip test projects (faster builds)
+- `StrideAssemblyProcessor` - Enable assembly processing
+- `StridePackageBuild` - Building for NuGet release
+
+### Build System Files
+
+Current system: 17 .props/.targets files (~3500 lines):
+- `Directory.Build.props/targets` - Root level
+- `sources/targets/Stride.Core.props` - Platform detection, framework mapping
+- `sources/targets/Stride.props` - Graphics API defaults
+- `sources/targets/Stride.GraphicsApi.*.targets` - Graphics API inner builds
+- `sources/targets/Stride.Core.targets` - Assembly processor
+- `sources/targets/Stride.targets` - Build finalization
+
+**SDK goal:** Consolidate into versioned `Stride.Sdk` package.
+
+### Graphics API Multi-Targeting
+
+**Custom inner build system** creates separate binaries per API:
+```
+bin/Release/net10.0/
+    Direct3D11/Stride.Graphics.dll
+    Direct3D12/Stride.Graphics.dll
+    Vulkan/Stride.Graphics.dll
+```
+
+Enabled via `StrideGraphicsApiDependent=true` in project file.
+
+**Note:** This is non-standard MSBuild - IDEs may struggle with IntelliSense defaulting to first API.
+
+### Build Documentation
+
+Comprehensive build system documentation exists in `build/docs/`:
+- `SDK-WORK-GUIDE.md` - SDK development workflow
+- See `feature/build-analysis-and-improvements` branch for detailed analysis
 
 ## Coding Guidelines
 
