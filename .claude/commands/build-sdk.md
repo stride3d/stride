@@ -1,3 +1,8 @@
+---
+name: build-sdk
+description: Build SDK packages and clear NuGet cache for fresh deployment
+---
+
 # Build SDK Command
 
 Build the Stride SDK packages and clear the NuGet cache to ensure fresh packages are used.

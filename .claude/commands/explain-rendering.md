@@ -1,3 +1,8 @@
+---
+name: explain-rendering
+description: Explain how rendering features work (materials, shaders, post-processing)
+---
+
 # Explain Rendering Command
 
 Explain how a specific rendering feature works in Stride.

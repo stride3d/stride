@@ -1,3 +1,8 @@
+---
+name: find-component
+description: Find and explain EntityComponent implementations in the Stride ECS
+---
+
 # Find Component Command
 
 Find and explain EntityComponent implementations in the Stride ECS.

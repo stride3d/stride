@@ -1,3 +1,8 @@
+---
+name: test
+description: Run Stride tests by category or all tests
+---
+
 # Test Command
 
 Run Stride tests.

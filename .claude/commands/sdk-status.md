@@ -1,3 +1,8 @@
+---
+name: sdk-status
+description: Check status of the WIP SDK-style build system rework
+---
+
 # SDK Status Command
 
 Check the status of the WIP SDK-style build system rework.

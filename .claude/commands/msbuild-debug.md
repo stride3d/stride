@@ -1,3 +1,8 @@
+---
+name: msbuild-debug
+description: Debug MSBuild issues with diagnostic techniques
+---
+
 # MSBuild Debug Command
 
 Debug MSBuild issues in the Stride build system.

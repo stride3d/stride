@@ -1,3 +1,8 @@
+---
+name: analyze-asset
+description: Analyze Stride asset files (.sdscene, .sdmat, etc.) and explain structure
+---
+
 # Analyze Asset Command
 
 Analyze a Stride asset file (.sd* files) and explain its structure.

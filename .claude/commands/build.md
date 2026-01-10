@@ -1,3 +1,8 @@
+---
+name: build
+description: Build the Stride solution or a specific project
+---
+
 # Build Command
 
 Build the Stride solution or a specific project.
