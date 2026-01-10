@@ -167,10 +167,43 @@ Enabled via `StrideGraphicsApiDependent=true` in project file.
 
 **Note:** This is non-standard MSBuild - IDEs may struggle with IntelliSense defaulting to first API.
 
+### MSBuild SDK Evaluation Order
+
+**Critical concept for SDK development:**
+
+When a project uses `<Project Sdk="Stride.Sdk">`, MSBuild evaluates files in this specific order:
+
+```
+1. Stride.Sdk/Sdk/Sdk.props     (SDK properties - BEFORE project file)
+   ↓
+2. YourProject.csproj            (User properties)
+   ↓
+3. Stride.Sdk/Sdk/Sdk.targets   (SDK targets - AFTER project file)
+```
+
+**Implications:**
+- **Sdk.props** - Set default values that can be overridden by projects
+  - Example: `<StrideRuntime Condition="'$(StrideRuntime)' == ''">false</StrideRuntime>`
+  - ⚠️ Properties defined in .csproj are NOT yet visible here
+
+- **Sdk.targets** - Check user values and compute derived properties
+  - Example: `<PropertyGroup Condition="'$(StrideRuntime)' == 'true'>...`
+  - ✅ Properties from .csproj ARE visible here
+
+**Rule of thumb:**
+- Properties that **set defaults** → Sdk.props
+- Properties that **check user values** → Sdk.targets
+- Complex computations based on user properties → Sdk.targets
+
+**Historical note:** The old build system used `<Import Project="..\..\targets\Stride.Core.props" />` after setting properties, which allowed properties to be visible during the import. This workaround pattern is unnecessary with proper SDK design where the evaluation order is standardized.
+
+See [SDK-WORK-GUIDE.md](build/docs/SDK-WORK-GUIDE.md#understanding-property-evaluation-timing) for detailed examples.
+
 ### Build Documentation
 
 Comprehensive build system documentation exists in `build/docs/`:
 - `SDK-WORK-GUIDE.md` - SDK development workflow
+- `SDK-PROPERTY-EVALUATION-ANALYSIS.md` - Property evaluation order analysis
 - See `feature/build-analysis-and-improvements` branch for detailed analysis
 
 ## Coding Guidelines

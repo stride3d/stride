@@ -1,5 +1,17 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <!--
+    CRITICAL: We check $(StrideRuntime) here in .targets (NOT in .props)
+    because it's defined in the user's .csproj which loads AFTER Sdk.props
+    but BEFORE Sdk.targets.
+
+    Old build system bug: sources/targets/Stride.Core.props:58 checked this
+    in the .props phase where the property wasn't yet defined, causing
+    silent failures. Multi-targeting only worked via command-line properties.
+
+    This SDK fixes that bug by checking StrideRuntime at the correct phase.
+  -->
+
   <!-- Define target frameworks for runtime -->
   <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">  
     <!-- Add default framework no matter what (needed for references) -->

@@ -97,4 +97,15 @@ This is part of the **WIP SDK-style build system rework** on branch `feature/str
 
 **For more details, see:** `build/docs/SDK-WORK-GUIDE.md`
 
+### Important: MSBuild Evaluation Order
+
+Remember: `Sdk.props → .csproj → Sdk.targets`
+
+Properties from the .csproj are NOT visible in Sdk.props!
+
+- **Sdk.props** - Set defaults only
+- **Sdk.targets** - Check user values and compute derived properties
+
+See [SDK-PROPERTY-EVALUATION-ANALYSIS.md](../../build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md) for details.
+
 Report success/failure and list the packages that were built.

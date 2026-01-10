@@ -133,6 +133,62 @@ Project content (.csproj)
 Stride.Sdk/Sdk/Sdk.targets
 ```
 
+### Understanding Property Evaluation Timing
+
+**Critical Rule:** Properties defined in the .csproj are NOT visible in Sdk.props!
+
+This is the most important concept for SDK migration. MSBuild evaluates files in a specific order, and properties flow through this pipeline.
+
+**Example of CORRECT pattern:**
+
+```xml
+<!-- Sdk.props - Set defaults (can be overridden) -->
+<PropertyGroup>
+  <StrideRuntime Condition="'$(StrideRuntime)' == ''">false</StrideRuntime>
+</PropertyGroup>
+
+<!-- User's .csproj - Override default -->
+<PropertyGroup>
+  <StrideRuntime>true</StrideRuntime>
+</PropertyGroup>
+
+<!-- Sdk.targets - Check final value and act on it -->
+<PropertyGroup Condition="'$(StrideRuntime)' == 'true'">
+  <TargetFrameworks>net10.0;net10.0-android;net10.0-ios</TargetFrameworks>
+</PropertyGroup>
+```
+
+**Example of INCORRECT pattern (from old build system):**
+
+```xml
+<!-- sources/targets/Stride.Core.props - WRONG PHASE! -->
+<PropertyGroup Condition="'$(StrideRuntime)' == 'true'">
+  <TargetFrameworks>...</TargetFrameworks>
+</PropertyGroup>
+<!-- This FAILS because StrideRuntime from .csproj isn't set yet! -->
+```
+
+**Why this matters for SDK migration:**
+
+When migrating logic from `sources/targets/*.props` to the SDK:
+1. Check if the logic uses properties that projects define
+2. If yes, move that logic to Sdk.targets (not Sdk.props)
+3. Keep only default value assignments in Sdk.props
+
+**Historical workaround in old system:**
+
+The old build system worked around this by having projects set properties BEFORE importing:
+
+```xml
+<!-- Old pattern (sources/core/Stride.Core.IO/Stride.Core.IO.csproj) -->
+<PropertyGroup>
+  <StrideRuntime>true</StrideRuntime>  <!-- Set property first -->
+</PropertyGroup>
+<Import Project="..\..\targets\Stride.Core.props" />  <!-- Then import -->
+```
+
+This made properties visible during the import, but it's a workaround that shouldn't be necessary with proper SDK design where the evaluation order is standardized.
+
 ### Key Files
 
 | File | Purpose |
@@ -251,7 +307,37 @@ Two mechanisms exist:
 
 **SDK Decision:** Should we keep `StrideRuntime` convenience or require explicit `TargetFrameworks`?
 
-### 4. C++/CLI Projects
+### 4. Property Evaluation Phase Analysis
+
+Based on analysis of `Stride.Core.csproj.backup`, these properties are commonly defined by projects:
+
+| Property | Defined In | Correct Check Phase | Status in Old System |
+|----------|------------|-------------------|---------------------|
+| `StrideRuntime` | .csproj | ❌ .props / ✅ .targets | VIOLATED in Stride.Core.props:58 |
+| `StrideAssemblyProcessor` | .csproj | ✅ .targets | Correctly checked in Stride.Core.targets:94 |
+| `StrideCodeAnalysis` | .csproj | ✅ .targets | Correctly checked in Stride.Core.targets:35 |
+| `StrideAssemblyProcessorOptions` | .csproj | ✅ .targets | Used correctly |
+| `StrideBuildTags` | .csproj | N/A | Unused - can be removed |
+| `RestorePackages` | .csproj | N/A | Unused - can be removed |
+
+**Key Finding:** The old build system has a **critical bug** in `sources/targets/Stride.Core.props:58`:
+
+```xml
+<!-- Line 58: WRONG PHASE - StrideRuntime from .csproj not yet defined! -->
+<PropertyGroup Condition="'$(StrideRuntime)' == 'true'">
+  <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
+</PropertyGroup>
+```
+
+**Impact:**
+- This condition **always evaluates to false** when building individual projects
+- `StrideRuntime=true` in .csproj is not yet visible at this evaluation phase
+- Multi-targeting only works when `StrideRuntime` is passed via command-line (from `build/Stride.build`)
+- Silent failure - no error, just doesn't enable multi-targeting
+
+**SDK Fix:** The new SDK correctly handles this by checking `StrideRuntime` in `Stride.Frameworks.targets` (which evaluates AFTER the .csproj is loaded), fixing this long-standing bug.
+
+### 5. C++/CLI Projects
 
 Some engine projects use C++/CLI and require `msbuild.exe` (not `dotnet build`).
 

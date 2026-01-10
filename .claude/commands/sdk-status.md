@@ -48,4 +48,17 @@ sources/sdk/
 - `sources/targets/Stride.targets` - Main Stride targets
 - `build/Stride.build` - Advanced build targets
 
+### Important: MSBuild Evaluation Order
+
+Remember: `Sdk.props → .csproj → Sdk.targets`
+
+Properties from the .csproj are NOT visible in Sdk.props!
+
+When checking SDK implementation:
+- Verify property checks are in Sdk.targets (not Sdk.props)
+- Look for evaluation phase violations from old system
+- Confirm StrideRuntime logic is in .targets (fixes old bug)
+
+See [SDK-PROPERTY-EVALUATION-ANALYSIS.md](../../build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md) for details.
+
 Report the current state of the SDK work, what's implemented, and what remains to be done.

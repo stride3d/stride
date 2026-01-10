@@ -1,5 +1,32 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <!--
+    ================================================================
+    Stride.Sdk - Build Logic and Targets (Sdk.targets)
+    ================================================================
+
+    EVALUATION ORDER: This file is imported AFTER the project file!
+
+    What you CAN do here:
+    - Check user-defined properties from .csproj (now visible!)
+    - Compute derived properties based on user values
+    - Conditionally enable features based on user properties
+    - Define build targets and tasks
+
+    What you should do here:
+    - All conditional logic that depends on .csproj properties
+    - Property computation based on user choices
+    - Target framework expansion (StrideRuntime → TargetFrameworks)
+    - Build customization based on user configuration
+
+    Rule: User properties from .csproj ARE visible here.
+          This is where conditional logic belongs.
+
+    See: build/docs/SDK-WORK-GUIDE.md#understanding-property-evaluation-timing
+         build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md
+    ================================================================
+  -->
+
   <!-- ================================================================ -->
   <!-- Import supporting targets files -->
   <!-- ================================================================ -->
