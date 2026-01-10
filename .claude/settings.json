@@ -1,0 +1,18 @@
+{
+  "$schema": "https://claude.ai/code/settings-schema.json",
+  "project": {
+    "name": "Stride Game Engine",
+    "description": "Open-source C# game engine for realistic rendering and VR"
+  },
+  "build": {
+    "tool": "msbuild",
+    "msbuildPath": "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe",
+    "solution": "build\\Stride.sln",
+    "configuration": "Debug",
+    "platform": "Mixed Platforms"
+  },
+  "test": {
+    "framework": "xunit",
+    "command": "dotnet test"
+  }
+}
