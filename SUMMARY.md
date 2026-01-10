@@ -2,62 +2,65 @@
 
 **Date:** 2026-01-10
 **Branch:** feature/stride-sdk
-**Status:** 6 commits ahead of origin/feature/stride-sdk
+**Status:** 7 commits ahead of origin/feature/stride-sdk
 
 ---
 
-## Latest Session (Assembly Processor Implementation) ⏳
+## Latest Session (Assembly Processor Implementation) ✅
 
 ### What Was Accomplished
 
-Implemented full Assembly Processor integration in Stride.SDK (3 files modified, ~200 lines added).
+Successfully implemented full Assembly Processor integration in Stride.SDK and verified working.
 
-**Changes Made (NOT YET COMMITTED):**
+**Commit 35eb7790c: Implement full Assembly Processor integration in Stride.SDK**
+- 3 files changed, 175 insertions(+), 67 deletions(-)
+- Assembly Processor binaries packaged with SDK
+- Full targets file implementation (184 lines)
+- Tested and verified with Stride.Core build
 
-1. **sources/sdk/Stride.Sdk/Stride.Sdk.csproj** (+4 lines)
-   - Package Assembly Processor binaries with SDK at `tools/AssemblyProcessor/`
-   - Uses `$(MSBuildThisFileDirectory)` and forward slashes for cross-platform compatibility
+**Files Modified:**
+
+1. **sources/sdk/Stride.Sdk/Stride.Sdk.csproj** (+9 lines)
+   - Package Assembly Processor binaries in `tools/AssemblyProcessor/`
+   - Explicit framework folders: netstandard2.0, net8.0, net10.0
 
 2. **sources/sdk/Stride.Sdk/Sdk/Stride.Platform.props** (+7 lines)
-   - Added TEMP property for cross-platform temp directory path
+   - Added TEMP property for cross-platform temp directory
 
-3. **sources/sdk/Stride.Sdk/Sdk/Stride.AssemblyProcessor.targets** (stub → full implementation, 184 lines)
-   - Property setup: Framework selection, path detection (SDK package vs source), hash-based temp directory
+3. **sources/sdk/Stride.Sdk/Sdk/Stride.AssemblyProcessor.targets** (stub → full, 184 lines)
+   - Property setup: Framework, path detection, hash-based temp directory
    - UsingTask declaration for AssemblyProcessorTask
-   - Main target: StrideRunAssemblyProcessor with ResolveAssemblyReferences dependency
-   - Build pipeline integration via PrepareForRunDependsOn
+   - StrideRunAssemblyProcessor target with full implementation
+   - PrepareForRunDependsOn integration
    - .usrdoc file handling for public APIs
-   - Validation warnings if processor not found
 
-### Current Status
+### Verification Results
 
-✅ Implementation complete
-⏳ Testing in progress - need to rebuild SDK and verify with Stride.Core
+✅ **All success criteria met:**
+- SDK builds and packages Assembly Processor binaries (10 files per framework)
+- Stride.Core restores and builds successfully with MSBuild
+- StrideRunAssemblyProcessor target executes in build pipeline
+- 0 errors, 282 warnings (expected code analysis warnings)
 
-**Issue discovered:** Initial SDK build succeeded, but Assembly Processor binaries may not be properly packaged. Path fix applied (using `$(MSBuildThisFileDirectory)`), needs rebuild to verify.
+### Key Discoveries
 
-### Implementation Pattern
+**Packaging Gotchas:**
+1. Glob pattern `**\*.*` didn't work - had to list framework folders explicitly
+2. XML comments can't contain `--` - changed to "add-reference flag"
+3. Need `dotnet pack` not `dotnet build` to create .nupkg files
 
-Followed `sources/core/Stride.Core/build/Stride.Core.targets` (lines 56-117):
-- Uses `PrepareForRunDependsOn` (not BeforeTargets)
-- Includes `--add-reference` for explicit NuGet packages
-- Includes `--parameter-key` flag
-- Hash-based temp directory isolation to avoid MSBuild file locking
-
-### Next Steps
-
-1. Rebuild SDK with path fix: `/build-sdk`
-2. Verify binaries packaged: Check `tools/AssemblyProcessor/` in NuGet cache
-3. Build Stride.Core with MSBuild and verify Assembly Processor execution
-4. Commit all changes if tests pass
+**Build Tool Requirements:**
+- Use `dotnet pack -c Debug` for SDK (not just `dotnet build`)
+- Use MSBuild for Stride projects (C++/CLI support)
+- Clear NuGet cache after SDK changes: `dotnet nuget locals all --clear`
 
 ---
 
 ## Previous Session - Desktop Platform SDK Migration
 
-Completed Stride.Core SDK migration for desktop platforms. Created Stride.Platform.props/targets, Stride.AssemblyProcessor.targets (stub), Stride.CodeAnalysis.targets. Multi-targeting verified working (net10.0, net10.0-windows). Discovered critical NuGet cache clearing requirement.
+Completed Stride.Core SDK migration for desktop platforms. Created Stride.Platform.props/targets, Stride.AssemblyProcessor.targets (stub), Stride.CodeAnalysis.targets. Multi-targeting verified working.
 
-**Commits:** 63c349108, f0cec9b30
+**Commits:** 63c349108, f0cec9b30, 4e49cf8bc
 **Key files:** sources/sdk/Stride.Sdk/Sdk/Stride.Platform.{props,targets}
 
 ---
@@ -71,28 +74,33 @@ Completed Stride.Core SDK migration for desktop platforms. Created Stride.Platfo
 2. Source build: `..\..\..\..\deps\AssemblyProcessor\{framework}\`
 
 **Key Properties:**
-- `StrideAssemblyProcessor` - Enable processor (default: false)
+- `StrideAssemblyProcessor` - Enable processor (default: false, projects opt-in)
 - `StrideAssemblyProcessorOptions` - Default: `--parameter-key --auto-module-initializer --serialization`
-- `StrideAssemblyProcessorDev` - Dev mode (Exec instead of Task, avoids file locking)
+- `StrideAssemblyProcessorDev` - Dev mode (Exec instead of Task)
 
 **Build Integration:**
-- Uses `PrepareForRunDependsOn`
+- Uses `PrepareForRunDependsOn` (standard MSBuild extensibility)
 - Depends on `ResolveAssemblyReferences`
-- Copies processor to temp with hash-based isolation
+- Hash-based temp directory isolation
 
-### NuGet Cache Management
+### Build Commands
 
-**CRITICAL:** After modifying SDK, clear NuGet cache:
-
+**Build SDK:**
 ```bash
-rmdir /s /q "C:\Users\musse\.nuget\packages\stride.sdk" 2>nul
+dotnet pack sources/sdk/Stride.Sdk/Stride.Sdk.csproj -c Debug
 ```
 
-### Build Tools
+**Clear NuGet cache:**
+```bash
+dotnet nuget locals all --clear
+```
 
-- **MSBuild:** For Stride projects (C++/CLI support)
-  - `C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe`
-- **dotnet CLI:** For SDK building only
+**Build Stride projects with MSBuild:**
+```bash
+"/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/MSBuild.exe" \
+  "c:/Projects/Stride/Engine/stride/sources/core/Stride.Core/Stride.Core.csproj" \
+  //p:Configuration=Debug //v:n
+```
 
 ### MSBuild SDK Evaluation Order
 
@@ -106,82 +114,79 @@ Defaults in props, conditional logic in targets.
 
 ## File Locations
 
-**Modified This Session (uncommitted):**
+**Modified This Session (committed):**
 - sources/sdk/Stride.Sdk/Stride.Sdk.csproj
 - sources/sdk/Stride.Sdk/Sdk/Stride.Platform.props
 - sources/sdk/Stride.Sdk/Sdk/Stride.AssemblyProcessor.targets
 
-**Reference:**
-- sources/core/Stride.Core/build/Stride.Core.targets (pattern we followed)
+**Reference Implementation:**
+- sources/core/Stride.Core/build/Stride.Core.targets (lines 56-117)
 
 **Test Project:**
 - sources/core/Stride.Core/Stride.Core.csproj (has `StrideAssemblyProcessor=true`)
 
-**Binaries:**
-- deps/AssemblyProcessor/netstandard2.0/
+**Assembly Processor Binaries:**
+- deps/AssemblyProcessor/{netstandard2.0,net8.0,net10.0}/
 
 ---
 
 ## Next Steps
 
-### Immediate
-
-1. **Rebuild and verify SDK packaging**
-   ```bash
-   /build-sdk
-   ls "C:\Users\musse\.nuget\packages\stride.sdk\4.3.0-dev\tools\AssemblyProcessor\netstandard2.0\"
-   ```
-
-2. **Test with Stride.Core**
-   ```bash
-   dotnet restore sources/core/Stride.Core/Stride.Core.csproj
-   "/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/MSBuild.exe" \
-     "c:/Projects/Stride/Engine/stride/sources/core/Stride.Core/Stride.Core.csproj" \
-     //p:Configuration=Debug //v:detailed
-   ```
-
-3. **Commit if tests pass**
-   ```bash
-   git add sources/sdk/Stride.Sdk/
-   git commit -m "Implement full Assembly Processor integration in Stride.SDK"
-   ```
-
 ### High Priority
 
-1. Test Assembly Processor with Stride.Core unit tests
-2. Migrate Stride.Core.IO to SDK
-3. Migrate Stride.Core.Mathematics to SDK
+1. **Test Assembly Processor with Stride.Core unit tests**
+   - Verify serialization works correctly
+   - Run: `/test Stride.Core`
+
+2. **Migrate Stride.Core.IO to SDK**
+   - Use `/analyze-csproj-migration` first
+   - Follow Stride.Core pattern
+
+3. **Migrate Stride.Core.Mathematics to SDK**
+   - Similar structure to Stride.Core
+
+### Medium Priority
+
+1. Test full solution build with migrated projects
+2. Add mobile/UWP platform support (Phase 2)
+3. Remove unused properties (StrideBuildTags, RestorePackages)
 
 ### Future
 
 - Create standalone Stride.Core.AssemblyProcessor NuGet package
-- Add mobile/UWP platform support
+- Remove binaries from Stride.Sdk (use PackageReference)
+- Update project templates to use SDK
 
 ---
 
 ## Commands for Next Session
 
 ```bash
+# Check status
+git status
+git log --oneline -5
+
 # Build SDK
-/build-sdk
+dotnet pack sources/sdk/Stride.Sdk/Stride.Sdk.csproj -c Debug
+dotnet nuget locals all --clear
 
-# Verify packaging
-ls "C:\Users\musse\.nuget\packages\stride.sdk\4.3.0-dev\tools\AssemblyProcessor\netstandard2.0\"
-
-# Build Stride.Core with MSBuild (check for Assembly Processor)
-dotnet restore "c:\Projects\Stride\Engine\stride\sources\core\Stride.Core\Stride.Core.csproj"
+# Build Stride.Core
+dotnet restore sources/core/Stride.Core/Stride.Core.csproj
 "/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/MSBuild.exe" \
   "c:/Projects/Stride/Engine/stride/sources/core/Stride.Core/Stride.Core.csproj" \
-  //p:Configuration=Debug //v:detailed 2>&1 | grep -i "striderunassemblyprocessor"
+  //p:Configuration=Debug
+
+# Test Stride.Core
+/test Stride.Core
 ```
 
 ---
 
 ## Context Notes
 
-- Session at 119k/200k tokens (60%) when compacted
-- Implemented full Assembly Processor integration (~200 lines)
-- Path fix applied, needs rebuild to verify
-- Ready for testing phase
+- Session ended at 133k/200k tokens (67% usage) after compaction
+- Implemented and verified Assembly Processor integration
+- All code committed successfully
+- Ready for next phase: testing and additional project migrations
 
-**For resuming:** Run `/build-sdk`, verify binaries packaged, test with Stride.Core, commit if successful.
+**For resuming:** Assembly Processor implementation complete and committed. Next: Run unit tests, then migrate Stride.Core.IO.
