@@ -103,7 +103,7 @@ namespace Stride.Graphics
             CleanupRenderPass();
 
             // Close
-            GraphicsDevice.CheckResult(vGraphicsDevice.NativeDeviceApi.kEndCommandBuffer(currentCommandList.NativeCommandBuffer));
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkEndCommandBuffer(currentCommandList.NativeCommandBuffer));
 
             // Staging resources not updated anymore
             foreach (var stagingResource in currentCommandList.StagingResources)
@@ -195,7 +195,7 @@ namespace Stride.Graphics
             if (!pipelineDirty)
                 return;
 
-            vkCmdBindPipeline(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativePipeline);
+            GraphicsDevice.NativeDeviceApi.vkCmdBindPipeline(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativePipeline);
         }
 
         /// <summary>
@@ -273,7 +273,7 @@ namespace Stride.Graphics
             BindPipeline();
             BindDescriptorSets();
             SetViewportImpl();
-            vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
+            GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
         }
 
         private unsafe void BindDescriptorSets()
@@ -977,7 +977,7 @@ namespace Stride.Graphics
                                     dstSubresource = destinationSubresource,
                                     extent = new VkExtent3D(width, height, depth)
                                 };
-                                vkCmdCopyImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &copy);
+                                GraphicsDevice.NativeDeviceApi.vkCmdCopyImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &copy);
                             }
                         }
                     }
@@ -1117,7 +1117,7 @@ namespace Stride.Graphics
                             imageOffset = new VkOffset3D(region.Left, region.Top, region.Front),
                             imageExtent = new VkExtent3D((uint)(region.Right - region.Left), (uint)(region.Bottom - region.Top), (uint)(region.Back - region.Front))
                         };
-                        vkCmdCopyImageToBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeBuffer, 1, &copy);
+                        GraphicsDevice.NativeDeviceApi.vkCmdCopyImageToBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeBuffer, 1, &copy);
                     }
 
                     //// VkFence for host access

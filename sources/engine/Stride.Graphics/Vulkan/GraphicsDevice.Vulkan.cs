@@ -213,7 +213,7 @@ namespace Stride.Graphics
                     pSignalSemaphores = &frameSemaphore,
                 };
 
-                CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+                CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
             }
         }
 
@@ -279,7 +279,7 @@ namespace Stride.Graphics
                     pSignalSemaphores = &semaphores[0],
                 };
 
-                CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+                CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
             }
 
             // Collect resources
@@ -545,7 +545,7 @@ namespace Stride.Graphics
                     pSignalSemaphores = &copySemaphore,
                 };
                 
-                CheckResult(vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+                CheckResult(NativeDeviceApi.vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, VkFence.Null));
 
                 return nextCopyFenceValue;
             }
@@ -779,13 +779,13 @@ namespace Stride.Graphics
                 this.graphicsDevice = graphicsDevice;
                 var timelineInfo = new VkSemaphoreTypeCreateInfo { sType = VkStructureType.SemaphoreTypeCreateInfo, semaphoreType = VkSemaphoreType.Timeline };
                 var createInfo = new VkSemaphoreCreateInfo { sType = VkStructureType.SemaphoreCreateInfo, pNext = &timelineInfo };
-                graphicsDevice.CheckResult(NativeDeviceApi.vkCreateSemaphore(graphicsDevice.NativeDevice, &createInfo, null, out Semaphore));
+                graphicsDevice.CheckResult(graphicsDevice.NativeDeviceApi.vkCreateSemaphore(graphicsDevice.NativeDevice, &createInfo, null, out Semaphore));
             }
 
             internal ulong GetCompletedValue()
             {
                 ulong result = 0;
-                vkGetSemaphoreCounterValue(graphicsDevice.NativeDevice, Semaphore, &result);
+                graphicsDevice.NativeDeviceApi.vkGetSemaphoreCounterValue(graphicsDevice.NativeDevice, Semaphore, &result);
                 return result;
             }
 
@@ -815,7 +815,7 @@ namespace Stride.Graphics
                             pSemaphores = semaphore,
                             pValues = &fenceValue,
                         };
-                        NativeDeviceApi.vkWaitSemaphores(graphicsDevice.NativeDevice, &waitInfo, ulong.MaxValue);
+                        graphicsDevice.NativeDeviceApi.vkWaitSemaphores(graphicsDevice.NativeDevice, &waitInfo, ulong.MaxValue);
                         LastCompletedFence = fenceValue;
                     }
                 }
@@ -823,7 +823,7 @@ namespace Stride.Graphics
 
             public void Dispose()
             {
-                vkDestroySemaphore(graphicsDevice.NativeDevice, Semaphore);
+                graphicsDevice.NativeDeviceApi.vkDestroySemaphore(graphicsDevice.NativeDevice, Semaphore);
             }
         }
     }
