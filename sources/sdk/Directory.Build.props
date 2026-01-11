@@ -9,6 +9,7 @@
 
     <!-- Output packages to build/packages -->
     <PackageOutputPath>$(MSBuildThisFileDirectory)../../build/packages</PackageOutputPath>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
     <PackageVersion>4.3.0-dev</PackageVersion>
 
@@ -27,4 +28,10 @@
     <None Include="$(MSBuildThisFileDirectory)nuget-icon.png" Pack="true" PackagePath="" Visible="false"/>
   </ItemGroup>
 
+  <!-- Remove previous package from NuGet cache -->
+  <Target Name="CleanOldPackage" AfterTargets="Pack">
+    <!-- Deleting .sha512 file and/or .nupkg.metadata seems to be enough for NuGet restore to force extract new package and properly compile dependent projects -->
+    <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\$(PackageId).$(PackageVersion).nupkg.sha512"/>
+    <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\.nupkg.metadata"/>
+  </Target>
 </Project>
