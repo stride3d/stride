@@ -41,12 +41,11 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="physicalDevice">The default factory.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
-        internal GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, int adapterOrdinal)
+        internal GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, VkPhysicalDeviceProperties properties, int adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
             this.defaultPhysicalDevice = defaultPhysicalDevice;
-
-            vkGetPhysicalDeviceProperties(defaultPhysicalDevice, out properties);
+            this.properties = properties;
 
             // TODO VULKAN
             //var displayProperties = physicalDevice.DisplayProperties;
@@ -100,13 +99,20 @@ namespace Stride.Graphics
             }
         }
 
-        internal VkPhysicalDevice GetPhysicalDevice(bool enableValidation)
+        internal unsafe VkPhysicalDevice GetPhysicalDevice(bool enableValidation)
         {
             if (enableValidation)
             {
                 if (debugPhysicalDevice == VkPhysicalDevice.Null)
                 {
-                    debugPhysicalDevice = vkEnumeratePhysicalDevices(GraphicsAdapterFactory.GetInstance(true).NativeInstance).ToArray()[adapterOrdinal];
+                    GraphicsAdapterFactoryInstance defaultInstance = GraphicsAdapterFactory.GetInstance(true);
+                    uint physicalDevicesCount = 0;
+                    defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, &physicalDevicesCount, null).CheckResult();
+
+                    Span<VkPhysicalDevice> nativePhysicalDevices = stackalloc VkPhysicalDevice[(int)physicalDevicesCount];
+                    defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, nativePhysicalDevices).CheckResult();
+
+                    debugPhysicalDevice = nativePhysicalDevices[adapterOrdinal];
                 }
 
                 return debugPhysicalDevice;

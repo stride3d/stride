@@ -40,7 +40,7 @@
     <PackageVersion Include="System.Memory" Version="4.6.3" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="10.0.0" />
     <PackageVersion Include="System.ValueTuple" Version="4.6.1" />
-    <PackageVersion Include="Vortice.Vulkan" Version="2.1.2" />
+    <PackageVersion Include="Vortice.Vulkan" Version="3.0.3" />
     <PackageVersion Include="WinPixEventRuntime" Version="1.0.240308001" />
   </ItemGroup>
   <!-- Other dependencies -->

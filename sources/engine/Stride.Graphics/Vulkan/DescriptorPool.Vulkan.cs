@@ -16,8 +16,8 @@ namespace Stride.Graphics
 
         public void Reset()
         {
-            GraphicsDevice.descriptorPools.RecycleObject(GraphicsDevice.NextFenceValue, NativeDescriptorPool);
-            NativeDescriptorPool = GraphicsDevice.descriptorPools.GetObject();
+            GraphicsDevice.DescriptorPools.RecycleObject(GraphicsDevice.NextFenceValue, NativeDescriptorPool);
+            NativeDescriptorPool = GraphicsDevice.DescriptorPools.GetObject();
 
             allocatedSetCount = 0;
             for (int i = 0; i < DescriptorSetLayout.DescriptorTypeCount; i++)
@@ -52,16 +52,16 @@ namespace Stride.Graphics
 
             // Allocate new descriptor set
             var nativeLayoutCopy = descriptorSetLayout.NativeLayout;
-            var allocateInfo = new DescriptorSetAllocateInfo
+            var allocateInfo = new VkDescriptorSetAllocateInfo
             {
                 sType = VkStructureType.DescriptorSetAllocateInfo,
-                DescriptorPool = NativeDescriptorPool,
-                DescriptorSetCount = 1,
-                SetLayouts = new IntPtr(&nativeLayoutCopy)
+                descriptorPool = NativeDescriptorPool,
+                descriptorSetCount = 1,
+                pSetLayouts = &nativeLayoutCopy
             };
 
             VkDescriptorSet descriptorSet;
-            GraphicsDevice.NativeDevice.AllocateDescriptorSets(ref allocateInfo, &descriptorSet);
+            GraphicsDevice.NativeDeviceApi.vkAllocateDescriptorSets(GraphicsDevice.NativeDevice, &allocateInfo, &descriptorSet);
             return descriptorSet;
         }
 
@@ -83,7 +83,7 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed(bool immediately = false)
         {
-            GraphicsDevice.descriptorPools.RecycleObject(GraphicsDevice.NextFenceValue, NativeDescriptorPool);
+            GraphicsDevice.DescriptorPools.RecycleObject(GraphicsDevice.NextFenceValue, NativeDescriptorPool);
 
             base.OnDestroyed(immediately);
         }
