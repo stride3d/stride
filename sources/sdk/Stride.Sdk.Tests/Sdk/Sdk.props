@@ -1,2 +1,76 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- ================================================================ -->
+  <!-- Import Base Stride SDK -->
+  <!-- ================================================================ -->
+  <Import Project="Sdk.props" Sdk="Stride.Sdk" />
+
+  <!-- ================================================================ -->
+  <!-- Test Project Properties -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <!-- Mark as test project for dotnet test -->
+    <IsTestProject>true</IsTestProject>
+
+    <!-- Tests are executables (for asset compilation, native libs, etc.) -->
+    <OutputType>WinExe</OutputType>
+    <StrideIsExecutable>true</StrideIsExecutable>
+
+    <!-- Custom output paths for test projects -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+
+    <!-- Allow unsafe code (common in tests) -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Use cross-platform editor target framework by default -->
+    <TargetFramework Condition="'$(TargetFramework)' == '' And '$(TargetFrameworks)' == ''">$(StrideXplatEditorTargetFramework)</TargetFramework>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Test-Specific Output Paths -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <!-- Compute test output directory -->
+    <_StrideTestOutputDir>$(MSBuildThisFileDirectory)..\..\..\..\..\..\bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\</_StrideTestOutputDir>
+    <_StrideTestOutputDir Condition="'$(StrideGraphicsApiDependent)' == 'true'">$(_StrideTestOutputDir)$(StrideGraphicsApi)\</_StrideTestOutputDir>
+
+    <!-- Set output path (use custom path if not already set) -->
+    <OutputPath Condition="'$(OutputPath)' == ''">$(_StrideTestOutputDir)</OutputPath>
+
+    <!-- Set intermediate output path -->
+    <IntermediateOutputPath Condition="'$(StrideGraphicsApiDependent)' != 'true'">$(BaseIntermediateOutputPath)$(StridePlatform)\$(Configuration)\</IntermediateOutputPath>
+    <IntermediateOutputPath Condition="'$(StrideGraphicsApiDependent)' == 'true'">$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Graphics API Configuration for Tests -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <!-- Check if we have test-specific graphics API override -->
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApisTest)' != ''">$(StrideGraphicsApisTest)</StrideGraphicsApis>
+
+    <!-- Build list of Graphics API for platforms that support multiple -->
+    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Linux' And '$(StrideGraphicsApiDependentBuildAll)' == 'true'">OpenGL;Vulkan</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Linux' And '$(StrideGraphicsApis)' == ''">OpenGL</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
+
+    <!-- Setup default GraphicsApi -->
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideGraphicsApi>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Asset Compilation Settings -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <!-- Do not compile unit tests when packaging -->
+    <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true'">false</StrideCompilerTargetsEnable>
+    <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
+
+    <!-- Asset compilation options for tests -->
+    <StrideCompileAssetOptions Condition="'$(StrideCompileAssetOptions)' == ''">--compile-property:BuildProjectReferences=false</StrideCompileAssetOptions>
+  </PropertyGroup>
+
 </Project>

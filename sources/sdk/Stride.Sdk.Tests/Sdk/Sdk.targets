@@ -1,2 +1,74 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- ================================================================ -->
+  <!-- Import Base Stride SDK -->
+  <!-- ================================================================ -->
+  <Import Project="Sdk.targets" Sdk="Stride.Sdk" />
+
+  <!-- ================================================================ -->
+  <!-- Test Framework Package References -->
+  <!-- ================================================================ -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Condition="'$(SkipTestSdkReference)' != 'true'" />
+    <PackageReference Include="xunit" Condition="'$(SkipXunitReference)' != 'true'" />
+    <PackageReference Include="xunit.runner.visualstudio" Condition="'$(SkipXunitReference)' != 'true'">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="TeamCity.VSTest.TestAdapter" Condition="'$(SkipTeamCityAdapter)' != 'true'" />
+  </ItemGroup>
+
+  <!-- ================================================================ -->
+  <!-- xUnit Startup Configuration -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
+    <StartupObject Condition="'$(StartupObject)' == ''">xunit.runner.stride.Program</StartupObject>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Include xUnit Launcher Code -->
+  <!-- ================================================================ -->
+  <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
+    <!-- Launcher code depends on whether graphics API is used -->
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\..\..\sources\shared\tests\xunit\LauncherSimple.Desktop.cs"
+             Condition="'$(StrideGraphicsApiDependent)' != 'true' And '$(IncludeXunitLauncher)' != 'false'">
+      <Link>LauncherSimple.Desktop.cs</Link>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\..\..\sources\shared\tests\xunit\LauncherSimple.Desktop.cs"
+             Condition="'$(StrideGraphicsApiDependent)' == 'true' And '$(IncludeXunitLauncher)' != 'false'">
+      <Link>LauncherGame.Desktop.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <!-- ================================================================ -->
+  <!-- Shader Code Generation Support -->
+  <!-- ================================================================ -->
+  <ItemGroup>
+    <!-- Mark generated shader code files as dependent -->
+    <Compile Update="**\*.sdsl.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.sdsl" Generator="StrideShaderKeyGenerator" />
+    <Compile Update="**\*.sdfx.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
+  </ItemGroup>
+
+  <!-- ================================================================ -->
+  <!-- Native Libraries Copying -->
+  <!-- ================================================================ -->
+  <!-- Note: Native library copying handled by engine runtime packages -->
+  <!-- _StrideBuildDependencies target is from old build system -->
+  <!-- TODO: Re-implement native lib copying for SDK-style when needed for engine tests -->
+
+  <!-- ================================================================ -->
+  <!-- Platform Target Metadata -->
+  <!-- ================================================================ -->
+  <!-- Used by Stride.build to detect if unit tests prefer to run in 32 or 64 bits -->
+  <Target Name="_StrideAfterGetTargetPathWithTargetPlatformMoniker"
+          AfterTargets="GetTargetPathWithTargetPlatformMoniker">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Update="$(TargetPath)">
+        <PlatformTarget>$(PlatformTarget)</PlatformTarget>
+      </TargetPathWithTargetPlatformMoniker>
+    </ItemGroup>
+  </Target>
+
 </Project>
