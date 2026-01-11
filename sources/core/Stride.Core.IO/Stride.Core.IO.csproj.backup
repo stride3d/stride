@@ -1,4 +1,9 @@
-<Project Sdk="Stride.Sdk">
+<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Stride.Core.props" />
+  
   <PropertyGroup>
     <Description>Stride Core IO assembly.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -6,12 +11,13 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
-    <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
-
+  
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
+    <StridePlatformDependent>true</StridePlatformDependent>
+    <StrideBuildTags>*</StrideBuildTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,12 +26,14 @@
     </Compile>
     <Compile Remove="System.IO.Compression.Zip\*.cs" Condition=" '$(TargetPlatformIdentifier)' != 'Android' " />
   </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core\Stride.Core.csproj">
-      <PrivateAssets>contentfiles;analyzers</PrivateAssets>
-    </ProjectReference>
+    <PrivateAssets>contentfiles;analyzers</PrivateAssets>
+  </ProjectReference>
     <PackageReference Include="SharpDX" Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
   </ItemGroup>
+  
+  <Import Project="$(StrideSdkTargets)" />
 
 </Project>
