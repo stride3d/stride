@@ -23,12 +23,6 @@ namespace Stride.Navigation
         public Vector3 FindNearestPolyExtent;
         public int MaxPathPoints;
     }
-
-    internal struct PathFindResult
-    {
-        public bool PathFound;
-        public DtStraightPath[] PathPoints;
-    }
     
     internal struct BuildSettings
     {

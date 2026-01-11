@@ -65,48 +65,44 @@ internal class InternalNavigationMesh
         return status != 0;
     }
     
-    public void DoPathFindQuery(PathFindQuery query, ref PathFindResult result)
+    public bool DoPathFindQuery(PathFindQuery query, ref Span<DtStraightPath> result)
     {
-        // Reset result
-        result.PathFound = false;
-
         // Find the starting polygons and point on it to start from
         DtQueryDefaultFilter filter = new DtQueryDefaultFilter();
         DtStatus status = navQuery.FindNearestPoly(query.Source.ToDotRecastVector(), query.FindNearestPolyExtent.ToDotRecastVector(), filter, out long startPoly, out RcVec3f startPoint, out _);
         if (status.Failed())
-            return;
+            return false;
         status = navQuery.FindNearestPoly(query.Target.ToDotRecastVector(), query.FindNearestPolyExtent.ToDotRecastVector(), filter, out long endPoly, out RcVec3f endPoint, out _);
         if (status.Failed())
-            return;
+            return false;
 
-        long[] polys = new long[query.MaxPathPoints];
-        navQuery.FindPath(startPoly, endPoly, startPoint, endPoint, filter, polys, out var pathCount, polys.Length);
 
-        if (0 >= pathCount)
+        var rented = query.MaxPathPoints < 32 ? null : System.Buffers.ArrayPool<long>.Shared.Rent(query.MaxPathPoints);
+        var polysSpan = rented is null ? stackalloc long[query.MaxPathPoints] : rented.AsSpan()[..query.MaxPathPoints];
+
+        navQuery.FindPath(startPoly, endPoly, startPoint, endPoint, filter, polysSpan, out var pathCount, polysSpan.Length);
+
+        if (0 < pathCount)
         {
-            return;
-        }
-
-        // In case of partial path, make sure the end point is clamped to the last polygon.
-        var endPosition = new RcVec3f(endPoint.X, endPoint.Y, endPoint.Z);
-        if (polys[pathCount - 1] != endPoly)
-        {
-            status = navQuery.ClosestPointOnPoly(polys[pathCount - 1], endPoint, out var closest, out var _);
-            if (status.Succeeded())
+            // In case of partial path, make sure the end point is clamped to the last polygon.
+            var endPosition = new RcVec3f(endPoint.X, endPoint.Y, endPoint.Z);
+            if (polysSpan[pathCount - 1] != endPoly)
             {
-                endPosition = closest;
+                status = navQuery.ClosestPointOnPoly(polysSpan[pathCount - 1], endPoint, out var closest, out var _);
+                if (status.Succeeded())
+                {
+                    endPosition = closest;
+                }
             }
+
+            navQuery.FindStraightPath(startPoint, endPosition, polysSpan, pathCount, result, out var straightPathCount, query.MaxPathPoints, 0);
+            result = result[..straightPathCount];
         }
+        
+        if (rented is not null)
+            System.Buffers.ArrayPool<long>.Shared.Return(rented);
 
-        // Due to Dotrecast using Spans, we need to allocate the array with the max size possible then resize it later to remove empty entries.
-        // TODO: By default we allocate 1024 points which is way more than enough for most cases and should maybe be defaulted to a smaller value in the future.
-        result.PathPoints = new DtStraightPath[query.MaxPathPoints];
-        navQuery.FindStraightPath(startPoint, endPosition, polys, pathCount, result.PathPoints, out var straightPathCount, query.MaxPathPoints, 0);
-
-        // cut out the empty entries
-        Array.Resize(ref result.PathPoints, straightPathCount);
-
-        result.PathFound = true;
+        return 0 < pathCount;
     }
 
     public void DoRaycastQuery(RaycastQuery query, out NavigationRaycastResult result)
