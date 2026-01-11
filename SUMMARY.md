@@ -1,161 +1,267 @@
 # Session Summary - Stride SDK Migration
 
-**Date:** 2026-01-10
+**Date:** 2026-01-11
 **Branch:** feature/stride-sdk
-**Status:** 7 commits ahead of origin/feature/stride-sdk
+**Status:** 3 commits ahead of origin/feature/stride-sdk
 
 ---
 
-## Latest Session (Assembly Processor Implementation) ✅
+## Latest Session (SDK Test Infrastructure & Core Project Migration) ✅
 
 ### What Was Accomplished
 
-Successfully implemented full Assembly Processor integration in Stride.SDK and verified working.
+Successfully migrated 4 core projects to SDK-style and created complete test infrastructure with Stride.Sdk.Tests.
 
-**Commit 35eb7790c: Implement full Assembly Processor integration in Stride.SDK**
-- 3 files changed, 175 insertions(+), 67 deletions(-)
-- Assembly Processor binaries packaged with SDK
-- Full targets file implementation (184 lines)
-- Tested and verified with Stride.Core build
+**Commit 32845109e: Migrate Stride.Core.IO, MicroThreading, and Serialization to SDK**
+- 3 files changed, 26 insertions(+), 41 deletions(-)
+- Removed unused properties: StridePlatformDependent, StrideBuildTags
+- All projects build with multi-targeting (net10.0, net10.0-windows)
+
+**Commit 489d3e69f: Implement Stride.Sdk.Tests and migrate Stride.Core.Tests**
+- 3 files changed, 160 insertions(+), 15 deletions(-)
+- Created comprehensive test SDK that composes Stride.Sdk
+- Migrated Stride.Core.Tests from old .props/.targets to SDK-style
 
 **Files Modified:**
 
-1. **sources/sdk/Stride.Sdk/Stride.Sdk.csproj** (+9 lines)
-   - Package Assembly Processor binaries in `tools/AssemblyProcessor/`
-   - Explicit framework folders: netstandard2.0, net8.0, net10.0
+1. **sources/core/Stride.Core.IO/Stride.Core.IO.csproj** (30 → 31 lines, SDK-style)
+   - Changed from old build system to `<Project Sdk="Stride.Sdk">`
+   - Removed unused: StridePlatformDependent, StrideBuildTags
 
-2. **sources/sdk/Stride.Sdk/Sdk/Stride.Platform.props** (+7 lines)
-   - Added TEMP property for cross-platform temp directory
+2. **sources/core/Stride.Core.MicroThreading/Stride.Core.MicroThreading.csproj** (27 → 26 lines, SDK-style)
+   - Clean migration, removed unused StrideBuildTags
 
-3. **sources/sdk/Stride.Sdk/Sdk/Stride.AssemblyProcessor.targets** (stub → full, 184 lines)
-   - Property setup: Framework, path detection, hash-based temp directory
-   - UsingTask declaration for AssemblyProcessorTask
-   - StrideRunAssemblyProcessor target with full implementation
-   - PrepareForRunDependsOn integration
-   - .usrdoc file handling for public APIs
+3. **sources/core/Stride.Core.Serialization/Stride.Core.Serialization.csproj** (37 → 31 lines, SDK-style)
+   - Removed unused StrideBuildTags and empty Folder ItemGroup
+
+4. **sources/sdk/Stride.Sdk.Tests/Sdk/Sdk.props** (empty → 76 lines)
+   - Imports Stride.Sdk as base
+   - Test-specific properties: IsTestProject=true, OutputType=WinExe, custom output paths
+   - Graphics API configuration for tests
+   - Asset compilation settings
+
+5. **sources/sdk/Stride.Sdk.Tests/Sdk/Sdk.targets** (empty → 82 lines)
+   - Imports Stride.Sdk as base
+   - Automatic xunit package references (Microsoft.NET.Test.Sdk, xunit, xunit.runner.visualstudio)
+   - Shader code generation support
+   - Platform target metadata for test runners
+
+6. **sources/core/Stride.Core.Tests/Stride.Core.Tests.csproj** (30 → 29 lines, SDK-style)
+   - Changed from old Stride.UnitTests.props/targets to `<Project Sdk="Stride.Sdk.Tests">`
+   - Disabled xunit launcher (not needed for dotnet test)
+   - OutputType=Library instead of WinExe
 
 ### Verification Results
 
-✅ **All success criteria met:**
-- SDK builds and packages Assembly Processor binaries (10 files per framework)
-- Stride.Core restores and builds successfully with MSBuild
-- StrideRunAssemblyProcessor target executes in build pipeline
-- 0 errors, 282 warnings (expected code analysis warnings)
+✅ **All SDK builds successful:**
+- Stride.Sdk.Tests package created: `Stride.Sdk.Tests.4.3.0-dev.nupkg`
+- All 4 migrated projects build with 0 errors (only expected code analysis warnings)
+- Test project restores and builds successfully
 
-### Key Discoveries
+✅ **SDK composition working:**
+- Stride.Sdk.Tests correctly inherits from Stride.Sdk
+- Test-specific overrides apply correctly
+- Package references automatically included
 
-**Packaging Gotchas:**
-1. Glob pattern `**\*.*` didn't work - had to list framework folders explicitly
-2. XML comments can't contain `--` - changed to "add-reference flag"
-3. Need `dotnet pack` not `dotnet build` to create .nupkg files
+### Critical Discoveries
 
-**Build Tool Requirements:**
-- Use `dotnet pack -c Debug` for SDK (not just `dotnet build`)
-- Use MSBuild for Stride projects (C++/CLI support)
-- Clear NuGet cache after SDK changes: `dotnet nuget locals all --clear`
+**Root Cause of Serialization Test Failures:**
+Found that Stride.Core.IO, MicroThreading, and Serialization were still using old build system, which was adding incompatible `--assembly` flags to Assembly Processor. This was causing NullReferenceExceptions in generated serializers. Migration to SDK-style was required to fix build consistency.
+
+**Test SDK Design Pattern:**
+- Stride.Sdk.Tests composes Stride.Sdk (imports both Sdk.props and Sdk.targets)
+- Test-specific features added on top (xunit packages, output paths, etc.)
+- Follows MSBuild SDK best practices for composition
+- Native library copying target removed (from old build system, not needed for core tests)
+
+**xUnit Launcher Path Issue:**
+- Launcher file path calculated from SDK package location won't work (NuGet package)
+- Solution: Made launcher inclusion optional via `IncludeXunitLauncher` property
+- For `dotnet test`, OutputType=Library without launcher works fine
+
+**Automatic SDK Build & Cache Clearing:**
+User implemented automatic NuGet package generation on build and cache clearing, making SDK development workflow much smoother.
+
+### Analysis Performed
+
+Used `/analyze-csproj-migration` skill to analyze Stride.Core.IO:
+- Identified StrideRuntime evaluation phase violation (checked in .props before .csproj loads)
+- Confirmed StridePlatformDependent and StrideBuildTags are unused
+- Discovered old build system's `--assembly` flag issue
+- Verified all properties safe for SDK migration
 
 ---
 
-## Previous Session - Desktop Platform SDK Migration
+## Previous Session - Assembly Processor Implementation
 
-Completed Stride.Core SDK migration for desktop platforms. Created Stride.Platform.props/targets, Stride.AssemblyProcessor.targets (stub), Stride.CodeAnalysis.targets. Multi-targeting verified working.
+Successfully implemented full Assembly Processor integration in Stride.SDK. Packaged Assembly Processor binaries with SDK (tools/AssemblyProcessor/), created complete targets file (184 lines), tested and verified with Stride.Core build.
 
-**Commits:** 63c349108, f0cec9b30, 4e49cf8bc
-**Key files:** sources/sdk/Stride.Sdk/Sdk/Stride.Platform.{props,targets}
+**Commits:** 35eb7790c, 1901825d1
+**Key files:** sources/sdk/Stride.Sdk/Sdk/Stride.AssemblyProcessor.targets, Stride.Sdk.csproj
+**Discovery:** Must use `dotnet pack` not `dotnet build` for SDK packages; glob patterns require explicit framework folders
+
+---
+
+## Project Status
+
+**What's Working:**
+- ✅ Stride.Sdk package with full Assembly Processor support
+- ✅ Stride.Sdk.Tests package for test projects (composes Stride.Sdk)
+- ✅ 5 projects migrated to SDK: Stride.Core, Stride.Core.IO, Stride.Core.MicroThreading, Stride.Core.Serialization, Stride.Core.Tests
+- ✅ All projects build with multi-targeting
+- ✅ Consistent SDK-based build system
+
+**Current Status:**
+- All changes committed (3 commits ahead of origin)
+- Backup files created for all migrations (.csproj.backup)
+- Ready for testing and additional migrations
+
+**Remaining Issue:**
+- Serialization tests still failing with NullReferenceException
+- Need to investigate Assembly Processor generated code
+- All projects now use consistent SDK (good foundation for debugging)
 
 ---
 
 ## Critical Information
 
+### SDK Packages
+
+**Stride.Sdk** - Runtime projects
+- Path: sources/sdk/Stride.Sdk/
+- Package includes: Platform detection, frameworks, Assembly Processor, code analysis
+
+**Stride.Sdk.Tests** - Test projects (composes Stride.Sdk)
+- Path: sources/sdk/Stride.Sdk.Tests/
+- Package includes: Everything from Stride.Sdk + xunit packages, test output paths, shader support
+
+**Build workflow:**
+```bash
+dotnet build sources/sdk/Stride.Sdk.slnx   # Builds both SDKs + auto-clears cache
+```
+
 ### Assembly Processor Integration
+
+**Key Properties:**
+- `StrideAssemblyProcessor=true` - Enable processor (projects opt-in)
+- `StrideAssemblyProcessorOptions` - Default: `--parameter-key --auto-module-initializer --serialization`
+- Override per project: `<StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>`
 
 **Path Detection:**
 1. SDK package: `$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\{framework}\`
 2. Source build: `..\..\..\..\deps\AssemblyProcessor\{framework}\`
 
-**Key Properties:**
-- `StrideAssemblyProcessor` - Enable processor (default: false, projects opt-in)
-- `StrideAssemblyProcessorOptions` - Default: `--parameter-key --auto-module-initializer --serialization`
-- `StrideAssemblyProcessorDev` - Dev mode (Exec instead of Task)
-
-**Build Integration:**
+**Integration:**
 - Uses `PrepareForRunDependsOn` (standard MSBuild extensibility)
 - Depends on `ResolveAssemblyReferences`
 - Hash-based temp directory isolation
 
-### Build Commands
+### Build Tools
 
-**Build SDK:**
+**MSBuild** - Use for Stride projects (C++/CLI support):
 ```bash
-dotnet pack sources/sdk/Stride.Sdk/Stride.Sdk.csproj -c Debug
+"C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/MSBuild.exe" \
+  sources/core/Stride.Core/Stride.Core.csproj //p:Configuration=Debug
 ```
 
-**Clear NuGet cache:**
+**dotnet CLI** - Use for SDK building, tests:
 ```bash
-dotnet nuget locals all --clear
-```
-
-**Build Stride projects with MSBuild:**
-```bash
-"/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/MSBuild.exe" \
-  "c:/Projects/Stride/Engine/stride/sources/core/Stride.Core/Stride.Core.csproj" \
-  //p:Configuration=Debug //v:n
+dotnet build sources/sdk/Stride.Sdk.slnx
+dotnet test sources/core/Stride.Core.Tests/Stride.Core.Tests.csproj
 ```
 
 ### MSBuild SDK Evaluation Order
 
 ```
-Sdk.props → .csproj → Sdk.targets
+Sdk.props (before .csproj) → .csproj (user properties) → Sdk.targets (after .csproj)
 ```
 
-Defaults in props, conditional logic in targets.
+**Rule:** Set defaults in props, check user values in targets.
+
+### Test Project Configuration
+
+**Using Stride.Sdk.Tests:**
+```xml
+<Project Sdk="Stride.Sdk.Tests">
+  <PropertyGroup>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+
+    <!-- Optional: Disable xunit launcher if using dotnet test -->
+    <IncludeXunitLauncher>false</IncludeXunitLauncher>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+</Project>
+```
 
 ---
 
 ## File Locations
 
-**Modified This Session (committed):**
-- sources/sdk/Stride.Sdk/Stride.Sdk.csproj
-- sources/sdk/Stride.Sdk/Sdk/Stride.Platform.props
-- sources/sdk/Stride.Sdk/Sdk/Stride.AssemblyProcessor.targets
+**SDK Source:**
+- sources/sdk/Stride.Sdk/ - Runtime SDK
+- sources/sdk/Stride.Sdk.Tests/ - Test SDK
+- sources/sdk/Stride.Sdk/Sdk/{Sdk.props, Sdk.targets, Stride.Platform.{props,targets}, Stride.AssemblyProcessor.targets}
+- sources/sdk/Stride.Sdk.Tests/Sdk/{Sdk.props, Sdk.targets}
 
-**Reference Implementation:**
-- sources/core/Stride.Core/build/Stride.Core.targets (lines 56-117)
+**Migrated Projects:**
+- sources/core/Stride.Core/Stride.Core.csproj
+- sources/core/Stride.Core.IO/Stride.Core.IO.csproj
+- sources/core/Stride.Core.MicroThreading/Stride.Core.MicroThreading.csproj
+- sources/core/Stride.Core.Serialization/Stride.Core.Serialization.csproj
+- sources/core/Stride.Core.Tests/Stride.Core.Tests.csproj
 
-**Test Project:**
-- sources/core/Stride.Core/Stride.Core.csproj (has `StrideAssemblyProcessor=true`)
+**Old Build System (being replaced):**
+- sources/targets/*.props, *.targets (17 files - still used by non-migrated projects)
 
-**Assembly Processor Binaries:**
-- deps/AssemblyProcessor/{netstandard2.0,net8.0,net10.0}/
+**Documentation:**
+- CLAUDE.md - Project guidance
+- build/docs/SDK-WORK-GUIDE.md - SDK development workflow
+- build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md - Property evaluation analysis
 
 ---
 
 ## Next Steps
 
-### High Priority
+### High Priority (Immediate)
 
-1. **Test Assembly Processor with Stride.Core unit tests**
-   - Verify serialization works correctly
-   - Run: `/test Stride.Core`
+1. **Investigate serialization test failures**
+   - All projects now use consistent SDK (good foundation)
+   - Run tests with detailed logging to see Assembly Processor behavior
+   - Compare generated serializers with working version
+   - May need to check Assembly Processor flags or dependencies
 
-2. **Migrate Stride.Core.IO to SDK**
-   - Use `/analyze-csproj-migration` first
-   - Follow Stride.Core pattern
-
-3. **Migrate Stride.Core.Mathematics to SDK**
+2. **Migrate Stride.Core.Mathematics to SDK**
    - Similar structure to Stride.Core
+   - Should be straightforward after IO/Serialization success
 
-### Medium Priority
+3. **Test full core library integration**
+   - Verify all migrated projects work together
+   - Run full Stride.Core.Tests suite
+   - Check for any cross-project issues
 
-1. Test full solution build with migrated projects
-2. Add mobile/UWP platform support (Phase 2)
-3. Remove unused properties (StrideBuildTags, RestorePackages)
+### Medium Priority (1-2 Sessions)
 
-### Future
+1. **Migrate additional core projects**
+   - Stride.Core.Design
+   - Stride.Core.Assets
+   - Follow established pattern
 
-- Create standalone Stride.Core.AssemblyProcessor NuGet package
-- Remove binaries from Stride.Sdk (use PackageReference)
-- Update project templates to use SDK
+2. **Improve Stride.Sdk.Tests**
+   - Fix xunit launcher path for executable tests (if needed)
+   - Add native library copying for engine tests (when needed)
+   - Add asset compilation support for tests with assets
+
+3. **Remove unused properties from migration**
+   - StrideBuildTags identified as unused in multiple projects
+   - Clean up during next batch of migrations
+
+### Long-Term
+
+1. Complete SDK migration for all projects
+2. Remove old build system (sources/targets/)
+3. Update project templates to use SDK
+4. Add mobile/UWP platform support (Phase 2)
 
 ---
 
@@ -166,27 +272,21 @@ Defaults in props, conditional logic in targets.
 git status
 git log --oneline -5
 
-# Build SDK
-dotnet pack sources/sdk/Stride.Sdk/Stride.Sdk.csproj -c Debug
-dotnet nuget locals all --clear
+# Build SDK (auto-clears cache)
+dotnet build sources/sdk/Stride.Sdk.slnx
 
-# Build Stride.Core
-dotnet restore sources/core/Stride.Core/Stride.Core.csproj
-"/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/MSBuild.exe" \
-  "c:/Projects/Stride/Engine/stride/sources/core/Stride.Core/Stride.Core.csproj" \
-  //p:Configuration=Debug
+# Build migrated projects
+"C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/MSBuild.exe" \
+  sources/core/Stride.Core.Tests/Stride.Core.Tests.csproj //p:Configuration=Debug
 
-# Test Stride.Core
-/test Stride.Core
+# Run tests with detailed output
+dotnet test sources/core/Stride.Core.Tests/Stride.Core.Tests.csproj \
+  --configuration Debug --logger "console;verbosity=detailed"
+
+# Analyze next project for migration
+/analyze-csproj-migration sources/core/Stride.Core.Mathematics/Stride.Core.Mathematics.csproj
 ```
 
 ---
 
-## Context Notes
-
-- Session ended at 133k/200k tokens (67% usage) after compaction
-- Implemented and verified Assembly Processor integration
-- All code committed successfully
-- Ready for next phase: testing and additional project migrations
-
-**For resuming:** Assembly Processor implementation complete and committed. Next: Run unit tests, then migrate Stride.Core.IO.
+**For resuming work:** Current session established consistent SDK-based build system for core projects and tests. All 5 core projects migrated successfully. Serialization tests still failing - need investigation with consistent build foundation now in place. Next focus: debug tests, then continue migrations.
