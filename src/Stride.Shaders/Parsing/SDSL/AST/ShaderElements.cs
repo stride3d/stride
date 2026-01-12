@@ -312,7 +312,7 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
 
         context.AddName(variable, Name);
         if (LogicalGroup != null)
-            context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationLogicalGroupSDSL(LogicalGroup)));
+            context.Add(new OpDecorateString(variable, Specification.Decoration.LogicalGroupSDSL, LogicalGroup));
 
         bool? isStaged = null;
 
@@ -331,9 +331,9 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
             {
                 var linkInfo = ProcessLinkAttributes(table, Info, member.Attributes);
                 if (linkInfo.LinkId is int linkId)
-                    context.Add(new OpMemberDecorate(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkIdSDSL(linkId)));
+                    context.Add(new OpMemberDecorate(context.GetOrRegister(Type), index, Specification.Decoration.LinkIdSDSL, [linkId]));
                 else if (linkInfo.LinkName != null)
-                    context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, ParameterizedFlags.DecorationLinkSDSL(linkInfo.LinkName)));
+                    context.Add(new OpMemberDecorateString(context.GetOrRegister(Type), index, Specification.Decoration.LinkSDSL, linkInfo.LinkName));
             }
         }
 
@@ -372,12 +372,12 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
 
             DecorateVariableLinkInfo(table, shaderClass, context, Info, member.Name, member.Attributes, variable.ResultId);
 
-            context.Add(new OpDecorateString(variable.ResultId, ParameterizedFlags.DecorationResourceGroupSDSL(Name)));
+            context.Add(new OpDecorateString(variable.ResultId, Specification.Decoration.ResourceGroupSDSL, Name));
             // We also store an ID because multiple rgroup might have the same name,
             // but we still want to know which one was in the same "block" when we try to optimize them (we can only optimize a resource if all the resource in the same rgroup block can be optimized)
-            context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationResourceGroupIdSDSL(resourceGroupId)));
+            context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.ResourceGroupIdSDSL, [resourceGroupId]));
             if (LogicalGroup != null)
-                context.Add(new OpDecorateString(variable.ResultId, ParameterizedFlags.DecorationLogicalGroupSDSL(LogicalGroup)));
+                context.Add(new OpDecorateString(variable.ResultId, Specification.Decoration.LogicalGroupSDSL, LogicalGroup));
 
             var sid = new SymbolID(member.Name, kind, Storage.Uniform);
             var symbol = new Symbol(sid, type, variable.ResultId);
@@ -389,9 +389,9 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
     {
         var linkInfo = CBuffer.ProcessLinkAttributes(table, info, attributes);
         if (linkInfo.LinkId is int linkId)
-            context.Add(new OpDecorate(variableId, ParameterizedFlags.DecorationLinkIdSDSL(linkId)));
+            context.Add(new OpDecorate(variableId, Specification.Decoration.LinkIdSDSL, [linkId]));
         else if (linkInfo.LinkName != null)
-            context.Add(new OpDecorateString(variableId, ParameterizedFlags.DecorationLinkSDSL(linkInfo.LinkName)));
+            context.Add(new OpDecorateString(variableId, Specification.Decoration.LinkSDSL, linkInfo.LinkName));
     }
 }
 

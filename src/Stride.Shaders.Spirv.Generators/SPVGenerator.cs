@@ -35,7 +35,7 @@ public partial class SPVGenerator : IIncrementalGenerator
             .Select(PreProcessEnumerants)
             .Select(PreProcessInstructions);
 
-        CreateParameterizedFuncs(context, grammarData);
+        CreateEnumerantParameters(context, grammarData);
         CreateInfo(context, grammarData);
         CreateSDSLOp(context, grammarData);
         GenerateStructs(context, grammarData);

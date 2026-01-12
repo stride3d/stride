@@ -194,7 +194,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
                 // Make sure type is correct
                 source = builder.Convert(context, source, variableValueType);
 
-                builder.Insert(new OpStore(variable, source.Id, null));
+                builder.Insert(new OpStore(variable, source.Id, null, []));
             }
         }
     }
@@ -247,7 +247,7 @@ public class Assign(TextLocation info) : Statement(info)
             if (target.Swizzles != null)
             {
                 var valueType = context.Types[p.BaseType];
-                var loadId = builder.Insert(new OpLoad(valueType, context.Bound++, target.Id, null)).ResultId;
+                var loadId = builder.Insert(new OpLoad(valueType, context.Bound++, target.Id, null, [])).ResultId;
                 // Shuffle with new data
                 switch (p.BaseType)
                 {
@@ -265,7 +265,7 @@ public class Assign(TextLocation info) : Statement(info)
                         throw new NotImplementedException();
                 }
             }
-            builder.Insert(new OpStore(target.Id, source.Id, null));
+            builder.Insert(new OpStore(target.Id, source.Id, null, []));
         }
     }
     public override string ToString()

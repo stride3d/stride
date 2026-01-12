@@ -2,6 +2,8 @@ using AngleSharp.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Concurrent;
+using System.Dynamic;
 using System.Text;
 using System.Text.Json;
 
@@ -9,100 +11,334 @@ namespace Stride.Shaders.Spirv.Generators;
 
 public partial class SPVGenerator : IIncrementalGenerator
 {
+    internal class StringBuilderPool
+    {
+        public static StringBuilderPool Instance { get; } = new();
+        readonly ConcurrentBag<StringBuilder> pool = [];
+        private StringBuilderPool() { }
+        public static StringBuilder Get()
+        {
+            var sb = Instance.pool.TryTake(out var builder) ? builder : new();
+            sb.Clear();
+            return sb;
+        }
+        public static void Return(StringBuilder builder) => Instance.pool.Add(builder);
+    }
     public void GenerateStructs(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<SpirvGrammar> grammarProvider)
     {
-        // var sdslInstructionsData =
-        //     grammarProvider
-        //     .Select(static (grammar, _) => grammar.Instructions ?? new([]));
-
         context.RegisterImplementationSourceOutput(
             grammarProvider,
             GenerateInstructionStructs
         );
 
     }
+
     public static void GenerateInstructionStructs(SourceProductionContext spc, SpirvGrammar grammar)
     {
-        StringBuilder builder = new();
-        builder
-        .AppendLine("using static Stride.Shaders.Spirv.Specification;")
-        .AppendLine("using CommunityToolkit.HighPerformance;")
-        .AppendLine("using CommunityToolkit.HighPerformance.Buffers;")
-        .AppendLine("using Stride.Shaders.Spirv.Core.Buffers;")
-        .AppendLine("using System.Numerics;")
-        .AppendLine("using System.Runtime.CompilerServices;")
-        .AppendLine()
-        .AppendLine("namespace Stride.Shaders.Spirv.Core;")
-        .AppendLine()
-        .AppendLine();
-        StringBuilder body1 = new();
-        StringBuilder body2 = new();
-        StringBuilder body3 = new();
-        StringBuilder body4 = new();
         if (grammar.Instructions?.AsList() is List<InstructionData> instructions)
         {
-            foreach (var instruction in instructions)
-            {
+            spc.AddSource(
+                $"Instructions.gen.cs",
+                SourceText.From(
+                    SyntaxFactory
+                    .ParseCompilationUnit(@$"
+                        using static Stride.Shaders.Spirv.Specification;
+                        using CommunityToolkit.HighPerformance;
+                        using CommunityToolkit.HighPerformance.Buffers;
+                        using Stride.Shaders.Spirv.Core.Buffers;
+                        using System.Numerics;
+                        using System.Runtime.CompilerServices;
 
-                body1.Clear();
-                body2.Clear();
-                body3.Clear();
-                body4.Clear();
-
-
-                if (instruction.OpName.EndsWith("Constant"))
-                    WriteConstantInstructions(grammar, instruction, builder, body1, body2, body3, body4);
-                // else if (instruction.OpName.Contains("Decorate"))
-                //     WriteDecorateInstructions(grammar, instruction, builder, body1, body2, body3, body4);
-                else if (instruction.OpName.StartsWith("OpCopyMemory"))
-                    WriteCopyMemoryInstructions(grammar, instruction, body1, body2, body3, body4);
-                else if (instruction.OpName.Contains("GLSL"))
-                    WriteGLSLCode(grammar, instruction, builder, body1, body2, body3, body4);
-                else WriteOtherInstructions(grammar, instruction, builder, body1, body2, body3, body4);
-            }
+                        namespace Stride.Shaders.Spirv.Core;
+                        
+                        {string.Join("\n", instructions.Select(i => GenerateInstructionStructsSingle(i, grammar)))}
+                        
+                    ")
+                    .NormalizeWhitespace()
+                    .ToFullString(),
+                    Encoding.UTF8
+                )
+            );
         }
-        spc.AddSource(
-            $"Instructions.gen.cs",
-            SourceText.From(
-                SyntaxFactory
-                .ParseCompilationUnit(builder.ToString())
-                .NormalizeWhitespace()
-                .ToFullString(),
-                Encoding.UTF8
-            )
+    }
+    public static string GenerateInstructionStructsSingle(InstructionData instruction, SpirvGrammar grammar)
+    {
+        if (instruction.OpName.StartsWith("OpCopyMemory") || instruction.OpName.StartsWith("OpCooperativeMatrixLoad") || instruction.OpName.StartsWith("OpCooperativeMatrixStore"))
+            return "";
+        var structBuilder = StringBuilderPool.Get();
+        // var extinst = Instructions?.AsList().First(x => x.OpName == "OpExtInst") ?? throw new Exception("Could not find OpExtInst instruction");
+
+        if (instruction.OpName.EndsWith("Constant"))
+            structBuilder.AppendLine($"public ref partial struct {instruction.OpName}<T> : IMemoryInstruction\n    where T : struct, INumber<T>");
+        else
+            structBuilder.AppendLine(@$"public ref partial struct {instruction.OpName} : IMemoryInstruction");
+
+        structBuilder.AppendLine(@$"
+        {{
+            private ref OpData opData;
+            public ref OpData OpData => ref opData;
+            public MemoryOwner<int> InstructionMemory
+            {{
+                get
+                {{
+                    if (!Unsafe.IsNullRef(ref OpData))
+                        return OpData.Memory;
+                    else
+                        return field;
+                }}
+                private set
+                {{
+                    if (!Unsafe.IsNullRef(ref OpData))
+                    {{
+                        OpData.Memory.Dispose();
+                        OpData.Memory = value;
+                    }}
+                    else
+                        field = value;
+                }}
+            }}
+            public {instruction.OpName}()
+            {{
+                InstructionMemory = MemoryOwner<int>.Allocate(1);
+                InstructionMemory.Span[0] = (int)Op.{(instruction.OpName.StartsWith("GLSL") ? "OpExtInst" : instruction.OpName)} | (1 << 16);
+            }}
+        ");
+
+
+
+        structBuilder
+        .AppendLine(@$"
+            public {instruction.OpName}(OpDataIndex index)
+            {{
+                InitializeProperties(ref index.Data);
+                opData = ref index.Data;
+            }}
+            
+            public {instruction.OpName}(ref OpData data)
+            {{
+                InitializeProperties(ref data);
+                opData = ref data;
+            }}"
         );
+
+        if (instruction.Operands?.AsList() is List<OperandData> operands)
+        {
+
+            foreach (var op in operands)
+            {
+                (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(op);
+                if (typename.StartsWith("LiteralArray"))
+                    structBuilder.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
+                else if (op.IsParameterized)
+                    structBuilder.Append(@$"
+                        public {typename} {fieldName} {{ get; set; }}
+                        public EnumerantParameters {fieldName}Parameters {{ get; set {{ field.Dispose(); field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}"
+                    );
+                else if (instruction.OpName.EndsWith("Constant") && typename.StartsWith("LiteralValue"))
+                    structBuilder.Append($"public T {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
+                else
+                    structBuilder.Append($"public {typename} {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
+            }
+
+            if (operands.Any(x => x is { Kind: "IdResult" }))
+            {
+                structBuilder.AppendLine(@$"
+                    public static implicit operator int({instruction.OpName}{(instruction.OpName.EndsWith("Constant") ? "<T>" : "")} inst) => inst.ResultId;"
+                );
+            }
+            structBuilder.AppendLine(@$"
+                public {instruction.OpName}({string.Join(", ", operands.Select(ToFunctionParameters))})
+                {{
+                    {string.Join("\n", operands.Select(ToAssignSimple))}
+                    UpdateInstructionMemory();
+                    opData = ref Unsafe.NullRef<OpData>();
+                }}
+                "
+            );
+
+        }
+        structBuilder.AppendLine(@$"
+
+            public void Attach(OpDataIndex index)
+            {{
+                opData = ref index.Data;
+            }}
+
+            public void UpdateInstructionMemory()
+            {{
+                InstructionMemory ??= MemoryOwner<int>.Empty;
+                Span<int> instruction = [(int)Op.{ToSpreadOperators(instruction, grammar)}];
+                instruction[0] |= instruction.Length << 16;
+                if(instruction.Length == InstructionMemory.Length)
+                    instruction.CopyTo(InstructionMemory.Span);
+                else
+                {{
+                    var tmp = MemoryOwner<int>.Allocate(instruction.Length);
+                    instruction.CopyTo(tmp.Span);
+                    InstructionMemory?.Dispose();
+                    InstructionMemory = tmp;
+                }}
+            }}
+            private void InitializeProperties(ref OpData data)
+            {{
+                foreach (var o in data)
+                {{
+                    switch(o.Name)
+                    {{
+                        {ToAssignSwitchCases(instruction.Operands?.AsList() ?? [], grammar)}
+                        // We ignore unrecognized operands
+                        default: break;
+                    }}
+                }}
+
+                {string.Join(
+                        "\n",
+                        (instruction.Operands?.AsList() ?? [])
+                        .Where(x => x.Quantifier == "*")
+                        .Select(
+                            x =>
+                            {
+                                var (typename, fieldname, operandname) = ToTypeFieldAndOperandName(x);
+                                return $"if({fieldname}.WordCount == -1) {fieldname} = new();";
+                            }
+                        )
+                    )}
+            }}
+            public static implicit operator {instruction.OpName}{(instruction.OpName.EndsWith("Constant") ? "<T>" : "")}(OpDataIndex odi) => new(odi);");
+
+        if (instruction.Operands?.AsList() is List<OperandData> ops && ops.Any(x => x is { Quantifier: "*" } or { IsParameterized: true }))
+        {
+            structBuilder.AppendLine(@$"
+                public void Dispose()
+                {{
+                    {string.Join("\n", ops.Where(x => x is { Quantifier: "*" }).Select(ToTypeFieldAndOperandName).Select(t => $"{t.FieldName}.Dispose();"))}
+                    {string.Join("\n", ops.Where(x => x is { IsParameterized: true }).Select(ToTypeFieldAndOperandName).Select(t => $"{t.FieldName}Parameters.Dispose();"))}
+                }}
+            ");
+        }
+        structBuilder.AppendLine("}");
+        StringBuilderPool.Return(structBuilder);
+        return structBuilder.ToString();
+
     }
 
+    public static string ToSpreadOperators(InstructionData instruction, SpirvGrammar grammar)
+    {
+        // (instruction.OpName.StartsWith("GLSL") ? "OpExtInst" : instruction.OpName)}, {string.Join(", ", (instruction.Operands?.AsList() ?? []).Select(ToSpreadOperator))
+        if (instruction.Operands?.AsList() is List<OperandData> operands)
+        {
+            var sb = StringBuilderPool.Get();
+            if (instruction.OpName.StartsWith("GLSL"))
+            {
+                sb.Append("OpExtInst, ");
+                foreach (var operand in operands)
+                {
+                    if (operand != operands[0])
+                        sb.Append(", ");
+                    sb.Append(ToSpreadOperator(operand));
+                    var (_, fieldname, _) = ToTypeFieldAndOperandName(operand);
+                    if (fieldname == "Set")
+                        sb.Append($", {instruction.OpCode}");
+                }
+            }
+            else
+                sb.Append(instruction.OpName).Append(", ").Append(string.Join(", ", operands.Select(ToSpreadOperator)));
+            StringBuilderPool.Return(sb);
+            return sb.ToString();
+        }
+        return instruction.OpName;
+    }
+
+    public static string ToAssignSimple(OperandData operand)
+    {
+        (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
+        return $"{fieldName} = {operandName};{(operand.IsParameterized ? $"\n{fieldName}Parameters = {operandName}Parameters;" : "")}";
+    }
+    public static string ToAssignSwitchCases(List<OperandData> operands, SpirvGrammar grammar)
+    {
+        var sb = StringBuilderPool.Get();
+        foreach (var operand in operands)
+        {
+            sb.AppendLine(ToAssignSwitchCase(operand));
+            if (operand.IsParameterized)
+                break;
+        }
+        StringBuilderPool.Return(sb);
+        return sb.ToString();
+    }
+    public static string ToAssignSwitchCase(OperandData operand)
+    {
+        var sb = StringBuilderPool.Get();
+
+        (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
+
+        var isOptional = operand.Quantifier == "?";
+        var isArray = typename.StartsWith("LiteralArray");
+        var opClass = operand.Class;
+        var isParameterized = operand.IsParameterized;
+        sb.Append($"case \"{operandName}\" : ");
+        if (isOptional)
+            sb.AppendLine("if (o.Words.Length > 0){");
+
+        if (isArray)
+            sb.AppendLine($"{fieldName} = o.To{typename}();");
+
+        else if (opClass == "ValueEnum" && isParameterized)
+            sb.AppendLine(@$"
+                    {fieldName} = o.ToEnum<{operand.Kind}>();
+                    {fieldName}Parameters = new(data.Memory.Span[(o.Offset+2)..]);
+                ");
+        else if (opClass == "BitEnum" && isParameterized)
+            sb.AppendLine(@$"
+                    {fieldName} = o.ToEnum<{operand.Kind}Mask>();
+                    if(data.Memory.Span.Length > o.Offset + 1)
+                        {fieldName}Parameters = new(data.Memory.Span[(o.Offset+2)..]);
+                ");
+        else if (opClass == "BitEnum" && !isParameterized)
+            sb.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}Mask>();");
+        else if (opClass == "ValueEnum" && !isParameterized)
+            sb.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}>();");
+        else
+            sb.AppendLine($"{fieldName} = o.ToLiteral<{typename.Replace("?", "")}>();");
+        if (isOptional)
+            sb.AppendLine("}");
+        sb.Append("break;");
+
+        StringBuilderPool.Return(sb);
+        return sb.ToString();
+    }
+    public static string ToFunctionParameters(OperandData operand)
+    {
+        (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
+
+        return operand.IsParameterized ? $"{typename} {operandName}, EnumerantParameters {operandName}Parameters" : $"{typename} {operandName}";
+    }
 
     public static (string TypeName, string FieldName, string OperandName) ToTypeFieldAndOperandName(OperandData operand)
     {
-        string typename = (operand.Kind, operand.Quantifier, operand.Class, operand.IsParameterized) switch
+        string typename = (operand.Kind, operand.Quantifier, operand.Class) switch
         {
-            (string s, null or "", "ValueEnum", true) => $"ParameterizedFlag<{s}>",
-            (string s, null or "", "BitEnum", true) => $"ParameterizedFlag<{s}Mask>",
-            (string s, null or "", _, false) when s.StartsWith("Id") => "int",
-            ("LiteralInteger" or "LiteralExtInstInteger" or "LiteralSpecConstantOpInteger", null or "", _, false) => "int",
-            ("LiteralFloat", null or "", _, false) => "float",
-            ("LiteralString", null or "", _, false) => "string",
-            (string s, null or "", _, false) when s.StartsWith("Pair") => "(int, int)",
-            (string s, null or "", "BitEnum", false) when !s.StartsWith("Literal") => $"{s}Mask",
-            (string s, null or "", "ValueEnum", false) when !s.StartsWith("Literal") => s,
-            (string s, "?", "ValueEnum", true) => $"ParameterizedFlag<{s}>?",
-            (string s, "?", "BitEnum", true) => $"ParameterizedFlag<{s}Mask>?",
-            (string s, "?", _, false) when s.StartsWith("Id") => "int?",
-            ("LiteralInteger" or "LiteralExtInstInteger" or "LiteralSpecConstantOpInteger", "?", _, false) => "int?",
-            ("LiteralFloat", "?", _, false) => "float?",
-            ("LiteralString", "?", _, false) => "string?",
-            (string s, "?", "BitEnum", false) when !s.StartsWith("Literal") => $"{s}Mask?",
-            (string s, "?", "ValueEnum", false) when !s.StartsWith("Literal") => $"{s}?",
-            (string s, "*", _, false) when s.StartsWith("Id") => $"LiteralArray<int>",
-            ("LiteralInteger" or "LiteralExtInstInteger" or "LiteralSpecConstantOpInteger", "*", _, false) => "LiteralArray<int>",
-            ("LiteralFloat", "*", _, false) => "LiteralArray<float>",
+            (string s, null or "", _) when s.StartsWith("Id") => "int",
+            ("LiteralInteger" or "LiteralExtInstInteger" or "LiteralSpecConstantOpInteger", null or "", _) => "int",
+            ("LiteralFloat", null or "", _) => "float",
+            ("LiteralString", null or "", _) => "string",
+            (string s, null or "", _) when s.StartsWith("Pair") => "(int, int)",
+            (string s, null or "", "BitEnum") when !s.StartsWith("Literal") => $"{s}Mask",
+            (string s, null or "", "ValueEnum") when !s.StartsWith("Literal") => s,
+            (string s, "?", _) when s.StartsWith("Id") => "int?",
+            ("LiteralInteger" or "LiteralExtInstInteger" or "LiteralSpecConstantOpInteger", "?", _) => "int?",
+            ("LiteralFloat", "?", _) => "float?",
+            ("LiteralString", "?", _) => "string?",
+            (string s, "?", "BitEnum") when !s.StartsWith("Literal") => $"{s}Mask?",
+            (string s, "?", "ValueEnum") when !s.StartsWith("Literal") => $"{s}?",
+            (string s, "*", _) when s.StartsWith("Id") => $"LiteralArray<int>",
+            ("LiteralInteger" or "LiteralExtInstInteger" or "LiteralSpecConstantOpInteger", "*", _) => "LiteralArray<int>",
+            ("LiteralFloat", "*", _) => "LiteralArray<float>",
             // ("LiteralString", "*", _) => "LiteralArray<string>",
-            (string s, "*", _, false) when s.StartsWith("Pair") => $"LiteralArray<(int, int)>",
-            (string s, "*", "BitEnum", false) when !s.StartsWith("Literal") => $"LiteralArray<{s}Mask>",
-            (string s, "*", "ValueEnum", false) when !s.StartsWith("Literal") => $"LiteralArray<{s}>",
-            ("LiteralContextDependentNumber", null or "", _, false) => "LiteralValue<T>",
+            (string s, "*", _) when s.StartsWith("Pair") => $"LiteralArray<(int, int)>",
+            (string s, "*", "BitEnum") when !s.StartsWith("Literal") => $"LiteralArray<{s}Mask>",
+            (string s, "*", "ValueEnum") when !s.StartsWith("Literal") => $"LiteralArray<{s}>",
+            ("LiteralContextDependentNumber", null or "", _) => "LiteralValue<T>",
             _ => throw new NotImplementedException($"Could not generate C# type for '{operand.Kind}{operand.Quantifier}'")
         };
 
@@ -133,614 +369,17 @@ public partial class SPVGenerator : IIncrementalGenerator
     static string ToSpreadOperator(OperandData operand)
     {
         (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
-        return (operand.Class, operand.Quantifier, operand.IsParameterized) switch
+        return (operand.Class, operand.Quantifier) switch
         {
-            (string s, null or "", false) when s.Contains("Id") => $"{fieldName}",
-            (string s, "?", false) when s.Contains("Id") => $".. ({fieldName} is null ? (Span<int>)[] : [{fieldName}.Value])",
-            (string s, null or "", false) when s.Contains("Enum") => $"(int){fieldName}",
-            (string s, null or "", true) when s.Contains("Enum") => $".. (Span<int>)[(int){fieldName}.Value, .. {fieldName}.Span]",
-            (string s, "?", false) when s.Contains("Enum") => $".. ({fieldName} is null ? (Span<int>)[] : [(int){fieldName}.Value])",
-            (string s, "?", true) when s.Contains("Enum") => $".. ({fieldName} is null ? (Span<int>)[] : [(int){fieldName}.Value.Value, .. {fieldName}.Value.Span])",
-            (string, "*", false) => $".. {fieldName}.Words",
-            (string, "?", false) => $".. ({fieldName} is null ? (Span<int>)[] : {fieldName}.AsDisposableLiteralValue().Words)",
-            (_, "?", false) => $".. ({fieldName} is null ? (Span<int>)[] : {fieldName}.AsDisposableLiteralValue().Words)",
+            (string s, null or "") when s.Contains("Id") => $"{fieldName}",
+            (string s, "?") when s.Contains("Id") => $".. ({fieldName} is null ? (Span<int>)[] : [{fieldName}.Value])",
+            (string s, null or "") when s.Contains("Enum") =>
+                operand.IsParameterized ? $"(int){fieldName}, .. {fieldName}Parameters" : $"(int){fieldName}",
+            (string s, "?") when s.Contains("Enum") => $".. ({fieldName} is null ? (Span<int>)[] : [(int){fieldName}.Value])",
+            (string, "*") => $".. {fieldName}.Words",
+            (string, "?") => $".. ({fieldName} is null ? (Span<int>)[] : {fieldName}.AsDisposableLiteralValue().Words)",
+            (_, "?") => $".. ({fieldName} is null ? (Span<int>)[] : {fieldName}.AsDisposableLiteralValue().Words)",
             _ => $".. {fieldName}.AsDisposableLiteralValue().Words"
         };
-    }
-
-
-    static void WriteOtherInstructions(SpirvGrammar grammar, in InstructionData instruction, StringBuilder builder, StringBuilder body1, StringBuilder body2, StringBuilder body3, StringBuilder body4)
-    {
-        body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
-                .AppendLine("{")
-                .AppendLine("InitializeProperties(ref index.Data);")
-                .AppendLine("opData = ref index.Data;")
-                .AppendLine("}");
-
-        body2.AppendLine($"public {instruction.OpName}(ref OpData data)")
-                .AppendLine("{")
-                .AppendLine("InitializeProperties(ref data);")
-                .AppendLine("opData = ref data;")
-                .AppendLine("}");
-
-        body2.AppendLine($"public void Attach(OpDataIndex index)")
-                .AppendLine("{")
-                .AppendLine("opData = ref index.Data;")
-                .AppendLine("}");
-
-        body2.AppendLine($"private void InitializeProperties(ref OpData data)")
-                .AppendLine("{");
-
-        if (instruction.Operands?.AsList() is List<OperandData> operands)
-        {
-            body2.AppendLine("foreach (var o in data)")
-            .AppendLine("{");
-
-            body3.Append($"public {instruction.OpName}(")
-            .Append(string.Join(", ", operands.Select(x =>
-            {
-                (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(x);
-                return $"{typename} {operandName}";
-            })))
-            .AppendLine(")")
-            .AppendLine("{");
-
-
-            // Body 1
-
-            if (operands.Any(x => x is { Kind: "IdResult" }))
-                body1.AppendLine($"public static implicit operator Id({instruction.OpName} inst) => new Id(inst.ResultId);")
-                .AppendLine($"public static implicit operator int({instruction.OpName} inst) => inst.ResultId;");
-            var tmp = -1;
-            foreach (var operand in operands)
-            {
-                tmp += 1;
-                (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
-
-                if (typename.StartsWith("LiteralArray"))
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
-                else
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
-
-                // Body 2
-                body2.AppendLine($"{(tmp == 0 ? "" : "else ")}if(o.Name == \"{operandName}\")");
-                bool needCloseBrace = false;
-                // Optional operands
-                if (operand.Quantifier == "?")
-                {
-                    body2.AppendLine("{");
-                    body2.AppendLine("if (o.Words.Length > 0)");
-                    needCloseBrace = true;
-                }
-                if (typename.StartsWith("LiteralArray"))
-                    body2.AppendLine($"{fieldName} = o.To{typename}();");
-                else if (operand.Class is string s && s.Contains("Enum"))
-                    body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
-                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename.TrimEnd('?')}>();");
-
-                if (needCloseBrace)
-                    body2.AppendLine("}");
-
-                if (grammar.OperandKinds?.AsDictionary() is Dictionary<string, OpKind> dict
-                    && dict.TryGetValue(operand.Kind, out var opkind) && opkind.Enumerants?.AsList() is List<Enumerant> enumerants && enumerants.Any(x => x.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 }))
-                {
-                    body2.AppendLine($"else if({string.Join(" || ", enumerants
-                        .Where(e => e.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 })
-                        .SelectMany(enumerant => enumerant.Parameters?.AsList())
-                        .Select(param => $"o.Name == \"{param.Name ?? ConvertKindToName(param.Kind)}\""))})");
-                    body2.AppendLine($"{fieldName} = new({fieldName}{(typename.EndsWith("?") ? ".Value" : "")}.Value, o.Words);");
-                }
-
-                // Body 3
-                body3.AppendLine($"{fieldName} = {operandName};");
-            }
-            body2.AppendLine("}");
-
-            foreach(var operand in operands.Where(o => o.Quantifier == "*"))
-            {
-                (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
-                body2.AppendLine($"if({fieldName}.WordCount == -1)")
-                .AppendLine($"{fieldName} = new();");
-            }
-
-            body3
-            .AppendLine("UpdateInstructionMemory();")
-            .AppendLine("opData = ref Unsafe.NullRef<OpData>();")
-            .AppendLine("}");
-
-            // Body 4
-
-            body4.AppendLine("public void UpdateInstructionMemory()")
-            .AppendLine("{")
-            .AppendLine("if(InstructionMemory is null) InstructionMemory = MemoryOwner<int>.Empty;")
-            .Append($"Span<int> instruction = [(int)Op.{instruction.OpName}, ")
-            .Append(string.Join(", ", operands.Select(ToSpreadOperator)))
-            .Append("];")
-            .AppendLine(@"
-                        instruction[0] |= instruction.Length << 16;
-                        if(instruction.Length == InstructionMemory.Length)
-                            instruction.CopyTo(InstructionMemory.Span);
-                        else
-                        {
-                            var tmp = MemoryOwner<int>.Allocate(instruction.Length);
-                            instruction.CopyTo(tmp.Span);
-                            InstructionMemory?.Dispose();
-                            InstructionMemory = tmp;
-                        }"
-            )
-            .AppendLine("}");
-
-        }
-        else
-            body4.AppendLine("public void UpdateInstructionMemory(){}");
-        body2.AppendLine("}");
-
-        builder.AppendLine($@"
-            public ref partial struct {instruction.OpName} : IMemoryInstruction
-            {{
-                private ref OpData opData;
-                public ref OpData OpData => ref opData;
-                public MemoryOwner<int> InstructionMemory
-                {{
-                    get
-                    {{
-                        if (!Unsafe.IsNullRef(ref OpData))
-                            return OpData.Memory;
-                        else return field;
-                    }}
-
-                    private set
-                    {{
-                        if (!Unsafe.IsNullRef(ref OpData))
-                        {{
-                            OpData.Memory.Dispose();
-                            OpData.Memory = value;
-                        }}
-                        else field = value;
-                    }}
-                }}
-
-                public {instruction.OpName}()
-                {{
-                    InstructionMemory = MemoryOwner<int>.Allocate(1);
-                    InstructionMemory.Span[0] = (int)Op.{instruction.OpName} | (1 << 16);
-                }}
-
-                {body1}
-                {body2}
-                {body3}
-                {body4}
-
-                public static implicit operator {instruction.OpName}(OpDataIndex odi) => new(odi);
-            }}
-        ");
-    }
-    static void WriteDecorateInstructions(SpirvGrammar grammar, in InstructionData instruction, StringBuilder builder, StringBuilder body1, StringBuilder body2, StringBuilder body3, StringBuilder body4)
-    {
-        body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
-                .AppendLine("{")
-                .AppendLine("InitializeProperties(ref index.Data);")
-                .AppendLine("opData = ref index.Data;")
-                .AppendLine("}");
-
-        body2.AppendLine($"public {instruction.OpName}(ref OpData data)")
-                .AppendLine("{")
-                .AppendLine("InitializeProperties(ref data);")
-                .AppendLine("opData = ref data;")
-                .AppendLine("}");
-
-        body2.AppendLine($"public void Attach(OpDataIndex index)")
-                .AppendLine("{")
-                .AppendLine("opData = ref index.Data;")
-                .AppendLine("}");
-
-        body2.AppendLine($"private void InitializeProperties(ref OpData data)")
-                .AppendLine("{");
-
-        if (instruction.Operands?.AsList() is List<OperandData> operands)
-        {
-            if (instruction.OpName.EndsWith("Id"))
-                // Note: not sure if this is correct, it might need to be an array (quantifier *) which we don't support nicely yet
-                operands.Add(new() { Name = "additionalId", Kind = "IdRef" });
-            else if (instruction.OpName.EndsWith("String"))
-                operands.Add(new() { Name = "additionalString", Kind = "LiteralString", Quantifier = "?" });
-            else
-            {
-                // Note: not sure if this is correct, it might need to be an array (quantifier *) which we don't support nicely yet
-                operands.Add(new() { Name = "additionalInteger", Kind = "LiteralInteger", Quantifier = "?" });
-                operands.Add(new() { Name = "additionalInteger2", Kind = "LiteralInteger", Quantifier = "?" });
-            }
-
-            body2.AppendLine("foreach (var o in data)")
-            .AppendLine("{");
-
-            body3.Append($"public {instruction.OpName}(")
-            .Append(string.Join(", ", operands.Select(x =>
-            {
-                (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(x);
-                return $"{typename} {operandName} {(typename.EndsWith("?") ? "= null" : "")}";
-            })))
-            .AppendLine(")")
-            .AppendLine("{");
-
-
-            // Body 1
-
-            if (operands.Any(x => x is { Kind: "IdResult" }))
-                body1.AppendLine($"public static implicit operator Id({instruction.OpName} inst) => new Id(inst.ResultId);")
-                .AppendLine($"public static implicit operator int({instruction.OpName} inst) => inst.ResultId;");
-            var tmp = -1;
-            foreach (var operand in operands)
-            {
-                tmp += 1;
-                (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
-
-                if (typename.StartsWith("LiteralArray"))
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
-                else
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
-
-                // Body 2
-                if (tmp != 0)
-                    body2.Append($"else ");
-                body2.AppendLine($"if(o.Name == \"{operandName}\")");
-                if (typename.StartsWith("LiteralArray"))
-                    body2.AppendLine($"{fieldName} = o.To{typename}();");
-                else if (operand.Class is string s && s.Contains("Enum"))
-                    body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
-                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename.TrimEnd('?')}>();");
-                // Body 3
-                if (typename.StartsWith("LiteralArray"))
-                    body3.AppendLine($"{fieldName}.Assign({operandName});");
-                else body3.AppendLine($"{fieldName} = {operandName};");
-            }
-            body2.AppendLine("}");
-
-            body3
-            .AppendLine("UpdateInstructionMemory();")
-            .AppendLine("opData = ref Unsafe.NullRef<OpData>();")
-            .AppendLine("}");
-
-            // Body 4
-
-            body4.AppendLine("public void UpdateInstructionMemory()")
-            .AppendLine("{")
-            .AppendLine("if(InstructionMemory is null) InstructionMemory = MemoryOwner<int>.Empty;")
-            .Append($"Span<int> instruction = [(int)Op.{instruction.OpName}, ")
-            .Append(string.Join(", ", operands.Select(ToSpreadOperator)))
-            .Append("];")
-            .AppendLine(@"
-                        instruction[0] |= instruction.Length << 16;
-                        if(instruction.Length == InstructionMemory.Length)
-                            instruction.CopyTo(InstructionMemory.Span);
-                        else
-                        {
-                            var tmp = MemoryOwner<int>.Allocate(instruction.Length);
-                            instruction.CopyTo(tmp.Span);
-                            InstructionMemory?.Dispose();
-                            InstructionMemory = tmp;
-                        }"
-            )
-            .AppendLine("}");
-
-        }
-        else
-            body4.AppendLine("public void UpdateInstructionMemory(){}");
-        body2.AppendLine("}");
-
-        builder.AppendLine($@"
-            public ref struct {instruction.OpName} : IMemoryInstruction
-            {{
-                private ref OpData opData;
-                public ref OpData OpData => ref opData;
-                public MemoryOwner<int> InstructionMemory
-                {{
-                    get
-                    {{
-                        if (!Unsafe.IsNullRef(ref OpData))
-                            return OpData.Memory;
-                        else return field;
-                    }}
-
-                    private set
-                    {{
-                        if (!Unsafe.IsNullRef(ref OpData))
-                        {{
-                            OpData.Memory.Dispose();
-                            OpData.Memory = value;
-                        }}
-                        else field = value;
-                    }}
-                }}
-
-                {body1}
-                {body2}
-                {body3}
-                {body4}
-
-                public static implicit operator {instruction.OpName}(OpDataIndex odi) => new(odi);
-            }}
-        ");
-    }
-
-    static void WriteGLSLCode(SpirvGrammar grammar, in InstructionData instruction, StringBuilder builder, StringBuilder body1, StringBuilder body2, StringBuilder body3, StringBuilder body4)
-    {
-        var extinst = grammar.Instructions?.AsList().First(x => x.OpName == "OpExtInst") ?? throw new Exception("Could not find OpExtInst instruction");
-
-        body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
-                .AppendLine("{")
-                .AppendLine("InitializeProperties(ref index.Data);")
-                .AppendLine("opData = ref index.Data;")
-                .AppendLine("}");
-
-        body2.AppendLine($"public {instruction.OpName}(ref OpData data)")
-                .AppendLine("{")
-                .AppendLine("InitializeProperties(ref data);")
-                .AppendLine("opData = ref data;")
-                .AppendLine("}");
-
-        body2.AppendLine($"public void Attach(OpDataIndex index)")
-                .AppendLine("{")
-                .AppendLine("opData = ref index.Data;")
-                .AppendLine("}");
-
-        body2.AppendLine($"private void InitializeProperties(ref OpData data)")
-                .AppendLine("{");
-        if (instruction.Operands?.AsList() is List<OperandData> operands && extinst.Operands?.AsList() is List<OperandData> extOperands)
-        {
-            var allOperands = extOperands.Concat(operands).Where(x => x is not { Kind: "IdRef", Quantifier: "*" } and not { Kind: "LiteralExtInstInteger" });
-            body2.AppendLine("foreach (var o in data)")
-            .AppendLine("{");
-
-            body3.Append($"public {instruction.OpName}(")
-            .Append(string.Join(", ", allOperands.Select(x =>
-            {
-                (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(x);
-                return $"{typename} {operandName}";
-            })))
-            .AppendLine(")")
-            .AppendLine("{");
-
-
-            // Body 1
-            if (allOperands.Any(x => x is { Kind: "IdResult" }))
-                body1.AppendLine($"public static implicit operator Id({instruction.OpName} inst) => new Id(inst.ResultId);")
-                .AppendLine($"public static implicit operator int({instruction.OpName} inst) => inst.ResultId;");
-            body1.AppendLine($"public int Instruction => {instruction.OpCode};");
-            foreach (var operand in allOperands)
-            {
-
-                (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
-
-                if (typename.StartsWith("LiteralArray"))
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
-                else
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
-
-                // Body 2
-                body2.AppendLine($"if(o.Name == \"{operandName}\")");
-                if (typename.StartsWith("LiteralArray"))
-                {
-                    body2.AppendLine($"{fieldName} = o.To{typename}();");
-                }
-                else if (operand.Class is string s && s.Contains("Enum"))
-                    body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
-                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename.TrimEnd('?')}>();");
-                // Body 3
-                if (typename.StartsWith("LiteralArray"))
-                    body3.AppendLine($"{fieldName}.Assign({operandName});");
-                else body3.AppendLine($"{fieldName} = {operandName};");
-            }
-            body2.AppendLine("}");
-
-            body3
-            .AppendLine("UpdateInstructionMemory();")
-            .AppendLine("opData = ref Unsafe.NullRef<OpData>();")
-            .AppendLine("}");
-
-
-            // Body 4
-
-            body4.AppendLine("public void UpdateInstructionMemory()")
-            .AppendLine("{")
-            .AppendLine("if(InstructionMemory is null) InstructionMemory = MemoryOwner<int>.Empty;")
-            .Append($"Span<int> instruction = [(int)Op.{extinst.OpName}, ")
-            .Append(string.Join(", ", extOperands.Concat(operands).Where(x => x is not { Kind: "IdRef", Quantifier: "*" }).Select(ToSpreadOperator)))
-            .Append("];")
-            .AppendLine(@"
-                        instruction[0] |= instruction.Length << 16;
-                        if(instruction.Length == InstructionMemory.Length)
-                            instruction.CopyTo(InstructionMemory.Span);
-                        else
-                        {
-                            var tmp = MemoryOwner<int>.Allocate(instruction.Length);
-                            instruction.CopyTo(tmp.Span);
-                            InstructionMemory?.Dispose();
-                            InstructionMemory = tmp;
-                        }"
-            )
-            .AppendLine("}");
-
-        }
-        body2.AppendLine("}");
-        builder.AppendLine($@"
-            public ref struct {instruction.OpName} : IMemoryInstruction
-            {{
-                private ref OpData opData;
-                public ref OpData OpData => ref opData;
-                public MemoryOwner<int> InstructionMemory
-                {{
-                    get
-                    {{
-                        if (!Unsafe.IsNullRef(ref OpData))
-                            return OpData.Memory;
-                        else return field;
-                    }}
-
-                    private set
-                    {{
-                        if (!Unsafe.IsNullRef(ref OpData))
-                        {{
-                            OpData.Memory.Dispose();
-                            OpData.Memory = value;
-                        }}
-                        else field = value;
-                    }}
-                }}
-
-                {body1}
-                {body2}
-                {body3}
-                {body4}
-
-                public static implicit operator {instruction.OpName}(OpDataIndex odi) => new(odi);
-            }}
-        ");
-
-    }
-
-    static void WriteConstantInstructions(SpirvGrammar grammar, in InstructionData instruction, StringBuilder builder, StringBuilder body1, StringBuilder body2, StringBuilder body3, StringBuilder body4)
-    {
-        body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
-                .AppendLine("{")
-                .AppendLine("InitializeProperties(ref index.Data);")
-                .AppendLine("opData = ref index.Data;")
-                .AppendLine("}");
-
-        body2.AppendLine($"public {instruction.OpName}(ref OpData data)")
-                .AppendLine("{")
-                .AppendLine("InitializeProperties(ref data);")
-                .AppendLine("opData = ref data;")
-                .AppendLine("}");
-
-        body2.AppendLine($"public void Attach(OpDataIndex index)")
-                .AppendLine("{")
-                .AppendLine("opData = ref index.Data;")
-                .AppendLine("}");
-
-        body2.AppendLine($"private void InitializeProperties(ref OpData data)")
-                .AppendLine("{");
-
-        if (instruction.Operands?.AsList() is List<OperandData> operands)
-        {
-            body2.AppendLine("foreach (var o in data)")
-            .AppendLine("{");
-
-            body3.Append($"public {instruction.OpName}(")
-            .Append(string.Join(", ", operands.Select(x =>
-            {
-                (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(x);
-                return $"{typename} {operandName}";
-            })))
-            .AppendLine(")")
-            .AppendLine("{");
-
-
-            // Body 1
-
-
-            foreach (var operand in operands)
-            {
-
-                (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
-
-                if (typename.StartsWith("LiteralArray"))
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
-                else if (typename.StartsWith("LiteralValue"))
-                    body1.Append($"public T {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
-                else
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
-
-                // Body 2
-                body2.AppendLine($"if(o.Name == \"{operandName}\")");
-                if (typename.StartsWith("LiteralArray"))
-                    body2.AppendLine($"{fieldName} = o.To{typename}();");
-                else if (operand.Class is string s && s.Contains("Enum"))
-                    body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
-                else if (typename.StartsWith("LiteralValue"))
-                    body2.AppendLine($"{fieldName} = o.ToLiteral<T>();");
-                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename.TrimEnd('?')}>();");
-                // Body 3
-                if (typename.StartsWith("LiteralArray"))
-                    body3.AppendLine($"{fieldName}.Assign({operandName});");
-                else body3.AppendLine($"{fieldName} = {operandName};");
-            }
-
-            if (operands.Any(x => x is { Kind: "IdResult" }))
-                body1.AppendLine($"public static implicit operator Id({instruction.OpName}<T> inst) => new Id(inst.ResultId);")
-                .AppendLine($"public static implicit operator int({instruction.OpName}<T> inst) => inst.ResultId;");
-            body2.AppendLine("}");
-
-            body3
-            .AppendLine("UpdateInstructionMemory();")
-            .AppendLine("opData = ref Unsafe.NullRef<OpData>();")
-            .AppendLine("}");
-
-            // Body 4
-
-            body4.AppendLine("public void UpdateInstructionMemory()")
-            .AppendLine("{")
-            .AppendLine("if(InstructionMemory is null) InstructionMemory = MemoryOwner<int>.Empty;")
-            .Append($"Span<int> instruction = [(int)Op.{instruction.OpName}, ")
-            .Append(string.Join(", ", operands.Select(ToSpreadOperator)))
-            .Append("];")
-            .AppendLine(@"
-                        instruction[0] |= instruction.Length << 16;
-                        if(instruction.Length == InstructionMemory.Length)
-                            instruction.CopyTo(InstructionMemory.Span);
-                        else
-                        {
-                            var tmp = MemoryOwner<int>.Allocate(instruction.Length);
-                            instruction.CopyTo(tmp.Span);
-                            InstructionMemory?.Dispose();
-                            InstructionMemory = tmp;
-                        }"
-            )
-            .AppendLine("}");
-
-        }
-        else
-            body4.AppendLine("public void UpdateInstructionMemory(){}");
-        body2.AppendLine("}");
-
-        builder.AppendLine($@"
-        // {string.Join(", ", instruction.Operands?.AsList().Select(x => $"{x.Name}:{x.Kind}"))}
-            public ref struct {instruction.OpName}<T> : IMemoryInstruction
-                where T : struct, INumber<T>
-            {{
-                private ref OpData opData;
-                public ref OpData OpData => ref opData;
-                public MemoryOwner<int> InstructionMemory
-                {{
-                    get
-                    {{
-                        if (!Unsafe.IsNullRef(ref OpData))
-                            return OpData.Memory;
-                        else return field;
-                    }}
-
-                    private set
-                    {{
-                        if (!Unsafe.IsNullRef(ref OpData))
-                        {{
-                            OpData.Memory.Dispose();
-                            OpData.Memory = value;
-                        }}
-                        else field = value;
-                    }}
-                }}
-
-                {body1}
-                {body2}
-                {body3}
-                {body4}
-
-                public static implicit operator {instruction.OpName}<T>(OpDataIndex odi) => new(odi);
-            }}
-        ");
-    }
-    static void WriteCopyMemoryInstructions(SpirvGrammar grammar, in InstructionData instruction, StringBuilder body1, StringBuilder body2, StringBuilder body3, StringBuilder body4)
-    {
-
     }
 }

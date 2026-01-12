@@ -336,14 +336,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     context.Bound = Math.Max(context.Bound, i2.IdResult.Value + 1);
 
                 // ResourceGroupId: adjust offsets too
-                if (i2.Op == Op.OpDecorate && new OpDecorate(ref i2) is { Decoration: { Value: Decoration.ResourceGroupIdSDSL, Parameters: { } m } } resourceGroupIdDecorate)
+                if (i2.Op == Op.OpDecorate && new OpDecorate(ref i2) is { Decoration: Decoration.ResourceGroupIdSDSL, DecorationParameters: { } m } resourceGroupIdDecorate)
                 {
                     // Somehow data doesn't get mutated inside i2 if we update resourceGroupIdDecorate.Decoration, so we reference buffer directly
-                    var n = new LiteralValue<int>(m.Span);
-                    n.Value += resourceGroupOffset;
-                    resourceGroupIdDecorate.Decoration = new(resourceGroupIdDecorate.Decoration.Value, n.Words);
-                    context.ResourceGroupBound = Math.Max(context.ResourceGroupBound, n.Value + 1);
-                    n.Dispose();
+                    resourceGroupIdDecorate.DecorationParameters = [m.Span[0] + resourceGroupOffset];
                 }
 
                 if (SpirvBuilder.ContainIds(forbiddenIds, i2))
@@ -892,13 +888,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpSDSLImportVariable
                 || i.Op == Op.OpSDSLFunctionInfo)
                 temp.RemoveAt(index--);
-            else if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && ((OpDecorate)i).Decoration.Value is
+            else if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && ((OpDecorate)i).Decoration is
                     Decoration.FunctionParameterDefaultValueSDSL
                     or Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL or Decoration.ResourceGroupIdSDSL
                     or Decoration.SamplerStateFilter or Decoration.SamplerStateAddressU or Decoration.SamplerStateAddressV or Decoration.SamplerStateAddressW
                     or Decoration.SamplerStateMipLODBias or Decoration.SamplerStateMaxAnisotropy or Decoration.SamplerStateComparisonFunc or Decoration.SamplerStateMinLOD or Decoration.SamplerStateMaxLOD)
                 temp.RemoveAt(index--);
-            else if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && ((OpMemberDecorate)i).Decoration.Value is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
+            else if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && ((OpMemberDecorate)i).Decoration is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
                 temp.RemoveAt(index--);
 
             // Remove SPIR-V about pointer types to other shaders (variable and types themselves are removed as well)

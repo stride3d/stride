@@ -188,7 +188,7 @@ namespace Stride.Shaders.Spirv.Processing
             if (streams.Any(x => x.Value.Output))
             {
                 var psWrapperId = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult, liveAnalysis);
-                buffer.FluentAdd(new OpExecutionMode(psWrapperId, ExecutionMode.OriginUpperLeft));
+                buffer.FluentAdd(new OpExecutionMode(psWrapperId, ExecutionMode.OriginUpperLeft, []));
             }
 
             // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
@@ -482,16 +482,13 @@ namespace Stride.Shaders.Spirv.Processing
                         && ((OpDecorateString)i) is
                         {
                             Target: int t,
-                            Decoration:
-                            {
-                                Value: Decoration.UserSemantic,
-                                Parameters: { } m
-                            }
+                            Decoration: Decoration.UserSemantic,
+                            Value: string m
+                            
                         }
                         )
                     {
-                        using var n = new LiteralValue<string>(m.Span);
-                        semanticTable[t] = n.Value;
+                        semanticTable[t] = m;
                     }
                 }
             }
@@ -557,50 +554,46 @@ namespace Stride.Shaders.Spirv.Processing
             Dictionary<int, ResourceGroup> resourceGroups = new();
             foreach (var i in context)
             {
-                if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: { Value: Decoration.ResourceGroupIdSDSL, Parameters: { } m } } resourceGroupIdDecorate)
+                if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: Decoration.ResourceGroupIdSDSL, DecorationParameters: { } m } resourceGroupIdDecorate)
                 {
-                    var n = new LiteralValue<int>(m.Span);
+                    var n = m.To<DecorationParams.ResourceGroupIdSDSL>();
 
                     if (resources.TryGetValue(resourceGroupIdDecorate.Target, out var resourceInfo))
                     {
-                        if (!resourceGroups.TryGetValue(n.Value, out var resourceGroup))
-                            resourceGroups.Add(n.Value, resourceGroup = new());
+                        if (!resourceGroups.TryGetValue(n.ResourceGroup, out var resourceGroup))
+                            resourceGroups.Add(n.ResourceGroup, resourceGroup = new());
 
                         resourceGroup.Resources.Add(resourceInfo);
 
                         resourceInfo.ResourceGroup = resourceGroup;
 
                     }
-                    n.Dispose();
                 }
             }
 
             // Process ResourceGroup and LogicalGroup decorations
             foreach (var i in context)
             {
-                if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: { Value: Decoration.ResourceGroupSDSL, Parameters: { } m2 } } resourceGroupDecorate)
+                if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: Decoration.ResourceGroupSDSL, Value: string m2  } resourceGroupDecorate)
                 {
                     if (resources.TryGetValue(resourceGroupDecorate.Target, out var resourceInfo)
                         // Note: ResourceGroup should not be null if set
                         && resourceInfo.ResourceGroup.Name == null)
                     {
-                        using var n = new LiteralValue<string>(m2.Span);
-                        resourceInfo.ResourceGroup.Name = n.Value;
+                        resourceInfo.ResourceGroup.Name = m2;
                     }
                 }
-                else if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: { Value: Decoration.LogicalGroupSDSL, Parameters: { } m3 } } logicalGroupDecorate)
+                else if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: Decoration.LogicalGroupSDSL, Value: string m3 } logicalGroupDecorate)
                 {
                     if (resources.TryGetValue(logicalGroupDecorate.Target, out var resourceInfo)
                         // Note: ResourceGroup should not be null if this decoration is set
                         && resourceInfo.ResourceGroup.LogicalGroup == null)
                     {
-                        using var n = new LiteralValue<string>(m3.Span);
-                        resourceInfo.ResourceGroup.LogicalGroup = n.Value;
+                        resourceInfo.ResourceGroup.LogicalGroup = m3;
                     }
                     else if (cbuffers.TryGetValue(logicalGroupDecorate.Target, out var cbufferInfo))
                     {
-                        using var n = new LiteralValue<string>(m3.Span);
-                        cbufferInfo.LogicalGroup = n.Value;
+                        cbufferInfo.LogicalGroup = m3;
                     }
                 }
             }
@@ -641,14 +634,14 @@ namespace Stride.Shaders.Spirv.Processing
                 switch (stream.Semantic?.ToUpperInvariant())
                 {
                     case "SV_POSITION" when executionModel is ExecutionModel.Geometry or ExecutionModel.TessellationControl or ExecutionModel.TessellationEvaluation or ExecutionModel.Vertex:
-                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.Position)));
+                        context.Add(new OpDecorate(variable, Decoration.BuiltIn, [(int)BuiltIn.Position]));
                         return true;
                     case "SV_POSITION" when executionModel is ExecutionModel.Fragment:
-                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.FragCoord)));
+                        context.Add(new OpDecorate(variable, Decoration.BuiltIn, [(int)BuiltIn.FragCoord]));
                         return true;
                     case "SV_ISFRONTFACE":
-                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationBuiltIn(BuiltIn.FrontFacing)));
-                        context.Add(new OpDecorate(variable, Decoration.Flat));
+                        context.Add(new OpDecorate(variable, Decoration.BuiltIn, [(int)BuiltIn.FrontFacing]));
+                        context.Add(new OpDecorate(variable, Decoration.Flat, []));
                         return true;
                     default:
                         return false;
@@ -672,9 +665,9 @@ namespace Stride.Shaders.Spirv.Processing
                     {
                         if (stream.Value.InputLayoutLocation == null)
                             stream.Value.InputLayoutLocation = inputLayoutLocationCount++;
-                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.InputLayoutLocation.Value)));
+                        context.Add(new OpDecorate(variable, Decoration.Location, [stream.Value.InputLayoutLocation.Value]));
                         if (stream.Value.Semantic != null)
-                            context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Semantic)));
+                            context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Semantic));
                     }
 
                     inputStreams.Add((stream.Value, variable.ResultId));
@@ -697,9 +690,9 @@ namespace Stride.Shaders.Spirv.Processing
                                 throw new InvalidOperationException($"Can't find output layout location for variable [{stream.Value.Name}]");
                         }
 
-                        context.Add(new OpDecorate(variable, ParameterizedFlags.DecorationLocation(stream.Value.OutputLayoutLocation.Value)));
+                        context.Add(new OpDecorate(variable, Decoration.Location, [stream.Value.OutputLayoutLocation.Value]));
                         if (stream.Value.Semantic != null)
-                            context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(stream.Value.Semantic)));
+                            context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Semantic));
                     }
 
                     outputStreams.Add((stream.Value, variable.ResultId));
@@ -749,7 +742,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                         var variableValueType = ((PointerType)variable.Value.Type).BaseType;
                         buffer.FluentAdd(new OpFunctionCall(context.GetOrRegister(variableValueType), context.Bound++, methodInitializerId, []), out var methodInitializerCall);
-                        buffer.Add(new OpStore(variable.Value.VariableId, methodInitializerCall.ResultId, null));
+                        buffer.Add(new OpStore(variable.Value.VariableId, methodInitializerCall.ResultId, null, []));
                     }
                 }
 
@@ -758,8 +751,8 @@ namespace Stride.Shaders.Spirv.Processing
                 {
                     var baseType = ((PointerType)stream.Info.Type).BaseType;
                     buffer.FluentAdd(new OpAccessChain(context.Types[stream.Info.Type], context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id]), out var streamPointer);
-                    buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, stream.Id, null), out var loadedValue);
-                    buffer.Add(new OpStore(streamPointer.ResultId, loadedValue.ResultId, null));
+                    buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, stream.Id, null, []), out var loadedValue);
+                    buffer.Add(new OpStore(streamPointer.ResultId, loadedValue.ResultId, null, []));
                 }
 
                 buffer.Add(new OpFunctionCall(voidType, context.Bound++, entryPointId, []));
@@ -769,8 +762,8 @@ namespace Stride.Shaders.Spirv.Processing
                 {
                     var baseType = ((PointerType)stream.Info.Type).BaseType;
                     buffer.FluentAdd(new OpAccessChain(context.Types[stream.Info.Type], context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id]), out var streamPointer);
-                    buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, streamPointer.ResultId, null), out var loadedValue);
-                    buffer.Add(new OpStore(stream.Id, loadedValue.ResultId, null));
+                    buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, streamPointer.ResultId, null, []), out var loadedValue);
+                    buffer.Add(new OpStore(stream.Id, loadedValue.ResultId, null, []));
                 }
 
 

@@ -42,10 +42,7 @@ public partial class SPVGenerator
                     grammar.Revision = parsed.Revision;
                 }
                 if (parsed.Instructions is not null)
-                {
-
                     grammar.Instructions?.AsList()?.AddRange(parsed.Instructions?.AsList() ?? []);
-                }
                 if (parsed.OperandKinds?.AsDictionary() is Dictionary<string, OpKind> parsedKinds && grammar.OperandKinds?.AsDictionary() is Dictionary<string, OpKind> grammarKinds)
                 {
                     foreach (var pk in parsedKinds)
@@ -111,7 +108,7 @@ public partial class SPVGenerator
         }
         return grammar;
     }
-    
+
     public SpirvGrammar PreProcessInstructions(SpirvGrammar grammar, CancellationToken _)
     {
         var config = Configuration.Default.WithDefaultLoader();
@@ -127,6 +124,7 @@ public partial class SPVGenerator
         // var buffer = new List<OperandData>(24);
         if (grammar.Instructions?.AsList() is List<InstructionData> instructions)
         {
+            var extinst = instructions.First(x => x.OpName == "OpExtInst");
             // Prebuilt for fast lookup
             var tableblocksCore = coreDoc!.QuerySelectorAll($"p.tableblock").ToArray();
             var coreNodesById = new Dictionary<string, IElement>();
@@ -146,7 +144,6 @@ public partial class SPVGenerator
             }
 
             for (int i = 0; i < instructions.Count; i++)
-            // foreach (var instruction in grammar.Instructions)
             {
                 var instruction = grammar.Instructions.Value.AsList()![i]!;
 
@@ -178,7 +175,13 @@ public partial class SPVGenerator
                 var buffer = new List<(string, string)>(24);
 
                 if (instruction.Operands?.AsList() is List<OperandData> operands)
+                {
+                    if (instruction.OpName.StartsWith("GLSL"))
+                    {
+                        operands.InsertRange(0, extinst.Operands?.AsList().Where(x => x is not { Kind: "IdRef", Quantifier: "*" } and not { Kind: "LiteralExtInstInteger" }) ?? []);
+                    }
                     PreProcessOperands(instruction, grammar.OperandKinds?.AsDictionary()!, buffer);
+                }
 
                 instructions[i] = instruction;
 

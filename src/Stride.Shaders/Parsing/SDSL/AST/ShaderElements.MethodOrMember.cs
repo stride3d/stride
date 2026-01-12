@@ -54,55 +54,55 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
                     case "Filter":
                         {
                             var filter = Enum.Parse<Specification.SamplerFilterSDSL>(((Identifier)parameter.Value).Name, true);
-                            context.Add(new OpDecorate(variableId, ParameterizedFlags.DecorationSamplerStateFilter(filter)));
+                            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateFilter, [(int)filter]));
                             break;
                         }
                     case "AddressU":
                         {
                             var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
-                            context.Add(new OpDecorate(variableId, ParameterizedFlags.DecorationSamplerStateAddressU(addressMode)));
+                            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateAddressU, [(int)addressMode]));
                             break;
                         }
                     case "AddressV":
                         {
                             var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
-                            context.Add(new OpDecorate(variableId, ParameterizedFlags.DecorationSamplerStateAddressV(addressMode)));
+                            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateAddressV, [(int)addressMode]));
                             break;
                         }
                     case "AddressW":
                         {
                             var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
-                            context.Add(new OpDecorate(variableId, ParameterizedFlags.DecorationSamplerStateAddressW(addressMode)));
+                            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateAddressW, [(int)addressMode]));
                             break;
                         }
                     case "MipLODBias":
                         {
                             var mipLODBias = (float)((FloatLiteral)parameter.Value).Value;
-                            context.Add(new OpDecorateString(variableId, ParameterizedFlags.DecorationSamplerStateMipLODBias(mipLODBias.ToString())));
+                            context.Add(new OpDecorateString(variableId, Specification.Decoration.SamplerStateMipLODBias, mipLODBias.ToString()));
                             break;
                         }
                     case "MaxAnisotropy":
                         {
                             var maxAnisotropy = ((IntegerLiteral)parameter.Value).IntValue;
-                            context.Add(new OpDecorate(variableId, ParameterizedFlags.DecorationSamplerStateMaxAnisotropy(maxAnisotropy)));
+                            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateMaxAnisotropy, [maxAnisotropy]));
                             break;
                         }
                     case "MinLOD":
                         {
                             var minLOD = (float)((FloatLiteral)parameter.Value).Value;
-                            context.Add(new OpDecorateString(variableId, ParameterizedFlags.DecorationSamplerStateMinLOD(minLOD.ToString())));
+                            context.Add(new OpDecorateString(variableId, Specification.Decoration.SamplerStateMinLOD, minLOD.ToString()));
                             break;
                         }
                     case "MaxLOD":
                         {
                             var maxLOD = (float)((FloatLiteral)parameter.Value).Value;
-                            context.Add(new OpDecorateString(variableId, ParameterizedFlags.DecorationSamplerStateMaxLOD(maxLOD.ToString())));
+                            context.Add(new OpDecorateString(variableId, Specification.Decoration.SamplerStateMaxLOD, maxLOD.ToString()));
                             break;
                         }
                     case "ComparisonFunc":
                         {
                             var filter = Enum.Parse<Specification.SamplerComparisonFuncSDSL>(((Identifier)parameter.Value).Name, true);
-                            context.Add(new OpDecorate(variableId, ParameterizedFlags.DecorationSamplerStateComparisonFunc(filter)));
+                            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateComparisonFunc, [(int)filter]));
                             break;
                         }
                     case "BorderColor":
@@ -203,7 +203,7 @@ public sealed class ShaderMember(
 
         builder.Insert(new OpVariableSDSL(registeredType, variable, pointerType.StorageClass, variableFlags, initializerMethod));
         if (Semantic != null)
-            context.Add(new OpDecorateString(variable, ParameterizedFlags.DecorationUserSemantic(Semantic.Name)));
+            context.Add(new OpDecorateString(variable, Specification.Decoration.UserSemantic, Semantic.Name));
         context.AddName(variable, Name);
 
         RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
@@ -325,9 +325,7 @@ public class ShaderMethod(
 
         if (firstDefaultParameter != -1)
         {
-            context.Add(new OpDecorate(function.Id, new ParameterizedFlag<Specification.Decoration>(
-                Specification.Decoration.FunctionParameterDefaultValueSDSL,
-                defaultParameters.Slice(firstDefaultParameter))));
+            context.Add(new OpDecorate(function.Id, Specification.Decoration.FunctionParameterDefaultValueSDSL, [.. defaultParameters[firstDefaultParameter..]]));
 
             symbol.MethodDefaultParameters = new(context, defaultParameters.Slice(firstDefaultParameter).ToArray());
         }

@@ -58,13 +58,13 @@ public partial class SPVGenerator
                 }
                 code.AppendLine(")")
                 .Append($"    => new ParameterizedFlag<{realKind}>({realKind}.{enumerant.Name}, [{string.Join(", ", (enumerant.Parameters?.AsList() ?? []).Select(x => x.CSType switch
-                                                                                                  {
-                                                                                                      "float" => $"BitConverter.SingleToInt32({x.Name})",
-                                                                                                      "string" => $".. {x.Name}.AsDisposableLiteralValue().Words",
-                                                                                                      "int" => x.Name,
-                                                                                                      _ => $"(int){x.Name}",
+                {
+                    "float" => $"BitConverter.SingleToInt32({x.Name})",
+                    "string" => $".. {x.Name}.AsDisposableLiteralValue().Words",
+                    "int" => x.Name,
+                    _ => $"(int){x.Name}",
 
-                                                                                                  }))}]);");
+                }))}]);");
             }
             code.AppendLine("}");
             context.AddSource(
@@ -198,7 +198,7 @@ public partial class SPVGenerator
             {
 
                 code.Append($"Instance.Register(Op.{opname}, OperandKind.{operand.Kind ?? "<error>"}, OperandQuantifier.{operand.Quantifier switch { "*" => "ZeroOrMore", "?" => "ZeroOrOne", _ => "One" }}, \"{operand.Name}\", \"{spvClass ?? "Debug"}\"");
-                if (dict.TryGetValue(operand.Kind ?? throw new Exception("Operand is null in registering"), out var opkind) && opkind.Enumerants?.AsList() is List<Enumerant> enumerants && enumerants.Any(x => x.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 }))
+                if (operand.IsParameterized && dict.TryGetValue(operand.Kind ?? throw new Exception("Operand is null in registering"), out var opkind) && opkind.Enumerants?.AsList() is List<Enumerant> enumerants && enumerants.Any(x => x.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 }))
                 {
                     // code.Append($", [{string.Join(", ", opkind.Enumerants?.Select(x => $"new({x.Name ?? "null"}, OperandKind.{x.})") ?? [])}]");
                     code.Append(", new() {")
