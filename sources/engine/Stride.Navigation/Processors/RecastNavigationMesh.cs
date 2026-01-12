@@ -84,18 +84,23 @@ namespace Stride.Navigation.Processors
             query.Target = end;
             query.MaxPathPoints = querySettings.MaxPathPoints;
             query.FindNearestPolyExtent = querySettings.FindNearestPolyExtent;
-            PathFindResult queryResult = default;
-            
-            queryResult.PathPoints = new DtStraightPath[querySettings.MaxPathPoints];
-            navmesh.DoPathFindQuery(query, ref queryResult);
-            if (!queryResult.PathFound)
-                return false;
 
-            for (int i = 0; i < queryResult.PathPoints.Length; i++)
+            var rented = querySettings.MaxPathPoints < 32 ? null : System.Buffers.ArrayPool<DtStraightPath>.Shared.Rent(querySettings.MaxPathPoints);
+            var workingSpan = rented is null ? stackalloc DtStraightPath[querySettings.MaxPathPoints] : rented.AsSpan()[..querySettings.MaxPathPoints];
+
+            bool validPath = navmesh.DoPathFindQuery(query, ref workingSpan);
+            if (validPath)
             {
-                path.Add(queryResult.PathPoints[i].pos.ToStrideVector());
+                for (int i = 0; i < workingSpan.Length; i++)
+                {
+                    path.Add(workingSpan[i].pos.ToStrideVector());
+                }
             }
-            return true;
+            
+            if (rented is not null)
+                System.Buffers.ArrayPool<DtStraightPath>.Shared.Return(rented);
+
+            return validPath;
         }
     }
 }
