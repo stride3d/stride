@@ -154,7 +154,7 @@ public partial class SpirvContext
     {
         var result = DeclareStructuredType(cb);
 
-        Buffer.Add(new OpDecorate(result, Specification.Decoration.Block));
+        Buffer.Add(new OpDecorate(result, Specification.Decoration.Block, []));
 
         return result;
     }

@@ -419,25 +419,15 @@ public partial class SpirvBuilder
     {
         foreach (var i in context)
         {
-            if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: { Value: Decoration.UserSemantic, Parameters: { } m } } decorate)
+            if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: Decoration.UserSemantic, Value: string m } decorate)
             {
-                var n = new LiteralValue<string>(m.Span);
-                if (semantics.TryGetValue(n.Value, out var newSemantic))
-                {
-                    n.Value = newSemantic;
-                    decorate.Decoration = new(decorate.Decoration.Value, n.Words);
-                }
-                n.Dispose();
+                if (semantics.TryGetValue(m, out var newSemantic))
+                    decorate.Value = newSemantic;
             }
-            else if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: { Value: Decoration.UserSemantic, Parameters: { } m2 } } decorate2)
+            else if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: Decoration.UserSemantic, Value : string m2 } decorate2)
             {
-                var n = new LiteralValue<string>(m2.Span);
-                if (semantics.TryGetValue(n.Value, out var newSemantic))
-                {
-                    n.Value = newSemantic;
-                    decorate2.Decoration = new(decorate2.Decoration.Value, n.Words);
-                }
-                n.Dispose();
+                if (semantics.TryGetValue(m2, out var newSemantic))
+                    decorate2.Value = newSemantic;
             }
         }
     }
@@ -508,20 +498,21 @@ public partial class SpirvBuilder
         for (var index = 0; index < context.Count; index++)
         {
             var i = context[index];
-            if (i.Op == Op.OpDecorate && ((OpDecorate)i) is { Decoration: { Value: Decoration.LinkIdSDSL, Parameters: { } m } } linkDecorate)
+            if (i.Op == Op.OpDecorate && ((OpDecorate)i) is { Decoration: Decoration.LinkIdSDSL, DecorationParameters: { } m } linkDecorate)
             {
-                using var n = new LiteralValue<int>(m.Span);
-                if (resolvedLinks.TryGetValue(n.Value, out var resolvedValue))
+                var n = m.To<DecorationParams.LinkIdSDSL>();
+                if (resolvedLinks.TryGetValue(n.IdRef0, out var resolvedValue))
                 {
-                    context.Replace(index, new OpDecorateString(linkDecorate.Target, new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words])));
+                    context.Replace(index, new OpDecorateString(linkDecorate.Target, Decoration.LinkSDSL, resolvedValue));
                 }
             }
-            else if (i.Op == Op.OpMemberDecorate && ((OpMemberDecorate)i) is { Decoration: { Value: Decoration.LinkIdSDSL, Parameters: { } m2 } } linkDecorate2)
+            else if (i.Op == Op.OpMemberDecorate && ((OpMemberDecorate)i) is { Decoration: Decoration.LinkIdSDSL, DecorationParameters: { } m2 } linkDecorate2)
             {
-                using var n = new LiteralValue<int>(m2.Span);
-                if (resolvedLinks.TryGetValue(n.Value, out var resolvedValue))
+                var tmp = new OpMemberDecorate(i);
+                var n = m2.To<DecorationParams.LinkIdSDSL>();
+                if (resolvedLinks.TryGetValue(n.IdRef0, out var resolvedValue))
                 {
-                    context.Replace(index, new OpMemberDecorateString(linkDecorate2.StructureType, linkDecorate2.Member, new ParameterizedFlag<Decoration>(Decoration.LinkSDSL, [.. resolvedValue.AsDisposableLiteralValue().Words])));
+                    context.Replace(index, new OpMemberDecorateString(linkDecorate2.StructureType, linkDecorate2.Member, Decoration.LinkSDSL, resolvedValue));
                 }
             }
         }

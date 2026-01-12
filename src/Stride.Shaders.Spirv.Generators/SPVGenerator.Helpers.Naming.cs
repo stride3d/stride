@@ -60,6 +60,10 @@ public partial class SPVGenerator
         var opname = op.OpName;
         if (op.Operands?.AsList() is List<OperandData> operands)
         {
+            if (op.OpName.EndsWith("DecorateString"))
+                operands.Add(new() { Kind = "LiteralString", Name = "value" });
+            else if (op.OpName.EndsWith("DecorateId"))
+                operands.Add(new() { Kind = "IdRef", Name = "value" });
             bool computable = true;
             for (int i = 0; i < operands.Count; i++)
             {
@@ -72,7 +76,7 @@ public partial class SPVGenerator
                     _ => computable
                 };
                 var kind = e.Kind;
-                var realKind = ConvertKind(kind!, operandKinds);
+                var realKind = ConvertKind(kind, operandKinds);
                 if (e.Quantifier is not null)
                 {
                     if (e.Name is string name)
@@ -99,12 +103,17 @@ public partial class SPVGenerator
                     else if (kind == "IdResultType" && opname == "OpExtInst")
                         parameters.AddUnique(ConvertKindToName(kind), $"{realKind}?");
                     else
-                        parameters.AddUnique(ConvertKindToName(kind!), realKind);
+                        parameters.AddUnique(ConvertKindToName(kind), realKind);
                 }
                 e.TypeName = parameters.Last().Type;
                 e.Name = parameters.Last().Name;
-                e.Class = operandKinds[kind!].Category;
-                if (operandKinds[kind!].Enumerants?.AsList() is List<Enumerant> enumerants && enumerants.Any(x => x.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 }))
+                e.Class = operandKinds[kind].Category;
+                if (
+                    !op.OpName.EndsWith("DecorateString")
+                    && !op.OpName.EndsWith("DecorateId")
+                    && operandKinds[kind].Enumerants?.AsList() is List<Enumerant> enumerants
+                    && enumerants.Any(x => x.Parameters?.AsList() is List<EnumerantParameter> { Count: > 0 })
+                )
                     e.IsParameterized = true;
                 operands[i] = e;
             }

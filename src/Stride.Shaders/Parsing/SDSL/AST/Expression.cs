@@ -1,4 +1,5 @@
 using CommunityToolkit.HighPerformance;
+using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv;
@@ -113,7 +114,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
                     paramExpectedValueType = pointerType.BaseType;
                 paramSource = builder.Convert(context, paramSource, paramExpectedValueType);
 
-                builder.Insert(new OpStore(paramVariable, paramSource.Id, null));
+                builder.Insert(new OpStore(paramVariable, paramSource.Id, null, []));
             }
 
             compiledParams[i] = paramVariable;
@@ -142,7 +143,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
                     
                     var paramVariable = context.Bound++;
                     builder.AddFunctionVariable(context.GetOrRegister(paramDefinition.Type), paramVariable);
-                    builder.Insert(new OpStore(paramVariable, source, null));
+                    builder.Insert(new OpStore(paramVariable, source, null, []));
 
                     compiledParams[parameters.Values.Count + i] = paramVariable;
                 }
@@ -188,8 +189,8 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
                 if (paramTargetType.BaseType != paramDefinitionType.BaseType)
                     throw new InvalidOperationException($"Value of type {paramTargetType.BaseType} can't be used as out parameter {i} of type {paramDefinitionType.BaseType} in method call [{this}]");
 
-                var loadedResult = builder.Insert(new OpLoad(context.GetOrRegister(paramTargetType.BaseType), context.Bound++, paramVariable, null)).ResultId;
-                builder.Insert(new OpStore(paramTarget.Id, loadedResult, null));
+                var loadedResult = builder.Insert(new OpLoad(context.GetOrRegister(paramTargetType.BaseType), context.Bound++, paramVariable, null, [])).ResultId;
+                builder.Insert(new OpStore(paramTarget.Id, loadedResult, null, []));
             }
         }
 
@@ -291,7 +292,7 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
                         }, constant1);
 
                         // We store the modified value back in the variable
-                        builder.Insert(new OpStore(expression.Id, result.Id, null));
+                        builder.Insert(new OpStore(expression.Id, result.Id, null, []));
 
                         Type = type;
                         return expression;
@@ -458,15 +459,17 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
                             var returnType = context.GetOrRegister(resultType);
 
-                            ParameterizedFlag<ImageOperandsMask>? flags = null;
+                            ImageOperandsMask? imask = null;
+                            EnumerantParameters imParams = [];
                             if (implicitSampling.Parameters.Values.Count > 2)
                             {
                                 var offset = implicitSampling.Parameters.Values[2].CompileAsValue(table, compiler);
                                 offset = builder.Convert(context, offset, ScalarType.From("int").GetVectorOrScalar(offsetSize));
                                 // TODO: determine when ConstOffset
-                                flags = new ParameterizedFlag<ImageOperandsMask>(ImageOperandsMask.Offset, [offset.Id]);
+                                imask = ImageOperandsMask.Offset;
+                                imParams = new EnumerantParameters(offset.Id);
                             }
-                            var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, flags));
+                            var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, imask, imParams));
 
                             result = new(sample.ResultId, sample.ResultType);
                             accessor.Type = resultType;
@@ -485,20 +488,24 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
                             var returnType = context.GetOrRegister(resultType);
-                            
-                            ParameterizedFlag<ImageOperandsMask> flags;
+
+                            ImageOperandsMask imask = ImageOperandsMask.None;
+                            EnumerantParameters imParams = [];
+
                             if (explicitSampling.Parameters.Values.Count > 3)
                             {
                                 var offset = explicitSampling.Parameters.Values[3].CompileAsValue(table, compiler);
                                 offset = builder.Convert(context, offset, ScalarType.From("int").GetVectorOrScalar(offsetSize));
                                 // TODO: determine when ConstOffset
-                                flags = new ParameterizedFlag<ImageOperandsMask>(ImageOperandsMask.Lod | ImageOperandsMask.Offset, [levelValue.Id, offset.Id]);
+                                imask = ImageOperandsMask.Lod | ImageOperandsMask.Offset;
+                                imParams = new EnumerantParameters(levelValue.Id, offset.Id);
                             }
                             else
                             {
-                                flags = new ParameterizedFlag<ImageOperandsMask>(ImageOperandsMask.Lod, [levelValue.Id]);
+                                imask = ImageOperandsMask.Lod;
+                                imParams = new EnumerantParameters(levelValue.Id);
                             }
-                            var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, flags));
+                            var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, imask, imParams));
 
                             result = new(sample.ResultId, sample.ResultType);
                             accessor.Type = resultType;
@@ -519,21 +526,24 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
                             var returnType = context.GetOrRegister(resultType);
 
-                            ParameterizedFlag<ImageOperandsMask> flags = sampleCompare.Name.Name == "SampleCmpLevelZero" 
-                                ? ParameterizedFlags.ImageOperandsLod(context.CompileConstant(0.0f).Id)
-                                : ImageOperandsMask.None;
+
+                            ImageOperandsMask flags = sampleCompare.Name.Name is "SampleCmpLevelZero" ? ImageOperandsMask.Lod : ImageOperandsMask.None;
+                            EnumerantParameters imParams = sampleCompare.Name.Name is "SampleCmpLevelZero" ? new () : new (context.CompileConstant(0.0f).Id);
+                            //ParameterizedFlag<ImageOperandsMask> flags = sampleCompare.Name.Name == "SampleCmpLevelZero" 
                                 
                             if (sampleCompare.Parameters.Values.Count > 3)
                             {
                                 var offset = sampleCompare.Parameters.Values[3].CompileAsValue(table, compiler);
                                 offset = builder.Convert(context, offset, ScalarType.From("int").GetVectorOrScalar(offsetSize));
                                 // TODO: determine when ConstOffset
-                                flags = new ParameterizedFlag<ImageOperandsMask>(flags.Value | ImageOperandsMask.Offset, [..flags.Span, offset.Id]);
+                                flags |= ImageOperandsMask.Offset;
+                                imParams = new EnumerantParameters([..imParams, offset.Id]);
+                                //flags = new ParameterizedFlag<ImageOperandsMask>(flags | ImageOperandsMask.Offset, new(..imParams.Span, offset.Id]);
                             }
 
                             var sample = sampleCompare.Name.Name == "SampleCmpLevelZero"
-                                ? builder.InsertData(new OpImageSampleDrefExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, flags))
-                                : builder.InsertData(new OpImageSampleDrefImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, flags));
+                                ? builder.InsertData(new OpImageSampleDrefExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, flags, imParams))
+                                : builder.InsertData(new OpImageSampleDrefImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, flags, imParams));
 
                             result = new(sample.IdResult!.Value, sample.IdResultType!.Value);
                             accessor.Type = resultType;
@@ -556,7 +566,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         var resource = builder.AsValue(context, result);
                         var returnType = context.GetOrRegister(resultType);
                         var coords = load.Parameters.Values[0].CompileAsValue(table, compiler);
-                        var loadResult = builder.Insert(new OpImageFetch(returnType, context.Bound++, resource.Id, coords.Id, null));
+                        var loadResult = builder.Insert(new OpImageFetch(returnType, context.Bound++, resource.Id, coords.Id, null, []));
                         result = new(loadResult.ResultId, loadResult.ResultType);
                         accessor.Type = resultType;
                         break;
@@ -716,7 +726,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         }, constant1);
 
                         // We store the modified value back in the variable
-                        builder.Insert(new OpStore(resultPointer.Id, modifiedValue.Id, null));
+                        builder.Insert(new OpStore(resultPointer.Id, modifiedValue.Id, null, []));
 
                         break;
                     }
@@ -850,17 +860,17 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
             // Block when choosing left value
             builder.CreateBlock(context, blockTrueId, $"ternary_true");
             builder.Merge(leftValueBuffer);
-            builder.Insert(new OpStore(resultVariable, leftResult.Id, null));
+            builder.Insert(new OpStore(resultVariable, leftResult.Id, null, []));
             builder.Insert(new OpBranch(blockMergeId));
 
             // Block when choosing right value
             builder.CreateBlock(context, blockFalseId, $"ternary_false");
             builder.Merge(rightValueBuffer);
-            builder.Insert(new OpStore(resultVariable, rightResult.Id, null));
+            builder.Insert(new OpStore(resultVariable, rightResult.Id, null, []));
             builder.Insert(new OpBranch(blockMergeId));
 
             builder.CreateBlock(context, blockMergeId, "ternary_merge");
-            var result = builder.Insert(new OpLoad(context.GetOrRegister(resultType), context.Bound++, resultVariable, null));
+            var result = builder.Insert(new OpLoad(context.GetOrRegister(resultType), context.Bound++, resultVariable, null, []));
             return new(result.ResultId, result.ResultType);
         }
         else

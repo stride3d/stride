@@ -29,30 +29,28 @@ public partial class ShaderMixer
         foreach (var i in context)
         {
             if (i.Op == Specification.Op.OpDecorateString && (OpDecorateString)i is
-                { Decoration: { Value: Specification.Decoration.LinkSDSL or Specification.Decoration.ResourceGroupSDSL or Specification.Decoration.LogicalGroupSDSL, Parameters: { } m } } decorate)
+                { Decoration: Specification.Decoration.LinkSDSL or Specification.Decoration.ResourceGroupSDSL or Specification.Decoration.LogicalGroupSDSL, Value: string m  } decorate)
             {
-                using var n = new LiteralValue<string>(m.Span);
                 ref var link = ref CollectionsMarshal.GetValueRefOrAddDefault(variableDecorationLinks, decorate.Target, out _);
-                switch (decorate.Decoration.Value)
+                switch (decorate.Decoration)
                 {
                     case Specification.Decoration.LinkSDSL:
-                        link.Link = n.Value;
+                        link.Link = m;
                         break;
                     case Specification.Decoration.ResourceGroupSDSL:
-                        link.ResourceGroup = n.Value;
+                        link.ResourceGroup = m;
                         break;
                     case Specification.Decoration.LogicalGroupSDSL:
-                        link.LogicalGroup = n.Value;
+                        link.LogicalGroup = m;
                         break;
                     default:
                         throw new NotImplementedException();
                 }
             }
             else if (i.Op == Specification.Op.OpMemberDecorateString && (OpMemberDecorateString)i is
-                     { Decoration: { Value: Specification.Decoration.LinkSDSL, Parameters: { } m2 } } memberDecorate)
+                     { Decoration: Specification.Decoration.LinkSDSL, Value: string m2 } memberDecorate)
             {
-                using var n = new LiteralValue<string>(m2.Span);
-                structDecorationLinks[(memberDecorate.StructType, memberDecorate.Member)] = n.Value;
+                structDecorationLinks[(memberDecorate.StructType, memberDecorate.Member)] = m2;
             }
         }
 
@@ -198,9 +196,8 @@ public partial class ShaderMixer
             if ((i.Op == Specification.Op.OpDecorate || i.Op == Specification.Op.OpDecorateString) &&
                      (OpDecorate)i is
                      {
-                         Decoration:
-                         {
-                             Value: Specification.Decoration.SamplerStateFilter
+                         Decoration : 
+                            Specification.Decoration.SamplerStateFilter
                              or Specification.Decoration.SamplerStateAddressU
                              or Specification.Decoration.SamplerStateAddressV
                              or Specification.Decoration.SamplerStateAddressW
@@ -209,15 +206,15 @@ public partial class ShaderMixer
                              or Specification.Decoration.SamplerStateComparisonFunc
                              or Specification.Decoration.SamplerStateMinLOD
                              or Specification.Decoration.SamplerStateMaxLOD,
-                             Parameters: { } p
-                         }
+                         DecorationParameters: { } p
+                         
                      } decorate)
             {
                 ref var samplerState =
                     ref CollectionsMarshal.GetValueRefOrAddDefault(samplerStates, decorate.Target, out var exists);
                 if (!exists)
                     samplerState = Graphics.SamplerStateDescription.Default;
-                switch (decorate.Decoration.Value)
+                switch (decorate.Decoration)
                 {
                     case Specification.Decoration.SamplerStateFilter:
                         samplerState.Filter = (Graphics.TextureFilter)p.Span[0];
@@ -312,8 +309,8 @@ public partial class ShaderMixer
                             SlotCount = 1,
                         });
 
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationDescriptorSet(0)));
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationBinding(srvSlot)));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [srvSlot]));
 
                         srvSlot++;
                     }
@@ -328,8 +325,8 @@ public partial class ShaderMixer
                             SlotCount = 1,
                         });
 
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationDescriptorSet(0)));
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationBinding(srvSlot)));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [srvSlot]));
 
                         srvSlot++;
                     }
@@ -343,9 +340,9 @@ public partial class ShaderMixer
                             SlotCount = 1,
                         });
 
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationDescriptorSet(0)));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
                         context.Add(
-                            new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationBinding(samplerSlot)));
+                            new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [samplerSlot]));
 
                         if (samplerStates.TryGetValue(variable.ResultId, out var samplerState))
                             globalContext.Reflection.SamplerStates.Add(
@@ -364,9 +361,9 @@ public partial class ShaderMixer
                             ResourceGroup = name,
                         });
 
-                        context.Add(new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationDescriptorSet(0)));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
                         context.Add(
-                            new OpDecorate(variable.ResultId, ParameterizedFlags.DecorationBinding(cbufferSlot)));
+                            new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [cbufferSlot]));
 
                         cbufferSlot++;
                     }

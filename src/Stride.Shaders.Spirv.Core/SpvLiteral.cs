@@ -13,22 +13,25 @@ public ref struct SpvOperand
     public OperandQuantifier Quantifier { get; init; }
     public Span<int> Words { get; init; }
     public int Offset { get; init; }
+    public bool IsParameterizedEnumerant { get; init; }
 
-    public SpvOperand(OperandKind kind, OperandQuantifier quantifier, Span<int> words, int idRefOffset = 0)
+    public SpvOperand(OperandKind kind, OperandQuantifier quantifier, Span<int> words, int idRefOffset = 0, bool isParameterizedEnumerant = false)
     {
         Kind = kind;
         Quantifier = quantifier;
         Words = words;
         Offset = idRefOffset;
+        IsParameterizedEnumerant = isParameterizedEnumerant;
     }
 
-    public SpvOperand(string? name, OperandKind kind, OperandQuantifier quantifier, Span<int> words, int idRefOffset = 0)
+    public SpvOperand(string? name, OperandKind kind, OperandQuantifier quantifier, Span<int> words, int idRefOffset = 0, bool isParameterizedEnumerant = false)
     {
         Name = name;
         Kind = kind;
         Quantifier = quantifier;
         Words = words;
         Offset = idRefOffset;
+        IsParameterizedEnumerant = isParameterizedEnumerant;
     }
 
     public void ReplaceIdResult(int replacement)

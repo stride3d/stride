@@ -140,7 +140,7 @@ public class For(Statement initializer, Expression cond, List<Statement> update,
         if (Condition.ValueType != ScalarType.From("bool"))
             table.Errors.Add(new(Condition.Info, "not a boolean"));
 
-        builder.Insert(new OpLoopMerge(currentEscapeBlocks.MergeBlock, currentEscapeBlocks.ContinueBlock, Specification.LoopControlMask.None));
+        builder.Insert(new OpLoopMerge(currentEscapeBlocks.MergeBlock, currentEscapeBlocks.ContinueBlock, Specification.LoopControlMask.None, []));
         builder.Insert(new OpBranchConditional(conditionValue.Id, forBodyBlock, currentEscapeBlocks.MergeBlock, []));
 
         // Body block
