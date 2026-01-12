@@ -508,6 +508,7 @@ public partial class SpirvBuilder
             }
             else if (i.Op == Op.OpMemberDecorate && ((OpMemberDecorate)i) is { Decoration: Decoration.LinkIdSDSL, DecorationParameters: { } m2 } linkDecorate2)
             {
+                var tmp = new OpMemberDecorate(i);
                 var n = m2.To<DecorationParams.LinkIdSDSL>();
                 if (resolvedLinks.TryGetValue(n.IdRef0, out var resolvedValue))
                 {
