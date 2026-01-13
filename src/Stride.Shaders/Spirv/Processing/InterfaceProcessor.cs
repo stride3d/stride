@@ -879,7 +879,8 @@ namespace Stride.Shaders.Spirv.Processing
             (var methodStart, var methodEnd) = FindMethodBounds(buffer, methodInfo.ThisStageMethodId ?? functionId);
 
             var streams = analysisResult.Streams;
-            var streamsInstructionIds = new HashSet<int>();
+            // true => implicit (streams.), false => specific variable
+            var streamsInstructionIds = new Dictionary<int, bool>();
 
             var method = (OpFunction)buffer[methodStart];
             var methodType = (FunctionType)context.ReverseTypes[method.FunctionType];
@@ -902,7 +903,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                 if (i.Op == Op.OpStreamsSDSL && (OpStreamsSDSL)i is { } streamsInstruction)
                 {
-                    streamsInstructionIds.Add(streamsInstruction.ResultId);
+                    streamsInstructionIds.Add(streamsInstruction.ResultId, true);
                     remapIds.Add(streamsInstruction.ResultId, streamsVariableId);
                     SpirvBuilder.SetOpNop(i.Data.Memory.Span);
                 }
@@ -910,18 +911,18 @@ namespace Stride.Shaders.Spirv.Processing
                 {
                     var type = context.ReverseTypes[variable.ResultType];
                     if (type is PointerType { BaseType: StreamsType })
-                        streamsInstructionIds.Add(variable.ResultId);
+                        streamsInstructionIds.Add(variable.ResultId, false);
                 }
                 else if (i.Op is Op.OpFunctionParameter && (OpFunctionParameter)i is { } functionParameter)
                 {
                     var type = context.ReverseTypes[functionParameter.ResultType];
                     if (type is PointerType { BaseType: StreamsType })
-                        streamsInstructionIds.Add(functionParameter.ResultId);
+                        streamsInstructionIds.Add(functionParameter.ResultId, false);
                 }
                 else if (i.Op == Op.OpAccessChain && (OpAccessChain)i is { } accessChain)
                 {
                     // In case it's a streams access, patch acces to use STREAMS struct with proper index
-                    if (streamsInstructionIds.Contains(accessChain.BaseId))
+                    if (streamsInstructionIds.TryGetValue(accessChain.BaseId, out var isImplicit))
                     {
                         var streamVariableId = accessChain.Values.Elements.Span[0];
                         var streamInfo = streams[streamVariableId];
@@ -931,8 +932,12 @@ namespace Stride.Shaders.Spirv.Processing
                         //       we'll need a better way to update LiteralArray and propagate changes
                         accessChain.Values.Elements.Span[0] = context.CompileConstant(streamStructMemberIndex).Id;
 
-                        // Force refresh of InstructionMemory
-                        accessChain.BaseId = streamsVariableId;
+                        if (isImplicit)
+                            accessChain.BaseId = streamsVariableId;
+                        else
+                            // Force refresh of InstructionMemory
+                            // TODO: remove when accessChain.Values update properly the instruction
+                            accessChain.BaseId = accessChain.BaseId; 
                     }
                 }
                 else if (i.Op == Op.OpFunctionCall && (OpFunctionCall)i is { } call)

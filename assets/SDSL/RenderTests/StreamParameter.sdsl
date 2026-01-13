@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#7F7F7F7F, stream.EXTRA_COLOR=(0.498 0.498 0.498 0.498))
+// PSMain(ExpectedResult=#807FFFFF, stream.EXTRA_COLOR=(0.498 0.498 0.498 0.498))
 
 namespace Stride.Shaders.Tests;
 
@@ -11,7 +11,7 @@ shader StreamParameter
 
     float4 Test(Streams streamsCopy)
     {
-        return streamsCopy.ExtraColor;
+        return float4(streamsCopy.ExtraColor.x, streams.ExtraColor.y, 1.0, 1.0);
     }
 
     void VSMain()
@@ -22,6 +22,8 @@ shader StreamParameter
 
     void PSMain()
     {
-        streams.ColorTarget = Test(streams);
+        Streams streamsCopy = streams;
+        streamsCopy.ExtraColor += 1.0 / 255.0;
+        streams.ColorTarget = Test(streamsCopy);
     }
 }
