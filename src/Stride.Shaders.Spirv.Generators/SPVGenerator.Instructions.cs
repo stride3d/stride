@@ -238,7 +238,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                     sb.Append(ToSpreadOperator(operand));
                     var (_, fieldname, _) = ToTypeFieldAndOperandName(operand);
                     if (fieldname == "Set")
-                        sb.Append($", {instruction.OpCode}");
+                        sb.Append($", (int)GLSLOp.{instruction.OpName}");
                 }
             }
             else

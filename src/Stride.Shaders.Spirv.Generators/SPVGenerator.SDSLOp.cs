@@ -25,7 +25,7 @@ public partial class SPVGenerator
         var instructionsProvider =
             grammarProvider
             .SelectMany(static (grammar, b) => grammar.Instructions?.AsList() ?? [])
-            .Where(static x => x.OpName is not null && !x.OpName.Contains("GLSL"))
+            .Where(static x => x.OpName is not null)
             .Collect()
             .Select(static (arr, _) => new EquatableList<InstructionData>([.. arr]));
 
@@ -38,44 +38,10 @@ public partial class SPVGenerator
     public void ExecuteSDSLOpCreation(SourceProductionContext ctx, EquatableList<InstructionData> instructionArray)
     {
 
-        var code = new StringBuilder();
-        code
-                .AppendLine("using static Stride.Shaders.Spirv.Specification;")
-                .AppendLine("")
-                .AppendLine("namespace Stride.Shaders.Spirv.Core;")
-                .AppendLine("")
-                .AppendLine("public enum SDSLOp : int")
-                .AppendLine("{");
-
-        Dictionary<string, int> members = instructionArray.Where(x => !x.OpName.Contains("SDSL")).ToDictionary(x => x.OpName, y => y.OpCode)!;
+        var members = instructionArray.Where(x => !x.OpName.Contains("SDSL")).ToDictionary(x => x.OpName, y => y.OpCode)!;
         int lastnum = members.Values.Max();
-        foreach (var instruction in instructionArray!)
-        {
-            if (members.TryGetValue(instruction.OpName, out var value))
-            {
-                if (instruction.OpName.Contains("SDSL") && value <= 0)
-                    value = ++lastnum;
-                code.AppendLine($"    {instruction.OpName} = {value},");
-            }
-            else
-            {
-                members.Add(instruction.OpName, ++lastnum);
-                code.AppendLine($"    {instruction.OpName} = {lastnum},");
-            }
-        }
 
-
-        code.AppendLine("}");
-        ctx.AddSource("SDSLOp.gen.cs",
-            SourceText.From(
-                SyntaxFactory
-                .ParseCompilationUnit(code.ToString())
-                .NormalizeWhitespace()
-                .ToFullString(),
-                Encoding.UTF8
-         )
-        );
-        code.Clear();
+        var code = new StringBuilder();
         code
                 .AppendLine("using static Stride.Shaders.Spirv.Specification;")
                 .AppendLine("")
@@ -88,6 +54,8 @@ public partial class SPVGenerator
 
         foreach (var instruction in instructionArray!)
         {
+            if (instruction.OpName.Contains("GLSL"))
+                continue;
             if (members.TryGetValue(instruction.OpName, out var value))
             {
                 if (instruction.OpName.Contains("SDSL") && value <= 0)
@@ -100,8 +68,19 @@ public partial class SPVGenerator
                 code.AppendLine($"    {instruction.OpName} = {lastnum},");
             }
         }
-        code.AppendLine("}}");
+        code.AppendLine("}");
 
+        code.AppendLine("public enum GLSLOp : int")
+            .AppendLine("{");
+        foreach (var instruction in instructionArray!)
+        {
+            if (!instruction.OpName.Contains("GLSL"))
+                continue;
+            if (members.TryGetValue(instruction.OpName, out var value))
+                code.AppendLine($"    {instruction.OpName} = {value},");
+        }
+        code.AppendLine("}}");
+        
         ctx.AddSource("SpecificationOp.gen.cs",
             SourceText.From(
                 SyntaxFactory
