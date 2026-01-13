@@ -18,9 +18,8 @@ public partial class ShaderMixer
     /// <param name="root"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(SpirvContext context, ShaderSource shaderSource, ShaderMixinInstantiation? root = null)
+    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(SpirvContext context, ShaderSource shaderSource, Action<ShaderClassInstantiation>? addToRoot = null)
     {
-        bool isRoot = root == null;
         var mixinList = new List<ShaderClassInstantiation>();
 
         var shaderMixinSource = shaderSource switch
@@ -28,6 +27,9 @@ public partial class ShaderMixer
             ShaderMixinSource mixinSource2 => mixinSource2,
             ShaderClassSource classSource => new ShaderMixinSource { Mixins = { classSource } },
         };
+
+        var compositions = new Dictionary<string, ShaderMixinInstantiation[]>();
+        var result = new ShaderMixinInstantiation(new(), compositions);
 
         foreach (var mixinToMerge in shaderMixinSource.Mixins)
         {
@@ -44,14 +46,59 @@ public partial class ShaderMixer
                     break;
                 }
             }
+
             SpirvBuilder.BuildInheritanceListIncludingSelf(ShaderLoader, context, mixinToMerge2, shaderMixinSource.Macros.AsSpan(), mixinList, ResolveStep.Mix);
         }
+        
+        ProcessClasses(context, mixinList, shaderMixinSource, result, compositions, addToRoot);
 
-        var compositions = new Dictionary<string, ShaderMixinInstantiation[]>();
-        var result = new ShaderMixinInstantiation(new(), compositions);
+        return result;
+    }
 
-        foreach (var shaderName in mixinList.ToArray())
+    private void ProcessClasses(SpirvContext context, List<ShaderClassInstantiation> mixinList, ShaderMixinSource shaderMixinSource, ShaderMixinInstantiation result, Dictionary<string, ShaderMixinInstantiation[]> compositions, Action<ShaderClassInstantiation>? addToRoot = null)
+    {
+        int shaderIndex = 0;
+        
+        var addToRootRecursive = addToRoot;
+        if (addToRootRecursive == null)
         {
+            addToRootRecursive = shaderName =>
+            {
+                var shaderNameStageOnly = new ShaderClassInstantiation(shaderName.ClassName, shaderName.GenericArguments, ImportStageOnly: true) { Buffer = shaderName.Buffer, Symbol = shaderName.Symbol };
+                
+               
+                // Make sure it's not already added yet (either standard or stage only)
+                if (!result.Mixins.Contains(shaderName) && !result!.Mixins.Contains(shaderNameStageOnly))
+                {
+                    // Check if mixin will be added in future as a non-stage
+                    if (mixinList.Contains(shaderName))
+                    {
+                        // Special case: the current stage-only mixin is planned to be added later as a normal mixin at the root level
+                        // It's a bit complex: we need to inherit from it right now instead of later
+                        // (if we simply do a result.Mixins.Add as in normal case, the shader would be added twice)
+                        var currentlyMixedList = mixinList[0..shaderIndex];
+                        SpirvBuilder.BuildInheritanceListIncludingSelf(ShaderLoader, context, shaderName, shaderMixinSource.Macros.AsSpan(), currentlyMixedList, ResolveStep.Mix);
+
+                        var newShadersToMergeNow = currentlyMixedList[shaderIndex..];
+                        mixinList.InsertRange(shaderIndex, newShadersToMergeNow);
+                        
+                        // Note: we're not removing duplicates as we do an extra duplicate check at the beginning of the mixinList loop
+                    }
+                    else
+                    {
+                        result.Mixins.Add(shaderNameStageOnly);
+                    }
+                }
+            };
+        }
+
+        for (; shaderIndex < mixinList.Count; shaderIndex++)
+        {
+            var shaderName = mixinList[shaderIndex];
+            // Note: this should only happen due to addToRootRecursive readding some mixin earlier
+            if (result.Mixins.Contains(shaderName))
+                continue;
+            
             var shader = shaderName.Buffer.Value;
             bool hasStage = false;
             foreach (var i in shader.Context)
@@ -61,6 +108,7 @@ public partial class ShaderMixer
                     hasStage = true;
                 }
             }
+
             foreach (var i in shader.Buffer)
             {
                 if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
@@ -87,40 +135,31 @@ public partial class ShaderMixer
                         {
                             var variableCompositions = new List<ShaderMixinInstantiation>();
                             foreach (var value in shaderArraySource.Values)
-                                variableCompositions.Add(EvaluateInheritanceAndCompositions(context, value, root ?? result));
+                                variableCompositions.Add(EvaluateInheritanceAndCompositions(context, value, addToRootRecursive));
                             compositions[variableName] = [..variableCompositions];
                         }
                         else
                         {
-                            var variableComposition = EvaluateInheritanceAndCompositions(context, compositionMixin, root ?? result);
+                            var variableComposition = EvaluateInheritanceAndCompositions(context, compositionMixin, addToRootRecursive);
                             compositions[variableName] = [variableComposition];
                         }
                     }
                 }
 
-                if (i.Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)i is {} functionInfo)
+                if (i.Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)i is { } functionInfo)
                 {
                     hasStage |= (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
                 }
             }
 
             // If there are any stage variables, add class to root
-            if (!isRoot && hasStage)
-            {
-                var shaderNameStageOnly = new ShaderClassInstantiation(shaderName.ClassName, shaderName.GenericArguments, ImportStageOnly: true) { Buffer = shaderName.Buffer, Symbol = shaderName.Symbol };
-                // Make sure it's not already added yet (either standard or stage only)
-                if (!root!.Mixins.Contains(shaderName) && !root!.Mixins.Contains(shaderNameStageOnly))
-                {
-                    root!.Mixins.Add(shaderNameStageOnly);
-                }
-            }
-
+            if (hasStage)
+                addToRoot?.Invoke(shaderName);
+            
             // Note: make sure to add only *after* compositions EvaluateInheritanceAndCompositions recursive call is done (a composition might add a "stage" inheritance with root!.Mixins.Add()
             //       and this should be done before the composition mixin is added.
             //       For example, a composition might import a struct, so if we import and mix the composition mixin before the "stage" one defining the struct, the struct is not defined before the composition using it.
             result.Mixins.Add(shaderName);
         }
-
-        return result;
     }
 }

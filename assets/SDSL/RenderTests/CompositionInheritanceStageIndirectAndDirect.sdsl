@@ -1,0 +1,48 @@
+// PSMain(ExpectedResult=#24242424, cbuffer.PerView=(Eye=7.0, Eye2=12.0))
+
+namespace Stride.Shaders.Tests;
+
+// This class will be inherited twice by CompositionInheritanceStageIndirectAndDirect
+// - first through ShadingColor0 (but it will be stage-only inheritance)
+// - then from ExternalClass being in the inheritance list (full inheritance)
+// This test makes sure the full inheritance override the stage-only inheritance, while still happening early enough
+shader ExternalClass
+{
+    cbuffer PerView
+    {
+        stage float Eye;
+    };
+}
+
+shader CompositionBase
+{
+	float4 Compute()
+	{
+		return float4(10.0, 10.0, 10.0, 10.0) / 255.0 + ExternalClass.Eye / 255.0;
+	}
+};
+
+shader CompositionExternalBase
+{
+    stream float4 ColorTarget : SV_Target0;
+
+	cbuffer PerView
+    {
+        stage float Eye2;
+    };
+
+	compose CompositionBase ShadingColor0;
+};
+
+shader CompositionInheritanceStageIndirectAndDirect : CompositionExternalBase, ExternalClass
+{
+	stage float4 Shading()
+    {
+        return ShadingColor0.Compute() + Eye2 / 255.0 + Eye / 255.0;
+    }
+ 
+	void PSMain()
+	{
+		streams.ColorTarget = Shading();
+	}
+};
