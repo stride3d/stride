@@ -633,6 +633,9 @@ namespace Stride.Shaders.Spirv.Processing
             {
                 switch (stream.Semantic?.ToUpperInvariant())
                 {
+                    case "SV_DEPTH" when executionModel is ExecutionModel.Fragment:
+                        context.Add(new OpDecorate(variable, Decoration.BuiltIn, [(int)BuiltIn.FragDepth]));
+                        return true;
                     case "SV_POSITION" when executionModel is ExecutionModel.Geometry or ExecutionModel.TessellationControl or ExecutionModel.TessellationEvaluation or ExecutionModel.Vertex:
                         context.Add(new OpDecorate(variable, Decoration.BuiltIn, [(int)BuiltIn.Position]));
                         return true;
