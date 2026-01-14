@@ -588,7 +588,12 @@
                 }
               ],
               "version": "1.0"
-            }
+            },
+          {
+            "enumerant": "ShaderConstantSDSL",
+            "value": 8060,
+            "version": "1.0"
+          }
         ]
     },
     {

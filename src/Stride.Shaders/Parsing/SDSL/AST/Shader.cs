@@ -312,7 +312,20 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 methodsDefaultParameters.Add(target, new(shaderBuffers.Context, decorateFunctionParameters.DecorationParameters.Span.ToArray()));
             }
+            else if (i.Op == Op.OpDecorate && (OpDecorate)i is
+                 {
+                     Decoration: Decoration.ShaderConstantSDSL,
+                     Target: var target2,
+                 } decorateShaderConstant)
+            {
+                if (!shaderBuffers.Context.GetBuffer().TryGetInstructionById(target2, out var typeInstruction))
+                    throw new InvalidOperationException();
+                var resultType = typeInstruction.Data.IdResultType.Value;
+                var symbol = new Symbol(new(shaderBuffers.Context.Names[target2], SymbolKind.Constant), shaderBuffers.Context.ReverseTypes[resultType], 0, ExternalConstant: new(shaderBuffers.Context, target2));
+                variables.Add((symbol, VariableFlagsMask.None));
+            }
         }
+        
         for (var index = 0; index < shaderBuffers.Buffer.Count; index++)
         {
             var instruction = shaderBuffers.Buffer[index];
@@ -499,8 +512,26 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 if (memberType is TextureType || memberType is BufferType)
                     storageClass = Specification.StorageClass.UniformConstant;
 
-                svar.Type = new PointerType(memberType, storageClass);
-                table.DeclaredTypes.TryAdd(svar.Type.ToString(), svar.Type);
+                if (svar.TypeModifier == TypeModifier.Const)
+                {
+                    if (svar.Value == null)
+                        throw new InvalidOperationException($"Constant {svar.Name} doesn't have a value");
+                    
+                    // Constant: compile right away
+                    var constantValue = svar.Value.CompileConstantValue(table, context, memberType);
+                    context.SetName(constantValue.Id, svar.Name);
+                    var symbol = new Symbol(new(svar.Name, SymbolKind.Constant), memberType, constantValue.Id);
+                    table.CurrentFrame.Add(svar.Name, symbol);
+                    svar.Type = memberType;
+
+                    // This constant is visible when inherited
+                    context.Add(new OpDecorate(constantValue.Id, Decoration.ShaderConstantSDSL, []));
+                }
+                else
+                {
+                    svar.Type = new PointerType(memberType, storageClass);
+                    table.DeclaredTypes.TryAdd(svar.Type.ToString(), svar.Type);
+                }
             }
             else if (member is CBuffer cb)
             {
@@ -525,7 +556,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         foreach (var member in Elements.OfType<ShaderBuffer>())
             member.Compile(table, this, compiler);
         foreach (var member in Elements.OfType<ShaderMember>())
+        {
+            if (member.TypeModifier == TypeModifier.Const)
+                continue;
             member.Compile(table, this, compiler);
+        }
         foreach (var member in Elements.OfType<ShaderSamplerState>())
             member.Compile(table, this, compiler);
 

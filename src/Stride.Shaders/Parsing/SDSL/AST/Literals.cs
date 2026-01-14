@@ -326,7 +326,19 @@ public class Identifier(string name, TextLocation info) : Literal(info)
             return result;
         }
 
-        if (symbol.MemberAccessWithImplicitThis is { } thisType)
+        if (symbol.ExternalConstant is { } externalConstant)
+        {
+            if (externalConstant.SourceContext != context)
+            {
+                var bufferForConstant = externalConstant.SourceContext.ExtractConstantAsSpirvBuffer(externalConstant.ConstantId);
+                result.Id = context.InsertWithoutDuplicates(null, bufferForConstant);
+            }
+            else
+            {
+                result.Id = externalConstant.ConstantId;
+            }
+        }
+        else if (symbol.MemberAccessWithImplicitThis is { } thisType)
         {
             if (constantOnly)
                 throw new NotImplementedException();

@@ -91,13 +91,20 @@ public partial class SpirvContext
             switch (op)
             {
                 case Specification.Op.OpIMul:
+                case Specification.Op.OpIAdd:
+                case Specification.Op.OpISub:
                     if (!TryGetConstantValue(i.Data.Memory.Span[4], out var left, out var leftTypeId))
                         return false;
                     if (!TryGetConstantValue(i.Data.Memory.Span[5], out var right, out var rightTypeId))
                         return false;
                     if (leftTypeId != resultType || rightTypeId != resultType)
                         return false;
-                    value = (int)left * (int)right;
+                    value = op switch
+                    {
+                        Specification.Op.OpIMul => (int)left * (int)right,
+                        Specification.Op.OpIAdd => (int)left + (int)right,
+                        Specification.Op.OpISub => (int)left - (int)right,
+                    };
                     if (simplifyInBuffer)
                         Buffer.Replace(i.Index, new OpConstant<int>(resultType, resultId, (int)value));
                     return true;

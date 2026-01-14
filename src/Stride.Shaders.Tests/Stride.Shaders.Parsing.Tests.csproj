@@ -8,6 +8,9 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+
+    <!-- Force msbuild to check to rebuild so that unit tests SDSL files are properly copied -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
 
   <ItemGroup>

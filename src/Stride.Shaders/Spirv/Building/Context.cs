@@ -65,12 +65,39 @@ public partial class SpirvContext
         GLSLSet = Bound - 1;
     }
 
+    /// <summary>
+    /// Add a new name to a target ID. It should not have been set before.
+    /// </summary>
+    /// <param name="target"></param>
+    /// <param name="name"></param>
     public void AddName(int target, string name)
     {
         Buffer.Add(new OpName(target, name));
         Names.Add(target, name);
     }
 
+    /// <summary>
+    /// Adds or updates a name to a target ID.
+    /// </summary>
+    /// <param name="target"></param>
+    /// <param name="name"></param>
+    public void SetName(int target, string name)
+    {
+        Names[target] = name;
+
+        foreach (var i in Buffer)
+        {
+            if (i.Op == Op.OpName && (OpName)i is { } nameInstruction && nameInstruction.Target == target)
+            {
+                nameInstruction.Name = name;
+                return;
+            }
+        }
+        
+        // Not found, create new one
+        Buffer.Add(new OpName(target, name));
+    }
+    
     public void AddMemberName(int target, int accessor, string name)
         => Buffer.Add(new OpMemberName(target, accessor, name.Replace('.', '_')));
 

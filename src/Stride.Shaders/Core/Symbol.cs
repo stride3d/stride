@@ -45,11 +45,13 @@ public record struct StreamInfo(ushort EntryPoint, StreamIO Stream);
 
 public record struct MethodSymbolDefaultParameters(SpirvContext SourceContext, int[] DefaultValues);
 
+public record struct ExternalConstant(SpirvContext SourceContext, int ConstantId);
+
 /// <summary>
 /// Defines a symbol.
 /// </summary>
 /// <param name="GroupMembers">Only used for specific <see cref="Type"/> such as <see cref="FunctionGroupType"/></param>
-public record struct Symbol(SymbolID Id, SymbolType Type, int IdRef, int? AccessChain = null, SymbolType MemberAccessWithImplicitThis = null, ImmutableArray<Symbol> GroupMembers = default, MethodSymbolDefaultParameters? MethodDefaultParameters = null);
+public record struct Symbol(SymbolID Id, SymbolType Type, int IdRef, int? AccessChain = null, SymbolType MemberAccessWithImplicitThis = null, ImmutableArray<Symbol> GroupMembers = default, MethodSymbolDefaultParameters? MethodDefaultParameters = null, ExternalConstant? ExternalConstant = null);
 
 
 
