@@ -704,6 +704,18 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         }, p.StorageClass);
                         break;
                     }
+                // For indexer accessor into non pointer types, we can't use OpCompositeExtract (it expects a constant)
+                // So we load the value into a variable and use normal path
+                case (ArrayType or VectorType or MatrixType, IndexerExpression indexer):
+                    {
+                        // We need to load as a variable to use OpAccessChain
+                        accessor.Type = new PointerType(currentValueType, Specification.StorageClass.Function);
+                        var functionVariable = builder.AddFunctionVariable(context.GetOrRegister(accessor.Type), context.Bound++);
+                        builder.Insert(new OpStore(functionVariable, result.Id, null, []));
+                        // Process again the same item with new type
+                        --i;
+                        break;
+                    }
                 case (PointerType { BaseType: var type }, PostfixIncrement postfix):
                     {
                         // Emit OpAccessChain with everything so far
