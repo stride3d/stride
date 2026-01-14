@@ -71,7 +71,7 @@ public class RenderingTests
         shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), out var bytecode, out var effectReflection);
 
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
-        File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateBufferFromBytecode(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
+        File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateBufferFromBytecode(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
         // Convert to GLSL
         var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());

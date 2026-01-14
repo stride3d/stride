@@ -20,6 +20,12 @@ namespace Stride.Shaders.Spirv.Processing
 
         public CodeInsertedDelegate CodeInserted { get; set; }
         
+        enum StreamVariableType
+        {
+            Input,
+            Output,
+        }
+        
         class StreamInfo(string? semantic, string name, SymbolType type, int variableId)
         {
             public string? Semantic { get; } = semantic;
@@ -187,7 +193,7 @@ namespace Stride.Shaders.Spirv.Processing
             // (if PSMain has been overriden with an empty method, it means we don't want to output anything and remove the pixel shader, i.e. for shadow caster)
             if (streams.Any(x => x.Value.Output))
             {
-                var psWrapperId = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult, liveAnalysis);
+                var psWrapperId = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult, liveAnalysis, false);
                 buffer.FluentAdd(new OpExecutionMode(psWrapperId, ExecutionMode.OriginUpperLeft, []));
             }
 
@@ -223,7 +229,7 @@ namespace Stride.Shaders.Spirv.Processing
                         stream.Value.Output = true;
                 }
 
-                GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult, liveAnalysis);
+                GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult, liveAnalysis, true);
             }
 
             // This will remove a lot of unused methods, resources and variables
@@ -601,7 +607,7 @@ namespace Stride.Shaders.Spirv.Processing
             return new(nameTable, streams, variables, cbuffers, resourceGroups, resources);
         }
 
-        private int GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
+        private int GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult, LiveAnalysis liveAnalysis, bool isFirstActiveShader)
         {
             var streams = analysisResult.Streams;
 
@@ -629,23 +635,50 @@ namespace Stride.Shaders.Spirv.Processing
                 }
             }
 
-            bool ProcessBuiltinsDecoration(int variable, StreamInfo stream)
+            bool AddBuiltin(int variable, BuiltIn builtin)
+            {
+                context.Add(new OpDecorate(variable, Decoration.BuiltIn, [(int)builtin]));
+                return true;
+            }
+            
+            bool ProcessBuiltinsDecoration(int variable, StreamVariableType type, StreamInfo stream)
             {
                 switch (stream.Semantic?.ToUpperInvariant())
                 {
-                    case "SV_DEPTH" when executionModel is ExecutionModel.Fragment:
-                        context.Add(new OpDecorate(variable, Decoration.BuiltIn, [(int)BuiltIn.FragDepth]));
-                        return true;
-                    case "SV_POSITION" when executionModel is ExecutionModel.Geometry or ExecutionModel.TessellationControl or ExecutionModel.TessellationEvaluation or ExecutionModel.Vertex:
-                        context.Add(new OpDecorate(variable, Decoration.BuiltIn, [(int)BuiltIn.Position]));
-                        return true;
-                    case "SV_POSITION" when executionModel is ExecutionModel.Fragment:
-                        context.Add(new OpDecorate(variable, Decoration.BuiltIn, [(int)BuiltIn.FragCoord]));
-                        return true;
-                    case "SV_ISFRONTFACE":
-                        context.Add(new OpDecorate(variable, Decoration.BuiltIn, [(int)BuiltIn.FrontFacing]));
-                        context.Add(new OpDecorate(variable, Decoration.Flat, []));
-                        return true;
+                    case "SV_DEPTH":
+                        if (executionModel is ExecutionModel.Fragment && type == StreamVariableType.Output)
+                            return AddBuiltin(variable, BuiltIn.FragDepth);
+                        return false;
+                    case {} semantic when semantic.StartsWith("SV_TARGET"):
+                        if (executionModel is ExecutionModel.Fragment && type == StreamVariableType.Output)
+                        {
+                            // If it fails, default is 0
+                            int.TryParse(semantic.Substring("SV_TARGET".Length), out var targetIndex);
+                            context.Add(new OpDecorate(variable, Decoration.Location, [targetIndex]));
+                            return true;
+                        }
+                        return false;
+                    case "SV_POSITION":
+                        if (isFirstActiveShader && type == StreamVariableType.Output)
+                            return AddBuiltin(variable, BuiltIn.Position);
+                        if (executionModel == ExecutionModel.Fragment && type == StreamVariableType.Input)
+                            return AddBuiltin(variable, BuiltIn.FragCoord);
+                        return false;
+                    // TODO: Check if first stage
+                    case "SV_INSTANCEID":
+                        if (isFirstActiveShader && type == StreamVariableType.Input)
+                            return AddBuiltin(variable, BuiltIn.InstanceIndex);
+                        return false;
+                    case "SV_VERTEXID" when isFirstActiveShader:
+                        if (isFirstActiveShader && type == StreamVariableType.Input)
+                            return AddBuiltin(variable, BuiltIn.VertexIndex);
+                        return false;
+                    case "SV_ISFRONTFACE" when isFirstActiveShader:
+                        if (isFirstActiveShader && type == StreamVariableType.Input)
+                            return AddBuiltin(variable, BuiltIn.FrontFacing);
+                        return false;
+                    case {} semantic when semantic.StartsWith("SV_"):
+                        throw new NotImplementedException($"System-value Semantic not implemented: {semantic}");
                     default:
                         return false;
                 }
@@ -664,7 +697,7 @@ namespace Stride.Shaders.Spirv.Processing
                     context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Input, null), out var variable);
                     context.AddName(variable, $"in_{stage}_{stream.Value.Name}");
 
-                    if (!ProcessBuiltinsDecoration(variable.ResultId, stream.Value))
+                    if (!ProcessBuiltinsDecoration(variable.ResultId, StreamVariableType.Input, stream.Value))
                     {
                         if (stream.Value.InputLayoutLocation == null)
                             stream.Value.InputLayoutLocation = inputLayoutLocationCount++;
@@ -672,6 +705,9 @@ namespace Stride.Shaders.Spirv.Processing
                         if (stream.Value.Semantic != null)
                             context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Semantic));
                     }
+                    
+                    if (!baseType.GetElementType().IsFloating())
+                        context.Add(new OpDecorate(variable, Decoration.Flat, []));
 
                     inputStreams.Add((stream.Value, variable.ResultId));
                 }
@@ -682,7 +718,7 @@ namespace Stride.Shaders.Spirv.Processing
                     context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Output, null), out var variable);
                     context.AddName(variable, $"out_{stage}_{stream.Value.Name}");
 
-                    if (!ProcessBuiltinsDecoration(variable.ResultId, stream.Value))
+                    if (!ProcessBuiltinsDecoration(variable.ResultId, StreamVariableType.Output, stream.Value))
                     {
                         // TODO: this shouldn't be necessary if we allocated layout during first forward pass for any SV_ semantic
                         if (stream.Value.OutputLayoutLocation == null)
@@ -697,6 +733,9 @@ namespace Stride.Shaders.Spirv.Processing
                         if (stream.Value.Semantic != null)
                             context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Semantic));
                     }
+                    
+                    if (!baseType.GetElementType().IsFloating())
+                        context.Add(new OpDecorate(variable, Decoration.Flat, []));
 
                     outputStreams.Add((stream.Value, variable.ResultId));
                 }
