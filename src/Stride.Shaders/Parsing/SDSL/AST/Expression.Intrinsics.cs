@@ -780,6 +780,22 @@ public class MulCall(ShaderExpressionList parameters, TextLocation info) : Metho
     }
 }
 
+public class BoolToScalarBoolCall(ShaderExpressionList parameters, TextLocation info, Specification.Op op) : MethodCall(new("fwidth", info), parameters, info)
+{
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    {
+        var (builder, context) = compiler;
+        var x = Parameters.Values[0].CompileAsValue(table, compiler);
+
+        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.From("bool"));
+        x = builder.Convert(context, x, parameterType);
+
+        var instruction = builder.Insert(new OpAny(context.GetOrRegister(ScalarType.From("bool")), context.Bound++, x.Id));
+        instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)op;
+        return new(instruction.ResultId, instruction.ResultType);
+    }
+}
+
 public class FloatUnaryCall(ShaderExpressionList parameters, TextLocation info, Specification.Op op) : MethodCall(new("fwidth", info), parameters, info)
 {
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
@@ -792,6 +808,20 @@ public class FloatUnaryCall(ShaderExpressionList parameters, TextLocation info, 
 
         var instruction = builder.Insert(new OpFwidth(x.TypeId, context.Bound++, x.Id));
         instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)op;
+        return new(instruction.ResultId, instruction.ResultType);
+    }
+}
+
+public class BitcastCall(ShaderExpressionList parameters, TextLocation info, ScalarType expectedBaseType) : MethodCall(new("bitcast", info), parameters, info)
+{
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    {
+        var (builder, context) = compiler;
+        var x = Parameters.Values[0].CompileAsValue(table, compiler);
+
+        var resultType = Parameters.Values[0].ValueType.WithElementType(expectedBaseType);
+
+        var instruction = builder.Insert(new OpBitcast(context.GetOrRegister(resultType), context.Bound++, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
