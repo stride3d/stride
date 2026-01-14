@@ -275,7 +275,7 @@ public partial class SpirvBuilder
                 => Buffer.InsertData(Position++, new OpULessThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
             (Operator.LowerOrEqual, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdGreaterThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpFOrdLessThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
 
             (Operator.Greater, ScalarType { TypeName: "int" }, ScalarType { TypeName: "int" })
                 => Buffer.InsertData(Position++, new OpSGreaterThan(resultTypeId, context.Bound++, left.Id, right.Id)),
