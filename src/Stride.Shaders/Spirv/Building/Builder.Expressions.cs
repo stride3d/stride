@@ -17,12 +17,7 @@ public partial class SpirvBuilder
         {
             type = pointerType.BaseType;
             var inst = Insert(new OpLoad(context.Types[type], context.Bound++, result.Id, null, []));
-            result = new(inst.ResultId, inst.ResultType) { Swizzles = result.Swizzles };
-        }
-
-        if (result.Swizzles != null)
-        {
-            (result, _) = ApplySwizzles(context, result, result.Swizzles);
+            result = new(inst.ResultId, inst.ResultType);
         }
 
         return result;

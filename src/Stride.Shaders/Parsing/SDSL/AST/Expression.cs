@@ -28,6 +28,14 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
         return result;
     }
 
+    /// <summary>
+    /// Assign to l-value. 
+    /// </summary>
+    public virtual void SetValue(SymbolTable table, CompilerUnit compiler, SpirvValue value)
+    {
+        throw new InvalidOperationException($"{this} is not a l-value and cannot be assigned to.");
+    }
+
     public abstract SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null);
 
     public SymbolType? ValueType { get => field ?? throw new InvalidOperationException($"Can't query {nameof(ValueType)} before calling {nameof(CompileAsValue)}"); private set; }
@@ -279,7 +287,6 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
                 case Operator.Dec:
                     {
                         // Not supported yet
-                        expression.ThrowIfSwizzle();
                         if (!isPointer)
                             throw new InvalidOperationException($"Can't use increment/decrement expression on non-pointer expression {Expression}");
 
@@ -379,7 +386,167 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     public Expression Source { get; set; } = source;
     public List<Expression> Accessors { get; set; } = [];
 
+    public override void SetValue(SymbolTable table, CompilerUnit compiler, SpirvValue value)
+    {
+        var lvalue = CompileHelper(table, compiler, null, true, out var remainingIndex);
+        
+        if (remainingIndex == 0)
+            base.SetValue(table, compiler, value);
+        
+        var (builder, context) = compiler;
+
+        // Only things left should be:
+        // - RWBuffer/Texture setters
+        // - Swizzles
+        
+        // We do one pass forward to compute type and coalesce swizzle
+        int[]? swizzleIndices = null;
+        int swizzleIndicesSetByAccessor = -1;
+        
+        var currentValueType = Accessors[remainingIndex - 1].Type;
+        for (var i = remainingIndex; i < Accessors.Count; i++)
+        {
+            var accessor = Accessors[i];
+            switch (currentValueType, accessor)
+            {
+                case (PointerType { BaseType: TextureType or BufferType } p, IndexerExpression indexer):
+
+                    accessor.Type = new VectorType(p.BaseType switch
+                    {
+                        BufferType b => b.BaseType,
+                        TextureType t => t.ReturnType,
+                    }, 4);
+                    break;
+                case (PointerType { BaseType: VectorType or ScalarType } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                {
+                    (var size, ScalarType baseType) = p.BaseType switch
+                    {
+                        ScalarType s => (1, s),
+                        VectorType v => (v.Size, v.BaseType),
+                    };
+
+                    swizzleIndices = new int[swizzle.Length];
+                    swizzleIndicesSetByAccessor = i;
+                    for (int j = 0; j < swizzle.Length; ++j)
+                    {
+                        swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
+                        if (swizzleIndices[j] >= size)
+                            throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
+                    }
+
+                    accessor.Type = p.BaseType;
+
+                    break;
+                }
+                case (VectorType or ScalarType, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                {
+                    if (swizzleIndices == null || swizzleIndicesSetByAccessor != i - 1)
+                        throw new InvalidOperationException("No previous swizzle but already value type on l-value");
+
+                    (var size, ScalarType baseType) = currentValueType switch
+                    {
+                        ScalarType s => (1, s),
+                        VectorType v => (v.Size, v.BaseType),
+                    };
+
+                    // Combine swizzles with previous ones
+                    var newSwizzleIndices = new int[swizzle.Length];
+                    for (int j = 0; j < swizzle.Length; ++j)
+                    {
+                        newSwizzleIndices[j] = swizzleIndices[ConvertSwizzle(swizzle[j])];
+                        if (newSwizzleIndices[j] >= size)
+                            throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
+                    }
+
+                    Accessors.RemoveAt(i--);
+                    Span<char> vectorFields = ['x', 'y', 'z', 'w'];
+                    Span<char> newSwizzle = stackalloc char[swizzle.Length];
+                    for (int j = 0; j < swizzle.Length; ++j)
+                    {
+                        newSwizzle[j] = vectorFields[newSwizzleIndices[j]];
+                    }
+
+                    Accessors[i] = accessor = new Identifier(new(newSwizzle), default);
+
+                    swizzleIndices = newSwizzleIndices;
+                    swizzleIndicesSetByAccessor = 1;
+                    accessor.Type = baseType.GetVectorOrScalar(swizzle.Length);
+                    break;
+                }
+                default:
+                    throw new NotImplementedException();
+            }
+
+            currentValueType = accessor.Type;
+        }
+        
+        // Process from end
+        for (var i = Accessors.Count - 1; i >= remainingIndex; --i)
+        {
+            var accessor = Accessors[i];
+            currentValueType = Accessors[i - 1].Type;
+            
+            switch (currentValueType, accessor)
+            {
+                case (PointerType { BaseType: BufferType b }, IndexerExpression indexer):
+                    // Only allow if it's the last item to process
+                    if (i != remainingIndex)
+                        throw new NotImplementedException();
+
+                    throw new NotImplementedException();
+                case (PointerType { BaseType: TextureType t }, IndexerExpression indexer):
+                    // Only allow if it's the last item to process
+                    if (i != remainingIndex)
+                        throw new NotImplementedException();
+                    
+                    var index = indexer.CompileAsValue(table, compiler);
+                    builder.Insert(new OpImageWrite(lvalue.Id, index.Id, value.Id, null, []));
+                    break;
+                case (VectorType v, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                    // It should have been coalesced
+                    throw new InvalidOperationException();
+                case (PointerType { BaseType: VectorType } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                    // Swizzle: we transform the value to assign accordingly
+                    if (i != remainingIndex)
+                        // TODO: Handle more complex cases like texture[0].w += 3.0;
+                        throw new NotImplementedException();
+                    
+                    currentValueType = p.BaseType;
+                    
+                    // We load the original value (in case we assign to only part of it, i.e. a.yz = 3.0;)
+                    var targetValue = builder.Insert(new OpLoad(context.GetOrRegister(currentValueType), context.Bound++, lvalue.Id, null, [])).ResultId; 
+
+                    // Shuffle with new data
+                    switch (p.BaseType)
+                    {
+                        case VectorType v:
+                            Span<int> shuffleIndices = stackalloc int[v.Size];
+                            // Default: source values
+                            for (int j = 0; j < v.Size; ++j)
+                                shuffleIndices[j] = j;
+                            // Update using swizzle target (from 2nd new value vector)
+                            for (int j = 0; j < swizzle.Length; ++j)
+                                shuffleIndices[ConvertSwizzle(swizzle[j])] = v.Size + j;
+                            value = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(currentValueType), context.Bound++, targetValue, value.Id, new(shuffleIndices))));
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                    break;
+            }
+        }
+
+        var expectedType = (PointerType)context.ReverseTypes[lvalue.TypeId];
+        value = builder.Convert(context, value, expectedType.BaseType);
+        builder.Insert(new OpStore(lvalue.Id, value.Id, null, []));
+    }
+
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    {
+        return CompileHelper(table, compiler, expectedType, false, out _);
+    }
+
+    public SpirvValue CompileHelper(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType, bool lvalue, out int remainingIndex)
     {
         var (builder, context) = compiler;
         SpirvValue result;
@@ -391,7 +558,6 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             if (Source is Identifier { Name: "base" })
                 methodCall.IsBaseCall = true;
             result = methodCall.Compile(table, compiler);
-            result.ThrowIfSwizzle();
             currentValueType = methodCall.Type;
             firstIndex = 1;
         }
@@ -406,6 +572,13 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         {
             accessChainIds[accessChainIdCount++] = accessChainIndex;
         }
+
+        void ThrowErrorOnLValue()
+        {
+            if (lvalue)
+                base.SetValue(table, compiler, default);
+        }
+        
         void EmitOpAccessChain(Span<int> accessChainIds)
         {
             // Do we need to issue an OpAccessChain?
@@ -414,14 +587,14 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 var resultType = context.GetOrRegister(currentValueType);
                 var test = new LiteralArray<int>(accessChainIds);
                 var accessChain = builder.Insert(new OpAccessChain(resultType, context.Bound++, result.Id, [.. accessChainIds.Slice(0, accessChainIdCount)]));
-                result = new SpirvValue(accessChain.ResultId, resultType) { Swizzles = result.Swizzles };
+                result = new SpirvValue(accessChain.ResultId, resultType);
             }
 
             accessChainIdCount = 0;
         }
 
         Span<int> accessChainIds = stackalloc int[Accessors.Count];
-        for (var i = firstIndex; i < Accessors.Count; i++)
+        for (var i = remainingIndex = firstIndex; i < Accessors.Count; remainingIndex = ++i)
         {
             var accessor = Accessors[i];
             switch (currentValueType, accessor)
@@ -431,6 +604,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 or 4 }
                         or MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Parameters.Values.Count: 3 or 4 }):
                     {
+                        ThrowErrorOnLValue();
+                       
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds);
                         var textureValue = builder.AsValue(context, result);
@@ -443,9 +618,6 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         var offsetSize = textureCoordSize;
                         if (textureType.Arrayed)
                             textureCoordSize++;
-
-                        // Load texture as value
-                        result = builder.AsValue(context, result);
 
                         if (accessor is MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 or 3 } implicitSampling)
                         {
@@ -554,6 +726,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     }
                 case (PointerType { BaseType: BufferType or TextureType } pointerType, MethodCall { Name.Name: "Load", Parameters.Values.Count: 1 } load):
                     {
+                        ThrowErrorOnLValue();
+
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds);
 
@@ -571,7 +745,39 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         accessor.Type = resultType;
                         break;
                     }
+                case (PointerType { BaseType: BufferType b }, IndexerExpression indexer):
+                {
+                    // Texture/Buffer writes are handled as l-value assign
+                    if (lvalue)
+                    {
+                        // Emit OpAccessChain with everything so far
+                        EmitOpAccessChain(accessChainIds);
+                        return result;
+                    }
+
+                    throw new NotImplementedException();
+
+                    break;
+                }
+                case (PointerType { BaseType: TextureType t }, IndexerExpression indexer):
+                {
+                    // Texture/Buffer writes are handled as l-value assign
+                    if (lvalue)
+                    {
+                        // Emit OpAccessChain with everything so far
+                        EmitOpAccessChain(accessChainIds);
+                        return result;
+                    }
+
+                    var indexValue = indexer.CompileAsValue(table, compiler);
+                    throw new NotImplementedException();
+                    //builder.Insert(new OpImageRead(lvalue.Id, indexValue.Id, value.Id, null, []));
+
+                    break;
+                }
                 case (PointerType { BaseType: ShaderSymbol s }, MethodCall methodCall2):
+                    ThrowErrorOnLValue();
+
                     // Emit OpAccessChain with everything so far
                     EmitOpAccessChain(accessChainIds);
 
@@ -588,18 +794,18 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     // TODO: figure out instance (this vs composition)
                     result = Identifier.EmitSymbol(builder, context, matchingComponent, false, result.Id);
                     accessor.Type = matchingComponent.Type;
-
+                    
+                    if (accessor.Type is not PointerType)
+                        ThrowErrorOnLValue();
                     break;
                 case (PointerType { BaseType: StreamsType s } p, Identifier streamVar):
                     // Since STREAMS struct is built later for each shader, we simply make a reference to variable for now\
                     streamVar.AllowStreamVariables = true;
                     var streamVariableResult = streamVar.Compile(table, compiler);
-                    streamVariableResult.ThrowIfSwizzle();
                     PushAccessChainId(accessChainIds, streamVariableResult.Id);
                     accessor.Type = streamVar.Type;
                     break;
                 case (PointerType { BaseType: StructType s } p, Identifier field):
-
                     var index = s.TryGetFieldIndex(field);
                     if (index == -1)
                         throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
@@ -608,33 +814,50 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     accessor.Type = new PointerType(s.Members[index].Type, p.StorageClass);
                     break;
                 // Swizzles
-                case (PointerType { BaseType: VectorType s } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                case (PointerType { BaseType: VectorType v } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     if (swizzle.Length > 1)
                     {
+                        // Swizzle assignment is handled as l-value assign
+                        if (lvalue)
+                        {
+                            // Emit OpAccessChain with everything so far
+                            EmitOpAccessChain(accessChainIds);
+                            return result;
+                        }
+
+                        // Load value
+                        EmitOpAccessChain(accessChainIds);
+                        result = new(builder.InsertData(new OpLoad(context.GetOrRegister(v), context.Bound++, result.Id, null, [])));
+
                         Span<int> swizzleIndices = stackalloc int[swizzle.Length];
                         for (int j = 0; j < swizzle.Length; ++j)
+                        {
                             swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
-
-                        result.ApplySwizzles(swizzleIndices);
-
-                        // Check resulting swizzles
-                        for (int j = 0; j < result.Swizzles.Length; ++j)
-                            if (swizzleIndices[j] >= s.Size)
+                            if (swizzleIndices[j] >= v.Size)
                                 throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
+                        }
 
+                        (result, _) = builder.ApplyVectorSwizzles(context, result, v, swizzleIndices);
+                        
                         accessor.Type = currentValueType;
                     }
                     else
                     {
                         PushAccessChainId(accessChainIds, context.CompileConstant(ConvertSwizzle(swizzle[0])).Id);
-                        accessor.Type = new PointerType(s.BaseType, p.StorageClass);
+                        accessor.Type = new PointerType(v.BaseType, p.StorageClass);
                     }
                     break;
                 case (VectorType v, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     {
+                        ThrowErrorOnLValue();
+                        
                         Span<int> swizzleIndices = stackalloc int[swizzle.Length];
                         for (int j = 0; j < swizzle.Length; ++j)
+                        {
                             swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
+                            if (swizzleIndices[j] >= v.Size)
+                                throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
+                        }
 
                         (result, _) = builder.ApplyVectorSwizzles(context, result, v, swizzleIndices);
                         accessor.Type = v;
@@ -644,11 +867,27 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 case (PointerType { BaseType: ScalarType s } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     if (swizzle.Length > 1)
                     {
+                        // Swizzle assignment is handled as l-value assign
+                        if (lvalue)
+                        {
+                            // Emit OpAccessChain with everything so far
+                            EmitOpAccessChain(accessChainIds);
+                            return result;
+                        }
+                        
+                        // Load value
+                        EmitOpAccessChain(accessChainIds);
+                        result = new(builder.InsertData(new OpLoad(context.GetOrRegister(s), context.Bound++, result.Id, null, [])));
+
                         Span<int> swizzleIndices = stackalloc int[swizzle.Length];
                         for (int j = 0; j < swizzle.Length; ++j)
+                        {
                             swizzleIndices[j] = ConvertSwizzle(swizzle[j]);
+                            if (swizzleIndices[j] != 0)
+                                throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
+                        }
 
-                        result.ApplySwizzles(swizzleIndices);
+                        (result, _) = builder.ApplyScalarSwizzles(context, result, s, swizzleIndices);
                         accessor.Type = currentValueType;
                     }
                     else
@@ -661,6 +900,10 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     }
                     break;
                 case (ScalarType s, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
+                    // Swizzle assignment is handled differently
+                    if (lvalue)
+                        return result;
+
                     if (swizzle.Length > 1)
                     {
                         Span<int> swizzleIndices = stackalloc int[swizzle.Length];
@@ -682,7 +925,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     break;
                 // Array indexer for shader compositions
                 case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol s } }, IndexerExpression { Index: IntegerLiteral { Value: var compositionIndex } }):
-                    break;
+                    throw new NotImplementedException();
                 // Array indexer for arrays
                 case (PointerType { BaseType: ArrayType { BaseType: var t } } p, IndexerExpression indexer):
                     {
@@ -708,6 +951,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 // So we load the value into a variable and use normal path
                 case (ArrayType or VectorType or MatrixType, IndexerExpression indexer):
                     {
+                        ThrowErrorOnLValue();
+                        
                         // We need to load as a variable to use OpAccessChain
                         accessor.Type = new PointerType(currentValueType, Specification.StorageClass.Function);
                         var functionVariable = builder.AddFunctionVariable(context.GetOrRegister(accessor.Type), context.Bound++);
@@ -718,11 +963,10 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     }
                 case (PointerType { BaseType: var type }, PostfixIncrement postfix):
                     {
+                        ThrowErrorOnLValue();
+                        
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds);
-
-                        // Not supported yet
-                        result.ThrowIfSwizzle();
 
                         var resultPointer = result;
 

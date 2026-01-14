@@ -55,7 +55,6 @@ public class ForEach(TypeName typename, Identifier variable, Expression collecti
         var (builder, context) = compiler;
 
         var collection = Collection.Compile(table, compiler);
-        collection.ThrowIfSwizzle();
         if (!(Collection.Type is PointerType p && p.BaseType is ArrayType arrayType))
             throw new InvalidOperationException("foreach: Array type is expected");
 

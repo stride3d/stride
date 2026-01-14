@@ -364,6 +364,21 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         return result;
     }
 
+    public override void SetValue(SymbolTable table, CompilerUnit compiler, SpirvValue value)
+    {
+        var (builder, context) = compiler;
+
+        value = builder.AsValue(context, value);
+        var target = CompileSymbol(table, builder, context, false);
+
+        if (Type is not PointerType)
+            // Throw exception (default behavior)
+            base.SetValue(table, compiler, value);
+
+        value = builder.Convert(context, value, ((PointerType)Type).BaseType);
+        builder.Insert(new OpStore(target.Id, value.Id, null, []));
+    }
+
     public override string ToString()
     {
         return $"{Name}";

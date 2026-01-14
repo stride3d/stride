@@ -244,28 +244,7 @@ public class Assign(TextLocation info) : Statement(info)
             var resultType = target.GetValueType(context, true);
             source = builder.Convert(context, source, resultType);
 
-            if (target.Swizzles != null)
-            {
-                var valueType = context.Types[p.BaseType];
-                var loadId = builder.Insert(new OpLoad(valueType, context.Bound++, target.Id, null, [])).ResultId;
-                // Shuffle with new data
-                switch (p.BaseType)
-                {
-                    case VectorType v:
-                        Span<int> shuffleIndices = stackalloc int[v.Size];
-                        // Default: source values
-                        for (int j = 0; j < v.Size; ++j)
-                            shuffleIndices[j] = j;
-                        // Update using swizzle target (from 2nd new value vector)
-                        for (int j = 0; j < target.Swizzles.Length; ++j)
-                            shuffleIndices[target.Swizzles[j]] = v.Size + j;
-                        source = new(builder.InsertData(new OpVectorShuffle(valueType, context.Bound++, loadId, source.Id, new(shuffleIndices))));
-                        break;
-                    default:
-                        throw new NotImplementedException();
-                }
-            }
-            builder.Insert(new OpStore(target.Id, source.Id, null, []));
+            variable.Variable.SetValue(table, compiler, source);
         }
     }
     public override string ToString()

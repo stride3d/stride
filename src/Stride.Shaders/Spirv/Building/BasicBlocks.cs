@@ -34,52 +34,13 @@ public struct SpirvValue
     public int TypeId { get; set; }
     public string? Name { get; set; }
 
-    /// <summary>
-    /// Swizzle to apply to the value.
-    /// </summary>
-    /// <remarks>
-    /// Swizzle doesn't affect the <see cref="TypeId"/>. For example, <c>float3().xy</c> will have <see cref="TypeId"> <c>float3</c>.
-    /// </remarks>
-    public int[]? Swizzles { get; set; }
-
     public SymbolType GetValueType(SpirvContext context, bool includeSwizzles)
     {
         var type = context.ReverseTypes[TypeId];
         if (type is PointerType p)
             type = p.BaseType;
 
-        if (includeSwizzles && Swizzles != null)
-        {
-            type = (type, Swizzles.Length) switch
-            {
-                (ScalarType s, > 1) => new VectorType(s, Swizzles.Length),
-                (ScalarType s, 1) => s,
-                (VectorType v, >1) => new VectorType(v.BaseType, Swizzles.Length),
-                (VectorType v, 1) => v.BaseType,
-            };
-        }
-
         return type;
-    }
-
-    public void ApplySwizzles(Span<int> swizzleIndices)
-    {
-        var oldSwizzles = Swizzles;
-        Swizzles = swizzleIndices.ToArray();
-        if (oldSwizzles != null)
-        {
-            // Reapply swizzle on existing swizzles
-            for (int i = 0; i < Swizzles.Length; ++i)
-                Swizzles[i] = oldSwizzles[Swizzles[i]];
-        }
-
-        // TODO: remove swizzle if identity?
-    }
-
-    internal void ThrowIfSwizzle()
-    {
-        if (Swizzles != null)
-            throw new InvalidOperationException("This expression doesn't handle swizzle");
     }
 }
 
