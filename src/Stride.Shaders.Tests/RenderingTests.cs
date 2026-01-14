@@ -27,17 +27,17 @@ public class RenderingTests
     static int width = 1;
     static int height = 1;
 
-    class ShaderLoader : ShaderLoaderBase
+    class ShaderLoader(string basePath) : ShaderLoaderBase
     {
         protected override bool ExternalFileExists(string name)
         {
-            var filename = $"./assets/SDSL/RenderTests/{name}.sdsl";
+            var filename = $"{basePath}/{name}.sdsl";
             return File.Exists(filename);
         }
 
         protected override bool LoadExternalFileContent(string name, out string filename, out string code)
         {
-            filename = $"./assets/SDSL/RenderTests/{name}.sdsl";
+            filename = $"{basePath}/{name}.sdsl";
             code = File.ReadAllText(filename);
             return true;
         }
@@ -63,11 +63,11 @@ public class RenderingTests
     }
 
     [Theory]
-    [MemberData(nameof(GetTestFiles))]
-    public void RenderTest1(string shaderName)
+    [MemberData(nameof(GetComputeTestFiles))]
+    public void ComputeTest1(string shaderName)
     {
         // Compiler shader
-        var shaderMixer = new ShaderMixer(new ShaderLoader());
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/ComputeTests"));
         shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), out var bytecode, out var effectReflection);
 
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
@@ -76,14 +76,43 @@ public class RenderingTests
         // Convert to GLSL
         var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
         var entryPoints = translator.GetEntryPoints();
-        var codePS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Fragment));
-        var codeVS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex))
-            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
-            : null;
+        var codeCS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.GLCompute));
+        
+        Console.WriteLine(codeCS);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetRenderTestFiles))]
+    public void RenderTest1(string shaderName)
+    {
+        // Compiler shader
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/RenderTests"));
+        shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), out var bytecode, out var effectReflection);
+
+        File.WriteAllBytes($"{shaderName}.spv", bytecode);
+        File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateBufferFromBytecode(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
+
+        // Convert to GLSL
+        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+        var entryPoints = translator.GetEntryPoints();
+        
+        string? GetShaderCode(ExecutionModel executionModel)
+        {
+            return (entryPoints.Any(x => x.ExecutionModel == executionModel))
+                ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == executionModel))
+                : null;
+        }
+
+        var codeCS = GetShaderCode(ExecutionModel.GLCompute);
+        var codePS = GetShaderCode(ExecutionModel.Fragment);
+        var codeVS = GetShaderCode(ExecutionModel.Vertex);
 
         if (codeVS != null)
             Console.WriteLine(codeVS);
-        Console.WriteLine(codePS);
+        if (codePS != null)
+            Console.WriteLine(codePS);
+        if (codeCS != null)
+            Console.WriteLine(codeCS);
 
         // Execute test
         var renderer = new D3D11FrameRenderer((uint)width, (uint)height);
@@ -98,9 +127,11 @@ public class RenderingTests
             foreach (var param in parameters)
                 renderer.Parameters.Add(param.Key, param.Value);
 
+            renderer.ComputeShaderSource = codeCS;
             renderer.PixelShaderSource = codePS;
             if (codeVS != null)
                 renderer.VertexShaderSource = codeVS;
+            
             using var frameBuffer = MemoryOwner<byte>.Allocate(width * height * 4);
             renderer.EffectReflection = effectReflection;
             renderer.RenderFrame(frameBuffer.Span);
@@ -121,17 +152,24 @@ public class RenderingTests
         }
     }
 
-    public static IEnumerable<object[]> GetTestFiles()
+    public static IEnumerable<object[]> GetRenderTestFiles()
     {
         foreach (var filename in Directory.EnumerateFiles("./assets/SDSL/RenderTests"))
         {
             // Parse header
-            var code = File.ReadAllLines(filename);
             var shadername = Path.GetFileNameWithoutExtension(filename);
             yield return [shadername];
         }
+    }
 
-        yield break;
+    public static IEnumerable<object[]> GetComputeTestFiles()
+    {
+        foreach (var filename in Directory.EnumerateFiles("./assets/SDSL/ComputeTests"))
+        {
+            // Parse header
+            var shadername = Path.GetFileNameWithoutExtension(filename);
+            yield return [shadername];
+        }
     }
 
     public static uint StringToRgba(string? stringColor)

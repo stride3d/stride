@@ -51,16 +51,21 @@ public static class ExpressionExtensions
         Op.OpSGreaterThanEqual,
     };
     
-    public static HashSet<Op> ComputeSpecConstantOpSupportedOps = new()
+    public static HashSet<Op> KernelSpecConstantOpSupportedOps = new()
     {
-        // Note: those are not supported in standard shaders (only compute)
+        // Note: those are not supported in shaders
         // but we'll make sure to simplify them once they can be resolved.
-        // We need them for SpirvBuilder.Convert() support
-        // However, it seems so far the expectedType system seems enough to use float4(int, int, int, int) in generics, so they are not implemented for now
+        // They are needed for more complex constants.
         Op.OpConvertFToS,
         Op.OpConvertFToU,
         Op.OpConvertSToF,
         Op.OpConvertUToF,
+        Op.OpUConvert,
+        Op.OpConvertPtrToU,
+        Op.OpConvertUToPtr,
+        Op.OpGenericCastToPtr,
+        Op.OpPtrCastToGeneric,
+        Op.OpBitcast,
         Op.OpFNegate,
         Op.OpFAdd,
         Op.OpFSub,
@@ -68,6 +73,10 @@ public static class ExpressionExtensions
         Op.OpFDiv,
         Op.OpFRem,
         Op.OpFMod,
+        Op.OpAccessChain,
+        Op.OpInBoundsAccessChain,
+        Op.OpPtrAccessChain,
+        Op.OpInBoundsPtrAccessChain,
     };
 
     public static SpirvValue CompileConstantValue(this Expression expression, SymbolTable table, SpirvContext context, SymbolType? expectedType = null)
@@ -94,7 +103,7 @@ public static class ExpressionExtensions
                 result = new(instruction.Data);
             }
             // Rewrite using OpSpecConstantOp when possible
-            else if(ShaderSpecConstantOpSupportedOps.Contains(i.Op) || ComputeSpecConstantOpSupportedOps.Contains(i.Op))
+            else if(ShaderSpecConstantOpSupportedOps.Contains(i.Op) || KernelSpecConstantOpSupportedOps.Contains(i.Op))
             {
                 var resultType = i.Data.Memory.Span[1];
                 var resultId = i.Data.Memory.Span[2];

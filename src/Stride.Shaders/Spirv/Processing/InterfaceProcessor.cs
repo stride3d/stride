@@ -164,72 +164,99 @@ namespace Stride.Shaders.Spirv.Processing
         public void Process(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context)
         {
             table.TryResolveSymbol("VSMain", out var entryPointVS);
-            var entryPointPS = table.ResolveSymbol("PSMain");
+            table.TryResolveSymbol("PSMain", out var entryPointPS);
+            table.TryResolveSymbol("CSMain", out var entryPointCS);
 
+            if (entryPointCS.Type is FunctionGroupType)
+                entryPointCS = entryPointCS.GroupMembers[^1];
             if (entryPointVS.Type is FunctionGroupType)
                 entryPointVS = entryPointVS.GroupMembers[^1];
             if (entryPointPS.Type is FunctionGroupType)
                 entryPointPS = entryPointPS.GroupMembers[^1];
 
-            if (entryPointPS.IdRef == 0)
-                throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: At least a pixel shader is expected");
+            if (entryPointPS.IdRef == 0 && entryPointCS.IdRef == 0)
+                throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: At least a pixel or compute shader is expected");
+            if (entryPointPS.IdRef != 0 && entryPointCS.IdRef != 0)
+                throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: Found both a pixel and a compute shader");
+
+            var entryPointPSOrCS = entryPointCS.IdRef != 0 ? entryPointCS : entryPointPS;
 
             var analysisResult = Analyze(buffer, context);
             MergeSameSemanticVariables(table, context, buffer, analysisResult);
             var streams = analysisResult.Streams;
 
             var liveAnalysis = new LiveAnalysis();
-            AnalyzeStreamReadWrites(buffer, context, entryPointPS.IdRef, analysisResult, liveAnalysis);
+            AnalyzeStreamReadWrites(buffer, context, entryPointPSOrCS.IdRef, analysisResult, liveAnalysis);
 
-            // If written to, they are expected at the end of pixel shader
-            foreach (var stream in streams)
+            if (entryPointCS.IdRef != 0)
             {
-                if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_TARGET") || semantic.ToUpperInvariant() == "SV_DEPTH")
-                    && stream.Value.Write)
-                    stream.Value.Output = true;
+                var csWrapperId = GenerateStreamWrapper(buffer, context, ExecutionModel.GLCompute, entryPointCS.IdRef, entryPointCS.Id.Name, analysisResult, liveAnalysis, false);
+
+                // Move OpExecutionMode on new CSMain wrapper (and remove others)
+                foreach (var i in context)
+                {
+                    if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is { } executionMode)
+                    {
+                        if (executionMode.EntryPoint == entryPointCS.IdRef)
+                            executionMode.EntryPoint = csWrapperId;
+                        else
+                            SpirvBuilder.SetOpNop(executionMode.OpData.Memory.Span);
+                    }
+                }
             }
-
-            // Check if there is any output
-            // (if PSMain has been overriden with an empty method, it means we don't want to output anything and remove the pixel shader, i.e. for shadow caster)
-            if (streams.Any(x => x.Value.Output))
+            if (entryPointPS.IdRef != 0)
             {
-                var psWrapperId = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult, liveAnalysis, false);
-                buffer.FluentAdd(new OpExecutionMode(psWrapperId, ExecutionMode.OriginUpperLeft, []));
-            }
-
-            // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
-            foreach (var stream in streams)
-            {
-                if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant() == "SV_COVERAGE" || semantic.ToUpperInvariant() == "SV_ISFRONTFACE" || semantic.ToUpperInvariant() == "VFACE"))
-                    stream.Value.Read = false;
-            }
-            // Reset cbuffer/resource/methods used for next stage
-            foreach (var variable in analysisResult.Variables)
-                variable.Value.UsedThisStage = false;
-            foreach (var resource in analysisResult.Resources)
-                resource.Value.UsedThisStage = false;
-            foreach (var cbuffer in analysisResult.CBuffers)
-                cbuffer.Value.UsedThisStage = false;
-            foreach (var method in liveAnalysis.ReferencedMethods)
-            {
-                method.Value.UsedThisStage = false;
-                method.Value.ThisStageMethodId = null;
-            }
-
-            PropagateStreamsFromPreviousStage(streams);
-            if (entryPointVS.IdRef != 0)
-            {
-                AnalyzeStreamReadWrites(buffer, context, entryPointVS.IdRef, analysisResult, liveAnalysis);
-
-                // If written to, they are expected at the end of vertex shader
+                // If written to, they are expected at the end of pixel shader
                 foreach (var stream in streams)
                 {
-                    if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_POSITION"))
-                        && stream.Value.Write)
+                    if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_TARGET") || semantic.ToUpperInvariant() == "SV_DEPTH")
+                                                              && stream.Value.Write)
                         stream.Value.Output = true;
                 }
 
-                GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult, liveAnalysis, true);
+                // Check if there is any output
+                // (if PSMain has been overriden with an empty method, it means we don't want to output anything and remove the pixel shader, i.e. for shadow caster)
+                if (streams.Any(x => x.Value.Output))
+                {
+                    var psWrapperId = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult, liveAnalysis, false);
+                    buffer.FluentAdd(new OpExecutionMode(psWrapperId, ExecutionMode.OriginUpperLeft, []));
+                }
+
+                // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
+                foreach (var stream in streams)
+                {
+                    if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant() == "SV_COVERAGE" || semantic.ToUpperInvariant() == "SV_ISFRONTFACE" || semantic.ToUpperInvariant() == "VFACE"))
+                        stream.Value.Read = false;
+                }
+
+                // Reset cbuffer/resource/methods used for next stage
+                foreach (var variable in analysisResult.Variables)
+                    variable.Value.UsedThisStage = false;
+                foreach (var resource in analysisResult.Resources)
+                    resource.Value.UsedThisStage = false;
+                foreach (var cbuffer in analysisResult.CBuffers)
+                    cbuffer.Value.UsedThisStage = false;
+                foreach (var method in liveAnalysis.ReferencedMethods)
+                {
+                    method.Value.UsedThisStage = false;
+                    method.Value.ThisStageMethodId = null;
+                }
+
+                PropagateStreamsFromPreviousStage(streams);
+                if (entryPointVS.IdRef != 0)
+                {
+                    AnalyzeStreamReadWrites(buffer, context, entryPointVS.IdRef, analysisResult, liveAnalysis);
+
+                    // If written to, they are expected at the end of vertex shader
+                    foreach (var stream in streams)
+                    {
+                        if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_POSITION"))
+                                                                  && stream.Value.Write)
+                            stream.Value.Output = true;
+                    }
+
+                    GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult, liveAnalysis, true);
+                }
             }
 
             // This will remove a lot of unused methods, resources and variables
@@ -615,6 +642,7 @@ namespace Stride.Shaders.Spirv.Processing
             {
                 ExecutionModel.Fragment => "PS",
                 ExecutionModel.Vertex => "VS",
+                ExecutionModel.GLCompute => "CS",
                 _ => throw new NotImplementedException()
             };
             List<(StreamInfo Info, int Id)> inputStreams = [];
@@ -765,7 +793,7 @@ namespace Stride.Shaders.Spirv.Processing
                 }
             }
 
-            context.FluentAdd(new OpTypeVoid(context.Bound++), out var voidType);
+            var voidType = context.GetOrRegister(ScalarType.From("void"));
 
             // Add new entry point wrapper
             context.FluentAdd(new OpTypeFunctionSDSL(context.Bound++, voidType, []), out var newEntryPointFunctionType);

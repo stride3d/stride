@@ -168,7 +168,7 @@ public record struct MethodParser : IParser<ShaderMethod>
                 else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        else if (isClone || isOverride || isStatic || isStaged)
+        else
         {
             if (ShaderMethodParsers.Simple(ref scanner, result, out parsed, orError))
             {
@@ -181,11 +181,6 @@ public record struct MethodParser : IParser<ShaderMethod>
                 parsed.Info = scanner[position..scanner.Position];
                 return true;
             }
-        }
-        else if (ShaderMethodParsers.Simple(ref scanner, result, out parsed, orError))
-        {
-            parsed.Info = scanner[position..scanner.Position];
-            return true;
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }

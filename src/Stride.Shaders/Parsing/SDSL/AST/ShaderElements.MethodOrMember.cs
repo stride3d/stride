@@ -337,6 +337,27 @@ public class ShaderMethod(
     {
         var (builder, context) = compiler;
 
+        foreach (var attribute in Attributes)
+        {
+            if (attribute is AnyShaderAttribute numThreads && numThreads.Name == "numthreads")
+            {
+                Span<int> parameters = stackalloc int[numThreads.Parameters.Count];
+                for (var index = 0; index < numThreads.Parameters.Count; index++)
+                {
+                    var parameter = numThreads.Parameters[index];
+                    
+                    // TODO: avoid emitting in context (use a temp buffer?)
+                    var constantArraySize = parameter.CompileConstantValue(table, context);
+                    if (!context.TryGetConstantValue(constantArraySize.Id, out var value, out _, false))
+                        throw new InvalidOperationException();
+                    
+                    parameters[index] = (int)value;
+                }
+
+                context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.LocalSize, new(parameters)));
+            }
+        }
+
         table.Push();
         Span<int> defaultParameters = stackalloc int[Parameters.Count];
         var firstDefaultParameter = -1;

@@ -49,12 +49,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         ShaderClass.ProcessNameAndTypes(context);
 
         var rootMixin = MergeMixinNode(globalContext, context, table, temp, shaderSource2);
-
+        
         context.Insert(0, new OpCapability(Capability.Shader));
         context.Insert(1, new OpCapability(Capability.SampledBuffer));
         context.Insert(2, new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
-        context.Insert(3, new OpExtension("SPV_GOOGLE_hlsl_functionality1"));
-
+        
         // Process streams and remove unused code/cbuffer/variable/resources
         var interfaceProcessor = new InterfaceProcessor
         {
@@ -82,7 +81,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Process reflection
         ProcessReflection(globalContext, context, temp);
 
-        SimplifyNonAllowedConstants(context, temp);
+        SimplifyNotSupportedConstantsInShader(context, temp);
         
         foreach (var inst in context)
             temp.Add(inst.Data);
@@ -854,13 +853,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
     
-    private void SimplifyNonAllowedConstants(SpirvContext context, NewSpirvBuffer temp)
+    private void SimplifyNotSupportedConstantsInShader(SpirvContext context, NewSpirvBuffer temp)
     {
         foreach (var i in context)
         {
             if (i.Op == Op.OpSpecConstantOp && (OpSpecConstantOp)i is { } specConstantOp)
             {
-                if (ExpressionExtensions.ComputeSpecConstantOpSupportedOps.Contains((Op)specConstantOp.Opcode))
+                if (!ExpressionExtensions.ShaderSpecConstantOpSupportedOps.Contains((Op)specConstantOp.Opcode))
                 {
                     // Simplify the constant
                     context.TryGetConstantValue(i, out _, out _, true);
