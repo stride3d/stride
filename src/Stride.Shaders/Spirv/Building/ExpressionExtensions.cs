@@ -9,7 +9,7 @@ namespace Stride.Shaders.Spirv.Building;
 
 public static class ExpressionExtensions
 {
-    public static HashSet<Op> SpecConstantOpSupportedOps = new()
+    public static HashSet<Op> ShaderSpecConstantOpSupportedOps = new()
     {
         Op.OpSConvert,
         Op.OpUConvert,
@@ -49,16 +49,25 @@ public static class ExpressionExtensions
         Op.OpSLessThanEqual,
         Op.OpUGreaterThanEqual,
         Op.OpSGreaterThanEqual,
-
+    };
+    
+    public static HashSet<Op> ComputeSpecConstantOpSupportedOps = new()
+    {
         // Note: those are not supported in standard shaders (only compute)
         // but we'll make sure to simplify them once they can be resolved.
         // We need them for SpirvBuilder.Convert() support
         // However, it seems so far the expectedType system seems enough to use float4(int, int, int, int) in generics, so they are not implemented for now
-        //Op.OpConvertFToS,
-        //Op.OpConvertFToU,
-        //Op.OpConvertSToF,
-        //Op.OpConvertUToF,
-        //Op.OpBitcast,
+        Op.OpConvertFToS,
+        Op.OpConvertFToU,
+        Op.OpConvertSToF,
+        Op.OpConvertUToF,
+        Op.OpFNegate,
+        Op.OpFAdd,
+        Op.OpFSub,
+        Op.OpFMul,
+        Op.OpFDiv,
+        Op.OpFRem,
+        Op.OpFMod,
     };
 
     public static SpirvValue CompileConstantValue(this Expression expression, SymbolTable table, SpirvContext context, SymbolType? expectedType = null)
@@ -85,7 +94,7 @@ public static class ExpressionExtensions
                 result = new(instruction.Data);
             }
             // Rewrite using OpSpecConstantOp when possible
-            else if(SpecConstantOpSupportedOps.Contains(i.Op))
+            else if(ShaderSpecConstantOpSupportedOps.Contains(i.Op) || ComputeSpecConstantOpSupportedOps.Contains(i.Op))
             {
                 var resultType = i.Data.Memory.Span[1];
                 var resultId = i.Data.Memory.Span[2];

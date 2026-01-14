@@ -793,8 +793,15 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
-        var left = Left.CompileAsValue(table, compiler);
-        var right = Right.CompileAsValue(table, compiler);
+        var expectedOperandType = Op switch
+        {
+            Operator.Plus or Operator.Minus or Operator.Mul or Operator.Div or Operator.Mod => expectedType,
+            // TODO: review XOR/OR/Shift etc.
+            _ => null,
+        };
+        
+        var left = Left.CompileAsValue(table, compiler, expectedOperandType);
+        var right = Right.CompileAsValue(table, compiler, expectedOperandType);
 
         var (builder, context) = compiler;
         var result = builder.BinaryOperation(context, left, Op, right);

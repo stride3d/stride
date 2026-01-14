@@ -90,9 +90,44 @@ public partial class SpirvContext
             var op = (Specification.Op)i.Data.Memory.Span[3];
             switch (op)
             {
-                case Specification.Op.OpIMul:
+                // Conversions
+                case Specification.Op.OpConvertFToS:
+                case Specification.Op.OpConvertFToU:
+                case Specification.Op.OpConvertSToF:
+                case Specification.Op.OpConvertUToF:
+                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var convertOperand, out var convertOperandTypeId))
+                        return false;
+                    value = op switch
+                    {
+                        // Note: first cast to object is important, otherwise int/float will be cast as float
+                        Specification.Op.OpConvertFToS => (object)(int)(float)convertOperand,
+                        Specification.Op.OpConvertFToU => (uint)(float)convertOperand,
+                        Specification.Op.OpConvertSToF => (float)(int)convertOperand,
+                        Specification.Op.OpConvertUToF => (float)(uint)convertOperand,
+                    };
+                    break;
+                // Unary operations
+                case Specification.Op.OpSNegate:
+                case Specification.Op.OpFNegate:
+                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var unaryOperand, out var unaryOperandTypeId))
+                        return false;
+                    if (unaryOperandTypeId != resultType)
+                        return false;
+                    value = op switch
+                    {
+                        // Note: first cast to object is important, otherwise int/float will be cast as float
+                        Specification.Op.OpSNegate => (object)(-(int)unaryOperand),
+                        Specification.Op.OpFNegate => -(float)unaryOperand,
+                    };
+                    break;
+                // Binary operations
                 case Specification.Op.OpIAdd:
                 case Specification.Op.OpISub:
+                case Specification.Op.OpIMul:
+                case Specification.Op.OpFAdd:
+                case Specification.Op.OpFSub:
+                case Specification.Op.OpFMul:
+                case Specification.Op.OpFDiv:
                     if (!TryGetConstantValue(i.Data.Memory.Span[4], out var left, out var leftTypeId))
                         return false;
                     if (!TryGetConstantValue(i.Data.Memory.Span[5], out var right, out var rightTypeId))
@@ -101,16 +136,31 @@ public partial class SpirvContext
                         return false;
                     value = op switch
                     {
-                        Specification.Op.OpIMul => (int)left * (int)right,
-                        Specification.Op.OpIAdd => (int)left + (int)right,
+                        // Note: first cast to object is important, otherwise int/float will be cast as float
+                        Specification.Op.OpIAdd => (object)((int)left + (int)right),
                         Specification.Op.OpISub => (int)left - (int)right,
+                        Specification.Op.OpIMul => (int)left * (int)right,
+                        Specification.Op.OpFAdd => (float)left + (float)right,
+                        Specification.Op.OpFSub => (float)left - (float)right,
+                        Specification.Op.OpFMul => (float)left * (float)right,
+                        Specification.Op.OpFDiv => (float)left / (float)right,
                     };
-                    if (simplifyInBuffer)
-                        Buffer.Replace(i.Index, new OpConstant<int>(resultType, resultId, (int)value));
-                    return true;
+                    break;
                 default:
                     throw new NotImplementedException();
             }
+            
+            if (simplifyInBuffer)
+            {
+                if (value is int valueI)
+                    Buffer.Replace(i.Index, new OpConstant<int>(resultType, resultId, valueI));
+                else if (value is float valueF)
+                    Buffer.Replace(i.Index, new OpConstant<float>(resultType, resultId, valueF));
+                else
+                    throw new NotImplementedException();
+            }
+
+            return true;
         }
 
         if ((i.Op == Specification.Op.OpConstantComposite || i.Op == Specification.Op.OpSpecConstantComposite) &&

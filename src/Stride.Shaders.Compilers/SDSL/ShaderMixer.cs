@@ -82,6 +82,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Process reflection
         ProcessReflection(globalContext, context, temp);
 
+        SimplifyNonAllowedConstants(context, temp);
+        
         foreach (var inst in context)
             temp.Add(inst.Data);
 
@@ -847,6 +849,21 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         if (o.Words[i + 1] != 0)
                             o.Words[i + 1] += offset;
                     }
+                }
+            }
+        }
+    }
+    
+    private void SimplifyNonAllowedConstants(SpirvContext context, NewSpirvBuffer temp)
+    {
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpSpecConstantOp && (OpSpecConstantOp)i is { } specConstantOp)
+            {
+                if (ExpressionExtensions.ComputeSpecConstantOpSupportedOps.Contains((Op)specConstantOp.Opcode))
+                {
+                    // Simplify the constant
+                    context.TryGetConstantValue(i, out _, out _, true);
                 }
             }
         }
