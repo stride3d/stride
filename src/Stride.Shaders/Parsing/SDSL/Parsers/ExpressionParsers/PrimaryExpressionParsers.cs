@@ -52,6 +52,7 @@ public record struct PrimaryParsers : IParser<Expression>
             Parsers.Spaces0(ref scanner, result, out _);
             if (Tokens.Char(')', ref scanner, advance: true))
             {
+                // TODO: handle matrices (most of those OPs support only vectors)
                 parsed = (identifier.Name, parameters.Values.Count) switch
                 {
                     ("abort", _) => throw new NotImplementedException(),
@@ -77,12 +78,12 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("countbits", _) => throw new NotImplementedException(),
                     ("cross", 2) => new CrossCall(parameters, scanner[position..scanner.Position]),
                     ("D3DCOLORtoUBYTE4", _) => throw new NotImplementedException(),
-                    ("ddx", _) => throw new NotImplementedException(),
-                    ("ddx_coarse", _) => throw new NotImplementedException(),
-                    ("ddx_fine", _) => throw new NotImplementedException(),
-                    ("ddy", _) => throw new NotImplementedException(),
-                    ("ddy_coarse", _) => throw new NotImplementedException(),
-                    ("ddy_fine", _) => throw new NotImplementedException(),
+                    ("ddx", _) => new FloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.Op.OpDPdx),
+                    ("ddx_coarse", _) => new FloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.Op.OpDPdxCoarse),
+                    ("ddx_fine", _) => new FloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.Op.OpDPdxFine),
+                    ("ddy", _) => new FloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.Op.OpDPdy),
+                    ("ddy_coarse", _) => new FloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.Op.OpDPdyCoarse),
+                    ("ddy_fine", _) => new FloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.Op.OpDPdyFine),
                     ("degrees", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLDegrees),
                     ("determinant", 1) => new DeterminantCall(parameters, scanner[position..scanner.Position]),
                     ("DeviceMemoryBarrier", _) => throw new NotImplementedException(),
@@ -106,7 +107,7 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("fmod", _) => throw new NotImplementedException(),
                     ("frac", _) => throw new NotImplementedException(),
                     ("frexp", _) => throw new NotImplementedException(),
-                    ("fwidth", _) => throw new NotImplementedException(),
+                    ("fwidth", _) => new FloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.Op.OpFwidth),
                     ("GetRenderTargetSampleCount", _) => throw new NotImplementedException(),
                     ("GetRenderTargetSamplePosition", _) => throw new NotImplementedException(),
                     ("GroupMemoryBarrier", _) => throw new NotImplementedException(),

@@ -779,3 +779,19 @@ public class MulCall(ShaderExpressionList parameters, TextLocation info) : Metho
         return new SpirvValue(result);
     }
 }
+
+public class FloatUnaryCall(ShaderExpressionList parameters, TextLocation info, Specification.Op op) : MethodCall(new("fwidth", info), parameters, info)
+{
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    {
+        var (builder, context) = compiler;
+        var x = Parameters.Values[0].CompileAsValue(table, compiler);
+
+        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.From("float"));
+        x = builder.Convert(context, x, parameterType);
+
+        var instruction = builder.Insert(new OpFwidth(x.TypeId, context.Bound++, x.Id));
+        instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)op;
+        return new(instruction.ResultId, instruction.ResultType);
+    }
+}
