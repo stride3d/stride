@@ -666,17 +666,18 @@ namespace Stride.Shaders.Spirv.Processing
                         return false;
                     // TODO: Check if first stage
                     case "SV_INSTANCEID":
-                        if (isFirstActiveShader && type == StreamVariableType.Input)
+                        if (type == StreamVariableType.Input)
                             return AddBuiltin(variable, BuiltIn.InstanceIndex);
                         return false;
-                    case "SV_VERTEXID" when isFirstActiveShader:
-                        if (isFirstActiveShader && type == StreamVariableType.Input)
+                    case "SV_VERTEXID":
+                        if (executionModel is ExecutionModel.Vertex && type == StreamVariableType.Input)
                             return AddBuiltin(variable, BuiltIn.VertexIndex);
                         return false;
-                    case "SV_ISFRONTFACE" when isFirstActiveShader:
-                        if (isFirstActiveShader && type == StreamVariableType.Input)
+                    case "SV_ISFRONTFACE":
+                        if ((executionModel is ExecutionModel.Fragment && type == StreamVariableType.Input)
+                            || (executionModel is ExecutionModel.Geometry && type == StreamVariableType.Output))
                             return AddBuiltin(variable, BuiltIn.FrontFacing);
-                        return false;
+                        throw new NotImplementedException($"Invalid use of System-value semantic {stream.Semantic} as {type} in stage {executionModel}");
                     case {} semantic when semantic.StartsWith("SV_"):
                         throw new NotImplementedException($"System-value Semantic not implemented: {semantic}");
                     default:
