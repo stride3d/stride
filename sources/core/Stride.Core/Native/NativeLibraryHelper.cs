@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 // Uncomment the following line to enable debug logging for native library loading
-#define DEBUG_NATIVE_LOADING
+//#define DEBUG_NATIVE_LOADING
 
 using System.Buffers;
 using System.Diagnostics;
