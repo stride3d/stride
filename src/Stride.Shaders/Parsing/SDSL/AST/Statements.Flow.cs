@@ -87,10 +87,16 @@ public class While(Expression condition, Statement body, TextLocation info, Shad
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        Condition.CompileAsValue(table, compiler);
+        var (builder, context) = compiler;
+
+        var conditionValue = Condition.CompileAsValue(table, compiler);
+        if (Condition.ValueType is not ScalarType)
+            table.Errors.Add(new(Condition.Info, "while statement condition expression must evaluate to a scalar"));
+
+        // Might need implicit conversion from float/int to bool
+        conditionValue = builder.Convert(context, conditionValue, ScalarType.From("bool"));
+
         Body.Compile(table, compiler);
-        if (Condition.ValueType != ScalarType.From("bool"))
-            table.Errors.Add(new(Condition.Info, "not a boolean"));
         throw new NotImplementedException();
     }
 
@@ -137,8 +143,11 @@ public class For(Statement initializer, Expression cond, List<Statement> update,
         builder.CreateBlock(context, forCheckBlock, $"for_check_{builder.ForBlockCount}");
 
         var conditionValue = Condition.CompileAsValue(table, compiler);
-        if (Condition.ValueType != ScalarType.From("bool"))
-            table.Errors.Add(new(Condition.Info, "not a boolean"));
+        if (Condition.ValueType is not ScalarType)
+            table.Errors.Add(new(Condition.Info, "for statement condition expression must evaluate to a scalar"));
+
+        // Might need implicit conversion from float/int to bool
+        conditionValue = builder.Convert(context, conditionValue, ScalarType.From("bool"));
 
         builder.Insert(new OpLoopMerge(currentEscapeBlocks.MergeBlock, currentEscapeBlocks.ContinueBlock, Specification.LoopControlMask.None, []));
         builder.Insert(new OpBranchConditional(conditionValue.Id, forBodyBlock, currentEscapeBlocks.MergeBlock, []));

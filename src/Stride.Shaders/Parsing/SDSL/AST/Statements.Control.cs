@@ -35,8 +35,11 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
             blockMergeIds[i] = context.Bound++;
 
             var conditionValue = currentIf.Condition.CompileAsValue(table, compiler);
-            if (currentIf.Condition.ValueType != ScalarType.From("bool"))
-                table.Errors.Add(new(currentIf.Condition.Info, "not a boolean"));
+            if (currentIf.Condition.ValueType is not ScalarType)
+                table.Errors.Add(new(currentIf.Condition.Info, "if statement conditional expressions must evaluate to a scalar"));
+
+            // Might need implicit conversion from float/int to bool
+            conditionValue = builder.Convert(context, conditionValue, ScalarType.From("bool"));
 
             int? falseBlock = (i + 1 < ElseIfs.Count + 1 || Else != null)
                 ? context.Bound++
@@ -112,11 +115,6 @@ public class ElseIf(Expression condition, Statement body, TextLocation info) : I
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new InvalidOperationException("Handled by ConditionalFlow");
-        Condition.CompileAsValue(table, compiler);
-        Body.Compile(table, compiler);
-        if (Condition.ValueType != ScalarType.From("bool"))
-            table.Errors.Add(new(Condition.Info, "not a boolean"));
-        throw new NotImplementedException();
     }
     public override string ToString()
     {
