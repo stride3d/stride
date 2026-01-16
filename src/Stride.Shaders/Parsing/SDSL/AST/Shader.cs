@@ -297,6 +297,23 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         var methods = new List<(Symbol Symbol, FunctionFlagsMask Flags)>();
         var methodsDefaultParameters = new Dictionary<int, MethodSymbolDefaultParameters>();
         var structTypes = new List<(StructuredType Type, int ImportedId)>();
+        
+        // Build full inheritance list
+        List<ShaderClassInstantiation> inheritanceList = new();
+        SpirvBuilder.BuildInheritanceListWithoutSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), shaderBuffers.Context, inheritanceList, ResolveStep.Compile);
+
+        // Load all the inherited shaders
+        List<LoadedShaderSymbol> inheritedShaderSymbols = new();
+        foreach (var inheritedClass in inheritanceList)
+            inheritedShaderSymbols.Add(LoadAndCacheExternalShaderType(table, context, inheritedClass));
+
+        var shaderType = new LoadedShaderSymbol(classSource.ClassName, classSource.GenericArguments)
+        {
+            Variables = variables,
+            Methods = methods,
+            StructTypes = structTypes,
+            InheritedShaders = inheritedShaderSymbols,
+        };
 
         foreach (var i in shaderBuffers.Context)
         {
@@ -321,7 +338,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 if (!shaderBuffers.Context.GetBuffer().TryGetInstructionById(target2, out var typeInstruction))
                     throw new InvalidOperationException();
                 var resultType = typeInstruction.Data.IdResultType.Value;
-                var symbol = new Symbol(new(shaderBuffers.Context.Names[target2], SymbolKind.Constant), shaderBuffers.Context.ReverseTypes[resultType], 0, ExternalConstant: new(shaderBuffers.Context, target2));
+                var symbol = new Symbol(new(shaderBuffers.Context.Names[target2], SymbolKind.Constant), shaderBuffers.Context.ReverseTypes[resultType], 0, ExternalConstant: new(shaderBuffers.Context, target2), OwnerType: shaderType);
                 variables.Add((symbol, VariableFlagsMask.None));
             }
         }
@@ -337,7 +354,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var variableType = shaderBuffers.Context.ReverseTypes[variable.ResultType];
 
                 var sid = new SymbolID(variableName, SymbolKind.Variable, variable.Flags.HasFlag(VariableFlagsMask.Stream) ? Storage.Stream : 0, IsStage: (variable.Flags & VariableFlagsMask.Stage) != 0);
-                variables.Add((new(sid, variableType, 0), variable.Flags));
+                variables.Add((new(sid, variableType, 0, OwnerType: shaderType), variable.Flags));
             }
 
             if (instruction.Op == Op.OpFunction)
@@ -354,7 +371,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 MethodSymbolDefaultParameters? methodDefaultParameters = methodsDefaultParameters.TryGetValue(functionInstruction.ResultId, out var methodDefaultParametersValue)
                     ? methodDefaultParametersValue
                     : null;
-                methods.Add((new(sid, functionType, 0, MethodDefaultParameters: methodDefaultParameters), functionFlags));
+                methods.Add((new(sid, functionType, 0, MethodDefaultParameters: methodDefaultParameters, OwnerType: shaderType), functionFlags));
             }
 
             if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
@@ -363,22 +380,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
         }
 
-        // Build full inheritance list
-        List<ShaderClassInstantiation> inheritanceList = new();
-        SpirvBuilder.BuildInheritanceListWithoutSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), shaderBuffers.Context, inheritanceList, ResolveStep.Compile);
-
-        // Load all the inherited shaders
-        List<LoadedShaderSymbol> inheritedShaderSymbols = new();
-        foreach (var inheritedClass in inheritanceList)
-            inheritedShaderSymbols.Add(LoadAndCacheExternalShaderType(table, context, inheritedClass));
-
-        var shaderType = new LoadedShaderSymbol(classSource.ClassName, classSource.GenericArguments)
-        {
-            Variables = variables,
-            Methods = methods,
-            StructTypes = structTypes,
-            InheritedShaders = inheritedShaderSymbols,
-        };
         return shaderType;
     }
 

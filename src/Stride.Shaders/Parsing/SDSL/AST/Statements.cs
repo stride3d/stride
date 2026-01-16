@@ -215,8 +215,6 @@ public class Assign(TextLocation info) : Statement(info)
         {
             var target = variable.Variable.Compile(table, compiler);
             var source = variable.Value!.CompileAsValue(table, compiler);
-            if (variable.Variable.Type is not PointerType p)
-                throw new InvalidOperationException("can only assign to pointer type");
 
             if (variable.Operator != AssignOperator.Simple)
             {
@@ -241,7 +239,7 @@ public class Assign(TextLocation info) : Statement(info)
             }
 
             // Make sure to convert to proper type
-            var resultType = target.GetValueType(context, true);
+            var resultType = target.GetValueType(context);
             source = builder.Convert(context, source, resultType);
 
             variable.Variable.SetValue(table, compiler, source);

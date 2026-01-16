@@ -220,7 +220,7 @@ public sealed class ShaderMember(
                 },
                 IsStage: IsStaged
             );
-        var symbol = new Symbol(sid, pointerType, variable);
+        var symbol = new Symbol(sid, pointerType, variable, OwnerType: table.CurrentShader);
         table.CurrentShader.Variables.Add((symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
     }
 
@@ -321,7 +321,7 @@ public class ShaderMethod(
             }
         }
 
-        var symbol = new Symbol(new(Name, SymbolKind.Method, IsStage: IsStaged), Type, function.Id, MemberAccessWithImplicitThis: Type);
+        var symbol = new Symbol(new(Name, SymbolKind.Method, IsStage: IsStaged), Type, function.Id, MemberAccessWithImplicitThis: Type, OwnerType: table.CurrentShader);
 
         if (firstDefaultParameter != -1)
         {

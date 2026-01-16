@@ -56,6 +56,4 @@ public abstract class FrameRenderer(uint width = 800, uint height = 600, byte[]?
             ((color >> 24) & 0xff));
         return color;
     }
-
-    public abstract void RenderFrame(Span<byte> bytes);
 }

@@ -79,6 +79,24 @@ public class RenderingTests
         var codeCS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.GLCompute));
         
         Console.WriteLine(codeCS);
+        
+        // Execute test
+        var renderer = new D3D11FrameRenderer((uint)width, (uint)height);
+        
+        renderer.ComputeShaderSource = codeCS;
+        renderer.EffectReflection = effectReflection;
+        
+        var code = File.ReadAllLines($"./assets/SDSL/ComputeTests/{shaderName}.sdsl");
+        foreach (var test in TestHeaderParser.ParseHeaders(code))
+        {
+            var parameters = TestHeaderParser.ParseParameters(test.Parameters);
+            SetupTestParameters(renderer, parameters);
+            
+            renderer.SetupTest();
+            renderer.Compute();
+            // Present is useful for RenderDoc and other graphics capture programs
+            renderer.PresentAndFinish();
+        }
     }
 
     [Theory]
@@ -95,46 +113,34 @@ public class RenderingTests
         // Convert to GLSL
         var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
         var entryPoints = translator.GetEntryPoints();
-        
-        string? GetShaderCode(ExecutionModel executionModel)
-        {
-            return (entryPoints.Any(x => x.ExecutionModel == executionModel))
-                ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == executionModel))
-                : null;
-        }
-
-        var codeCS = GetShaderCode(ExecutionModel.GLCompute);
-        var codePS = GetShaderCode(ExecutionModel.Fragment);
-        var codeVS = GetShaderCode(ExecutionModel.Vertex);
+        var codePS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Fragment));
+        var codeVS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex))
+            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
+            : null;
 
         if (codeVS != null)
             Console.WriteLine(codeVS);
-        if (codePS != null)
-            Console.WriteLine(codePS);
-        if (codeCS != null)
-            Console.WriteLine(codeCS);
+        Console.WriteLine(codePS);
 
         // Execute test
         var renderer = new D3D11FrameRenderer((uint)width, (uint)height);
 
+        if (codeVS != null)
+            renderer.VertexShaderSource = codeVS;
+        renderer.PixelShaderSource = codePS;
+        renderer.EffectReflection = effectReflection;
+        
         var code = File.ReadAllLines($"./assets/SDSL/RenderTests/{shaderName}.sdsl");
         foreach (var test in TestHeaderParser.ParseHeaders(code))
         {
-            renderer.Parameters.Clear();
-
-            // Setup parameters
             var parameters = TestHeaderParser.ParseParameters(test.Parameters);
-            foreach (var param in parameters)
-                renderer.Parameters.Add(param.Key, param.Value);
+            SetupTestParameters(renderer, parameters);
 
-            renderer.ComputeShaderSource = codeCS;
-            renderer.PixelShaderSource = codePS;
-            if (codeVS != null)
-                renderer.VertexShaderSource = codeVS;
-            
             using var frameBuffer = MemoryOwner<byte>.Allocate(width * height * 4);
-            renderer.EffectReflection = effectReflection;
+            renderer.SetupTest();
             renderer.RenderFrame(frameBuffer.Span);
+            // Present is useful for RenderDoc and other graphics capture programs
+            renderer.PresentAndFinish();
             var pixels = Image.LoadPixelData<Rgba32>(frameBuffer.Span, width, height);
             Assert.Equal(width, pixels.Width);
             Assert.Equal(height, pixels.Height);
@@ -150,6 +156,14 @@ public class RenderingTests
 
             Assert.Equal(expectedColor.ToString("X8"), pixel.ToString("X8"));
         }
+    }
+
+    private static void SetupTestParameters(D3D11FrameRenderer renderer, Dictionary<string, string> parameters)
+    {
+        // Setup parameters
+        renderer.Parameters.Clear();
+        foreach (var param in parameters)
+            renderer.Parameters.Add(param.Key, param.Value);
     }
 
     public static IEnumerable<object[]> GetRenderTestFiles()

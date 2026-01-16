@@ -350,7 +350,10 @@ public partial class SpirvBuilder
                     valueType = v1.BaseType;
                     break;
                 }
-            case (VectorType v1, VectorType v2) when v1.Size <= v2.Size:
+            case (VectorType v1, VectorType v2) when v1.Size == v2.Size:
+                values[0] = valueId;
+                break;
+            case (VectorType v1, VectorType v2) when v1.Size < v2.Size:
                 throw new InvalidOperationException($"Can't cast from {v1} to {v2} (more components)");
             case (VectorType v1, VectorType v2) when v1.Size > v2.Size:
                 {

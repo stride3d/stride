@@ -34,7 +34,7 @@ public struct SpirvValue
     public int TypeId { get; set; }
     public string? Name { get; set; }
 
-    public SymbolType GetValueType(SpirvContext context, bool includeSwizzles)
+    public SymbolType GetValueType(SpirvContext context)
     {
         var type = context.ReverseTypes[TypeId];
         if (type is PointerType p)
