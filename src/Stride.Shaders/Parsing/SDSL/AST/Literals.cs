@@ -271,6 +271,17 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     private SpirvValue CompileSymbol(SymbolTable table, SpirvBuilder builder, SpirvContext context, bool constantOnly)
     {
+        if (Name == "this")
+        {
+            var result = builder.Insert(new OpThisSDSL(context.Bound++));
+            return new(result.ResultId, 0);
+        }
+        if (Name == "base")
+        {
+            var result = builder.Insert(new OpBaseSDSL(context.Bound++));
+            return new(result.ResultId, 0);
+        }
+
         if (Name == "streams")
         {
             var result = builder.Insert(new OpStreamsSDSL(context.Bound++));
@@ -343,13 +354,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
             if (constantOnly)
                 throw new NotImplementedException();
 
-            var isStage = symbol.Id.IsStage;
-            if (instance == null)
-            {
-                instance = isStage
-                    ? builder.Insert(new OpStageSDSL(context.Bound++)).ResultId
-                    : builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
-            }
+            instance ??= builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
             result.Id = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(thisType), context.Bound++, instance.Value, result.Id));
         }
         if (symbol.AccessChain is int accessChainIndex)

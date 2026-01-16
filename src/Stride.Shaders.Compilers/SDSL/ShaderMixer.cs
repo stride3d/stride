@@ -704,12 +704,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 // Find out the proper mixin node (the member instance)
                 var isThis = thisInstructions.Contains(memberAccess.Instance);
                 var isBase = baseInstructions.Contains(memberAccess.Instance);
-                var isStage = stageInstructions.Contains(memberAccess.Instance);
                 MixinNode instanceMixinGroup;
                 if (isThis || isBase)
                     instanceMixinGroup = mixinNode;
-                else if (isStage)
-                    instanceMixinGroup = mixinNode.Stage ?? mixinNode;
                 else
                 {
                     if (!compositionArrayAccesses.TryGetValue(memberAccess.Instance, out instanceMixinGroup)
@@ -725,13 +722,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     if (!shaderInfo.Variables.TryGetValue(variable.Name, out var variableInfo))
                     {
                         // Try as a stage variable
-                        if (instanceMixinGroup.Stage != null
+                        if (!(instanceMixinGroup.Stage != null
                             && instanceMixinGroup.Stage.ShadersByName.TryGetValue(shaderName, out shaderInfo)
-                            && shaderInfo.Variables.TryGetValue(variable.Name, out variableInfo))
-                        {
-
-                        }
-                        else
+                            && shaderInfo.Variables.TryGetValue(variable.Name, out variableInfo)))
                         {
                             throw new InvalidOperationException($"External variable {variable.Name} not found");
                         }
@@ -743,8 +736,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     // In case of functions, OpMemberAccessSDSL.Member could either be a OpFunction or a OpImportFunctionSDSL
                     var functionId = memberAccess.Member;
                     if (globalContext.ExternalFunctions.TryGetValue(memberAccess.Member, out var function))
+                    {
                         // Process member call (composition)
-                        functionId = instanceMixinGroup.MethodGroupsByName[(function.Name, functionType)];
+                        if (!instanceMixinGroup.MethodGroupsByName.TryGetValue((function.Name, functionType), out functionId)
+                            && (instanceMixinGroup.Stage == null || !instanceMixinGroup.Stage.MethodGroupsByName.TryGetValue((function.Name, functionType), out functionId)))
+                            throw new InvalidOperationException($"Can't find function ID for {context.Names[functionId]}");
+                    }
 
                     bool foundInStage = false;
                     if (!instanceMixinGroup.MethodGroups.TryGetValue(functionId, out var methodGroupEntry))

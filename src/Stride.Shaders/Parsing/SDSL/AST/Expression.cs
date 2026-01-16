@@ -70,29 +70,6 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
     public ShaderExpressionList Parameters = parameters;
 
     public SpirvValue? MemberCall { get; set; }
-    public bool IsBaseCall { get; set; } = false;
-
-    public SpirvValue CompileBaseOrThis(SymbolTable table, CompilerUnit compiler)
-    {
-        // TODO: Move this to Identifer.Compile; however, we can't do it as long as we need to differentiate between OpThis and OpStage
-        var (builder, context) = compiler;
-        var functionSymbol = ResolveFunctionSymbol(table, context);
-        if (IsBaseCall)
-        {
-            return new(builder.InsertData(new OpBaseSDSL(context.Bound++)).IdResult.Value, 0);
-        }
-        else if (functionSymbol.MemberAccessWithImplicitThis is { } thisType)
-        {
-            var isStage = functionSymbol.Id.IsStage;
-            return isStage
-                ? new(builder.InsertData(new OpStageSDSL(context.Bound++)).IdResult.Value, 0)
-                : new(builder.InsertData(new OpThisSDSL(context.Bound++)).IdResult.Value, 0);
-        }
-        else
-        {
-            throw new InvalidOperationException();
-        }
-   }
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
@@ -172,16 +149,9 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         {
             instance = MemberCall.Value.Id;
         }
-        else if (IsBaseCall)
-        {
-            instance = builder.Insert(new OpBaseSDSL(context.Bound++)).ResultId;
-        }
         else if (functionSymbol.MemberAccessWithImplicitThis is { } thisType)
         {
-            var isStage = functionSymbol.Id.IsStage;
-            instance = isStage
-                ? builder.Insert(new OpStageSDSL(context.Bound++)).ResultId
-                : builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
+            instance = builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
         }
 
         if (instance is int instanceId)
@@ -534,28 +504,9 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         var (builder, context) = compiler;
         SpirvValue result;
 
-        int firstIndex = 0;
-        SymbolType currentValueType;
-        if ((Source is Identifier { Name: "base" } || Source is Identifier { Name: "this" }) && Accessors[0] is MethodCall methodCall)
-        {
-            if (Source is Identifier { Name: "base" })
-                methodCall.IsBaseCall = true;
-            result = methodCall.CompileBaseOrThis(table, compiler);
-            intermediateValues[0] = result;
-
-            methodCall.IsBaseCall = false;
-            methodCall.MemberCall = result;
-            result = methodCall.Compile(table, compiler);
-            currentValueType = context.ReverseTypes[result.TypeId];
-            firstIndex = 1;
-            intermediateValues[1] = result;
-        }
-        else
-        {
-            result = Source.Compile(table, compiler);
-            currentValueType = Source.Type;
-            intermediateValues[0] = result;
-        }
+        result = Source.Compile(table, compiler);
+        var currentValueType = Source.Type;
+        intermediateValues[0] = result;
 
         int accessChainIdCount = 0;
         void PushAccessChainId(Span<int> accessChainIds, int accessChainIndex)
@@ -626,7 +577,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
         Span<int> accessChainIds = stackalloc int[Accessors.Count];
         
-        for (var i = firstIndex; i < Accessors.Count; ++i)
+        for (var i = 0; i < Accessors.Count; ++i)
         {
             var accessor = Accessors[i];
 
@@ -778,12 +729,12 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
                     break;
                 }
-                case (PointerType { BaseType: ShaderSymbol s }, MethodCall methodCall2):
+                case (_, MethodCall methodCall):
                     // Emit OpAccessChain with everything so far
                     EmitOpAccessChain(accessChainIds, i - 1);
 
-                    methodCall2.MemberCall = result;
-                    result = methodCall2.Compile(table, compiler);
+                    methodCall.MemberCall = result;
+                    result = methodCall.Compile(table, compiler);
                     break;
                 case (PointerType { BaseType: LoadedShaderSymbol s }, Identifier field):
                     // Emit OpAccessChain with everything so far
