@@ -139,6 +139,8 @@ internal class ShapeCacheSystem : IDisposable, IService
 
     internal static unsafe BepuUtilities.Memory.Buffer<Triangle> ExtractBepuMesh(Model model, IServiceRegistry services, BufferPool pool)
     {
+        var nodeTransforms = ExtractNodeTransforms(model);
+
         int totalIndices = 0;
         foreach (var meshData in model.Meshes)
         {
@@ -148,13 +150,24 @@ internal class ShapeCacheSystem : IDisposable, IService
         pool.Take<Triangle>(totalIndices / 3, out var triangles);
         var bepuTriangles = triangles.As<Vector3>();
         var spanLeft = new Span<Vector3>(bepuTriangles.Memory, bepuTriangles.Length);
-        foreach (var mesh in model.Meshes)
+        foreach (var meshData in model.Meshes)
         {
-            mesh.Draw.IndexBuffer.AsReadable(services, out var indexHelper, out int indexCount);
-            mesh.Draw.VertexBuffers[0].AsReadable(services, out var vertexHelper, out int vertexCount);
+            meshData.Draw.IndexBuffer.AsReadable(services, out var indexHelper, out int indexCount);
+            meshData.Draw.VertexBuffers[0].AsReadable(services, out var vertexHelper, out int vertexCount);
 
             var copyJob = new VertexBufferHelper.CopyAsTriangleList { IndexBufferHelper = indexHelper };
-            vertexHelper.Read<PositionSemantic, Vector3, VertexBufferHelper.CopyAsTriangleList>(spanLeft[..indexCount], copyJob);
+            var vertSlice = spanLeft[..indexCount];
+            vertexHelper.Read<PositionSemantic, Vector3, VertexBufferHelper.CopyAsTriangleList>(vertSlice, copyJob);
+
+            if (nodeTransforms != null)
+            {
+                for (int i = 0; i < vertSlice.Length; i++)
+                {
+                    Matrix posMatrix = Matrix.Translation(vertSlice[i]);
+                    Matrix.Multiply(ref posMatrix, ref nodeTransforms[meshData.NodeIndex], out var finalMatrix);
+                    vertSlice[i] = finalMatrix.TranslationVector;
+                }
+            }
 
             spanLeft = spanLeft[indexCount..];
         }
@@ -164,30 +177,87 @@ internal class ShapeCacheSystem : IDisposable, IService
 
     private static void ExtractMeshBuffers(Model model, IServiceRegistry services, out VertexPosition3[] vertices, out int[] indices)
     {
-        int totalVertices = 0, totalIndices = 0;
+        var nodeTransforms = ExtractNodeTransforms(model);
+
+        int totalVerts = 0, totalIndices = 0;
         foreach (var meshData in model.Meshes)
         {
-            totalVertices += meshData.Draw.VertexBuffers[0].Count;
+            totalVerts += meshData.Draw.VertexBuffers[0].Count;
             totalIndices += meshData.Draw.IndexBuffer.Count;
         }
 
-        vertices = new VertexPosition3[totalVertices];
-        indices = new int[totalIndices];
+        var combinedVerts = new VertexPosition3[totalVerts];
+        var combinedIndices = new int[totalIndices];
+        var verticesLeft = MemoryMarshal.Cast<VertexPosition3, Vector3>(combinedVerts.AsSpan());
+        var indicesLeft = combinedIndices.AsSpan();
 
-        var verticesLeft = MemoryMarshal.Cast<VertexPosition3, Vector3>(vertices.AsSpan());
-        var indicesLeft = indices.AsSpan();
-
-        foreach (var mesh in model.Meshes)
+        int indexOffset = 0;
+        foreach (var meshData in model.Meshes)
         {
-            mesh.Draw.IndexBuffer.AsReadable(services, out var indexHelper, out int indexCount);
-            mesh.Draw.VertexBuffers[0].AsReadable(services, out var vertexHelper, out int vertexCount);
+            meshData.Draw.VertexBuffers[0].AsReadable(services, out var vertexHelper, out var vertexCount);
+            meshData.Draw.IndexBuffer.AsReadable(services, out var indexHelper, out var indexCount);
 
-            vertexHelper.Copy<PositionSemantic, Vector3>(verticesLeft[..vertexCount]);
-            indexHelper.CopyTo(indicesLeft[..indexCount]);
+            var vertSlice = verticesLeft[..vertexCount];
+            vertexHelper.Copy<PositionSemantic, Vector3>(vertSlice);
+
+            if (nodeTransforms != null)
+            {
+                for (int i = 0; i < vertSlice.Length; i++)
+                {
+                    Matrix posMatrix = Matrix.Translation(vertSlice[i]);
+                    Matrix.Multiply(ref posMatrix, ref nodeTransforms[meshData.NodeIndex], out var finalMatrix);
+                    vertSlice[i] = finalMatrix.TranslationVector;
+                }
+            }
+
+            var indicesForSlice = indicesLeft[..indexCount];
+            indexHelper.CopyTo(indicesForSlice);
+            for (int i = 0; i < indicesForSlice.Length; i++)
+                indicesForSlice[i] += indexOffset;
+            indexOffset += vertexCount;
 
             verticesLeft = verticesLeft[vertexCount..];
             indicesLeft = indicesLeft[indexCount..];
         }
+
+        vertices = combinedVerts;
+        indices = combinedIndices;
+    }
+
+    private static Matrix[]? ExtractNodeTransforms(Model model)
+    {
+        Matrix[]? nodeTransforms = null;
+        if (model.Skeleton == null)
+            return nodeTransforms;
+
+        var nodesLength = model.Skeleton.Nodes.Length;
+        nodeTransforms = new Matrix[nodesLength];
+        nodeTransforms[0] = Matrix.Identity;
+        for (var i = 0; i < nodesLength; i++)
+        {
+            var node = model.Skeleton.Nodes[i];
+            Matrix.Transformation(ref node.Transform.Scale, ref node.Transform.Rotation, ref node.Transform.Position, out var localMatrix);
+
+            Matrix worldMatrix;
+            if (node.ParentIndex != -1)
+            {
+                if (node.ParentIndex >= i)
+                    throw new InvalidOperationException("Skeleton nodes are not sorted");
+                var nodeTransform = nodeTransforms[node.ParentIndex];
+                Matrix.Multiply(ref localMatrix, ref nodeTransform, out worldMatrix);
+            }
+            else
+            {
+                worldMatrix = localMatrix;
+            }
+
+            if (i != 0)
+            {
+                nodeTransforms[i] = worldMatrix;
+            }
+        }
+
+        return nodeTransforms;
     }
 
     /// <summary>

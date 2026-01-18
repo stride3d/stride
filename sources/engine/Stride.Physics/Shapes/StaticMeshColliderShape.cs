@@ -158,28 +158,34 @@ namespace Stride.Physics
             var combinedIndices = new int[totalIndices];
             var verticesLeft = combinedVerts.AsSpan();
             var indicesLeft = combinedIndices.AsSpan();
-            
+
+            int indexOffset = 0;
             foreach (var meshData in model.Meshes)
             {
                 meshData.Draw.VertexBuffers[0].AsReadable(services, out var vertexHelper, out var vertexCount);
                 meshData.Draw.IndexBuffer.AsReadable(services, out var indexHelper, out var indexCount);
 
-                var sliceForTheseVertices = verticesLeft[..vertexCount];
-                vertexHelper.Copy<PositionSemantic, Vector3>(sliceForTheseVertices);
-                indexHelper.CopyTo(indicesLeft[..indexCount]);
-
-                verticesLeft = verticesLeft[vertexCount..];
-                indicesLeft = indicesLeft[indexCount..];
+                var vertSlice = verticesLeft[..vertexCount];
+                vertexHelper.Copy<PositionSemantic, Vector3>(vertSlice);
 
                 if (nodeTransforms != null)
                 {
-                    for (int i = 0; i < sliceForTheseVertices.Length; i++)
+                    for (int i = 0; i < vertSlice.Length; i++)
                     {
-                        Matrix posMatrix = Matrix.Translation(sliceForTheseVertices[i]);
+                        Matrix posMatrix = Matrix.Translation(vertSlice[i]);
                         Matrix.Multiply(ref posMatrix, ref nodeTransforms[meshData.NodeIndex], out var finalMatrix);
-                        sliceForTheseVertices[i] = finalMatrix.TranslationVector;
+                        vertSlice[i] = finalMatrix.TranslationVector;
                     }
                 }
+
+                var indicesForSlice = indicesLeft[..indexCount];
+                indexHelper.CopyTo(indicesForSlice);
+                for (int i = 0; i < indicesForSlice.Length; i++)
+                    indicesForSlice[i] += indexOffset;
+                indexOffset += vertexCount;
+
+                verticesLeft = verticesLeft[vertexCount..];
+                indicesLeft = indicesLeft[indexCount..];
             }
 
             if (string.IsNullOrWhiteSpace(modelUrl))
