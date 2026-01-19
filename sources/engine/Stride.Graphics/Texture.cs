@@ -274,7 +274,7 @@ namespace Stride.Graphics
         ///   Gets a value indicating if the Texture is a using a block compress format (BC1, BC2, BC3, BC4, BC5, BC6H, BC7).
         /// </summary>
         /// <seealso cref="Format"/>
-        public bool IsBlockCompressed => Description.Format.IsCompressed;
+        public bool IsBlockCompressed => Description.Format.IsCompressed();
 
         /// <summary>
         ///   Gets the largestSize of the Texture or Texture View.
@@ -830,7 +830,7 @@ namespace Stride.Graphics
         {
             var mipWidth = CalculateMipSize(Width, mipLevel);
 
-            var rowStride = mipWidth * Format.SizeInBytes;
+            var rowStride = mipWidth * Format.SizeInBytes();
             var dataStrideInBytes = mipWidth * sizeof(TData);
 
             var (width, rem) = Math.DivRem(rowStride * mipWidth, dataStrideInBytes);
@@ -1453,7 +1453,7 @@ namespace Stride.Graphics
                 depth = regionToCheck.Depth;
             }
 
-            var sizePerElement = Format.SizeInBytes;
+            var sizePerElement = Format.SizeInBytes();
 
             // Compute actual pitch
             Image.ComputePitch(Format, width, height, out var rowStride, out var textureDepthStride, out width, out height);

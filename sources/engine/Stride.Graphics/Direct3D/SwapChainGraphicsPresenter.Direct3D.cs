@@ -144,7 +144,7 @@ namespace Stride.Graphics
 
             // Texture.InitializeFromImpl also increments the reference count when storing the COM pointer;
             // compensate with Release() to return the reference count to its previous value
-            backBuffer.InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb);
+            backBuffer.InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb());
             nativeBackBuffer.Release();
 
             // Reload should get Back-Buffer from Swap-Chain as well
@@ -440,7 +440,7 @@ namespace Stride.Graphics
             // Put it in our Back-Buffer Texture
             //   Texture.InitializeFromImpl also increments the reference count when storing the COM pointer;
             //   compensate with Release() to return the reference count to its previous value
-            backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
+            backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb());
             backBufferTexture.Release();
 
             backBuffer.LifetimeState = GraphicsResourceLifetimeState.Active;
@@ -506,7 +506,7 @@ namespace Stride.Graphics
             // Put it in our Back-Buffer Texture
             //   Texture.InitializeFromImpl also increments the reference count when storing the COM pointer;
             //   compensate with Release() to return the reference count to its previous value
-            backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
+            backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb());
             backBufferTexture.Release();
 
             foreach (var childTexture in childrenTextures)

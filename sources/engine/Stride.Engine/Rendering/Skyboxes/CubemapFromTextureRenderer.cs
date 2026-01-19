@@ -43,7 +43,7 @@ namespace Stride.Rendering.Skyboxes
 
         public static Texture GenerateCubemap(IServiceRegistry services, RenderDrawContext renderDrawContext, Texture input, int outputSize)
         {
-            var pixelFormat = input.Format.IsHDR ? PixelFormat.R16G16B16A16_Float : input.Format.IsSRgb ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm;
+            var pixelFormat = input.Format.IsHDR() ? PixelFormat.R16G16B16A16_Float : input.Format.IsSRgb() ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm;
             return GenerateCubemap(new CubemapFromTextureRenderer(services, renderDrawContext, input, outputSize, pixelFormat), Vector3.Zero);
         }
     }

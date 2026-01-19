@@ -390,7 +390,7 @@ namespace Stride.TextureConverter
         /// <param name="isSRgb">Indicate is the image to decompress is an sRGB image</param>
         public void Decompress(TexImage image, bool isSRgb)
         {
-            if (image.Format.IsCompressed)
+            if (image.Format.IsCompressed())
             {
                 ExecuteRequest(image, new DecompressingRequest(isSRgb, image.Format));
             }
@@ -427,10 +427,10 @@ namespace Stride.TextureConverter
 
             var request = new ExportRequest(fileName, minimumMipMapSize);
 
-            if (FindLibrary(image, request) == null && image.Format.IsCompressed)
+            if (FindLibrary(image, request) == null && image.Format.IsCompressed())
             {
                 Log.Warning("No library can export this texture with the actual compression format. We will try to decompress it first.");
-                Decompress(image, image.Format.IsSRgb);
+                Decompress(image, image.Format.IsSRgb());
             }
 
             ExecuteRequest(image, request);
@@ -458,17 +458,17 @@ namespace Stride.TextureConverter
                 throw new TextureToolsException("The minimup Mipmap size can't be negative. Put 0 or 1 for a complete Mipmap chain.");
             }
 
-            if (image.Format != format && format.IsCompressed && !image.Format.IsCompressed)
+            if (image.Format != format && format.IsCompressed() && !image.Format.IsCompressed())
             {
                 TexImage workingImage = (TexImage)image.Clone();
                 Compress(workingImage, format);
                 ExecuteRequest(workingImage, new ExportRequest(fileName, minimumMipMapSize));
                 workingImage.Dispose();
             }
-            else if (image.Format != format && format.IsCompressed)
+            else if (image.Format != format && format.IsCompressed())
             {
                 TexImage workingImage = (TexImage)image.Clone();
-                Decompress(workingImage, image.Format.IsSRgb);
+                Decompress(workingImage, image.Format.IsSRgb());
                 Compress(workingImage, format);
                 ExecuteRequest(workingImage, new ExportRequest(fileName, minimumMipMapSize));
                 workingImage.Dispose();
@@ -490,10 +490,10 @@ namespace Stride.TextureConverter
         /// <param name="image">The image.</param>
         public void SwitchChannel(TexImage image)
         {
-            if (image.Format.IsCompressed)
+            if (image.Format.IsCompressed())
             {
                 Log.Warning("You can't switch channels of a compressed texture. It will be decompressed first..");
-                Decompress(image, image.Format.IsSRgb);
+                Decompress(image, image.Format.IsSRgb());
             }
 
             ExecuteRequest(image, new SwitchingBRChannelsRequest());
@@ -513,10 +513,10 @@ namespace Stride.TextureConverter
         {
             if (image.Format == format) return;
 
-            if (image.Format.IsCompressed)
+            if (image.Format.IsCompressed())
             {
                 Log.Warning("You can't compress an already compressed texture. It will be decompressed first..");
-                Decompress(image, format.IsSRgb);
+                Decompress(image, format.IsSRgb());
             }
 
             var request = new CompressingRequest(format, quality);
@@ -531,10 +531,10 @@ namespace Stride.TextureConverter
         /// <param name="colorKey">The color key.</param>
         public void ColorKey(TexImage image, Color colorKey)
         {
-            if (image.Format.IsCompressed)
+            if (image.Format.IsCompressed())
             {
                 Log.Warning("You can't compress an already compressed texture. It will be decompressed first..");
-                Decompress(image, image.Format.IsSRgb);
+                Decompress(image, image.Format.IsSRgb());
             }
 
             if (image.Format != PixelFormat.R8G8B8A8_UNorm && image.Format != PixelFormat.B8G8R8A8_UNorm
@@ -558,10 +558,10 @@ namespace Stride.TextureConverter
         /// <param name="filter">The filter.</param>
         public void GenerateMipMaps(TexImage image, Filter.MipMapGeneration filter)
         {
-            if (image.Format.IsCompressed)
+            if (image.Format.IsCompressed())
             {
                 Log.Warning("You can't generate mipmaps for a compressed texture. It will be decompressed first.");
-                Decompress(image, image.Format.IsSRgb);
+                Decompress(image, image.Format.IsSRgb());
             }
 
             ExecuteRequest(image, new MipMapsGenerationRequest(filter));
@@ -592,10 +592,10 @@ namespace Stride.TextureConverter
                 return;
             }
 
-            if (image.Format.IsCompressed)
+            if (image.Format.IsCompressed())
             {
                 Log.Warning("You can't resize a compressed texture. It will be decompressed first..");
-                Decompress(image, image.Format.IsSRgb);
+                Decompress(image, image.Format.IsSRgb());
             }
 
             ExecuteRequest(image, new FixedRescalingRequest(width, height, filter));
@@ -627,10 +627,10 @@ namespace Stride.TextureConverter
                 return;
             }
 
-            if (image.Format.IsCompressed)
+            if (image.Format.IsCompressed())
             {
                 Log.Warning("You can't rescale a compressed texture. It will be decompressed first..");
-                Decompress(image, image.Format.IsSRgb);
+                Decompress(image, image.Format.IsSRgb());
             }
 
             ExecuteRequest(image, new FactorRescalingRequest(widthFactor, heightFactor, filter));
@@ -651,10 +651,10 @@ namespace Stride.TextureConverter
                 throw new TextureToolsException("The amplitude must be a positive float.");
             }
 
-            if (heightMap.Format.IsCompressed)
+            if (heightMap.Format.IsCompressed())
             {
                 Log.Warning("You can't generate a normal map from a compressed height hmap. It will be decompressed first..");
-                Decompress(heightMap, heightMap.Format.IsSRgb);
+                Decompress(heightMap, heightMap.Format.IsSRgb());
             }
 
             var request = new NormalMapGenerationRequest(amplitude);
@@ -671,10 +671,10 @@ namespace Stride.TextureConverter
         /// <param name="image">The image.</param>
         public void PreMultiplyAlpha(TexImage image)
         {
-            if (image.Format.IsCompressed)
+            if (image.Format.IsCompressed())
             {
                 Log.Warning("You can't premultiply alpha on a compressed texture. It will be decompressed first..");
-                Decompress(image, image.Format.IsSRgb);
+                Decompress(image, image.Format.IsSRgb());
             }
 
             ExecuteRequest(image, new PreMultiplyAlphaRequest());
@@ -687,7 +687,7 @@ namespace Stride.TextureConverter
         /// <returns>The <see cref="TexImage"/> containing the alpha component as rgb color. Note: it is the user responsibility to dispose the returned image.</returns>
         public unsafe TexImage CreateImageFromAlphaComponent(TexImage texImage)
         {
-            if (texImage.Dimension != TexImage.TextureDimension.Texture2D || texImage.Format.IsCompressed)
+            if (texImage.Dimension != TexImage.TextureDimension.Texture2D || texImage.Format.IsCompressed())
                 throw new NotImplementedException();
 
             var alphaImage = (TexImage)texImage.Clone(true);
@@ -761,8 +761,8 @@ namespace Stride.TextureConverter
 
             // check that we support the format
             var format = texture.Format;
-            var pixelSize = format.SizeInBytes;
-            if (texture.Dimension != TexImage.TextureDimension.Texture2D || !(format.IsRgbaOrder || format.IsBgraOrder || pixelSize != 4))
+            var pixelSize = format.SizeInBytes();
+            if (texture.Dimension != TexImage.TextureDimension.Texture2D || !(format.IsRgbaOrder() || format.IsBgraOrder() || pixelSize != 4))
             {
                 var guessedAlphaLevel = alphaDepth > 0 ? AlphaLevels.InterpolatedAlpha : AlphaLevels.NoAlpha;
                 logger?.Debug($"Unable to find alpha levels for texture type {format}. Returning default alpha level '{guessedAlphaLevel}'.");
@@ -780,7 +780,7 @@ namespace Stride.TextureConverter
 
             if (tranparencyColor.HasValue) // specific case when using a transparency color
             {
-                var transparencyValue = format.IsRgbaOrder ? tranparencyColor.Value.ToRgba() : tranparencyColor.Value.ToBgra();
+                var transparencyValue = format.IsRgbaOrder() ? tranparencyColor.Value.ToRgba() : tranparencyColor.Value.ToBgra();
 
                 for (int y = 0; y < region.Height; ++y)
                 {
@@ -837,7 +837,7 @@ namespace Stride.TextureConverter
             if (texture == null) throw new ArgumentNullException(nameof(texture));
 
             var format = texture.Format;
-            if (texture.Dimension != TexImage.TextureDimension.Texture2D || !(format.IsRgbaOrder || format.IsBgraOrder || format.SizeInBytes != 4))
+            if (texture.Dimension != TexImage.TextureDimension.Texture2D || !(format.IsRgbaOrder() || format.IsBgraOrder() || format.SizeInBytes() != 4))
                 throw new NotImplementedException();
 
             // check that the pixel is inside the texture
@@ -849,7 +849,7 @@ namespace Stride.TextureConverter
             var stride = texture.RowPitch / 4;
 
             var pixelColorInt = ptr[stride*pixel.Y + pixel.X];
-            var pixelColor = format.IsRgbaOrder ? Color.FromRgba(pixelColorInt) : Color.FromBgra(pixelColorInt);
+            var pixelColor = format.IsRgbaOrder() ? Color.FromRgba(pixelColorInt) : Color.FromBgra(pixelColorInt);
 
             return pixelColor;
         }
@@ -868,12 +868,12 @@ namespace Stride.TextureConverter
             if (texture == null) throw new ArgumentNullException(nameof(texture));
 
             var format = texture.Format;
-            if (texture.Dimension != TexImage.TextureDimension.Texture2D || !(format.IsRgbaOrder || format.IsBgraOrder || format.SizeInBytes != 4))
+            if (texture.Dimension != TexImage.TextureDimension.Texture2D || !(format.IsRgbaOrder() || format.IsBgraOrder() || format.SizeInBytes() != 4))
                 throw new NotImplementedException();
 
             // adjust the separator color the mask depending on the color format.
             var separator = (uint)(separatorColor ?? Color.Transparent).ToRgba();
-            if (texture.Format.IsBgraOrder)
+            if (texture.Format.IsBgraOrder())
             {
                 separator = RgbaToBgra(separator);
                 separatorMask = RgbaToBgra(separatorMask);
@@ -968,7 +968,7 @@ namespace Stride.TextureConverter
         /// <returns>The extracted region <see cref="TexImage"/>. Note: it is the user responsibility to dispose the returned image.</returns>
         public unsafe Image CreateImageFromRegion(TexImage texImage, Rectangle region)
         {
-            if (texImage.Dimension != TexImage.TextureDimension.Texture2D || texImage.Format.IsCompressed)
+            if (texImage.Dimension != TexImage.TextureDimension.Texture2D || texImage.Format.IsCompressed())
                 throw new NotImplementedException();
 
             Log.Info("Extracting region and exporting to Stride Image ...");
@@ -1043,10 +1043,10 @@ namespace Stride.TextureConverter
                 throw new TextureToolsException("The gamma must be a positive float.");
             }
 
-            if (image.Format.IsCompressed)
+            if (image.Format.IsCompressed())
             {
                 Log.Warning("You can't correct gamme on a compressed texture. It will be decompressed first..");
-                Decompress(image, image.Format.IsSRgb);
+                Decompress(image, image.Format.IsSRgb());
             }
 
             var request = new GammaCorrectionRequest(gamma);
@@ -1062,10 +1062,10 @@ namespace Stride.TextureConverter
         /// <param name="orientation">The orientation <see cref="Orientation.Flip"/>.</param>
         public void Flip(TexImage image, Orientation orientation)
         {
-            if (image.Format.IsCompressed)
+            if (image.Format.IsCompressed())
             {
                 Log.Warning("You can't flip a compressed texture. It will be decompressed first..");
-                Decompress(image, image.Format.IsSRgb);
+                Decompress(image, image.Format.IsSRgb());
             }
 
             var request = new FlippingRequest(orientation);
@@ -1081,10 +1081,10 @@ namespace Stride.TextureConverter
         /// <param name="orientation">The orientation <see cref="Orientation.Flip"/>.</param>
         public void FlipSub(TexImage image, int index, Orientation orientation)
         {
-            if (image.Format.IsCompressed)
+            if (image.Format.IsCompressed())
             {
                 Log.Warning("You can't flip a compressed texture. It will be decompressed first..");
-                Decompress(image, image.Format.IsSRgb);
+                Decompress(image, image.Format.IsSRgb());
             }
 
             var request = new FlippingSubRequest(index, orientation);
@@ -1173,9 +1173,9 @@ namespace Stride.TextureConverter
 
             var request = new AtlasExtractionRequest(name, minimumMipmapSize);
 
-            if (atlas.Format.IsCompressed)
+            if (atlas.Format.IsCompressed())
             {
-                Decompress(atlas, atlas.Format.IsSRgb);
+                Decompress(atlas, atlas.Format.IsSRgb());
             }
 
             ExecuteRequest(atlas, request);
@@ -1235,10 +1235,10 @@ namespace Stride.TextureConverter
 
             var request = new AtlasExtractionRequest(minimumMipmapSize);
 
-            if (atlas.Format.IsCompressed)
+            if (atlas.Format.IsCompressed())
             {
                 Log.Warning("You can't extract a texture from a compressed atlas. The atlas will be decompressed first..");
-                Decompress(atlas, atlas.Format.IsSRgb);
+                Decompress(atlas, atlas.Format.IsSRgb());
             }
 
             ExecuteRequest(atlas, request);
@@ -1264,9 +1264,9 @@ namespace Stride.TextureConverter
 
             var request = new ArrayExtractionRequest(minimumMipmapSize);
 
-            if (array.Format.IsCompressed)
+            if (array.Format.IsCompressed())
             {
-                Decompress(array, array.Format.IsSRgb);
+                Decompress(array, array.Format.IsSRgb());
             }
 
             ExecuteRequest(array, request);
@@ -1410,14 +1410,14 @@ namespace Stride.TextureConverter
             if (candidate.Format != model.Format)
             {
                 Log.Warning("The given texture format isn't correct. The texture will be converted..");
-                if (model.Format.IsCompressed)
+                if (model.Format.IsCompressed())
                 {
-                    if (candidate.Format.IsCompressed) Decompress(candidate, candidate.Format.IsSRgb);
+                    if (candidate.Format.IsCompressed()) Decompress(candidate, candidate.Format.IsSRgb());
                     Compress(candidate, model.Format);
                 }
                 else
                 {
-                    Decompress(candidate, candidate.Format.IsSRgb);
+                    Decompress(candidate, candidate.Format.IsSRgb());
                     if (candidate.Format != model.Format) Compress(candidate, model.Format);
                 }
             }
@@ -1442,7 +1442,7 @@ namespace Stride.TextureConverter
                 ITexLibrary library;
                 if ((library = FindLibrary(image, request)) != null)
                 {
-                    if (image.Format.IsBgraOrder && !library.SupportBGRAOrder())
+                    if (image.Format.IsBgraOrder() && !library.SupportBGRAOrder())
                     {
                         SwitchChannel(image);
                     }
@@ -1487,7 +1487,7 @@ namespace Stride.TextureConverter
                     }
 
                     // Both libraries for intermediate processing were found, preceeding with the request
-                    if (image.Format.IsBgraOrder && !library.SupportBGRAOrder())
+                    if (image.Format.IsBgraOrder() && !library.SupportBGRAOrder())
                     {
                         SwitchChannel(image);
                     }

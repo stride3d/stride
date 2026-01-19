@@ -748,7 +748,7 @@ namespace Stride.Assets.Tests
 
             var source = Image.New2D(width, height, 1, PixelFormat.R8G8B8A8_UNorm);
 
-            Assert.Equal(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes * width * height);
+            Assert.Equal(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes() * width * height);
             Assert.Equal(1, source.PixelBuffer.Count);
 
             Assert.Equal(1, source.Description.MipLevels);
@@ -777,7 +777,7 @@ namespace Stride.Assets.Tests
 
             var source = Image.New2D(width, height, 1, PixelFormat.R8G8B8A8_UNorm);
 
-            Assert.Equal(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes * width * height);
+            Assert.Equal(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes() * width * height);
             Assert.Equal(1, source.PixelBuffer.Count);
 
             Assert.Equal(1, source.Description.MipLevels);

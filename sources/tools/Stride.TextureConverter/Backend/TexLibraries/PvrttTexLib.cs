@@ -916,7 +916,7 @@ namespace Stride.TextureConverter.TexLibraries
 
         private EPVRTColourSpace RetrieveNativeColorSpace(Stride.Graphics.PixelFormat format)
         {
-            return format.IsSRgb ? EPVRTColourSpace.SRgb : EPVRTColourSpace.Linear;
+            return format.IsSRgb() ? EPVRTColourSpace.SRgb : EPVRTColourSpace.Linear;
         }
     }
 }

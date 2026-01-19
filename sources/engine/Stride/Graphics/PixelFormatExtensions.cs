@@ -45,7 +45,7 @@ public static class PixelFormatExtensions
         ///   This property returns the size of each block in bytes.
         ///   For non-compressed formats, this value corresponds to the size of a single pixel.
         /// </remarks>
-        public int BlockSize => sizeInfos[GetIndex(format)].BlockSize;
+        public int BlockSize() => sizeInfos[GetIndex(format)].BlockSize;
 
         /// <summary>
         ///   Gets the width, in pixels, of a single block for the <see cref="PixelFormat"/>.
@@ -55,7 +55,7 @@ public static class PixelFormatExtensions
         ///   This property returns the width of each block in pixels.
         ///   For non-compressed formats, this value is always 1.
         /// </remarks>
-        public int BlockWidth => sizeInfos[GetIndex(format)].BlockWidth;
+        public int BlockWidth() => sizeInfos[GetIndex(format)].BlockWidth;
         /// <summary>
         ///   Gets the height, in pixels, of a single block for the <see cref="PixelFormat"/>.
         /// </summary>
@@ -64,30 +64,24 @@ public static class PixelFormatExtensions
         ///   This property returns the height of each block in pixels.
         ///   For non-compressed formats, this value is always 1.
         /// </remarks>
-        public int BlockHeight => sizeInfos[GetIndex(format)].BlockHeight;
+        public int BlockHeight() => sizeInfos[GetIndex(format)].BlockHeight;
 
         /// <summary>
         ///   Gets the size of the <see cref="PixelFormat"/> in bytes.
         /// </summary>
-        public int SizeInBytes
+        public int SizeInBytes()
         {
-            get
-            {
-                var sizeInfo = sizeInfos[GetIndex(format)];
-                return sizeInfo.BlockSize / (sizeInfo.BlockWidth * sizeInfo.BlockHeight);
-            }
+            var sizeInfo = sizeInfos[GetIndex(format)];
+            return sizeInfo.BlockSize / (sizeInfo.BlockWidth * sizeInfo.BlockHeight);
         }
 
         /// <summary>
         ///   Gets the size of the <see cref="PixelFormat"/> in bits.
         /// </summary>
-        public int SizeInBits
+        public int SizeInBits()
         {
-            get
-            {
-                var sizeInfo = sizeInfos[GetIndex(format)];
-                return sizeInfo.BlockSize * 8 / (sizeInfo.BlockWidth * sizeInfo.BlockHeight);
-            }
+            var sizeInfo = sizeInfos[GetIndex(format)];
+            return sizeInfo.BlockSize * 8 / (sizeInfo.BlockWidth * sizeInfo.BlockHeight);
         }
 
         /// <summary>
@@ -97,7 +91,7 @@ public static class PixelFormatExtensions
         ///   The size of the alpha channel in bits.
         ///   If the format does not have an alpha channel, this value is 0.
         /// </value>
-        public int AlphaSizeInBits => format switch
+        public int AlphaSizeInBits() => format switch
         {
             R32G32B32A32_Typeless or R32G32B32A32_Float or R32G32B32A32_UInt or R32G32B32A32_SInt => 32,
 
@@ -127,7 +121,7 @@ public static class PixelFormatExtensions
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> is a compressed format.
         /// </summary>
-        public bool IsCompressed => sizeInfos[GetIndex(format)].IsCompressed;
+        public bool IsCompressed() => sizeInfos[GetIndex(format)].IsCompressed;
 
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> is a valid pixel format.
@@ -136,21 +130,30 @@ public static class PixelFormatExtensions
         ///   <see langword="true"/> if the format is valid, i.e., recognized by Stride;
         ///   <see langword="false"/> otherwise.
         /// </value>
-        public bool IsValid
+        public bool IsValid()
             => ((int) format >= 1    && (int) format <= 115)   // DirectX formats
             || ((int) format >= 1088 && (int) format <= 1097); // ETC formats
 
+        /// <summary>
+        /// Returns true if the <see cref="PixelFormat"/> is an uncompressed 32-bit color with an Alpha channel.
+        /// </summary>
+        /// <returns>True if the <see cref="PixelFormat"/> is an uncompressed 32-bit color with an Alpha channel</returns>
+        public bool HasAlpha32Bits()
+        {
+            return format.Is32bppWithAlpha();
+        }
+        
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> is an
         ///   uncompressed 32-bit-per-pixel (8-bit per channel) color format
         ///   with an Alpha channel.
         /// </summary>
-        public bool Is32bppWithAlpha => alpha32Formats[GetIndex(format)];
+        public bool Is32bppWithAlpha() => alpha32Formats[GetIndex(format)];
 
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> has an Alpha channel.
         /// </summary>
-        public bool HasAlpha => format.AlphaSizeInBits != 0;
+        public bool HasAlpha() => format.AlphaSizeInBits() != 0;
 
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> uses packed color channels.
@@ -160,7 +163,7 @@ public static class PixelFormatExtensions
         ///   which can affect how pixel data is accessed and processed.
         ///   Use this property to determine if special handling is required for reading or writing pixel values.
         /// </remarks>
-        public bool IsPacked => format is R8G8_B8G8_UNorm or G8R8_G8B8_UNorm;
+        public bool IsPacked() => format is R8G8_B8G8_UNorm or G8R8_G8B8_UNorm;
 
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> is a video format.
@@ -170,42 +173,39 @@ public static class PixelFormatExtensions
         ///   This property helps identify formats that may have specific requirements or optimizations,
         ///   and may not be suitable for rendering by the 3D pipeline.
         /// </remarks>
-        public bool IsVideoFormat
+        public bool IsVideoFormat()
         {
-            get
-            {
 #if DIRECTX11_1
-                switch (format)
-                {
-                    case PixelFormat.AYUV:
-                    case PixelFormat.Y410:
-                    case PixelFormat.Y416:
-                    case PixelFormat.NV12:
-                    case PixelFormat.P010:
-                    case PixelFormat.P016:
-                    case PixelFormat.YUY2:
-                    case PixelFormat.Y210:
-                    case PixelFormat.Y216:
-                    case PixelFormat.NV11:
-                        // These video formats can be used with the 3D pipeline through special view mappings
-                        return true;
+            switch (format)
+            {
+                case PixelFormat.AYUV:
+                case PixelFormat.Y410:
+                case PixelFormat.Y416:
+                case PixelFormat.NV12:
+                case PixelFormat.P010:
+                case PixelFormat.P016:
+                case PixelFormat.YUY2:
+                case PixelFormat.Y210:
+                case PixelFormat.Y216:
+                case PixelFormat.NV11:
+                    // These video formats can be used with the 3D pipeline through special view mappings
+                    return true;
 
-                    case PixelFormat.Opaque420:
-                    case PixelFormat.AI44:
-                    case PixelFormat.IA44:
-                    case PixelFormat.P8:
-                    case PixelFormat.A8P8:
-                        // These are limited use video formats not usable in any way by the 3D pipeline
-                        return true;
+                case PixelFormat.Opaque420:
+                case PixelFormat.AI44:
+                case PixelFormat.IA44:
+                case PixelFormat.P8:
+                case PixelFormat.A8P8:
+                    // These are limited use video formats not usable in any way by the 3D pipeline
+                    return true;
 
-                    default:
-                        return false;
-                }
-#else
-                // !DXGI_1_2_FORMATS
-                return false;
-#endif
+                default:
+                    return false;
             }
+#else
+            // !DXGI_1_2_FORMATS
+            return false;
+#endif
         }
 
         /// <summary>
@@ -217,7 +217,7 @@ public static class PixelFormatExtensions
         ///   These kind of formats are typically used for Textures and Images that are displayed on screen,
         ///   but not for Render Targets or Buffers involved in intermediate rendering calculations.
         /// </remarks>
-        public bool IsSRgb => srgbFormats[GetIndex(format)];
+        public bool IsSRgb() => srgbFormats[GetIndex(format)];
 
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> is an HDR format
@@ -228,7 +228,7 @@ public static class PixelFormatExtensions
         ///   These formats are typically used in high-dynamic-range rendering scenarios,
         ///   such as when rendering scenes with significant contrast between light and dark areas.
         /// </remarks>
-        public bool IsHDR => hdrFormats[GetIndex(format)];
+        public bool IsHDR() => hdrFormats[GetIndex(format)];
 
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> is a typeless format.
@@ -239,7 +239,7 @@ public static class PixelFormatExtensions
         ///   as different types depending on the context, such as when creating
         ///   a resource that can be viewed in multiple ways.
         /// </remarks>
-        public bool IsTypeless => typelessFormats[GetIndex(format)];
+        public bool IsTypeless() => typelessFormats[GetIndex(format)];
 
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> has an equivalent sRGB format.
@@ -251,8 +251,8 @@ public static class PixelFormatExtensions
         /// <exception cref="ArgumentException">
         ///   The provided pixel format is already an sRGB format.
         /// </exception>
-        public bool HasSRgbEquivalent
-            => format.IsSRgb
+        public bool HasSRgbEquivalent()
+            => format.IsSRgb()
                 ? throw new ArgumentException($"'{format}' is already an sRGB pixel format", nameof(format))
                 : sRgbConversion.ContainsKey(format);
 
@@ -266,8 +266,8 @@ public static class PixelFormatExtensions
         /// <exception cref="ArgumentException">
         ///   The provided pixel format is not an sRGB format.
         /// </exception>
-        public bool HasNonSRgbEquivalent
-            => !format.IsSRgb
+        public bool HasNonSRgbEquivalent()
+            => !format.IsSRgb()
                 ? throw new ArgumentException($"'{format}' is not a sRGB format", nameof(format))
                 : sRgbConversion.ContainsKey(format);
 
@@ -278,7 +278,7 @@ public static class PixelFormatExtensions
         ///   The equivalent sRGB format if it exists, or the provided pixel format otherwise.
         /// </returns>
         public PixelFormat ToSRgb()
-            => format.IsSRgb || !sRgbConversion.TryGetValue(format, out var srgbFormat)
+            => format.IsSRgb() || !sRgbConversion.TryGetValue(format, out var srgbFormat)
                 ? format
                 : srgbFormat;
 
@@ -289,7 +289,7 @@ public static class PixelFormatExtensions
         ///   The equivalent non-sRGB format if it exists, or the provided pixel format otherwise.
         /// </returns>
         public PixelFormat ToNonSRgb()
-            => !format.IsSRgb || !sRgbConversion.TryGetValue(format, out var nonSrgbFormat)
+            => !format.IsSRgb() || !sRgbConversion.TryGetValue(format, out var nonSrgbFormat)
                 ? format
                 : nonSrgbFormat;
 
@@ -316,7 +316,7 @@ public static class PixelFormatExtensions
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> has its components in the RGBA order.
         /// </summary>
-        public bool IsRgbaOrder => format switch
+        public bool IsRgbaOrder() => format switch
         {
             R32G32B32A32_Typeless or R32G32B32A32_Float or R32G32B32A32_UInt or R32G32B32A32_SInt or
             R32G32B32_Typeless or R32G32B32_Float or R32G32B32_UInt or R32G32B32_SInt or
@@ -333,7 +333,7 @@ public static class PixelFormatExtensions
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> has its components in the BGRA order.
         /// </summary>
-        public bool IsBgraOrder => format switch
+        public bool IsBgraOrder() => format switch
         {
             B8G8R8A8_UNorm or B8G8R8X8_UNorm or B8G8R8A8_Typeless or B8G8R8A8_UNorm_SRgb or B8G8R8X8_Typeless or B8G8R8X8_UNorm_SRgb => true,
             _ => false,

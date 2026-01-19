@@ -763,7 +763,7 @@ namespace Stride.Graphics
 
         internal unsafe void Initialize(ImageDescription description, IntPtr dataPointer, int offset, GCHandle? handle, bool bufferIsDisposable, PitchFlags pitchFlags = PitchFlags.None, int rowStride = 0)
         {
-            if (!description.Format.IsValid || description.Format.IsVideoFormat)
+            if (!description.Format.IsValid() || description.Format.IsVideoFormat())
                 throw new InvalidOperationException("Unsupported DXGI Format");
 
             if (rowStride > 0 && description.MipLevels != 1)
@@ -886,7 +886,7 @@ namespace Stride.Graphics
             widthPacked = width;
             heightPacked = height;
 
-            if (format.IsCompressed)
+            if (format.IsCompressed())
             {
                 int minWidth = 1;
                 int minHeight = 1;
@@ -912,7 +912,7 @@ namespace Stride.Graphics
 
                 slicePitch = rowPitch * heightPacked;
             }
-            else if (format.IsPacked)
+            else if (format.IsPacked())
             {
                 rowPitch = ((width + 1) >> 1) * 4;
 
@@ -929,7 +929,7 @@ namespace Stride.Graphics
                 else if (flags.HasFlag(PitchFlags.Bpp8))
                     bitsPerPixel = 8;
                 else
-                    bitsPerPixel = format.SizeInBits;
+                    bitsPerPixel = format.SizeInBits();
 
                 if (flags.HasFlag(PitchFlags.LegacyDword))
                 {

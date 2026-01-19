@@ -245,12 +245,12 @@ namespace Stride.TextureConverter.Tests
         public void SwitchChannelTest(string file)
         {
             var image = texTool.Load(Module.PathToInputImages + file);
-            var isInBgraOrder = image.Format.IsBgraOrder;
+            var isInBgraOrder = image.Format.IsBgraOrder();
 
             texTool.SwitchChannel(image);
             image.Update();
 
-            Assert.True(isInBgraOrder != image.Format.IsBgraOrder);
+            Assert.True(isInBgraOrder != image.Format.IsBgraOrder());
 
             Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_SwitchChannel_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_SwitchChannel_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
