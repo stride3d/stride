@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
@@ -14,7 +15,7 @@ public partial class ShaderMixer
     private Dictionary<int, (string? Link, string? LogicalGroup)[]> cbufferMemberLinks = new();
 
     private static bool IsResourceType(SymbolType type)
-        => type is TextureType or SamplerType or BufferType or ConstantBufferSymbol;
+        => type is TextureType or SamplerType or BufferType or StructuredBufferType or ConstantBufferSymbol;
 
     // Process LinkSDSL, ResourceGroupSDSL and LogicalGroupSDSL; Info will be stored in resourceLinks and cbufferMemberLinks
     private void ProcessLinks(SpirvContext context, NewSpirvBuffer buffer)
@@ -130,7 +131,7 @@ public partial class ShaderMixer
                     : shader.ShaderName;
             }
             else if (i.Op == Specification.Op.OpVariableSDSL && (OpVariableSDSL)i is
-                     { Storageclass: Specification.StorageClass.UniformConstant } variable)
+                     { Storageclass: Specification.StorageClass.UniformConstant or Specification.StorageClass.StorageBuffer } variable)
             {
                 // Note: we don't rename cbuffer as they have been merged and don't belong to a specific shader/composition anymore
                 var type = context.ReverseTypes[variable.ResultType];
@@ -293,7 +294,6 @@ public partial class ShaderMixer
 
                     if (variableType is TextureType t)
                     {
-                        var slot = globalContext.Reflection.ResourceBindings.Count;
                         globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
                         {
                             Class = EffectParameterClass.ShaderResourceView,
@@ -316,7 +316,6 @@ public partial class ShaderMixer
                     }
                     else if (variableType is BufferType)
                     {
-                        var slot = globalContext.Reflection.ResourceBindings.Count;
                         globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
                         {
                             Class = EffectParameterClass.ShaderResourceView,
@@ -324,6 +323,25 @@ public partial class ShaderMixer
                             SlotStart = srvSlot,
                             SlotCount = 1,
                         });
+
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [srvSlot]));
+
+                        srvSlot++;
+                    }
+                    else if (variableType is StructuredBufferType structuredBufferType)
+                    {
+                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                        {
+                            Class = EffectParameterClass.ShaderResourceView,
+                            Type =  structuredBufferType.WriteAllowed ? EffectParameterType.RWStructuredBuffer : EffectParameterType.StructuredBuffer,
+                            SlotStart = srvSlot,
+                            SlotCount = 1,
+                        });
+
+                        var baseType = structuredBufferType.BaseType;
+                        // This will add array stride and offsets decorations
+                        ConvertType(context, baseType, TypeModifier.None, SpirvBuilder.AlignmentRules.StructuredBuffer);
 
                         context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
                         context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [srvSlot]));

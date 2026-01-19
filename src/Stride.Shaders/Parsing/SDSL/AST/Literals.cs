@@ -466,12 +466,12 @@ public class TypeName(string name, TextLocation info) : Literal(info)
                 table.DeclaredTypes.Add(fullTypeName, numeric);
                 symbolType = numeric;
             }
-            else if (!IsArray && Generics.Count == 0 && SymbolType.TryGetBufferType(Name, null, out var bufferType))
+            else if (!IsArray && Generics.Count == 0 && SymbolType.TryGetBufferType(table, context, Name, null, out var bufferType))
             {
                 table.DeclaredTypes.Add(fullTypeName, bufferType);
                 symbolType = bufferType;
             }
-            else if (Generics.Count == 1 && SymbolType.TryGetBufferType(Name, Generics[0].Name, out var genericBufferType))
+            else if (Generics.Count == 1 && SymbolType.TryGetBufferType(table, context, Name, Generics[0], out var genericBufferType))
             {
                 table.DeclaredTypes.Add(fullTypeName, genericBufferType);
                 symbolType = genericBufferType;

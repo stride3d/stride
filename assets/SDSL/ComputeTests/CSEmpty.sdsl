@@ -9,12 +9,19 @@ shader CSEmpty
     stage stream uint3 GroupThreadId : SV_GroupThreadID;
     stage stream uint  GroupIndex : SV_GroupIndex;
     
+    struct Test
+    {
+        float3 A1;
+        float2 A2;
+    };
+    
     RWTexture2D<float4> Output;
-    //RWStructuredBuffer<uint2> Output;
+    RWStructuredBuffer<Test> Output2;
 
     [numthreads(32, 32, 1)]
     void CSMain()
     {
-        Output[int2(0, 0)].zx += float2(0,1);
+        Output[int2(0, 0)].zx = float2(0,1);
+        Output2[3].A2 = float2(0,1);
     }
 }

@@ -570,7 +570,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                 if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                     {
-                        Storageclass: StorageClass.UniformConstant,
+                        Storageclass: StorageClass.UniformConstant or StorageClass.StorageBuffer,
                         ResultId: int
                     } resource)
                 {

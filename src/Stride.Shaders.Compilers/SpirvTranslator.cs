@@ -80,6 +80,7 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
             CompilerOptions* compilerOptions = null;
             cross.CompilerCreateCompilerOptions(compiler, ref compilerOptions);
             cross.CompilerOptionsSetUint(compilerOptions, CompilerOption.HlslShaderModel, 50);
+            cross.CompilerOptionsSetBool(compilerOptions, CompilerOption.HlslPreserveStructuredBuffers, 1);
             cross.CompilerInstallCompilerOptions(compiler, compilerOptions);
         }
 
@@ -95,6 +96,7 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         // HLSL: remove type_ prefix from cbuffer (they get names from struct instead of cbuffer variable itself)
         if (backend == Backend.Hlsl)
         {
+            
             ReflectedResource* resourcesList;
             nuint resourcesCount;
             cross.ResourcesGetResourceListForType(resources, ResourceType.UniformBuffer, &resourcesList, &resourcesCount);

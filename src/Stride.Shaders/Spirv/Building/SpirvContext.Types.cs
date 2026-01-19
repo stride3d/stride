@@ -56,6 +56,7 @@ public partial class SpirvContext
                 SamplerType st => Buffer.Add(new OpTypeSampler(Bound++)).IdResult,
                 BufferType b => Buffer.Add(new OpTypeImage(Bound++, GetOrRegister(b.BaseType), Specification.Dim.Buffer,
                     2, 0, 0, 1, Specification.ImageFormat.Unknown, null)).IdResult,
+                StructuredBufferType b => RegisterStructuredBufferType(b),
                 SampledImage si => Buffer.Add(new OpTypeSampledImage(Bound++, GetOrRegister(si.ImageType))).IdResult,
                 GenericParameterType g => Buffer.Add(new OpTypeGenericSDSL(Bound++, g.Kind)).IdResult,
                 StreamsType s => Buffer.Add(new OpTypeStreamsSDSL(Bound++)).IdResult,
@@ -66,6 +67,20 @@ public partial class SpirvContext
             ReverseTypes[instruction ?? -1] = type;
             return instruction ?? -1;
         }
+    }
+
+    private int RegisterStructuredBufferType(StructuredBufferType structuredBufferType)
+    {
+        var runtimeArrayType = Buffer.Add(new OpTypeRuntimeArray(Bound++, GetOrRegister(structuredBufferType.BaseType))).IdResult.Value;
+        
+        var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).IdResult.Value;
+        AddName(bufferType, $"type.StructuredBuffer.{structuredBufferType.BaseType.ToId()}");
+        Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.Offset, [0]));
+        
+        // TODO: Add array stride and offsets
+        Buffer.Add(new OpDecorate(bufferType, Specification.Decoration.Block, []));
+
+        return bufferType;
     }
 
     private int? RegisterArrayType(ArrayType a)

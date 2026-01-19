@@ -152,11 +152,17 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 {
                     var fieldData = fieldsData.Words[index];
                     var type = context.ReverseTypes[fieldData];
-                    var name = memberNames[(typeStructInstruction.ResultId, index)];
+                    if (!memberNames.TryGetValue((typeStructInstruction.ResultId, index), out var name))
+                        name = $"_member{index}";
                     fields.Add(new(name, type, TypeModifier.None));
                 }
                 StructuredType structType = (blocks.Contains(typeStructInstruction.ResultId))
-                    ? new ConstantBufferSymbol(structName.StartsWith("type.") ? structName.Substring("type.".Length) : throw new InvalidOperationException(), fields)
+                    ? structName switch 
+                    {
+                        var s when s.StartsWith("type.StructuredBuffer.") => new StructuredBufferType(fields[0].Type),
+                        var s when s.StartsWith("type.") => new ConstantBufferSymbol(structName.Substring("type.".Length), fields),
+                        _ => throw new InvalidOperationException(),
+                    }
                     : new StructType(structName, fields);
                 RegisterType(typeStructInstruction.ResultId, structType);
             }
@@ -512,6 +518,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     : Specification.StorageClass.Uniform;
                 if (memberType is TextureType || memberType is BufferType)
                     storageClass = Specification.StorageClass.UniformConstant;
+                if (memberType is StructuredBufferType)
+                    storageClass = Specification.StorageClass.StorageBuffer;
 
                 if (svar.TypeModifier == TypeModifier.Const)
                 {

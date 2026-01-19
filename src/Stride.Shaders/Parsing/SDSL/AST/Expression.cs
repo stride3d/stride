@@ -575,7 +575,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             }
         }
 
-        Span<int> accessChainIds = stackalloc int[Accessors.Count];
+        // Some accessors push up to 2 values on the stack
+        Span<int> accessChainIds = stackalloc int[Accessors.Count * 2];
         
         for (var i = 0; i < Accessors.Count; ++i)
         {
@@ -715,6 +716,17 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 case (PointerType { BaseType: BufferType b }, IndexerExpression indexer):
                 {
                     throw new NotImplementedException();
+                }
+                case (PointerType { BaseType: StructuredBufferType bufferType }, IndexerExpression indexer):
+                {
+                    // StructuredBuffer are declared as OpTypeStruct { OpTypeRuntimeArray }
+                    // so first, we push a 0 to access the OpTypeRuntimeArray
+                    PushAccessChainId(accessChainIds, context.CompileConstant(0).Id);
+                    // Then we push the index inside the array
+                    var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                    PushAccessChainId(accessChainIds, indexerValue.Id);
+                    accessor.Type = new PointerType(bufferType.BaseType, Specification.StorageClass.StorageBuffer);
+                    break;
                 }
                 case (PointerType { BaseType: TextureType textureType }, IndexerExpression indexer):
                 {

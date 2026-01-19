@@ -54,46 +54,53 @@ public abstract record SymbolType()
             return false;
         }
     }
-    public static bool TryGetBufferType(string name, string? templateTypeName, [MaybeNullWhen(false)] out SymbolType result)
+    public static bool TryGetBufferType(SymbolTable table, SpirvContext context, string name, TypeName? templateTypeName, [MaybeNullWhen(false)] out SymbolType result)
     {
-        SymbolType? templateType = null;
-        if (templateTypeName != null && !SymbolType.TryGetNumeric(templateTypeName, out templateType))
+        // Special case: StructuredBuffer allows non vector/scalar types so treat it earlier
+        switch (name)
         {
-            result = null;
-            return false;
+            case "StructuredBuffer":
+            case "RWStructuredBuffer":
+                var templateType = templateTypeName.ResolveType(table, context);
+                result = new StructuredBufferType(templateType, name.StartsWith("RW"));
+                return true;
         }
 
-        if (templateType == null)
-            templateType = ScalarType.From("float");
-
-        var scalarType = templateType switch
+        // Note: templateTypeName is resolved lazily (because it might not be a buffer type and we don't need to resolve it)
+        static ScalarType ResolveScalarType(SymbolTable table, SpirvContext context, TypeName? templateTypeName)
         {
-            VectorType v => v.BaseType,
-            ScalarType s => s,
-        };
+            var templateType = templateTypeName?.ResolveType(table, context) ?? ScalarType.From("float4");
 
-        SymbolType? foundType = (name, scalarType) switch
+            return templateType switch
+            {
+                VectorType v => v.BaseType,
+                ScalarType s => s,
+            };
+        }
+
+        SymbolType? foundType = name switch
         {
-            ("Buffer", ScalarType { TypeName: "float" or "int" or "uint" }) => new BufferType(scalarType),
-            
-            ("Texture1D", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture1DType(scalarType),
-            ("Texture2D", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture2DType(scalarType),
-            ("Texture2DMS", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture2DType(scalarType) { Multisampled = true },
-            ("Texture3D", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture3DType(scalarType),
-            ("TextureCube", ScalarType { TypeName: "float" or "int" or "uint" }) => new TextureCubeType(scalarType),
-            
-            ("Texture1DArray", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture1DType(scalarType) { Arrayed = true },
-            ("Texture2DArray", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture2DType(scalarType) { Arrayed = true },
-            ("Texture2DMSArray", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture2DType(scalarType) { Multisampled = true, Arrayed = true },
-            ("Texture3DArray", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture3DType(scalarType) { Arrayed = true },
-            ("TextureCubeArray", ScalarType { TypeName: "float" or "int" or "uint" }) => new TextureCubeType(scalarType) { Arrayed = true },
+            "Buffer" => new BufferType(ResolveScalarType(table, context, templateTypeName)),
+            "RWBuffer" => new BufferType(ResolveScalarType(table, context, templateTypeName), true),
 
-            ("RWTexture1D", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture1DType(scalarType) { Sampled = 2 },
-            ("RWTexture2D", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture2DType(scalarType) { Sampled = 2 },
-            ("RWTexture3D", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture3DType(scalarType) { Sampled = 2 },
+            "Texture1D" => new Texture1DType(ResolveScalarType(table, context, templateTypeName)),
+            "Texture2D" => new Texture2DType(ResolveScalarType(table, context, templateTypeName)),
+            "Texture2DMS" => new Texture2DType(ResolveScalarType(table, context, templateTypeName)) { Multisampled = true },
+            "Texture3D" => new Texture3DType(ResolveScalarType(table, context, templateTypeName)),
+            "TextureCube" => new TextureCubeType(ResolveScalarType(table, context, templateTypeName)),
+            
+            "Texture1DArray" => new Texture1DType(ResolveScalarType(table, context, templateTypeName)) { Arrayed = true },
+            "Texture2DArray" => new Texture2DType(ResolveScalarType(table, context, templateTypeName)) { Arrayed = true },
+            "Texture2DMSArray" => new Texture2DType(ResolveScalarType(table, context, templateTypeName)) { Multisampled = true, Arrayed = true },
+            "Texture3DArray" => new Texture3DType(ResolveScalarType(table, context, templateTypeName)) { Arrayed = true },
+            "TextureCubeArray" => new TextureCubeType(ResolveScalarType(table, context, templateTypeName)) { Arrayed = true },
 
-            ("RWTexture1DArray", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture1DType(scalarType) { Sampled = 2, Arrayed = true },
-            ("RWTexture2DArray", ScalarType { TypeName: "float" or "int" or "uint" }) => new Texture2DType(scalarType) { Sampled = 2, Arrayed = true },
+            "RWTexture1D" => new Texture1DType(ResolveScalarType(table, context, templateTypeName)) { Sampled = 2 },
+            "RWTexture2D" => new Texture2DType(ResolveScalarType(table, context, templateTypeName)) { Sampled = 2 },
+            "RWTexture3D" => new Texture3DType(ResolveScalarType(table, context, templateTypeName)) { Sampled = 2 },
+
+            "RWTexture1DArray" => new Texture1DType(ResolveScalarType(table, context, templateTypeName)) { Sampled = 2, Arrayed = true },
+            "RWTexture2DArray" => new Texture2DType(ResolveScalarType(table, context, templateTypeName)) { Sampled = 2, Arrayed = true },
             
             _ => null,
         };
@@ -197,9 +204,16 @@ public sealed partial record StructType(string Name, List<StructuredTypeMember> 
     public override string ToString() => $"struct {base.ToString()}";
 }
 
-public sealed partial record BufferType(ScalarType BaseType) : SymbolType()
+public sealed partial record StructuredBufferType(SymbolType BaseType, bool WriteAllowed = false) : StructuredType($"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType.ToId()}>", [new(string.Empty, BaseType, TypeModifier.None)])
 {
-    public override string ToString() => $"Buffer<{BaseType}>";
+    public override string ToId() => $"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType.ToId()}>";
+
+    public override string ToString() => $"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType}>";
+}
+
+public sealed partial record BufferType(ScalarType BaseType, bool WriteAllowed = false) : SymbolType()
+{
+    public override string ToString() => $"{(WriteAllowed ? "RW" : "")}Buffer<{BaseType}>";
 }
 
 // TODO: Add sampler parameters

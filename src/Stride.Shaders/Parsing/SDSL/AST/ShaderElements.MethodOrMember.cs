@@ -206,6 +206,11 @@ public sealed class ShaderMember(
             context.Add(new OpDecorateString(variable, Specification.Decoration.UserSemantic, Semantic.Name));
         context.AddName(variable, Name);
 
+        if (pointerType.BaseType is StructuredBufferType)
+        {
+            context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, $"structuredbuffer:<{pointerType.BaseType.ToId().ToLowerInvariant()}>"));
+        }
+
         RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
 
         var sid =

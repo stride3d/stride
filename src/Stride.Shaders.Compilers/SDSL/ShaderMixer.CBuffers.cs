@@ -17,6 +17,8 @@ namespace Stride.Shaders.Compilers.SDSL
 {
     partial class ShaderMixer
     {
+        public Dictionary<int, SpirvBuilder.AlignmentRules> decoratedArraysAndStructs = new();
+
         private void GenerateDefaultCBuffer(MixinNode rootMixin, MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
         {
             var members = new List<StructuredTypeMember>();
@@ -195,7 +197,6 @@ namespace Stride.Shaders.Compilers.SDSL
             {
                 var cbufferStructId = context.Types[cbufferStruct];
                 int mergedMemberIndex = 0;
-                var links = new string[cbufferStruct.Members.Count];
                 foreach (ref var cbuffer in cbuffersSpan)
                 {
                     for (int memberIndex = 0; memberIndex < cbuffer.StructType.Members.Count; memberIndex++, mergedMemberIndex++)
@@ -334,6 +335,104 @@ namespace Stride.Shaders.Compilers.SDSL
             SpirvBuilder.RemapIds(context.GetBuffer(), 0, context.GetBuffer().Count, idRemapping);
         }
 
+        EffectTypeDescription ConvertStructType(SpirvContext context, StructType s, SpirvBuilder.AlignmentRules alignmentRules)
+        {
+            var structId = context.Types[s];
+            if (decoratedArraysAndStructs.TryGetValue(structId, out var existingAlignmentRules))
+            {
+                if (existingAlignmentRules != alignmentRules)
+                    throw new InvalidOperationException($"Using type {s.ToId()} with both {alignmentRules} and {existingAlignmentRules} rules");
+            }
+            else
+                decoratedArraysAndStructs.Add(structId, alignmentRules);
+            
+            var hasOffsetDecorations = false;
+            foreach (var i in context)
+            {
+                if (i.Op == Op.OpMemberDecorate && (OpMemberDecorate)i is { Decoration: Decoration.Offset } memberDecorate && memberDecorate.StructureType == structId)
+                {
+                    hasOffsetDecorations = true;
+                    break;
+                }
+            }
+
+            var members = new EffectTypeMemberDescription[s.Members.Count];
+            var offset = 0;
+            for (int i = 0; i < s.Members.Count; ++i)
+            {
+                var memberSize = SpirvBuilder.ComputeBufferOffset(s.Members[i].Type, s.Members[i].TypeModifier, ref offset, alignmentRules).Size;
+
+                members[i] = new EffectTypeMemberDescription
+                {
+                    Name = s.Members[i].Name,
+                    Type = ConvertType(context, s.Members[i].Type, s.Members[i].TypeModifier, alignmentRules),
+                    Offset = offset,
+                };
+
+                // Note: we assume if already added by another cbuffer using this type, the offsets were computed the same way
+                if (!hasOffsetDecorations)
+                    DecorateMember(context, structId, i, offset, memberSize, s.Members[i].Type, s.Members[i].TypeModifier);
+
+                offset += memberSize;
+            }
+            return new EffectTypeDescription { Class = EffectParameterClass.Struct, RowCount = 1, ColumnCount = 1, Name = s.Name, Members = members, ElementSize = offset };
+        }
+
+        EffectTypeDescription ConvertType(SpirvContext context, SymbolType symbolType, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules)
+        {
+            return symbolType switch
+            {
+                ScalarType { TypeName: "int" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Int, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ScalarType { TypeName: "float" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Float, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ArrayType a => ConvertArrayType(context, a, typeModifier, alignmentRules),
+                StructType s => ConvertStructType(context, s, alignmentRules),
+                // TODO: should we use RowCount instead? (need to update Stride)
+                VectorType v => ConvertType(context, v.BaseType, typeModifier, alignmentRules) with { Class = EffectParameterClass.Vector, RowCount = 1, ColumnCount = v.Size },
+                // Note: this is HLSL-style so Rows/Columns meaning is swapped
+                //       however, for type/class, both TypeModifier and EffectParameterType are following HLSL
+                MatrixType m when typeModifier == TypeModifier.ColumnMajor || typeModifier == TypeModifier.None
+                    => ConvertType(context, m.BaseType, typeModifier, alignmentRules) with { Class = EffectParameterClass.MatrixColumns, RowCount = m.Columns, ColumnCount = m.Rows },
+                MatrixType m when typeModifier == TypeModifier.RowMajor
+                    => ConvertType(context, m.BaseType, typeModifier, alignmentRules) with { Class = EffectParameterClass.MatrixRows, RowCount = m.Columns, ColumnCount = m.Rows },
+            };
+
+            EffectTypeDescription ConvertArrayType(SpirvContext context, ArrayType a, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules)
+            {
+                var typeId = context.Types[a];
+                if (decoratedArraysAndStructs.TryGetValue(typeId, out var existingAlignmentRules))
+                {
+                    if (existingAlignmentRules != alignmentRules)
+                        throw new InvalidOperationException($"Using type {a.ToId()} with both {alignmentRules} and {existingAlignmentRules} rules");
+                }
+                else
+                    decoratedArraysAndStructs.Add(typeId, alignmentRules);
+                
+                var elementType = ConvertType(context, a.BaseType, typeModifier, alignmentRules);
+
+                var hasStrideDecoration = false;
+                foreach (var i in context)
+                {
+                    if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: Decoration.ArrayStride } arrayStrideDecoration && arrayStrideDecoration.Target == typeId)
+                    {
+                        hasStrideDecoration = true;
+                    }
+                }
+
+                if (!hasStrideDecoration)
+                {
+                    var elementSize = SpirvBuilder.TypeSizeInBuffer(a.BaseType, typeModifier, alignmentRules).Size;
+                    var arrayStride = alignmentRules switch
+                    {
+                        SpirvBuilder.AlignmentRules.CBuffer => (elementSize + 15) / 16 * 16,
+                        SpirvBuilder.AlignmentRules.StructuredBuffer => elementSize,
+                    };
+                    context.Add(new OpDecorate(typeId, Decoration.ArrayStride, [arrayStride]));
+                }
+
+                return elementType with { Elements = a.Size };
+            }
+        }
+
         private void ComputeCBufferReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
         {
             var cbuffers = buffer
@@ -346,86 +445,6 @@ namespace Stride.Shaders.Compilers.SDSL
                     MemberIndexOffset: 0))
                 .Where(x => x.StructType != null)
                 .ToList();
-
-            EffectTypeDescription ConvertStructType(SpirvContext context, StructType s)
-            {
-                var structId = context.Types[s];
-
-                var hasOffsetDecorations = false;
-                foreach (var i in context)
-                {
-                    if (i.Op == Op.OpMemberDecorate && (OpMemberDecorate)i is { Decoration: Decoration.Offset } memberDecorate && memberDecorate.StructureType == structId)
-                    {
-                        hasOffsetDecorations = true;
-                        break;
-                    }
-                }
-
-                var members = new EffectTypeMemberDescription[s.Members.Count];
-                var offset = 0;
-                for (int i = 0; i < s.Members.Count; ++i)
-                {
-                    var memberSize = SpirvBuilder.ComputeCBufferOffset(s.Members[i].Type, s.Members[i].TypeModifier, ref offset);
-
-                    members[i] = new EffectTypeMemberDescription
-                    {
-                        Name = s.Members[i].Name,
-                        Type = ConvertType(context, s.Members[i].Type, s.Members[i].TypeModifier),
-                        Offset = offset,
-                    };
-
-                    // Note: we assume if already added by another cbuffer using this type, the offsets were computed the same way
-                    if (!hasOffsetDecorations)
-                        DecorateMember(context, structId, i, offset, memberSize, s.Members[i].Type, s.Members[i].TypeModifier);
-
-                    offset += memberSize;
-                }
-                return new EffectTypeDescription { Class = EffectParameterClass.Struct, RowCount = 1, ColumnCount = 1, Name = s.Name, Members = members, ElementSize = offset };
-            }
-
-
-            EffectTypeDescription ConvertType(SpirvContext context, SymbolType symbolType, TypeModifier typeModifier)
-            {
-                return symbolType switch
-                {
-                    ScalarType { TypeName: "int" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Int, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
-                    ScalarType { TypeName: "float" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Float, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
-                    ArrayType a => ConvertArrayType(context, a, typeModifier),
-                    StructType s => ConvertStructType(context, s),
-                    // TODO: should we use RowCount instead? (need to update Stride)
-                    VectorType v => ConvertType(context, v.BaseType, typeModifier) with { Class = EffectParameterClass.Vector, RowCount = 1, ColumnCount = v.Size },
-                    // Note: this is HLSL-style so Rows/Columns meaning is swapped
-                    //       however, for type/class, both TypeModifier and EffectParameterType are following HLSL
-                    MatrixType m when typeModifier == TypeModifier.ColumnMajor || typeModifier == TypeModifier.None
-                        => ConvertType(context, m.BaseType, typeModifier) with { Class = EffectParameterClass.MatrixColumns, RowCount = m.Columns, ColumnCount = m.Rows },
-                    MatrixType m when typeModifier == TypeModifier.RowMajor
-                        => ConvertType(context, m.BaseType, typeModifier) with { Class = EffectParameterClass.MatrixRows, RowCount = m.Columns, ColumnCount = m.Rows },
-                };
-
-                EffectTypeDescription ConvertArrayType(SpirvContext context, ArrayType a, TypeModifier typeModifier)
-                {
-                    var typeId = context.Types[a];
-                    var elementType = ConvertType(context, a.BaseType, typeModifier);
-
-                    var hasStrideDecoration = false;
-                    foreach (var i in context)
-                    {
-                        if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: Decoration.ArrayStride } arrayStrideDecoration && arrayStrideDecoration.Target == typeId)
-                        {
-                            hasStrideDecoration = true;
-                        }
-                    }
-
-                    if (!hasStrideDecoration)
-                    {
-                        var elementSize = SpirvBuilder.TypeSizeInBuffer(a.BaseType, typeModifier).Size;
-                        var arrayStride = (elementSize + 15) / 16 * 16;
-                        context.Add(new OpDecorate(typeId, Decoration.ArrayStride, [arrayStride]));
-                    }
-
-                    return elementType with { Elements = a.Size };
-                }
-            }
 
             foreach (var cbuffer in cbuffers)
             {
@@ -441,7 +460,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 {
                     // Properly compute size and offset according to DirectX rules
                     var member = cb.Members[index];
-                    var memberSize = SpirvBuilder.ComputeCBufferOffset(member.Type, member.TypeModifier, ref constantBufferOffset);
+                    var memberSize = SpirvBuilder.ComputeBufferOffset(member.Type, member.TypeModifier, ref constantBufferOffset, SpirvBuilder.AlignmentRules.CBuffer).Size;
 
                     DecorateMember(context, structTypeId, index, constantBufferOffset, memberSize, member.Type, member.TypeModifier);
 
@@ -449,7 +468,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                     memberInfos[index] = new EffectValueDescription
                     {
-                        Type = ConvertType(context, member.Type, member.TypeModifier),
+                        Type = ConvertType(context, member.Type, member.TypeModifier, SpirvBuilder.AlignmentRules.CBuffer),
                         RawName = member.Name,
                         KeyInfo = new EffectParameterKeyInfo { KeyName = linkInfo.Link },
                         Offset = constantBufferOffset,
