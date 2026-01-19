@@ -274,7 +274,7 @@ namespace Stride.Graphics
                 }
                 else if ((ViewFlags & BufferFlags.ShaderResource) != 0)
                 {
-                    count = Description.SizeInBytes / viewFormat.SizeInBytes;
+                    count = Description.SizeInBytes / viewFormat.SizeInBytes();
                 }
                 else
                 {

@@ -395,7 +395,7 @@ namespace Stride.Graphics
 
             // Texture.InitializeFromImpl also increments the reference count when storing the COM pointer;
             // compensate with Release() to return the reference count to its previous value
-            backBuffer.InitializeFromImpl(nextBackBuffer, Description.BackBufferFormat.IsSRgb);
+            backBuffer.InitializeFromImpl(nextBackBuffer, Description.BackBufferFormat.IsSRgb());
             nextBackBuffer.Release();
 #endif
         }

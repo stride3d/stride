@@ -44,7 +44,7 @@ namespace Stride.Graphics
         private const int TextureRowPitchAlignment = D3D12.TextureDataPitchAlignment;
         private const int TextureSubresourceAlignment = D3D12.TextureDataPlacementAlignment;
 
-        private int TexturePixelSize => Format.SizeInBytes;
+        private int TexturePixelSize => Format.SizeInBytes();
 
         /// <summary>
         ///   A handle to the CPU-accessible Render Target View (RTV) Descriptor.
@@ -1052,7 +1052,7 @@ namespace Stride.Graphics
             // TODO: Stale comment?
 
             if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 &&
-                !description.Flags.HasFlag(TextureFlags.DepthStencil) && description.Format.IsCompressed)
+                !description.Flags.HasFlag(TextureFlags.DepthStencil) && description.Format.IsCompressed())
             {
                 description.MipLevelCount = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevelCount);
             }
