@@ -61,7 +61,7 @@ namespace Stride.TextureConverter
         /// </returns>
         public static bool IsInSameChannelOrder(PixelFormat format1, PixelFormat format2)
         {
-            return format1.IsBgraOrder() && format2.IsBgraOrder() || format1.IsRgbaOrder() && format2.IsRgbaOrder();
+            return format1.IsBGRAOrder() && format2.IsBGRAOrder() || format1.IsRGBAOrder() && format2.IsRGBAOrder();
         }
     }
 }

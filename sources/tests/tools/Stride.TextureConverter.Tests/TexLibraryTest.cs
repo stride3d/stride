@@ -66,9 +66,9 @@ namespace Stride.TextureConverter.Tests
 
         public static void SwitchChannelsTest(TexImage image, ITexLibrary library)
         {
-            var isInRgbaOrder = image.Format.IsRgbaOrder();
+            var isInRgbaOrder = image.Format.IsRGBAOrder();
             library.Execute(image, new SwitchingBRChannelsRequest());
-            Assert.True(image.Format.IsRgbaOrder() != isInRgbaOrder);
+            Assert.True(image.Format.IsRGBAOrder() != isInRgbaOrder);
 
             //Console.WriteLine("SwitchChannelsTest_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
             Assert.Equal(TestTools.GetInstance().Checksum["SwitchChannelsTest_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));

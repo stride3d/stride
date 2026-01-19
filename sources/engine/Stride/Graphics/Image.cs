@@ -763,7 +763,7 @@ namespace Stride.Graphics
 
         internal unsafe void Initialize(ImageDescription description, IntPtr dataPointer, int offset, GCHandle? handle, bool bufferIsDisposable, PitchFlags pitchFlags = PitchFlags.None, int rowStride = 0)
         {
-            if (!description.Format.IsValid() || description.Format.IsVideoFormat())
+            if (!description.Format.IsValid() || description.Format.IsVideo())
                 throw new InvalidOperationException("Unsupported DXGI Format");
 
             if (rowStride > 0 && description.MipLevels != 1)

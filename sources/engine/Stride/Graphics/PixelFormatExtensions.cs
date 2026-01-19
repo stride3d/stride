@@ -173,7 +173,7 @@ public static class PixelFormatExtensions
         ///   This property helps identify formats that may have specific requirements or optimizations,
         ///   and may not be suitable for rendering by the 3D pipeline.
         /// </remarks>
-        public bool IsVideoFormat()
+        public bool IsVideo()
         {
 #if DIRECTX11_1
             switch (format)
@@ -316,7 +316,7 @@ public static class PixelFormatExtensions
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> has its components in the RGBA order.
         /// </summary>
-        public bool IsRgbaOrder() => format switch
+        public bool IsRGBAOrder() => format switch
         {
             R32G32B32A32_Typeless or R32G32B32A32_Float or R32G32B32A32_UInt or R32G32B32A32_SInt or
             R32G32B32_Typeless or R32G32B32_Float or R32G32B32_UInt or R32G32B32_SInt or
@@ -333,7 +333,7 @@ public static class PixelFormatExtensions
         /// <summary>
         ///   Gets a value indicating if the <see cref="PixelFormat"/> has its components in the BGRA order.
         /// </summary>
-        public bool IsBgraOrder() => format switch
+        public bool IsBGRAOrder() => format switch
         {
             B8G8R8A8_UNorm or B8G8R8X8_UNorm or B8G8R8A8_Typeless or B8G8R8A8_UNorm_SRgb or B8G8R8X8_Typeless or B8G8R8X8_UNorm_SRgb => true,
             _ => false,
