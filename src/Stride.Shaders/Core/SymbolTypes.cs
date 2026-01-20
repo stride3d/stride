@@ -43,11 +43,6 @@ public abstract record SymbolType()
             result = m;
             return true;
         }
-        else if (name == "void")
-        {
-            result = ScalarType.Void;
-            return true;
-        }
         else
         {
             result = null;
