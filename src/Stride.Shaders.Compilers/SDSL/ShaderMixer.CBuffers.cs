@@ -11,14 +11,11 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using static Stride.Shaders.Spirv.Specification;
-using StorageClass = Stride.Shaders.Parsing.SDSL.AST.StorageClass;
 
 namespace Stride.Shaders.Compilers.SDSL
 {
     partial class ShaderMixer
     {
-        public Dictionary<int, SpirvBuilder.AlignmentRules> decoratedArraysAndStructs = new();
-
         private void GenerateDefaultCBuffer(MixinNode rootMixin, MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
         {
             var members = new List<StructuredTypeMember>();
@@ -337,53 +334,30 @@ namespace Stride.Shaders.Compilers.SDSL
 
         EffectTypeDescription ConvertStructType(SpirvContext context, StructType s, SpirvBuilder.AlignmentRules alignmentRules)
         {
-            var structId = context.Types[s];
-            if (decoratedArraysAndStructs.TryGetValue(structId, out var existingAlignmentRules))
-            {
-                if (existingAlignmentRules != alignmentRules)
-                    throw new InvalidOperationException($"Using type {s.ToId()} with both {alignmentRules} and {existingAlignmentRules} rules");
-            }
-            else
-                decoratedArraysAndStructs.Add(structId, alignmentRules);
+            EmitStructDecorations(context, s, alignmentRules, out int size, out var offsets);
             
-            var hasOffsetDecorations = false;
-            foreach (var i in context)
-            {
-                if (i.Op == Op.OpMemberDecorate && (OpMemberDecorate)i is { Decoration: Decoration.Offset } memberDecorate && memberDecorate.StructureType == structId)
-                {
-                    hasOffsetDecorations = true;
-                    break;
-                }
-            }
-
             var members = new EffectTypeMemberDescription[s.Members.Count];
-            var offset = 0;
             for (int i = 0; i < s.Members.Count; ++i)
             {
-                var memberSize = SpirvBuilder.ComputeBufferOffset(s.Members[i].Type, s.Members[i].TypeModifier, ref offset, alignmentRules).Size;
-
                 members[i] = new EffectTypeMemberDescription
                 {
                     Name = s.Members[i].Name,
                     Type = ConvertType(context, s.Members[i].Type, s.Members[i].TypeModifier, alignmentRules),
-                    Offset = offset,
+                    Offset = offsets[i],
                 };
-
-                // Note: we assume if already added by another cbuffer using this type, the offsets were computed the same way
-                if (!hasOffsetDecorations)
-                    DecorateMember(context, structId, i, offset, memberSize, s.Members[i].Type, s.Members[i].TypeModifier);
-
-                offset += memberSize;
             }
-            return new EffectTypeDescription { Class = EffectParameterClass.Struct, RowCount = 1, ColumnCount = 1, Name = s.Name, Members = members, ElementSize = offset };
+            return new EffectTypeDescription { Class = EffectParameterClass.Struct, RowCount = 1, ColumnCount = 1, Name = s.Name, Members = members, ElementSize = size };
         }
 
         EffectTypeDescription ConvertType(SpirvContext context, SymbolType symbolType, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules)
         {
             return symbolType switch
             {
+                ScalarType { TypeName: "bool" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Bool, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ScalarType { TypeName: "uint" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.UInt, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
                 ScalarType { TypeName: "int" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Int, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
                 ScalarType { TypeName: "float" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Float, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ScalarType { TypeName: "double" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Double, RowCount = 1, ColumnCount = 1, ElementSize = 8 },
                 ArrayType a => ConvertArrayType(context, a, typeModifier, alignmentRules),
                 StructType s => ConvertStructType(context, s, alignmentRules),
                 // TODO: should we use RowCount instead? (need to update Stride)
@@ -398,37 +372,9 @@ namespace Stride.Shaders.Compilers.SDSL
 
             EffectTypeDescription ConvertArrayType(SpirvContext context, ArrayType a, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules)
             {
-                var typeId = context.Types[a];
-                if (decoratedArraysAndStructs.TryGetValue(typeId, out var existingAlignmentRules))
-                {
-                    if (existingAlignmentRules != alignmentRules)
-                        throw new InvalidOperationException($"Using type {a.ToId()} with both {alignmentRules} and {existingAlignmentRules} rules");
-                }
-                else
-                    decoratedArraysAndStructs.Add(typeId, alignmentRules);
-                
+                EmitArrayStrideDecorations(context, a, typeModifier, alignmentRules, out var arrayStride);
+
                 var elementType = ConvertType(context, a.BaseType, typeModifier, alignmentRules);
-
-                var hasStrideDecoration = false;
-                foreach (var i in context)
-                {
-                    if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: Decoration.ArrayStride } arrayStrideDecoration && arrayStrideDecoration.Target == typeId)
-                    {
-                        hasStrideDecoration = true;
-                    }
-                }
-
-                if (!hasStrideDecoration)
-                {
-                    var elementSize = SpirvBuilder.TypeSizeInBuffer(a.BaseType, typeModifier, alignmentRules).Size;
-                    var arrayStride = alignmentRules switch
-                    {
-                        SpirvBuilder.AlignmentRules.CBuffer => (elementSize + 15) / 16 * 16,
-                        SpirvBuilder.AlignmentRules.StructuredBuffer => elementSize,
-                    };
-                    context.Add(new OpDecorate(typeId, Decoration.ArrayStride, [arrayStride]));
-                }
-
                 return elementType with { Elements = a.Size };
             }
         }

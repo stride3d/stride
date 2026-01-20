@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using Stride.Shaders.Core;
-using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
@@ -341,7 +340,7 @@ public partial class ShaderMixer
 
                         var baseType = structuredBufferType.BaseType;
                         // This will add array stride and offsets decorations
-                        ConvertType(context, baseType, TypeModifier.None, SpirvBuilder.AlignmentRules.StructuredBuffer);
+                        EmitTypeDecorationsRecursively(context, baseType, SpirvBuilder.AlignmentRules.StructuredBuffer);
 
                         context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
                         context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [srvSlot]));
