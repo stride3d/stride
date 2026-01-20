@@ -7,6 +7,7 @@ using Stride.Shaders.Spirv.Core.Parsing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Stride.Shaders.Spirv.Building;
 using static Stride.Shaders.Spirv.Specification;
 
 [assembly: DebuggerDisplay("{Stride.Shaders.Spirv.Tools.SpirvBufferExtensions.GetDebuggerDisplay(this)}", Target = typeof(NewSpirvBuffer))]
@@ -27,10 +28,20 @@ public static class SpirvBufferExtensions
     {
         return Spv.Dis(buffer, DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex | DisassemblerFlags.Name);
     }
+    public static string GetDebuggerDisplay(this ShaderBuffers buffers)
+    {
+        return Spv.Dis(buffers, DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex | DisassemblerFlags.Name);
+    }
 }
 
 public static partial class Spv
 {
+    public static string Dis(ShaderBuffers buffers, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = false)
+    {
+        var writer = new DisWriter(new(new("undefined", 0, 1), NewSpirvBuffer.Merge(buffers.Context.GetBuffer(), buffers.Buffer)), flags, writeToConsole);
+        writer.Disassemble();
+        return writer.ToString();
+    }
     public static string Dis(NewSpirvBuffer bytecode, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = false)
     {
         var writer = new DisWriter(new(new("undefined", 0, 1), bytecode), flags, writeToConsole);

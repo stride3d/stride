@@ -15,10 +15,10 @@ namespace Stride.Shaders.Compilers.SDSL;
 
 public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 {
-    public readonly bool Compile(string code, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out SpirvBytecode lastBuffer)
+    public readonly bool Compile(string code, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out ShaderBuffers lastBuffer)
     {
         var parsed = SDSLParser.Parse(code);
-        lastBuffer = null;
+        lastBuffer = default;
         if (parsed.Errors.Count > 0)
         {
             throw new Exception($"Some parse errors:{Environment.NewLine}{string.Join(Environment.NewLine, parsed.Errors)}");
@@ -43,10 +43,8 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     if (table.Errors.Count > 0)
                         throw new Exception("Some parse errors");
 
-                    var merged = compiler.ToBuffer();
-                    lastBuffer = new(merged);
-
-                    ShaderLoader.RegisterShader(shader.Name, macros, lastBuffer);
+                    lastBuffer = compiler.ToShaderBuffers();
+                    ShaderLoader.Cache.RegisterShader(shader.Name, macros, lastBuffer);
                 }
                 else if (declaration is ShaderEffect effect)
                 {
@@ -59,10 +57,8 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     compiler.Macros.AddRange(macros);
                     effect.Compile(table, compiler);
 
-                    var merged = compiler.ToBuffer();
-                    lastBuffer = new(merged);
-
-                    ShaderLoader.RegisterShader(effect.Name, macros, lastBuffer);
+                    lastBuffer = compiler.ToShaderBuffers();
+                    ShaderLoader.Cache.RegisterShader(effect.Name, macros, lastBuffer);
                 }
                 else
                 {
@@ -74,7 +70,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
         }
         else
         {
-            lastBuffer = null;
+            lastBuffer = default;
             return false;
         }
     }

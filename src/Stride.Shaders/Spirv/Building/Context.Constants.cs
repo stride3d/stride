@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDSL.AST;
@@ -44,15 +45,15 @@ public partial class SpirvContext
         throw new Exception("Cannot find constant instruction for id " + constantId);
     }
 
-    public bool TryGetConstantValue(int constantId, out object value, out int typeId, bool simplifyInBuffer = false)
+    public bool TryGetConstantValue(int constantId, [MaybeNullWhen(false)] out object value, out int typeId, bool simplifyInBuffer = false)
     {
         if (Buffer.TryGetInstructionById(constantId, out var constant))
         {
             return TryGetConstantValue(constant, out value, out typeId, simplifyInBuffer);
         }
 
-        typeId = default;
-        value = default;
+        typeId = 0;
+        value = null;
         return false;
     }
 
@@ -65,10 +66,10 @@ public partial class SpirvContext
     }
 
     // Note: this will return false if constant can't be resolved yet (i.e. due to unresolved generics). If it is not meant to become a constant (even later), behavior is undefined.
-    public bool TryGetConstantValue(OpDataIndex i, out object value, out int typeId, bool simplifyInBuffer = false)
+    public bool TryGetConstantValue(OpDataIndex i, [MaybeNullWhen(false)] out object value, out int typeId, bool simplifyInBuffer = false)
     {
-        typeId = default;
-        value = default;
+        typeId = 0;
+        value = null;
 
         // Check for unresolved values
         if (i.Op == Specification.Op.OpSDSLGenericParameter || i.Op == Specification.Op.OpSDSLGenericReference)

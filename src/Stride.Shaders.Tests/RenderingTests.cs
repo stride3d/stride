@@ -27,7 +27,18 @@ public class RenderingTests
     static int width = 1;
     static int height = 1;
 
-    class ShaderLoader(string basePath) : ShaderLoaderBase
+    class TestShaderCache : ShaderCache
+    {
+        public override void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode)
+        {
+            base.RegisterShader(name, defines, bytecode);
+
+            Console.WriteLine($"Registering shader {name}");
+            Spv.Dis(bytecode, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        }
+    }
+
+    class ShaderLoader(string basePath) : ShaderLoaderBase(new TestShaderCache())
     {
         protected override bool ExternalFileExists(string name)
         {
@@ -42,7 +53,7 @@ public class RenderingTests
             return true;
         }
 
-        protected override bool LoadFromCode(string filename, string code, ReadOnlySpan<ShaderMacro> macros, out SpirvBytecode buffer)
+        protected override bool LoadFromCode(string filename, string code, ReadOnlySpan<ShaderMacro> macros, out ShaderBuffers buffer)
         {
             var result = base.LoadFromCode(filename, code, macros, out buffer);
             if (result)
@@ -51,14 +62,6 @@ public class RenderingTests
                 Spv.Dis(buffer, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
             }
             return result;
-        }
-
-        public override void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, SpirvBytecode bytecode)
-        {
-            base.RegisterShader(name, defines, bytecode);
-
-            Console.WriteLine($"Registering shader {name}");
-            Spv.Dis(bytecode, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
         }
     }
 

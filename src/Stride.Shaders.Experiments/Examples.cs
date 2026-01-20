@@ -208,7 +208,7 @@ public static partial class Examples
         return false;
     }
 
-    public class ShaderLoader : ShaderLoaderBase
+    public class ShaderLoader() : ShaderLoaderBase(new ShaderCache())
     {
         protected override bool ExternalFileExists(string name)
         {
@@ -222,32 +222,5 @@ public static partial class Examples
             code = File.ReadAllText(filename);
             return true;
         }
-    }
-
-    public static void CompileSDSL(string shaderName)
-    {
-        // if(Directory.GetCurrentDirectory().Contains("bin\\Debug"))
-        // {
-        //     var info = new DirectoryInfo(Directory.GetCurrentDirectory());
-        //     while(!info.GetDirectories().Any(d => d.Name is "assets") || !info.GetFiles().Any(d => d.Name is "SDSL.sln") )
-        //         info = info.Parent!;
-        //     Directory.SetCurrentDirectory(info.FullName);
-        // }
-        var text = MonoGamePreProcessor.OpenAndRun($"./assets/SDSL/{shaderName}.sdsl");
-
-        var sdslc = new SDSLC
-        {
-            ShaderLoader = new ShaderLoader()
-        };
-        if (sdslc.Compile(text, [], out var buffer) && buffer is not null)
-        {
-            Spirv.Tools.Spv.Dis(buffer, writeToConsole: true);
-            var bytecode = buffer.ToBytecode().ToArray();
-            File.WriteAllBytes("TestBasic.sdspv", bytecode);
-            var code = new SpirvTranslator(bytecode.AsMemory().Cast<byte, uint>());
-        }
-
-        // Console.WriteLine(code.Translate(Backend.Hlsl));
-
     }
 }

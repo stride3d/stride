@@ -14,18 +14,75 @@ using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Building;
 
+public interface IShaderCache
+{
+    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode);
+    public bool Exists(string name);
+    public bool TryLoadFromCache(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer);
+}
+
+public class ShaderCache : IShaderCache
+{
+    record struct ShaderLoadKey(ShaderMacro[] Macros)
+    {
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = 0;
+                foreach (var current in Macros)
+                    hashCode = (hashCode * 397) ^ (current.GetHashCode());
+                return hashCode;
+            }
+        }
+
+        public bool Equals(ShaderLoadKey other)
+        {
+            return Macros.SequenceEqual(other.Macros);
+        }
+    }
+
+    private Dictionary<string, Dictionary<ShaderLoadKey, ShaderBuffers>> loadedShaders = [];
+
+    public bool Exists(string name) => loadedShaders.ContainsKey(name);
+
+    public virtual void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode)
+    {
+        if (!loadedShaders.TryGetValue(name, out var loadedShadersByName))
+            loadedShaders.Add(name, loadedShadersByName = new());
+        loadedShadersByName.Add(new(defines.ToArray()), bytecode);
+    }
+    
+    public bool TryLoadFromCache(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer)
+    {
+        if (loadedShaders.TryGetValue(name, out var loadedShadersByName)
+            && loadedShadersByName.TryGetValue(new(defines.ToArray()), out buffer))
+        {
+            return true;
+        }
+
+        buffer = default;
+        return false;
+    }
+}
+
 public interface IExternalShaderLoader
 {
-    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, SpirvBytecode bytecode);
+    public IShaderCache Cache { get; }
+    
     public bool Exists(string name);
-    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out SpirvBytecode bytecode, out bool isFromCache);
-    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out SpirvBytecode bytecode, out bool isFromCache);
+    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out bool isFromCache);
+    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out bool isFromCache);
 }
 
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 
 // SPIR-V parameters
 public partial class SpirvContext
 {
+    // Used internally by GenericResolverFromInstantiatingBuffer (cache from constant ID to string representation)
+    internal IShaderCache GenericCache { get; } = new ShaderCache();
+    internal Dictionary<int, string> GenericValueCache { get; } = new();
+    
     private int bound = 1;
     public int ResourceGroupBound { get; set; } = 1;
     public ref int Bound => ref bound;
