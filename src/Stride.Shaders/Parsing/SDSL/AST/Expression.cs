@@ -415,7 +415,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     {
         var (builder, context) = compiler;
 
-        // See how far we can compute the lvalue
+        // Compute the l-value (and all its intermediate values)
         CompileHelper(table, compiler, null);
         
         // Only things left should be:
@@ -458,14 +458,15 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     // Swizzle: we transform the value to assign accordingly
                     
                     // We load the original value (if pointer)
-                    if (currentValueType is PointerType p)
+                    var lvalueType = currentValueType;
+                    if (lvalueType is PointerType p)
                     {
-                        rvalue = new(builder.InsertData(new OpLoad(context.GetOrRegister(currentValueType), context.Bound++, rvalue.Id, null, [])));
-                        currentValueType = p.BaseType;
+                        lvalueBase = new(builder.InsertData(new OpLoad(context.GetOrRegister(lvalueType), context.Bound++, lvalueBase.Id, null, [])));
+                        lvalueType = p.BaseType;
                     }
                     
                     // Shuffle with new data
-                    switch (currentValueType)
+                    switch (lvalueType)
                     {
                         case VectorType v:
                             Span<int> shuffleIndices = stackalloc int[v.Size];
@@ -476,13 +477,21 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             for (int j = 0; j < swizzle.Length; ++j)
                                 shuffleIndices[ConvertSwizzle(swizzle[j])] = v.Size + j;
                             // Compute the rvalue at this step (by possibly combining with lvalue if not writing every component)
-                            rvalue = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(currentValueType), context.Bound++, lvalueBase.Id, rvalue.Id, new(shuffleIndices))));
+                            rvalue = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(lvalueType), context.Bound++, lvalueBase.Id, rvalue.Id, new(shuffleIndices))));
                             break;
                         default:
                             throw new NotImplementedException();
                     }
                     break;
             }
+        }
+        
+        // Need to assign to Source
+        if (Source.Type is PointerType expectedType2)
+        {
+            rvalue = builder.Convert(context, rvalue, expectedType2.BaseType);
+            builder.Insert(new OpStore(intermediateValues[0].Id, rvalue.Id, null, []));
+            return;
         }
         
         // We should not reach this point (unless we can't write back to lvalue)
