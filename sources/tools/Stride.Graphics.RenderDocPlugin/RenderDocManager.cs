@@ -59,7 +59,7 @@ namespace Stride.Graphics
 
         public unsafe void Initialize(string captureFilePath = null)
         {
-            var finalLogFilePath = captureFilePath ?? FindAvailablePath("RenderDoc" + Assembly.GetEntryAssembly().Location);
+            var finalLogFilePath = captureFilePath ?? FindAvailablePath(Assembly.GetEntryAssembly().Location);
             GetMethod<RENDERDOC_SetCaptureFilePathTemplate>(RenderDocAPIFunction.SetCaptureFilePathTemplate)(finalLogFilePath);
 
             var focusToggleKey = KeyButton.eRENDERDOC_Key_F11;
