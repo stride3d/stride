@@ -69,7 +69,7 @@ public abstract record SymbolType()
         // Note: templateTypeName is resolved lazily (because it might not be a buffer type and we don't need to resolve it)
         static ScalarType ResolveScalarType(SymbolTable table, SpirvContext context, TypeName? templateTypeName)
         {
-            var templateType = templateTypeName?.ResolveType(table, context) ?? ScalarType.From("float4");
+            var templateType = templateTypeName?.ResolveType(table, context) ?? ScalarType.From("float");
 
             return templateType switch
             {
