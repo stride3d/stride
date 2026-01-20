@@ -17,6 +17,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Stride.Core.Storage;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Building;
@@ -506,7 +507,7 @@ public partial class SpirvBuilder
                 }
 
                 // TODO: Cache?
-                if (!shaderLoader.LoadExternalBuffer(shaderName, code, macros, out shaderBuffers, out _))
+                if (!shaderLoader.LoadExternalBuffer(shaderName, code, macros, out shaderBuffers, out _, out _))
                     throw new InvalidOperationException();
             }
         }
@@ -672,7 +673,7 @@ public partial class SpirvBuilder
 
     private static ShaderBuffers GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, GenericResolver genericResolver, ReadOnlySpan<ShaderMacro> macros)
     {
-        var shaderBuffers = GetOrLoadShader(shaderLoader, className, macros, out var isFromCache);
+        var shaderBuffers = GetOrLoadShader(shaderLoader, className, macros, out var hash, out var isFromCache);
 
         // Split context and buffer
 
@@ -681,10 +682,11 @@ public partial class SpirvBuilder
         {
             // First, try to build name for cache lookup
             var classNameWithGenerics = BuildGenericClassName(className, genericResolver);
-            var cache = genericResolver.Cache ?? shaderLoader.Cache;
-            if (shaderLoader.Cache.TryLoadFromCache(classNameWithGenerics, macros, out var cachedShaderBuffers))
+            var cache = genericResolver.Cache ?? shaderLoader.GenericCache;
+            if (shaderLoader.GenericCache.TryLoadFromCache(classNameWithGenerics, macros, out var cachedShaderBuffers, out var cachedHash))
             {
                 shaderBuffers = cachedShaderBuffers;
+                hash = cachedHash;
             }
             else
             {
@@ -701,7 +703,7 @@ public partial class SpirvBuilder
                 shaderBuffers.Buffer = CopyBuffer(shaderBuffers.Buffer);
 
                 InstantiateGenericShader(ref shaderBuffers, classNameWithGenerics, genericResolver, shaderLoader, macros);
-                shaderLoader.Cache.RegisterShader(classNameWithGenerics, macros, shaderBuffers);
+                shaderLoader.GenericCache.RegisterShader(classNameWithGenerics, macros, shaderBuffers, hash);
             }
             
             // Run in all cases (even if cached)
@@ -740,11 +742,11 @@ public partial class SpirvBuilder
         return generics;
     }
 
-    public static ShaderBuffers GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, ReadOnlySpan<ShaderMacro> defines, out bool isFromCache)
+    public static ShaderBuffers GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, ReadOnlySpan<ShaderMacro> defines, out ObjectId hash, out bool isFromCache)
     {
         Console.WriteLine($"[Shader] Requesting non-generic class {className}");
 
-        if (!shaderLoader.LoadExternalBuffer(className, defines, out var buffer, out isFromCache))
+        if (!shaderLoader.LoadExternalBuffer(className, defines, out var buffer, out hash, out isFromCache))
             throw new InvalidOperationException($"Could not load shader [{className}]");
 
         if (!isFromCache)

@@ -9,13 +9,14 @@ using Stride.Shaders.Spirv.Processing;
 using Stride.Shaders.Spirv.Tools;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Stride.Core.Storage;
 using Stride.Shaders.Parsing.SDFX.AST;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
 public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 {
-    public readonly bool Compile(string code, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out ShaderBuffers lastBuffer)
+    public readonly bool Compile(string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out ShaderBuffers lastBuffer)
     {
         var parsed = SDSLParser.Parse(code);
         lastBuffer = default;
@@ -44,7 +45,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                         throw new Exception("Some parse errors");
 
                     lastBuffer = compiler.ToShaderBuffers();
-                    ShaderLoader.Cache.RegisterShader(shader.Name, macros, lastBuffer);
+                    ShaderLoader.FileCache.RegisterShader(shader.Name, macros, lastBuffer, hash);
                 }
                 else if (declaration is ShaderEffect effect)
                 {
@@ -58,7 +59,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     effect.Compile(table, compiler);
 
                     lastBuffer = compiler.ToShaderBuffers();
-                    ShaderLoader.Cache.RegisterShader(effect.Name, macros, lastBuffer);
+                    ShaderLoader.FileCache.RegisterShader(effect.Name, macros, lastBuffer, hash);
                 }
                 else
                 {

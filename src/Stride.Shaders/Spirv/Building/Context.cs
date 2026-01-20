@@ -10,15 +10,16 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Stride.Core.Storage;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Building;
 
 public interface IShaderCache
 {
-    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode);
+    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode, ObjectId? hash);
     public bool Exists(string name);
-    public bool TryLoadFromCache(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer);
+    public bool TryLoadFromCache(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash);
 }
 
 public class ShaderCache : IShaderCache
@@ -42,25 +43,30 @@ public class ShaderCache : IShaderCache
         }
     }
 
-    private Dictionary<string, Dictionary<ShaderLoadKey, ShaderBuffers>> loadedShaders = [];
+    private Dictionary<string, (ObjectId Hash, Dictionary<ShaderLoadKey, ShaderBuffers> BuffersPerMacros)> loadedShaders = [];
 
     public bool Exists(string name) => loadedShaders.ContainsKey(name);
 
-    public virtual void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode)
+    public virtual void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode, ObjectId? hash = null)
     {
-        if (!loadedShaders.TryGetValue(name, out var loadedShadersByName))
-            loadedShaders.Add(name, loadedShadersByName = new());
-        loadedShadersByName.Add(new(defines.ToArray()), bytecode);
+        ref var loadedShadersByName = ref CollectionsMarshal.GetValueRefOrAddDefault(loadedShaders, name, out var exists);
+        if (!exists)
+            loadedShadersByName = hash != null ? new(hash.Value, new()) : new();
+        loadedShadersByName.BuffersPerMacros.Add(new(defines.ToArray()), bytecode);
+        if (hash != null)
+            loadedShadersByName.Hash = hash.Value;
     }
     
-    public bool TryLoadFromCache(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer)
+    public bool TryLoadFromCache(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash)
     {
         if (loadedShaders.TryGetValue(name, out var loadedShadersByName)
-            && loadedShadersByName.TryGetValue(new(defines.ToArray()), out buffer))
+            && loadedShadersByName.BuffersPerMacros.TryGetValue(new(defines.ToArray()), out buffer))
         {
+            hash = loadedShadersByName.Hash;
             return true;
         }
 
+        hash = default;
         buffer = default;
         return false;
     }
@@ -68,11 +74,13 @@ public class ShaderCache : IShaderCache
 
 public interface IExternalShaderLoader
 {
-    public IShaderCache Cache { get; }
+    public IShaderCache FileCache { get; }
+    public IShaderCache GenericCache { get; }
     
     public bool Exists(string name);
-    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out bool isFromCache);
-    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out bool isFromCache);
+    public bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash);
+    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache);
+    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache);
 }
 
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 

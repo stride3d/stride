@@ -23,6 +23,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
+using Stride.Core.Storage;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Compilers.SDSL;
@@ -30,17 +32,19 @@ namespace Stride.Shaders.Compilers.SDSL;
 public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 {
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
-    public void MergeSDSL(ShaderSource shaderSource, out Span<byte> bytecode, out EffectReflection effectReflection)
+    
+    public void MergeSDSL(ShaderSource shaderSource, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources)
     {
         var temp = new NewSpirvBuffer();
 
         var context = new SpirvContext();
-        var table = new SymbolTable(context) { ShaderLoader = ShaderLoader };
+        var shaderLoader = new CaptureLoadedShaders(ShaderLoader);
+        var table = new SymbolTable(context) { ShaderLoader = shaderLoader };
 
-        var effectEvaluator = new EffectEvaluator(ShaderLoader);
+        var effectEvaluator = new EffectEvaluator(shaderLoader);
         shaderSource = effectEvaluator.EvaluateEffects(shaderSource);
 
-        var shaderSource2 = EvaluateInheritanceAndCompositions(context, shaderSource);
+        var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, shaderSource);
 
         // Root shader
         var globalContext = new MixinGlobalContext();
@@ -93,6 +97,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         bytecode = SpirvBytecode.CreateBytecodeFromBuffers(temp);
 
         effectReflection = globalContext.Reflection;
+        usedHashSources = shaderLoader.Sources;
     }
 
     class MixinGlobalContext
@@ -934,4 +939,36 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
     }
+}
+
+public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShaderLoader
+{
+    /// <summary>
+    /// Cache per file.
+    /// </summary>
+    /// <remarks>Expects hash to be stored.</remarks>
+    public IShaderCache FileCache => inner.FileCache;
+    /// <summary>
+    /// Cache per generic instantiation.
+    /// </summary>
+    /// <remarks>Hashes are not needed.</remarks>
+    public IShaderCache GenericCache => inner.GenericCache;
+
+    public HashSourceCollection Sources { get; } = new();
+    
+    public bool Exists(string name) => inner.Exists(name);
+    
+    public bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash)
+        =>  inner.LoadExternalFileContent(name, out filename, out code, out hash);
+
+    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
+    {
+        var result = inner.LoadExternalBuffer(name, defines, out bytecode, out hash, out isFromCache);
+        if (!Sources.ContainsKey(name))
+            Sources.Add(name, hash);
+        return result;
+    }
+
+    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
+        => inner.LoadExternalBuffer(name, code, defines, out bytecode, out hash, out isFromCache);
 }

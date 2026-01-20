@@ -6,27 +6,29 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using Stride.Core.Storage;
 
 namespace Stride.Shaders.Compilers;
 
-public abstract class ShaderLoaderBase(IShaderCache cache) : IExternalShaderLoader
+public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShaderLoader
 {
-    public IShaderCache Cache => cache;
+    public IShaderCache FileCache => fileCache;
+    public IShaderCache GenericCache { get; } = new ShaderCache();
 
     public bool Exists(string name)
     {
-        if (cache.Exists(name))
+        if (fileCache.Exists(name))
             return true;
 
         return ExternalFileExists(name);
     }
 
     protected abstract bool ExternalFileExists(string name);
-    protected abstract bool LoadExternalFileContent(string name, out string filename, out string code);
+    public abstract bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash);
 
-    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out bool isFromCache)
+    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash, out bool isFromCache)
     {
-        isFromCache = cache.TryLoadFromCache(name, defines, out buffer);
+        isFromCache = fileCache.TryLoadFromCache(name, defines, out buffer, out hash);
         if (isFromCache)
             return true;
 
@@ -35,12 +37,12 @@ public abstract class ShaderLoaderBase(IShaderCache cache) : IExternalShaderLoad
             throw new InvalidOperationException($"Shader {name} could not be found");
         }
 
-        if (!LoadExternalFileContent(name, out var filename, out var code))
+        if (!LoadExternalFileContent(name, out var filename, out var code, out hash))
         {
             throw new InvalidOperationException($"Shader {name} could not be loaded");
         }
 
-        if (!LoadFromCode(filename, code, defines, out buffer))
+        if (!LoadFromCode(filename, code, hash, defines, out buffer))
         {
             throw new InvalidOperationException($"Shader {name} could not be compiled");
         }
@@ -48,15 +50,16 @@ public abstract class ShaderLoaderBase(IShaderCache cache) : IExternalShaderLoad
         return true;
     }
 
-    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out bool isFromCache)
+    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash, out bool isFromCache)
     {
-        isFromCache = cache.TryLoadFromCache(name, defines, out buffer);
+        isFromCache = fileCache.TryLoadFromCache(name, defines, out buffer, out hash);
         if (isFromCache)
             return true;
 
         var filename = $"{code}.sdsl";
 
-        if (!LoadFromCode(filename, code, defines, out buffer))
+        hash = ObjectId.FromBytes(Encoding.UTF8.GetBytes(code));
+        if (!LoadFromCode(filename, code, hash, defines, out buffer))
         {
             throw new InvalidOperationException($"Shader {name} could not be compiled");
         }
@@ -64,7 +67,7 @@ public abstract class ShaderLoaderBase(IShaderCache cache) : IExternalShaderLoad
         return true;
     }
 
-    protected virtual bool LoadFromCode(string filename, string code, ReadOnlySpan<ShaderMacro> macros, out ShaderBuffers buffer)
+    protected virtual bool LoadFromCode(string filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, out ShaderBuffers buffer)
     {
         var defines = new (string Name, string Definition)[macros.Length];
         for (int i = 0; i < macros.Length; ++i)
@@ -76,6 +79,6 @@ public abstract class ShaderLoaderBase(IShaderCache cache) : IExternalShaderLoad
             ShaderLoader = this,
         };
 
-        return sdslc.Compile(text, macros, out buffer);
+        return sdslc.Compile(text, hash, macros, out buffer);
     }
 }

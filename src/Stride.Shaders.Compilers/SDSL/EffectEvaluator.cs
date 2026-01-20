@@ -12,7 +12,7 @@ using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Compilers.SDSL
 {
-    internal class EffectEvaluator(IExternalShaderLoader ShaderLoader)
+    internal class EffectEvaluator(IExternalShaderLoader shaderLoader)
     {
         private Stack<ShaderMixinSource> mixinSources = new();
 
@@ -32,7 +32,7 @@ namespace Stride.Shaders.Compilers.SDSL
             {
                 case ShaderClassSource classSource:
                     var macros = mixinSources.Count > 0 ? mixinSources.Peek().Macros : [];
-                    var shaderBuffers = SpirvBuilder.GetOrLoadShader(ShaderLoader, classSource.ClassName, classSource.GenericArguments, macros.AsSpan());
+                    var shaderBuffers = SpirvBuilder.GetOrLoadShader(shaderLoader, classSource.ClassName, classSource.GenericArguments, macros.AsSpan());
 
                     if (shaderBuffers.Buffer[0].Op == Op.OpSDSLEffect)
                     {

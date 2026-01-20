@@ -28,6 +28,9 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageReference Include="xunit.v3" Version="3.2.1" />
+    <Reference Include="Stride.Core" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\core\Stride.Core\bin\Debug\net10.0\Stride.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Stride.Shaders" Condition="'$(StrideDirectory)' != ''">
       <HintPath>$(StrideDirectory)\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
     </Reference>

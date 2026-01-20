@@ -8,9 +8,11 @@ using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Stride.Shaders.Spirv.Core.Buffers;
 using SourceLanguage = Silk.NET.Shaderc.SourceLanguage;
 using Silk.NET.SPIRV;
+using Stride.Core.Storage;
 
 namespace Stride.Shaders.Experiments;
 
@@ -216,10 +218,17 @@ public static partial class Examples
             return File.Exists(filename);
         }
 
-        protected override bool LoadExternalFileContent(string name, out string filename, out string code)
+        public override bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash)
         {
             filename = $"./assets/SDSL/{name}.sdsl";
-            code = File.ReadAllText(filename);
+            
+            var fileData = File.ReadAllBytes(filename);
+            hash = ObjectId.FromBytes(fileData);
+            
+            // Note: we can't use Encoding.UTF8.GetString directly because there might be the UTF8 BOM at the beginning of the file
+            using var reader = new StreamReader(new MemoryStream(fileData), Encoding.UTF8);
+            code = reader.ReadToEnd();
+
             return true;
         }
     }

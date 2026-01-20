@@ -18,7 +18,7 @@ public partial class ShaderMixer
     /// <param name="root"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(SpirvContext context, ShaderSource shaderSource, Action<ShaderClassInstantiation>? addToRoot = null)
+    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderSource shaderSource, Action<ShaderClassInstantiation>? addToRoot = null)
     {
         var mixinList = new List<ShaderClassInstantiation>();
 
@@ -33,7 +33,7 @@ public partial class ShaderMixer
 
         foreach (var mixinToMerge in shaderMixinSource.Mixins)
         {
-            var shaderBuffer = SpirvBuilder.GetOrLoadShader(ShaderLoader, mixinToMerge.ClassName, mixinToMerge.GenericArguments, shaderMixinSource.Macros.AsSpan());
+            var shaderBuffer = SpirvBuilder.GetOrLoadShader(shaderLoader, mixinToMerge.ClassName, mixinToMerge.GenericArguments, shaderMixinSource.Macros.AsSpan());
 
             var mixinToMerge2 = new ShaderClassInstantiation(mixinToMerge.ClassName, []);
             mixinToMerge2.Buffer = shaderBuffer;
@@ -47,15 +47,15 @@ public partial class ShaderMixer
                 }
             }
 
-            SpirvBuilder.BuildInheritanceListIncludingSelf(ShaderLoader, context, mixinToMerge2, shaderMixinSource.Macros.AsSpan(), mixinList, ResolveStep.Mix);
+            SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, mixinToMerge2, shaderMixinSource.Macros.AsSpan(), mixinList, ResolveStep.Mix);
         }
         
-        ProcessClasses(context, mixinList, shaderMixinSource, result, compositions, addToRoot);
+        ProcessClasses(shaderLoader, context, mixinList, shaderMixinSource, result, compositions, addToRoot);
 
         return result;
     }
 
-    private void ProcessClasses(SpirvContext context, List<ShaderClassInstantiation> mixinList, ShaderMixinSource shaderMixinSource, ShaderMixinInstantiation result, Dictionary<string, ShaderMixinInstantiation[]> compositions, Action<ShaderClassInstantiation>? addToRoot = null)
+    private void ProcessClasses(IExternalShaderLoader shaderLoader, SpirvContext context, List<ShaderClassInstantiation> mixinList, ShaderMixinSource shaderMixinSource, ShaderMixinInstantiation result, Dictionary<string, ShaderMixinInstantiation[]> compositions, Action<ShaderClassInstantiation>? addToRoot = null)
     {
         int shaderIndex = 0;
         
@@ -77,7 +77,7 @@ public partial class ShaderMixer
                         // It's a bit complex: we need to inherit from it right now instead of later
                         // (if we simply do a result.Mixins.Add as in normal case, the shader would be added twice)
                         var currentlyMixedList = mixinList[0..shaderIndex];
-                        SpirvBuilder.BuildInheritanceListIncludingSelf(ShaderLoader, context, shaderName, shaderMixinSource.Macros.AsSpan(), currentlyMixedList, ResolveStep.Mix);
+                        SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, shaderName, shaderMixinSource.Macros.AsSpan(), currentlyMixedList, ResolveStep.Mix);
 
                         var newShadersToMergeNow = currentlyMixedList[shaderIndex..];
                         mixinList.InsertRange(shaderIndex, newShadersToMergeNow);
@@ -135,12 +135,12 @@ public partial class ShaderMixer
                         {
                             var variableCompositions = new List<ShaderMixinInstantiation>();
                             foreach (var value in shaderArraySource.Values)
-                                variableCompositions.Add(EvaluateInheritanceAndCompositions(context, value, addToRootRecursive));
+                                variableCompositions.Add(EvaluateInheritanceAndCompositions(shaderLoader, context, value, addToRootRecursive));
                             compositions[variableName] = [..variableCompositions];
                         }
                         else
                         {
-                            var variableComposition = EvaluateInheritanceAndCompositions(context, compositionMixin, addToRootRecursive);
+                            var variableComposition = EvaluateInheritanceAndCompositions(shaderLoader, context, compositionMixin, addToRootRecursive);
                             compositions[variableName] = [variableComposition];
                         }
                     }
