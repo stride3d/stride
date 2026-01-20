@@ -820,7 +820,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         {
             if (o.Kind == OperandKind.IdRef
                 || o.Kind == OperandKind.IdResult
-                || o.Kind == OperandKind.IdResultType)
+                || o.Kind == OperandKind.IdResultType
+                || o.Kind == OperandKind.IdScope
+                || o.Kind == OperandKind.IdMemorySemantics)
             {
                 for (int i = 0; i < o.Words.Length; ++i)
                 {

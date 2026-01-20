@@ -112,7 +112,11 @@ public partial class SpirvContext
                 {
                     if (op.Kind == OperandKind.IdRef
                         || op.Kind == OperandKind.IdResultType
-                        || op.Kind == OperandKind.PairIdRefIdRef)
+                        || op.Kind == OperandKind.IdScope
+                        || op.Kind == OperandKind.IdMemorySemantics
+                        || op.Kind == OperandKind.PairIdRefIdRef
+                        || op.Kind == OperandKind.IdScope
+                        || op.Kind == OperandKind.IdMemorySemantics)
                     {
                         foreach (ref var word in op.Words)
                         {

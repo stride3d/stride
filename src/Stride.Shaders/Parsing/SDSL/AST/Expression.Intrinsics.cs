@@ -825,3 +825,103 @@ public class BitcastCall(ShaderExpressionList parameters, TextLocation info, Sca
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
+
+public class MemoryBarrierCall(ShaderExpressionList parameters, TextLocation info, string name, Specification.MemorySemanticsMask memorySemanticsMask) : MethodCall(new(name, info), parameters, info)
+{
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    {
+        var (builder, context) = compiler;
+        builder.Insert(new OpMemoryBarrier(context.CompileConstant((int)Specification.Scope.Device).Id, context.CompileConstant((int)memorySemanticsMask).Id));
+        return new();
+    }
+}
+
+public class ControlBarrierCall(ShaderExpressionList parameters, TextLocation info, string name, Specification.MemorySemanticsMask memorySemanticsMask) : MethodCall(new(name, info), parameters, info)
+{
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    {
+        var (builder, context) = compiler;
+        builder.Insert(new OpControlBarrier((int)Specification.Scope.Workgroup, context.CompileConstant((int)Specification.Scope.Device).Id, context.CompileConstant((int)memorySemanticsMask).Id));
+        return new();
+    }
+}
+
+public enum InterlockedOp
+{
+    Add,
+    And,
+    Or,
+    Xor,
+    Max,
+    Min,
+    Exchange,
+    CompareExchange,
+    CompareStore,
+}
+
+public class InterlockedCall(ShaderExpressionList parameters, TextLocation info, InterlockedOp op) : MethodCall(new($"Interlocked{op}", info), parameters, info)
+{
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    {
+        var (builder, context) = compiler;
+        var dest = Parameters.Values[0].Compile(table, compiler);
+        if (Parameters.Values[0].Type is not PointerType pointerType || pointerType.BaseType is not ScalarType { TypeName: "uint" or "int" } s)
+            throw new InvalidOperationException($"l-value int or uint expected but got {Parameters.Values[0].Type}");
+
+        var resultType = s;
+
+        var value = Parameters.Values[1].CompileAsValue(table, compiler);
+        value = builder.Convert(context, value, resultType);
+
+        SpirvValue result;
+        // If there is an out parameter to save original value
+        int? originalValueIndex;
+        if (op == InterlockedOp.CompareStore || op == InterlockedOp.CompareExchange)
+        {
+            var value2 = Parameters.Values[2].CompileAsValue(table, compiler);
+            value2 = builder.Convert(context, value2, resultType);
+
+            var instruction = builder.Insert(new OpAtomicCompareExchange(context.GetOrRegister(resultType), context.Bound++, dest.Id,
+                context.CompileConstant((int)Specification.Scope.Device).Id,
+                context.CompileConstant((int)Specification.MemorySemanticsMask.Relaxed).Id,
+                context.CompileConstant((int)Specification.MemorySemanticsMask.Relaxed).Id,
+                value2.Id,
+                value.Id));
+            result = new SpirvValue(instruction.ResultId, instruction.ResultType);
+            originalValueIndex = op == InterlockedOp.CompareExchange ? 3 : null;
+        }
+        else
+        {
+            var instruction = builder.Insert(new OpAtomicIAdd(context.GetOrRegister(resultType), context.Bound++, dest.Id, 
+                context.CompileConstant((int)Specification.Scope.Device).Id, 
+                context.CompileConstant((int)Specification.MemorySemanticsMask.Relaxed).Id,
+                value.Id));
+            // Update instruction type (they all share same memory layout)
+            instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)(op switch
+            {
+                InterlockedOp.Add => Specification.Op.OpAtomicIAdd,
+                InterlockedOp.And => Specification.Op.OpAtomicAnd,
+                InterlockedOp.Or => Specification.Op.OpAtomicOr,
+                InterlockedOp.Xor => Specification.Op.OpAtomicXor,
+                InterlockedOp.Max => s.IsSigned() ? Specification.Op.OpAtomicSMax : Specification.Op.OpAtomicUMax,
+                InterlockedOp.Min => s.IsSigned() ? Specification.Op.OpAtomicSMin : Specification.Op.OpAtomicUMin,
+                InterlockedOp.Exchange => Specification.Op.OpAtomicExchange,
+            });
+            result = new SpirvValue(instruction.ResultId, instruction.ResultType);
+            originalValueIndex = Parameters.Values.Count == 3 ? 2 : null;
+        }
+
+        // Out parameter?
+        if (originalValueIndex is { } originalValueIndex2)
+        {
+            var resultLocation = Parameters.Values[originalValueIndex2].Compile(table, compiler);
+            if (Parameters.Values[originalValueIndex2].Type is not PointerType resultPointerType)
+                throw new InvalidOperationException($"out parameter is not a l-value, got {Parameters.Values[0].Type} instead");
+            
+            result = builder.Convert(context, result, resultPointerType.BaseType);
+            builder.Insert(new OpStore(resultLocation.Id, result.Id, null, []));
+        }
+
+        return new();
+    }
+}

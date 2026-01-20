@@ -400,7 +400,7 @@ public class TypeDuplicateHelper
             var opcode = i.Op;
             foreach (var op in i.Data)
             {
-                if (op.Kind == OperandKind.IdRef)
+                if (op.Kind == OperandKind.IdRef || op.Kind == OperandKind.IdScope || op.Kind == OperandKind.IdMemorySemantics)
                 {
                     foreach (ref var w in op.Words)
                     {

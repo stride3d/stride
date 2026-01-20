@@ -531,6 +531,8 @@ public partial class SpirvBuilder
             if ((op.Kind == OperandKind.IdRef
                  || op.Kind == OperandKind.IdResult
                  || op.Kind == OperandKind.IdResultType
+                 || op.Kind == OperandKind.IdScope
+                 || op.Kind == OperandKind.IdMemorySemantics
                  || op.Kind == OperandKind.PairIdRefLiteralInteger
                  || op.Kind == OperandKind.PairIdRefIdRef)
                 && op.Words.Length > 0
@@ -574,11 +576,15 @@ public partial class SpirvBuilder
 
         foreach (var op in i)
         {
-            if ((op.Kind == OperandKind.IdRef
+            if (op.Kind == OperandKind.IdRef
                  || op.Kind == OperandKind.IdResult
                  || op.Kind == OperandKind.IdResultType
+                 || op.Kind == OperandKind.IdScope
+                 || op.Kind == OperandKind.IdMemorySemantics
                  || op.Kind == OperandKind.PairIdRefLiteralInteger
-                 || op.Kind == OperandKind.PairIdRefIdRef))
+                 || op.Kind == OperandKind.PairIdRefIdRef
+                 || op.Kind == OperandKind.IdScope
+                 || op.Kind == OperandKind.IdMemorySemantics)
             {
                 foreach (ref var word in op.Words)
                 {

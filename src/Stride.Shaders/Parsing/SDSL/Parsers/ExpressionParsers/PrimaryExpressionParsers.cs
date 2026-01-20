@@ -54,6 +54,9 @@ public record struct PrimaryParsers : IParser<Expression>
             if (Tokens.Char(')', ref scanner, advance: true))
             {
                 // TODO: handle matrices (most of those OPs support only vectors)
+                const Specification.MemorySemanticsMask allMemoryBarrierMemorySemanticsMask = Specification.MemorySemanticsMask.ImageMemory | Specification.MemorySemanticsMask.WorkgroupMemory | Specification.MemorySemanticsMask.UniformMemory | Specification.MemorySemanticsMask.AcquireRelease;
+                const Specification.MemorySemanticsMask deviceMemoryBarrierMemorySemanticsMask = Specification.MemorySemanticsMask.ImageMemory | Specification.MemorySemanticsMask.UniformMemory | Specification.MemorySemanticsMask.AcquireRelease;
+                const Specification.MemorySemanticsMask groupMemoryBarrierMemorySemanticsMask = Specification.MemorySemanticsMask.WorkgroupMemory | Specification.MemorySemanticsMask.AcquireRelease;
                 parsed = (identifier.Name, parameters.Values.Count) switch
                 {
                     // Bool
@@ -128,15 +131,30 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("reflect", 2) => new ReflectCall(parameters, scanner[position..scanner.Position]),
                     ("refract", 3) => new RefractCall(parameters, scanner[position..scanner.Position]),
 
+                    // Compute Barriers
+                    ("AllMemoryBarrier", _) => new MemoryBarrierCall(parameters, scanner[position..scanner.Position], identifier.Name, allMemoryBarrierMemorySemanticsMask),
+                    ("AllMemoryBarrierWithGroupSync", _) => new ControlBarrierCall(parameters, scanner[position..scanner.Position], identifier.Name, allMemoryBarrierMemorySemanticsMask),
+                    ("DeviceMemoryBarrier", _) => new MemoryBarrierCall(parameters, scanner[position..scanner.Position], identifier.Name, deviceMemoryBarrierMemorySemanticsMask),
+                    ("DeviceMemoryBarrierWithGroupSync", _) => new ControlBarrierCall(parameters, scanner[position..scanner.Position], identifier.Name, deviceMemoryBarrierMemorySemanticsMask),
+                    ("GroupMemoryBarrier", _) => new MemoryBarrierCall(parameters, scanner[position..scanner.Position], identifier.Name, groupMemoryBarrierMemorySemanticsMask),
+                    ("GroupMemoryBarrierWithGroupSync", _) => new ControlBarrierCall(parameters, scanner[position..scanner.Position], identifier.Name, groupMemoryBarrierMemorySemanticsMask),
+
+                    // Compute interlocked
+                    ("InterlockedAdd", _) => new InterlockedCall(parameters, scanner[position..scanner.Position], InterlockedOp.Add),
+                    ("InterlockedAnd", _) => new InterlockedCall(parameters, scanner[position..scanner.Position], InterlockedOp.And),
+                    ("InterlockedOr", _) => new InterlockedCall(parameters, scanner[position..scanner.Position], InterlockedOp.Or),
+                    ("InterlockedXor", _) => new InterlockedCall(parameters, scanner[position..scanner.Position], InterlockedOp.Xor),
+                    ("InterlockedMax", _) => new InterlockedCall(parameters, scanner[position..scanner.Position], InterlockedOp.Max),
+                    ("InterlockedMin", _) => new InterlockedCall(parameters, scanner[position..scanner.Position], InterlockedOp.Min),
+                    ("InterlockedExchange", _) => new InterlockedCall(parameters, scanner[position..scanner.Position], InterlockedOp.Exchange),
+                    ("InterlockedCompareExchange", _) => new InterlockedCall(parameters, scanner[position..scanner.Position], InterlockedOp.CompareExchange),
+                    ("InterlockedCompareStore", _) => new InterlockedCall(parameters, scanner[position..scanner.Position], InterlockedOp.CompareStore),
+                    
                     ("abort", _) => throw new NotImplementedException(),
-                    ("AllMemoryBarrier", _) => throw new NotImplementedException(),
-                    ("AllMemoryBarrierWithGroupSync", _) => throw new NotImplementedException(),
                     ("CheckAccessFullyMapped", _) => throw new NotImplementedException(),
                     ("clip", _) => throw new NotImplementedException(),
                     ("countbits", _) => throw new NotImplementedException(),
                     ("D3DCOLORtoUBYTE4", _) => throw new NotImplementedException(),
-                    ("DeviceMemoryBarrier", _) => throw new NotImplementedException(),
-                    ("DeviceMemoryBarrierWithGroupSync", _) => throw new NotImplementedException(),
                     ("errorf", _) => throw new NotImplementedException(),
                     ("EvaluateAttributeCentroid", _) => throw new NotImplementedException(),
                     ("EvaluateAttributeAtSample", _) => throw new NotImplementedException(),
@@ -152,17 +170,6 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("frexp", _) => throw new NotImplementedException(),
                     ("GetRenderTargetSampleCount", _) => throw new NotImplementedException(),
                     ("GetRenderTargetSamplePosition", _) => throw new NotImplementedException(),
-                    ("GroupMemoryBarrier", _) => throw new NotImplementedException(),
-                    ("GroupMemoryBarrierWithGroupSync", _) => throw new NotImplementedException(),
-                    ("InterlockedAdd", _) => throw new NotImplementedException(),
-                    ("InterlockedAnd", _) => throw new NotImplementedException(),
-                    ("InterlockedCompareExchange", _) => throw new NotImplementedException(),
-                    ("InterlockedCompareStore", _) => throw new NotImplementedException(),
-                    ("InterlockedExchange", _) => throw new NotImplementedException(),
-                    ("InterlockedMax", _) => throw new NotImplementedException(),
-                    ("InterlockedMin", _) => throw new NotImplementedException(),
-                    ("InterlockedOr", _) => throw new NotImplementedException(),
-                    ("InterlockedXor", _) => throw new NotImplementedException(),
                     ("isfinite", _) => throw new NotImplementedException(),
                     ("isinf", _) => throw new NotImplementedException(),
                     ("isnan", _) => throw new NotImplementedException(),

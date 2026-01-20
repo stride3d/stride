@@ -331,6 +331,8 @@ public static partial class Spv
                         OperandKind.LiteralInteger
                         or OperandKind.LiteralExtInstInteger
                         or OperandKind.LiteralSpecConstantOpInteger
+                        or OperandKind.IdScope
+                        or OperandKind.IdMemorySemantics
                             => (operand.Quantifier, operand.Words.Length) switch
                             {
                                 (OperandQuantifier.One or OperandQuantifier.ZeroOrOne, 1) => AppendLiteralNumber(operand.ToLiteral<int>()),
