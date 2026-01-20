@@ -17,17 +17,13 @@ public partial class SpirvContext
     {
         var data = value switch
         {
-            byte v => Buffer.Add(new OpConstant<byte>(GetOrRegister(ScalarType.From("byte")), Bound++, v)),
-            sbyte v => Buffer.Add(new OpConstant<sbyte>(GetOrRegister(ScalarType.From("sbyte")), Bound++, v)),
-            ushort v => Buffer.Add(new OpConstant<ushort>(GetOrRegister(ScalarType.From("ushort")), Bound++, v)),
-            short v => Buffer.Add(new OpConstant<short>(GetOrRegister(ScalarType.From("short")), Bound++, v)),
-            uint v => Buffer.Add(new OpConstant<uint>(GetOrRegister(ScalarType.From("uint")), Bound++, v)),
-            int v => Buffer.Add(new OpConstant<int>(GetOrRegister(ScalarType.From("int")), Bound++, v)),
-            ulong v => Buffer.Add(new OpConstant<ulong>(GetOrRegister(ScalarType.From("ulong")), Bound++, v)),
-            long v => Buffer.Add(new OpConstant<long>(GetOrRegister(ScalarType.From("long")), Bound++, v)),
-            Half v => Buffer.Add(new OpConstant<Half>(GetOrRegister(ScalarType.From("half")), Bound++, v)),
-            float v => Buffer.Add(new OpConstant<float>(GetOrRegister(ScalarType.From("float")), Bound++, v)),
-            double v => Buffer.Add(new OpConstant<double>(GetOrRegister(ScalarType.From("bdouble")), Bound++, v)),
+            uint v => Buffer.Add(new OpConstant<uint>(GetOrRegister(ScalarType.UInt), Bound++, v)),
+            int v => Buffer.Add(new OpConstant<int>(GetOrRegister(ScalarType.Int), Bound++, v)),
+            ulong v => Buffer.Add(new OpConstant<ulong>(GetOrRegister(ScalarType.UInt64), Bound++, v)),
+            long v => Buffer.Add(new OpConstant<long>(GetOrRegister(ScalarType.Int64), Bound++, v)),
+            //Half v => Buffer.Add(new OpConstant<Half>(GetOrRegister(ScalarType.From("half")), Bound++, v)),
+            float v => Buffer.Add(new OpConstant<float>(GetOrRegister(ScalarType.Float), Bound++, v)),
+            double v => Buffer.Add(new OpConstant<double>(GetOrRegister(ScalarType.Double), Bound++, v)),
             _ => throw new NotImplementedException()
         };
         if (InstructionInfo.GetInfo(data).GetResultIndex(out var index))
@@ -291,24 +287,24 @@ public partial class SpirvContext
         {
             literal.Type = literal switch
             {
-                BoolLiteral lit => ScalarType.From("bool"),
+                BoolLiteral lit => ScalarType.Boolean,
                 IntegerLiteral lit => lit.Suffix switch
                 {
-                    { Signed: true, Size: 8 } => ScalarType.From("sbyte"),
-                    { Signed: true, Size: 16 } => ScalarType.From("short"),
-                    { Signed: true, Size: 32 } => ScalarType.From("int"),
-                    { Signed: true, Size: 64 } => ScalarType.From("long"),
-                    { Signed: false, Size: 8 } => ScalarType.From("byte"),
-                    { Signed: false, Size: 16 } => ScalarType.From("ushort"),
-                    { Signed: false, Size: 32 } => ScalarType.From("uint"),
-                    { Signed: false, Size: 64 } => ScalarType.From("ulong"),
+                    //{ Signed: true, Size: 8 } => ScalarType.SByte,
+                    //{ Signed: true, Size: 16 } => ScalarType.Short,
+                    { Signed: true, Size: 32 } => ScalarType.Int,
+                    { Signed: true, Size: 64 } => ScalarType.Int64,
+                    //{ Signed: false, Size: 8 } => ScalarType.UByte,
+                    //{ Signed: false, Size: 16 } => ScalarType.UShort,
+                    { Signed: false, Size: 32 } => ScalarType.UInt,
+                    { Signed: false, Size: 64 } => ScalarType.UInt64,
                     _ => throw new NotImplementedException("Unsupported integer suffix")
                 },
                 FloatLiteral lit => lit.Suffix.Size switch
                 {
-                    16 => ScalarType.From("half"),
-                    32 => ScalarType.From("float"),
-                    64 => ScalarType.From("double"),
+                    //16 => ScalarType.Half,
+                    32 => ScalarType.Float,
+                    64 => ScalarType.Double,
                     _ => throw new NotImplementedException("Unsupported float")
                 },
             };

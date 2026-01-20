@@ -17,21 +17,16 @@ public partial class SpirvContext
             var instruction = type switch
             {
                 ScalarType s =>
-                    s.TypeName switch
+                    s.Type switch
                     {
-                        "void" => Buffer.Add(new OpTypeVoid(Bound++)).IdResult,
-                        "bool" => Buffer.Add(new OpTypeBool(Bound++)).IdResult,
-                        "sbyte" => Buffer.Add(new OpTypeInt(Bound++, 8, 1)).IdResult,
-                        "byte" => Buffer.Add(new OpTypeInt(Bound++, 8, 0)).IdResult,
-                        "ushort" => Buffer.Add(new OpTypeInt(Bound++, 16, 1)).IdResult,
-                        "short" => Buffer.Add(new OpTypeInt(Bound++, 16, 0)).IdResult,
-                        "int" => Buffer.Add(new OpTypeInt(Bound++, 32, 1)).IdResult,
-                        "uint" => Buffer.Add(new OpTypeInt(Bound++, 32, 0)).IdResult,
-                        "long" => Buffer.Add(new OpTypeInt(Bound++, 64, 1)).IdResult,
-                        "ulong" => Buffer.Add(new OpTypeInt(Bound++, 64, 0)).IdResult,
-                        "half" => Buffer.Add(new OpTypeFloat(Bound++, 16, null)).IdResult,
-                        "float" => Buffer.Add(new OpTypeFloat(Bound++, 32, null)).IdResult,
-                        "double" => Buffer.Add(new OpTypeFloat(Bound++, 64, null)).IdResult,
+                        Scalar.Void => Buffer.Add(new OpTypeVoid(Bound++)).IdResult,
+                        Scalar.Boolean => Buffer.Add(new OpTypeBool(Bound++)).IdResult,
+                        Scalar.Int => Buffer.Add(new OpTypeInt(Bound++, 32, 1)).IdResult,
+                        Scalar.UInt => Buffer.Add(new OpTypeInt(Bound++, 32, 0)).IdResult,
+                        Scalar.Int64 => Buffer.Add(new OpTypeInt(Bound++, 64, 1)).IdResult,
+                        Scalar.UInt64 => Buffer.Add(new OpTypeInt(Bound++, 64, 0)).IdResult,
+                        Scalar.Float => Buffer.Add(new OpTypeFloat(Bound++, 32, null)).IdResult,
+                        Scalar.Double => Buffer.Add(new OpTypeFloat(Bound++, 64, null)).IdResult,
                         _ => throw new NotImplementedException($"Can't add type {type}")
                     },
                 VectorType v => Buffer.Add(new OpTypeVector(Bound++, GetOrRegister(v.BaseType), v.Size)).IdResult,

@@ -793,7 +793,7 @@ namespace Stride.Shaders.Spirv.Processing
                 }
             }
 
-            var voidType = context.GetOrRegister(ScalarType.From("void"));
+            var voidType = context.GetOrRegister(ScalarType.Void);
 
             // Add new entry point wrapper
             context.FluentAdd(new OpTypeFunctionSDSL(context.Bound++, voidType, []), out var newEntryPointFunctionType);

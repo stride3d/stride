@@ -5,39 +5,21 @@ namespace Stride.Shaders.Core;
 
 public partial record ScalarType
 {
-    public static string[] names = [
-        "bool",
-        "byte",
-        "sbyte",
-        "short",
-        "ushort",
-        "half",
-        "int",
-        "uint",
-        "float",
-        "long",
-        "ulong",
-        "double"
+    internal static KeyValuePair<string, ScalarType>[] names = [
+        new("void", Void),
+        new("bool", Boolean),
+        new("int", Int),
+        new("uint", UInt),
+        new("long", Int64),
+        new("ulong", UInt64),
+        new("float", Float),
+        new("double", Double),
     ];
     public static ScalarType From(string s) => Types[s];
     public static FrozenDictionary<string, ScalarType> Types { get; } = Init();
 
-    // static Scalar()
-    // {
-    //     var arr = new KeyValuePair<string, Scalar>[names.Length + 1];
-    //     arr[0] = new("void", new("void"));
-    //     for(int i = 1; i < names.Length; i++)
-    //         arr[i] = new(names[i], new(names[i]));
-    //     Types = FrozenDictionary.ToFrozenDictionary(arr); 
-    // }
-    internal static FrozenDictionary<string, ScalarType> Init()
-    {
-        var arr = new KeyValuePair<string, ScalarType>[names.Length + 1];
-        arr[0] = new("void", new("void"));
-        for(int i = 1; i < names.Length + 1; i++)
-            arr[i] = new(names[i - 1], new(names[i - 1]));
-        return arr.ToFrozenDictionary();
-    }
+    internal static FrozenDictionary<string, ScalarType> Init() =>
+        FrozenDictionary.Create<string, ScalarType>(names);
 }
 
 public partial record VectorType
@@ -50,7 +32,7 @@ public partial record VectorType
         var arr = new KeyValuePair<string, VectorType>[ScalarType.names.Length * 3];
         for(int i = 0; i < ScalarType.names.Length; i++)
             for(int x = 2; x <= 4; x++)
-                arr[i * 3 + (x - 2)] = new($"{ScalarType.names[i]}{x}", new(ScalarType.From(ScalarType.names[i]),x));
+                arr[i * 3 + (x - 2)] = new($"{ScalarType.names[i].Key}{x}", new(ScalarType.names[i].Value,x));
         return arr.ToFrozenDictionary();
     }
 }
@@ -67,7 +49,7 @@ public partial record MatrixType
             for(int x = 2; x <= 4; x++)
                 for(int y = 2; y <= 4; y++)
                     // Note: this is HLSL-style so Rows/Columns meaning is swapped
-                    arr.Add(new($"{ScalarType.names[i]}{y}x{x}", new(ScalarType.From(ScalarType.names[i]),x,y)));
+                    arr.Add(new($"{ScalarType.names[i].Key}{y}x{x}", new(ScalarType.names[i].Value,x,y)));
         return arr.ToFrozenDictionary(); 
     }
 }

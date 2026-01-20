@@ -120,7 +120,7 @@ public class GLSLFloatUnaryCall(ShaderExpressionList parameters, TextLocation in
         if (context.GLSLSet == null)
             context.ImportGLSL();
         
-        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.From("float"));
+        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.Float);
         x = builder.Convert(context, x, parameterType);
 
         var instruction = builder.Insert(new GLSLExp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -207,9 +207,9 @@ public class MinCall(ShaderExpressionList parameters, TextLocation info) : Metho
 
         var instruction = resultType.GetElementType() switch
         {
-            ScalarType { TypeName: "float" } => builder.InsertData(new GLSLFMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
-            ScalarType { TypeName: "uint" } => builder.InsertData(new GLSLUMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
-            ScalarType { TypeName: "int" } => builder.InsertData(new GLSLSMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
+            ScalarType { Type: Scalar.Float } => builder.InsertData(new GLSLFMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
+            ScalarType { Type: Scalar.UInt } => builder.InsertData(new GLSLUMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
+            ScalarType { Type: Scalar.Int } => builder.InsertData(new GLSLSMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
         };
         return new(instruction);
     }
@@ -233,9 +233,9 @@ public class MaxCall(ShaderExpressionList parameters, TextLocation info) : Metho
 
         var instruction = resultType.GetElementType() switch
         {
-            ScalarType { TypeName: "float" } => builder.InsertData(new GLSLFMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
-            ScalarType { TypeName: "uint" } => builder.InsertData(new GLSLUMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
-            ScalarType { TypeName: "int" } => builder.InsertData(new GLSLSMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
+            ScalarType { Type: Scalar.Float } => builder.InsertData(new GLSLFMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
+            ScalarType { Type: Scalar.UInt } => builder.InsertData(new GLSLUMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
+            ScalarType { Type: Scalar.Int } => builder.InsertData(new GLSLSMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
         };
         return new(instruction);
     }
@@ -263,9 +263,9 @@ public class ClampCall(ShaderExpressionList parameters, TextLocation info) : Met
 
         var instruction = baseType switch
         {
-            ScalarType { TypeName: "float" } => builder.InsertData(new GLSLFClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id)),
-            ScalarType { TypeName: "uint" } => builder.InsertData(new GLSLUClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id)),
-            ScalarType { TypeName: "int" } => builder.InsertData(new GLSLSClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id)),
+            ScalarType { Type: Scalar.Float } => builder.InsertData(new GLSLFClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id)),
+            ScalarType { Type: Scalar.UInt } => builder.InsertData(new GLSLUClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id)),
+            ScalarType { Type: Scalar.Int } => builder.InsertData(new GLSLSClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, minVal.Id, maxVal.Id)),
         };
         return new(instruction);
     }
@@ -290,9 +290,9 @@ public class SaturateCall(ShaderExpressionList parameters, TextLocation info) : 
 
         var instruction = baseType switch
         {
-            ScalarType { TypeName: "float" } => builder.InsertData(new GLSLFClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, constant0.Id, constant1.Id)),
-            ScalarType { TypeName: "uint" } => builder.InsertData(new GLSLUClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, constant0.Id, constant1.Id)),
-            ScalarType { TypeName: "int" } => builder.InsertData(new GLSLSClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, constant0.Id, constant1.Id)),
+            ScalarType { Type: Scalar.Float } => builder.InsertData(new GLSLFClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, constant0.Id, constant1.Id)),
+            ScalarType { Type: Scalar.UInt } => builder.InsertData(new GLSLUClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, constant0.Id, constant1.Id)),
+            ScalarType { Type: Scalar.Int } => builder.InsertData(new GLSLSClamp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, constant0.Id, constant1.Id)),
         };
         return new(instruction);
     }
@@ -311,7 +311,7 @@ public class LerpCall(ShaderExpressionList parameters, TextLocation info) : Meth
         var yType = Parameters.Values[1].ValueType;
         var aType = Parameters.Values[2].ValueType;
 
-        var resultType = IntrinsicHelper.FindCommonType(ScalarType.From("float"), xType, yType, aType);
+        var resultType = IntrinsicHelper.FindCommonType(ScalarType.Float, xType, yType, aType);
 
         x = builder.Convert(context, x, resultType);
         y = builder.Convert(context, y, resultType);
@@ -558,10 +558,10 @@ public class LengthCall(ShaderExpressionList parameters, TextLocation info) : Me
         if (context.GLSLSet == null)
             context.ImportGLSL();
 
-        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.From("float"));
+        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.Float);
         x = builder.Convert(context, x, parameterType);
 
-        var resultType = ScalarType.From("float");
+        var resultType = ScalarType.Float;
         var instruction = builder.Insert(new GLSLLength(context.GetOrRegister(resultType), context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
@@ -576,7 +576,7 @@ public class DistanceCall(ShaderExpressionList parameters, TextLocation info) : 
         var xType = Parameters.Values[0].ValueType;
         var yType = Parameters.Values[1].ValueType;
 
-        var resultType = ScalarType.From("float");
+        var resultType = ScalarType.Float;
         var inputTypes = IntrinsicHelper.FindCommonType(resultType, xType, yType);
 
         x = builder.Convert(context, x, resultType);
@@ -787,10 +787,10 @@ public class BoolToScalarBoolCall(ShaderExpressionList parameters, TextLocation 
         var (builder, context) = compiler;
         var x = Parameters.Values[0].CompileAsValue(table, compiler);
 
-        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.From("bool"));
+        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.Boolean);
         x = builder.Convert(context, x, parameterType);
 
-        var instruction = builder.Insert(new OpAny(context.GetOrRegister(ScalarType.From("bool")), context.Bound++, x.Id));
+        var instruction = builder.Insert(new OpAny(context.GetOrRegister(ScalarType.Boolean), context.Bound++, x.Id));
         instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)op;
         return new(instruction.ResultId, instruction.ResultType);
     }
@@ -803,7 +803,7 @@ public class FloatUnaryCall(ShaderExpressionList parameters, TextLocation info, 
         var (builder, context) = compiler;
         var x = Parameters.Values[0].CompileAsValue(table, compiler);
 
-        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.From("float"));
+        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.Float);
         x = builder.Convert(context, x, parameterType);
 
         var instruction = builder.Insert(new OpFwidth(x.TypeId, context.Bound++, x.Id));
@@ -865,7 +865,7 @@ public class InterlockedCall(ShaderExpressionList parameters, TextLocation info,
     {
         var (builder, context) = compiler;
         var dest = Parameters.Values[0].Compile(table, compiler);
-        if (Parameters.Values[0].Type is not PointerType pointerType || pointerType.BaseType is not ScalarType { TypeName: "uint" or "int" } s)
+        if (Parameters.Values[0].Type is not PointerType pointerType || pointerType.BaseType is not ScalarType { Type: Scalar.UInt or Scalar.Int } s)
             throw new InvalidOperationException($"l-value int or uint expected but got {Parameters.Values[0].Type}");
 
         var resultType = s;

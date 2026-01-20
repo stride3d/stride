@@ -353,11 +353,11 @@ namespace Stride.Shaders.Compilers.SDSL
         {
             return symbolType switch
             {
-                ScalarType { TypeName: "bool" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Bool, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
-                ScalarType { TypeName: "uint" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.UInt, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
-                ScalarType { TypeName: "int" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Int, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
-                ScalarType { TypeName: "float" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Float, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
-                ScalarType { TypeName: "double" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Double, RowCount = 1, ColumnCount = 1, ElementSize = 8 },
+                ScalarType { Type: Scalar.Boolean } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Bool, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ScalarType { Type: Scalar.UInt } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.UInt, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ScalarType { Type: Scalar.Int } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Int, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ScalarType { Type: Scalar.Float } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Float, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ScalarType { Type: Scalar.Double } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Double, RowCount = 1, ColumnCount = 1, ElementSize = 8 },
                 ArrayType a => ConvertArrayType(context, a, typeModifier, alignmentRules),
                 StructType s => ConvertStructType(context, s, alignmentRules),
                 // TODO: should we use RowCount instead? (need to update Stride)

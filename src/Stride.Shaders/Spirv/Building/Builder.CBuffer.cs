@@ -26,10 +26,8 @@ partial class SpirvBuilder
         };
         return (symbol) switch
         {
-            ScalarType { TypeName: "sbyte" or "byte" } => (1, 1),
-            ScalarType { TypeName: "short" or "ushort" } => (2, 2),
-            ScalarType { TypeName: "int" or "uint" or "float" or "bool" } => (4, 4),
-            ScalarType { TypeName: "long" or "ulong" or "double" } => (8, 8),
+            ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Float or Scalar.Boolean } => (4, 4),
+            ScalarType { Type: Scalar.Int64 or Scalar.UInt64 or Scalar.Double } => (8, 8),
             StructuredType s => StructSizeInBuffer(s, alignmentRules),
             VectorType v => MultiplySize(TypeSizeInBuffer(v.BaseType, typeModifier, alignmentRules), v.Size),
             // Note: this is HLSL-style so Rows/Columns meaning is swapped

@@ -93,7 +93,7 @@ public class While(Expression condition, Statement body, TextLocation info, Shad
             table.Errors.Add(new(Condition.Info, "while statement condition expression must evaluate to a scalar"));
 
         // Might need implicit conversion from float/int to bool
-        conditionValue = builder.Convert(context, conditionValue, ScalarType.From("bool"));
+        conditionValue = builder.Convert(context, conditionValue, ScalarType.Boolean);
 
         Body.Compile(table, compiler);
         throw new NotImplementedException();
@@ -146,7 +146,7 @@ public class For(Statement initializer, Expression cond, List<Statement> update,
             table.Errors.Add(new(Condition.Info, "for statement condition expression must evaluate to a scalar"));
 
         // Might need implicit conversion from float/int to bool
-        conditionValue = builder.Convert(context, conditionValue, ScalarType.From("bool"));
+        conditionValue = builder.Convert(context, conditionValue, ScalarType.Boolean);
 
         builder.Insert(new OpLoopMerge(currentEscapeBlocks.MergeBlock, currentEscapeBlocks.ContinueBlock, Specification.LoopControlMask.None, []));
         builder.Insert(new OpBranchConditional(conditionValue.Id, forBodyBlock, currentEscapeBlocks.MergeBlock, []));

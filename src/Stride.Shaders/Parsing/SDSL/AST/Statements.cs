@@ -15,7 +15,7 @@ public abstract class Statement(TextLocation info) : ValueNode(info)
 
 public class EmptyStatement(TextLocation info) : Statement(info)
 {
-    public override SymbolType? Type { get => ScalarType.From("void"); set { } }
+    public override SymbolType? Type { get => ScalarType.Void; set { } }
     public override void Compile(SymbolTable table, CompilerUnit compiler) { }
     public override string ToString() => ";";
 }
@@ -28,7 +28,7 @@ public class ExpressionStatement(Expression expression, TextLocation info) : Sta
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         Expression.Compile(table, compiler);
-        Type = ScalarType.From("void");
+        Type = ScalarType.Void;
     }
     public override string ToString()
     {

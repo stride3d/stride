@@ -102,9 +102,9 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
                 RegisterType(floatInstruction.ResultId, floatInstruction.Width switch
                 {
-                    16 => ScalarType.From("half"),
-                    32 => ScalarType.From("float"),
-                    64 => ScalarType.From("double"),
+                    16 => throw new NotImplementedException(),
+                    32 => ScalarType.Float,
+                    64 => ScalarType.Double,
                     _ => throw new InvalidOperationException(),
                 });
             }
@@ -113,16 +113,16 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 OpTypeInt intInstruction = instruction;
                 RegisterType(intInstruction.ResultId, (intInstruction.Width, intInstruction.Signedness == 1) switch
                 {
-                    (32, true) => ScalarType.From("int"),
-                    (32, false) => ScalarType.From("uint"),
-                    (64, true) => ScalarType.From("long"),
-                    (64, false) => ScalarType.From("ulong"),
+                    (32, true) => ScalarType.Int,
+                    (32, false) => ScalarType.UInt,
+                    (64, true) => ScalarType.Int64,
+                    (64, false) => ScalarType.UInt64,
                 });
             }
             else if (instruction.Op == Op.OpTypeBool)
             {
                 OpTypeBool boolInstruction = instruction;
-                RegisterType(boolInstruction.ResultId, ScalarType.From("bool"));
+                RegisterType(boolInstruction.ResultId, ScalarType.Boolean);
             }
             else if (instruction.Op == Op.OpTypePointer && (OpTypePointer)instruction is { } pointerInstruction)
             {
@@ -131,7 +131,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (instruction.Op == Op.OpTypeVoid && (OpTypeVoid)instruction is { } voidInstruction)
             {
-                RegisterType(voidInstruction.ResultId, ScalarType.From("void"));
+                RegisterType(voidInstruction.ResultId, ScalarType.Void);
             }
             else if (instruction.Op == Op.OpTypeVector && (OpTypeVector)instruction is { } vectorInstruction)
             {

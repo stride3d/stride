@@ -45,7 +45,7 @@ public abstract record SymbolType()
         }
         else if (name == "void")
         {
-            result = ScalarType.From("void");
+            result = ScalarType.Void;
             return true;
         }
         else
@@ -69,7 +69,7 @@ public abstract record SymbolType()
         // Note: templateTypeName is resolved lazily (because it might not be a buffer type and we don't need to resolve it)
         static ScalarType ResolveScalarType(SymbolTable table, SpirvContext context, TypeName? templateTypeName)
         {
-            var templateType = templateTypeName?.ResolveType(table, context) ?? ScalarType.From("float");
+            var templateType = templateTypeName?.ResolveType(table, context) ?? ScalarType.Float;
 
             return templateType switch
             {
@@ -134,9 +134,42 @@ public sealed partial record PointerType(SymbolType BaseType, Specification.Stor
     public override string ToString() => $"*{BaseType}";
 }
 
-public sealed partial record ScalarType(string TypeName) : SymbolType()
+public enum Scalar
 {
-    public override string ToString() => TypeName;
+    Void,
+    Boolean,
+    Int,
+    UInt,
+    Int64,
+    UInt64,
+    //Half,
+    Float,
+    Double
+}
+
+public sealed partial record ScalarType(Scalar Type) : SymbolType()
+{
+    public static ScalarType Void { get; } = new(Scalar.Void);
+    public static ScalarType Boolean { get; } = new(Scalar.Boolean);
+    public static ScalarType Int { get; } = new(Scalar.Int);
+    public static ScalarType UInt { get; } = new(Scalar.UInt);
+    public static ScalarType Int64 { get; } = new(Scalar.Int64);
+    public static ScalarType UInt64 { get; } = new(Scalar.UInt64);
+    public static ScalarType Float { get; } = new(Scalar.Float);
+    public static ScalarType Double { get; } = new(Scalar.Double);
+
+    public override string ToString() => Type switch
+    {
+        Scalar.Void => "void",
+        Scalar.Boolean => "bool",
+        Scalar.Int => "int",
+        Scalar.UInt => "uint",
+        Scalar.Int64 => "long",
+        Scalar.UInt64 => "ulong",
+        Scalar.Float => "float",
+        Scalar.Double => "double",
+        _ => throw new ArgumentOutOfRangeException()
+    };
 }
 public sealed partial record VectorType(ScalarType BaseType, int Size) : SymbolType()
 {

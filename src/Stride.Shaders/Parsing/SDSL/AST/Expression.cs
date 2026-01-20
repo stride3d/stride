@@ -329,7 +329,7 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
                     }
                 case Operator.Not:
                     {
-                        if (valueType.GetElementType() is not ScalarType { TypeName: "bool" })
+                        if (valueType.GetElementType() is not ScalarType { Type: Scalar.Boolean })
                             throw new InvalidOperationException();
                         var result = builder.Insert(new OpLogicalNot(valueExpression.TypeId, context.Bound++, valueExpression.Id));
                         Type = valueType;
@@ -449,7 +449,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     var resultType = new VectorType(textureType.ReturnType, 4);
 
                     var imageValue = builder.AsValue(context, lvalueBase);
-                    var imageCoordValue = ConvertTexCoord(context, builder, textureType, indexer.Index.CompileAsValue(table, compiler), ScalarType.From("int"));
+                    var imageCoordValue = ConvertTexCoord(context, builder, textureType, indexer.Index.CompileAsValue(table, compiler), ScalarType.Int);
                     var texelValue = builder.Convert(context, rvalue, resultType);
                     builder.Insert(new OpImageWrite(imageValue.Id, imageCoordValue.Id, texelValue.Id, null, []));
                     // We stop there
@@ -609,7 +609,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             var resultType = new VectorType(textureType.ReturnType, 4);
 
                             var samplerValue = implicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
-                            var texCoordValue = ConvertTexCoord(context, builder, textureType, implicitSampling.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.From("float"));
+                            var texCoordValue = ConvertTexCoord(context, builder, textureType, implicitSampling.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
 
                             var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
@@ -634,10 +634,10 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             var resultType = new VectorType(textureType.ReturnType, 4);
 
                             var samplerValue = explicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
-                            var texCoordValue = ConvertTexCoord(context, builder, textureType, explicitSampling.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.From("float"));
+                            var texCoordValue = ConvertTexCoord(context, builder, textureType, explicitSampling.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
                             
                             var levelValue = explicitSampling.Parameters.Values[2].CompileAsValue(table, compiler);
-                            levelValue = builder.Convert(context, levelValue, ScalarType.From("float"));
+                            levelValue = builder.Convert(context, levelValue, ScalarType.Float);
 
                             var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
@@ -670,7 +670,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                                 throw new InvalidOperationException();
 
                             var samplerValue = sampleCompare.Parameters.Values[0].CompileAsValue(table, compiler);
-                            var texCoordValue = ConvertTexCoord(context, builder, textureType, sampleCompare.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.From("float"));
+                            var texCoordValue = ConvertTexCoord(context, builder, textureType, sampleCompare.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
                             
                             var compareValue = sampleCompare.Parameters.Values[2].CompileAsValue(table, compiler);
 
@@ -742,7 +742,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     var resultType = new VectorType(textureType.ReturnType, 4);
 
                     var imageValue = builder.AsValue(context, result);
-                    var imageCoordValue = ConvertTexCoord(context, builder, textureType, indexer.Index.CompileAsValue(table, compiler), ScalarType.From("int"));
+                    var imageCoordValue = ConvertTexCoord(context, builder, textureType, indexer.Index.CompileAsValue(table, compiler), ScalarType.Int);
                     var imageRead = builder.Insert(new OpImageRead(context.GetOrRegister(resultType), context.Bound++, imageValue.Id, imageCoordValue.Id, null, []));
                     
                     result = new(imageRead.ResultId, imageRead.ResultType);
@@ -970,7 +970,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             Texture3DType or TextureCubeType => 3,
         };
 
-        spirvValue = builder.Convert(context, spirvValue, ScalarType.From("int").GetVectorOrScalar(offsetSize));
+        spirvValue = builder.Convert(context, spirvValue, ScalarType.Int.GetVectorOrScalar(offsetSize));
         return spirvValue;
     }
 
@@ -1056,7 +1056,7 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
         using (builder.UseTemporaryBuffer(rightValueBuffer))
             rightResult = Right.CompileAsValue(table, compiler);
 
-        if (Condition.ValueType.GetElementType() is not ScalarType { TypeName: "bool" })
+        if (Condition.ValueType.GetElementType() is not ScalarType { Type: Scalar.Boolean })
             table.Errors.Add(new(Condition.Info, SDSLErrorMessages.SDSL0106));
 
         var scalarType = SpirvBuilder.FindCommonBaseTypeForBinaryOperation(Left.ValueType.GetElementType(), Right.ValueType.GetElementType());

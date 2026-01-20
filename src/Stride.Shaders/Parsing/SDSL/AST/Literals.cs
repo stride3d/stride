@@ -72,7 +72,7 @@ public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : Numb
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         // If expectedType is float, handle it:
-        if (expectedType is ScalarType { TypeName: "float" })
+        if (expectedType is ScalarType { Type: Scalar.Float })
         {
             Type = expectedType;
             return compiler.Context.CompileConstantLiteral(new FloatLiteral(new(32, true, true), value, null, info));
@@ -95,14 +95,14 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
 
 public sealed class HexLiteral(ulong value, TextLocation info) : IntegerLiteral(new(value > uint.MaxValue ? 64 : 32, false, false), (long)value, info)
 {
-    public override SymbolType? Type => Suffix.Size > 32 ? ScalarType.From("ulong") : ScalarType.From("uint");
+    public override SymbolType? Type => Suffix.Size > 32 ? ScalarType.UInt64 : ScalarType.UInt;
 }
 
 
 public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
 {
     public bool Value { get; set; } = value;
-    public override SymbolType? Type => ScalarType.From("bool");
+    public override SymbolType? Type => ScalarType.Boolean;
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {

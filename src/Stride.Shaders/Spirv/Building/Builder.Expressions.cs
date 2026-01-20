@@ -86,15 +86,15 @@ public partial class SpirvBuilder
     {
         return (leftElementType, rightElementType) switch
         {
-            (ScalarType { TypeName: "long" }, _) or (_, ScalarType { TypeName: "long" }) => throw new NotImplementedException("64bit integers"),
+            (ScalarType { Type: Scalar.Int64 }, _) or (_, ScalarType { Type: Scalar.Int64 }) => throw new NotImplementedException("64bit integers"),
             // Matching types
-            (ScalarType { TypeName: "int" or "uint" or "float" or "double" or "bool" } l, ScalarType r) when l == r => l,
+            (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Float or Scalar.Double or Scalar.Boolean } l, ScalarType r) when l == r => l,
             // If one side is float and other is non-floating, promote to floating
-            (ScalarType { TypeName: "int" or "uint" } l, ScalarType { TypeName: "float" or "double" } r) => r,
-            (ScalarType { TypeName: "float" or "double" } l, ScalarType { TypeName: "int" or "uint" } r) => l,
+            (ScalarType { Type: Scalar.Int or Scalar.UInt } l, ScalarType { Type: Scalar.Float or Scalar.Double } r) => r,
+            (ScalarType { Type: Scalar.Float or Scalar.Double } l, ScalarType { Type: Scalar.Int or Scalar.UInt } r) => l,
             // If one side is unsigned, promote to unsigned (bitcast)
-            (ScalarType { TypeName: "int" } l, ScalarType { TypeName: "uint" } r) => r,
-            (ScalarType { TypeName: "uint" } l, ScalarType { TypeName: "int" } r) => l,
+            (ScalarType { Type: Scalar.Int } l, ScalarType { Type: Scalar.UInt } r) => r,
+            (ScalarType { Type: Scalar.UInt } l, ScalarType { Type: Scalar.Int } r) => l,
             _ => throw new NotImplementedException($"Couldn't figure out element type for binary operation between {leftElementType} and {rightElementType}"),
         };
     }
@@ -153,7 +153,7 @@ public partial class SpirvBuilder
         // Comparisons and logical operators
         if (op == Operator.Greater || op == Operator.Lower || op == Operator.GreaterOrEqual || op == Operator.LowerOrEqual
             || op == Operator.NotEquals || op == Operator.Equals || op == Operator.LogicalAND || op == Operator.LogicalOR)
-            resultType = resultType.WithElementType(ScalarType.From("bool"));
+            resultType = resultType.WithElementType(ScalarType.Boolean);
 
         var resultTypeId = context.GetOrRegister(resultType);
 
@@ -234,55 +234,55 @@ public partial class SpirvBuilder
                 when l.IsInteger() && r.IsInteger()
                 => Buffer.InsertData(Position++, new OpBitwiseXor(resultTypeId, context.Bound++, left.Id, right.Id)),
 
-            (Operator.LogicalAND, ScalarType { TypeName: "bool" }, ScalarType { TypeName: "bool" })
+            (Operator.LogicalAND, ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Boolean })
                 => Buffer.InsertData(Position++, new OpLogicalAnd(resultTypeId, context.Bound++, left.Id, right.Id)),
 
-            (Operator.LogicalOR, ScalarType { TypeName: "bool" }, ScalarType { TypeName: "bool" })
+            (Operator.LogicalOR, ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Boolean })
                 => Buffer.InsertData(Position++, new OpLogicalOr(resultTypeId, context.Bound++, left.Id, right.Id)),
 
-            (Operator.Equals, ScalarType { TypeName: "bool" }, ScalarType { TypeName: "bool" })
+            (Operator.Equals, ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Boolean })
                 => Buffer.InsertData(Position++, new OpLogicalEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
-            (Operator.Equals, ScalarType { TypeName: "int" or "uint" }, ScalarType { TypeName: "int" or "uint" })
+            (Operator.Equals, ScalarType { Type: Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Int or Scalar.UInt })
                 => Buffer.InsertData(Position++, new OpIEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
             (Operator.Equals, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
                 => Buffer.InsertData(Position++, new OpFOrdEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
 
-            (Operator.NotEquals, ScalarType { TypeName: "bool" }, ScalarType { TypeName: "bool" })
+            (Operator.NotEquals, ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Boolean })
                 => Buffer.InsertData(Position++, new OpLogicalNotEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
-            (Operator.NotEquals, ScalarType { TypeName: "int" or "uint" }, ScalarType { TypeName: "int" or "uint" })
+            (Operator.NotEquals, ScalarType { Type: Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Int or Scalar.UInt })
                 => Buffer.InsertData(Position++, new OpINotEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
             (Operator.NotEquals, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
                 => Buffer.InsertData(Position++, new OpFOrdNotEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
 
-            (Operator.Lower, ScalarType { TypeName: "int" }, ScalarType { TypeName: "int" })
+            (Operator.Lower, ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Int })
                 => Buffer.InsertData(Position++, new OpSLessThan(resultTypeId, context.Bound++, left.Id, right.Id)),
-            (Operator.Lower, ScalarType { TypeName: "uint" }, ScalarType { TypeName: "uint" })
+            (Operator.Lower, ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.UInt })
                 => Buffer.InsertData(Position++, new OpULessThan(resultTypeId, context.Bound++, left.Id, right.Id)),
             (Operator.Lower, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
                 => Buffer.InsertData(Position++, new OpFOrdLessThan(resultTypeId, context.Bound++, left.Id, right.Id)),
 
-            (Operator.LowerOrEqual, ScalarType { TypeName: "int" }, ScalarType { TypeName: "int" })
+            (Operator.LowerOrEqual, ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Int })
                 => Buffer.InsertData(Position++, new OpSLessThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
-            (Operator.LowerOrEqual, ScalarType { TypeName: "uint" }, ScalarType { TypeName: "uint" })
+            (Operator.LowerOrEqual, ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.UInt })
                 => Buffer.InsertData(Position++, new OpULessThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
             (Operator.LowerOrEqual, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
                 => Buffer.InsertData(Position++, new OpFOrdLessThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
 
-            (Operator.Greater, ScalarType { TypeName: "int" }, ScalarType { TypeName: "int" })
+            (Operator.Greater, ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Int })
                 => Buffer.InsertData(Position++, new OpSGreaterThan(resultTypeId, context.Bound++, left.Id, right.Id)),
-            (Operator.Greater, ScalarType { TypeName: "uint" }, ScalarType { TypeName: "uint" })
+            (Operator.Greater, ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.UInt })
                 => Buffer.InsertData(Position++, new OpUGreaterThan(resultTypeId, context.Bound++, left.Id, right.Id)),
             (Operator.Greater, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
                 => Buffer.InsertData(Position++, new OpFOrdGreaterThan(resultTypeId, context.Bound++, left.Id, right.Id)),
 
-            (Operator.GreaterOrEqual, ScalarType { TypeName: "int" }, ScalarType { TypeName: "int" })
+            (Operator.GreaterOrEqual, ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Int })
                 => Buffer.InsertData(Position++, new OpSGreaterThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
-            (Operator.GreaterOrEqual, ScalarType { TypeName: "uint" }, ScalarType { TypeName: "uint" })
+            (Operator.GreaterOrEqual, ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.UInt })
                 => Buffer.InsertData(Position++, new OpUGreaterThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
             (Operator.GreaterOrEqual, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
@@ -413,21 +413,21 @@ public partial class SpirvBuilder
                 var typeCasting = (valueType.GetElementType(), castType.GetElementType()) switch
                 {
                     // https://learn.microsoft.com/en-us/windows/win32/direct3d9/casting-and-conversion
-                    (ScalarType { TypeName: "float" }, ScalarType { TypeName: "int" }) => InsertData(new OpConvertFToS(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
-                    (ScalarType { TypeName: "float" }, ScalarType { TypeName: "uint" }) => InsertData(new OpConvertFToU(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Int }) => InsertData(new OpConvertFToS(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.UInt }) => InsertData(new OpConvertFToU(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
 
-                    (ScalarType { TypeName: "float" }, ScalarType { TypeName: "bool" }) => InsertData(new OpFOrdNotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 0.0, null, new()), elementSize).Id)),
-                    (ScalarType { TypeName: "int" }, ScalarType { TypeName: "bool" }) => InsertData(new OpINotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 0, new()), elementSize).Id)),
+                    (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Boolean }) => InsertData(new OpFOrdNotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 0.0, null, new()), elementSize).Id)),
+                    (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Boolean }) => InsertData(new OpINotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 0, new()), elementSize).Id)),
 
-                    (ScalarType { TypeName: "int" }, ScalarType { TypeName: "float" }) => InsertData(new OpConvertSToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
-                    (ScalarType { TypeName: "uint" }, ScalarType { TypeName: "float" }) => InsertData(new OpConvertUToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Float }) => InsertData(new OpConvertSToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Float }) => InsertData(new OpConvertUToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
 
-                    (ScalarType { TypeName: "bool" }, ScalarType { TypeName: "int" }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 1, new()), elementSize).Id, context.CompileConstant(0).Id)),
-                    (ScalarType { TypeName: "bool" }, ScalarType { TypeName: "float" }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 1.0, null, new()), elementSize).Id, context.CompileConstant(0.0).Id)),
+                    (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Int }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 1, new()), elementSize).Id, context.CompileConstant(0).Id)),
+                    (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Float }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 1.0, null, new()), elementSize).Id, context.CompileConstant(0.0).Id)),
 
                     // Bitcast (int=>uint or uint=>int)
-                    (ScalarType { TypeName: "int" }, ScalarType { TypeName: "uint" }) => InsertData(new OpBitcast(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
-                    (ScalarType { TypeName: "uint" }, ScalarType { TypeName: "int" }) => InsertData(new OpBitcast(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.UInt }) => InsertData(new OpBitcast(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Int }) => InsertData(new OpBitcast(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
                 };
                 values[i] = typeCasting.IdResult!.Value;
 
@@ -501,9 +501,9 @@ internal static class SymbolExtensions
         VectorType v => v.BaseType == elementType ? v : v with { BaseType = elementType },
         MatrixType m => m.BaseType == elementType ? m : m with { BaseType = elementType },
     };
-    public static bool IsSignedInteger(this SymbolType symbol) => symbol is ScalarType { TypeName: "sbyte" or "short" or "int" or "long" };
-    public static bool IsUnsignedInteger(this SymbolType symbol) => symbol is ScalarType { TypeName: "byte" or "ushort" or "uint" or "ulong" };
-    public static bool IsFloating(this SymbolType symbol) => symbol is ScalarType { TypeName: "half" or "float" or "double" };
+    public static bool IsSignedInteger(this SymbolType symbol) => symbol is ScalarType { Type: Scalar.Int or Scalar.Int64 };
+    public static bool IsUnsignedInteger(this SymbolType symbol) => symbol is ScalarType { Type: Scalar.UInt or Scalar.UInt64 };
+    public static bool IsFloating(this SymbolType symbol) => symbol is ScalarType { Type: Scalar.Float or Scalar.Double };
     public static bool IsInteger(this SymbolType symbol) => symbol.IsSignedInteger() || symbol.IsUnsignedInteger();
     public static bool IsNumber(this SymbolType symbol) => symbol.IsInteger() || symbol.IsFloating();
     public static bool IsSigned(this SymbolType symbol) => symbol.IsSignedInteger() || symbol.IsFloating();
@@ -538,10 +538,8 @@ internal static class SymbolExtensions
     public static bool SameBaseTypeWidth(SymbolType left, SymbolType right)
         => (right, left) switch
         {
-            (ScalarType { TypeName: "byte" or "sbyte" }, ScalarType { TypeName: "byte" or "sbyte" }) => true,
-            (ScalarType { TypeName: "ushort" or "short" or "half" }, ScalarType { TypeName: "ushort" or "short" or "half" }) => true,
-            (ScalarType { TypeName: "uint" or "int" or "float" }, ScalarType { TypeName: "uint" or "int" or "float" }) => true,
-            (ScalarType { TypeName: "ulong" or "long" or "double" }, ScalarType { TypeName: "ulong" or "long" or "double" }) => true,
+            (ScalarType { Type: Scalar.UInt or Scalar.Int or Scalar.Float }, ScalarType { Type: Scalar.UInt or Scalar.Int or Scalar.Float }) => true,
+            (ScalarType { Type: Scalar.UInt64 or Scalar.Int64 or Scalar.Double }, ScalarType { Type: Scalar.UInt64 or Scalar.Int64 or Scalar.Double }) => true,
             (VectorType l, ScalarType r) => SameBaseType(l.BaseType, r),
             (ScalarType l, VectorType r) => SameBaseType(l, r.BaseType),
             (VectorType l, VectorType r) => SameBaseType(l.BaseType, r.BaseType),

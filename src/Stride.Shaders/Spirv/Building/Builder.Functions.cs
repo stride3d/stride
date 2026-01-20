@@ -32,7 +32,7 @@ public partial class SpirvBuilder
         var lastInstruction = Buffer[Position - 1];
         if (!IsBlockTermination(lastInstruction.Op))
         {
-            if (CurrentFunction.Value.FunctionType.ReturnType != ScalarType.From("void"))
+            if (CurrentFunction.Value.FunctionType.ReturnType != ScalarType.Void)
                 throw new InvalidOperationException("No function termination, but a return value is expected");
 
             Return(null);

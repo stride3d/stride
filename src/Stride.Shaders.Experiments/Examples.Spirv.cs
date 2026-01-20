@@ -18,8 +18,8 @@ public static partial class Examples
         var compiler = new CompilerUnit();
         var (builder, context) = compiler;
 
-        context.GetOrRegister(new MatrixType(ScalarType.From("float"), 4, 3));
-        context.GetOrRegister(ScalarType.From("int"));
+        context.GetOrRegister(new MatrixType(ScalarType.Float, 4, 3));
+        context.GetOrRegister(ScalarType.Int);
 
 
         // context.AddGlobalVariable(new(new("color", SymbolKind.Variable, Storage.Stream), VectorType.From("float4")));
@@ -27,11 +27,11 @@ public static partial class Examples
         var function = builder.DeclareFunction(
             context,
             "add",
-            new(ScalarType.From("int"), [new(ScalarType.From("int"), default), new(ScalarType.From("int"), default)])
+            new(ScalarType.Int, [new(ScalarType.Int, default), new(ScalarType.Int, default)])
         );
         builder.BeginFunction(context, function);
-        builder.AddFunctionParameter(context, "a", ScalarType.From("int"));
-        builder.AddFunctionParameter(context, "b", ScalarType.From("int"));
+        builder.AddFunctionParameter(context, "a", ScalarType.Int);
+        builder.AddFunctionParameter(context, "b", ScalarType.Int);
         builder.SetPositionTo(function);
         var block = builder.CreateBlock(context, "sourceBlock");
         builder.SetPositionTo(block);

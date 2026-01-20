@@ -39,7 +39,7 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
                 table.Errors.Add(new(currentIf.Condition.Info, "if statement conditional expressions must evaluate to a scalar"));
 
             // Might need implicit conversion from float/int to bool
-            conditionValue = builder.Convert(context, conditionValue, ScalarType.From("bool"));
+            conditionValue = builder.Convert(context, conditionValue, ScalarType.Boolean);
 
             int? falseBlock = (i + 1 < ElseIfs.Count + 1 || Else != null)
                 ? context.Bound++

@@ -224,13 +224,13 @@ public partial class SpirvBuilder
             var genericValue = genericValues![index];
             switch (genericParameterType)
             {
-                case ScalarType { TypeName: "int" }:
+                case ScalarType { Type: Scalar.Int }:
                     value = int.Parse(genericValue);
                     return true;
-                case ScalarType { TypeName: "float" }:
+                case ScalarType { Type: Scalar.Float }:
                     value = float.Parse(genericValue);
                     return true;
-                case ScalarType { TypeName: "bool" }:
+                case ScalarType { Type: Scalar.Boolean }:
                     value = bool.Parse(genericValue);
                     return true;
                 case GenericParameterType g:

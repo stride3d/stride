@@ -64,10 +64,10 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("any", _) => new BoolToScalarBoolCall(parameters, scanner[position..scanner.Position], Specification.Op.OpAny),
 
                     // Cast
-                    ("asdouble", _) => new BitcastCall(parameters, scanner[position..scanner.Position], ScalarType.From("double")),
-                    ("asfloat", _) => new BitcastCall(parameters, scanner[position..scanner.Position], ScalarType.From("float")),
-                    ("asint", _) => new BitcastCall(parameters, scanner[position..scanner.Position], ScalarType.From("int")),
-                    ("asuint", _) => new BitcastCall(parameters, scanner[position..scanner.Position], ScalarType.From("uint")),
+                    ("asdouble", _) => new BitcastCall(parameters, scanner[position..scanner.Position], ScalarType.Double),
+                    ("asfloat", _) => new BitcastCall(parameters, scanner[position..scanner.Position], ScalarType.Float),
+                    ("asint", _) => new BitcastCall(parameters, scanner[position..scanner.Position], ScalarType.Int),
+                    ("asuint", _) => new BitcastCall(parameters, scanner[position..scanner.Position], ScalarType.UInt),
                     
                     // Trigo
                     ("sin", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLSin),
