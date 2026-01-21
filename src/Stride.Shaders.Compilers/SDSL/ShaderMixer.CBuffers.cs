@@ -119,7 +119,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 }
             }
             
-            // Remap decorations
+            // Remap decorations and remove OpName
             foreach (var i in context)
             {
                 if (i.Op == Op.OpDecorate && (OpDecorate)i is {} decorate)
@@ -131,6 +131,11 @@ namespace Stride.Shaders.Compilers.SDSL
                 {
                     if (variableToMemberIndices.TryGetValue(decorateString.Target, out var memberIndex))
                         i.Buffer.Replace(i.Index, new OpMemberDecorateString(globalCBufferTypeId, memberIndex, decorateString.Decoration, decorateString.Value));
+                }
+                else if (i.Op == Op.OpName && (OpName)i is { } name)
+                {
+                    if (variableToMemberIndices.ContainsKey(name.Target))
+                        SetOpNop(i.Data.Memory.Span);
                 }
             }
         }

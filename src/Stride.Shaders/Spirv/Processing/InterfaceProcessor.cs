@@ -395,14 +395,29 @@ namespace Stride.Shaders.Spirv.Processing
                 }
             }
 
+            // Remove all OpTypeStreamsSDSL or any type that depends on it
+            // (we do that before the OpName/OpDecorate pass)
             foreach (var i in context)
             {
-                if (i.Op == Op.OpName && ((OpName)i) is { } name)
+                if (i.Op == Op.OpTypeStreamsSDSL || i.Op == Op.OpTypeFunctionSDSL || i.Op == Op.OpTypePointer)
                 {
-                    if (removedIds.Contains(name.Target))
-                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    if (context.ReverseTypes.TryGetValue(i.Data.IdResult.Value, out var type))
+                    {
+                        var streamsTypeSearch = new StreamsTypeSearch();
+                        streamsTypeSearch.VisitType(type);
+                        if (streamsTypeSearch.Found)
+                        {
+                            removedIds.Add(i.Data.IdResult.Value);
+                            SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                        }
+                    }
                 }
-                else if (i.Op == Op.OpDecorate && ((OpDecorate)i) is { } decorate)
+            }
+
+            // Remove OpName/OpDecorate
+            foreach (var i in context)
+            {
+                if (i.Op == Op.OpDecorate && ((OpDecorate)i) is { } decorate)
                 {
                     if (removedIds.Contains(decorate.Target))
                         SpirvBuilder.SetOpNop(i.Data.Memory.Span);
@@ -412,15 +427,10 @@ namespace Stride.Shaders.Spirv.Processing
                     if (removedIds.Contains(decorateString.Target))
                         SpirvBuilder.SetOpNop(i.Data.Memory.Span);
                 }
-                else if (i.Op == Op.OpTypeStreamsSDSL || i.Op == Op.OpTypeFunctionSDSL || i.Op == Op.OpTypePointer)
+                else if (i.Op == Op.OpName && ((OpName)i) is { } name)
                 {
-                    if (context.ReverseTypes.TryGetValue(i.Data.IdResult.Value, out var type))
-                    {
-                        var streamsTypeSearch = new StreamsTypeSearch();
-                        streamsTypeSearch.VisitType(type);
-                        if (streamsTypeSearch.Found)
-                            SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-                    }
+                    if (removedIds.Contains(name.Target))
+                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
                 }
             }
         }
