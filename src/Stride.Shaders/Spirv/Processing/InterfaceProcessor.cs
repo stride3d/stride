@@ -26,11 +26,11 @@ namespace Stride.Shaders.Spirv.Processing
             Output,
         }
         
-        class StreamInfo(string? semantic, string name, SymbolType type, int variableId)
+        class StreamInfo(string? semantic, string name, PointerType type, int variableId)
         {
             public string? Semantic { get; } = semantic;
             public string Name { get; } = name;
-            public SymbolType Type { get; } = type;
+            public PointerType Type { get; } = type;
             public int VariableId { get; } = variableId;
 
             public int? InputLayoutLocation { get; set; }
@@ -51,10 +51,10 @@ namespace Stride.Shaders.Spirv.Processing
             public override string ToString() => $"{Type} {Name} {(Read ? "R" : "")} {(Write ? "W" : "")}";
         }
 
-        class VariableInfo(string name, SymbolType type, int variableId)
+        class VariableInfo(string name, PointerType type, int variableId)
         {
             public string Name { get; } = name;
-            public SymbolType Type { get; } = type;
+            public PointerType Type { get; } = type;
 
             public int VariableId { get; } = variableId;
             public int? VariableMethodInitializerId { get; set; }
@@ -566,7 +566,7 @@ namespace Stride.Shaders.Spirv.Processing
                     var name = nameTable.TryGetValue(variable.ResultId, out var nameId)
                         ? nameId
                         : $"unnamed_{variable.ResultId}";
-                    var type = context.ReverseTypes[variable.ResultType];
+                    var type = (PointerType)context.ReverseTypes[variable.ResultType];
 
                     if (variable.Flags.HasFlag(VariableFlagsMask.Stream))
                     {
@@ -733,7 +733,7 @@ namespace Stride.Shaders.Spirv.Processing
 
             foreach (var stream in streams)
             {
-                var baseType = ((PointerType)stream.Value.Type).BaseType;
+                var baseType = stream.Value.Type.BaseType;
 
                 if (stream.Value.UsedThisStage)
                     privateStreams.Add(stream.Value);
@@ -792,7 +792,7 @@ namespace Stride.Shaders.Spirv.Processing
             foreach (var stream in privateStreams)
             {
                 stream.StreamStructFieldIndex = fields.Count;
-                fields.Add(new(stream.Name, stream.Type, default));
+                fields.Add(new(stream.Name, stream.Type.BaseType, default));
             }
             var streamsType = new StructType($"{stage}_STREAMS", fields);
             context.DeclareStructuredType(streamsType);
@@ -830,7 +830,7 @@ namespace Stride.Shaders.Spirv.Processing
                     {
                         liveAnalysis.ExtraReferencedMethods.Add(methodInitializerId);
 
-                        var variableValueType = ((PointerType)variable.Value.Type).BaseType;
+                        var variableValueType = variable.Value.Type.BaseType;
                         buffer.FluentAdd(new OpFunctionCall(context.GetOrRegister(variableValueType), context.Bound++, methodInitializerId, []), out var methodInitializerCall);
                         buffer.Add(new OpStore(variable.Value.VariableId, methodInitializerCall.ResultId, null, []));
                     }
@@ -839,7 +839,7 @@ namespace Stride.Shaders.Spirv.Processing
                 // Copy variables from input to streams struct
                 foreach (var stream in inputStreams)
                 {
-                    var baseType = ((PointerType)stream.Info.Type).BaseType;
+                    var baseType = stream.Info.Type.BaseType;
                     buffer.FluentAdd(new OpAccessChain(context.Types[stream.Info.Type], context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id]), out var streamPointer);
                     buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, stream.Id, null, []), out var loadedValue);
                     buffer.Add(new OpStore(streamPointer.ResultId, loadedValue.ResultId, null, []));
@@ -850,7 +850,7 @@ namespace Stride.Shaders.Spirv.Processing
                 // Copy variables from streams struct to output
                 foreach (var stream in outputStreams)
                 {
-                    var baseType = ((PointerType)stream.Info.Type).BaseType;
+                    var baseType = stream.Info.Type.BaseType;
                     buffer.FluentAdd(new OpAccessChain(context.Types[stream.Info.Type], context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id]), out var streamPointer);
                     buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, streamPointer.ResultId, null, []), out var loadedValue);
                     buffer.Add(new OpStore(stream.Id, loadedValue.ResultId, null, []));
