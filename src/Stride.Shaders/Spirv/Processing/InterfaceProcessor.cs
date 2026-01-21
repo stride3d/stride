@@ -161,8 +161,10 @@ namespace Stride.Shaders.Spirv.Processing
             }
         }
 
-        public void Process(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context)
+        public List<(string Name, int Id, ShaderStage Stage)> Process(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context)
         {
+            var entryPoints = new List<(string Name, int Id, ShaderStage Stage)>();
+
             table.TryResolveSymbol("VSMain", out var entryPointVS);
             table.TryResolveSymbol("PSMain", out var entryPointPS);
             table.TryResolveSymbol("CSMain", out var entryPointCS);
@@ -190,7 +192,8 @@ namespace Stride.Shaders.Spirv.Processing
 
             if (entryPointCS.IdRef != 0)
             {
-                var csWrapperId = GenerateStreamWrapper(buffer, context, ExecutionModel.GLCompute, entryPointCS.IdRef, entryPointCS.Id.Name, analysisResult, liveAnalysis, false);
+                (var csWrapperId, var csWrapperName) = GenerateStreamWrapper(buffer, context, ExecutionModel.GLCompute, entryPointCS.IdRef, entryPointCS.Id.Name, analysisResult, liveAnalysis, false);
+                entryPoints.Add((csWrapperName, csWrapperId, ShaderStage.Compute));
 
                 // Move OpExecutionMode on new CSMain wrapper (and remove others)
                 foreach (var i in context)
@@ -218,7 +221,9 @@ namespace Stride.Shaders.Spirv.Processing
                 // (if PSMain has been overriden with an empty method, it means we don't want to output anything and remove the pixel shader, i.e. for shadow caster)
                 if (streams.Any(x => x.Value.Output))
                 {
-                    var psWrapperId = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult, liveAnalysis, false);
+                    (var psWrapperId, var psWrapperName) = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult, liveAnalysis, false);
+                    entryPoints.Add((psWrapperName, psWrapperId, ShaderStage.Pixel));
+
                     buffer.FluentAdd(new OpExecutionMode(psWrapperId, ExecutionMode.OriginUpperLeft, []));
                 }
 
@@ -255,13 +260,16 @@ namespace Stride.Shaders.Spirv.Processing
                             stream.Value.Output = true;
                     }
 
-                    GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult, liveAnalysis, true);
+                    (var vsWrapperId, var vsWrapperName) = GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult, liveAnalysis, true);
+                    entryPoints.Add((vsWrapperName, vsWrapperId, ShaderStage.Vertex));
                 }
             }
 
             // This will remove a lot of unused methods, resources and variables
             // (while following proper rules to preserve rgroup, cbuffer, logical groups, etc.)
             RemoveUnreferencedCode(buffer, context, analysisResult, streams, liveAnalysis);
+
+            return entryPoints;
         }
 
         private static void RemoveUnreferencedCode(NewSpirvBuffer buffer, SpirvContext context, AnalysisResult analysisResult, Dictionary<int, StreamInfo> streams, LiveAnalysis liveAnalysis)
@@ -644,7 +652,7 @@ namespace Stride.Shaders.Spirv.Processing
             return new(nameTable, streams, variables, cbuffers, resourceGroups, resources);
         }
 
-        private int GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult, LiveAnalysis liveAnalysis, bool isFirstActiveShader)
+        private (int Id, string Name) GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult, LiveAnalysis liveAnalysis, bool isFirstActiveShader)
         {
             var streams = analysisResult.Streams;
 
@@ -806,10 +814,11 @@ namespace Stride.Shaders.Spirv.Processing
             var voidType = context.GetOrRegister(ScalarType.Void);
 
             // Add new entry point wrapper
-            context.FluentAdd(new OpTypeFunctionSDSL(context.Bound++, voidType, []), out var newEntryPointFunctionType);
+            var newEntryPointFunctionType = context.GetOrRegister(new FunctionType(ScalarType.Void, []));
             buffer.FluentAdd(new OpFunction(voidType, context.Bound++, FunctionControlMask.None, newEntryPointFunctionType), out var newEntryPointFunction);
             buffer.Add(new OpLabel(context.Bound++));
-            context.AddName(newEntryPointFunction, $"{entryPointName}_Wrapper");
+            entryPointName = $"{entryPointName}_Wrapper";
+            context.AddName(newEntryPointFunction, entryPointName);
 
             {
                 // Variable initializers
@@ -876,10 +885,10 @@ namespace Stride.Shaders.Spirv.Processing
                 }
 
                 liveAnalysis.ExtraReferencedMethods.Add(newEntryPointFunction);
-                context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", [.. pvariables.Slice(0, pvariableIndex)]));
+                context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, entryPointName, [.. pvariables.Slice(0, pvariableIndex)]));
             }
 
-            return newEntryPointFunction.ResultId;
+            return (newEntryPointFunction.ResultId, entryPointName);
         }
 
         void DuplicateMethodIfNecessary(NewSpirvBuffer buffer, SpirvContext context, int functionId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)

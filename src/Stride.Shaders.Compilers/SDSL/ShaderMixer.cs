@@ -26,6 +26,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Stride.Core.Storage;
 using static Stride.Shaders.Spirv.Specification;
+using EntryPoint = Stride.Shaders.Core.EntryPoint;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
@@ -33,7 +34,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 {
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
     
-    public void MergeSDSL(ShaderSource shaderSource, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources)
+    public void MergeSDSL(ShaderSource shaderSource, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<(string Name, int Id, ShaderStage Stage)> entryPoints)
     {
         var temp = new NewSpirvBuffer();
 
@@ -63,7 +64,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         {
             CodeInserted = (int index, int count) => AdjustIndicesAfterAppendInstructions(rootMixin, index, count)
         };
-        interfaceProcessor.Process(table, temp, context);
+        entryPoints = interfaceProcessor.Process(table, temp, context);
         
         // Process Link (add CompositionPath, generate missing ones, etc.)
         ProcessLinks(context, temp);
