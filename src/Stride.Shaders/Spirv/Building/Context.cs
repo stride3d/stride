@@ -207,6 +207,21 @@ public partial class SpirvContext
         return this;
     }
 
+    public void RemoveNames(HashSet<int> ids)
+    {
+        foreach (var i in  Buffer)
+        {
+            if (i.Op == Op.OpName && (OpName)i is {} nameInstruction)
+            {
+                if (ids.Contains(nameInstruction.Target))
+                {
+                    Names.Remove(nameInstruction.Target);
+                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                }
+            }
+        }
+    }
+
     public void Sort() => Buffer.Sort();
 
     [Obsolete("Use the insert method instead")]

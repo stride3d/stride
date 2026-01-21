@@ -373,22 +373,24 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         Instructions.InsertRange(index, source);
     }
 
-    public OpData Replace(int index, OpData i)
+    public OpData Replace(int index, OpData i, bool dispose = true)
     {
         if (index < 0 || index >= Instructions.Count)
             throw new InvalidOperationException();
 
-        Instructions[index].Dispose();
+        if (dispose)
+            Instructions[index].Dispose();
         Instructions[index] = i;
         return Instructions[index];
     }
 
-    public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction, allows ref struct
+    public OpData Replace<T>(int index, in T instruction, bool dispose = true) where T : struct, IMemoryInstruction, allows ref struct
     {
         if (index < 0 || index >= Instructions.Count)
             throw new InvalidOperationException();
 
-        Instructions[index].Dispose();
+        if (dispose)
+            Instructions[index].Dispose();
         Instructions[index] = new(instruction.InstructionMemory);
         return Instructions[index];
     }

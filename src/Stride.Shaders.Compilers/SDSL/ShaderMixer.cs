@@ -534,10 +534,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     // If abstract, let's erase the whole function
                     if ((functionInfo.Flags & FunctionFlagsMask.Abstract) != 0)
                     {
+                        var removedIds = new HashSet<int>();
                         while (temp[index].Op != Op.OpFunctionEnd)
                         {
+                            if (temp[index].Data.IdResult is {} idResult)
+                                removedIds.Add(idResult);
                             SetOpNop(temp[index++].Data.Memory.Span);
                         }
+                        context.RemoveNames(removedIds);
 
                         SetOpNop(temp[index].Data.Memory.Span);
                     }
@@ -611,7 +615,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 foreachBufferCopy.Add(i2);
             }
         }
+        
+        // Clean OpName used by removed instructions (only for IdResult)
+        var removedIds = new HashSet<int>();
+        foreach (var i in foreachBuffer)
+            if (i.IdResult is { } idResult)
+                removedIds.Add(idResult);
+        context.RemoveNames(removedIds);
+        
+        // Insert new code
         buffer.InsertRange(index, foreachBufferCopy.AsSpan());
+        
         // Note: mixinNode is not added to rootMixin hierarchy yet
         //       Moreover, we are the last mixin (or one of our child is)
         //       So we need (and it's safe) to call this on mixinNode rather than root node
@@ -875,14 +889,24 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
     {
-        for (int index = 0; index < temp.Count; index++)
+        var ids = new HashSet<int>();
+        foreach (var i in temp)
         {
-            var i = temp[index];
+            // Collect IDs (except for OpName)
+            if (i.Op != Op.OpName)
+                SpirvBuilder.CollectIds(i.Data, ids);
+        }
+        
+        // Remove in a single pass (we do in-place without RemoveAt otherwise it would be up to O(n^2) complexity)
+        int insertIndex = 0;
+        for (int sourceIndex = 0; sourceIndex < temp.Count; sourceIndex++)
+        {
+            var i = temp[sourceIndex];
 
             // Transform OpVariableSDSL into OpVariable (we don't need extra info anymore)
             // Note: we ignore initializer as we store a method which is already processed during InterfaceProcessor (as opposed to a const for OpVariable)
             if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
-                temp.Replace(index, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
+                temp.Replace(sourceIndex, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
 
             // Transform OpTypeFunctionSDSL into OpTypeFunction (we don't need extra info anymore)
             if (i.Op == Op.OpTypeFunctionSDSL && (OpTypeFunctionSDSL)i is { } functionType)
@@ -890,12 +914,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 Span<int> parameterTypes = stackalloc int[functionType.Values.Elements.Span.Length];
                 for (int j = 0; j < functionType.Values.Elements.Span.Length; ++j)
                     parameterTypes[j] = functionType.Values.Elements.Span[j].Item1;
-                temp.Replace(index, new OpTypeFunction(functionType.ResultId, functionType.ReturnType, [..parameterTypes]));
+                temp.Replace(sourceIndex, new OpTypeFunction(functionType.ResultId, functionType.ReturnType, [..parameterTypes]));
             }
 
+            var keep = true;
             // Remove Nop
             if (i.Op == Op.OpNop)
-                temp.RemoveAt(index--);
+                keep = false;
             // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
             else if (i.Op == Op.OpSDSLShader
                 || i.Op == Op.OpSDSLShaderEnd
@@ -908,38 +933,60 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpSDSLImportFunction
                 || i.Op == Op.OpSDSLImportVariable
                 || i.Op == Op.OpSDSLFunctionInfo)
-                temp.RemoveAt(index--);
+                keep = false;
             else if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && ((OpDecorate)i).Decoration is
                     Decoration.FunctionParameterDefaultValueSDSL
                     or Decoration.ShaderConstantSDSL
                     or Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL or Decoration.ResourceGroupIdSDSL
                     or Decoration.SamplerStateFilter or Decoration.SamplerStateAddressU or Decoration.SamplerStateAddressV or Decoration.SamplerStateAddressW
                     or Decoration.SamplerStateMipLODBias or Decoration.SamplerStateMaxAnisotropy or Decoration.SamplerStateComparisonFunc or Decoration.SamplerStateMinLOD or Decoration.SamplerStateMaxLOD)
-                temp.RemoveAt(index--);
+                keep = false;
             else if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && ((OpMemberDecorate)i).Decoration is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
-                temp.RemoveAt(index--);
+                keep = false;
 
             // Remove SPIR-V about pointer types to other shaders (variable and types themselves are removed as well)
             else if (i.Op == Op.OpTypePointer && (OpTypePointer)i is { } typePointer)
             {
                 var pointedType = context.ReverseTypes[typePointer.Type];
                 if (pointedType is ShaderSymbol || pointedType is ArrayType { BaseType: ShaderSymbol })
-                    temp.RemoveAt(index--);
+                    keep = false;
             }
             // Also remove arrays of shaders (used in composition arrays)
             else if (i.Op == Op.OpTypeArray && (OpTypeArray)i is { } typeArray)
             {
                 var innerType = context.ReverseTypes[typeArray.ElementType];
                 if (innerType is ShaderSymbol)
-                    temp.RemoveAt(index--);
+                    keep = false;
             }
             else if (i.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)i is { } typeRuntimeArray)
             {
                 var innerType = context.ReverseTypes[typeRuntimeArray.ElementType];
                 if (innerType is ShaderSymbol)
-                    temp.RemoveAt(index--);
+                    keep = false;
+            }
+
+            // Remove unnecessary OpName
+            // Note: we should issue a warning and make sure those are deleted as we process stuff?
+            if (i.Op == Op.OpName && (OpName)i is {} nameInstruction)
+            {
+                if (!ids.Contains(nameInstruction.Target))
+                    keep = false;
+            }
+
+            if (keep)
+            {
+                if (insertIndex++ != sourceIndex)
+                    // Note: we're not using Dispose() since we simply move it
+                    temp.Replace(insertIndex - 1, temp[sourceIndex].Data, false);
+            }
+            else
+            {
+                temp[sourceIndex].Data.Dispose();
             }
         }
+        
+        // Remove leftover instructions (they have been either disposed or moved so no need to dispose them
+        temp.RemoveRange(insertIndex, temp.Count - insertIndex, false);
     }
 }
 
