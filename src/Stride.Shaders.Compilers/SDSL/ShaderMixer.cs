@@ -827,7 +827,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || o.Kind == OperandKind.IdResult
                 || o.Kind == OperandKind.IdResultType
                 || o.Kind == OperandKind.IdScope
-                || o.Kind == OperandKind.IdMemorySemantics)
+                || o.Kind == OperandKind.IdMemorySemantics
+                || o.Kind == OperandKind.PairIdRefIdRef)
             {
                 for (int i = 0; i < o.Words.Length; ++i)
                 {
@@ -836,18 +837,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 }
             }
             else if (o.Kind == OperandKind.PairIdRefLiteralInteger
-                     || o.Kind == OperandKind.PairLiteralIntegerIdRef
-                     || o.Kind == OperandKind.PairIdRefIdRef)
+                     || o.Kind == OperandKind.PairLiteralIntegerIdRef)
             {
                 for (int i = 0; i < o.Words.Length; i += 2)
                 {
-                    if (o.Kind == OperandKind.PairIdRefLiteralInteger || o.Kind == OperandKind.PairIdRefIdRef)
+                    if (o.Kind == OperandKind.PairIdRefLiteralInteger)
                     {
                         if (o.Words[i + 0] != 0)
                             o.Words[i + 0] += offset;
                     }
 
-                    if (o.Kind == OperandKind.PairLiteralIntegerIdRef || o.Kind == OperandKind.PairIdRefIdRef)
+                    if (o.Kind == OperandKind.PairLiteralIntegerIdRef)
                     {
                         if (o.Words[i + 1] != 0)
                             o.Words[i + 1] += offset;

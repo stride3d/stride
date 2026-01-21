@@ -549,24 +549,28 @@ public partial class SpirvBuilder
     {
         foreach (var op in i)
         {
-            if ((op.Kind == OperandKind.IdRef
+            if (op.Kind == OperandKind.IdRef
                  || op.Kind == OperandKind.IdResult
                  || op.Kind == OperandKind.IdResultType
                  || op.Kind == OperandKind.IdScope
                  || op.Kind == OperandKind.IdMemorySemantics
-                 || op.Kind == OperandKind.PairIdRefLiteralInteger
                  || op.Kind == OperandKind.PairIdRefIdRef)
-                && op.Words.Length > 0
-                && ids.Contains(op.Words[0]))
             {
-                return true;
+                foreach (var word in op.Words)
+                    if (ids.Contains(word))
+                        return true;
             }
-
-            if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
-                 || op.Kind == OperandKind.PairIdRefIdRef)
-                && ids.Contains(op.Words[1]))
+            else if (op.Kind == OperandKind.PairIdRefLiteralInteger)
             {
-                return true;
+                for (int j = 0; j < op.Words.Length; j += 2)
+                    if (ids.Contains(op.Words[j]))
+                        return true;
+            }
+            else if (op.Kind == OperandKind.PairLiteralIntegerIdRef)
+            {
+                for (int j = 1; j < op.Words.Length; j += 2)
+                    if (ids.Contains(op.Words[j]))
+                        return true;
             }
         }
 
@@ -602,10 +606,7 @@ public partial class SpirvBuilder
                  || op.Kind == OperandKind.IdResultType
                  || op.Kind == OperandKind.IdScope
                  || op.Kind == OperandKind.IdMemorySemantics
-                 || op.Kind == OperandKind.PairIdRefLiteralInteger
-                 || op.Kind == OperandKind.PairIdRefIdRef
-                 || op.Kind == OperandKind.IdScope
-                 || op.Kind == OperandKind.IdMemorySemantics)
+                 || op.Kind == OperandKind.PairIdRefIdRef)
             {
                 foreach (ref var word in op.Words)
                 {
@@ -633,21 +634,49 @@ public partial class SpirvBuilder
                 }
             }
 
-            if ((op.Kind == OperandKind.PairIdRefLiteralInteger)
-                && idRemapping.TryGetValue(op.Words[0], out var to2))
+            if (op.Kind == OperandKind.PairIdRefLiteralInteger)
             {
-                if (op.Quantifier != OperandQuantifier.One)
-                    throw new NotImplementedException();
-                op.Words[0] = to2;
+                for (int j = 0; j < op.Words.Length; j += 2)
+                {
+                    if (idRemapping.TryGetValue(op.Words[j], out var to2))
+                        op.Words[j] = to2;
+                }
             }
 
-            if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
-                 || op.Kind == OperandKind.PairIdRefIdRef)
-                && idRemapping.TryGetValue(op.Words[1], out var to3))
+            if (op.Kind == OperandKind.PairLiteralIntegerIdRef)
             {
-                if (op.Quantifier != OperandQuantifier.One)
-                    throw new NotImplementedException();
-                op.Words[1] = to3;
+                for (int j = 1; j < op.Words.Length; j += 2)
+                {
+                    if (idRemapping.TryGetValue(op.Words[j], out var to2))
+                        op.Words[j] = to2;
+                }
+            }
+        }
+    }
+    
+    public static void CollectIds(OpData i, HashSet<int> ids)
+    {
+        foreach (var op in i)
+        {
+            if (op.Kind == OperandKind.IdRef
+                || op.Kind == OperandKind.IdResult
+                || op.Kind == OperandKind.IdResultType
+                || op.Kind == OperandKind.IdScope
+                || op.Kind == OperandKind.IdMemorySemantics
+                || op.Kind == OperandKind.PairIdRefIdRef)
+            {
+                foreach (var word in op.Words)
+                    ids.Add(word);
+            }
+            else if (op.Kind == OperandKind.PairIdRefLiteralInteger)
+            {
+                for (int j = 0; j < op.Words.Length; j += 2)
+                    ids.Add(op.Words[j]);
+            }
+            else if (op.Kind == OperandKind.PairLiteralIntegerIdRef)
+            {
+                for (int j = 1; j < op.Words.Length; j += 2)
+                    ids.Add(op.Words[j]);
             }
         }
     }
