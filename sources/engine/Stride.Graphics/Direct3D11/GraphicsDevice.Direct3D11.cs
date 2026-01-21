@@ -86,7 +86,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets the tick frquency of timestamp queries, in hertz.
         /// </summary>
-        public ulong TimestampFrequency { get; private set; }
+        public long TimestampFrequency { get; private set; }
 
         /// <summary>
         ///   Gets the current status of the Graphics Device.
@@ -152,7 +152,7 @@ namespace Stride.Graphics
                 else
                 {
                     // The query is ready, we can reuse it
-                    TimestampFrequency = queryResult.Frequency;
+                    TimestampFrequency = (long)queryResult.Frequency;
                     currentDisjointQuery = disjointQueries.Dequeue();
                 }
             }
