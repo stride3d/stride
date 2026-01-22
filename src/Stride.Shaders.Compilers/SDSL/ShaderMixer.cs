@@ -887,42 +887,40 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
-    private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
+    private static void RemoveInstructionWhere(NewSpirvBuffer buffer, Func<OpDataIndex, bool> match)
     {
-        var ids = new HashSet<int>();
-        foreach (var i in temp)
+        int insertIndex = 0;
+        for (int sourceIndex = 0; sourceIndex < buffer.Count; sourceIndex++)
         {
-            // Collect IDs (except for OpName)
-            if (i.Op != Op.OpName)
-                SpirvBuilder.CollectIds(i.Data, ids);
+            var i = buffer[sourceIndex];
+            var remove = match(i);
+
+            if (!remove)
+            {
+                if (insertIndex++ != sourceIndex)
+                    // Note: we're not using Dispose() since we simply move it
+                    buffer.Replace(insertIndex - 1, buffer[sourceIndex].Data, false);
+            }
+            else
+            {
+                buffer[sourceIndex].Data.Dispose();
+            }
         }
         
+        // Remove leftover instructions (they have been either disposed or moved so no need to dispose them)
+        buffer.RemoveRange(insertIndex, buffer.Count - insertIndex, false);
+    }
+
+    private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
+    {
         // Remove in a single pass (we do in-place without RemoveAt otherwise it would be up to O(n^2) complexity)
-        int insertIndex = 0;
-        for (int sourceIndex = 0; sourceIndex < temp.Count; sourceIndex++)
+        RemoveInstructionWhere(temp, i =>
         {
-            var i = temp[sourceIndex];
-
-            // Transform OpVariableSDSL into OpVariable (we don't need extra info anymore)
-            // Note: we ignore initializer as we store a method which is already processed during InterfaceProcessor (as opposed to a const for OpVariable)
-            if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
-                temp.Replace(sourceIndex, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
-
-            // Transform OpTypeFunctionSDSL into OpTypeFunction (we don't need extra info anymore)
-            if (i.Op == Op.OpTypeFunctionSDSL && (OpTypeFunctionSDSL)i is { } functionType)
-            {
-                Span<int> parameterTypes = stackalloc int[functionType.Values.Elements.Span.Length];
-                for (int j = 0; j < functionType.Values.Elements.Span.Length; ++j)
-                    parameterTypes[j] = functionType.Values.Elements.Span[j].Item1;
-                temp.Replace(sourceIndex, new OpTypeFunction(functionType.ResultId, functionType.ReturnType, [..parameterTypes]));
-            }
-
-            var keep = true;
             // Remove Nop
             if (i.Op == Op.OpNop)
-                keep = false;
+                return true;
             // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
-            else if (i.Op == Op.OpSDSLShader
+            if (i.Op == Op.OpSDSLShader
                 || i.Op == Op.OpSDSLShaderEnd
                 || i.Op == Op.OpSDSLComposition
                 || i.Op == Op.OpSDSLCompositionEnd
@@ -933,60 +931,84 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpSDSLImportFunction
                 || i.Op == Op.OpSDSLImportVariable
                 || i.Op == Op.OpSDSLFunctionInfo)
-                keep = false;
-            else if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && ((OpDecorate)i).Decoration is
+                return true;
+            if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && ((OpDecorate)i).Decoration is
                     Decoration.FunctionParameterDefaultValueSDSL
                     or Decoration.ShaderConstantSDSL
                     or Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL or Decoration.ResourceGroupIdSDSL
                     or Decoration.SamplerStateFilter or Decoration.SamplerStateAddressU or Decoration.SamplerStateAddressV or Decoration.SamplerStateAddressW
                     or Decoration.SamplerStateMipLODBias or Decoration.SamplerStateMaxAnisotropy or Decoration.SamplerStateComparisonFunc or Decoration.SamplerStateMinLOD or Decoration.SamplerStateMaxLOD)
-                keep = false;
-            else if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && ((OpMemberDecorate)i).Decoration is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
-                keep = false;
+                return true;
+            if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && ((OpMemberDecorate)i).Decoration is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
+                return true;
 
             // Remove SPIR-V about pointer types to other shaders (variable and types themselves are removed as well)
-            else if (i.Op == Op.OpTypePointer && (OpTypePointer)i is { } typePointer)
+            if (i.Op == Op.OpTypePointer && (OpTypePointer)i is { } typePointer)
             {
                 var pointedType = context.ReverseTypes[typePointer.Type];
                 if (pointedType is ShaderSymbol || pointedType is ArrayType { BaseType: ShaderSymbol })
-                    keep = false;
+                    return true;
             }
             // Also remove arrays of shaders (used in composition arrays)
             else if (i.Op == Op.OpTypeArray && (OpTypeArray)i is { } typeArray)
             {
                 var innerType = context.ReverseTypes[typeArray.ElementType];
                 if (innerType is ShaderSymbol)
-                    keep = false;
+                    return true;
             }
             else if (i.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)i is { } typeRuntimeArray)
             {
                 var innerType = context.ReverseTypes[typeRuntimeArray.ElementType];
                 if (innerType is ShaderSymbol)
-                    keep = false;
+                    return true;
             }
+            return false;
+        });
+        
+        var ids = new HashSet<int>();
+        foreach (var i in temp)
+        {
+            // Transform OpVariableSDSL into OpVariable (we don't need extra info anymore)
+            // Note: we ignore initializer as we store a method which is already processed during InterfaceProcessor (as opposed to a const for OpVariable)
+            if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
+                temp.Replace(i.Index, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
 
-            // Remove unnecessary OpName
-            // Note: we should issue a warning and make sure those are deleted as we process stuff?
+            // Transform OpTypeFunctionSDSL into OpTypeFunction (we don't need extra info anymore)
+            if (i.Op == Op.OpTypeFunctionSDSL && (OpTypeFunctionSDSL)i is { } functionType)
+            {
+                Span<int> parameterTypes = stackalloc int[functionType.Values.Elements.Span.Length];
+                for (int j = 0; j < functionType.Values.Elements.Span.Length; ++j)
+                    parameterTypes[j] = functionType.Values.Elements.Span[j].Item1;
+                temp.Replace(i.Index, new OpTypeFunction(functionType.ResultId, functionType.ReturnType, [..parameterTypes]));
+            }
+            
+            // Collect IDs (except for OpName/OpDecorate/OpDecorateString metadata)
+            if (i.Op != Op.OpName && i.Op != Op.OpDecorate && i.Op != Op.OpDecorateString)
+                SpirvBuilder.CollectIds(i.Data, ids);
+        }
+
+        // Remove unnecessary OpName/OpDecorate/OpDecorateString
+        // Note: we should issue a warning and make sure those are deleted as we process stuff?
+        RemoveInstructionWhere(temp, i =>
+        {
             if (i.Op == Op.OpName && (OpName)i is {} nameInstruction)
             {
                 if (!ids.Contains(nameInstruction.Target))
-                    keep = false;
+                    return true;
+            }
+            if (i.Op == Op.OpDecorate && (OpDecorate)i is {} decorate)
+            {
+                if (!ids.Contains(decorate.Target))
+                    return true;
+            }
+            if (i.Op == Op.OpDecorate && (OpDecorateString)i is {} decorateString)
+            {
+                if (!ids.Contains(decorateString.Target))
+                    return true;
             }
 
-            if (keep)
-            {
-                if (insertIndex++ != sourceIndex)
-                    // Note: we're not using Dispose() since we simply move it
-                    temp.Replace(insertIndex - 1, temp[sourceIndex].Data, false);
-            }
-            else
-            {
-                temp[sourceIndex].Data.Dispose();
-            }
-        }
-        
-        // Remove leftover instructions (they have been either disposed or moved so no need to dispose them
-        temp.RemoveRange(insertIndex, temp.Count - insertIndex, false);
+            return false;
+        });
     }
 }
 
