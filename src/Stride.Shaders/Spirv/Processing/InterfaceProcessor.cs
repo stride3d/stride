@@ -7,6 +7,7 @@ using System.IO;
 using Stride.Shaders.Parsing.Analysis;
 using static Stride.Shaders.Spirv.Specification;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using CommunityToolkit.HighPerformance;
 
 namespace Stride.Shaders.Spirv.Processing
@@ -161,7 +162,9 @@ namespace Stride.Shaders.Spirv.Processing
             }
         }
 
-        public List<(string Name, int Id, ShaderStage Stage)> Process(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context)
+        public record Result(List<(string Name, int Id, ShaderStage Stage)> EntryPoints, List<ShaderInputAttributeDescription> InputAttributes);
+
+        public Result Process(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context)
         {
             var entryPoints = new List<(string Name, int Id, ShaderStage Stage)>();
 
@@ -207,6 +210,9 @@ namespace Stride.Shaders.Spirv.Processing
                     }
                 }
             }
+
+            var inputAttributes = new List<ShaderInputAttributeDescription>();
+            
             if (entryPointPS.IdRef != 0)
             {
                 // If written to, they are expected at the end of pixel shader
@@ -262,6 +268,19 @@ namespace Stride.Shaders.Spirv.Processing
 
                     (var vsWrapperId, var vsWrapperName) = GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult, liveAnalysis, true);
                     entryPoints.Add((vsWrapperName, vsWrapperId, ShaderStage.Vertex));
+                    
+                    // Process shader input attributes
+                    foreach (var stream in streams)
+                    {
+                        // Note: built-ins won't have a inputLayoutLocation so they will be skipped
+                        if (stream.Value.Input && stream.Value.InputLayoutLocation is {} inputLayoutLocation)
+                        {
+                            if (stream.Value.Semantic == null)
+                                throw new InvalidOperationException($"Vertex shader input {stream.Value.Name} doesn't have semantic");
+                            var semantic = ParseSemantic(stream.Value.Semantic);
+                            inputAttributes.Add(new ShaderInputAttributeDescription { Location = inputLayoutLocation, SemanticName = semantic.Name, SemanticIndex = semantic.Index });
+                        }
+                    }
                 }
             }
 
@@ -269,7 +288,7 @@ namespace Stride.Shaders.Spirv.Processing
             // (while following proper rules to preserve rgroup, cbuffer, logical groups, etc.)
             RemoveUnreferencedCode(buffer, context, analysisResult, streams, liveAnalysis);
 
-            return entryPoints;
+            return new(entryPoints, inputAttributes);
         }
 
         private static void RemoveUnreferencedCode(NewSpirvBuffer buffer, SpirvContext context, AnalysisResult analysisResult, Dictionary<int, StreamInfo> streams, LiveAnalysis liveAnalysis)
@@ -844,7 +863,6 @@ namespace Stride.Shaders.Spirv.Processing
                     buffer.Add(new OpStore(stream.Id, loadedValue.ResultId, null, []));
                 }
 
-
                 buffer.Add(new OpReturn());
                 buffer.Add(new OpFunctionEnd());
 
@@ -1173,6 +1191,23 @@ namespace Stride.Shaders.Spirv.Processing
                     return (startIndex, index + 1);
             }
             throw new InvalidOperationException($"Could not find start of method {functionId}");
+        }
+        
+        private static readonly Regex MatchSemanticName = new Regex(@"([A-Za-z_]+)(\d*)");
+        private static (string Name, int Index) ParseSemantic(string semantic)
+        {
+            var match = MatchSemanticName.Match(semantic);
+            if (!match.Success)
+                return (semantic, 0);
+
+            string baseName = match.Groups[1].Value;
+            int value = 0;
+            if (!string.IsNullOrEmpty(match.Groups[2].Value))
+            {
+                value = int.Parse(match.Groups[2].Value);
+            }
+
+            return (baseName, value);
         }
     }
 }

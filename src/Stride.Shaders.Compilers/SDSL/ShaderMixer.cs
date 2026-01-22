@@ -64,7 +64,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         {
             CodeInserted = (int index, int count) => AdjustIndicesAfterAppendInstructions(rootMixin, index, count)
         };
-        entryPoints = interfaceProcessor.Process(table, temp, context);
+        (entryPoints, globalContext.Reflection.InputAttributes) = interfaceProcessor.Process(table, temp, context);
         
         // Process Link (add CompositionPath, generate missing ones, etc.)
         ProcessLinks(context, temp);
