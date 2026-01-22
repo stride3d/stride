@@ -54,6 +54,11 @@ namespace Stride.Graphics.Regression
         /// </summary>
         public static bool ForceInteractiveMode { get; set; }
 
+        /// <summary>
+        /// Force image to be saved even if image comparison was a success and no error during the test.
+        /// </summary>
+        public static bool ForceSaveImageOnSuccess { get; set; }
+
 
         /// <summary>
         ///   Gets the instance of the <see cref="FrameGameSystem"/> where the tests
@@ -98,6 +103,11 @@ namespace Stride.Graphics.Regression
         private BackBufferSizeMode backBufferSizeMode;
 
 #if STRIDE_PLATFORM_DESKTOP
+        /// <summary>
+        /// Forces render doc capture even if test didn't fail. This can be used only when <see cref="CaptureRenderDocOnError"/> is set.
+        /// </summary>
+        public static bool ForceCaptureRenderDocOnSuccess = false;
+
         /// <summary>
         ///   Gets or sets a value indicating whether RenderDoc should capture a frame when an error occurs
         ///   or a test fails.
@@ -594,7 +604,8 @@ namespace Stride.Graphics.Regression
                 // If no comparison errors, and no test errors, discard the capture
                 if (game.comparisonFailedMessages.Count == 0 &&
                     game.comparisonMissingMessages.Count == 0 &&
-                    exceptionOrFailedAssert is null)
+                    exceptionOrFailedAssert is null &&
+                    !ForceCaptureRenderDocOnSuccess)
                 {
                     game.DiscardFrameCapture();
                 }
@@ -697,6 +708,8 @@ namespace Stride.Graphics.Regression
                 }
             }
 
+            comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
+
             if (testFileNames.Count == 0)
             {
                 // No source image, save this one so that user can later copy it to validated folder
@@ -710,6 +723,10 @@ namespace Stride.Graphics.Regression
                 comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
                 foreach (var file in testFileNames)
                     comparisonFailedMessages.Add($"  {file} ({ (matchingImage ? "reference" : "different platform/device") })");
+            }
+            else if (ForceSaveImageOnSuccess)
+            {
+                ImageTester.SaveImage(image, testLocalFileName);
             }
             else
             {

@@ -8,6 +8,7 @@
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCompileAssets>false</StrideCompileAssets>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+    <StrideGraphicsRegression>true</StrideGraphicsRegression>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>xunit.runner.stride.Program</StartupObject>
