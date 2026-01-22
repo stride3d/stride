@@ -61,7 +61,7 @@ namespace Stride.Graphics
             CreatePipelineLayout(Description);
 
             // Create shader stages
-            var stages = CreateShaderStages(Description, out var inputAttributeNames);
+            var stages = CreateShaderStages(Description);
 
             if (IsCompute)
             {
@@ -98,15 +98,15 @@ namespace Stride.Graphics
 
                     VulkanConvertExtensions.ConvertPixelFormat(inputElement.Format, out var format, out var size, out var isCompressed);
 
-                    var location = inputAttributeNames.FirstOrDefault(x => x.Value == inputElement.SemanticName && inputElement.SemanticIndex == 0 || x.Value == inputElement.SemanticName + inputElement.SemanticIndex);
-                    if (location.Value != null)
+                    var inputAttribute = Description.EffectBytecode.Reflection.InputAttributes.FirstOrDefault(x => x.SemanticName == inputElement.SemanticName && x.SemanticIndex == inputElement.SemanticIndex);
+                    if (inputAttribute.SemanticName != null)
                     {
                         inputAttributes[inputAttributeCount++] = new VkVertexInputAttributeDescription
                         {
                             format = format,
                             offset = (uint)inputElement.AlignedByteOffset,
                             binding = (uint)inputElement.InputSlot,
-                            location = (uint)location.Key
+                            location = (uint)inputAttribute.Location
                         };
                     }
 
@@ -229,11 +229,8 @@ namespace Stride.Graphics
                 }
             }
 
-            // Cleanup shader modules
-            foreach (var stage in stages)
-            {
-                GraphicsDevice.NativeDeviceApi.vkDestroyShaderModule(GraphicsDevice.NativeDevice, stage.module, allocator: null);
-            }
+            // Cleanup shader modules (since module is shared between each stage, cleaning first stage is enough)
+            GraphicsDevice.NativeDeviceApi.vkDestroyShaderModule(GraphicsDevice.NativeDevice, stages[0].module, allocator: null);
         }
 
         /// <inheritdoc/>
@@ -364,13 +361,11 @@ namespace Stride.Graphics
             var layouts = pipelineStateDescription.RootSignature.EffectDescriptorSetReflection.Layouts;
 
             // Get binding indices used by the shader
-            var destinationBindings = pipelineStateDescription.EffectBytecode.Stages
-                .SelectMany(x => ReadShaderBytecode(x.Data).ResourceBindings)
-                .GroupBy(x => x.Key, x => x.Value)
-                .ToDictionary(x => x.Key, x => x.First());
+            var destinationBindings = pipelineStateDescription.EffectBytecode.Reflection.ResourceBindings
+                .ToDictionary(x => x.KeyInfo.KeyName, x => x);
 
-            var maxBindingIndex = destinationBindings.Max(x => x.Value);
-            var destinationEntries = new DescriptorSetLayoutBuilder.Entry[maxBindingIndex + 1];
+            var maxBindingIndex = destinationBindings.Max(x => x.Value.SlotStart + x.Value.SlotCount);
+            var destinationEntries = new DescriptorSetLayoutBuilder.Entry[maxBindingIndex];
 
             DescriptorBindingMapping = new List<DescriptorSetInfo>();
 
@@ -391,7 +386,9 @@ namespace Stride.Graphics
 
                     if (destinationBindings.TryGetValue(sourceEntry.Key.Name, out var destinationBinding))
                     {
-                        destinationEntries[destinationBinding] = sourceEntry;
+                        if (destinationBinding.SlotCount != 1)
+                            throw new NotImplementedException();
+                        destinationEntries[destinationBinding.SlotStart] = sourceEntry;
 
                         // No need to umpdate immutable samplers
                         if (sourceEntry.Class == EffectParameterClass.Sampler && sourceEntry.ImmutableSampler != null)
@@ -403,22 +400,13 @@ namespace Stride.Graphics
                         {
                             SourceSet = layoutIndex,
                             SourceBinding = sourceBinding,
-                            DestinationBinding = destinationBinding,
+                            DestinationBinding = destinationBinding.SlotStart,
                             DescriptorType = VulkanConvertExtensions.ConvertDescriptorType(sourceEntry.Class, sourceEntry.Type),
                             ResourceElementIsInteger = sourceEntry.ElementType != EffectParameterType.Float && sourceEntry.ElementType != EffectParameterType.Double
                         });
                     }
                 }
             }
-
-            // Create default sampler, used by texture and buffer loads
-            destinationEntries[0] = new DescriptorSetLayoutBuilder.Entry
-            {
-                Class = EffectParameterClass.Sampler,
-                Type = EffectParameterType.Sampler,
-                ImmutableSampler = GraphicsDevice.SamplerStates.PointWrap,
-                ArraySize = 1
-            };
 
             // Create descriptor set layout
             NativeDescriptorSetLayout = DescriptorSetLayout.CreateNativeDescriptorSetLayout(GraphicsDevice, destinationEntries, out DescriptorTypeCounts);
@@ -434,33 +422,36 @@ namespace Stride.Graphics
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreatePipelineLayout(GraphicsDevice.NativeDevice, &pipelineLayoutCreateInfo, allocator: null, out NativeLayout));
         }
 
-        private unsafe VkPipelineShaderStageCreateInfo[] CreateShaderStages(PipelineStateDescription pipelineStateDescription, out Dictionary<int, string> inputAttributeNames)
+        private unsafe VkPipelineShaderStageCreateInfo[] CreateShaderStages(PipelineStateDescription pipelineStateDescription)
         {
             var stages = pipelineStateDescription.EffectBytecode.Stages;
             var nativeStages = new VkPipelineShaderStageCreateInfo[stages.Length];
 
             IsCompute = false;
 
-            inputAttributeNames = null;
+            // Create shader module (shared by all stages)
+            var shaderBytecode = stages[0].Data;
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateShaderModule(GraphicsDevice.NativeDevice, shaderBytecode, allocator: null, out var shaderModule));
 
             for (int i = 0; i < stages.Length; i++)
             {
-                var shaderBytecode = ReadShaderBytecode(stages[i].Data);
-                if (stages[i].Stage == ShaderStage.Vertex)
-                    inputAttributeNames = shaderBytecode.InputAttributeNames;
-                if (stages[i].Stage == ShaderStage.Compute)
+                var stage = stages[i];
+                if (stage.Data != shaderBytecode)
+                    throw new InvalidOperationException("Vulkan: bytecode is expected to be the same for all stages");
+
+                if (stage.Stage == ShaderStage.Compute)
                     IsCompute = true;
 
-                fixed (byte* entryPointPointer = &defaultEntryPoint[0])
+                fixed (byte* entryPointPointer = &stage.EntryPoint[0])
                 {
                     // Create stage
                     nativeStages[i] = new VkPipelineShaderStageCreateInfo
                     {
                         sType = VkStructureType.PipelineShaderStageCreateInfo,
                         stage = VulkanConvertExtensions.Convert(stages[i].Stage),
-                        pName = entryPointPointer
+                        pName = entryPointPointer,
+                        module = shaderModule,
                     };
-                    GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateShaderModule(GraphicsDevice.NativeDevice, shaderBytecode.Data, allocator: null, out nativeStages[i].module));
                 }
             }
 

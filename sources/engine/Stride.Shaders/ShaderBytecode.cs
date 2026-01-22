@@ -31,6 +31,11 @@ public partial class ShaderBytecode
     /// </summary>
     public byte[] Data { get; set; }
 
+    /// <summary>
+    /// Entry point name, stored as UTF8 null terminated string.
+    /// </summary>
+    public byte[] EntryPoint { get; set; }
+
 
     /// <summary>
     ///   Initializes a new instance of the <see cref="ShaderBytecode"/> class.

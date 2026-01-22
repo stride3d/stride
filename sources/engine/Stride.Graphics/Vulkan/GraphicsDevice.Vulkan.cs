@@ -409,9 +409,16 @@ namespace Stride.Graphics
                 IsProfilingSupported = true;
             }
 
+            // Activate VK_KHR_uniform_buffer_standard_layout (promoted Vulkan 1.2)
+            var uniformBufferStandardLayoutFeature = new VkPhysicalDeviceUniformBufferStandardLayoutFeatures();
+            uniformBufferStandardLayoutFeature.sType = VkStructureType.PhysicalDeviceUniformBufferStandardLayoutFeatures;
+            uniformBufferStandardLayoutFeature.uniformBufferStandardLayout = VkBool32.True;
+
+            // Activate VK_KHR_timeline_semaphore (promoted Vulkan 1.2)
             var timelineSemaphoreFeatures = new VkPhysicalDeviceTimelineSemaphoreFeatures();
             timelineSemaphoreFeatures.sType = VkStructureType.PhysicalDeviceTimelineSemaphoreFeatures;
             timelineSemaphoreFeatures.timelineSemaphore = VkBool32.True;
+            timelineSemaphoreFeatures.pNext = &uniformBufferStandardLayoutFeature;
 
             using VkStringArray ppEnabledExtensionNames = new(desiredExtensionProperties);
             var deviceCreateInfo = new VkDeviceCreateInfo
