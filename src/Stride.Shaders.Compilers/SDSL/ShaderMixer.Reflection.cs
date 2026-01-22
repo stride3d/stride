@@ -167,27 +167,15 @@ public partial class ShaderMixer
     }
 
     // Emit reflection (except ConstantBuffers which was emitted during ComputeCBufferReflection)
-    private void ProcessReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
+    private unsafe void ProcessReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, Options options)
     {
-        // First, figure out latest used bindings (assume they are filled in order)
-        int srvSlot = 0;
-        int samplerSlot = 0;
-        int cbufferSlot = 0;
-        foreach (var resourceBinding in globalContext.Reflection.ResourceBindings)
-        {
-            switch (resourceBinding)
-            {
-                case { Class: EffectParameterClass.ShaderResourceView }:
-                    srvSlot = resourceBinding.SlotStart + resourceBinding.SlotCount;
-                    break;
-                case { Class: EffectParameterClass.Sampler }:
-                    samplerSlot = resourceBinding.SlotStart + resourceBinding.SlotCount;
-                    break;
-                case { Class: EffectParameterClass.ConstantBuffer }:
-                    cbufferSlot = resourceBinding.SlotStart + resourceBinding.SlotCount;
-                    break;
-            }
-        }
+        Span<int> slotCounts = stackalloc int[options.ResourcesRegisterSeparate ? 3 : 1];
+        slotCounts.Clear();
+        
+        // If areResourcesSharingSlots is true, every slot type will point to same value
+        ref var srvSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 0 : 0];
+        ref var samplerSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 1 : 0];
+        ref var cbufferSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 2 : 0];
 
         // TODO: do this once at root level and reuse for child mixin
         var samplerStates = new Dictionary<int, Graphics.SamplerStateDescription>();

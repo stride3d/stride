@@ -79,7 +79,7 @@ public class RenderingTests
     {
         // Compiler shader
         var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/ComputeTests"));
-        shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), out var bytecode, out var effectReflection, out _, out _);
+        shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), out var bytecode, out var effectReflection, out _, out _);
 
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
         File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateBufferFromBytecode(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
@@ -116,7 +116,7 @@ public class RenderingTests
     {
         // Compiler shader
         var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/RenderTests"));
-        shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), out var bytecode, out var effectReflection, out _, out _);
+        shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), out var bytecode, out var effectReflection, out _, out _);
 
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
         File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateBufferFromBytecode(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));

@@ -32,9 +32,15 @@ namespace Stride.Shaders.Compilers.SDSL;
 
 public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="ResourcesRegisterSeparate">For D3D11/12: t, b and s registers are separate (and should be kept as low as possible so we number them from 0 in each category).</param>
+    public record struct Options(bool ResourcesRegisterSeparate);
+    
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
     
-    public void MergeSDSL(ShaderSource shaderSource, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<(string Name, int Id, ShaderStage Stage)> entryPoints)
+    public void MergeSDSL(ShaderSource shaderSource, Options options, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<(string Name, int Id, ShaderStage Stage)> entryPoints)
     {
         var temp = new NewSpirvBuffer();
 
@@ -84,7 +90,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         RenameVariables(globalContext, context, temp);
 
         // Process reflection
-        ProcessReflection(globalContext, context, temp);
+        ProcessReflection(globalContext, context, temp, options);
 
         SimplifyNotSupportedConstantsInShader(context, temp);
         
