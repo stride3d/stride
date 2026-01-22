@@ -130,6 +130,7 @@ public record struct PrimaryParsers : IParser<Expression>
 
                     ("reflect", 2) => new ReflectCall(parameters, scanner[position..scanner.Position]),
                     ("refract", 3) => new RefractCall(parameters, scanner[position..scanner.Position]),
+                    ("faceforward", _) => new FaceForwardCall(parameters, scanner[position..scanner.Position]),
 
                     // Compute Barriers
                     ("AllMemoryBarrier", _) => new MemoryBarrierCall(parameters, scanner[position..scanner.Position], identifier.Name, allMemoryBarrierMemorySemanticsMask),
@@ -161,7 +162,6 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("EvaluateAttributeSnapped", _) => throw new NotImplementedException(),
                     ("f16to32", _) => throw new NotImplementedException(),
                     ("f32to16", _) => throw new NotImplementedException(),
-                    ("faceforward", _) => throw new NotImplementedException(),
                     ("firstbithigh", _) => throw new NotImplementedException(),
                     ("firstbitlow", _) => throw new NotImplementedException(),
                     ("fma", _) => throw new NotImplementedException(),

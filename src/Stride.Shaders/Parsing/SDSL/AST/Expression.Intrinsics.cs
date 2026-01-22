@@ -104,6 +104,15 @@ public class PowCall(ShaderExpressionList parameters, TextLocation info) : Metho
     {
         var (builder, context) = compiler;
         var (x, y) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
+        
+        var xType = Parameters.Values[0].ValueType;
+        var yType = Parameters.Values[1].ValueType;
+
+        var resultType = IntrinsicHelper.FindCommonType(ScalarType.Float, xType, yType);
+
+        x = builder.Convert(context, x, resultType);
+        y = builder.Convert(context, y, resultType);
+
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLPow(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
@@ -577,10 +586,10 @@ public class DistanceCall(ShaderExpressionList parameters, TextLocation info) : 
         var yType = Parameters.Values[1].ValueType;
 
         var resultType = ScalarType.Float;
-        var inputTypes = IntrinsicHelper.FindCommonType(resultType, xType, yType);
+        var inputType = IntrinsicHelper.FindCommonType(resultType, xType, yType);
 
-        x = builder.Convert(context, x, resultType);
-        y = builder.Convert(context, y, resultType);
+        x = builder.Convert(context, x, inputType);
+        y = builder.Convert(context, y, inputType);
 
         if (context.GLSLSet == null)
             context.ImportGLSL();
@@ -640,10 +649,21 @@ public class FaceForwardCall(ShaderExpressionList parameters, TextLocation info)
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
-        var (N, I, Nre) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler), Parameters.Values[2].CompileAsValue(table, compiler));
+        var (n, i, ng) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler), Parameters.Values[2].CompileAsValue(table, compiler));
+        
+        var nType = Parameters.Values[0].ValueType;
+        var iType = Parameters.Values[1].ValueType;
+        var ngType = Parameters.Values[2].ValueType;
+
+        var resultType = IntrinsicHelper.FindCommonType(ScalarType.Float, nType, iType, ngType);
+
+        n = builder.Convert(context, n, resultType);
+        i = builder.Convert(context, i, resultType);
+        ng = builder.Convert(context, ng, resultType);
+
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFaceForward(N.TypeId, context.Bound++, context.GLSLSet ?? -1, N.Id, I.Id, Nre.Id));
+        var instruction = builder.Insert(new GLSLFaceForward(n.TypeId, context.Bound++, context.GLSLSet ?? -1, n.Id, i.Id, ng.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -652,10 +672,19 @@ public class ReflectCall(ShaderExpressionList parameters, TextLocation info) : M
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
-        var (I, N) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
+        var (i, n) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
+
+        var iType = Parameters.Values[0].ValueType;
+        var nType = Parameters.Values[1].ValueType;
+
+        var resultType = IntrinsicHelper.FindCommonType(ScalarType.Float, iType, nType);
+
+        i = builder.Convert(context, i, resultType);
+        n = builder.Convert(context, n, resultType);
+        
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLReflect(I.TypeId, context.Bound++, context.GLSLSet ?? -1, I.Id, N.Id));
+        var instruction = builder.Insert(new GLSLReflect(i.TypeId, context.Bound++, context.GLSLSet ?? -1, i.Id, n.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -664,10 +693,20 @@ public class RefractCall(ShaderExpressionList parameters, TextLocation info) : M
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
-        var (I, N, eta) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler), Parameters.Values[2].CompileAsValue(table, compiler));
+        var (i, n, eta) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler), Parameters.Values[2].CompileAsValue(table, compiler));
+        
+        var iType = Parameters.Values[0].ValueType;
+        var nType = Parameters.Values[1].ValueType;
+
+        var resultType = IntrinsicHelper.FindCommonType(ScalarType.Float, iType, nType);
+
+        i = builder.Convert(context, i, resultType);
+        n = builder.Convert(context, n, resultType);
+        eta = builder.Convert(context, eta, ScalarType.Float);
+
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLRefract(I.TypeId, context.Bound++, context.GLSLSet ?? -1, I.Id, N.Id, eta.Id));
+        var instruction = builder.Insert(new GLSLRefract(i.TypeId, context.Bound++, context.GLSLSet ?? -1, i.Id, n.Id, eta.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
