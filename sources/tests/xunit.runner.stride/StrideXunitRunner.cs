@@ -26,6 +26,11 @@ public static class StrideXunitRunner
     public static AppBuilder BuildAvaloniaApp(Action<bool>? setInteractiveMode = null, Action<bool>? setForceSaveImage = null)
         => AppBuilder.Configure(() => new App { setInteractiveMode = setInteractiveMode, setForceSaveImage = setForceSaveImage })
             .UsePlatformDetect()
+            .With(new Win32PlatformOptions
+            {
+                // Use Software rendering, otherwise default renderer (OpenGL) interfere with GPU capture tools such as RenderDoc
+                RenderingMode = new[] { Win32RenderingMode.Software }
+            })
             .WithInterFont()
             .LogToTrace();
 }
