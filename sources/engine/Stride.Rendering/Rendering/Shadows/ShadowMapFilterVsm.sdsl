@@ -13,7 +13,7 @@ namespace Stride.Rendering.Shadows
             float MinVariance;
         };
 
-        override float FilterShadow(float2 position, float shadowMapDistance)
+        float FilterShadow(float2 position, float shadowMapDistance)
         {
             float2 moments = (float2)ShadowMapTexture.SampleLevel(LinearBorderSampler, position, 0.0);
             float variance = moments.y - moments.x * moments.x;
