@@ -541,7 +541,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                                 removedIds.Add(idResult);
                             SetOpNop(temp[index++].Data.Memory.Span);
                         }
-                        context.RemoveNames(removedIds);
+                        context.RemoveNameAndDecorations(removedIds);
 
                         SetOpNop(temp[index].Data.Memory.Span);
                     }
@@ -621,7 +621,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         foreach (var i in foreachBuffer)
             if (i.IdResult is { } idResult)
                 removedIds.Add(idResult);
-        context.RemoveNames(removedIds);
+        context.RemoveNameAndDecorations(removedIds);
         
         // Insert new code
         buffer.InsertRange(index, foreachBufferCopy.AsSpan());

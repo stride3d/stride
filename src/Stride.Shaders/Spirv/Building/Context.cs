@@ -207,11 +207,21 @@ public partial class SpirvContext
         return this;
     }
 
-    public void RemoveNames(HashSet<int> ids)
+    public void RemoveNameAndDecorations(HashSet<int> ids)
     {
         foreach (var i in  Buffer)
         {
-            if (i.Op == Op.OpName && (OpName)i is {} nameInstruction)
+            if (i.Op == Op.OpDecorate && ((OpDecorate)i) is { } decorate)
+            {
+                if (ids.Contains(decorate.Target))
+                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+            }
+            else if (i.Op == Op.OpDecorateString && ((OpDecorateString)i) is { } decorateString)
+            {
+                if (ids.Contains(decorateString.Target))
+                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+            }
+            else if (i.Op == Op.OpName && (OpName)i is {} nameInstruction)
             {
                 if (ids.Contains(nameInstruction.Target))
                 {

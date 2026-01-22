@@ -423,24 +423,7 @@ namespace Stride.Shaders.Spirv.Processing
             }
 
             // Remove OpName/OpDecorate
-            foreach (var i in context)
-            {
-                if (i.Op == Op.OpDecorate && ((OpDecorate)i) is { } decorate)
-                {
-                    if (removedIds.Contains(decorate.Target))
-                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-                }
-                else if (i.Op == Op.OpDecorateString && ((OpDecorateString)i) is { } decorateString)
-                {
-                    if (removedIds.Contains(decorateString.Target))
-                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-                }
-                else if (i.Op == Op.OpName && ((OpName)i) is { } name)
-                {
-                    if (removedIds.Contains(name.Target))
-                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-                }
-            }
+            context.RemoveNameAndDecorations(removedIds);
         }
 
         private void MergeSameSemanticVariables(SymbolTable table, SpirvContext context, NewSpirvBuffer buffer, AnalysisResult analysisResult)
@@ -461,13 +444,18 @@ namespace Stride.Shaders.Spirv.Processing
             }
 
             // Remove duplicate streams
+            HashSet<int> removedIds = new();
             foreach (var i in buffer)
             {
                 if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is { } variable && remapIds.ContainsKey(variable.ResultId))
                 {
                     SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    removedIds.Add(variable.ResultId);
                 }
             }
+            
+            // Remove OpName/OpDecorate
+            context.RemoveNameAndDecorations(removedIds);
 
             foreach (var remapId in remapIds)
                 analysisResult.Streams.Remove(remapId.Key);
