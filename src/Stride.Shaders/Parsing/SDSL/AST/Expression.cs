@@ -461,7 +461,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     var lvalueType = currentValueType;
                     if (lvalueType is PointerType p)
                     {
-                        lvalueBase = new(builder.InsertData(new OpLoad(context.GetOrRegister(lvalueType), context.Bound++, lvalueBase.Id, null, [])));
+                        lvalueBase = new(builder.InsertData(new OpLoad(context.GetOrRegister(p.BaseType), context.Bound++, lvalueBase.Id, null, [])));
                         lvalueType = p.BaseType;
                     }
                     
