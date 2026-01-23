@@ -1217,6 +1217,20 @@
     </DataTemplate>
   </edvw:TypeMatchTemplateProvider>
 
+  <!-- Provider for float properties named "Rotation" - displays in degrees, stores in radians -->
+  <pvdr:RotationFloatPropertyTemplateProvider x:Key="RotationFloatPropertyTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="qvm:NodeViewModel">
+      <sd:AngleEditor x:Name="AngleEditor" DecimalPlaces="1"
+                      Value="{Binding NodeValue, Converter={cvt:DifferentValuesToNull}}"
+                      WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"/>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
+          <Setter TargetName="AngleEditor" Property="WatermarkContent" Value="≠"/>
+        </DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+  </pvdr:RotationFloatPropertyTemplateProvider>
+
   <!-- Provider for UDirectory editor -->
   <edvw:TypeMatchTemplateProvider x:Key="UDirectoryPropertyTemplateProvider" Type="{x:Type io:UDirectory}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">

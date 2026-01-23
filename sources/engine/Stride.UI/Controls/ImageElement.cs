@@ -32,7 +32,7 @@ namespace Stride.UI.Controls
         [DefaultValue(null)]
         public ISpriteProvider Source
         {
-            get { return source;}
+            get { return source; }
             set
             {
                 if (source == value)
@@ -86,6 +86,27 @@ namespace Stride.UI.Controls
             }
         }
 
+        /// <summary>
+        /// Gets or sets the rotation angle in radians (clockwise around Z-axis).
+        /// </summary>
+        /// <remarks>The rotation is applied around the center of the image. Positive values rotate clockwise.</remarks>
+        /// <userdoc>The rotation angle in radians. Positive values rotate clockwise.</userdoc>
+        [DataMember]
+        [Display(category: LayoutCategory)]
+        [DefaultValue(0f)]
+        public float Rotation
+        {
+            get { return field; }
+            set
+            {
+                if (Math.Abs(field - value) < float.Epsilon)
+                    return;
+
+                field = value;
+                UpdateLocalMatrix();
+            }
+        }
+
         protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
         {
             return ImageSizeHelper.CalculateImageSizeFromAvailable(sprite, finalSizeWithoutMargins, StretchType, StretchDirection, false);
@@ -123,6 +144,21 @@ namespace Stride.UI.Controls
             {
                 sprite.SizeChanged += InvalidateMeasure;
                 sprite.BorderChanged += InvalidateMeasure;
+            }
+        }
+
+        /// <summary>
+        /// Updates the local transformation matrix based on the current rotation angle.
+        /// </summary>
+        private void UpdateLocalMatrix()
+        {
+            if (Math.Abs(Rotation) < float.Epsilon)
+            {
+                LocalMatrix = Matrix.Identity;
+            }
+            else
+            {
+                LocalMatrix = Matrix.RotationZ(Rotation);
             }
         }
     }
