@@ -126,8 +126,7 @@ namespace Stride.Shaders.Compiler.OpenGL
             }
 
             var bytecodeId = ObjectId.FromBytes(rawData);
-            var bytecode = new ShaderBytecode(bytecodeId, rawData);
-            bytecode.Stage = stage;
+            var bytecode = new ShaderBytecode(stage, bytecodeId, rawData);
 
             shaderBytecodeResult.Bytecode = bytecode;
 

@@ -114,7 +114,7 @@ namespace Stride.Shaders.Compiler.Direct3D
                 var bytecodeId = ObjectId.FromBytes(strippedBytecode.Handle->Buffer);
 
                 var bytecodeBuffer = bytecode.Handle->Buffer;
-                bytecodeResult.Bytecode = new ShaderBytecode(bytecodeId, bytecodeBuffer.ToArray()) { Stage = stage };
+                bytecodeResult.Bytecode = new ShaderBytecode(stage, bytecodeId, bytecodeBuffer.ToArray());
 
                 // If compilation succeeded, then we can update reflection
                 UpdateReflection(bytecodeResult.Bytecode, reflection, bytecodeResult);

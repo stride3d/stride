@@ -42,8 +42,9 @@ public partial class ShaderBytecode
     /// </summary>
     /// <param name="id">An unique identifier for the compiled Shader bytecode data.</param>
     /// <param name="data">The compiled Shader bytecode data.</param>
-    public ShaderBytecode(ObjectId id, byte[] data)
+    public ShaderBytecode(ShaderStage stage, ObjectId id, byte[] data)
     {
+        Stage = stage;
         Id = id;
         Data = data;
     }
