@@ -680,7 +680,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
 
                             ImageOperandsMask flags = sampleCompare.Name.Name is "SampleCmpLevelZero" ? ImageOperandsMask.Lod : ImageOperandsMask.None;
-                            EnumerantParameters imParams = sampleCompare.Name.Name is "SampleCmpLevelZero" ? new () : new (context.CompileConstant(0.0f).Id);
+                            EnumerantParameters imParams = sampleCompare.Name.Name is "SampleCmpLevelZero" ? new (context.CompileConstant(0.0f).Id) : new ();
                             //ParameterizedFlag<ImageOperandsMask> flags = sampleCompare.Name.Name == "SampleCmpLevelZero" 
                                 
                             if (sampleCompare.Parameters.Values.Count > 3)
