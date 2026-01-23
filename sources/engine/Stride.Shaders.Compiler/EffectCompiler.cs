@@ -22,7 +22,9 @@ using Stride.Core.Shaders.Utility;
 using Stride.Core.Storage;
 using Stride.Graphics;
 using Stride.Rendering;
+using Stride.Shaders.Compiler.Direct3D;
 using Stride.Shaders.Compilers;
+using Stride.Shaders.Compilers.Direct3D;
 using Stride.Shaders.Compilers.SDSL;
 using Stride.Shaders.Parser;
 using Stride.Shaders.Parser.Mixins;
@@ -80,7 +82,7 @@ namespace Stride.Shaders.Compiler
             GetMixinParser().DeleteObsoleteCache(modifiedShaders);
         }
 
-        private ShaderMixinParser GetMixinParser()
+        public ShaderMixinParser GetMixinParser()
         {
             lock (shaderMixinParserLock)
             {
@@ -96,7 +98,7 @@ namespace Stride.Shaders.Compiler
             }
         }
 
-        class ShaderLoader(IVirtualFileProvider FileProvider) : ShaderLoaderBase(new ShaderCache())
+        public class ShaderLoader(IVirtualFileProvider FileProvider) : ShaderLoaderBase(new ShaderCache())
         {
             protected override bool ExternalFileExists(string name)
             {
@@ -265,7 +267,6 @@ namespace Stride.Shaders.Compiler
             {
 #if STRIDE_PLATFORM_DESKTOP
                 case GraphicsPlatform.Direct3D11:
-                case GraphicsPlatform.Direct3D12:
                     if (Platform.Type != PlatformType.Windows && Platform.Type != PlatformType.UWP)
                         throw new NotSupportedException();
                     compiler = new Direct3D.ShaderCompiler();
@@ -273,6 +274,7 @@ namespace Stride.Shaders.Compiler
                     break;
 #endif
                 case GraphicsPlatform.Vulkan:
+                case GraphicsPlatform.Direct3D12:
                     compiler = null;
                     break;
                 default:
@@ -348,6 +350,49 @@ namespace Stride.Shaders.Compiler
 
                 // Remove unused reflection data, as it is entirely resolved at compile time.
                 CleanupReflection(bytecode.Reflection);
+            }
+            // TODO: Move that code inside ShaderCompiler (need a new interface for processing SPIR-V)
+            else if (effectParameters.Platform == GraphicsPlatform.Direct3D12)
+            {
+                // Check API
+                Spv2DXIL.spirv_to_dxil_get_version();
+                foreach (var entryPoint in entryPoints)
+                {
+                    unsafe
+                    {
+                        fixed (byte* shaderData = spirvBytecode)
+                        {
+                            var debugOptions = new DebugOptions();
+                            var runtimeConf = new RuntimeConf
+                            {
+                                runtime_data_cbv = { base_shader_register = 0, register_space = 31 },
+                                //first_vertex_and_base_instance_mode = SysvalType.Zero,
+                                yzflip_mode = FlipMode.YZFlipNone,
+                                shader_model_max = dxil_shader_model.SHADER_MODEL_6_0,
+                            };
+                            var logger = new DXILSpirvLogger();
+                            var result = Spv2DXIL.spirv_to_dxil((uint*)shaderData, spirvBytecode.Length / 4,
+                                null, 0,
+                                entryPoint.Stage switch
+                                {
+                                    ShaderStage.Vertex => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_VERTEX,
+                                    ShaderStage.Hull => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_TESS_CTRL,
+                                    ShaderStage.Domain => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_TESS_CTRL,
+                                    ShaderStage.Geometry => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_GEOMETRY,
+                                    ShaderStage.Pixel => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_FRAGMENT,
+                                    ShaderStage.Compute => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_COMPUTE,
+                                },
+                                entryPoint.Name,
+                                ValidatorVersion.DXIL_VALIDATOR_1_4,
+                                ref debugOptions, ref runtimeConf, ref logger, out var dxil);
+
+                            Span<byte> dxilSpan = new(dxil.buffer, (int)dxil.size);
+                            fixed (byte* dxilSpanPtr = dxilSpan)
+                                DxilHash.ComputeHashRetail(&dxilSpanPtr[20], (uint)(dxilSpan.Length - 20), &dxilSpanPtr[4]);
+                            shaderStageBytecodes.Add(new ShaderBytecode(entryPoint.Stage, ObjectId.FromBytes(dxilSpan), dxilSpan.ToArray()));
+                        }
+                    }
+                }
             }
             else
             {
