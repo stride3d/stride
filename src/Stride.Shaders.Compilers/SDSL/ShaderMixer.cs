@@ -180,11 +180,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     private void ProcessMixinClasses(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode mixinNode)
     {
         mixinNode.StartInstruction = buffer.Count;
+        var typeDuplicateInserter = new TypeDuplicateHelper(context);
+
         foreach (var shaderClass in mixinSource.Mixins)
         {
             var contextStart = context.Count;
 
-            var shaderInfo = MergeClassInBuffers(globalContext, context, buffer, mixinNode, shaderClass);
+            var shaderInfo = MergeClassInBuffers(globalContext, context, buffer, mixinNode, shaderClass, typeDuplicateInserter);
 
             mixinNode.ShadersByName.Add(shaderClass.ToClassNameWithGenerics(), shaderInfo);
             mixinNode.Shaders.Add(shaderInfo);
@@ -212,7 +214,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     // Append CompositionPath to "Link" for any non-stage variable
     // Also force-emit the missing "Link" decorations
 
-    private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass)
+    private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass, TypeDuplicateHelper typeDuplicateInserter)
     {
         var isRootMixin = mixinNode.Stage == null;
         if (shaderClass.ImportStageOnly)
@@ -267,8 +269,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             return include;
         }
-
-        var typeDuplicateInserter = new TypeDuplicateHelper(context);
 
         var structTypes = new Dictionary<string, int>();
 
@@ -435,7 +435,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                     if (addToContext)
                     {
-                        context.Add(i2);
+                        typeDuplicateInserter.InsertInstruction(context.Count, i2);
                     }
                 }
             }

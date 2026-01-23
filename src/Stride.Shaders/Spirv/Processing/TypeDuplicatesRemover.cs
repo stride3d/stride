@@ -183,20 +183,24 @@ public class TypeDuplicateHelper
     {
         var result = context.Insert(index, data);
 
-        // Adjust indices
-        var namesByOpSpan = CollectionsMarshal.AsSpan(namesByOp);
-        for (int i = 0; i < namesByOp.Count; i++)
+        // Adjust indices (optimization: we skip if we added at last index)
+        if (index != context.Count - 1)
         {
-            ref var inst = ref namesByOpSpan[i];
-            if (inst.Index >= index)
-                inst.Index++;
-        }
-        var instructionsByOpSpan = CollectionsMarshal.AsSpan(instructionsByOp);
-        for (int i = 0; i < instructionsByOp.Count; i++)
-        {
-            ref var inst = ref instructionsByOpSpan[i];
-            if (inst.Index >= index)
-                inst.Index++;
+            var namesByOpSpan = CollectionsMarshal.AsSpan(namesByOp);
+            for (int i = 0; i < namesByOp.Count; i++)
+            {
+                ref var inst = ref namesByOpSpan[i];
+                if (inst.Index >= index)
+                    inst.Index++;
+            }
+
+            var instructionsByOpSpan = CollectionsMarshal.AsSpan(instructionsByOp);
+            for (int i = 0; i < instructionsByOp.Count; i++)
+            {
+                ref var inst = ref instructionsByOpSpan[i];
+                if (inst.Index >= index)
+                    inst.Index++;
+            }
         }
 
         // Add new item
