@@ -22,7 +22,7 @@ public sealed class EffectBytecode
     ///   A constant value representing the <em>magic header</em> stored in front of an Effect bytecode
     ///   to avoid reading old versions.
     /// </summary>
-    public const uint MagicHeader = 0xEFFEC007;  // NOTE: If EffectBytecode is changed, this number must be changed manually
+    public const uint MagicHeader = 0xEFFEC008;  // NOTE: If EffectBytecode is changed, this number must be changed manually
 
 
     /// <summary>
