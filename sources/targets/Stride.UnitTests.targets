@@ -50,7 +50,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
-    <StartupObject>xunit.runner.stride.Program</StartupObject>
+    <StartupObject Condition="'$(StartupObject)' == ''">xunit.runner.stride.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
     <Compile Condition="'$(StrideGraphicsRegression)' != 'true'" Include="$(MSBuildThisFileDirectory)..\shared\tests\xunit\LauncherSimple.Desktop.cs">

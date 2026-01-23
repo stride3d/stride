@@ -36,7 +36,7 @@ namespace Stride.Shaders.Tests
         public void TestMaterial()
         {
             var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider) { UseFileSystem = true };
-            var currentPath = Core.PlatformFolders.ApplicationBinaryDirectory;
+            var currentPath = Stride.Core.PlatformFolders.ApplicationBinaryDirectory;
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Graphics\Shaders"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Shaders"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Core"));
@@ -102,7 +102,7 @@ namespace Stride.Shaders.Tests
         public void TestStream()
         {
             var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider) { UseFileSystem = true };
-            var currentPath = Core.PlatformFolders.ApplicationBinaryDirectory;
+            var currentPath = Stride.Core.PlatformFolders.ApplicationBinaryDirectory;
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Shaders.Tests\GameAssets\Compiler"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Graphics\Shaders"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Shaders"));
@@ -129,7 +129,7 @@ namespace Stride.Shaders.Tests
         public void TestMixinAndComposeKeys()
         {
             var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider) { UseFileSystem = true };
-            var currentPath = Core.PlatformFolders.ApplicationBinaryDirectory;
+            var currentPath = Stride.Core.PlatformFolders.ApplicationBinaryDirectory;
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Graphics\Shaders"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Shaders.Tests\GameAssets\Mixins"));
 
