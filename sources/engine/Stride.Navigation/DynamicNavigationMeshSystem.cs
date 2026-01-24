@@ -176,7 +176,7 @@ namespace Stride.Navigation
             });
             await result;
 
-            FinilizeRebuild(result);
+            FinalizeRebuild(result);
 
             return result.Result;
         }
@@ -191,7 +191,7 @@ namespace Stride.Navigation
             pendingRebuild = true;
         }
 
-        private void FinilizeRebuild(Task<NavigationMeshBuildResult> resultTask)
+        private void FinalizeRebuild(Task<NavigationMeshBuildResult> resultTask)
         {
             var result = resultTask.Result;
             if (result.Success)
