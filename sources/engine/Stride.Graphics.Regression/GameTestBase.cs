@@ -708,8 +708,6 @@ namespace Stride.Graphics.Regression
                 }
             }
 
-            comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
-
             if (testFileNames.Count == 0)
             {
                 // No source image, save this one so that user can later copy it to validated folder
