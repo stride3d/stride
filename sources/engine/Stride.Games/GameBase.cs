@@ -219,6 +219,12 @@ namespace Stride.Games
         protected internal bool ForceOneUpdatePerDraw { get; set; }
 
         /// <summary>
+        /// Specifies if <see cref="GameWindow.Visible"/> is set to true during <see cref="Run(GameContext)"/>.
+        /// Only valid when <see cref="GameContext.IsUserManagingRun"/> is false.
+        /// </summary>
+        protected bool MakeWindowVisibleOnRun { get; set; } = true;
+
+        /// <summary>
         /// When <see cref="IsFixedTimeStep"/> is set, is it allowed to render frames between two steps when we have time to do so.
         /// </summary>
         /// <value><c>true</c> if this instance's drawing is desychronized ; otherwise, <c>false</c>.</value>
@@ -891,6 +897,8 @@ namespace Stride.Games
         private void GamePlatformOnWindowCreated(object sender, EventArgs eventArgs)
         {
             Window.IsMouseVisible = isMouseVisible;
+            if (MakeWindowVisibleOnRun && !Context.IsUserManagingRun)
+                Window.Visible = true;
             OnWindowCreated();
         }
 

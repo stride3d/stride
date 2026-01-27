@@ -137,7 +137,6 @@ namespace Stride.Games
             if (form == null) throw new ArgumentNullException(nameof(form));
             if (renderCallback == null) throw new ArgumentNullException(nameof(renderCallback));
 
-            form.Show();
             using (var renderLoop = new SDLMessageLoop(form))
             {
                 while (renderLoop.NextFrame())
