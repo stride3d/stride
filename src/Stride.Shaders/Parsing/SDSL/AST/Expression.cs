@@ -443,17 +443,29 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             switch (currentValueType, accessor)
             {
                 case (PointerType { BaseType: BufferType bufferType }, IndexerExpression indexer):
-                    throw new NotImplementedException();
-                // ImageWrite
-                case (PointerType { BaseType: TextureType textureType }, IndexerExpression indexer):
-                    var resultType = new VectorType(textureType.ReturnType, 4);
-
-                    var imageValue = builder.AsValue(context, lvalueBase);
-                    var imageCoordValue = ConvertTexCoord(context, builder, textureType, indexer.Index.CompileAsValue(table, compiler), ScalarType.Int);
-                    var texelValue = builder.Convert(context, rvalue, resultType);
-                    builder.Insert(new OpImageWrite(imageValue.Id, imageCoordValue.Id, texelValue.Id, null, []));
+                {
+                    var resultType = new VectorType(bufferType.BaseType, 4);
+                    var buffer = builder.AsValue(context, lvalueBase);
+                    
+                    var location = indexer.Index.CompileAsValue(table, compiler);
+                    location = builder.Convert(context, location, ScalarType.Int);
+                    var bufferValue = builder.Convert(context, rvalue, resultType);
+                    builder.Insert(new OpImageWrite(buffer.Id, location.Id, bufferValue.Id, null, []));
                     // We stop there
                     return;
+                }
+                // ImageWrite
+                case (PointerType { BaseType: TextureType textureType }, IndexerExpression indexer):
+                {
+                    var resultType = new VectorType(textureType.ReturnType, 4);
+                    var image = builder.AsValue(context, lvalueBase);
+                    
+                    var imageCoordValue = ConvertTexCoord(context, builder, textureType, indexer.Index.CompileAsValue(table, compiler), ScalarType.Int);
+                    var texelValue = builder.Convert(context, rvalue, resultType);
+                    builder.Insert(new OpImageWrite(image.Id, imageCoordValue.Id, texelValue.Id, null, []));
+                    // We stop there
+                    return;
+                }
                 case (PointerType { BaseType: VectorType or ScalarType } or VectorType or ScalarType, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     // Swizzle: we transform the value to assign accordingly
                     
@@ -586,7 +598,51 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
         // Some accessors push up to 2 values on the stack
         Span<int> accessChainIds = stackalloc int[Accessors.Count * 2];
+
+        (SpirvValue Value, SymbolType ResultType) BufferLoad(BufferType bufferType, SpirvValue buffer, Expression locationExpression)
+        {
+            var resultType = new VectorType(bufferType.BaseType, 4);
+            
+            buffer = builder.AsValue(context, buffer);
+            var location = locationExpression.CompileAsValue(table, compiler);
+            location = builder.Convert(context, location, ScalarType.Int);
+            
+            var loadResult = builder.Insert(new OpImageRead(context.GetOrRegister(resultType), context.Bound++, buffer.Id, location.Id, null, []));
+            return (new(loadResult.ResultId, loadResult.ResultType), resultType);
+        }
         
+        (SpirvValue Value, SymbolType ResultType) TextureLoad(TextureType textureType, SpirvValue buffer, Expression coordinatesExpression, bool containsLod)
+        {
+            var resultType = new VectorType(textureType.ReturnType, 4);
+            
+            var imageCoordValue = ConvertTexCoord(context, builder, textureType, coordinatesExpression.CompileAsValue(table, compiler), ScalarType.Int, containsLod);
+            var imageCoordType = context.ReverseTypes[imageCoordValue.TypeId];
+            SpirvValue lod;
+            
+            if (containsLod)
+            {
+                // We get all components except last one (LOD)
+                var imageCoordSize = imageCoordType.GetElementCount();
+                imageCoordType = imageCoordType.GetElementType().GetVectorOrScalar(imageCoordSize - 1);
+                Span<int> shuffleIndices = stackalloc int[imageCoordSize - 1];
+                for (int i = 0; i < shuffleIndices.Length; ++i)
+                    shuffleIndices[i] = i;
+
+                // Note: assign LOD first because we truncate imageCoordValue right after
+                lod = new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(ScalarType.Int), context.Bound++, imageCoordValue.Id, [shuffleIndices.Length - 1])));
+                imageCoordValue = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(imageCoordType), context.Bound++, imageCoordValue.Id, imageCoordValue.Id, new(shuffleIndices))));
+            }
+            else
+            {
+                lod = context.CompileConstant(0.0f);
+            }
+
+            buffer = builder.AsValue(context, buffer);
+
+            var loadResult = builder.Insert(new OpImageFetch(context.GetOrRegister(resultType), context.Bound++, buffer.Id, imageCoordValue.Id, ImageOperandsMask.Lod, new EnumerantParameters(lod.Id)));
+            return (new(loadResult.ResultId, loadResult.ResultType), resultType);
+        }
+
         for (var i = 0; i < Accessors.Count; ++i)
         {
             var accessor = Accessors[i];
@@ -707,24 +763,25 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     {
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds, i - 1);
-
-                        var resultType = new VectorType(pointerType.BaseType switch
+                        
+                        (result, accessor.Type) = pointerType.BaseType switch
                         {
-                            BufferType b => b.BaseType,
-                            TextureType t => t.ReturnType,
-                        }, 4);
-
-                        var resource = builder.AsValue(context, result);
-                        var returnType = context.GetOrRegister(resultType);
-                        var coords = load.Parameters.Values[0].CompileAsValue(table, compiler);
-                        var loadResult = builder.Insert(new OpImageFetch(returnType, context.Bound++, resource.Id, coords.Id, null, []));
-                        result = new(loadResult.ResultId, loadResult.ResultType);
-                        accessor.Type = resultType;
+                            BufferType b => BufferLoad(b, result, load.Parameters.Values[0]),
+                            TextureType t => TextureLoad(t, result, load.Parameters.Values[0], true),
+                        };
                         break;
                     }
-                case (PointerType { BaseType: BufferType b }, IndexerExpression indexer):
+                case (PointerType { BaseType: BufferType or TextureType } pointerType, IndexerExpression indexer):
                 {
-                    throw new NotImplementedException();
+                    // Emit OpAccessChain with everything so far
+                    EmitOpAccessChain(accessChainIds, i - 1);
+
+                    (result, accessor.Type) = pointerType.BaseType switch
+                    {
+                        BufferType b => BufferLoad(b, result, indexer.Index),
+                        TextureType t => TextureLoad(t, result, indexer.Index, false),
+                    };
+                    break;
                 }
                 case (PointerType { BaseType: StructuredBufferType bufferType }, IndexerExpression indexer):
                 {
@@ -735,19 +792,6 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     var indexerValue = indexer.Index.CompileAsValue(table, compiler);
                     PushAccessChainId(accessChainIds, indexerValue.Id);
                     accessor.Type = new PointerType(bufferType.BaseType, Specification.StorageClass.StorageBuffer);
-                    break;
-                }
-                case (PointerType { BaseType: TextureType textureType }, IndexerExpression indexer):
-                {
-                    var resultType = new VectorType(textureType.ReturnType, 4);
-
-                    var imageValue = builder.AsValue(context, result);
-                    var imageCoordValue = ConvertTexCoord(context, builder, textureType, indexer.Index.CompileAsValue(table, compiler), ScalarType.Int);
-                    var imageRead = builder.Insert(new OpImageRead(context.GetOrRegister(resultType), context.Bound++, imageValue.Id, imageCoordValue.Id, null, []));
-                    
-                    result = new(imageRead.ResultId, imageRead.ResultType);
-                    accessor.Type = resultType;
-
                     break;
                 }
                 case (_, MethodCall methodCall):
@@ -947,7 +991,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         return result;
     }
     
-    SpirvValue ConvertTexCoord(SpirvContext context, SpirvBuilder builder, TextureType textureType, SpirvValue spirvValue, ScalarType baseType)
+    SpirvValue ConvertTexCoord(SpirvContext context, SpirvBuilder builder, TextureType textureType, SpirvValue spirvValue, ScalarType baseType, bool hasLod = false)
     {
         var textureCoordSize = textureType switch
         {
@@ -956,6 +1000,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             Texture3DType or TextureCubeType => 3,
         };
         if (textureType.Arrayed)
+            textureCoordSize++;
+        if (hasLod)
             textureCoordSize++;
         spirvValue = builder.Convert(context, spirvValue, baseType.GetVectorOrScalar(textureCoordSize));
         return spirvValue;
