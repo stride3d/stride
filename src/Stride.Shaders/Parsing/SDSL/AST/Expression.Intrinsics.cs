@@ -98,7 +98,7 @@ public class FractCall(ShaderExpressionList parameters, TextLocation info) : Met
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
-public class PowCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("pow", info), parameters, info)
+public class GLSLFloatBinaryCall(ShaderExpressionList parameters, TextLocation info, Specification.GLSLOp op) : MethodCall(new(op.ToString(), info), parameters, info)
 {
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
@@ -116,11 +116,14 @@ public class PowCall(ShaderExpressionList parameters, TextLocation info) : Metho
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLPow(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
+        // Adjust OpCode only since Pow/Atan2 share the same operands
+        instruction.InstructionMemory.Span[4] = (int)op;
+        var result = new SpirvValue(instruction.ResultId, instruction.ResultType);
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
 
-public class GLSLFloatUnaryCall(ShaderExpressionList parameters, TextLocation info, Specification.GLSLOp op, float? multiplyConstant = null) : MethodCall(new("exp", info), parameters, info)
+public class GLSLFloatUnaryCall(ShaderExpressionList parameters, TextLocation info, Specification.GLSLOp op, float? multiplyConstant = null) : MethodCall(new(op.ToString(), info), parameters, info)
 {
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
@@ -339,18 +342,6 @@ public class IMixCall(ShaderExpressionList parameters, TextLocation info) : Meth
         if (context.GLSLSet == null)
             context.ImportGLSL();
         var instruction = builder.Insert(new GLSLIMix(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id, a.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class StepCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("step", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var (edge, x) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLStep(edge.TypeId, context.Bound++, context.GLSLSet ?? -1, edge.Id, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -597,19 +588,6 @@ public class DistanceCall(ShaderExpressionList parameters, TextLocation info) : 
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
-public class CrossCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("cross", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLCross(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-
 public class DotCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("dot", info), parameters, info)
 {
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)

@@ -77,7 +77,7 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("cosh", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLCosh),
                     ("acos", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLAcos),
                     ("atan", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLAtan),
-                    ("atan2", 2) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLAtan2),
+                    ("atan2", 2) => new GLSLFloatBinaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLAtan2),
                     ("tan", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLTan),
                     ("tanh", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLTanh),
                     ("sincos", _) => throw new NotImplementedException(),
@@ -108,7 +108,7 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("log", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLLog),
                     ("log10", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLLog2, (float)Math.Log10(2.0)),
                     ("log2", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLLog2),
-                    ("pow", 2) => new PowCall(parameters, scanner[position..scanner.Position]),
+                    ("pow", 2) => new GLSLFloatBinaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLPow),
 
                     ("round", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLRoundEven),
                     ("rsqrt", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLInverseSqrt),
@@ -117,12 +117,12 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("smoothstep", 3) => new SmoothStepCall(parameters, scanner[position..scanner.Position]),
                     ("lerp", _) => new LerpCall(parameters, scanner[position..scanner.Position]),
                     ("sqrt", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLSqrt),
-                    ("step", 2) => new StepCall(parameters, scanner[position..scanner.Position]),
+                    ("step", 2) => new GLSLFloatBinaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLStep),
                     
                     // Vector math
                     ("dot", _) => new DotCall(parameters, scanner[position..scanner.Position]),
                     ("determinant", 1) => new DeterminantCall(parameters, scanner[position..scanner.Position]),
-                    ("cross", 2) => new CrossCall(parameters, scanner[position..scanner.Position]),
+                    ("cross", 2) => new GLSLFloatBinaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLCross),
                     ("distance", _) => new DistanceCall(parameters, scanner[position..scanner.Position]),
                     ("length", 1) => new LengthCall(parameters, scanner[position..scanner.Position]),
                     ("normalize", _) => new NormalizeCall(parameters, scanner[position..scanner.Position]),
