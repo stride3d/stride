@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Runtime.CompilerServices;
 using SharpFont;
 
 using Stride.Core;
@@ -48,7 +47,7 @@ namespace Stride.Graphics.Font
             width += 2 * borderSize.X;
             rows += 2 * borderSize.Y;
 
-            buffer = Utilities.AllocateMemory(width * rows, 1);
+            buffer = MemoryUtilities.Allocate(width * rows, 1);
 
             if (pixelMode == PixelMode.Mono)
                 CopyAndAddBordersFromMono(data, buffer, ref borderSize, width, rows, pitch);
@@ -68,8 +67,8 @@ namespace Stride.Graphics.Font
             var rowsLessBorders = rows - (borderSize.Y << 1);
 
             var resetBorderLineSize = width * borderSize.Y;
-            Utilities.Clear((byte*)dataBytes, (uint)resetBorderLineSize);
-            Utilities.Clear((byte*)dataBytes + width * rows - resetBorderLineSize, (uint)resetBorderLineSize); // set last border lines to null
+            MemoryUtilities.Clear((byte*)dataBytes, (uint)resetBorderLineSize);
+            MemoryUtilities.Clear((byte*)dataBytes + width * rows - resetBorderLineSize, (uint)resetBorderLineSize); // set last border lines to null
 
             var src = (byte*)data;
             var dst = (byte*)dataBytes + resetBorderLineSize;
@@ -104,8 +103,8 @@ namespace Stride.Graphics.Font
             var rowsLessBorders = rows - (borderSize.Y << 1);
 
             var resetBorderLineSize = (uint)(width * borderSize.Y);
-            Utilities.Clear((byte*)dataBytes, resetBorderLineSize); // set first border lines to null 
-            Utilities.Clear((byte*)dataBytes + rows * width - resetBorderLineSize, resetBorderLineSize); // set last border lines to null
+            MemoryUtilities.Clear((byte*)dataBytes, resetBorderLineSize); // set first border lines to null
+            MemoryUtilities.Clear((byte*)dataBytes + rows * width - resetBorderLineSize, resetBorderLineSize); // set last border lines to null
 
             var rowSrc = (byte*)data;
             var dst = (byte*)dataBytes + resetBorderLineSize;
@@ -253,7 +252,7 @@ namespace Stride.Graphics.Font
             if (IsDisposed)
                 return;
 
-            Utilities.FreeMemory(buffer);
+            MemoryUtilities.Free(buffer);
 
             disposed = true;
         }

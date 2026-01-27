@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,32 +23,33 @@
 
 using Stride.Core;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+// TODO: Should not this be in Stride.Graphics?
+
+/// <summary>
+///   Identifies the type of Texture resource being used.
+/// </summary>
+[DataContract]
+public enum TextureDimension
 {
     /// <summary>
-    /// Defines the dimension of a texture.
+    ///   The Texture is a one-dimensional (1D) texture.
     /// </summary>
-    [DataContract]
-    public enum TextureDimension
-    {
-        /// <summary>
-        /// The texture dimension is 1D.
-        /// </summary>
-        Texture1D,
+    Texture1D,
 
-        /// <summary>
-        /// The texture dimension is 2D.
-        /// </summary>
-        Texture2D,
+    /// <summary>
+    ///   The Texture is a two-dimensional (2D) texture.
+    /// </summary>
+    Texture2D,
 
-        /// <summary>
-        /// The texture dimension is 3D.
-        /// </summary>
-        Texture3D,
+    /// <summary>
+    ///   The Texture is a three-dimensional (3D) texture (also known as a Volume Texture).
+    /// </summary>
+    Texture3D,
 
-        /// <summary>
-        /// The texture dimension is a CubeMap.
-        /// </summary>
-        TextureCube,
-    }
+    /// <summary>
+    ///   The Texture is a Cube Map, six two-dimensional images forming a cube, each with their own mip-chain.
+    /// </summary>
+    TextureCube
 }

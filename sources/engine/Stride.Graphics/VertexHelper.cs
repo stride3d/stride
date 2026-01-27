@@ -141,7 +141,7 @@ namespace Stride.Graphics
             // Use R16G16_SNorm as it is supported from HW Level 9.1
             // See https://msdn.microsoft.com/en-us/library/windows/desktop/ff471324%28v=vs.85%29.aspx
             const PixelFormat DefaultUVFormat = PixelFormat.R16G16_SNorm;
-            var newUvSize = DefaultUVFormat.SizeInBytes();
+            var newUvSize = DefaultUVFormat.SizeInBytes;
 
             for (int i = 0; i <= maxTexcoord; i++)
             {
@@ -175,7 +175,7 @@ namespace Stride.Graphics
                 var newVertexOffset = 0;
                 for (int i = 0; i < vertexCount; ++i)
                 {
-                    Utilities.CopyWithAlignmentFallback(newBuffer + newVertexOffset, oldBuffer + oldVertexOffset, (uint)vertexStride);
+                    MemoryUtilities.CopyWithAlignmentFallback(newBuffer + newVertexOffset, oldBuffer + oldVertexOffset, (uint)vertexStride);
 
                     var textureCoord = *(Vector2*)&oldBuffer[oldVertexOffset + vertexUVOffset];
                     for (int j = 0; j < newVertexElements.Count; j++)
@@ -351,7 +351,7 @@ namespace Stride.Graphics
                 var newVertexOffset = 0;
                 for (int i = 0; i < vertexCount; ++i)
                 {
-                    Utilities.CopyWithAlignmentFallback(newBuffer + newVertexOffset, oldBuffer + oldVertexOffset, (uint)oldVertexStride);
+                    MemoryUtilities.CopyWithAlignmentFallback(newBuffer + newVertexOffset, oldBuffer + oldVertexOffset, (uint)oldVertexStride);
 
                     var normal = *(Vector3*)&oldBuffer[oldVertexOffset + normalOffset];
                     var newTangentPtr = ((float*)(&newBuffer[newVertexOffset + tangentOffset]));

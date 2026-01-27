@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if STRIDE_GRAPHICS_API_NULL 
+#if STRIDE_GRAPHICS_API_NULL
+
+using System;
 
 namespace Stride.Graphics
 {
@@ -11,17 +13,18 @@ namespace Stride.Graphics
     public abstract partial class GraphicsResourceBase
     {
         /// <summary>
-        /// Initializes this instance.
+        ///   Perform platform-specific initialization of the Graphics Resource.
         /// </summary>
-        private void Initialize()
+        private partial void Initialize()
         {
             NullHelper.ToImplement();
         }
 
         /// <summary>
-        /// Called when graphics device has been detected to be internally destroyed.
+        ///   Called when the <see cref="GraphicsDevice"/> has been detected to be internally destroyed,
+        ///   or when the <see cref="Destroy"/> methad has been called. Raises the <see cref="Destroyed"/> event.
         /// </summary>
-        protected internal virtual void OnDestroyed()
+        protected internal virtual partial void OnDestroyed(bool immediately = false)
         {
             Destroyed?.Invoke(this, EventArgs.Empty);
             NullHelper.ToImplement();
@@ -37,5 +40,5 @@ namespace Stride.Graphics
             return false;
         }
     }
-} 
-#endif 
+}
+#endif

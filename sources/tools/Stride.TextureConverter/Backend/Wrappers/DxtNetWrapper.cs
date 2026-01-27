@@ -2,15 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
+using Stride.Core;
 
 namespace Stride.TextureConverter.DxtWrapper
 {
     #region enum
     /// <summary>
-    /// Copy of the windows enum of DXGI_FORMAT in the file dxgiformat.h of the includes of Windows kit 
+    /// Copy of the windows enum of DXGI_FORMAT in the file dxgiformat.h of the includes of Windows kit
     /// </summary>
     internal enum DXGI_FORMAT
     {
@@ -143,7 +143,7 @@ namespace Stride.TextureConverter.DxtWrapper
         DDS_FLAGS_LEGACY_DWORD = 0x1,
 
         /// <summary>
-        /// Do not implicitly convert legacy formats that result in larger pixel sizes (24 bpp, 3:3:2, A8L8, A4L4, P8, A8P8) 
+        /// Do not implicitly convert legacy formats that result in larger pixel sizes (24 bpp, 3:3:2, A8L8, A4L4, P8, A8P8)
         /// </summary>
         DDS_FLAGS_NO_LEGACY_EXPANSION = 0x2,
 
@@ -359,7 +359,7 @@ namespace Stride.TextureConverter.DxtWrapper
         /// <summary>
         /// Override with a legacy 8 bits-per-pixel format size
         /// </summary>
-        CP_FLAGS_8BPP = 0x40000,  
+        CP_FLAGS_8BPP = 0x40000,
     };
 
     [Flags]
@@ -824,7 +824,7 @@ namespace Stride.TextureConverter.DxtWrapper
         {
             return dxtOverrideFormat(ptr, f);
         }
-  
+
         public TexMetadata metadata
         {
             get {return (TexMetadata)Marshal.PtrToStructure(dxtGetMetadata(ptr), typeof(TexMetadata));}
@@ -832,7 +832,7 @@ namespace Stride.TextureConverter.DxtWrapper
 
         public IntPtr data
         {
-            get { return dxtGetPixels(ptr); } 
+            get { return dxtGetPixels(ptr); }
         }
 
         public int pixelSize
@@ -935,7 +935,7 @@ namespace Stride.TextureConverter.DxtWrapper
                 fixed (byte* ptr = buffer)
                 {
                     DDSHeaderDX9* headerPtr = &header;
-                    Stride.Core.Utilities.CopyWithAlignmentFallback(headerPtr, ptr, (uint)headerSize);
+                    MemoryUtilities.CopyWithAlignmentFallback(headerPtr, ptr, (uint)headerSize);
                 }
                 if (header.dwMagic != 0x20534444 || header.dwPfSize != 32)
                     return -1;

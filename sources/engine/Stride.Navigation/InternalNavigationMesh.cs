@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using DotRecast.Core.Numerics;
 using DotRecast.Detour;
 using Stride.Core.Mathematics;
@@ -40,7 +42,8 @@ internal class InternalNavigationMesh
         meshParams.maxPolys = 1 << polyBits;
 
         // Initialize the query object
-        navMesh = new DtNavMesh(meshParams, 2048);
+        navMesh = new DtNavMesh();
+        navMesh.Init(meshParams, 2048);
         navQuery = new DtNavMeshQuery(navMesh);
     }
 
@@ -51,7 +54,7 @@ internal class InternalNavigationMesh
         if (navData == null)
             return false;
 
-        long tileRef = navMesh.AddTile(navData, 0, 0);
+        var status = navMesh.AddTile(navData, 0, 0, out long tileRef);
         return tileRef != 0;
     }
 
@@ -62,29 +65,44 @@ internal class InternalNavigationMesh
         return status != 0;
     }
     
-    public void DoPathFindQuery(PathFindQuery query, ref PathFindResult result)
+    public bool DoPathFindQuery(PathFindQuery query, ref Span<DtStraightPath> result)
     {
-        // Reset result
-        result.PathFound = false;
-
         // Find the starting polygons and point on it to start from
         DtQueryDefaultFilter filter = new DtQueryDefaultFilter();
         DtStatus status = navQuery.FindNearestPoly(query.Source.ToDotRecastVector(), query.FindNearestPolyExtent.ToDotRecastVector(), filter, out long startPoly, out RcVec3f startPoint, out _);
         if (status.Failed())
-            return;
+            return false;
         status = navQuery.FindNearestPoly(query.Target.ToDotRecastVector(), query.FindNearestPolyExtent.ToDotRecastVector(), filter, out long endPoly, out RcVec3f endPoint, out _);
         if (status.Failed())
-            return;
+            return false;
+
+
+        var rented = query.MaxPathPoints < 32 ? null : System.Buffers.ArrayPool<long>.Shared.Rent(query.MaxPathPoints);
+        var polysSpan = rented is null ? stackalloc long[query.MaxPathPoints] : rented.AsSpan()[..query.MaxPathPoints];
+
+        navQuery.FindPath(startPoly, endPoly, startPoint, endPoint, filter, polysSpan, out var pathCount, polysSpan.Length);
+
+        if (0 < pathCount)
+        {
+            // In case of partial path, make sure the end point is clamped to the last polygon.
+            var endPosition = new RcVec3f(endPoint.X, endPoint.Y, endPoint.Z);
+            if (polysSpan[pathCount - 1] != endPoly)
+            {
+                status = navQuery.ClosestPointOnPoly(polysSpan[pathCount - 1], endPoint, out var closest, out var _);
+                if (status.Succeeded())
+                {
+                    endPosition = closest;
+                }
+            }
+
+            navQuery.FindStraightPath(startPoint, endPosition, polysSpan, pathCount, result, out var straightPathCount, query.MaxPathPoints, 0);
+            result = result[..straightPathCount];
+        }
         
-        List<long> polys = new(query.MaxPathPoints);
-        status = navQuery.FindPath(startPoly, endPoly, startPoint, endPoint, filter, ref polys, DtFindPathOption.NoOption);
-        if (status.Failed() || status.IsPartial())
-            return;
-        
-        status = navQuery.FindStraightPath(startPoint, endPoint, polys, ref result.PathPoints, query.MaxPathPoints, 0);
-        if (status.Failed())
-            return;
-        result.PathFound = true;
+        if (rented is not null)
+            System.Buffers.ArrayPool<long>.Shared.Return(rented);
+
+        return 0 < pathCount;
     }
 
     public void DoRaycastQuery(RaycastQuery query, out NavigationRaycastResult result)
@@ -96,12 +114,10 @@ internal class InternalNavigationMesh
         DtStatus status = navQuery.FindNearestPoly(query.Source.ToDotRecastVector(), query.FindNearestPolyExtent.ToDotRecastVector(), filter, out long startPoly, out _, out _);
         if (status.Failed())
             return;
-        
-        List<long> polys = new (query.MaxPathPoints);
+
+        long[] polys = new long[query.MaxPathPoints];
         var normal = result.Normal.ToDotRecastVector();
-        status = navQuery.Raycast(startPoly, query.Source.ToDotRecastVector(), 
-            query.Target.ToDotRecastVector(), filter, 
-            out float t, out normal, ref polys);
+        status = navQuery.Raycast(startPoly, query.Source.ToDotRecastVector(), query.Target.ToDotRecastVector(), filter, out float t, out normal, polys, out var pathCount, query.MaxPathPoints);
         result.Normal = new(normal.X, normal.Y, normal.Z);
         
         if (status.Failed())

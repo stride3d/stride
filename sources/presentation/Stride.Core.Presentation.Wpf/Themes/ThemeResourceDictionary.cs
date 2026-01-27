@@ -7,35 +7,30 @@ namespace Stride.Core.Presentation.Themes
 {
     public class ThemeResourceDictionary : ResourceDictionary
     {
-        private Uri expressionDarkSource;
-        private Uri darkSteelSource;
-        private Uri dividedSource;
-        private Uri expressionLightSource;
-
         // New themes are added here as new properties.
 
         public Uri ExpressionDarkSource
         {
-            get => expressionDarkSource;
-            set => SetValue(ref expressionDarkSource,  value);
+            get;
+            set => SetValue(ref field, value);
         }
 
         public Uri DarkSteelSource
         {
-            get => darkSteelSource;
-            set => SetValue(ref darkSteelSource, value);
+            get;
+            set => SetValue(ref field, value);
         }
 
         public Uri DividedSource
         {
-            get => dividedSource;
-            set => SetValue(ref dividedSource, value);
+            get;
+            set => SetValue(ref field, value);
         }
 
         public Uri LightSteelBlueSource
         {
-            get => expressionLightSource;
-            set => SetValue(ref expressionLightSource, value);
+            get;
+            set => SetValue(ref field, value);
         }
 
         public void UpdateSource(ThemeType themeType)

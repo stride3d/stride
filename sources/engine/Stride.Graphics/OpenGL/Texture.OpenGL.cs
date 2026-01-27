@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_OPENGL
 using System;
-using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 
@@ -40,6 +39,10 @@ namespace Stride.Graphics
             return true;
         }
 
+        /// <summary>
+        ///   Swaps the Texture's internal data with another Texture.
+        /// </summary>
+        /// <param name="other">The other Texture.</param>
         internal void SwapInternal(Texture other)
         {
             (other.DepthPitch, DepthPitch) = (DepthPitch, other.DepthPitch);
@@ -72,7 +75,10 @@ namespace Stride.Graphics
             InitializeFromImpl(dataBoxes);
         }
 
-        private void OnRecreateImpl()
+        /// <summary>
+        ///   Perform OpenGL-specific recreation of the Texture.
+        /// </summary>
+        private partial void OnRecreateImpl()
         {
             // Dependency: wait for underlying texture to be recreated
             if (ParentTexture != null && ParentTexture.LifetimeState != GraphicsResourceLifetimeState.Active)
@@ -154,7 +160,14 @@ namespace Stride.Graphics
             pixelBufferObjectId = ParentTexture.PixelBufferObjectId;
         }
 
-        private void InitializeFromImpl(DataBox[] dataBoxes = null)
+        /// <summary>
+        ///   Initializes the Texture from the specified data.
+        /// </summary>
+        /// <param name="dataBoxes">
+        ///   An array of <see cref="DataBox"/> structures pointing to the data for all the subresources to
+        ///   initialize for the Texture.
+        /// </param>
+        private partial void InitializeFromImpl(DataBox[] dataBoxes)
         {
             if (ParentTexture != null)
             {
@@ -199,7 +212,7 @@ namespace Stride.Graphics
                     IsRenderbuffer = !Description.IsShaderResource;
 
                     // Force to renderbuffer if MSAA is on because we don't support MSAA textures ATM (and they don't exist on OpenGL ES).
-                    if (Description.IsMultisample)
+                    if (Description.IsMultiSampled)
                     {
                         // TODO: Ideally the caller of this method should be aware of this "force to renderbuffer",
                         //       because the caller won't be able to bind it as a texture.
@@ -216,16 +229,16 @@ namespace Stride.Graphics
                     GL.BindTexture(TextureTarget, TextureId);
                     SetFilterMode();
 
-                    if (Description.MipLevels == 0)
+                    if (Description.MipLevelCount == 0)
                         throw new NotImplementedException();
 
                     var setSize = TextureSetSize(TextureTarget);
 
                     for (var arrayIndex = 0; arrayIndex < Description.ArraySize; ++arrayIndex)
                     {
-                        int offsetArray = arrayIndex * Description.MipLevels;
+                        int offsetArray = arrayIndex * Description.MipLevelCount;
 
-                        for (int mipLevel = 0; mipLevel < Description.MipLevels; ++mipLevel)
+                        for (int mipLevel = 0; mipLevel < Description.MipLevelCount; ++mipLevel)
                         {
                             DataBox dataBox;
                             Int3 dimensions = new Int3(CalculateMipSize(Description.Width, mipLevel),
@@ -317,7 +330,7 @@ namespace Stride.Graphics
                 }
             }
 #if STRIDE_GRAPHICS_API_OPENGLES
-            else if (Description.MipLevels <= 1)
+            else if (Description.MipLevelCount <= 1)
             {
                 GL.TexParameter(TextureTarget, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Nearest);   // TODO: Why does this use the nearest filter for minification? Using Linear filtering would result in a smoother appearance for minified textures.
                 GL.TexParameter(TextureTarget, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Linear);
@@ -325,7 +338,7 @@ namespace Stride.Graphics
 #endif
 
             GL.TexParameter(TextureTarget, TextureParameterName.TextureBaseLevel, 0);
-            GL.TexParameter(TextureTarget, TextureParameterName.TextureMaxLevel, Description.MipLevels - 1);
+            GL.TexParameter(TextureTarget, TextureParameterName.TextureMaxLevel, Description.MipLevelCount - 1);
         }
 
         private void CreateRenderbuffer(int width, int height, int multisampleCount, InternalFormat internalFormat, out uint textureID)
@@ -333,7 +346,7 @@ namespace Stride.Graphics
             GL.GenRenderbuffers(1, out textureID);
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, textureID);
 
-            if (Description.IsMultisample)
+            if (Description.IsMultiSampled)
             {
 #if !STRIDE_PLATFORM_IOS
                 // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
@@ -363,7 +376,7 @@ namespace Stride.Graphics
 
         private void CreateTexture2D(bool compressed, int width, int height, int mipLevel, int arrayIndex, DataBox dataBox)
         {
-            if (IsMultisample)
+            if (IsMultiSampled)
             {
                 throw new InvalidOperationException("Currently if multisampling is on, a renderbuffer will be created (not a texture) in any case and this code will not be reached." +
                                                     "Therefore if this place is reached, it means something went wrong. Once multisampling has been implemented for OpenGL textures, you can remove this exception.");
@@ -436,7 +449,7 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             using (GraphicsDevice.UseOpenGLCreationContext())
             {
@@ -462,7 +475,7 @@ namespace Stride.Graphics
             stencilId = 0;
             pixelBufferObjectId = 0;
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         private static void ConvertDepthFormat(GraphicsDevice graphicsDevice, PixelFormat requestedFormat, out InternalFormat depthFormat)
@@ -557,7 +570,11 @@ namespace Stride.Graphics
             return format;
         }
 
-        private bool IsFlipped()
+        /// <summary>
+        ///   Indicates if the Texture is flipped vertically, i.e. if the rows are ordered bottom-to-top instead of top-to-bottom.
+        /// </summary>
+        /// <returns><see langword="true"/> if the Texture is flipped; <see langword="false"/> otherwise.</returns>
+        private partial bool IsFlipped()
         {
             return GraphicsDevice.WindowProvidedRenderTexture == this;
         }
@@ -584,8 +601,8 @@ namespace Stride.Graphics
             {
                 for (var arrayIndex = 0; arrayIndex < Description.ArraySize; ++arrayIndex)
                 {
-                    var offsetArray = arrayIndex * Description.MipLevels;
-                    for (int i = 0; i < Description.MipLevels; ++i)
+                    var offsetArray = arrayIndex * Description.MipLevelCount;
+                    for (int i = 0; i < Description.MipLevelCount; ++i)
                     {
                         var data = IntPtr.Zero;
 
@@ -599,7 +616,7 @@ namespace Stride.Graphics
 
                         if (data != IntPtr.Zero)
                         {
-                            Utilities.CopyWithAlignmentFallback((void*) (bufferData + offset), (void*) data, (uint) (width * height * depth * TexturePixelSize));
+                            MemoryUtilities.CopyWithAlignmentFallback((void*) (bufferData + offset), (void*) data, (uint) (width * height * depth * TexturePixelSize));
                         }
 
                         offset += width*height*TexturePixelSize;

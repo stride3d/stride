@@ -1,10 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Runtime.ExceptionServices;
 using System.Threading;
 using Stride.Core;
 using Stride.Core.Annotations;
@@ -13,8 +11,6 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Core.Diagnostics;
-using Stride.Engine;
-using Stride.Rendering.Shadows;
 
 namespace Stride.Rendering
 {
@@ -242,13 +238,13 @@ namespace Stride.Rendering
             var farCorner = boundingBox.Maximum;
 
             if (plane.Normal.X < 0)
-                Utilities.Swap(ref nearCorner.X, ref farCorner.X);
+                MemoryUtilities.Swap(ref nearCorner.X, ref farCorner.X);
 
             if (plane.Normal.Y < 0)
-                Utilities.Swap(ref nearCorner.Y, ref farCorner.Y);
+                MemoryUtilities.Swap(ref nearCorner.Y, ref farCorner.Y);
 
             if (plane.Normal.Z < 0)
-                Utilities.Swap(ref nearCorner.Z, ref farCorner.Z);
+                MemoryUtilities.Swap(ref nearCorner.Z, ref farCorner.Z);
 
             float oldDistance;
 

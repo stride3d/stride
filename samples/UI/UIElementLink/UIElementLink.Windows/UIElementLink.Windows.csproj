@@ -12,7 +12,7 @@
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\UIElementLink.sdpkg</StrideCurrentPackagePath>
     <StrideProjectType>Executable</StrideProjectType>
     <StridePlatform>Windows</StridePlatform>
-  </PropertyGroup> 
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\UIElementLink.Game\UIElementLink.Game.csproj" />
   </ItemGroup>

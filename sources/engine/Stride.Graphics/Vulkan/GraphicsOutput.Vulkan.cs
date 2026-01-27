@@ -4,9 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
 
-using Stride.Core;
 using Stride.Core.Mathematics;
 
 
@@ -15,13 +13,16 @@ namespace Stride.Graphics
     /// <summary>
     /// Provides methods to retrieve and manipulate an graphics output (a monitor), it is equivalent to <see cref="Output"/>.
     /// </summary>
-    /// <msdn-id>bb174546</msdn-id>	
-    /// <unmanaged>IDXGIOutput</unmanaged>	
-    /// <unmanaged-short>IDXGIOutput</unmanaged-short>	
+    /// <msdn-id>bb174546</msdn-id>
+    /// <unmanaged>IDXGIOutput</unmanaged>
+    /// <unmanaged-short>IDXGIOutput</unmanaged-short>
     public partial class GraphicsOutput
     {
         private readonly VkDisplayPropertiesKHR displayProperties;
         private readonly int outputIndex;
+
+        // TODO VULKAN
+        internal GraphicsOutput() { } // Here for GraphicsAdapter.Vulkan to be able to create a GraphicsOutput without an adapter
 
         /// <summary>
         /// Initializes a new instance of <see cref="GraphicsOutput" />.
@@ -37,7 +38,7 @@ namespace Stride.Graphics
             this.outputIndex = outputIndex;
             this.displayProperties = displayProperties;
 
-            desktopBounds = new Rectangle(0, 0, (int)displayProperties.physicalResolution.width, (int)displayProperties.physicalResolution.height);
+            DesktopBounds = new Rectangle(0, 0, (int)displayProperties.physicalResolution.width, (int)displayProperties.physicalResolution.height);
         }
 
         /// <summary>
@@ -91,9 +92,9 @@ namespace Stride.Graphics
         /// <summary>
         /// Retrieves the handle of the monitor associated with this <see cref="GraphicsOutput"/>.
         /// </summary>
-        /// <msdn-id>bb173068</msdn-id>	
-        /// <unmanaged>HMONITOR Monitor</unmanaged>	
-        /// <unmanaged-short>HMONITOR Monitor</unmanaged-short>	
+        /// <msdn-id>bb173068</msdn-id>
+        /// <unmanaged>HMONITOR Monitor</unmanaged>
+        /// <unmanaged-short>HMONITOR Monitor</unmanaged-short>
         public IntPtr MonitorHandle { get { return IntPtr.Zero; } }
 
         /// <summary>
@@ -180,7 +181,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="format">The format to match with.</param>
         /// <returns>A matched <see cref="DisplayMode"/> or null if nothing is found.</returns>
-        private DisplayMode TryFindMatchingDisplayMode(VkFormat format)
+        private DisplayMode? TryFindMatchingDisplayMode(VkFormat format)
         {
             //var desktopBounds = outputDescription.DesktopBounds;
 

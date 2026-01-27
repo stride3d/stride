@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_GRAPHICS_API_OPENGL 
+#if STRIDE_GRAPHICS_API_OPENGL
 using System;
 using Stride.Core.Mathematics;
 
@@ -28,7 +28,8 @@ namespace Stride.Graphics
         private DepthFunction compareFunc;
         private TextureCompareMode compareMode;
 
-        private SamplerState(GraphicsDevice device, SamplerStateDescription samplerStateDescription) : base(device)
+        private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription samplerStateDescription, string? name = null)
+            : base(device, name)
         {
             Description = samplerStateDescription;
 
@@ -142,4 +143,4 @@ namespace Stride.Graphics
     }
 }
 
-#endif 
+#endif

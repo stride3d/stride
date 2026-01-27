@@ -19,13 +19,13 @@ public class TestUtilities
     public unsafe void Base()
     {
         // Allocate memory
-        var data = Utilities.AllocateMemory(32, 16);
+        var data = MemoryUtilities.Allocate(sizeInBytes: 32, alignment: 16);
 
         // Check allocation and alignment
         Assert.True(data != IntPtr.Zero);
         Assert.Equal(0, (long)data % 16);
 
         // FreeMemory
-        Utilities.FreeMemory(data);
+        MemoryUtilities.Free(data);
     }
 }

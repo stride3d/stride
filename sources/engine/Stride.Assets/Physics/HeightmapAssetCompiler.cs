@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Stride.Assets.Textures;
+using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
@@ -277,7 +278,7 @@ namespace Stride.Assets.Physics
                 {
                     min = (min * heightScale) < minHeight ? min - 1 : min;
                     max = (max * heightScale) > maxHeight ? max + 1 : max;
-                    Core.Utilities.Swap(ref min, ref max);
+                    MemoryUtilities.Swap(ref min, ref max);
                 }
                 else
                 {

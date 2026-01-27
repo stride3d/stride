@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Graphics;
 
@@ -202,7 +201,7 @@ namespace Stride.TextureConverter
                     return false;
             }
 
-            return Width == img.Width 
+            return Width == img.Width
                 && Height == img.Height
                 && Depth == img.Depth
                 && Format == img.Format
@@ -280,7 +279,8 @@ namespace Stride.TextureConverter
                 Disposed = this.Disposed,
             };
 
-            if (CopyMemory) Utilities.CopyWithAlignmentFallback((void*)newTex.Data, (void*)Data, (uint)DataSize);
+            if (CopyMemory)
+                MemoryUtilities.CopyWithAlignmentFallback((void*)newTex.Data, (void*)Data, (uint)DataSize);
 
             int offset = 0;
             for (int i = 0; i < this.SubImageArray.Length; ++i)
@@ -373,7 +373,7 @@ namespace Stride.TextureConverter
         public int GetAlphaDepth()
         {
             // TODO: Improve this function so that it checks that actual data (will probably need to add the region to check as parameter)
-            int alphaDepth = Format.AlphaSizeInBits();
+            int alphaDepth = Format.AlphaSizeInBits;
             if (OriginalAlphaDepth == -1)
                 return alphaDepth;
 

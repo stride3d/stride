@@ -1,7 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.0.11205.157 d18.0
-MinimumVisualStudioVersion = 16.0
+MinimumVisualStudioVersion = 18.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "90-Tools", "90-Tools", "{1AE1AC60-5D2F-4CA7-AE20-888F44551185}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10-CoreRuntime", "10-CoreRuntime", "{2E93E2B5-4500-4E47-9B65-E705218AB578}"
@@ -278,8 +278,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ja", "ja", "{B4EABB0D-E495-
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Video", "..\sources\engine\Stride.Video\Stride.Video.csproj", "{DA355C86-866F-4843-9B4D-63A173C750FB}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Editor.CrashReport", "..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.shproj", "{AB574F65-1402-4476-9314-74DCDAF19097}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "72-StrideSamples", "72-StrideSamples", "{75608B5C-1C03-4B38-810E-14EED5165E59}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Samples.Tests", "..\samples\Tests\Stride.Samples.Tests.csproj", "{2FC40214-A4AA-45DC-9C93-72ED800C40B0}"
@@ -335,6 +333,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Tests", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Tests\Stride.BepuPhysics.Tests.csproj", "{7B70C783-4085-4702-B3C6-6570FD85CB8F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.FreeImage", "..\sources\tools\Stride.FreeImage\Stride.FreeImage.csproj", "{03695F9B-10E9-4A10-93AE-6402E46F10B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Editor.CrashReport", "..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.csproj", "{35EC42D8-0A09-41AE-A918-B8C2796061B3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1511,6 +1511,18 @@ Global
 		{03695F9B-10E9-4A10-93AE-6402E46F10B5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{03695F9B-10E9-4A10-93AE-6402E46F10B5}.Release|Win32.ActiveCfg = Release|Any CPU
 		{03695F9B-10E9-4A10-93AE-6402E46F10B5}.Release|Win32.Build.0 = Release|Any CPU
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3}.Debug|Win32.Build.0 = Debug|Any CPU
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3}.Release|Win32.ActiveCfg = Release|Any CPU
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1613,7 +1625,6 @@ Global
 		{164A5B9A-E684-4B3F-9EF4-B7765FC0A8A1} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{B4EABB0D-E495-405C-B7B1-E2A7A3711AF5} = {FC791F56-C1F1-4C41-A193-868D8197F8E2}
 		{DA355C86-866F-4843-9B4D-63A173C750FB} = {4C142567-C42B-40F5-B092-798882190209}
-		{AB574F65-1402-4476-9314-74DCDAF19097} = {5D2D3BE8-9910-45CA-8E45-95660DA4C563}
 		{2FC40214-A4AA-45DC-9C93-72ED800C40B0} = {75608B5C-1C03-4B38-810E-14EED5165E59}
 		{00B72ED7-00E9-47F7-868D-8162027CD068} = {158087CF-AF74-44E9-AA20-A6AEB1E398A9}
 		{040F754C-17F4-4B5F-B974-93F1E39D107F} = {75608B5C-1C03-4B38-810E-14EED5165E59}
@@ -1638,6 +1649,7 @@ Global
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E} = {6F473FA6-4F8B-4FBA-AE33-EE5AF997D50C}
 		{7B70C783-4085-4702-B3C6-6570FD85CB8F} = {DE048114-9AE4-467E-A879-188DC0D88A59}
 		{03695F9B-10E9-4A10-93AE-6402E46F10B5} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
+		{35EC42D8-0A09-41AE-A918-B8C2796061B3} = {5D2D3BE8-9910-45CA-8E45-95660DA4C563}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}
@@ -1646,7 +1658,6 @@ Global
 		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{2fc40214-a4aa-45dc-9c93-72ed800c40b0}*SharedItemsImports = 5
-		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
 		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
@@ -1664,7 +1675,6 @@ Global
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{a5dc820b-9554-45b6-9677-6a2f902e7787}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{a5dc820b-9554-45b6-9677-6a2f902e7787}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{a7fc60ae-bb54-47d3-8787-788eec65ad45}*SharedItemsImports = 5
-		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{ab574f65-1402-4476-9314-74dcdaf19097}*SharedItemsImports = 13
 		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{c121a566-555e-42b9-9b0a-1696529a9088}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{e25e7778-0b2f-4a0b-bcd6-1de95320b531}*SharedItemsImports = 5
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{e8b3553f-a79f-4e50-b75b-acee771c320c}*SharedItemsImports = 5

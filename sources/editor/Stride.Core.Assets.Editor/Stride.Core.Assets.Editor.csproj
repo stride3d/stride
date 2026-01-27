@@ -13,13 +13,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Dirkster.AvalonDock" />
-    <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Diagnostics.Tracing" />
-    <PackageReference Include="System.Management" />
-    <PackageReference Include="System.Runtime" />
-    <PackageReference Include="System.Runtime.Extensions" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" />
-    <PackageReference Include="System.ValueTuple" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs">
