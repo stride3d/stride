@@ -193,13 +193,15 @@ public sealed class ShaderMember(
             memberType = TypeName.ResolveType(table, context);
         }
 
-        var storageClass = StorageClass == StorageClass.Static || StreamKind == StreamKind.Stream
-            ? Specification.StorageClass.Private
-            : Specification.StorageClass.Uniform;
-        if (memberType is TextureType || memberType is BufferType)
-            storageClass = Specification.StorageClass.UniformConstant;
-        if (memberType is StructuredBufferType)
-            storageClass = Specification.StorageClass.StorageBuffer;
+        var storageClass = (memberType, StorageClass, StreamKind) switch
+        {
+            (TextureType or BufferType, _, _) => Specification.StorageClass.UniformConstant,
+            (StructuredBufferType, _, _) => Specification.StorageClass.StorageBuffer,
+            (_, StorageClass.GroupShared, _) => Specification.StorageClass.Workgroup,
+            (_, StorageClass.Static, _) => Specification.StorageClass.Private,
+            (_, _, StreamKind.Stream) => Specification.StorageClass.Private,
+            _ => Specification.StorageClass.Uniform, 
+        };
 
         if (TypeModifier == TypeModifier.Const)
         {

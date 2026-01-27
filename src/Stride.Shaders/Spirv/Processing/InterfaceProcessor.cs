@@ -401,7 +401,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                 if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                     {
-                        Storageclass: StorageClass.Private,
+                        Storageclass: StorageClass.Private or StorageClass.Workgroup,
                         ResultId: int
                     } variable2)
                 {
@@ -566,7 +566,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                 if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                     {
-                        Storageclass: StorageClass.Private,
+                        Storageclass: StorageClass.Private or StorageClass.Workgroup,
                         ResultId: int
                     } variable)
                 {
