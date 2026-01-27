@@ -169,13 +169,14 @@ public partial class ShaderMixer
     // Emit reflection (except ConstantBuffers which was emitted during ComputeCBufferReflection)
     private unsafe void ProcessReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, Options options)
     {
-        Span<int> slotCounts = stackalloc int[options.ResourcesRegisterSeparate ? 3 : 1];
+        Span<int> slotCounts = stackalloc int[options.ResourcesRegisterSeparate ? 4 : 1];
         slotCounts.Clear();
         
         // If areResourcesSharingSlots is true, every slot type will point to same value
         ref var srvSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 0 : 0];
         ref var samplerSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 1 : 0];
         ref var cbufferSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 2 : 0];
+        ref var uavSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 3 : 0];
 
         // TODO: do this once at root level and reuse for child mixin
         var samplerStates = new Dictionary<int, Graphics.SamplerStateDescription>();
@@ -279,61 +280,59 @@ public partial class ShaderMixer
                         LogicalGroup = linkInfo.LogicalGroup,
                     };
 
-                    if (variableType is TextureType t)
+                    if (variableType is TextureType or BufferType or StructuredBufferType)
                     {
-                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                        bool isUAV = variableType switch
                         {
-                            Class = EffectParameterClass.ShaderResourceView,
-                            Type = (t, t.Multisampled) switch
+                            TextureType t1 => t1.Sampled == 2,
+                            BufferType b1 => b1.WriteAllowed,
+                            StructuredBufferType sb1 => sb1.WriteAllowed,
+                        };
+                        ref var slot = ref (isUAV ? ref uavSlot : ref srvSlot);
+                        effectResourceBinding.Class = isUAV ? EffectParameterClass.UnorderedAccessView : EffectParameterClass.ShaderResourceView;
+                        effectResourceBinding.SlotStart = slot;
+                        effectResourceBinding.SlotCount = 1;
+
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [slot]));
+
+                        slot++;
+
+                        if (variableType is TextureType t)
+                        {
+                            globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
                             {
-                                (Texture1DType, false) => EffectParameterType.Texture1D,
-                                (Texture2DType, false) => EffectParameterType.Texture2D,
-                                (Texture2DType, true) => EffectParameterType.Texture2DMultisampled,
-                                (Texture3DType, false) => EffectParameterType.Texture3D,
-                                (TextureCubeType, false) => EffectParameterType.TextureCube,
-                            },
-                            SlotStart = srvSlot,
-                            SlotCount = 1,
-                        });
-
-                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
-                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [srvSlot]));
-
-                        srvSlot++;
-                    }
-                    else if (variableType is BufferType)
-                    {
-                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                                Type = (t, t.Multisampled, t.Sampled == 2) switch
+                                {
+                                    (Texture1DType, false, false) => EffectParameterType.Texture1D,
+                                    (Texture2DType, false, false) => EffectParameterType.Texture2D,
+                                    (Texture2DType, true, false) => EffectParameterType.Texture2DMultisampled,
+                                    (Texture3DType, false, false) => EffectParameterType.Texture3D,
+                                    (TextureCubeType, false, false) => EffectParameterType.TextureCube,
+                                    (Texture1DType, false, true) => EffectParameterType.RWTexture1D,
+                                    (Texture2DType, false, true) => EffectParameterType.RWTexture2D,
+                                    (Texture3DType, false, true) => EffectParameterType.RWTexture3D,
+                                },
+                            });
+                        }
+                        else if (variableType is BufferType bufferType)
                         {
-                            Class = EffectParameterClass.ShaderResourceView,
-                            Type = EffectParameterType.Buffer,
-                            SlotStart = srvSlot,
-                            SlotCount = 1,
-                        });
-
-                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
-                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [srvSlot]));
-
-                        srvSlot++;
-                    }
-                    else if (variableType is StructuredBufferType structuredBufferType)
-                    {
-                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                            globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                            {
+                                Type = bufferType.WriteAllowed ? EffectParameterType.RWBuffer : EffectParameterType.Buffer,
+                            });
+                        }
+                        else if (variableType is StructuredBufferType structuredBufferType)
                         {
-                            Class = EffectParameterClass.ShaderResourceView,
-                            Type =  structuredBufferType.WriteAllowed ? EffectParameterType.RWStructuredBuffer : EffectParameterType.StructuredBuffer,
-                            SlotStart = srvSlot,
-                            SlotCount = 1,
-                        });
+                            globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                            {
+                                Type = structuredBufferType.WriteAllowed ? EffectParameterType.RWStructuredBuffer : EffectParameterType.StructuredBuffer,
+                            });
 
-                        var baseType = structuredBufferType.BaseType;
-                        // This will add array stride and offsets decorations
-                        EmitTypeDecorationsRecursively(context, baseType, SpirvBuilder.AlignmentRules.StructuredBuffer);
-
-                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
-                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [srvSlot]));
-
-                        srvSlot++;
+                            var baseType = structuredBufferType.BaseType;
+                            // This will add array stride and offsets decorations
+                            EmitTypeDecorationsRecursively(context, baseType, SpirvBuilder.AlignmentRules.StructuredBuffer);
+                        }
                     }
                     else if (variableType is SamplerType)
                     {

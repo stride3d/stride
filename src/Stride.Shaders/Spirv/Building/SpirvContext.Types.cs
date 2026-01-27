@@ -50,7 +50,7 @@ public partial class SpirvContext
                     t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
                 SamplerType st => Buffer.Add(new OpTypeSampler(Bound++)).IdResult,
                 BufferType b => Buffer.Add(new OpTypeImage(Bound++, GetOrRegister(b.BaseType), Specification.Dim.Buffer,
-                    2, 0, 0, 1, Specification.ImageFormat.Unknown, null)).IdResult,
+                    2, 0, 0, b.WriteAllowed ? 2 : 1, Specification.ImageFormat.Unknown, null)).IdResult,
                 StructuredBufferType b => RegisterStructuredBufferType(b),
                 SampledImage si => Buffer.Add(new OpTypeSampledImage(Bound++, GetOrRegister(si.ImageType))).IdResult,
                 GenericParameterType g => Buffer.Add(new OpTypeGenericSDSL(Bound++, g.Kind)).IdResult,
@@ -69,7 +69,7 @@ public partial class SpirvContext
         var runtimeArrayType = Buffer.Add(new OpTypeRuntimeArray(Bound++, GetOrRegister(structuredBufferType.BaseType))).IdResult.Value;
         
         var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).IdResult.Value;
-        AddName(bufferType, $"type.StructuredBuffer.{structuredBufferType.BaseType.ToId()}");
+        AddName(bufferType, $"type.{(structuredBufferType.WriteAllowed ? "RW" : "")}StructuredBuffer.{structuredBufferType.BaseType.ToId()}");
         Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.Offset, [0]));
         
         // TODO: Add array stride and offsets

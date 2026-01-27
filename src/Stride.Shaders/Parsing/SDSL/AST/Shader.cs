@@ -160,6 +160,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     ? structName switch 
                     {
                         var s when s.StartsWith("type.StructuredBuffer.") => new StructuredBufferType(fields[0].Type),
+                        var s when s.StartsWith("type.RWStructuredBuffer.") => new StructuredBufferType(fields[0].Type, true),
                         var s when s.StartsWith("type.") => new ConstantBufferSymbol(structName.Substring("type.".Length), fields),
                         _ => throw new InvalidOperationException(),
                     }
@@ -201,7 +202,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var sampledType = (ScalarType)context.ReverseTypes[typeImage.SampledType];
                 if (typeImage.Dim == Dim.Buffer)
                 {
-                    RegisterType(typeImage.ResultId, new BufferType(sampledType));
+                    RegisterType(typeImage.ResultId, new BufferType(sampledType, typeImage.Sampled == 2));
                 }
                 else
                 {
