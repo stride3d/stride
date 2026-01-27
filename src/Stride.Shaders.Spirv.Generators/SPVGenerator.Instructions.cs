@@ -374,8 +374,13 @@ public partial class SPVGenerator : IIncrementalGenerator
             (string s, null or "") when s.Contains("Id") => $"{fieldName}",
             (string s, "?") when s.Contains("Id") => $".. ({fieldName} is null ? (Span<int>)[] : [{fieldName}.Value])",
             (string s, null or "") when s.Contains("Enum") =>
-                operand.IsParameterized ? $"(int){fieldName}, .. {fieldName}Parameters" : $"(int){fieldName}",
-            (string s, "?") when s.Contains("Enum") => $".. ({fieldName} is null ? (Span<int>)[] : [(int){fieldName}.Value])",
+                operand.IsParameterized
+                ? $"(int){fieldName}, .. {fieldName}Parameters"
+                : $"(int){fieldName}",
+            (string s, "?") when s.Contains("Enum") =>
+                operand.IsParameterized
+                ? $".. ({fieldName} is null ? (Span<int>)[] : [(int){fieldName}.Value, ..{fieldName}Parameters])"
+                : $".. ({fieldName} is null ? (Span<int>)[] : [(int){fieldName}.Value])",
             (string, "*") => $".. {fieldName}.Words",
             (string, "?") => $".. ({fieldName} is null ? (Span<int>)[] : {fieldName}.AsDisposableLiteralValue().Words)",
             (_, "?") => $".. ({fieldName} is null ? (Span<int>)[] : {fieldName}.AsDisposableLiteralValue().Words)",
