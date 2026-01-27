@@ -694,48 +694,44 @@ namespace Stride.Shaders.Spirv.Processing
                 return true;
             }
             
+            bool AddLocation(int variable, string location)
+            {
+                // If it fails, default is 0
+                int.TryParse(location, out var targetIndex);
+                context.Add(new OpDecorate(variable, Decoration.Location, [targetIndex]));
+                return true;
+            }
+            
             bool ProcessBuiltinsDecoration(int variable, StreamVariableType type, StreamInfo stream)
             {
-                switch (stream.Semantic?.ToUpperInvariant())
+                // Note: false means it needs to be forwarded
+                // TODO: review the case where we don't use automatic forwarding for HS/DS/GS stages, i.e. SV_POSITION and SV_PrimitiveID
+                return (executionModel, type, stream.Semantic?.ToUpperInvariant()) switch
                 {
-                    case "SV_DEPTH":
-                        if (executionModel is ExecutionModel.Fragment && type == StreamVariableType.Output)
-                            return AddBuiltin(variable, BuiltIn.FragDepth);
-                        return false;
-                    case {} semantic when semantic.StartsWith("SV_TARGET"):
-                        if (executionModel is ExecutionModel.Fragment && type == StreamVariableType.Output)
-                        {
-                            // If it fails, default is 0
-                            int.TryParse(semantic.Substring("SV_TARGET".Length), out var targetIndex);
-                            context.Add(new OpDecorate(variable, Decoration.Location, [targetIndex]));
-                            return true;
-                        }
-                        return false;
-                    case "SV_POSITION":
-                        if (isFirstActiveShader && type == StreamVariableType.Output)
-                            return AddBuiltin(variable, BuiltIn.Position);
-                        if (executionModel == ExecutionModel.Fragment && type == StreamVariableType.Input)
-                            return AddBuiltin(variable, BuiltIn.FragCoord);
-                        return false;
-                    // TODO: Check if first stage
-                    case "SV_INSTANCEID":
-                        if (type == StreamVariableType.Input)
-                            return AddBuiltin(variable, BuiltIn.InstanceIndex);
-                        return false;
-                    case "SV_VERTEXID":
-                        if (executionModel is ExecutionModel.Vertex && type == StreamVariableType.Input)
-                            return AddBuiltin(variable, BuiltIn.VertexIndex);
-                        return false;
-                    case "SV_ISFRONTFACE":
-                        if ((executionModel is ExecutionModel.Fragment && type == StreamVariableType.Input)
-                            || (executionModel is ExecutionModel.Geometry && type == StreamVariableType.Output))
-                            return AddBuiltin(variable, BuiltIn.FrontFacing);
-                        throw new NotImplementedException($"Invalid use of System-value semantic {stream.Semantic} as {type} in stage {executionModel}");
-                    case {} semantic when semantic.StartsWith("SV_"):
-                        throw new NotImplementedException($"System-value Semantic not implemented: {semantic}");
-                    default:
-                        return false;
-                }
+                    // SV_Depth/SV_Target
+                    (ExecutionModel.Fragment, StreamVariableType.Output, "SV_DEPTH") => AddBuiltin(variable, BuiltIn.FragDepth),
+                    (ExecutionModel.Fragment, StreamVariableType.Output, {} semantic) when semantic.StartsWith("SV_TARGET") => AddLocation(variable, semantic.Substring("SV_TARGET".Length)),
+                    // SV_Position
+                    (ExecutionModel.Vertex, StreamVariableType.Output, "SV_POSITION") => AddBuiltin(variable, BuiltIn.Position),
+                    (not ExecutionModel.Fragment and not ExecutionModel.Vertex, StreamVariableType.Input, "SV_POSITION") => AddBuiltin(variable, BuiltIn.Position),
+                    (ExecutionModel.Fragment, StreamVariableType.Input, "SV_POSITION") => AddBuiltin(variable, BuiltIn.FragCoord),
+                    // SV_InstanceID/SV_VertexID
+                    (ExecutionModel.Vertex, StreamVariableType.Input, "SV_INSTANCEID") => AddBuiltin(variable, BuiltIn.InstanceIndex),
+                    (ExecutionModel.Vertex, StreamVariableType.Input, "SV_VERTEXID") => AddBuiltin(variable, BuiltIn.VertexIndex),
+                    (not ExecutionModel.Vertex, StreamVariableType.Input, "SV_INSTANCEID" or "SV_VERTEXID") => false,
+                    // SV_IsFrontFace
+                    (ExecutionModel.Fragment, StreamVariableType.Input, "SV_ISFRONTFACE") => AddBuiltin(variable, BuiltIn.FrontFacing),
+                    // SV_PrimitiveID
+                    (ExecutionModel.Geometry, StreamVariableType.Output, "SV_PrimitiveID") => AddBuiltin(variable, BuiltIn.PrimitiveId),
+                    (not ExecutionModel.Vertex, StreamVariableType.Input, "SV_PrimitiveID") => AddBuiltin(variable, BuiltIn.PrimitiveId),
+                    // Compute shaders
+                    (ExecutionModel.GLCompute, StreamVariableType.Input, "SV_GROUPID") => AddBuiltin(variable, BuiltIn.WorkgroupId),
+                    (ExecutionModel.GLCompute, StreamVariableType.Input, "SV_GROUPINDEX") => AddBuiltin(variable, BuiltIn.LocalInvocationIndex),
+                    (ExecutionModel.GLCompute, StreamVariableType.Input, "SV_GROUPTHREADID") => AddBuiltin(variable, BuiltIn.LocalInvocationId),
+                    (ExecutionModel.GLCompute, StreamVariableType.Input, "SV_DISPATCHTHREADID") => AddBuiltin(variable, BuiltIn.GlobalInvocationId),
+                    (_, _, {} semantic) when semantic.StartsWith("SV_") => throw new NotImplementedException($"System-value Semantic not implemented: {semantic} for stage {executionModel} as {type}"),
+                    _ => false,
+                };
             }
 
             foreach (var stream in streams)
