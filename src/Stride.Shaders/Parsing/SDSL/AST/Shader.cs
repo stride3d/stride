@@ -479,83 +479,10 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             Inherit(table, context, shaderType, true);
         }
 
+        // Process symbols and generate types
         foreach (var member in Elements)
         {
-            // Do this early: we want struct to be available for function parameters (same loop)
             member.ProcessSymbol(table, context);
-
-            if (member is ShaderMethod func)
-            {
-                var ftype = new FunctionType(func.ReturnTypeName.ResolveType(table, context), []);
-                foreach (var arg in func.Parameters)
-                {
-                    var argSym = arg.TypeName.ResolveType(table, context);
-                    table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
-                    arg.Type = argSym;
-                    ftype.ParameterTypes.Add(new(new PointerType(arg.Type, Specification.StorageClass.Function), arg.Modifiers));
-                }
-                func.Type = ftype;
-
-                table.DeclaredTypes.TryAdd(func.Type.ToString(), func.Type);
-            }
-            else if (member is ShaderMember svar)
-            {
-                if (!svar.TypeName.TryResolveType(table, context, out var memberType))
-                {
-                    if (svar.TypeName.Name.Contains("<"))
-                        throw new NotImplementedException("Can't have member variables with generic shader types");
-                    var classSource = new ShaderClassInstantiation(svar.TypeName.Name, []);
-                    var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), ResolveStep.Compile, context);
-                    classSource.Buffer = shader;
-                    var shaderType = LoadAndCacheExternalShaderType(table, context, classSource);
-
-                    // Resolve again (we don't use shaderType direclty, because it might lack info such as ArrayType)
-                    memberType = svar.TypeName.ResolveType(table, context);
-                }
-
-                var storageClass = svar.StorageClass == StorageClass.Static || svar.StreamKind == StreamKind.Stream
-                    ? Specification.StorageClass.Private
-                    : Specification.StorageClass.Uniform;
-                if (memberType is TextureType || memberType is BufferType)
-                    storageClass = Specification.StorageClass.UniformConstant;
-                if (memberType is StructuredBufferType)
-                    storageClass = Specification.StorageClass.StorageBuffer;
-
-                if (svar.TypeModifier == TypeModifier.Const)
-                {
-                    if (svar.Value == null)
-                        throw new InvalidOperationException($"Constant {svar.Name} doesn't have a value");
-                    
-                    // Constant: compile right away
-                    var constantValue = svar.Value.CompileConstantValue(table, context, memberType);
-                    context.SetName(constantValue.Id, svar.Name);
-                    var symbol = new Symbol(new(svar.Name, SymbolKind.Constant), memberType, constantValue.Id);
-                    table.CurrentFrame.Add(svar.Name, symbol);
-                    svar.Type = memberType;
-
-                    // This constant is visible when inherited
-                    context.Add(new OpDecorate(constantValue.Id, Decoration.ShaderConstantSDSL, []));
-                }
-                else
-                {
-                    svar.Type = new PointerType(memberType, storageClass);
-                    table.DeclaredTypes.TryAdd(svar.Type.ToString(), svar.Type);
-                }
-            }
-            else if (member is CBuffer cb)
-            {
-                foreach (var cbMember in cb.Members)
-                {
-                    cbMember.Type = cbMember.TypeName.ResolveType(table, context);
-                    //var symbol = new Symbol(new(cbMember.Name, SymbolKind.CBuffer), cbMember.Type);
-                    //symbols.Add(symbol);
-                }
-            }
-            else if (member is ShaderSamplerState samplerState)
-            {
-                samplerState.Type = new SamplerType();
-                table.DeclaredTypes.TryAdd(samplerState.Type.ToString(), samplerState.Type);
-            }
         }
 
         RenameCBufferVariables();
@@ -573,7 +500,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         foreach (var member in Elements.OfType<ShaderSamplerState>())
             member.Compile(table, this, compiler);
 
-        // In case calling a method not yet processed, we first register method types
+        // In case a moethod calling another method not yet processed, we first declare all methods
         // (SPIR-V allow forward calling)
         foreach (var method in Elements.OfType<ShaderMethod>())
             method.Declare(table, this, compiler);

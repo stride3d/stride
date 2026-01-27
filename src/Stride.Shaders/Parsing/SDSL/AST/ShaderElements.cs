@@ -221,6 +221,7 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
 
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
+        base.ProcessSymbol(table, context);
         var fields = new List<StructuredTypeMember>();
         foreach (var smem in Members)
         {
@@ -287,6 +288,13 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
         }
 
         return (null, null);
+    }
+
+    public override void ProcessSymbol(SymbolTable table, SpirvContext context)
+    {
+        base.ProcessSymbol(table, context);
+        foreach (var cbMember in Members)
+            cbMember.Type = cbMember.TypeName.ResolveType(table, context);
     }
 
     public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)

@@ -8,6 +8,7 @@ using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
 using System.Collections.Immutable;
 using System.Diagnostics.Metrics;
+using CommunityToolkit.HighPerformance;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
@@ -35,6 +36,13 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
 {
     public Identifier Name { get; set; } = name;
     public List<SamplerStateParameter> Parameters { get; set; } = [];
+
+    public override void ProcessSymbol(SymbolTable table, SpirvContext context)
+    {
+        base.ProcessSymbol(table, context);
+        Type = new SamplerType();
+        table.DeclaredTypes.TryAdd(Type.ToString(), Type);
+    }
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -169,6 +177,52 @@ public sealed class ShaderMember(
     public StorageClass StorageClass { get; set; } = storageClass;
     public InterpolationModifier Interpolation { get; set; } = interpolation;
 
+    public override void ProcessSymbol(SymbolTable table, SpirvContext context)
+    {
+        base.ProcessSymbol(table, context);
+        if (!TypeName.TryResolveType(table, context, out var memberType))
+        {
+            if (TypeName.Name.Contains("<"))
+                throw new NotImplementedException("Can't have member variables with generic shader types");
+            var classSource = new ShaderClassInstantiation(TypeName.Name, []);
+            var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), ResolveStep.Compile, context);
+            classSource.Buffer = shader;
+            var shaderType = ShaderClass.LoadAndCacheExternalShaderType(table, context, classSource);
+
+            // Resolve again (we don't use shaderType direclty, because it might lack info such as ArrayType)
+            memberType = TypeName.ResolveType(table, context);
+        }
+
+        var storageClass = StorageClass == StorageClass.Static || StreamKind == StreamKind.Stream
+            ? Specification.StorageClass.Private
+            : Specification.StorageClass.Uniform;
+        if (memberType is TextureType || memberType is BufferType)
+            storageClass = Specification.StorageClass.UniformConstant;
+        if (memberType is StructuredBufferType)
+            storageClass = Specification.StorageClass.StorageBuffer;
+
+        if (TypeModifier == TypeModifier.Const)
+        {
+            if (Value == null)
+                throw new InvalidOperationException($"Constant {Name} doesn't have a value");
+            
+            // Constant: compile right away
+            var constantValue = Value.CompileConstantValue(table, context, memberType);
+            context.SetName(constantValue.Id, Name);
+            var symbol = new Symbol(new(Name, SymbolKind.Constant), memberType, constantValue.Id);
+            table.CurrentFrame.Add(Name, symbol);
+            Type = memberType;
+
+            // This constant is visible when inherited
+            context.Add(new OpDecorate(constantValue.Id, Specification.Decoration.ShaderConstantSDSL, []));
+        }
+        else
+        {
+            Type = new PointerType(memberType, storageClass);
+            table.DeclaredTypes.TryAdd(Type.ToString(), Type);
+        }
+    }
+
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
@@ -201,6 +255,7 @@ public sealed class ShaderMember(
             context.AddName(initializerMethod.Value, $"{Name}_Initializer");
         }
 
+        // Note: StorageClass was decided in Shader.Compile()
         builder.Insert(new OpVariableSDSL(registeredType, variable, pointerType.StorageClass, variableFlags, initializerMethod));
         if (Semantic != null)
             context.Add(new OpDecorateString(variable, Specification.Decoration.UserSemantic, Semantic.Name));
@@ -294,6 +349,22 @@ public class ShaderMethod(
     public List<MethodParameter> Parameters { get; set; } = [];
 
     public BlockStatement? Body { get; set; }
+    
+    public override void ProcessSymbol(SymbolTable table, SpirvContext context)
+    {
+        base.ProcessSymbol(table, context);
+        var ftype = new FunctionType(ReturnTypeName.ResolveType(table, context), []);
+        foreach (var arg in Parameters)
+        {
+            var argSym = arg.TypeName.ResolveType(table, context);
+            table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
+            arg.Type = argSym;
+            ftype.ParameterTypes.Add(new(new PointerType(arg.Type, Specification.StorageClass.Function), arg.Modifiers));
+        }
+        Type = ftype;
+
+        table.DeclaredTypes.TryAdd(Type.ToString(), Type);
+    }
 
     public void Declare(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
