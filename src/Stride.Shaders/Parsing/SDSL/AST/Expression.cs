@@ -896,7 +896,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         }
 
                         (result, _) = builder.ApplyScalarSwizzles(context, result, s, swizzleIndices);
-                        accessor.Type = s;
+                        accessor.Type = s.GetVectorOrScalar(swizzle.Length);
                     }
                     else
                     {
