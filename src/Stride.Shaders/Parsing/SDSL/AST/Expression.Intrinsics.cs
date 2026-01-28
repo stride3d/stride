@@ -36,7 +36,12 @@ public static class IntrinsicHelper
 
 public class AbsCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("abs", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = Parameters.Values[0].ValueType;
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var x = Parameters.Values[0].CompileAsValue(table, compiler);
@@ -62,14 +67,19 @@ public class AbsCall(ShaderExpressionList parameters, TextLocation info) : Metho
 }
 public class SignCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fsign", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = Parameters.Values[0].ValueType;
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var x = Parameters.Values[0].CompileAsValue(table, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
 
-        var elementType = Parameters.Values[0].ValueType.GetElementType();
+        var elementType = Type.GetElementType();
         if (elementType.IsFloating())
         {
             var instruction = builder.Insert(new GLSLFSign(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
@@ -86,32 +96,22 @@ public class SignCall(ShaderExpressionList parameters, TextLocation info) : Meth
         }
     }
 }
-public class FractCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fract", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var x = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFract(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
 public class GLSLFloatBinaryCall(ShaderExpressionList parameters, TextLocation info, Specification.GLSLOp op) : MethodCall(new(op.ToString(), info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        var xType = Parameters.Values[0].ValueType;
+        var yType = Parameters.Values[1].ValueType;
+        Type = IntrinsicHelper.FindCommonType(ScalarType.Float, xType, yType);
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var (x, y) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
         
-        var xType = Parameters.Values[0].ValueType;
-        var yType = Parameters.Values[1].ValueType;
-
-        var resultType = IntrinsicHelper.FindCommonType(ScalarType.Float, xType, yType);
-
-        x = builder.Convert(context, x, resultType);
-        y = builder.Convert(context, y, resultType);
+        x = builder.Convert(context, x, Type);
+        y = builder.Convert(context, y, Type);
 
         if (context.GLSLSet == null)
             context.ImportGLSL();
@@ -125,15 +125,19 @@ public class GLSLFloatBinaryCall(ShaderExpressionList parameters, TextLocation i
 
 public class GLSLFloatUnaryCall(ShaderExpressionList parameters, TextLocation info, Specification.GLSLOp op, float? multiplyConstant = null) : MethodCall(new(op.ToString(), info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = Parameters.Values[0].ValueType.WithElementType(ScalarType.Float);
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var x = Parameters.Values[0].CompileAsValue(table, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
         
-        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.Float);
-        x = builder.Convert(context, x, parameterType);
+        x = builder.Convert(context, x, Type);
 
         var instruction = builder.Insert(new GLSLExp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
         // Adjust OpCode only since Exp/Exp2/Log/Log2 share the same operands
@@ -143,7 +147,7 @@ public class GLSLFloatUnaryCall(ShaderExpressionList parameters, TextLocation in
         if (multiplyConstant != null)
         {
             var constant = context.CompileConstant(multiplyConstant);
-            constant = builder.Convert(context, constant, parameterType);
+            constant = builder.Convert(context, constant, Type);
             var instruction2 = builder.Insert(new OpFMul(x.TypeId, context.Bound++, instruction.ResultId, constant.Id));
             result = new SpirvValue(instruction2.ResultId, instruction2.ResultType);
         }
@@ -153,71 +157,41 @@ public class GLSLFloatUnaryCall(ShaderExpressionList parameters, TextLocation in
 }
 public class DeterminantCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("determinant", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = Parameters.Values[0].ValueType.GetElementType();
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var x = Parameters.Values[0].CompileAsValue(table, compiler);
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var resultType = Parameters.Values[0].ValueType.GetElementType();
-        var instruction = builder.Insert(new GLSLDeterminant(context.GetOrRegister(resultType), context.Bound++, context.GLSLSet ?? -1, x.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class MatrixInverseCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("matrixinverse", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var x = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLMatrixInverse(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class ModfCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("modf", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var (x, i) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLModf(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, i.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class ModfStructCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("modfstruct", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var x = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLModfStruct(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLDeterminant(context.GetOrRegister(Type), context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class MinCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("min", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        var xType = Parameters.Values[0].ValueType;
+        var yType = Parameters.Values[1].ValueType;
+        Type = IntrinsicHelper.FindCommonType(SpirvBuilder.FindCommonBaseTypeForBinaryOperation(xType.GetElementType(), yType.GetElementType()), xType, yType);
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var (x, y) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
 
-        var xType = Parameters.Values[0].ValueType;
-        var yType = Parameters.Values[1].ValueType;
+        x = builder.Convert(context, x, Type);
+        y = builder.Convert(context, y, Type);
 
-        var resultType = IntrinsicHelper.FindCommonType(SpirvBuilder.FindCommonBaseTypeForBinaryOperation(xType.GetElementType(), yType.GetElementType()), xType, yType);
-
-        x = builder.Convert(context, x, resultType);
-        y = builder.Convert(context, y, resultType);
-
-        var instruction = resultType.GetElementType() switch
+        var instruction = Type.GetElementType() switch
         {
             ScalarType { Type: Scalar.Float } => builder.InsertData(new GLSLFMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
             ScalarType { Type: Scalar.UInt } => builder.InsertData(new GLSLUMin(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
@@ -228,22 +202,24 @@ public class MinCall(ShaderExpressionList parameters, TextLocation info) : Metho
 }
 public class MaxCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("max", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        var xType = Parameters.Values[0].ValueType;
+        var yType = Parameters.Values[1].ValueType;
+        Type = IntrinsicHelper.FindCommonType(SpirvBuilder.FindCommonBaseTypeForBinaryOperation(xType.GetElementType(), yType.GetElementType()), xType, yType);
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var (x, y) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
 
-        var xType = Parameters.Values[0].ValueType;
-        var yType = Parameters.Values[1].ValueType;
+        x = builder.Convert(context, x, Type);
+        y = builder.Convert(context, y, Type);
 
-        var resultType = IntrinsicHelper.FindCommonType(SpirvBuilder.FindCommonBaseTypeForBinaryOperation(xType.GetElementType(), yType.GetElementType()), xType, yType);
-
-        x = builder.Convert(context, x, resultType);
-        y = builder.Convert(context, y, resultType);
-
-        var instruction = resultType.GetElementType() switch
+        var instruction = Type.GetElementType() switch
         {
             ScalarType { Type: Scalar.Float } => builder.InsertData(new GLSLFMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
             ScalarType { Type: Scalar.UInt } => builder.InsertData(new GLSLUMax(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id)),
@@ -254,7 +230,17 @@ public class MaxCall(ShaderExpressionList parameters, TextLocation info) : Metho
 }
 public class ClampCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("clamp", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    protected ScalarType baseType;
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        var xType = Parameters.Values[0].ValueType;
+        var minValType = Parameters.Values[1].ValueType;
+        var maxValType = Parameters.Values[2].ValueType;
+        baseType = SpirvBuilder.FindCommonBaseTypeForBinaryOperation(SpirvBuilder.FindCommonBaseTypeForBinaryOperation(xType.GetElementType(), minValType.GetElementType()), maxValType.GetElementType());
+        Type = IntrinsicHelper.FindCommonType(baseType, xType, minValType, maxValType);
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var (x, minVal, maxVal) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler), Parameters.Values[2].CompileAsValue(table, compiler));
@@ -266,12 +252,9 @@ public class ClampCall(ShaderExpressionList parameters, TextLocation info) : Met
         var minValType = Parameters.Values[1].ValueType;
         var maxValType = Parameters.Values[2].ValueType;
 
-        var baseType = SpirvBuilder.FindCommonBaseTypeForBinaryOperation(SpirvBuilder.FindCommonBaseTypeForBinaryOperation(xType.GetElementType(), minValType.GetElementType()), maxValType.GetElementType());
-        var resultType = IntrinsicHelper.FindCommonType(baseType, xType, minValType, maxValType);
-
-        x = builder.Convert(context, x, resultType);
-        minVal = builder.Convert(context, minVal, resultType);
-        maxVal = builder.Convert(context, maxVal, resultType);
+        x = builder.Convert(context, x, Type);
+        minVal = builder.Convert(context, minVal, Type);
+        maxVal = builder.Convert(context, maxVal, Type);
 
         var instruction = baseType switch
         {
@@ -284,7 +267,12 @@ public class ClampCall(ShaderExpressionList parameters, TextLocation info) : Met
 }
 public class SaturateCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("saturate", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = Parameters.Values[0].ValueType;
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var x = (Parameters.Values[0].CompileAsValue(table, compiler));
@@ -311,43 +299,37 @@ public class SaturateCall(ShaderExpressionList parameters, TextLocation info) : 
 }
 public class LerpCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("lerp", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
-        var (builder, context) = compiler;
-        var (x, y, a) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler), Parameters.Values[2].CompileAsValue(table, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-
-        // Ensure all vectors have the same size
+        ProcessParameterSymbols(table, null);
         var xType = Parameters.Values[0].ValueType;
         var yType = Parameters.Values[1].ValueType;
         var aType = Parameters.Values[2].ValueType;
-
-        var resultType = IntrinsicHelper.FindCommonType(ScalarType.Float, xType, yType, aType);
-
-        x = builder.Convert(context, x, resultType);
-        y = builder.Convert(context, y, resultType);
-        a = builder.Convert(context, a, resultType);
-
-        var instruction = builder.Insert(new GLSLFMix(context.GetOrRegister(resultType), context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id, a.Id));
-        return new(instruction.ResultId, instruction.ResultType);
+        Type = IntrinsicHelper.FindCommonType(ScalarType.Float, xType, yType, aType);
     }
-}
-public class IMixCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("imix", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var (x, y, a) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler), Parameters.Values[2].CompileAsValue(table, compiler));
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLIMix(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id, a.Id));
+
+        x = builder.Convert(context, x, Type);
+        y = builder.Convert(context, y, Type);
+        a = builder.Convert(context, a, Type);
+
+        var instruction = builder.Insert(new GLSLFMix(context.GetOrRegister(Type), context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id, a.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class SmoothStepCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("smoothstep", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = Parameters.Values[0].ValueType;
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var (edge0, edge1, x) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler), Parameters.Values[2].CompileAsValue(table, compiler));
@@ -357,201 +339,14 @@ public class SmoothStepCall(ShaderExpressionList parameters, TextLocation info) 
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
-public class FmaCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("fma", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var (a, b, c) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler), Parameters.Values[2].CompileAsValue(table, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFma(a.TypeId, context.Bound++, context.GLSLSet ?? -1, a.Id, b.Id, a.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class FrexpCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("frexp", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var (x, exp) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFrexp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, exp.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class FrexpStructCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("frexpstruct", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var x = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLMatrixInverse(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class LdexpCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("ldexp", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var (x, exp) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLLdexp(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, exp.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class PackSnorm4x8Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("packsnorm4x8", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var v = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLPackSnorm4x8(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class PackUnorm4x8Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("packunorm4x8", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var v = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLPackUnorm4x8(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class PackSnorm2x16Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("packsnorm2x16", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var v = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLPackSnorm2x16(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class PackUnorm2x16Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("packunorm2x16", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var v = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLPackUnorm2x16(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class PackHalf2x16Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("packhalf2x16", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var v = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLPackHalf2x16(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class PackDouble2x32Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("packdouble2x32", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var v = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLPackDouble2x32(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class UnpackSnorm2x16Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("unpacksnorm2x16", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var p = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLUnpackSnorm2x16(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class UnpackUnorm2x16Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("unpackunorm2x16", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var p = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLUnpackUnorm2x16(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class UnpackHalf2x16Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("unpackhalf2x16", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var v = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLUnpackHalf2x16(v.TypeId, context.Bound++, context.GLSLSet ?? -1, v.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class UnpackSnorm4x8Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("unpacksnorm4x8", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var p = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLUnpackSnorm4x8(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class UnpackUnorm4x8Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("unpackunorm4x8", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var p = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLUnpackUnorm4x8(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class UnpackDouble2x32Call(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("unpackdouble2x32", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var p = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLUnpackDouble2x32(p.TypeId, context.Bound++, context.GLSLSet ?? -1, p.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
 public class LengthCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("length", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = ScalarType.Float;
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var x = Parameters.Values[0].CompileAsValue(table, compiler);
@@ -561,14 +356,18 @@ public class LengthCall(ShaderExpressionList parameters, TextLocation info) : Me
         var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.Float);
         x = builder.Convert(context, x, parameterType);
 
-        var resultType = ScalarType.Float;
-        var instruction = builder.Insert(new GLSLLength(context.GetOrRegister(resultType), context.Bound++, context.GLSLSet ?? -1, x.Id));
+        var instruction = builder.Insert(new GLSLLength(context.GetOrRegister(Type), context.Bound++, context.GLSLSet ?? -1, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class DistanceCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("distance", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = ScalarType.Float;
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var (x, y) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
@@ -576,25 +375,22 @@ public class DistanceCall(ShaderExpressionList parameters, TextLocation info) : 
         var xType = Parameters.Values[0].ValueType;
         var yType = Parameters.Values[1].ValueType;
 
-        var resultType = ScalarType.Float;
-        var inputType = IntrinsicHelper.FindCommonType(resultType, xType, yType);
+        var inputType = IntrinsicHelper.FindCommonType(ScalarType.Float, xType, yType);
 
         x = builder.Convert(context, x, inputType);
         y = builder.Convert(context, y, inputType);
 
         if (context.GLSLSet == null)
             context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLDistance(context.GetOrRegister(resultType), context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
+        var instruction = builder.Insert(new GLSLDistance(context.GetOrRegister(Type), context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class DotCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("dot", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
-        var (builder, context) = compiler;
-        var (x, y) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
-        
+        ProcessParameterSymbols(table, null);
         var xType = Parameters.Values[0].ValueType;
         var yType = Parameters.Values[1].ValueType;
 
@@ -604,15 +400,25 @@ public class DotCall(ShaderExpressionList parameters, TextLocation info) : Metho
         if (!xType.GetElementType().IsFloating())
             throw new NotImplementedException("dot: only implemented for floating types");
 
-        var resultType = xType.GetElementType();
-
-        var instruction = builder.Insert(new OpDot(context.GetOrRegister(resultType), context.Bound++, x.Id, y.Id));
+        Type = xType.GetElementType();
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+        var (x, y) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
+        
+        var instruction = builder.Insert(new OpDot(context.GetOrRegister(Type), context.Bound++, x.Id, y.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
 public class NormalizeCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("normalize", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = Parameters.Values[0].ValueType;
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var x = Parameters.Values[0].CompileAsValue(table, compiler);
@@ -624,20 +430,22 @@ public class NormalizeCall(ShaderExpressionList parameters, TextLocation info) :
 }
 public class FaceForwardCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("faceforward", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        var nType = Parameters.Values[0].ValueType;
+        var iType = Parameters.Values[1].ValueType;
+        var ngType = Parameters.Values[2].ValueType;
+        Type = IntrinsicHelper.FindCommonType(ScalarType.Float, nType, iType, ngType);
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var (n, i, ng) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler), Parameters.Values[2].CompileAsValue(table, compiler));
         
-        var nType = Parameters.Values[0].ValueType;
-        var iType = Parameters.Values[1].ValueType;
-        var ngType = Parameters.Values[2].ValueType;
-
-        var resultType = IntrinsicHelper.FindCommonType(ScalarType.Float, nType, iType, ngType);
-
-        n = builder.Convert(context, n, resultType);
-        i = builder.Convert(context, i, resultType);
-        ng = builder.Convert(context, ng, resultType);
+        n = builder.Convert(context, n, Type);
+        i = builder.Convert(context, i, Type);
+        ng = builder.Convert(context, ng, Type);
 
         if (context.GLSLSet == null)
             context.ImportGLSL();
@@ -647,18 +455,20 @@ public class FaceForwardCall(ShaderExpressionList parameters, TextLocation info)
 }
 public class ReflectCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("reflect", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        var iType = Parameters.Values[0].ValueType;
+        var nType = Parameters.Values[1].ValueType;
+        Type = IntrinsicHelper.FindCommonType(ScalarType.Float, iType, nType);
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var (i, n) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
 
-        var iType = Parameters.Values[0].ValueType;
-        var nType = Parameters.Values[1].ValueType;
-
-        var resultType = IntrinsicHelper.FindCommonType(ScalarType.Float, iType, nType);
-
-        i = builder.Convert(context, i, resultType);
-        n = builder.Convert(context, n, resultType);
+        i = builder.Convert(context, i, Type);
+        n = builder.Convert(context, n, Type);
         
         if (context.GLSLSet == null)
             context.ImportGLSL();
@@ -668,18 +478,20 @@ public class ReflectCall(ShaderExpressionList parameters, TextLocation info) : M
 }
 public class RefractCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("refract", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        var iType = Parameters.Values[0].ValueType;
+        var nType = Parameters.Values[1].ValueType;
+        Type = IntrinsicHelper.FindCommonType(ScalarType.Float, iType, nType);
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var (i, n, eta) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler), Parameters.Values[2].CompileAsValue(table, compiler));
         
-        var iType = Parameters.Values[0].ValueType;
-        var nType = Parameters.Values[1].ValueType;
-
-        var resultType = IntrinsicHelper.FindCommonType(ScalarType.Float, iType, nType);
-
-        i = builder.Convert(context, i, resultType);
-        n = builder.Convert(context, n, resultType);
+        i = builder.Convert(context, i, Type);
+        n = builder.Convert(context, n, Type);
         eta = builder.Convert(context, eta, ScalarType.Float);
 
         if (context.GLSLSet == null)
@@ -688,81 +500,33 @@ public class RefractCall(ShaderExpressionList parameters, TextLocation info) : M
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
-public class FindILsbCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("findilsb", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var value = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFindILsb(value.TypeId, context.Bound++, context.GLSLSet ?? -1, value.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class FindSMsbCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("findsmsb", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var value = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFindSMsb(value.TypeId, context.Bound++, context.GLSLSet ?? -1, value.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class FindUMsbCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("findumsb", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var value = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLFindUMsb(value.TypeId, context.Bound++, context.GLSLSet ?? -1, value.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class InterpolateAtCentroidCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("interpolateatcentroid", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var interpolant = Parameters.Values[0].CompileAsValue(table, compiler);
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLInterpolateAtCentroid(interpolant.TypeId, context.Bound++, context.GLSLSet ?? -1, interpolant.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class InterpolateAtSampleCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("interpolateatsample", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var (interpolant, sample) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLInterpolateAtSample(interpolant.TypeId, context.Bound++, context.GLSLSet ?? -1, interpolant.Id, sample.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
-public class InterpolateAtOffsetCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("interpolateatoffset", info), parameters, info)
-{
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        var (builder, context) = compiler;
-        var (interpolant, offset) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
-        if (context.GLSLSet == null)
-            context.ImportGLSL();
-        var instruction = builder.Insert(new GLSLInterpolateAtOffset(interpolant.TypeId, context.Bound++, context.GLSLSet ?? -1, interpolant.Id, offset.Id));
-        return new(instruction.ResultId, instruction.ResultType);
-    }
-}
 public class MulCall(ShaderExpressionList parameters, TextLocation info) : MethodCall(new("pow", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        var xType = Parameters.Values[0].ValueType;
+        var yType = Parameters.Values[1].ValueType;
+        
+        if (xType.GetElementType() != yType.GetElementType())
+            throw new NotImplementedException("mul type conversion is currently not implemented");
+        if (!xType.GetElementType().IsFloating())
+            throw new NotImplementedException("Only implemented for floating types");
+
+        Type = (xType, yType) switch
+        {
+            (ScalarType type1, ScalarType type2) => type1,
+            (ScalarType type1, VectorType type2) => type2,
+            (ScalarType type1, MatrixType type2) => type2,
+            (VectorType type1, ScalarType type2) => type1,
+            (VectorType type1, VectorType type2) when type1.Size == type2.Size => type1,
+            (VectorType type1, MatrixType type2) when type1.Size == type2.Columns => new VectorType(type1.BaseType, type2.Rows),
+            (MatrixType type1, ScalarType type2) => type1,
+            (MatrixType type1, VectorType type2) when type1.Rows == type2.Size => new VectorType(type1.BaseType, type1.Columns),
+            (MatrixType type1, MatrixType type2) when type1.Columns == type2.Rows => new MatrixType(type1.BaseType, type2.Rows, type1.Columns),
+        };
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var (x, y) = (Parameters.Values[0].CompileAsValue(table, compiler), Parameters.Values[1].CompileAsValue(table, compiler));
@@ -771,12 +535,6 @@ public class MulCall(ShaderExpressionList parameters, TextLocation info) : Metho
 
         var xType = Parameters.Values[0].ValueType;
         var yType = Parameters.Values[1].ValueType;
-
-        if (xType.GetElementType() != yType.GetElementType())
-            throw new NotImplementedException("mul type conversion is currently not implemented");
-
-        if (!xType.GetElementType().IsFloating())
-            throw new NotImplementedException("Only implemented for floating types");
 
         // Version on https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-mul
         // Note: SPIR-V and HLSL have opposite meaning for Rows/Columns and multiplication order need to be swapped
@@ -799,7 +557,12 @@ public class MulCall(ShaderExpressionList parameters, TextLocation info) : Metho
 
 public class BoolToScalarBoolCall(ShaderExpressionList parameters, TextLocation info, Specification.Op op) : MethodCall(new("fwidth", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = ScalarType.Boolean;
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var x = Parameters.Values[0].CompileAsValue(table, compiler);
@@ -807,7 +570,7 @@ public class BoolToScalarBoolCall(ShaderExpressionList parameters, TextLocation 
         var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.Boolean);
         x = builder.Convert(context, x, parameterType);
 
-        var instruction = builder.Insert(new OpAny(context.GetOrRegister(ScalarType.Boolean), context.Bound++, x.Id));
+        var instruction = builder.Insert(new OpAny(context.GetOrRegister(Type), context.Bound++, x.Id));
         instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)op;
         return new(instruction.ResultId, instruction.ResultType);
     }
@@ -815,13 +578,16 @@ public class BoolToScalarBoolCall(ShaderExpressionList parameters, TextLocation 
 
 public class FloatUnaryCall(ShaderExpressionList parameters, TextLocation info, Specification.Op op) : MethodCall(new("fwidth", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = Parameters.Values[0].ValueType.WithElementType(ScalarType.Float);
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var x = Parameters.Values[0].CompileAsValue(table, compiler);
-
-        var parameterType = Parameters.Values[0].ValueType.WithElementType(ScalarType.Float);
-        x = builder.Convert(context, x, parameterType);
+        x = builder.Convert(context, x, Type);
 
         var instruction = builder.Insert(new OpFwidth(x.TypeId, context.Bound++, x.Id));
         instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)op;
@@ -831,21 +597,29 @@ public class FloatUnaryCall(ShaderExpressionList parameters, TextLocation info, 
 
 public class BitcastCall(ShaderExpressionList parameters, TextLocation info, ScalarType expectedBaseType) : MethodCall(new("bitcast", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = Parameters.Values[0].ValueType.WithElementType(expectedBaseType);
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var x = Parameters.Values[0].CompileAsValue(table, compiler);
 
-        var resultType = Parameters.Values[0].ValueType.WithElementType(expectedBaseType);
-
-        var instruction = builder.Insert(new OpBitcast(context.GetOrRegister(resultType), context.Bound++, x.Id));
+        var instruction = builder.Insert(new OpBitcast(context.GetOrRegister(Type), context.Bound++, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
 
 public class MemoryBarrierCall(ShaderExpressionList parameters, TextLocation info, string name, Specification.MemorySemanticsMask memorySemanticsMask) : MethodCall(new(name, info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = ScalarType.Void;
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         builder.Insert(new OpMemoryBarrier(context.CompileConstant((int)Specification.Scope.Device).Id, context.CompileConstant((int)memorySemanticsMask).Id));
@@ -855,7 +629,12 @@ public class MemoryBarrierCall(ShaderExpressionList parameters, TextLocation inf
 
 public class ControlBarrierCall(ShaderExpressionList parameters, TextLocation info, string name, Specification.MemorySemanticsMask memorySemanticsMask) : MethodCall(new(name, info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        Type = ScalarType.Void;
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         builder.Insert(new OpControlBarrier((int)Specification.Scope.Workgroup, context.CompileConstant((int)Specification.Scope.Device).Id, context.CompileConstant((int)memorySemanticsMask).Id));
@@ -878,7 +657,12 @@ public enum InterlockedOp
 
 public class InterlockedCall(ShaderExpressionList parameters, TextLocation info, InterlockedOp op) : MethodCall(new($"Interlocked{op}", info), parameters, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        Type = ScalarType.Void;
+    }
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var dest = Parameters.Values[0].Compile(table, compiler);

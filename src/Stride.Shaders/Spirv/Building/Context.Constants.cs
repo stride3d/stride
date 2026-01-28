@@ -283,32 +283,7 @@ public partial class SpirvContext
             },
         };
 
-        if (literal.Type == null)
-        {
-            literal.Type = literal switch
-            {
-                BoolLiteral lit => ScalarType.Boolean,
-                IntegerLiteral lit => lit.Suffix switch
-                {
-                    //{ Signed: true, Size: 8 } => ScalarType.SByte,
-                    //{ Signed: true, Size: 16 } => ScalarType.Short,
-                    { Signed: true, Size: 32 } => ScalarType.Int,
-                    { Signed: true, Size: 64 } => ScalarType.Int64,
-                    //{ Signed: false, Size: 8 } => ScalarType.UByte,
-                    //{ Signed: false, Size: 16 } => ScalarType.UShort,
-                    { Signed: false, Size: 32 } => ScalarType.UInt,
-                    { Signed: false, Size: 64 } => ScalarType.UInt64,
-                    _ => throw new NotImplementedException("Unsupported integer suffix")
-                },
-                FloatLiteral lit => lit.Suffix.Size switch
-                {
-                    //16 => ScalarType.Half,
-                    32 => ScalarType.Float,
-                    64 => ScalarType.Double,
-                    _ => throw new NotImplementedException("Unsupported float")
-                },
-            };
-        }
+        literal.Type ??= ComputeLiteralType(literal);
 
         if (LiteralConstants.TryGetValue((literal.Type, literalValue), out var result))
             return result;
@@ -347,5 +322,32 @@ public partial class SpirvContext
             _ => throw new NotImplementedException()
         });
         return result;
+    }
+
+    public static ScalarType ComputeLiteralType(Literal literal)
+    {
+        return literal switch
+        {
+            BoolLiteral lit => ScalarType.Boolean,
+            IntegerLiteral lit => lit.Suffix switch
+            {
+                //{ Signed: true, Size: 8 } => ScalarType.SByte,
+                //{ Signed: true, Size: 16 } => ScalarType.Short,
+                { Signed: true, Size: 32 } => ScalarType.Int,
+                { Signed: true, Size: 64 } => ScalarType.Int64,
+                //{ Signed: false, Size: 8 } => ScalarType.UByte,
+                //{ Signed: false, Size: 16 } => ScalarType.UShort,
+                { Signed: false, Size: 32 } => ScalarType.UInt,
+                { Signed: false, Size: 64 } => ScalarType.UInt64,
+                _ => throw new NotImplementedException("Unsupported integer suffix")
+            },
+            FloatLiteral lit => lit.Suffix.Size switch
+            {
+                //16 => ScalarType.Half,
+                32 => ScalarType.Float,
+                64 => ScalarType.Double,
+                _ => throw new NotImplementedException("Unsupported float")
+            },
+        };
     }
 }

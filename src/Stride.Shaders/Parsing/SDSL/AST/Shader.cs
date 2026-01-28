@@ -394,7 +394,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     {
         table.DeclaredTypes.Add(shaderType.ToClassName(), shaderType);
     }
-
+    
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
@@ -411,7 +411,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             for (int i = 0; i < Generics.Parameters.Count; i++)
             {
                 var genericParameter = Generics.Parameters[i];
-                var genericParameterType = genericParameter.TypeName.ResolveType(table, context);
+                genericParameter.TypeName.ProcessSymbol(table);
+                var genericParameterType = genericParameter.TypeName.Type;
                 table.DeclaredTypes.TryAdd(genericParameterType.ToString(), genericParameterType);
 
                 var genericParameterTypeId = context.GetOrRegister(genericParameterType);
@@ -444,6 +445,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     {
                         if (table.TryResolveSymbol(identifier.Name, out var symbol))
                         {
+                            mixin.Generics.Values[i].ProcessSymbol(table);
                             generics[i] = mixin.Generics.Values[i].CompileConstantValue(table, context).Id;
                         }
                         else
@@ -457,6 +459,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     }
                     else
                     {
+                        mixin.Generics.Values[i].ProcessSymbol(table);
                         generics[i] = mixin.Generics.Values[i].CompileConstantValue(table, context).Id;
                     }
                 }
@@ -482,16 +485,27 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         }
 
         // Process symbols and generate types
-        foreach (var member in Elements)
-        {
+        foreach (var member in Elements.OfType<ShaderStruct>())
             member.ProcessSymbol(table, context);
+        foreach (var member in Elements.OfType<ShaderMember>())
+            member.ProcessSymbol(table, context);
+        foreach (var member in Elements.OfType<ShaderBuffer>())
+            member.ProcessSymbol(table, context);
+        foreach (var member in Elements.OfType<ShaderSamplerState>())
+            member.ProcessSymbol(table, context);
+        // In case a method is calling another method not yet processed, we first declare all methods, then analysis of method body
+        // (SPIR-V allow forward calling)
+        foreach (var method in Elements.OfType<ShaderMethod>())
+            method.ProcessSymbol(table, context);
+        if (!hasUnresolvableGenerics)
+        {
+            foreach (var member in Elements.OfType<ShaderMethod>())
+                member.ProcessSymbolBody(table, context);
         }
 
         RenameCBufferVariables();
 
         foreach (var member in Elements.OfType<ShaderStruct>())
-            member.Compile(table, this, compiler);
-        foreach (var member in Elements.OfType<ShaderBuffer>())
             member.Compile(table, this, compiler);
         foreach (var member in Elements.OfType<ShaderMember>())
         {
@@ -499,14 +513,10 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 continue;
             member.Compile(table, this, compiler);
         }
+        foreach (var member in Elements.OfType<ShaderBuffer>())
+            member.Compile(table, this, compiler);
         foreach (var member in Elements.OfType<ShaderSamplerState>())
             member.Compile(table, this, compiler);
-
-        // In case a moethod calling another method not yet processed, we first declare all methods
-        // (SPIR-V allow forward calling)
-        foreach (var method in Elements.OfType<ShaderMethod>())
-            method.Declare(table, this, compiler);
-
         foreach (var method in Elements.OfType<ShaderMethod>())
             method.Compile(table, this, compiler, hasUnresolvableGenerics);
 

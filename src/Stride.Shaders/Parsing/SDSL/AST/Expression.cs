@@ -7,6 +7,7 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System;
+using System.Diagnostics;
 using System.Text;
 using static Stride.Shaders.Spirv.Specification;
 
@@ -19,12 +20,24 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 /// </summary>
 public abstract class Expression(TextLocation info) : ValueNode(info)
 {
+    /// <summary>
+    /// Compute <see cref="Type"/> and optionally emit diagnostics.
+    /// </summary>
+    /// <param name="table"></param>
+    /// <param name="expectedType"></param>
+    public virtual void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null) => throw new NotImplementedException($"Symbol table cannot process type : {GetType().Name}");
+    
     public SpirvValue Compile(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
-        var result = CompileImpl(table, compiler, expectedType);
-        // In case type is not computed yet, make sure it is using SpirvValue.TypeId
-        if (result.TypeId != 0)
-            Type ??= compiler.Context.ReverseTypes[result.TypeId];
+        if (Type == null)
+            throw new InvalidOperationException($"{nameof(ProcessSymbol)} was not called on expression {this}");
+        
+        var result = CompileImpl(table, compiler);
+        
+        // Check types are matching
+        if (result.TypeId != 0 && Type != compiler.Context.ReverseTypes[result.TypeId])
+            throw new InvalidOperationException($"{nameof(ProcessSymbol)} computed type {Type} but {nameof(Compile)} created a value of type {compiler.Context.ReverseTypes[result.TypeId]} on expression {this}");
+
         return result;
     }
 
@@ -41,15 +54,14 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
         throw new InvalidOperationException($"{this} is not a l-value and cannot be assigned to.");
     }
 
-    public abstract SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null);
+    public abstract SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler);
 
-    public SymbolType? ValueType { get => field ?? throw new InvalidOperationException($"Can't query {nameof(ValueType)} before calling {nameof(CompileAsValue)}"); private set; }
+    public SymbolType? ValueType => Type?.GetValueType();
 
     public virtual SpirvValue CompileAsValue(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var result = Compile(table, compiler, expectedType);
         result = compiler.Builder.AsValue(compiler.Context, result);
-        ValueType = compiler.Context.ReverseTypes[result.TypeId];
         return result;
     }
 }
@@ -60,7 +72,8 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
 /// <param name="info"></param>
 public class EmptyExpression(TextLocation info) : Expression(info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null) => throw new NotImplementedException();
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null) => throw new NotImplementedException();
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler) => throw new NotImplementedException();
     public override string ToString() => string.Empty;
 }
 
@@ -68,17 +81,40 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 {
     public Identifier Name = name;
     public ShaderExpressionList Parameters = parameters;
-
-    public LoadedShaderSymbol? MemberCallBaseType { get; set; }
+    
+    public SymbolType? MemberCallBaseType { get; set; }
     public SpirvValue? MemberCall { get; set; }
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public Symbol ResolvedFunctionSymbol { get; set; }
+    
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        if (!TryResolveFunctionSymbol(table, out var functionSymbol))
+            return;
+
+        var functionType = (FunctionType)functionSymbol.Type;
+        Type = functionType.ReturnType;
+
+        ProcessParameterSymbols(table, functionType);
+
+        ResolvedFunctionSymbol = functionSymbol;
+    }
+
+    public void ProcessParameterSymbols(SymbolTable table, FunctionType? functionType)
+    {
+        for (var index = 0; index < Parameters.Values.Count; index++)
+        {
+            var parameter = Parameters.Values[index];
+            var parameterExpectedType = functionType?.ParameterTypes[index].Type;
+            parameter.ProcessSymbol(table, parameterExpectedType);
+        }
+    }
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
-        var functionSymbol = ResolveFunctionSymbol(table);
-        functionSymbol = LoadedShaderSymbol.ImportSymbol(table, functionSymbol);
-        
+        var functionSymbol = LoadedShaderSymbol.ImportSymbol(table, context, ResolvedFunctionSymbol);
         var functionType = (FunctionType)functionSymbol.Type;
 
         Type = functionType.ReturnType;
@@ -158,7 +194,8 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         }
 
         if (instance is int instanceId)
-            functionSymbol.IdRef = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(functionType), context.Bound++, instanceId, functionSymbol.IdRef)).ResultId;
+            // Note: we make a copy to not mutate original
+            functionSymbol = functionSymbol with { IdRef = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(functionType), context.Bound++, instanceId, functionSymbol.IdRef)).ResultId };
         
         var result = builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
 
@@ -183,14 +220,17 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         return result;
     }
 
-    private Symbol ResolveFunctionSymbol(SymbolTable table)
+    private bool TryResolveFunctionSymbol(SymbolTable table, out Symbol functionSymbol)
     {
-        Symbol functionSymbol;
         // Note: for now, TypeId 0 is used for this/base; let's improve that later
-        if (MemberCall != null && MemberCall.Value.TypeId != 0)
+        if (MemberCallBaseType is LoadedShaderSymbol loadedShaderSymbol)
         {
-            if (!MemberCallBaseType.TryResolveSymbol(Name, out functionSymbol))
-                throw new InvalidOperationException($"Method {Name} could not be found in type {MemberCallBaseType.Name}");
+            if (!loadedShaderSymbol.TryResolveSymbol(Name, out functionSymbol))
+            {
+                functionSymbol = default;
+                table.AddError(new(info, string.Format(SDSLErrorMessages.SDSL0109, Name)));
+                return false;
+            }
         }
         else
         {
@@ -210,7 +250,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
             functionSymbol = matchingMethods.First();
         }
 
-        return functionSymbol;
+        return true;
     }
 
     public override string ToString()
@@ -226,12 +266,14 @@ public class MixinAccess(Mixin mixin, TextLocation info) : Expression(info)
 {
     public Mixin Mixin { get; set; } = mixin;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public Symbol ResolvedSymbol { get; set; }
+
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
-        var (builder, context) = compiler;
+        var context = table.Context;
         
         // MixinAccess is same as Identifier static variable case, except we have generics (which is why MixinAccess was chosen over Identifier)
-        var generics = SDFX.AST.ShaderEffect.CompileGenerics(table, compiler, Mixin.Generics);
+        var generics = SDFX.AST.ShaderEffect.CompileGenerics(table, context, Mixin.Generics);
         var classSource = new ShaderClassInstantiation(Mixin.Name, generics);
         if (!table.TryResolveSymbol(classSource.ToClassNameWithGenerics(), out var symbol))
         {
@@ -253,8 +295,15 @@ public class MixinAccess(Mixin mixin, TextLocation info) : Expression(info)
             table.CurrentFrame.Add(classSource.ToClassNameWithGenerics(), symbol);
         }
 
+        ResolvedSymbol = symbol;
         Type = symbol.Type;
-        return Identifier.EmitSymbol(builder, context, symbol, builder.CurrentFunction == null);
+    }
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+        
+        return Identifier.EmitSymbol(builder, context, ResolvedSymbol, builder.CurrentFunction == null);
     }
     public override string ToString()
     {
@@ -271,7 +320,25 @@ public abstract class UnaryExpression(Expression expression, Operator op, TextLo
 
 public class PrefixExpression(Operator op, Expression expression, TextLocation info) : UnaryExpression(expression, op, info)
 {
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        switch (Operator)
+        {
+            case Operator.Inc:
+            case Operator.Dec:
+            case Operator.Not:
+            case Operator.Plus:
+            case Operator.Minus:
+                expression.ProcessSymbol(table, expectedType);
+                Type = expression.Type;
+                break;
+            default:
+                table.AddError(new(info, string.Format(SDSLErrorMessages.SDSL0111, $"Prefix operator {Operator}")));
+                break;
+        }
+    }
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         var expression = Expression.Compile(table, compiler);
@@ -349,10 +416,18 @@ public class CastExpression(TypeName typeName, Operator op, Expression expressio
 {
     public TypeName TypeName { get; set; } = typeName;
 
-    public unsafe override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        TypeName.ProcessSymbol(table);
+        Expression.ProcessSymbol(table, expectedType);
+        Type = TypeName.Type;
+    }
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var castType = TypeName.ResolveType(table, context);
+        TypeName.ProcessSymbol(table);
+        var castType = TypeName.Type;
         var value = Expression.CompileAsValue(table, compiler);
 
         Type = castType;
@@ -366,10 +441,9 @@ public class IndexerExpression(Expression index, TextLocation info) : Expression
 {
     public Expression Index { get; set; } = index;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        throw new NotImplementedException();
-    }
+    // Used only in AccessChainExpression
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null) => throw new NotImplementedException();
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler) => throw new NotImplementedException();
     public override string ToString()
     {
         return $"[{Index}]";
@@ -380,10 +454,9 @@ public class PostfixIncrement(Operator op, TextLocation info) : Expression(info)
 {
     public Operator Operator { get; set; } = op;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
-    {
-        throw new NotImplementedException();
-    }
+    // Used only in AccessChainExpression
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null) => throw new NotImplementedException();
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler) => throw new NotImplementedException();
     public override string ToString()
     {
         return $"{Operator.ToSymbol()}";
@@ -402,7 +475,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         var (builder, context) = compiler;
 
         // Compute the l-value (and all its intermediate values)
-        CompileHelper(table, compiler, null);
+        CompileHelper(table, compiler);
         
         // Only things left should be:
         // - RWBuffer/Texture setters
@@ -496,33 +569,56 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         ThrowErrorOnLValue();
     }
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
-        return CompileHelper(table, compiler, expectedType);
+        Source.ProcessSymbol(table);
+        var currentValueType = Source.Type;
+
+        CompileHelper(table, null);
     }
 
-    public SpirvValue CompileHelper(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType)
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
-        if (intermediateValues != null)
-            return intermediateValues[^1];
+        return CompileHelper(table, compiler);
+    }
 
-        intermediateValues = new SpirvValue[Accessors.Count + 1];
-        
-        var (builder, context) = compiler;
-        SpirvValue result;
+    // Since there are many switch case, we do both ProcessSymbols and Compile in the same functions to make sure to not miss anything (depending on if compiler is set)
+    public SpirvValue CompileHelper(SymbolTable table, CompilerUnit? compiler = null)
+    {
+        if (compiler != null)
+        {
+            if (intermediateValues != null)
+                return intermediateValues[^1];
+            intermediateValues = new SpirvValue[Accessors.Count + 1];
+        }
 
-        result = Source.Compile(table, compiler);
+        var context = compiler?.Context;
+        var builder = compiler?.Builder;
+        SpirvValue result = default;
+
+        if (builder != null)
+        {
+            result = Source.Compile(table, compiler!);
+            intermediateValues[0] = result;
+        }
+        else
+        {
+            Source.ProcessSymbol(table);
+        }
         var currentValueType = Source.Type;
-        intermediateValues[0] = result;
 
         int accessChainIdCount = 0;
         void PushAccessChainId(Span<int> accessChainIds, int accessChainIndex)
         {
+            if (compiler == null)
+                throw new InvalidOperationException();
             accessChainIds[accessChainIdCount++] = accessChainIndex;
         }
         
         void EmitOpAccessChain(Span<int> accessChainIds, int i)
         {
+            if (compiler == null)
+                throw new InvalidOperationException();
             // Do we need to issue an OpAccessChain?
             if (accessChainIdCount > 0)
             {
@@ -585,6 +681,15 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         // Some accessors push up to 2 values on the stack
         Span<int> accessChainIds = stackalloc int[Accessors.Count * 2];
 
+        VectorType ComputeBufferOrTextureAccessReturnType(PointerType pointerType)
+        {
+            return pointerType.BaseType switch
+            {
+                BufferType b => new VectorType(b.BaseType, 4),
+                TextureType t => new VectorType(t.ReturnType, 4),
+            };
+        }
+
         (SpirvValue Value, SymbolType ResultType) BufferLoad(BufferType bufferType, SpirvValue buffer, Expression locationExpression)
         {
             var resultType = new VectorType(bufferType.BaseType, 4);
@@ -600,7 +705,6 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         (SpirvValue Value, SymbolType ResultType) TextureLoad(TextureType textureType, SpirvValue buffer, Expression coordinatesExpression, bool containsLod)
         {
             var resultType = new VectorType(textureType.ReturnType, 4);
-            
             var imageCoordValue = ConvertTexCoord(context, builder, textureType, coordinatesExpression.CompileAsValue(table, compiler), ScalarType.Int, containsLod);
             var imageCoordType = context.ReverseTypes[imageCoordValue.TypeId];
             SpirvValue lod;
@@ -633,23 +737,29 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         {
             var accessor = Accessors[i];
 
-            CoalesceSwizzles(i, currentValueType, ref accessor);
-            
+            if (compiler == null)
+                CoalesceSwizzles(i, currentValueType, ref accessor);
+
             switch (currentValueType, accessor)
             {
                 case (PointerType { BaseType: TextureType textureType },
                         MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 or 3 }
-                        or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 or 4 }
-                        or MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Parameters.Values.Count: 3 or 4 }):
+                        or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 or 4 }):
                     {
+                        if (compiler == null)
+                        {
+                            ((MethodCall)accessor).ProcessParameterSymbols(table, null);
+                            accessor.Type = new VectorType(textureType.ReturnType, 4);
+                            break;
+                        }
+                        
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds, i - 1);
                         var textureValue = builder.AsValue(context, result);
+                        var resultType = accessor.Type;
 
                         if (accessor is MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 or 3 } implicitSampling)
                         {
-                            var resultType = new VectorType(textureType.ReturnType, 4);
-
                             var samplerValue = implicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
                             var texCoordValue = ConvertTexCoord(context, builder, textureType, implicitSampling.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
 
@@ -673,8 +783,6 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         }
                         else if (accessor is MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 or 4 } explicitSampling)
                         {
-                            var resultType = new VectorType(textureType.ReturnType, 4);
-
                             var samplerValue = explicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
                             var texCoordValue = ConvertTexCoord(context, builder, textureType, explicitSampling.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
                             
@@ -705,48 +813,68 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             result = new(sample.ResultId, sample.ResultType);
                             accessor.Type = resultType;
                         }
-                        else if (accessor is MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Parameters.Values.Count: 3 or 4 } sampleCompare)
-                        {
-                            var resultType = textureType.ReturnType;
-                            if (resultType is not ScalarType)
-                                throw new InvalidOperationException();
-
-                            var samplerValue = sampleCompare.Parameters.Values[0].CompileAsValue(table, compiler);
-                            var texCoordValue = ConvertTexCoord(context, builder, textureType, sampleCompare.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
-                            
-                            var compareValue = sampleCompare.Parameters.Values[2].CompileAsValue(table, compiler);
-
-                            var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
-                            var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
-                            var returnType = context.GetOrRegister(resultType);
-
-
-                            ImageOperandsMask flags = sampleCompare.Name.Name is "SampleCmpLevelZero" ? ImageOperandsMask.Lod : ImageOperandsMask.None;
-                            EnumerantParameters imParams = sampleCompare.Name.Name is "SampleCmpLevelZero" ? new (context.CompileConstant(0.0f).Id) : new ();
-                            //ParameterizedFlag<ImageOperandsMask> flags = sampleCompare.Name.Name == "SampleCmpLevelZero" 
-                                
-                            if (sampleCompare.Parameters.Values.Count > 3)
-                            {
-                                var offset = ConvertOffset(context, builder, textureType, sampleCompare.Parameters.Values[3].CompileAsValue(table, compiler));
-                                // TODO: determine when ConstOffset
-                                flags |= ImageOperandsMask.Offset;
-                                imParams = new EnumerantParameters([..imParams, offset.Id]);
-                                //flags = new ParameterizedFlag<ImageOperandsMask>(flags | ImageOperandsMask.Offset, new(..imParams.Span, offset.Id]);
-                            }
-
-                            var sample = sampleCompare.Name.Name == "SampleCmpLevelZero"
-                                ? builder.InsertData(new OpImageSampleDrefExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, flags, imParams))
-                                : builder.InsertData(new OpImageSampleDrefImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, flags, imParams));
-
-                            result = new(sample.IdResult!.Value, sample.IdResultType!.Value);
-                            accessor.Type = resultType;
-                        }
                         else
                             throw new InvalidOperationException("Invalid Sample method call");
                         break;
                     }
+                case (PointerType { BaseType: TextureType textureType },
+                    MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Parameters.Values.Count: 3 or 4 } sampleCompare):
+                {
+                    if (compiler == null)
+                    {
+                        ((MethodCall)accessor).ProcessParameterSymbols(table, null);
+                        accessor.Type = textureType.ReturnType;
+                        if (accessor.Type is not ScalarType)
+                            throw new InvalidOperationException();
+                        break;
+                    }
+
+                    var resultType = textureType.ReturnType;
+
+                    // Emit OpAccessChain with everything so far
+                    EmitOpAccessChain(accessChainIds, i - 1);
+                    var textureValue = builder.AsValue(context, result);
+                    
+                    var samplerValue = sampleCompare.Parameters.Values[0].CompileAsValue(table, compiler);
+                    var texCoordValue = ConvertTexCoord(context, builder, textureType, sampleCompare.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
+                    
+                    var compareValue = sampleCompare.Parameters.Values[2].CompileAsValue(table, compiler);
+
+                    var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+                    var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
+                    var returnType = context.GetOrRegister(resultType);
+
+
+                    ImageOperandsMask flags = sampleCompare.Name.Name is "SampleCmpLevelZero" ? ImageOperandsMask.Lod : ImageOperandsMask.None;
+                    EnumerantParameters imParams = sampleCompare.Name.Name is "SampleCmpLevelZero" ? new (context.CompileConstant(0.0f).Id) : new ();
+                    //ParameterizedFlag<ImageOperandsMask> flags = sampleCompare.Name.Name == "SampleCmpLevelZero" 
+                        
+                    if (sampleCompare.Parameters.Values.Count > 3)
+                    {
+                        var offset = ConvertOffset(context, builder, textureType, sampleCompare.Parameters.Values[3].CompileAsValue(table, compiler));
+                        // TODO: determine when ConstOffset
+                        flags |= ImageOperandsMask.Offset;
+                        imParams = new EnumerantParameters([..imParams, offset.Id]);
+                        //flags = new ParameterizedFlag<ImageOperandsMask>(flags | ImageOperandsMask.Offset, new(..imParams.Span, offset.Id]);
+                    }
+
+                    var sample = sampleCompare.Name.Name == "SampleCmpLevelZero"
+                        ? builder.InsertData(new OpImageSampleDrefExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, flags, imParams))
+                        : builder.InsertData(new OpImageSampleDrefImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, flags, imParams));
+
+                    result = new(sample.IdResult!.Value, sample.IdResultType!.Value);
+                    accessor.Type = resultType;
+                    break;
+                }
                 case (PointerType { BaseType: BufferType or TextureType } pointerType, MethodCall { Name.Name: "Load", Parameters.Values.Count: 1 } load):
                     {
+                        if (compiler == null)
+                        {
+                            ((MethodCall)accessor).ProcessParameterSymbols(table, null);
+                            accessor.Type = ComputeBufferOrTextureAccessReturnType(pointerType);
+                            break;
+                        }
+
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds, i - 1);
                         
@@ -759,6 +887,13 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     }
                 case (PointerType { BaseType: BufferType or TextureType } pointerType, IndexerExpression indexer):
                 {
+                    if (compiler == null)
+                    {
+                        indexer.Index.ProcessSymbol(table);
+                        accessor.Type = ComputeBufferOrTextureAccessReturnType(pointerType);
+                        break;
+                    }
+
                     // Emit OpAccessChain with everything so far
                     EmitOpAccessChain(accessChainIds, i - 1);
 
@@ -771,55 +906,95 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 }
                 case (PointerType { BaseType: StructuredBufferType bufferType }, IndexerExpression indexer):
                 {
+                    if (compiler == null)
+                    {
+                        indexer.Index.ProcessSymbol(table);
+                        accessor.Type = new PointerType(bufferType.BaseType, Specification.StorageClass.StorageBuffer);
+                        break;
+                    }
+
                     // StructuredBuffer are declared as OpTypeStruct { OpTypeRuntimeArray }
                     // so first, we push a 0 to access the OpTypeRuntimeArray
                     PushAccessChainId(accessChainIds, context.CompileConstant(0).Id);
                     // Then we push the index inside the array
                     var indexerValue = indexer.Index.CompileAsValue(table, compiler);
                     PushAccessChainId(accessChainIds, indexerValue.Id);
-                    accessor.Type = new PointerType(bufferType.BaseType, Specification.StorageClass.StorageBuffer);
                     break;
                 }
                 case (_, MethodCall methodCall):
+                    if (compiler == null)
+                    {
+                        methodCall.MemberCallBaseType = ((PointerType)currentValueType).BaseType;
+                        methodCall.ProcessSymbol(table);
+                        break;
+                    }
+                    
                     // Emit OpAccessChain with everything so far
                     EmitOpAccessChain(accessChainIds, i - 1);
-
-                    methodCall.MemberCallBaseType = result.TypeId != 0 ? (LoadedShaderSymbol)((PointerType)currentValueType).BaseType : null;
                     methodCall.MemberCall = result;
                     result = methodCall.Compile(table, compiler);
                     break;
                 case (PointerType { BaseType: LoadedShaderSymbol s }, Identifier field):
+                    if (compiler == null)
+                    {
+                        if (!s.TryResolveSymbol(field.Name, out var matchingComponent))
+                        {
+                            table.AddError(new(info, string.Format(SDSLErrorMessages.SDSL0112, field.Name, new AccessorChainExpression(Source, info) { Accessors = Accessors[0..i] }, currentValueType)));
+                            return default;
+                        }
+
+                        field.ResolvedSymbol = matchingComponent;
+                        accessor.Type = matchingComponent.Type;
+                        break;
+                    }
+
+                    var importedVariable = LoadedShaderSymbol.ImportSymbol(table, context, field.ResolvedSymbol);
+                    
                     // Emit OpAccessChain with everything so far
                     EmitOpAccessChain(accessChainIds, i - 1);
-
-                    if (!s.TryResolveSymbol(field.Name, out var matchingComponent))
-                        throw new InvalidOperationException();
-
-                    matchingComponent = LoadedShaderSymbol.ImportSymbol(table, matchingComponent);
-
+                    
                     // TODO: figure out instance (this vs composition)
-                    result = Identifier.EmitSymbol(builder, context, matchingComponent, false, result.Id);
-                    accessor.Type = matchingComponent.Type;
+                    result = Identifier.EmitSymbol(builder, context, importedVariable, false, result.Id);
                     break;
                 case (PointerType { BaseType: StreamsType s } p, Identifier streamVar):
+                    if (compiler == null)
+                    {
+                        streamVar.AllowStreamVariables = true;
+                        streamVar.ProcessSymbol(table);
+                        accessor.Type = streamVar.Type;
+                        break;
+                    }
+
                     // Since STREAMS struct is built later for each shader, we simply make a reference to variable for now\
-                    streamVar.AllowStreamVariables = true;
                     var streamVariableResult = streamVar.Compile(table, compiler);
                     PushAccessChainId(accessChainIds, streamVariableResult.Id);
-                    accessor.Type = streamVar.Type;
                     break;
                 case (PointerType { BaseType: StructType s } p, Identifier field):
                     var index = s.TryGetFieldIndex(field);
-                    if (index == -1)
-                        throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
+                    if (compiler == null)
+                    {
+                        if (index == -1)
+                        {
+                            table.AddError(new(info, string.Format(SDSLErrorMessages.SDSL0113, field.Name, currentValueType)));
+                            return default;
+                        }
+
+                        accessor.Type = new PointerType(s.Members[index].Type, p.StorageClass);
+                        break;
+                    }
                     //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
                     PushAccessChainId(accessChainIds, context.CompileConstant(index).Id);
-                    accessor.Type = new PointerType(s.Members[index].Type, p.StorageClass);
                     break;
                 // Swizzles
                 case (PointerType { BaseType: VectorType v } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     if (swizzle.Length > 1)
                     {
+                        if (compiler == null)
+                        {
+                            accessor.Type = new VectorType(v.BaseType, swizzle.Length);
+                            break;
+                        }
+
                         // Load value
                         EmitOpAccessChain(accessChainIds, i - 1);
                         result = new(builder.InsertData(new OpLoad(context.GetOrRegister(v), context.Bound++, result.Id, null, [])));
@@ -833,17 +1008,26 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         }
 
                         (result, _) = builder.ApplyVectorSwizzles(context, result, v, swizzleIndices);
-                        
-                        accessor.Type = new VectorType(v.BaseType, swizzle.Length);
                     }
                     else
                     {
+                        if (compiler == null)
+                        {
+                            accessor.Type = new PointerType(v.BaseType, p.StorageClass);
+                            break;
+                        }
+
                         PushAccessChainId(accessChainIds, context.CompileConstant(ConvertSwizzle(swizzle[0])).Id);
-                        accessor.Type = new PointerType(v.BaseType, p.StorageClass);
                     }
                     break;
                 case (VectorType v, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     {
+                        if (compiler == null)
+                        {
+                            accessor.Type = v.BaseType.GetVectorOrScalar(swizzle.Length);
+                            break;
+                        }
+
                         Span<int> swizzleIndices = stackalloc int[swizzle.Length];
                         for (int j = 0; j < swizzle.Length; ++j)
                         {
@@ -853,13 +1037,18 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         }
 
                         (result, _) = builder.ApplyVectorSwizzles(context, result, v, swizzleIndices);
-                        accessor.Type = v.BaseType.GetVectorOrScalar(swizzle.Length);
 
                         break;
                     }
                 case (PointerType { BaseType: ScalarType s } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     if (swizzle.Length > 1)
                     {
+                        if (compiler == null)
+                        {
+                            accessor.Type = new VectorType(s, swizzle.Length);
+                            break;
+                        }
+
                         // Load value
                         EmitOpAccessChain(accessChainIds, i - 1);
                         result = new(builder.InsertData(new OpLoad(context.GetOrRegister(s), context.Bound++, result.Id, null, [])));
@@ -873,20 +1062,29 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         }
 
                         (result, _) = builder.ApplyScalarSwizzles(context, result, s, swizzleIndices);
-                        accessor.Type = new VectorType(s, swizzle.Length);
                     }
                     else
                     {
+                        // Do nothing
+                        if (compiler == null)
+                        {
+                            accessor.Type = currentValueType;
+                            break;
+                        }
+
                         if (ConvertSwizzle(swizzle[0]) != 0)
                             throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
-
-                        // Do nothing
-                        accessor.Type = currentValueType;
                     }
                     break;
                 case (ScalarType s, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     if (swizzle.Length > 1)
                     {
+                        if (compiler == null)
+                        {
+                            accessor.Type = s.GetVectorOrScalar(swizzle.Length);
+                            break;
+                        }
+
                         Span<int> swizzleIndices = stackalloc int[swizzle.Length];
                         for (int j = 0; j < swizzle.Length; ++j)
                         {
@@ -896,12 +1094,15 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         }
 
                         (result, _) = builder.ApplyScalarSwizzles(context, result, s, swizzleIndices);
-                        accessor.Type = s.GetVectorOrScalar(swizzle.Length);
                     }
                     else
                     {
                         // Do nothing
-                        accessor.Type = currentValueType;
+                        if (compiler == null)
+                        {
+                            accessor.Type = currentValueType;
+                            break;
+                        }
                     }
                     break;
                 // Array indexer for shader compositions
@@ -910,30 +1111,45 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 // Array indexer for arrays
                 case (PointerType { BaseType: ArrayType { BaseType: var t } } p, IndexerExpression indexer):
                     {
+                        if (compiler == null)
+                        {
+                            indexer.Index.ProcessSymbol(table);
+                            accessor.Type = new PointerType(t, p.StorageClass);
+                            break;
+                        }
                         var indexerValue = indexer.Index.CompileAsValue(table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
-                        accessor.Type = new PointerType(t, p.StorageClass);
                         break;
                     }
                 // Array indexer for vector/matrix
                 case (PointerType { BaseType: VectorType or MatrixType } p, IndexerExpression indexer):
                     {
+                        if (compiler == null)
+                        {
+                            indexer.Index.ProcessSymbol(table);
+                            accessor.Type = new PointerType(p.BaseType switch
+                            {
+                                MatrixType m => new VectorType(m.BaseType, m.Rows),
+                                VectorType v => v.BaseType,
+                            }, p.StorageClass);
+                            break;
+                        }
+
                         var indexerValue = indexer.Index.CompileAsValue(table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
-
-                        accessor.Type = new PointerType(p.BaseType switch
-                        {
-                            MatrixType m => new VectorType(m.BaseType, m.Rows),
-                            VectorType v => v.BaseType,
-                        }, p.StorageClass);
                         break;
                     }
                 // For indexer accessor into non pointer types, we can't use OpCompositeExtract (it expects a constant)
                 // So we load the value into a variable and use normal path
                 case (ArrayType or VectorType or MatrixType, IndexerExpression indexer):
                     {
+                        if (compiler == null)
+                        {
+                            accessor.Type = new PointerType(currentValueType, Specification.StorageClass.Function);
+                            break;
+                        }
+
                         // We need to load as a variable to use OpAccessChain
-                        accessor.Type = new PointerType(currentValueType, Specification.StorageClass.Function);
                         var functionVariable = builder.AddFunctionVariable(context.GetOrRegister(accessor.Type), context.Bound++);
                         builder.Insert(new OpStore(functionVariable, result.Id, null, []));
                         // Process again the same item with new type
@@ -942,6 +1158,12 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     }
                 case (PointerType { BaseType: var type }, PostfixIncrement postfix):
                     {
+                        if (compiler == null)
+                        {
+                            accessor.Type = type;
+                            break;
+                        }
+                        
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds, i - 1);
 
@@ -969,11 +1191,12 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
             currentValueType = accessor.Type;
             // only if OpAccessChain is emitted (otherwise there is no value)
-            if (accessChainIdCount == 0)
+            if (compiler != null && accessChainIdCount == 0)
                 intermediateValues[1 + i] = result;
         }
 
-        EmitOpAccessChain(accessChainIds, Accessors.Count - 1);
+        if (compiler != null)
+            EmitOpAccessChain(accessChainIds, Accessors.Count - 1);
 
         Type = currentValueType;
 
@@ -1044,7 +1267,9 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    private SymbolType expectedOperandType;
+
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         var expectedOperandType = Op switch
         {
@@ -1053,6 +1278,24 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
             _ => null,
         };
         
+        Left.ProcessSymbol(table, expectedOperandType);
+        Right.ProcessSymbol(table, expectedOperandType);
+
+        var analysisResult = SpirvBuilder.AnalyzeBinaryOperation(table, Left.ValueType, Op, Right.ValueType, info);
+        
+        // If type is different than expected, try again with proper type
+        // this will help in some cases (i.e. emit literal as float instead of integer, which is necessary for constants)
+        expectedOperandType = analysisResult?.OperandType;
+        if (Left.ValueType != expectedOperandType)
+            Left.ProcessSymbol(table, expectedOperandType);
+        if (Right.ValueType != expectedOperandType)
+            Right.ProcessSymbol(table, expectedOperandType);
+
+        Type = analysisResult?.ResultType;
+    }
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
         var left = Left.CompileAsValue(table, compiler, expectedOperandType);
         var right = Right.CompileAsValue(table, compiler, expectedOperandType);
 
@@ -1074,28 +1317,18 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
-        var (builder, context) = compiler;
-
-        var conditionValue = Condition.CompileAsValue(table, compiler);
-
-        var leftValueBuffer = new NewSpirvBuffer();
-        var rightValueBuffer = new NewSpirvBuffer();
-
-        // We store left/right values in temporary buffer: we need to emit them now to know type but we don't want to actually insert them later in builder buffer
-        SpirvValue leftResult;
-        using (builder.UseTemporaryBuffer(leftValueBuffer))
-            leftResult = Left.CompileAsValue(table, compiler);
-        SpirvValue rightResult;
-        using (builder.UseTemporaryBuffer(rightValueBuffer))
-            rightResult = Right.CompileAsValue(table, compiler);
-
+        Condition.ProcessSymbol(table);
+        
         if (Condition.ValueType.GetElementType() is not ScalarType { Type: Scalar.Boolean })
-            table.Errors.Add(new(Condition.Info, SDSLErrorMessages.SDSL0106));
+            table.AddError(new(Condition.Info, SDSLErrorMessages.SDSL0106));
+        
+        Left.ProcessSymbol(table);
+        Right.ProcessSymbol(table);
 
         var scalarType = SpirvBuilder.FindCommonBaseTypeForBinaryOperation(Left.ValueType.GetElementType(), Right.ValueType.GetElementType());
-        var resultType = (Condition.ValueType, Left.ValueType, Right.ValueType) switch
+        Type = (Condition.ValueType, Left.ValueType, Right.ValueType) switch
         {
             // If condition is a vector, we need to use this vector size instead
             (VectorType c, _, _) => new VectorType(scalarType, c.Size),
@@ -1104,12 +1337,13 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
             (ScalarType c, ScalarType s1, VectorType v2) => v2.WithElementType(scalarType),
             (ScalarType c, VectorType v1, VectorType v2) => new VectorType(scalarType, Math.Min(v1.Size, v2.Size)),
         };
+    }
 
-        // Convert type for Left/Right
-        using (builder.UseTemporaryBuffer(leftValueBuffer))
-            leftResult = builder.Convert(context, leftResult, resultType);
-        using (builder.UseTemporaryBuffer(rightValueBuffer))
-            rightResult = builder.Convert(context, rightResult, resultType);
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+
+        var conditionValue = Condition.CompileAsValue(table, compiler);
 
         // TODO: Review choice between if/else like branch (OpBranchConditional) which evaluate only one side, or select (OpSelect) which evaluate both side but can work per component but is limited to specific types
         //       It seems HLSL 2021 changed the behavior to align it with C-style short-circuiting.
@@ -1119,7 +1353,7 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
         if (isBranching)
         {
             var resultVariable = context.Bound++;
-            builder.AddFunctionVariable(context.GetOrRegister(new PointerType(resultType, Specification.StorageClass.Function)), resultVariable);
+            builder.AddFunctionVariable(context.GetOrRegister(new PointerType(Type, Specification.StorageClass.Function)), resultVariable);
 
             var blockMergeId = context.Bound++;
             var blockTrueId = context.Bound++;
@@ -1131,31 +1365,35 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
 
             // Block when choosing left value
             builder.CreateBlock(context, blockTrueId, $"ternary_true");
-            builder.Merge(leftValueBuffer);
+            var leftResult = Left.CompileAsValue(table, compiler);
+            leftResult = builder.Convert(context, leftResult, Type);
             builder.Insert(new OpStore(resultVariable, leftResult.Id, null, []));
             builder.Insert(new OpBranch(blockMergeId));
 
             // Block when choosing right value
             builder.CreateBlock(context, blockFalseId, $"ternary_false");
-            builder.Merge(rightValueBuffer);
+            var rightResult = Right.CompileAsValue(table, compiler);
+            rightResult = builder.Convert(context, rightResult, Type);
             builder.Insert(new OpStore(resultVariable, rightResult.Id, null, []));
             builder.Insert(new OpBranch(blockMergeId));
 
             builder.CreateBlock(context, blockMergeId, "ternary_merge");
-            var result = builder.Insert(new OpLoad(context.GetOrRegister(resultType), context.Bound++, resultVariable, null, []));
+            var result = builder.Insert(new OpLoad(context.GetOrRegister(Type), context.Bound++, resultVariable, null, []));
             return new(result.ResultId, result.ResultType);
         }
         else
         {
-            if (resultType is VectorType v && Condition.ValueType is ScalarType conditionScalar)
+            if (Type is VectorType v && Condition.ValueType is ScalarType conditionScalar)
             {
                 conditionValue = builder.Convert(context, conditionValue, new VectorType(conditionScalar, v.Size));
             }
 
-            builder.Merge(leftValueBuffer);
-            builder.Merge(rightValueBuffer);
+            var leftResult = Left.CompileAsValue(table, compiler);
+            leftResult = builder.Convert(context, leftResult, Type);
+            var rightResult = Right.CompileAsValue(table, compiler);
+            rightResult = builder.Convert(context, rightResult, Type);
 
-            var result = builder.Insert(new OpSelect(context.GetOrRegister(resultType), context.Bound++, conditionValue.Id, leftResult.Id, rightResult.Id));
+            var result = builder.Insert(new OpSelect(context.GetOrRegister(Type), context.Bound++, conditionValue.Id, leftResult.Id, rightResult.Id));
             return new(result.ResultId, result.ResultType);
         }
     }

@@ -10,6 +10,12 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 
 public abstract class Statement(TextLocation info) : ValueNode(info)
 {
+    /// <summary>
+    /// Compute <see cref="Type"/> and optionally emit diagnostics.
+    /// </summary>
+    /// <param name="table"></param>
+    public virtual void ProcessSymbol(SymbolTable table) => throw new NotImplementedException($"Symbol table cannot process type : {GetType().Name}");
+
     public abstract void Compile(SymbolTable table, CompilerUnit compiler);
 }
 
@@ -24,9 +30,15 @@ public class ExpressionStatement(Expression expression, TextLocation info) : Sta
 {
     public override SymbolType? Type { get => Expression.Type; set { } }
     public Expression Expression { get; set; } = expression;
+    
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        Expression.ProcessSymbol(table);
+    }
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
+        Expression.ProcessSymbol(table);
         Expression.Compile(table, compiler);
         Type = ScalarType.Void;
     }
@@ -39,17 +51,23 @@ public class ExpressionStatement(Expression expression, TextLocation info) : Sta
 public class Return(TextLocation info, Expression? expression = null) : Statement(info)
 {
     public Expression? Value { get; set; } = expression;
+    
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        Value?.ProcessSymbol(table);
+        Type = Value?.Type ?? ScalarType.Void;
+    }
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         SpirvValue? returnValue = null;
 
-        Type = builder.CurrentFunction!.Value.FunctionType.ReturnType;
+        var realReturnType = builder.CurrentFunction!.Value.FunctionType.ReturnType;
         if (Value != null)
         {
             var value = Value.CompileAsValue(table, compiler);
-            returnValue = builder.Convert(context, value, Type);
+            returnValue = builder.Convert(context, value, realReturnType);
         }
         builder.Return(returnValue);
     }
@@ -94,14 +112,38 @@ public class DeclaredVariableAssign(Identifier variable, bool isConst, TextLocat
         get => TypeName.ArraySize;
         set => TypeName.ArraySize = value;
     }
+    
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        Value?.ProcessSymbol(table, TypeName.Type);
+        SymbolType valueType;
+        if (TypeName.Name == "var")
+        {
+            if (Value == null)
+                table.Errors.Add(new(Info, "can't infer `var` type without a value"));
+            valueType = Value.ValueType;
+        }
+        else
+        {
+            TypeName.ProcessSymbol(table);
+            valueType = TypeName.Type;
+        }
+        Type = new PointerType(valueType, Specification.StorageClass.Function);
+        Variable.Type = Type;
+
+        // TODO: type check with conversion allowed
+        //if (Value is not null && Value.Type != Variable.Type)
+        //    table.AddError(new(TypeName.Info, "wrong type"));
+    }
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-        var variableValueType = TypeName.ResolveType(table, context);
+        TypeName.ProcessSymbol(table);
+        var variableValueType = TypeName.Type;
         var initialValue = Value?.CompileAsValue(table, compiler, variableValueType);
         if (Value is not null && Value.ValueType != variableValueType)
-            table.Errors.Add(new(TypeName.Info, "wrong type"));
+            table.AddError(new(TypeName.Info, "wrong type"));
 
         throw new NotImplementedException();
     }
@@ -124,72 +166,46 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
 {
     public List<DeclaredVariableAssign> Variables { get; set; } = [];
 
+    public List<Symbol> VariableSymbols { get; } = new();
+
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        VariableSymbols.Clear();
+        for (var index = 0; index < Variables.Count; index++)
+        {
+            var declaration = Variables[index];
+            declaration.TypeName = new TypeName(TypeName.Name, info) { ArraySize = declaration.ArraySizes };
+            declaration.ProcessSymbol(table);
+            
+            var variableSymbol = new Symbol(new(declaration.Variable, SymbolKind.Variable), declaration.Type, 0, OwnerType: table.CurrentShader);
+            table.CurrentFrame.Add(declaration.Variable, variableSymbol);
+            VariableSymbols.Add(variableSymbol);
+        }
+        
+        Type = Variables[0].Type;
+    }
+
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
-
-        var compiledValues = new SpirvValue[Variables.Count];
-
-        // Compute type
-        SymbolType valueType;
-        var isVarType = TypeName == "var";
-        if (isVarType)
-        {
-            // Compile first then guess type (for non-var, we delay compilation of intial values later so that we can infer type using full typename and arrays)
-            for (var index = 0; index < Variables.Count; index++)
-            {
-                if (Variables[index].Value != null)
-                    compiledValues[index] = Variables[index].Value!.CompileAsValue(table, compiler);
-            }
-
-            if (Variables.Count == 1 && Variables[0].Value is not null)
-            {
-                valueType = Variables[0].Value!.ValueType;
-            }
-            else
-            {
-                table.Errors.Add(new(Info, SDSLErrorMessages.SDSL0104));
-                return;
-            }
-        }
-        else
-        {
-            valueType = TypeName.ResolveType(table, context);
-            table.DeclaredTypes.TryAdd(TypeName.ToString(), valueType);
-        }
-
-        if (valueType is PointerType)
-            throw new InvalidOperationException();
-
-        Type = new PointerType(valueType, Specification.StorageClass.Function);
 
         for (var index = 0; index < Variables.Count; index++)
         {
             var d = Variables[index];
 
-            var variableValueType = valueType;
-            if (d.ArraySizes != null)
-                variableValueType = TypeName.GenerateArrayType(table, context, variableValueType, d.ArraySizes);
-
-            var variableType = new PointerType(variableValueType, Specification.StorageClass.Function);
-
-            // TODO: Check if any array is empty and fill with initializer info (if any, otherwise error)
-
             var variable = context.Bound++;
+            var variableType = (PointerType)d.Type;
+            var variableValueType = variableType.BaseType;
             var variableTypeId = context.GetOrRegister(variableType);
             builder.AddFunctionVariable(variableTypeId, variable);
             context.AddName(variable, d.Variable);
 
-            table.CurrentFrame.Add(d.Variable, new(new(d.Variable, SymbolKind.Variable), variableType, variable, OwnerType: table.CurrentShader));
+            VariableSymbols[index].IdRef = variable;
 
             // Check initial value
             if (d.Value != null)
             {
-                // var type: already computed
-                if (!isVarType)
-                    compiledValues[index] = Variables[index].Value!.CompileAsValue(table, compiler, variableValueType);
-
-                var source = compiledValues[index];
+                var source = Variables[index].Value!.CompileAsValue(table, compiler, variableValueType);
 
                 // Make sure type is correct
                 source = builder.Convert(context, source, variableValueType);
@@ -207,6 +223,15 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
 public class Assign(TextLocation info) : Statement(info)
 {
     public List<VariableAssign> Variables { get; set; } = [];
+
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        foreach (var variable in Variables)
+        {
+            variable.Variable.ProcessSymbol(table);
+            variable.Value!.ProcessSymbol(table);
+        }
+    }
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
@@ -257,9 +282,19 @@ public class BlockStatement(TextLocation info) : Statement(info)
 {
     public List<Statement> Statements { get; set; } = [];
 
-    public override void Compile(SymbolTable table, CompilerUnit compiler)
+    public SymbolFrame SymbolFrame;
+
+    public override void ProcessSymbol(SymbolTable table)
     {
         table.Push();
+        foreach (var statement in Statements)
+            statement.ProcessSymbol(table);
+        SymbolFrame = table.Pop();
+    }
+
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
+    {
+        table.Push(SymbolFrame);
         var (builder, context) = compiler;
         foreach (var s in Statements)
         {

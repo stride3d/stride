@@ -7,7 +7,10 @@ using System.Xml.Linq;
 namespace Stride.Shaders.Parsing.Analysis;
 
 
-public record struct SemanticErrors(TextLocation Location, string Message);
+public record struct SemanticError(TextLocation Location, string Message)
+{
+    override public string ToString() => $"{Location}: {Message}";
+}
 
 public partial class SymbolTable : ISymbolProvider
 {
@@ -16,7 +19,7 @@ public partial class SymbolTable : ISymbolProvider
     public SpirvContext Context { get; init; }
 
     public RootSymbolFrame RootSymbols { get; }
-    public List<SemanticErrors> Errors { get; } = [];
+    public List<SemanticError> Errors { get; } = [];
 
     // Used by Identifier.ResolveSymbol
     public SymbolFrame CurrentFrame => CurrentSymbols[^1];
@@ -32,20 +35,20 @@ public partial class SymbolTable : ISymbolProvider
     public SymbolTable(SpirvContext context)
     {
         Context = context;
-        RootSymbols = new(context);
+        RootSymbols = new();
         Push(RootSymbols);
     }
 
-    public void Push() => CurrentSymbols.Add(new(Context));
+    public void Push() => CurrentSymbols.Add(new());
 
     public void Push(SymbolFrame symbolFrame) => CurrentSymbols.Add(symbolFrame);
 
     public IExternalShaderLoader ShaderLoader { get; set; }
 
-    public SymbolFrame? Pop()
+    public SymbolFrame Pop()
     {
-        var scope = CurrentSymbols?[^1];
-        CurrentSymbols?.RemoveAt(CurrentSymbols.Count - 1);
+        var scope = CurrentSymbols[^1];
+        CurrentSymbols.RemoveAt(CurrentSymbols.Count - 1);
         return scope;
     }
 
@@ -77,5 +80,10 @@ public partial class SymbolTable : ISymbolProvider
 
 
         throw new NotImplementedException($"Cannot find symbol {name} in main context (current shader is {CurrentShader?.Name}");
+    }
+
+    public void AddError(SemanticError error)
+    {
+        Errors.Add(error);
     }
 }

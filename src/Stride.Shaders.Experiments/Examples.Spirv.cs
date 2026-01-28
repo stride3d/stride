@@ -26,7 +26,7 @@ public static partial class Examples
 
         // context.AddGlobalVariable(new(new("color", SymbolKind.Variable, Storage.Stream), VectorType.From("float4")));
 
-        var function = builder.DeclareFunction(
+        var function = SpirvBuilder.DeclareFunction(
             context,
             "add",
             new(ScalarType.Int, [new(ScalarType.Int, default), new(ScalarType.Int, default)])

@@ -26,12 +26,10 @@ public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : Sh
 
         compiler.Builder.Insert(new OpSDSLEffect(Name.Name));
         foreach (var statement in Members)
-        {
             statement.Compile(table, compiler);
-        }
     }
 
-    internal static int[] CompileGenerics(SymbolTable table, CompilerUnit compiler, ShaderExpressionList? generics)
+    internal static int[] CompileGenerics(SymbolTable table, SpirvContext context, ShaderExpressionList? generics)
     {
         var genericCount = generics != null ? generics.Values.Count : 0;
         var genericValues = new int[genericCount];
@@ -42,7 +40,8 @@ public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : Sh
             {
                 if (generic is not Literal literal)
                     throw new InvalidOperationException($"Generic value {generic} is not a literal");
-                var compiledValue = generic.CompileConstantValue(table, compiler.Context);
+                generic.ProcessSymbol(table);
+                var compiledValue = generic.CompileConstantValue(table, context);
                 genericValues[genericIndex++] = compiledValue.Id;
             }
         }
@@ -99,7 +98,7 @@ public class MixinUse(List<Mixin> mixin, TextLocation info) : EffectStatement(in
             if (mixinName.Path.Count > 0)
                 throw new NotImplementedException();
 
-            int[] genericValues = ShaderEffect.CompileGenerics(table, compiler, mixinName.Generics);
+            int[] genericValues = ShaderEffect.CompileGenerics(table, compiler.Context, mixinName.Generics);
 
             compiler.Builder.Insert(new OpSDSLMixin(mixinName.Name, [.. genericValues]));
         }
@@ -184,7 +183,7 @@ public class ComposeMixinValue(Mixin mixin, TextLocation info) : ComposeValue(in
         if (Mixin.Path.Count > 0)
             throw new NotImplementedException();
 
-        var generics = ShaderEffect.CompileGenerics(table, compiler, Mixin.Generics);
+        var generics = ShaderEffect.CompileGenerics(table, context, Mixin.Generics);
 
         switch (@operator)
         {

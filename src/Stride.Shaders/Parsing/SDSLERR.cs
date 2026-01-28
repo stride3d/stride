@@ -63,4 +63,9 @@ public static class SDSLErrorMessages
     public const string SDSL0106 = "SDSL0106: Unsupported type";
     public const string SDSL0107 = "SDSL0107: Binary expression between vector and matrix is not implemented";
     public const string SDSL0108 = "SDSL0108: Couldn't figure out type for binary operation between {0} and {1}";
+    public const string SDSL0109 = "SDSL0109: Could not resolve method {0} in type {1}";
+    public const string SDSL0110 = "SDSL0110: Use of undeclared identifier '{0}'";
+    public const string SDSL0111 = "SDSL0111: Unimplemented: {0}";
+    public const string SDSL0112 = "SDSL0112: Could not resolve member {0} in expression {1} of type {2}";
+    public const string SDSL0113 = "SDSL0113: Could not resolve member {0} in structure of type {1}";
 }

@@ -82,6 +82,7 @@ public static class ExpressionExtensions
     public static SpirvValue CompileConstantValue(this Expression expression, SymbolTable table, SpirvContext context, SymbolType? expectedType = null)
     {
         var compiler = new CompilerUnit(context, new());
+        expression.ProcessSymbol(table, expectedType);
         var result = expression.CompileAsValue(table, compiler, expectedType);
 
         if (expectedType != null)

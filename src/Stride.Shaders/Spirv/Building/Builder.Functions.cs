@@ -9,7 +9,7 @@ namespace Stride.Shaders.Spirv.Building;
 
 public partial class SpirvBuilder
 {
-    public SpirvFunction DeclareFunction(SpirvContext context, string name, FunctionType ftype, bool isStage = false)
+    public static SpirvFunction DeclareFunction(SpirvContext context, string name, FunctionType ftype, bool isStage = false)
     {
         var func = context.Bound++;
         foreach (var t in ftype.ParameterTypes)

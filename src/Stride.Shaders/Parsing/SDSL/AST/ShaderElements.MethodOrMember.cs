@@ -36,99 +36,100 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
 {
     public Identifier Name { get; set; } = name;
     public List<SamplerStateParameter> Parameters { get; set; } = [];
+    
+    public Symbol Symbol { get; private set; }
 
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         base.ProcessSymbol(table, context);
-        Type = new SamplerType();
+        Type = new PointerType(new SamplerType(), Specification.StorageClass.UniformConstant);
         table.DeclaredTypes.TryAdd(Type.ToString(), Type);
+        
+        var sid = new SymbolID(Name, SymbolKind.SamplerState);
+        Symbol = new Symbol(sid, Type, 0, OwnerType: table.CurrentShader);
+        table.CurrentShader.Variables.Add((Symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
     }
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         (var builder, var context) = compiler;
-        Type = new PointerType(new SamplerType(), Specification.StorageClass.UniformConstant);
         var registeredType = context.GetOrRegister(Type);
-        if (!table.RootSymbols.TryGetValue(Name, out _))
+        if (table.RootSymbols.TryGetValue(Name, out _))
+            throw new Exception($"SamplerState {Name} already defined");
+        
+        var variableId = context.Bound++;
+
+        // We store SamplerState as decoration for later processing during ShaderMixer.ProcessReflection()
+        // Note: we make sure to do it before the OpVariableSDSL as per SPIR-V spec so that it is correctly processed later
+        foreach (var parameter in Parameters)
         {
-            var variableId = context.Bound++;
-
-            // We store SamplerState as decoration for later processing during ShaderMixer.ProcessReflection()
-            // Note: we make sure to do it before the OpVariableSDSL as per SPIR-V spec so that it is correctly processed later
-            foreach (var parameter in Parameters)
+            switch (parameter.Name)
             {
-                switch (parameter.Name)
-                {
-                    case "Filter":
-                        {
-                            var filter = Enum.Parse<Specification.SamplerFilterSDSL>(((Identifier)parameter.Value).Name, true);
-                            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateFilter, [(int)filter]));
-                            break;
-                        }
-                    case "AddressU":
-                        {
-                            var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
-                            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateAddressU, [(int)addressMode]));
-                            break;
-                        }
-                    case "AddressV":
-                        {
-                            var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
-                            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateAddressV, [(int)addressMode]));
-                            break;
-                        }
-                    case "AddressW":
-                        {
-                            var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
-                            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateAddressW, [(int)addressMode]));
-                            break;
-                        }
-                    case "MipLODBias":
-                        {
-                            var mipLODBias = (float)((FloatLiteral)parameter.Value).Value;
-                            context.Add(new OpDecorateString(variableId, Specification.Decoration.SamplerStateMipLODBias, mipLODBias.ToString()));
-                            break;
-                        }
-                    case "MaxAnisotropy":
-                        {
-                            var maxAnisotropy = ((IntegerLiteral)parameter.Value).IntValue;
-                            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateMaxAnisotropy, [maxAnisotropy]));
-                            break;
-                        }
-                    case "MinLOD":
-                        {
-                            var minLOD = (float)((FloatLiteral)parameter.Value).Value;
-                            context.Add(new OpDecorateString(variableId, Specification.Decoration.SamplerStateMinLOD, minLOD.ToString()));
-                            break;
-                        }
-                    case "MaxLOD":
-                        {
-                            var maxLOD = (float)((FloatLiteral)parameter.Value).Value;
-                            context.Add(new OpDecorateString(variableId, Specification.Decoration.SamplerStateMaxLOD, maxLOD.ToString()));
-                            break;
-                        }
-                    case "ComparisonFunc":
-                        {
-                            var filter = Enum.Parse<Specification.SamplerComparisonFuncSDSL>(((Identifier)parameter.Value).Name, true);
-                            context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateComparisonFunc, [(int)filter]));
-                            break;
-                        }
-                    case "BorderColor":
-                    default:
-                        throw new NotImplementedException();
-                }
+                case "Filter":
+                    {
+                        var filter = Enum.Parse<Specification.SamplerFilterSDSL>(((Identifier)parameter.Value).Name, true);
+                        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateFilter, [(int)filter]));
+                        break;
+                    }
+                case "AddressU":
+                    {
+                        var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
+                        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateAddressU, [(int)addressMode]));
+                        break;
+                    }
+                case "AddressV":
+                    {
+                        var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
+                        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateAddressV, [(int)addressMode]));
+                        break;
+                    }
+                case "AddressW":
+                    {
+                        var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
+                        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateAddressW, [(int)addressMode]));
+                        break;
+                    }
+                case "MipLODBias":
+                    {
+                        var mipLODBias = (float)((FloatLiteral)parameter.Value).Value;
+                        context.Add(new OpDecorateString(variableId, Specification.Decoration.SamplerStateMipLODBias, mipLODBias.ToString()));
+                        break;
+                    }
+                case "MaxAnisotropy":
+                    {
+                        var maxAnisotropy = ((IntegerLiteral)parameter.Value).IntValue;
+                        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateMaxAnisotropy, [maxAnisotropy]));
+                        break;
+                    }
+                case "MinLOD":
+                    {
+                        var minLOD = (float)((FloatLiteral)parameter.Value).Value;
+                        context.Add(new OpDecorateString(variableId, Specification.Decoration.SamplerStateMinLOD, minLOD.ToString()));
+                        break;
+                    }
+                case "MaxLOD":
+                    {
+                        var maxLOD = (float)((FloatLiteral)parameter.Value).Value;
+                        context.Add(new OpDecorateString(variableId, Specification.Decoration.SamplerStateMaxLOD, maxLOD.ToString()));
+                        break;
+                    }
+                case "ComparisonFunc":
+                    {
+                        var filter = Enum.Parse<Specification.SamplerComparisonFuncSDSL>(((Identifier)parameter.Value).Name, true);
+                        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateComparisonFunc, [(int)filter]));
+                        break;
+                    }
+                case "BorderColor":
+                default:
+                    throw new NotImplementedException();
             }
-
-            var variable = builder.Insert(new OpVariableSDSL(registeredType, variableId, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
-            context.AddName(variable.ResultId, Name);
-            
-            RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
-
-            var sid = new SymbolID(Name, SymbolKind.SamplerState);
-            var symbol = new Symbol(sid, Type, variable.ResultId, OwnerType: table.CurrentShader);
-            table.CurrentShader.Variables.Add((symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
         }
-        else throw new Exception($"SamplerState {Name} already defined");
+
+        var variable = builder.Insert(new OpVariableSDSL(registeredType, variableId, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
+        context.AddName(variable.ResultId, Name);
+        Symbol.IdRef = variableId;
+        
+        RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
     }
 
     public override string ToString()
@@ -177,9 +178,13 @@ public sealed class ShaderMember(
     public StorageClass StorageClass { get; set; } = storageClass;
     public InterpolationModifier Interpolation { get; set; } = interpolation;
 
+    public Symbol Symbol { get; private set; }
+
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         base.ProcessSymbol(table, context);
+        foreach (var generic in TypeName.Generics)
+            generic.ProcessSymbol(table);
         if (!TypeName.TryResolveType(table, context, out var memberType))
         {
             if (TypeName.Name.Contains("<"))
@@ -189,8 +194,9 @@ public sealed class ShaderMember(
             classSource.Buffer = shader;
             var shaderType = ShaderClass.LoadAndCacheExternalShaderType(table, context, classSource);
 
-            // Resolve again (we don't use shaderType direclty, because it might lack info such as ArrayType)
-            memberType = TypeName.ResolveType(table, context);
+            // Resolve again (we don't use shaderType directly, because it might lack info such as ArrayType)
+            TypeName.ProcessSymbol(table);
+            memberType = TypeName.Type;
         }
 
         var storageClass = (memberType, StorageClass, StreamKind) switch
@@ -211,8 +217,8 @@ public sealed class ShaderMember(
             // Constant: compile right away
             var constantValue = Value.CompileConstantValue(table, context, memberType);
             context.SetName(constantValue.Id, Name);
-            var symbol = new Symbol(new(Name, SymbolKind.Constant), memberType, constantValue.Id, OwnerType: table.CurrentShader);
-            table.CurrentFrame.Add(Name, symbol);
+            var constant = new Symbol(new(Name, SymbolKind.Constant), memberType, constantValue.Id, OwnerType: table.CurrentShader);
+            table.CurrentFrame.Add(Name, constant);
             Type = memberType;
 
             // This constant is visible when inherited
@@ -223,6 +229,21 @@ public sealed class ShaderMember(
             Type = new PointerType(memberType, storageClass);
             table.DeclaredTypes.TryAdd(Type.ToString(), Type);
         }
+        
+        var sid =
+            new SymbolID
+            (
+                Name,
+                TypeModifier == TypeModifier.Const ? SymbolKind.Constant : SymbolKind.Variable,
+                StreamKind switch
+                {
+                    StreamKind.Stream or StreamKind.PatchStream => Storage.Stream,
+                    _ => Storage.None
+                },
+                IsStage: IsStaged
+            );
+        Symbol = new Symbol(sid, Type, 0, OwnerType: table.CurrentShader);
+        table.CurrentShader.Variables.Add((Symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
     }
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
@@ -262,6 +283,8 @@ public sealed class ShaderMember(
         if (Semantic != null)
             context.Add(new OpDecorateString(variable, Specification.Decoration.UserSemantic, Semantic.Name));
         context.AddName(variable, Name);
+        
+        Symbol.IdRef = variable;
 
         if (pointerType.BaseType is StructuredBufferType)
         {
@@ -269,21 +292,6 @@ public sealed class ShaderMember(
         }
 
         RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
-
-        var sid =
-            new SymbolID
-            (
-                Name,
-                TypeModifier == TypeModifier.Const ? SymbolKind.Constant : SymbolKind.Variable,
-                StreamKind switch
-                {
-                    StreamKind.Stream or StreamKind.PatchStream => Storage.Stream,
-                    _ => Storage.None
-                },
-                IsStage: IsStaged
-            );
-        var symbol = new Symbol(sid, pointerType, variable, OwnerType: table.CurrentShader);
-        table.CurrentShader.Variables.Add((symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
     }
 
     public override string ToString()
@@ -352,27 +360,14 @@ public class ShaderMethod(
 
     public BlockStatement? Body { get; set; }
     
+    public SymbolFrame SymbolFrame { get; private set; }
+    public List<Symbol> ParameterSymbols { get; private set; } = new();
+    
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
-        base.ProcessSymbol(table, context);
-        var ftype = new FunctionType(ReturnTypeName.ResolveType(table, context), []);
-        foreach (var arg in Parameters)
-        {
-            var argSym = arg.TypeName.ResolveType(table, context);
-            table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
-            arg.Type = argSym;
-            ftype.ParameterTypes.Add(new(new PointerType(arg.Type, Specification.StorageClass.Function), arg.Modifiers));
-        }
-        Type = ftype;
-
-        table.DeclaredTypes.TryAdd(Type.ToString(), Type);
-    }
-
-    public void Declare(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-
-        function = builder.DeclareFunction(context, Name, (FunctionType)Type, IsStaged);
+        ReturnTypeName.ProcessSymbol(table);
+        var ftype = new FunctionType(ReturnTypeName.Type, []);
+        function = SpirvBuilder.DeclareFunction(context, Name, ftype, IsStaged);
 
         var functionFlags = Specification.FunctionFlagsMask.None;
         if (IsAbstract)
@@ -383,6 +378,21 @@ public class ShaderMethod(
             functionFlags |= Specification.FunctionFlagsMask.Virtual;
         if (IsStaged)
             functionFlags |= Specification.FunctionFlagsMask.Stage;
+        
+        table.Push();
+        ParameterSymbols.Clear();
+        foreach (var p in Parameters)
+        {
+            p.TypeName.ProcessSymbol(table);
+            var argSym = p.TypeName.Type;
+            table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
+            p.Type = argSym;
+            var parameterType = new PointerType(p.Type, Specification.StorageClass.Function);
+            ftype.ParameterTypes.Add(new(parameterType, p.Modifiers));
+            var parameterSymbol = new Symbol(new(p.Name, SymbolKind.Variable), parameterType, 0, OwnerType: table.CurrentShader);
+            table.CurrentFrame.Add(p.Name, parameterSymbol);
+            ParameterSymbols.Add(parameterSymbol);
+        }
         
         Span<int> defaultParameters = stackalloc int[Parameters.Count];
         var firstDefaultParameter = -1;
@@ -399,18 +409,32 @@ public class ShaderMethod(
             }
         }
 
-        var symbol = new Symbol(new(Name, SymbolKind.Method, IsStage: IsStaged), Type, function.Id, MemberAccessWithImplicitThis: Type, OwnerType: table.CurrentShader);
+        var symbol = new Symbol(new(Name, SymbolKind.Method, IsStage: IsStaged), ftype, function.Id, MemberAccessWithImplicitThis: ftype, OwnerType: table.CurrentShader);
 
         if (firstDefaultParameter != -1)
         {
             context.Add(new OpDecorate(function.Id, Specification.Decoration.FunctionParameterDefaultValueSDSL, [.. defaultParameters[firstDefaultParameter..]]));
 
-            symbol.MethodDefaultParameters = new(context, defaultParameters.Slice(firstDefaultParameter).ToArray());
+            symbol = symbol with
+            {
+                MethodDefaultParameters = new(context, defaultParameters.Slice(firstDefaultParameter).ToArray()),
+            };
         }
-
+        
+        Type = ftype;
+        table.DeclaredTypes.TryAdd(Type.ToString(), Type);
+        
+        SymbolFrame = table.Pop();
         table.CurrentShader.Methods.Add((symbol, functionFlags));
     }
 
+    public void ProcessSymbolBody(SymbolTable table, SpirvContext context)
+    {
+        table.Push(SymbolFrame);
+        Body?.ProcessSymbol(table);
+        table.Pop();
+    }
+    
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler, bool hasUnresolvableGenerics)
     {
         var (builder, context) = compiler;
@@ -436,69 +460,56 @@ public class ShaderMethod(
             }
         }
 
-        table.Push();
-        Span<int> defaultParameters = stackalloc int[Parameters.Count];
-        var firstDefaultParameter = -1;
+        if (Type is not FunctionType ftype)
+            throw new InvalidOperationException();
+
+        table.Push(SymbolFrame);
+        builder.BeginFunction(context, function);
+
+        var functionInfo = new OpSDSLFunctionInfo(Specification.FunctionFlagsMask.None, 0);
+
+        if (IsOverride)
+        {
+            // Find parent function
+            var parentSymbol = table.ResolveSymbol(function.Name);
+            // If multiple symbol with same name, find the proper overload (it should have the exact same signature)
+            if (parentSymbol.Type is FunctionGroupType)
+                parentSymbol = parentSymbol.GroupMembers.Last(x => x.IdRef != function.Id && (FunctionType)x.Type == function.FunctionType);
+
+            parentSymbol = LoadedShaderSymbol.ImportSymbol(table, context, parentSymbol);
+
+            functionInfo.Parent = parentSymbol.IdRef;
+            functionInfo.Flags |= Specification.FunctionFlagsMask.Override;
+        }
+
+        if (IsAbstract == true)
+            functionInfo.Flags |= Specification.FunctionFlagsMask.Abstract;
+        if (IsVirtual == true)
+            functionInfo.Flags |= Specification.FunctionFlagsMask.Virtual;
+        if (IsStaged)
+            functionInfo.Flags |= Specification.FunctionFlagsMask.Stage;
+
+        builder.Insert(functionInfo);
+
         for (var index = 0; index < Parameters.Count; index++)
         {
-            var arg = Parameters[index];
-            var argSym = arg.TypeName.ResolveType(table, context);
-            table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
-            arg.Type = argSym;
+            var p = Parameters[index];
+            var parameterSymbol = ParameterSymbols[index];
+            var parameterType = parameterSymbol.Type;
+            var paramValue = builder.AddFunctionParameter(context, p.Name, parameterType);
+            parameterSymbol.IdRef = paramValue.Id;
         }
 
-        if (Type is FunctionType ftype)
+        if (Body is BlockStatement body && !hasUnresolvableGenerics)
         {
-            builder.BeginFunction(context, function);
-
-            var functionInfo = new OpSDSLFunctionInfo(Specification.FunctionFlagsMask.None, 0);
-
-            if (IsOverride == true)
-            {
-                // Find parent function
-                var parentSymbol = table.ResolveSymbol(function.Name);
-                // If multiple symbol with same name, find the proper overload (it should have the exact same signature)
-                if (parentSymbol.Type is FunctionGroupType)
-                    parentSymbol = parentSymbol.GroupMembers.Last(x => x.IdRef != function.Id && (FunctionType)x.Type == function.FunctionType);
-
-                parentSymbol = LoadedShaderSymbol.ImportSymbol(table, parentSymbol);
-
-                functionInfo.Parent = parentSymbol.IdRef;
-                functionInfo.Flags |= Specification.FunctionFlagsMask.Override;
-            }
-
-            if (IsAbstract == true)
-                functionInfo.Flags |= Specification.FunctionFlagsMask.Abstract;
-            if (IsVirtual == true)
-                functionInfo.Flags |= Specification.FunctionFlagsMask.Virtual;
-            if (IsStaged)
-                functionInfo.Flags |= Specification.FunctionFlagsMask.Stage;
-
-            builder.Insert(functionInfo);
-
-            foreach (var p in Parameters)
-            {
-                var parameterType = new PointerType(p.Type, Specification.StorageClass.Function);
-                var paramValue = builder.AddFunctionParameter(context, p.Name, parameterType);
-                table.CurrentFrame.Add(p.Name, new(new(p.Name, SymbolKind.Variable), parameterType, paramValue.Id, OwnerType: table.CurrentShader));
-            }
-
-            if (Body is BlockStatement body && !hasUnresolvableGenerics)
-            {
-                table.Push();
-                builder.CreateBlock(context);
-                foreach (var s in body)
-                    s.Compile(table, compiler);
-                table.Pop();
-            }
-            else
-            {
-                builder.Insert(new OpUnreachable());
-            }
-            builder.EndFunction();
+            builder.CreateBlock(context);
+            Body.Compile(table, compiler);
         }
-        else throw new NotImplementedException();
-
+        else
+        {
+            builder.Insert(new OpUnreachable());
+        }
+        builder.EndFunction();
         table.Pop();
     }
 

@@ -172,19 +172,19 @@ namespace Stride.Shaders.Spirv.Processing
             table.TryResolveSymbol("PSMain", out var entryPointPS);
             table.TryResolveSymbol("CSMain", out var entryPointCS);
 
-            if (entryPointCS.Type is FunctionGroupType)
+            if (entryPointCS?.Type is FunctionGroupType)
                 entryPointCS = entryPointCS.GroupMembers[^1];
-            if (entryPointVS.Type is FunctionGroupType)
+            if (entryPointVS?.Type is FunctionGroupType)
                 entryPointVS = entryPointVS.GroupMembers[^1];
-            if (entryPointPS.Type is FunctionGroupType)
+            if (entryPointPS?.Type is FunctionGroupType)
                 entryPointPS = entryPointPS.GroupMembers[^1];
 
-            if (entryPointPS.IdRef == 0 && entryPointCS.IdRef == 0)
+            if (entryPointPS == null && entryPointCS == null)
                 throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: At least a pixel or compute shader is expected");
-            if (entryPointPS.IdRef != 0 && entryPointCS.IdRef != 0)
+            if (entryPointPS == null && entryPointCS == null)
                 throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: Found both a pixel and a compute shader");
 
-            var entryPointPSOrCS = entryPointCS.IdRef != 0 ? entryPointCS : entryPointPS;
+            var entryPointPSOrCS = entryPointCS ?? entryPointPS;
 
             var analysisResult = Analyze(buffer, context);
             MergeSameSemanticVariables(table, context, buffer, analysisResult);
@@ -193,7 +193,7 @@ namespace Stride.Shaders.Spirv.Processing
             var liveAnalysis = new LiveAnalysis();
             AnalyzeStreamReadWrites(buffer, context, entryPointPSOrCS.IdRef, analysisResult, liveAnalysis);
 
-            if (entryPointCS.IdRef != 0)
+            if (entryPointCS != null)
             {
                 (var csWrapperId, var csWrapperName) = GenerateStreamWrapper(buffer, context, ExecutionModel.GLCompute, entryPointCS.IdRef, entryPointCS.Id.Name, analysisResult, liveAnalysis, false);
                 entryPoints.Add((csWrapperName, csWrapperId, ShaderStage.Compute));
@@ -213,7 +213,7 @@ namespace Stride.Shaders.Spirv.Processing
 
             var inputAttributes = new List<ShaderInputAttributeDescription>();
             
-            if (entryPointPS.IdRef != 0)
+            if (entryPointPS != null)
             {
                 // If written to, they are expected at the end of pixel shader
                 foreach (var stream in streams)
@@ -254,7 +254,7 @@ namespace Stride.Shaders.Spirv.Processing
                 }
 
                 PropagateStreamsFromPreviousStage(streams);
-                if (entryPointVS.IdRef != 0)
+                if (entryPointVS != null)
                 {
                     AnalyzeStreamReadWrites(buffer, context, entryPointVS.IdRef, analysisResult, liveAnalysis);
 

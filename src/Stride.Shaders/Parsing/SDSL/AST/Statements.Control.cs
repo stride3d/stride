@@ -17,6 +17,14 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
     public List<ElseIf> ElseIfs { get; set; } = [];
     public Else? Else { get; set; }
     public ShaderAttributeList? Attributes { get; set; }
+    
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        If.ProcessSymbol(table);
+        foreach (var elseIf in ElseIfs)
+            elseIf.ProcessSymbol(table);
+        Else?.ProcessSymbol(table);
+    }
 
     public override unsafe void Compile(SymbolTable table, CompilerUnit compiler)
     {
@@ -36,7 +44,7 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
 
             var conditionValue = currentIf.Condition.CompileAsValue(table, compiler);
             if (currentIf.Condition.ValueType is not ScalarType)
-                table.Errors.Add(new(currentIf.Condition.Info, "if statement conditional expressions must evaluate to a scalar"));
+                table.AddError(new(currentIf.Condition.Info, "if statement conditional expressions must evaluate to a scalar"));
 
             // Might need implicit conversion from float/int to bool
             conditionValue = builder.Convert(context, conditionValue, ScalarType.Boolean);
@@ -99,6 +107,12 @@ public class If(Expression condition, Statement body, TextLocation info) : Flow(
     public Expression Condition { get; set; } = condition;
     public Statement Body { get; set; } = body;
 
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        Condition.ProcessSymbol(table);
+        Body.ProcessSymbol(table);
+    }
+
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         throw new InvalidOperationException("Handled by ConditionalFlow");
@@ -112,10 +126,6 @@ public class If(Expression condition, Statement body, TextLocation info) : Flow(
 
 public class ElseIf(Expression condition, Statement body, TextLocation info) : If(condition, body, info)
 {
-    public override void Compile(SymbolTable table, CompilerUnit compiler)
-    {
-        throw new InvalidOperationException("Handled by ConditionalFlow");
-    }
     public override string ToString()
     {
         return $"else if({Condition}){Body}";
@@ -126,6 +136,10 @@ public class Else(Statement body, TextLocation info) : Flow(info)
 {
     public Statement Body { get; set; } = body;
 
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        Body.ProcessSymbol(table);
+    }
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         Body.Compile(table, compiler);

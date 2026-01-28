@@ -409,7 +409,7 @@ public partial class SpirvBuilder
             }
         }
 
-        Console.WriteLine($"[Shader] Instantiating {classNameWithGenerics}");
+        //Console.WriteLine($"[Shader] Instantiating {classNameWithGenerics}");
 
         foreach (var i in shaderBuffers.Buffer)
         {
@@ -773,13 +773,13 @@ public partial class SpirvBuilder
 
     public static ShaderBuffers GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, ReadOnlySpan<ShaderMacro> defines, out ObjectId hash, out bool isFromCache)
     {
-        Console.WriteLine($"[Shader] Requesting non-generic class {className}");
+        //Console.WriteLine($"[Shader] Requesting non-generic class {className}");
 
         if (!shaderLoader.LoadExternalBuffer(className, defines, out var buffer, out hash, out isFromCache))
             throw new InvalidOperationException($"Could not load shader [{className}]");
 
-        if (!isFromCache)
-            Console.WriteLine($"[Shader] Loading non-generic class {className} for 1st time");
+        //if (!isFromCache)
+        //    Console.WriteLine($"[Shader] Loading non-generic class {className} for 1st time");
 
         return buffer;
     }

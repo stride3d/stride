@@ -135,13 +135,13 @@ public partial class SpirvBuilder
                 break;
             case (MatrixType, VectorType):
             case (VectorType, MatrixType):
-                table.Errors.Add(new (info, SDSLErrorMessages.SDSL0107));
+                table.AddError(new (info, SDSLErrorMessages.SDSL0107));
                 return null;
             case (MatrixType l, MatrixType r):
                 resultType = new MatrixType(desiredElementType, Math.Min(l.Rows, r.Rows), Math.Min(l.Columns, r.Columns));
                 break;
             default:
-                table.Errors.Add(new (info, string.Format(SDSLErrorMessages.SDSL0108, leftType, rightType)));
+                table.AddError(new (info, string.Format(SDSLErrorMessages.SDSL0108, leftType, rightType)));
                 return null;
         }
 

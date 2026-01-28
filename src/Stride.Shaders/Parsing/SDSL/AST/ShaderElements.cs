@@ -175,7 +175,8 @@ public abstract class ShaderBuffer : ShaderElement
         var fields = new List<StructuredTypeMember>();
         foreach (var smem in Members)
         {
-            smem.Type = smem.TypeName.ResolveType(table, context);
+            smem.TypeName.ProcessSymbol(table);
+            smem.Type = smem.TypeName.Type;
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
 
             fields.Add(new(smem.Name, smem.Type, smem.TypeModifier));
@@ -225,7 +226,8 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
         var fields = new List<StructuredTypeMember>();
         foreach (var smem in Members)
         {
-            smem.Type = smem.TypeName.ResolveType(table, context);
+            smem.TypeName.ProcessSymbol(table);
+            smem.Type = smem.TypeName.Type;
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
 
             fields.Add(new(smem.Name, smem.Type, smem.TypeModifier));
@@ -251,7 +253,10 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
 
 public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name, info)
 {
-    public static (string? LinkName, int? LinkId) ProcessLinkAttributes(SymbolTable table, TextLocation info, List<ShaderAttribute> attributes)
+    public Symbol Symbol { get; private set; }
+    private bool? isStaged;
+    
+    public static (string? LinkName, int? LinkId) ProcessLinkAttributes(SymbolTable table, SpirvContext context, TextLocation info, List<ShaderAttribute> attributes)
     {
         if (attributes != null)
         {
@@ -264,9 +269,9 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
                         // Try to resolve generic parameter when encoded as string (deprecated)
                         if (table.TryResolveSymbol(linkLiteral.Value, out var linkLiteralSymbol))
                         {
-                            linkLiteralSymbol = LoadedShaderSymbol.ImportSymbol(table, linkLiteralSymbol);
+                            linkLiteralSymbol = LoadedShaderSymbol.ImportSymbol(table, context, linkLiteralSymbol);
                             // TODO: make it a warning only?
-                            //table.Errors.Add(new(info, "LinkType generics should be passed without quotes"));
+                            //table.AddError(new(info, "LinkType generics should be passed without quotes"));
                             return (null, linkLiteralSymbol.IdRef);
                         }
 
@@ -278,7 +283,7 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
                         {
                             throw new InvalidOperationException();
                         }
-                        linkSymbol = LoadedShaderSymbol.ImportSymbol(table, linkSymbol);
+                        linkSymbol = LoadedShaderSymbol.ImportSymbol(table, context, linkSymbol);
                         return (null, linkSymbol.IdRef);
                     }
                     else
@@ -296,36 +301,14 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
     {
         base.ProcessSymbol(table, context);
         foreach (var cbMember in Members)
-            cbMember.Type = cbMember.TypeName.ResolveType(table, context);
-    }
-
-    public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-
-        var constantBufferType = (ConstantBufferSymbol)Type;
-
-        // We try to avoid clash in case multiple cbuffer TYPE with same name
-        // The variable itself is handled by adding a .0 .1 etc. in Shader.RenameCBufferVariables()
-        int tryCount = 0;
-        var typeName = constantBufferType.Name;
-        while (!table.DeclaredTypes.TryAdd(constantBufferType.ToId(), Type))
         {
-            typeName = $"{typeName}_{++tryCount}";
-            constantBufferType = constantBufferType with { Name = typeName };
+            cbMember.TypeName.ProcessSymbol(table);
+            cbMember.Type = cbMember.TypeName.Type;
         }
-        Type = constantBufferType;
 
-        context.DeclareCBuffer(constantBufferType);
         var pointerType = new PointerType(Type, Specification.StorageClass.Uniform);
-        var variable = context.Bound++;
 
-        context.AddName(variable, Name);
-        if (LogicalGroup != null)
-            context.Add(new OpDecorateString(variable, Specification.Decoration.LogicalGroupSDSL, LogicalGroup));
-
-        bool? isStaged = null;
-
+        isStaged = null;
         for (var index = 0; index < Members.Count; index++)
         {
             var member = Members[index];
@@ -336,10 +319,43 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
             // Make sure IsStaged for all members match the first member (they're all the same)
             if (isStaged != member.IsStaged)
                 throw new InvalidOperationException($"cbuffer {Name} have a mix of stage and non-stage members");
+        }
+        
+        var constantBufferType = (ConstantBufferSymbol)Type;
+
+        // We try to avoid clash in case multiple cbuffer TYPE with same name
+        // The variable itself is handled by adding a .0 .1 etc. in Shader.RenameCBufferVariables()
+        int tryCount = 0;
+        var typeName = constantBufferType.Name;
+        while (!table.DeclaredTypes.TryAdd(constantBufferType.ToId(), Type))
+        {
+            typeName = $"{typeName}_{++tryCount}";
+            Type = constantBufferType = constantBufferType with { Name = typeName };
+        }
+
+        context.DeclareCBuffer(constantBufferType);
+
+        var sid = new SymbolID(Name, SymbolKind.CBuffer, Storage.Uniform);
+        Symbol = new Symbol(sid, pointerType, context.Bound++, OwnerType: table.CurrentShader);
+        table.CurrentShader.Variables.Add((Symbol, (isStaged ?? false) ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
+    }
+
+    public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+        var variable = Symbol.IdRef;
+
+        context.AddName(variable, Name);
+        if (LogicalGroup != null)
+            context.Add(new OpDecorateString(variable, Specification.Decoration.LogicalGroupSDSL, LogicalGroup));
+
+        for (var index = 0; index < Members.Count; index++)
+        {
+            var member = Members[index];
 
             if (member.Attributes != null && member.Attributes.Count > 0)
             {
-                var linkInfo = ProcessLinkAttributes(table, Info, member.Attributes);
+                var linkInfo = ProcessLinkAttributes(table, context, Info, member.Attributes);
                 if (linkInfo.LinkId is int linkId)
                     context.Add(new OpMemberDecorate(context.GetOrRegister(Type), index, Specification.Decoration.LinkIdSDSL, [linkId]));
                 else if (linkInfo.LinkName != null)
@@ -347,16 +363,38 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
             }
         }
 
-        builder.Insert(new OpVariableSDSL(context.GetOrRegister(pointerType), variable, Specification.StorageClass.Uniform, isStaged == true ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
-
-        var sid = new SymbolID(Name, SymbolKind.CBuffer, Storage.Uniform);
-        var symbol = new Symbol(sid, pointerType, variable, OwnerType: table.CurrentShader);
-        table.CurrentShader.Variables.Add((symbol, (isStaged ?? false) ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
+        var pointerType = new PointerType(Type, Specification.StorageClass.Uniform);
+        builder.Insert(new OpVariableSDSL(context.GetOrRegister(pointerType), variable, Specification.StorageClass.Uniform, (isStaged ?? false) ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
     }
 }
 
 public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, info)
 {
+    public List<Symbol> Symbols { get; } = new();
+    public override void ProcessSymbol(SymbolTable table, SpirvContext context)
+    {
+        base.ProcessSymbol(table, context);
+
+        Symbols.Clear();
+        for (var index = 0; index < Members.Count; index++)
+        {
+            var member = Members[index];
+            (var storageClass, var kind) = member.Type switch
+            {
+                TextureType => (Specification.StorageClass.UniformConstant, SymbolKind.Variable),
+                SamplerType => (Specification.StorageClass.UniformConstant, SymbolKind.SamplerState),
+                BufferType => (Specification.StorageClass.UniformConstant, SymbolKind.TBuffer),
+                _ => throw new NotImplementedException(),
+            };
+            
+            var type = new PointerType(member.Type, storageClass);
+            var sid = new SymbolID(member.Name, kind, Storage.Uniform);
+            var symbol = new Symbol(sid, type, 0, OwnerType: table.CurrentShader);
+            table.CurrentShader.Variables.Add((symbol, member.IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
+            Symbols.Add(symbol);
+        }
+    }
+
     public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
@@ -366,18 +404,12 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
         for (var index = 0; index < Members.Count; index++)
         {
             var member = Members[index];
+            var symbol = Symbols[index];
 
-            (var storageClass, var kind) = member.Type switch
-            {
-                TextureType => (Specification.StorageClass.UniformConstant, SymbolKind.Variable),
-                SamplerType => (Specification.StorageClass.UniformConstant, SymbolKind.SamplerState),
-                BufferType => (Specification.StorageClass.UniformConstant, SymbolKind.TBuffer),
-                _ => throw new NotImplementedException(),
-            };
-
-            var type = new PointerType(member.Type, storageClass);
+            var type = (PointerType)symbol.Type;
             var typeId = context.GetOrRegister(type);
-            var variable = builder.Insert(new OpVariableSDSL(typeId, context.Bound++, storageClass, member.IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
+            var variable = builder.Insert(new OpVariableSDSL(typeId, context.Bound++, type.StorageClass, member.IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
+            symbol.IdRef = variable;
             context.AddName(variable.ResultId, member.Name);
 
             DecorateVariableLinkInfo(table, shaderClass, context, Info, member.Name, member.Attributes, variable.ResultId);
@@ -388,16 +420,12 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
             context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.ResourceGroupIdSDSL, [resourceGroupId]));
             if (LogicalGroup != null)
                 context.Add(new OpDecorateString(variable.ResultId, Specification.Decoration.LogicalGroupSDSL, LogicalGroup));
-
-            var sid = new SymbolID(member.Name, kind, Storage.Uniform);
-            var symbol = new Symbol(sid, type, variable.ResultId, OwnerType: table.CurrentShader);
-            table.CurrentShader.Variables.Add((symbol, member.IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
         }
     }
 
     internal static void DecorateVariableLinkInfo(SymbolTable table, ShaderClass shaderClass, SpirvContext context, TextLocation info, string memberName, List<ShaderAttribute> attributes, int variableId)
     {
-        var linkInfo = CBuffer.ProcessLinkAttributes(table, info, attributes);
+        var linkInfo = CBuffer.ProcessLinkAttributes(table, context, info, attributes);
         if (linkInfo.LinkId is int linkId)
             context.Add(new OpDecorate(variableId, Specification.Decoration.LinkIdSDSL, [linkId]));
         else if (linkInfo.LinkName != null)

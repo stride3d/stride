@@ -49,22 +49,22 @@ public abstract record SymbolType()
             return false;
         }
     }
-    public static bool TryGetBufferType(SymbolTable table, SpirvContext context, string name, TypeName? templateTypeName, [MaybeNullWhen(false)] out SymbolType result)
+    public static bool TryGetBufferType(string name, TypeName? templateTypeName, [MaybeNullWhen(false)] out SymbolType result)
     {
         // Special case: StructuredBuffer allows non vector/scalar types so treat it earlier
         switch (name)
         {
             case "StructuredBuffer":
             case "RWStructuredBuffer":
-                var templateType = templateTypeName.ResolveType(table, context);
+                var templateType = templateTypeName.Type;
                 result = new StructuredBufferType(templateType, name.StartsWith("RW"));
                 return true;
         }
 
         // Note: templateTypeName is resolved lazily (because it might not be a buffer type and we don't need to resolve it)
-        static ScalarType ResolveScalarType(SymbolTable table, SpirvContext context, TypeName? templateTypeName)
+        static ScalarType ResolveScalarType(TypeName? templateTypeName)
         {
-            var templateType = templateTypeName?.ResolveType(table, context) ?? ScalarType.Float;
+            var templateType = templateTypeName?.Type ?? ScalarType.Float;
 
             return templateType switch
             {
@@ -75,27 +75,27 @@ public abstract record SymbolType()
 
         SymbolType? foundType = name switch
         {
-            "Buffer" => new BufferType(ResolveScalarType(table, context, templateTypeName)),
-            "RWBuffer" => new BufferType(ResolveScalarType(table, context, templateTypeName), true),
+            "Buffer" => new BufferType(ResolveScalarType(templateTypeName)),
+            "RWBuffer" => new BufferType(ResolveScalarType(templateTypeName), true),
 
-            "Texture1D" => new Texture1DType(ResolveScalarType(table, context, templateTypeName)),
-            "Texture2D" => new Texture2DType(ResolveScalarType(table, context, templateTypeName)),
-            "Texture2DMS" => new Texture2DType(ResolveScalarType(table, context, templateTypeName)) { Multisampled = true },
-            "Texture3D" => new Texture3DType(ResolveScalarType(table, context, templateTypeName)),
-            "TextureCube" => new TextureCubeType(ResolveScalarType(table, context, templateTypeName)),
+            "Texture1D" => new Texture1DType(ResolveScalarType(templateTypeName)),
+            "Texture2D" => new Texture2DType(ResolveScalarType(templateTypeName)),
+            "Texture2DMS" => new Texture2DType(ResolveScalarType(templateTypeName)) { Multisampled = true },
+            "Texture3D" => new Texture3DType(ResolveScalarType(templateTypeName)),
+            "TextureCube" => new TextureCubeType(ResolveScalarType(templateTypeName)),
             
-            "Texture1DArray" => new Texture1DType(ResolveScalarType(table, context, templateTypeName)) { Arrayed = true },
-            "Texture2DArray" => new Texture2DType(ResolveScalarType(table, context, templateTypeName)) { Arrayed = true },
-            "Texture2DMSArray" => new Texture2DType(ResolveScalarType(table, context, templateTypeName)) { Multisampled = true, Arrayed = true },
-            "Texture3DArray" => new Texture3DType(ResolveScalarType(table, context, templateTypeName)) { Arrayed = true },
-            "TextureCubeArray" => new TextureCubeType(ResolveScalarType(table, context, templateTypeName)) { Arrayed = true },
+            "Texture1DArray" => new Texture1DType(ResolveScalarType(templateTypeName)) { Arrayed = true },
+            "Texture2DArray" => new Texture2DType(ResolveScalarType(templateTypeName)) { Arrayed = true },
+            "Texture2DMSArray" => new Texture2DType(ResolveScalarType(templateTypeName)) { Multisampled = true, Arrayed = true },
+            "Texture3DArray" => new Texture3DType(ResolveScalarType(templateTypeName)) { Arrayed = true },
+            "TextureCubeArray" => new TextureCubeType(ResolveScalarType(templateTypeName)) { Arrayed = true },
 
-            "RWTexture1D" => new Texture1DType(ResolveScalarType(table, context, templateTypeName)) { Sampled = 2 },
-            "RWTexture2D" => new Texture2DType(ResolveScalarType(table, context, templateTypeName)) { Sampled = 2 },
-            "RWTexture3D" => new Texture3DType(ResolveScalarType(table, context, templateTypeName)) { Sampled = 2 },
+            "RWTexture1D" => new Texture1DType(ResolveScalarType(templateTypeName)) { Sampled = 2 },
+            "RWTexture2D" => new Texture2DType(ResolveScalarType(templateTypeName)) { Sampled = 2 },
+            "RWTexture3D" => new Texture3DType(ResolveScalarType(templateTypeName)) { Sampled = 2 },
 
-            "RWTexture1DArray" => new Texture1DType(ResolveScalarType(table, context, templateTypeName)) { Sampled = 2, Arrayed = true },
-            "RWTexture2DArray" => new Texture2DType(ResolveScalarType(table, context, templateTypeName)) { Sampled = 2, Arrayed = true },
+            "RWTexture1DArray" => new Texture1DType(ResolveScalarType(templateTypeName)) { Sampled = 2, Arrayed = true },
+            "RWTexture2DArray" => new Texture2DType(ResolveScalarType(templateTypeName)) { Sampled = 2, Arrayed = true },
             
             _ => null,
         };
@@ -397,7 +397,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
     public List<(StructuredType Type, int ImportedId)> StructTypes { get; init; } = [];
     public List<LoadedShaderSymbol> InheritedShaders { get; init; } = [];
 
-    public static Symbol ImportSymbol(SymbolTable table, Symbol symbol)
+    public static Symbol ImportSymbol(SymbolTable table, SpirvContext context, Symbol symbol)
     {
         bool isCurrentShader = symbol.OwnerType == table.CurrentShader;
 
@@ -413,8 +413,6 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
         if (symbol.OwnerType == null)
             throw new InvalidOperationException();
 
-        var context = table.Context;
-        
         if (isCurrentShader && symbol.IdRef == 0)
             throw new InvalidOperationException("Symbols in current shader should be resolved");
 
@@ -573,7 +571,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
                 var methodSymbol = c.Symbol;
 
                 // If symbol is set, complete it as a method group
-                symbol = symbol.Type switch
+                symbol = symbol?.Type switch
                 {
                     // First time: just assign to symbol
                     null => methodSymbol,
@@ -595,6 +593,11 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
 public sealed partial record GenericParameterType(GenericParameterKindSDSL Kind) : SymbolType;
 
 public sealed partial record StreamsType : SymbolType
+{
+    public override string ToString() => "Streams";
+}
+
+public sealed partial record ShaderMixinType : SymbolType
 {
     public override string ToString() => "Streams";
 }
