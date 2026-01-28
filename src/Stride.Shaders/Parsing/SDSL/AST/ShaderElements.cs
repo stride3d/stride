@@ -264,6 +264,7 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
                         // Try to resolve generic parameter when encoded as string (deprecated)
                         if (table.TryResolveSymbol(linkLiteral.Value, out var linkLiteralSymbol))
                         {
+                            linkLiteralSymbol = LoadedShaderSymbol.ImportSymbol(table, linkLiteralSymbol);
                             // TODO: make it a warning only?
                             //table.Errors.Add(new(info, "LinkType generics should be passed without quotes"));
                             return (null, linkLiteralSymbol.IdRef);
@@ -277,6 +278,7 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
                         {
                             throw new InvalidOperationException();
                         }
+                        linkSymbol = LoadedShaderSymbol.ImportSymbol(table, linkSymbol);
                         return (null, linkSymbol.IdRef);
                     }
                     else
@@ -348,7 +350,7 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
         builder.Insert(new OpVariableSDSL(context.GetOrRegister(pointerType), variable, Specification.StorageClass.Uniform, isStaged == true ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
 
         var sid = new SymbolID(Name, SymbolKind.CBuffer, Storage.Uniform);
-        var symbol = new Symbol(sid, pointerType, variable);
+        var symbol = new Symbol(sid, pointerType, variable, OwnerType: table.CurrentShader);
         table.CurrentShader.Variables.Add((symbol, (isStaged ?? false) ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
     }
 }
@@ -388,7 +390,7 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
                 context.Add(new OpDecorateString(variable.ResultId, Specification.Decoration.LogicalGroupSDSL, LogicalGroup));
 
             var sid = new SymbolID(member.Name, kind, Storage.Uniform);
-            var symbol = new Symbol(sid, type, variable.ResultId);
+            var symbol = new Symbol(sid, type, variable.ResultId, OwnerType: table.CurrentShader);
             table.CurrentShader.Variables.Add((symbol, member.IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
         }
     }

@@ -397,31 +397,137 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
     public List<(StructuredType Type, int ImportedId)> StructTypes { get; init; } = [];
     public List<LoadedShaderSymbol> InheritedShaders { get; init; } = [];
 
-    internal bool TryResolveSymbol(SymbolTable symbolTable, SpirvContext context, string name, out Symbol symbol)
+    public static Symbol ImportSymbol(SymbolTable table, Symbol symbol)
     {
-        if (TryResolveSymbolNoRecursion(this == symbolTable.CurrentShader, context, name, out symbol))
+        bool isCurrentShader = symbol.OwnerType == table.CurrentShader;
+
+        // Check if symbol is already imported
+        if (symbol.IdRef != 0)
+        {
+            if (!isCurrentShader)
+                symbol = symbol with { MemberAccessWithImplicitThis = symbol.Type };
+            return symbol;
+        }
+
+        // Find same symbol in owner type
+        if (symbol.OwnerType == null)
+            throw new InvalidOperationException();
+
+        var context = table.Context;
+        
+        if (isCurrentShader && symbol.IdRef == 0)
+            throw new InvalidOperationException("Symbols in current shader should be resolved");
+
+        if (symbol.Type is FunctionGroupType)
+            throw new InvalidOperationException($"Can't import symbol for {nameof(FunctionGroupType)}");
+        
+        if (symbol.Type is FunctionType)
+        {
+            var methods = CollectionsMarshal.AsSpan(symbol.OwnerType.Methods);
+            foreach (ref var c in methods)
+            {
+                if (c.Symbol.Id == symbol.Id && c.Symbol.Type == symbol.Type)
+                {
+                    if (c.Symbol.IdRef == 0)
+                    {
+                        // Emit symbol
+                        // TODO: emit it only when this specific method is *selected* as proper overload (signature) & override (base vs this)
+                        var shaderId = context.GetOrRegister(symbol.OwnerType);
+                        context.ImportShaderMethod(shaderId, ref c.Symbol, c.Flags);
+                    }
+
+                    symbol.IdRef = c.Symbol.IdRef;
+                    if (!isCurrentShader)
+                        symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+
+                    return symbol;
+                }
+            }
+        }
+        else
+        {
+            var variables = CollectionsMarshal.AsSpan(symbol.OwnerType.Variables);
+            foreach (ref var c in variables)
+            {
+                if (c.Symbol.Id == symbol.Id && c.Symbol.Type == symbol.Type)
+                {
+                    if (c.Symbol.IdRef == 0)
+                    {
+                        // Emit symbol
+                        var shaderId = context.GetOrRegister(symbol.OwnerType);
+                        context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
+                    }
+
+                    symbol.IdRef = c.Symbol.IdRef;
+                    if (!isCurrentShader)
+                        symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+                    return symbol;
+                }
+                
+                if (c.Symbol.Type is PointerType { StorageClass: Specification.StorageClass.Uniform } p && p.BaseType is ConstantBufferSymbol cb)
+                {
+                    for (int index = 0; index < cb.Members.Count; index++)
+                    {
+                        var member = cb.Members[index];
+                        var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
+                        var cbufferSymbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.Symbol.IdRef, AccessChain: index, OwnerType: symbol.OwnerType);
+
+                        if (cbufferSymbol.Id == symbol.Id && cbufferSymbol.Type == symbol.Type)
+                        {
+                            if (c.Symbol.IdRef == 0 && context != null)
+                            {
+                                // Emit symbol
+                                var shaderId = context.GetOrRegister(symbol.OwnerType);
+                                context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
+                            }
+                            
+                            symbol.IdRef = c.Symbol.IdRef;
+                            if (!isCurrentShader)
+                                symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+
+                            return symbol;
+                        }
+                    }
+                }
+            }
+        }
+        
+        throw new InvalidOperationException($"Symbol {symbol} could not be imported because it was not found in its owner type {symbol.OwnerType}");
+    }
+
+    /// <summary>
+    /// Try to resolve a symbol in shader or inherited shader. If <see cref="importContext"/> is null, you can use this method without importing type or symbol in a context (useful for type evaluation).
+    /// </summary>
+    /// <param name="symbolTable"></param>
+    /// <param name="importContext">If not null, the method or symbol will be imported in this context.</param>
+    /// <param name="name"></param>
+    /// <param name="symbol"></param>
+    /// <returns></returns>
+    internal bool TryResolveSymbol(string name, out Symbol symbol)
+    {
+        if (TryResolveSymbolNoRecursion(name, out symbol))
             return true;
 
         // Process inherited classes
         // note: since it contains all indirectly inherited method too, which is why it is splitted with TryResolveSymbolNoRecursion
         foreach (var inheritedShader in InheritedShaders)
-            if (inheritedShader.TryResolveSymbolNoRecursion(false, context, name, out symbol))
+            if (inheritedShader.TryResolveSymbolNoRecursion(name, out symbol))
                 return true;
 
         return false;
     }
 
-    private bool TryResolveSymbolNoRecursion(bool isCurrentShader, SpirvContext context, string name, out Symbol symbol)
+    private bool TryResolveSymbolNoRecursion(string name, out Symbol symbol)
     {
         symbol = default;
 
-        var found = BuildMethodGroup(isCurrentShader, context, name, ref symbol);
+        var found = BuildMethodGroup(name, ref symbol);
         if (found)
         {
             // If any method is found, let's process inherited classes too: we need all method groups to find proper override
             foreach (var inheritedClass in InheritedShaders)
             {
-                inheritedClass.BuildMethodGroup(false, context, name, ref symbol);
+                inheritedClass.BuildMethodGroup(name, ref symbol);
             }
             return true;
         }
@@ -431,16 +537,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
         {
             if (c.Symbol.Id.Name == name)
             {
-                if (c.Symbol.IdRef == 0)
-                {
-                    // Emit symbol
-                    var shaderId = context.GetOrRegister(this);
-                    context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
-                }
-
                 symbol = c.Symbol;
-                if (!isCurrentShader)
-                    symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
                 return true;
             }
 
@@ -452,17 +549,8 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
                     var member = cb.Members[index];
                     if (member.Name == name)
                     {
-                        if (c.Symbol.IdRef == 0)
-                        {
-                            // Emit symbol
-                            var shaderId = context.GetOrRegister(this);
-                            context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
-                        }
-
                         var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
-                        symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.Symbol.IdRef, AccessChain: index);
-                        if (!isCurrentShader)
-                            symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+                        symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.Symbol.IdRef, AccessChain: index, OwnerType: c.Symbol.OwnerType);
                         return true;
                     }
                 }
@@ -473,7 +561,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
         return false;
     }
 
-    private bool BuildMethodGroup(bool isCurrentShader, SpirvContext context, string name, ref Symbol symbol)
+    private bool BuildMethodGroup(string name, ref Symbol symbol)
     {
         var found = false;
         var methods = CollectionsMarshal.AsSpan(Methods);
@@ -481,19 +569,8 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
         {
             if (c.Symbol.Id.Name == name)
             {
-                if (c.Symbol.IdRef == 0)
-                {
-                    // Emit symbol
-                    // TODO: emit it only when this specific method is *selected* as proper overload (signature) & override (base vs this)
-                    var shaderId = context.GetOrRegister(this);
-                    context.ImportShaderMethod(shaderId, ref c.Symbol, c.Flags);
-                }
-
                 // Combine method symbols if multiple matches
                 var methodSymbol = c.Symbol;
-
-                if (!isCurrentShader)
-                    methodSymbol = methodSymbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
 
                 // If symbol is set, complete it as a method group
                 symbol = symbol.Type switch

@@ -5,6 +5,7 @@ namespace Stride.Shaders.Parsing;
 /// </summary>
 public static class SDSLErrorMessages
 {
+    // Parse errors
     public const string SDSL0001 = "SDSL0001: Unexpected token";
     public const string SDSL0002 = "SDSL0002: vector size not supported";
     public const string SDSL0003 = "SDSL0003: matrix size not supported";
@@ -60,4 +61,6 @@ public static class SDSLErrorMessages
     public const string SDSL0104 = "SDSL0104: Cannot infer type";
     public const string SDSL0105 = "SDSL0105: Unrecognized node";
     public const string SDSL0106 = "SDSL0106: Unsupported type";
+    public const string SDSL0107 = "SDSL0107: Binary expression between vector and matrix is not implemented";
+    public const string SDSL0108 = "SDSL0108: Couldn't figure out type for binary operation between {0} and {1}";
 }

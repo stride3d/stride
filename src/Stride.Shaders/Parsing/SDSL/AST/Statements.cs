@@ -180,7 +180,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
             builder.AddFunctionVariable(variableTypeId, variable);
             context.AddName(variable, d.Variable);
 
-            table.CurrentFrame.Add(d.Variable, new(new(d.Variable, SymbolKind.Variable), variableType, variable));
+            table.CurrentFrame.Add(d.Variable, new(new(d.Variable, SymbolKind.Variable), variableType, variable, OwnerType: table.CurrentShader));
 
             // Check initial value
             if (d.Value != null)
@@ -235,7 +235,7 @@ public class Assign(TextLocation info) : Statement(info)
                 var left = builder.AsValue(context, target);
                 var right = builder.AsValue(context, source);
 
-                source = builder.BinaryOperation(context, left, binaryOperator, right);
+                source = builder.BinaryOperation(table, context, left, binaryOperator, right, info);
             }
 
             // Make sure to convert to proper type

@@ -317,11 +317,16 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         if (symbol.Id.Storage == Storage.Stream && !AllowStreamVariables)
             throw new InvalidOperationException($"Streams member {Name} used without an object");
         Type = symbol.Type;
+        
+        symbol = LoadedShaderSymbol.ImportSymbol(table, symbol);
         return EmitSymbol(builder, context, symbol, constantOnly);
     }
 
     public static SpirvValue EmitSymbol(SpirvBuilder builder, SpirvContext context, Symbol symbol, bool constantOnly, int? instance = null)
     {
+        if (symbol.IdRef == 0)
+            throw new InvalidOperationException($"Symbol {symbol} has not been imported or created properly");
+        
         var resultType = context.GetOrRegister(symbol.Type);
         var result = new SpirvValue(symbol.IdRef, resultType, symbol.Id.Name);
 
@@ -336,7 +341,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
             result.Id = instance.Value;
             return result;
         }
-
+        
         if (symbol.ExternalConstant is { } externalConstant)
         {
             if (externalConstant.SourceContext != context)

@@ -69,13 +69,16 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
     public Identifier Name = name;
     public ShaderExpressionList Parameters = parameters;
 
+    public LoadedShaderSymbol? MemberCallBaseType { get; set; }
     public SpirvValue? MemberCall { get; set; }
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var (builder, context) = compiler;
 
-        var functionSymbol = ResolveFunctionSymbol(table, context);
+        var functionSymbol = ResolveFunctionSymbol(table);
+        functionSymbol = LoadedShaderSymbol.ImportSymbol(table, functionSymbol);
+        
         var functionType = (FunctionType)functionSymbol.Type;
 
         Type = functionType.ReturnType;
@@ -96,7 +99,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
             var inOutFlags = paramDefinition.Modifiers & ParameterModifiers.InOut;
             if (inOutFlags != ParameterModifiers.Out)
             {
-                var paramSource = parameters.Values[i].CompileAsValue(table, compiler);
+                var paramSource = parameters.Values[i].CompileAsValue(table, compiler, paramDefinition.Type.GetValueType());
 
                 // Convert type (if necessary)
                 var paramExpectedValueType = paramDefinition.Type;
@@ -166,7 +169,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
             {
                 var paramDefinitionType = (PointerType)paramDefinition.Type;
                 var paramVariable = compiledParams[i];
-                var paramTarget = parameters.Values[i].Compile(table, compiler);
+                var paramTarget = parameters.Values[i].Compile(table, compiler, paramDefinitionType);
                 var paramTargetType = (PointerType)context.ReverseTypes[paramTarget.TypeId];
 
                 if (paramTargetType.BaseType != paramDefinitionType.BaseType)
@@ -180,15 +183,14 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         return result;
     }
 
-    private Symbol ResolveFunctionSymbol(SymbolTable table, SpirvContext context)
+    private Symbol ResolveFunctionSymbol(SymbolTable table)
     {
         Symbol functionSymbol;
         // Note: for now, TypeId 0 is used for this/base; let's improve that later
         if (MemberCall != null && MemberCall.Value.TypeId != 0)
         {
-            var type = (LoadedShaderSymbol)((PointerType)context.ReverseTypes[MemberCall.Value.TypeId]).BaseType;
-            if (!type.TryResolveSymbol(table, context, Name, out functionSymbol))
-                throw new InvalidOperationException($"Method {Name} could not be found in type {type.Name}");
+            if (!MemberCallBaseType.TryResolveSymbol(Name, out functionSymbol))
+                throw new InvalidOperationException($"Method {Name} could not be found in type {MemberCallBaseType.Name}");
         }
         else
         {
@@ -198,30 +200,14 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         // Choose appropriate method to call
         if (functionSymbol.Type is FunctionGroupType)
         {
-            // Find methods matching number of parameters
-            var matchingMethods = functionSymbol.GroupMembers.Where(x => ((FunctionType)x.Type).ParameterTypes.Count == parameters.Values.Count);
-
+            var matchingMethods = functionSymbol.GroupMembers
+                // Find methods matching number of parameters
+                .Where(x => ((FunctionType)x.Type).ParameterTypes.Count == parameters.Values.Count);
+            
             // TODO: find proper overload (different signature)
             // We take first element, so in case there is multiple override, it will take the most-derived implementation
-            // Note: this will be reevaluted during ShaderMixer (base/this, etc.) but it won't change overload (different signature)
+            // Note: this will be reevaluted during ShaderMixer (which specific override depending on base/this, etc.) but it won't change overload (different signature)
             functionSymbol = matchingMethods.First();
-        }
-
-        return functionSymbol;
-    }
-
-    private Symbol ResolveSymbol(SymbolTable table, SpirvContext context)
-    {
-        Symbol functionSymbol;
-        if (MemberCall != null)
-        {
-            var type = (LoadedShaderSymbol)((PointerType)context.ReverseTypes[MemberCall.Value.TypeId]).BaseType;
-            if (!type.TryResolveSymbol(table, context, Name, out functionSymbol))
-                throw new InvalidOperationException($"Method {Name} could not be found in type {type.Name}");
-        }
-        else
-        {
-            functionSymbol = table.ResolveSymbol(Name);
         }
 
         return functionSymbol;
@@ -315,11 +301,11 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
 
                         // Use integer so that it gets converted to proper type according to expression type
                         var constant1 = context.CompileConstant(1);
-                        var result = builder.BinaryOperation(context, valueExpression, Operator switch
+                        var result = builder.BinaryOperation(table, context, valueExpression, Operator switch
                         {
                             Operator.Inc => Operator.Plus,
                             Operator.Dec => Operator.Minus,
-                        }, constant1);
+                        }, constant1, info);
 
                         // We store the modified value back in the variable
                         builder.Insert(new OpStore(expression.Id, result.Id, null, []));
@@ -798,6 +784,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     // Emit OpAccessChain with everything so far
                     EmitOpAccessChain(accessChainIds, i - 1);
 
+                    methodCall.MemberCallBaseType = result.TypeId != 0 ? (LoadedShaderSymbol)((PointerType)currentValueType).BaseType : null;
                     methodCall.MemberCall = result;
                     result = methodCall.Compile(table, compiler);
                     break;
@@ -805,8 +792,10 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     // Emit OpAccessChain with everything so far
                     EmitOpAccessChain(accessChainIds, i - 1);
 
-                    if (!s.TryResolveSymbol(table, context, field.Name, out var matchingComponent))
+                    if (!s.TryResolveSymbol(field.Name, out var matchingComponent))
                         throw new InvalidOperationException();
+
+                    matchingComponent = LoadedShaderSymbol.ImportSymbol(table, matchingComponent);
 
                     // TODO: figure out instance (this vs composition)
                     result = Identifier.EmitSymbol(builder, context, matchingComponent, false, result.Id);
@@ -963,11 +952,11 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
                         // Use integer so that it gets converted to proper type according to expression type
                         var constant1 = context.CompileConstant(1);
-                        var modifiedValue = builder.BinaryOperation(context, result, postfix.Operator switch
+                        var modifiedValue = builder.BinaryOperation(table, context, result, postfix.Operator switch
                         {
                             Operator.Inc => Operator.Plus,
                             Operator.Dec => Operator.Minus,
-                        }, constant1);
+                        }, constant1, info);
 
                         // We store the modified value back in the variable
                         builder.Insert(new OpStore(resultPointer.Id, modifiedValue.Id, null, []));
@@ -1068,7 +1057,7 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
         var right = Right.CompileAsValue(table, compiler, expectedOperandType);
 
         var (builder, context) = compiler;
-        var result = builder.BinaryOperation(context, left, Op, right);
+        var result = builder.BinaryOperation(table, context, left, Op, right, info);
         Type = context.ReverseTypes[result.TypeId];
         return result;
     }

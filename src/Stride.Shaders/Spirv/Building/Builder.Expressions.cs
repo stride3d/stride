@@ -1,4 +1,5 @@
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -99,18 +100,15 @@ public partial class SpirvBuilder
         };
     }
 
-    public SpirvValue BinaryOperation(SpirvContext context, SpirvValue left, Operator op, SpirvValue right, string? name = null)
+    public static (SymbolType OperandType, SymbolType ResultType)? AnalyzeBinaryOperation(SymbolTable table, SymbolType leftType, Operator op, SymbolType rightType, TextLocation info)
     {
-        var leftType = context.ReverseTypes[left.TypeId];
-        var rightType = context.ReverseTypes[right.TypeId];
-
         var leftElementType = leftType.GetElementType();
         var rightElementType = rightType.GetElementType();
 
         // Check base types
         // TODO: special case for operators expecting different types (i.e. bit shifts)
         var desiredElementType = FindCommonBaseTypeForBinaryOperation(leftElementType, rightElementType);
-
+        
         // Check size
         SymbolType resultType;
         switch (leftType, rightType)
@@ -137,23 +135,37 @@ public partial class SpirvBuilder
                 break;
             case (MatrixType, VectorType):
             case (VectorType, MatrixType):
-                throw new NotImplementedException("Binary expression between vector and matrix is not implemented");
+                table.Errors.Add(new (info, SDSLErrorMessages.SDSL0107));
+                return null;
             case (MatrixType l, MatrixType r):
                 resultType = new MatrixType(desiredElementType, Math.Min(l.Rows, r.Rows), Math.Min(l.Columns, r.Columns));
                 break;
             default:
-                throw new NotImplementedException($"Couldn't figure out type for binary operation between {leftType} and {rightType}");
+                table.Errors.Add(new (info, string.Format(SDSLErrorMessages.SDSL0108, leftType, rightType)));
+                return null;
         }
 
-        // TODO: Some specific cases where one of the operands doesn't need to have exact same type as resultType (such as shift in OpShiftRightLogical, or signedness for some other operations)
-        //       We'll need to review those cases
-        left = Convert(context, left, resultType);
-        right = Convert(context, right, resultType);
-
+        var operandType = resultType;
+        
         // Comparisons and logical operators
         if (op == Operator.Greater || op == Operator.Lower || op == Operator.GreaterOrEqual || op == Operator.LowerOrEqual
             || op == Operator.NotEquals || op == Operator.Equals || op == Operator.LogicalAND || op == Operator.LogicalOR)
             resultType = resultType.WithElementType(ScalarType.Boolean);
+
+        return (operandType, resultType);
+    }
+    
+    public SpirvValue BinaryOperation(SymbolTable table, SpirvContext context, SpirvValue left, Operator op, SpirvValue right, TextLocation info, string? name = null)
+    {
+        var leftType = context.ReverseTypes[left.TypeId];
+        var rightType = context.ReverseTypes[right.TypeId];
+
+        (var operandType, var resultType) = AnalyzeBinaryOperation(table, leftType, op, rightType, info) ?? throw new InvalidOperationException("Type of binary operation could not be determined");
+        
+        // TODO: Some specific cases where one of the operands doesn't need to have exact same type as resultType (such as shift in OpShiftRightLogical, or signedness for some other operations)
+        //       We'll need to review those cases
+        left = Convert(context, left, operandType);
+        right = Convert(context, right, operandType);
 
         var resultTypeId = context.GetOrRegister(resultType);
 
@@ -161,8 +173,8 @@ public partial class SpirvBuilder
         leftType = context.ReverseTypes[left.TypeId];
         rightType = context.ReverseTypes[right.TypeId];
 
-        leftElementType = leftType.GetElementType();
-        rightElementType = rightType.GetElementType();
+        var leftElementType = leftType.GetElementType();
+        var rightElementType = rightType.GetElementType();
 
         var instruction = (op, leftElementType, rightElementType) switch
         {
@@ -480,6 +492,15 @@ public partial class SpirvBuilder
 
 internal static class SymbolExtensions
 {
+    public static SymbolType GetValueType(this SymbolType type)
+    {
+        return type switch
+        {
+            PointerType pointerType => pointerType.BaseType,
+            _ => type
+        };
+    }
+
     public static SymbolType GetVectorOrScalar(this ScalarType scalar, int size)
         => size == 1 ? scalar : new VectorType(scalar, size);
     

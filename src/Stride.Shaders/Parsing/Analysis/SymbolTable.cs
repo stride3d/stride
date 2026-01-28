@@ -51,12 +51,11 @@ public partial class SymbolTable : ISymbolProvider
 
     public bool TryResolveSymbol(string name, out Symbol symbol)
     {
-
         for (int i = CurrentSymbols.Count - 1; i >= 0; i--)
             if (CurrentSymbols[i].TryGetValue(name, out symbol))
                 return true;
 
-        if (CurrentShader != null && CurrentShader.TryResolveSymbol(this, Context, name, out symbol))
+        if (CurrentShader != null && CurrentShader.TryResolveSymbol(name, out symbol))
             return true;
 
         symbol = default;
@@ -73,7 +72,7 @@ public partial class SymbolTable : ISymbolProvider
             }
         }
 
-        if (CurrentShader != null && CurrentShader.TryResolveSymbol(this, Context, name, out var symbol2))
+        if (CurrentShader != null && CurrentShader.TryResolveSymbol(name, out var symbol2))
             return symbol2;
 
 

@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Core.Parsing;
@@ -17,6 +18,7 @@ public static partial class Examples
     {
         var compiler = new CompilerUnit();
         var (builder, context) = compiler;
+        var table = new SymbolTable(context);
 
         context.GetOrRegister(new MatrixType(ScalarType.Float, 4, 3));
         context.GetOrRegister(ScalarType.Int);
@@ -36,8 +38,10 @@ public static partial class Examples
         var block = builder.CreateBlock(context, "sourceBlock");
         builder.SetPositionTo(block);
         var v = builder.BinaryOperation(
+            table,
             context,
-            function.Parameters["a"], Operator.Plus, function.Parameters["b"]
+            function.Parameters["a"], Operator.Plus, function.Parameters["b"],
+            default
         );
         builder.Return(v);
         builder.EndFunction();

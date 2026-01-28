@@ -463,6 +463,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         // Build ShaderInfo
         var shaderInfo = new ShaderInfo(mixinNode.Shaders.Count, shaderClass.ClassName, shaderStart, buffer.Count);
+        shaderInfo.Symbol = shaderClass.Symbol;
         foreach (var structType in structTypes)
             shaderInfo.StructTypes.Add(structType.Key, structType.Value);
         shaderInfo.CompositionPath = mixinNode.CompositionPath;
@@ -474,18 +475,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     private static void BuildTypesAndMethodGroups(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, NewSpirvBuffer temp, MixinNode mixinNode)
     {
-        // Add symbol for each method in current type (equivalent to implicit this pointer)
-        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
-        {
-            var i = temp[index];
-            if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
-            {
-                var functionName = context.Names[function.ResultId];
-                var symbol = new Symbol(new(functionName, SymbolKind.Method), context.ReverseTypes[function.FunctionType], function.ResultId);
-                table.CurrentFrame.Add(functionName, symbol);
-            }
-        }
-
         // Build method group info (override, etc.)
         ShaderInfo? currentShader = null;
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
@@ -508,6 +497,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     var functionName = context.Names[function.ResultId];
                     var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
+                    
+                    // Add symbol for each method in current type (equivalent to implicit this pointer)
+                    var symbol = new Symbol(new(functionName, SymbolKind.Method), context.ReverseTypes[function.FunctionType], function.ResultId, OwnerType: currentShader.Symbol);
+                    table.CurrentFrame.Add(functionName, symbol);
 
                     var methodMixinGroup = mixinNode;
                     if (!mixinNode.IsRoot && (functionInfo.Flags & FunctionFlagsMask.Stage) != 0)

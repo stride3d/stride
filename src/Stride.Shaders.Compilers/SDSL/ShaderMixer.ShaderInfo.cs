@@ -25,6 +25,8 @@ public partial class ShaderMixer
         /// The <see cref="ShaderInfo"/> for the same shader at the top-level (for all the stage members, if any).
         /// </summary>
         public ShaderInfo? Stage { get; set; }
+        
+        public LoadedShaderSymbol Symbol { get; set; }
 
         /// <summary>
         /// Kept for debug purpose.

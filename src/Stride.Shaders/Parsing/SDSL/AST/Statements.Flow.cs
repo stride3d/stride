@@ -64,7 +64,7 @@ public class ForEach(TypeName typename, Identifier variable, Expression collecti
         // (we could emit a "For" loop statement, but it would be too complex to write a general decompiler for a "for" loop when processing it later)
         var variableId = builder.Insert(new OpForeachSDSL(context.GetOrRegister(variableType), context.Bound++, collection.Id));
         table.Push();
-        var variableSymbol = new Symbol(new(Variable.Name, SymbolKind.Variable), variableType, variableId);
+        var variableSymbol = new Symbol(new(Variable.Name, SymbolKind.Variable), variableType, variableId, OwnerType: table.CurrentShader);
         table.CurrentFrame.Add(Variable.Name, variableSymbol);
         Body.Compile(table, compiler);
         table.Pop();

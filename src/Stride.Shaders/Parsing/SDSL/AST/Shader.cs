@@ -400,9 +400,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         var (builder, context) = compiler;
         builder.Insert(new OpSDSLShader(name));
 
-        table.Push();
-
         var openGenerics = new int[Generics != null ? Generics.Parameters.Count : 0];
+        var currentShader = new LoadedShaderSymbol(Name, openGenerics);
+        table.Push();
+        table.CurrentShader = currentShader;
+        
         var hasUnresolvableGenerics = false;
         if (Generics != null)
         {
@@ -418,7 +420,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
                 // Note: we skip MemberName because they should have been replaced with the preprocessor during SpirvBuilder.InstantiateMemberNames() step
                 if (genericParameterType is not GenericParameterType { Kind: GenericParameterKindSDSL.MemberName or GenericParameterKindSDSL.MemberNameResolved })
-                    table.CurrentFrame.Add(genericParameter.Name, new(new(genericParameter.Name, SymbolKind.ConstantGeneric), genericParameterType, context.Bound));
+                    table.CurrentFrame.Add(genericParameter.Name, new(new(genericParameter.Name, SymbolKind.ConstantGeneric), genericParameterType, context.Bound, OwnerType: table.CurrentShader));
 
                 openGenerics[i] = context.Bound;
 
@@ -463,7 +465,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, shaderClassSource, table.CurrentMacros.AsSpan(), inheritanceList, ResolveStep.Compile);
         }
 
-        var currentShader = new LoadedShaderSymbol(Name, openGenerics);
         RegisterShaderType(table, currentShader);
 
         table.CurrentShader = currentShader;

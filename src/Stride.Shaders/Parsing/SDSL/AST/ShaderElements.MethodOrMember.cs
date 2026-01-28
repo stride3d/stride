@@ -125,7 +125,7 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
             RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
 
             var sid = new SymbolID(Name, SymbolKind.SamplerState);
-            var symbol = new Symbol(sid, Type, variable.ResultId);
+            var symbol = new Symbol(sid, Type, variable.ResultId, OwnerType: table.CurrentShader);
             table.CurrentShader.Variables.Add((symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
         }
         else throw new Exception($"SamplerState {Name} already defined");
@@ -211,7 +211,7 @@ public sealed class ShaderMember(
             // Constant: compile right away
             var constantValue = Value.CompileConstantValue(table, context, memberType);
             context.SetName(constantValue.Id, Name);
-            var symbol = new Symbol(new(Name, SymbolKind.Constant), memberType, constantValue.Id);
+            var symbol = new Symbol(new(Name, SymbolKind.Constant), memberType, constantValue.Id, OwnerType: table.CurrentShader);
             table.CurrentFrame.Add(Name, symbol);
             Type = memberType;
 
@@ -457,9 +457,11 @@ public class ShaderMethod(
             {
                 // Find parent function
                 var parentSymbol = table.ResolveSymbol(function.Name);
-                // TODO: find proper overload
+                // If multiple symbol with same name, find the proper overload (it should have the exact same signature)
                 if (parentSymbol.Type is FunctionGroupType)
                     parentSymbol = parentSymbol.GroupMembers.Last(x => x.IdRef != function.Id && (FunctionType)x.Type == function.FunctionType);
+
+                parentSymbol = LoadedShaderSymbol.ImportSymbol(table, parentSymbol);
 
                 functionInfo.Parent = parentSymbol.IdRef;
                 functionInfo.Flags |= Specification.FunctionFlagsMask.Override;
@@ -478,7 +480,7 @@ public class ShaderMethod(
             {
                 var parameterType = new PointerType(p.Type, Specification.StorageClass.Function);
                 var paramValue = builder.AddFunctionParameter(context, p.Name, parameterType);
-                table.CurrentFrame.Add(p.Name, new(new(p.Name, SymbolKind.Variable), parameterType, paramValue.Id));
+                table.CurrentFrame.Add(p.Name, new(new(p.Name, SymbolKind.Variable), parameterType, paramValue.Id, OwnerType: table.CurrentShader));
             }
 
             if (Body is BlockStatement body && !hasUnresolvableGenerics)
