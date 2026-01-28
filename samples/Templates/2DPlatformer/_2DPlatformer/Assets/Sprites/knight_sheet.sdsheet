@@ -1,0 +1,232 @@
+!SpriteSheet
+Id: c805102c-bb90-4d52-9429-dc7e873a001c
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: Sprite2D
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+Packing: {}
+Sprites:
+    6a5e893e188fd89658070cf34e33b76c:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_idle_0
+        TextureRegion: {X: 8, Y: 8, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    872f5652f9a821afff5f4239ec440d66:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_idle_1
+        TextureRegion: {X: 40, Y: 8, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    d7d3d367a2c91f9ba6dfd6a227979f34:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_idle_2
+        TextureRegion: {X: 72, Y: 8, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    06128f1c92205be7f6837889971ea15c:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_idle_3
+        TextureRegion: {X: 104, Y: 8, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    e4dd778f1e42cd7286e6831738633da3:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_0
+        TextureRegion: {X: 8, Y: 40, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    5051b9981963e7ffd497ff48489a7d66:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_1
+        TextureRegion: {X: 40, Y: 40, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    24539a6ed06bb723efa07dd2729cd3c0:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_2
+        TextureRegion: {X: 72, Y: 40, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    0429a09865a03df44f09cf9a89285cbe:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_3
+        TextureRegion: {X: 104, Y: 40, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    88d5c93df11446bc2563cda9b26e6cb0:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_4
+        TextureRegion: {X: 8, Y: 72, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    d66bda5d30f0c9bb576bc9c9a1fd7015:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_5
+        TextureRegion: {X: 40, Y: 72, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    bd52d666201e8bf6b4f05f6463d887db:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_6
+        TextureRegion: {X: 72, Y: 72, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    2e038e01b3671391419ddfb346c8147b:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_7
+        TextureRegion: {X: 104, Y: 72, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    c58dc014a2573861b7a6acf4439fe9b5:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_8
+        TextureRegion: {X: 8, Y: 104, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    e5dcfbdc9f563aee81e62de833e1df5c:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_9
+        TextureRegion: {X: 40, Y: 104, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    adf918ccb83acdaa7c2a8c7d1c80c0b1:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_10
+        TextureRegion: {X: 72, Y: 104, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    256350f8e893e22e4bc65a548955f7c5:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_11
+        TextureRegion: {X: 104, Y: 104, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    05e80bb8f4e3f173708bacac478ab190:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_12
+        TextureRegion: {X: 8, Y: 136, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    0161bd6b447e3ad1d74a5281378430f7:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_13
+        TextureRegion: {X: 40, Y: 136, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    3c6965cce17c4561a3c0844ae0bd75d7:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_14
+        TextureRegion: {X: 72, Y: 136, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    5197a99fbe55a1327fb3d0281c7e5678:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_run_15
+        TextureRegion: {X: 104, Y: 136, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    13ee02648e7104acb1d26d0fc476476e:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_jump_0
+        TextureRegion: {X: 8, Y: 168, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    0294d2cde6a0e8326764f148b90aa2a6:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_jump_1
+        TextureRegion: {X: 40, Y: 168, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    df37eb68c7f59295b540d8c69ddeb1d4:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_jump_2
+        TextureRegion: {X: 72, Y: 168, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    9ae668af7084cc063b89afb67fcf46fb:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_jump_3
+        TextureRegion: {X: 105, Y: 169, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    02de2ab116eb08289673451a90a6c282:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_jump_4
+        TextureRegion: {X: 8, Y: 201, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    c5ec8e40515be423a38564e6c583609e:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_jump_5
+        TextureRegion: {X: 40, Y: 202, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    4e11af4756909c70a857f1f622a9c4bb:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_jump_6
+        TextureRegion: {X: 72, Y: 200, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    b16c2e3a9db1208ce9789d58c1f1a0ec:
+        Source: !file ../../Resources/lancelot_.png
+        Name: knight_jump_7
+        TextureRegion: {X: 104, Y: 200, Width: 16, Height: 20}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
