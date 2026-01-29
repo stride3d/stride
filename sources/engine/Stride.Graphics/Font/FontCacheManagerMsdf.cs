@@ -117,7 +117,7 @@ namespace Stride.Graphics.Font
                 LastUsedFrame = system.FrameCount,
                 IsUploaded = true,
             };
-            cached.Owner = owner;
+            
             cachedGlyphs.AddFirst(cached.ListNode);
             return cached;
         }
@@ -166,7 +166,6 @@ namespace Stride.Graphics.Font
         /// </summary>
         internal sealed class MsdfCachedGlyph
         {
-            public Rectangle Subrect;
             public int BitmapIndex;
             public int LastUsedFrame;
             public bool IsUploaded;
