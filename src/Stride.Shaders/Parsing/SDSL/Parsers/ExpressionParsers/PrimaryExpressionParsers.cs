@@ -118,7 +118,9 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("lerp", _) => new LerpCall(parameters, scanner[position..scanner.Position]),
                     ("sqrt", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLSqrt),
                     ("step", 2) => new GLSLFloatBinaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLStep),
-                    
+                    ("frac", 1) => new GLSLFloatUnaryCall(parameters, scanner[position..scanner.Position], Specification.GLSLOp.GLSLFract),
+                    ("fmod", 2) => new FloatBinaryCall(parameters, scanner[position..scanner.Position], Specification.Op.OpFRem),
+
                     // Vector math
                     ("dot", _) => new DotCall(parameters, scanner[position..scanner.Position]),
                     ("determinant", 1) => new DeterminantCall(parameters, scanner[position..scanner.Position]),
@@ -165,8 +167,6 @@ public record struct PrimaryParsers : IParser<Expression>
                     ("firstbithigh", _) => throw new NotImplementedException(),
                     ("firstbitlow", _) => throw new NotImplementedException(),
                     ("fma", _) => throw new NotImplementedException(),
-                    ("fmod", _) => throw new NotImplementedException(),
-                    ("frac", _) => throw new NotImplementedException(),
                     ("frexp", _) => throw new NotImplementedException(),
                     ("GetRenderTargetSampleCount", _) => throw new NotImplementedException(),
                     ("GetRenderTargetSamplePosition", _) => throw new NotImplementedException(),

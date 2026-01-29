@@ -118,7 +118,6 @@ public class GLSLFloatBinaryCall(ShaderExpressionList arguments, TextLocation in
         var instruction = builder.Insert(new GLSLPow(x.TypeId, context.Bound++, context.GLSLSet ?? -1, x.Id, y.Id));
         // Adjust OpCode only since Pow/Atan2 share the same operands
         instruction.InstructionMemory.Span[4] = (int)op;
-        var result = new SpirvValue(instruction.ResultId, instruction.ResultType);
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
@@ -576,6 +575,31 @@ public class BoolToScalarBoolCall(ShaderExpressionList arguments, TextLocation i
     }
 }
 
+public class FloatBinaryCall(ShaderExpressionList arguments, TextLocation info, Specification.Op op) : MethodCall(new(op.ToString(), info), arguments, info)
+{
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        ProcessParameterSymbols(table, null);
+        var xType = Arguments.Values[0].ValueType;
+        var yType = Arguments.Values[1].ValueType;
+        Type = IntrinsicHelper.FindCommonType(ScalarType.Float, xType, yType);
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+        var (x, y) = (Arguments.Values[0].CompileAsValue(table, compiler), Arguments.Values[1].CompileAsValue(table, compiler));
+        
+        x = builder.Convert(context, x, Type);
+        y = builder.Convert(context, y, Type);
+
+        if (context.GLSLSet == null)
+            context.ImportGLSL();
+        var instruction = builder.Insert(new OpFRem(x.TypeId, context.Bound++, x.Id, y.Id));
+        // Adjust OpCode only since Pow/Atan2 share the same operands
+        instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)op;
+        return new(instruction.ResultId, instruction.ResultType);
+    }
+}
 public class FloatUnaryCall(ShaderExpressionList arguments, TextLocation info, Specification.Op op) : MethodCall(new("fwidth", info), arguments, info)
 {
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
