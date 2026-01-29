@@ -7,7 +7,7 @@ ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
 Packing: {}
 Sprites:
     d3fd346f77408a63902fe39142b67375:
-        Source: !file ../../Resources/spring_.png
+        Source: !file ../../Resources/spring.png
         Name: platform_thin_long
         TextureRegion: {X: 0, Y: 7, Width: 32, Height: 9}
         PixelsPerUnit: 16.0
@@ -15,7 +15,7 @@ Sprites:
         Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
         BorderColor: {R: 0, G: 0, B: 0, A: 0}
     0f233344a899bb5a19a36a258bc2bcb9:
-        Source: !file ../../Resources/spring_.png
+        Source: !file ../../Resources/spring.png
         Name: platform_thin_short
         TextureRegion: {X: 32, Y: 7, Width: 16, Height: 9}
         PixelsPerUnit: 16.0
@@ -23,7 +23,7 @@ Sprites:
         Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
         BorderColor: {R: 0, G: 0, B: 0, A: 0}
     715628101d20f7b9d1f93c0f3ae5a90b:
-        Source: !file ../../Resources/spring_.png
+        Source: !file ../../Resources/spring.png
         Name: platform_thick_long
         TextureRegion: {X: 0, Y: 32, Width: 32, Height: 16}
         PixelsPerUnit: 16.0
@@ -31,7 +31,7 @@ Sprites:
         Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
         BorderColor: {R: 0, G: 0, B: 0, A: 0}
     39238150bcbf695d39cdf3bff75fc3a5:
-        Source: !file ../../Resources/spring_.png
+        Source: !file ../../Resources/spring.png
         Name: platform_thick_short
         TextureRegion: {X: 32, Y: 32, Width: 16, Height: 16}
         PixelsPerUnit: 16.0
@@ -39,7 +39,7 @@ Sprites:
         Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
         BorderColor: {R: 0, G: 0, B: 0, A: 0}
     cb058a356cba2a81e57968b56e2e4465:
-        Source: !file ../../Resources/spring_.png
+        Source: !file ../../Resources/spring.png
         Name: wall
         TextureRegion: {X: 128, Y: 48, Width: 16, Height: 32}
         PixelsPerUnit: 16.0

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 using Stride.Core.Mathematics;
 using Stride.Input;
 using Stride.Engine;
@@ -11,7 +7,6 @@ using Stride.Physics;
 using System.Windows.Input;
 using Stride.Graphics;
 using Stride.Rendering.Sprites;
-using SharpFont.MultipleMasters;
 
 namespace _2DPlatformer.Player;
 
@@ -23,12 +18,19 @@ public class PlayerController : SyncScript
     public SpriteSheet CoinSprites { get; set; }
     private SpriteFromSheet spriteComponent;
     
-    private double animationTimer = 0f;
-    private readonly float animationInterval = 1f / 10f;
+    private float animationTimer = 0f;
+    // Animation Spped: Every 1/10 passed seconds the next frame will be played. Closer to 1.0 is a slower Animation.
+    private const float animationInterval = 1f / 10f;
     private int runFrame = 0;
     private int jumpFrame = 0;
+
+    private const int IDLE_FRAME_END = 4;
+    private const int RUN_FRAME_END = 16;
+    private const int JUMP_FRAME_END = 21;
+    private const int JUMP_FRAME_COUNT = 6;
     
-    private readonly float moveSpeed = 5f;
+    // units per second (is multiplied with Vector.UnitX which is 1)
+    private const float MOVE_SPEED = 5f;
     
     private bool isFacingRight = true;
 
@@ -44,7 +46,7 @@ public class PlayerController : SyncScript
     }
     
     /// <summary>
-    /// Handles both the Input of the Player via Keyboard (WAS- & Arrow-Keys) and the resulting Animation at the end according to input
+    /// Handles both the Input of the Player via Keyboard (WAD- & Arrow-Keys) and the resulting Animation at the end according to input
     /// </summary>
     private void HandleInput()
     {
@@ -52,7 +54,6 @@ public class PlayerController : SyncScript
             {
                 var moveDirection = Vector3.Zero;
                 bool isMoving = false;
-                
                 characterComponent.SetVelocity(Vector3.Zero);
 
                 // Left
@@ -64,9 +65,7 @@ public class PlayerController : SyncScript
                         isFacingRight = false;
                         characterComponent.Orientation = Quaternion.RotationY(MathUtil.DegreesToRadians(180));
                     }
-                    
-                    moveDirection  = -Vector3.UnitX * moveSpeed;
-                    
+                    moveDirection  = -Vector3.UnitX * MOVE_SPEED;
                 }
                 
                 // Right
@@ -79,7 +78,7 @@ public class PlayerController : SyncScript
                         isFacingRight = true;
                         characterComponent.Orientation = Quaternion.RotationY(MathUtil.DegreesToRadians(0));
                     }
-                    moveDirection = Vector3.UnitX * moveSpeed;
+                    moveDirection = Vector3.UnitX * MOVE_SPEED;
                 }
                 
                 // Up (Jump)
@@ -87,17 +86,14 @@ public class PlayerController : SyncScript
                 {
                     characterComponent.Jump();
                 }
-                
                 characterComponent.SetVelocity(moveDirection);
                 HandleAnimation(isMoving);
             }
     }
     
-    
     private void HandleAnimation(bool isMoving)
     {
-    
-        animationTimer += Game.UpdateTime.Elapsed.TotalSeconds;
+        animationTimer += (float) Game.UpdateTime.Elapsed.TotalSeconds;
         
         if (characterComponent.IsGrounded && !isMoving)
         {
@@ -124,8 +120,8 @@ public class PlayerController : SyncScript
         
         if (animationTimer >= animationInterval)
         {
-            animationTimer = 0f;
-            spriteComponent.CurrentFrame = (spriteComponent.CurrentFrame + 1) % 4;
+            animationTimer -= animationInterval;
+            spriteComponent.CurrentFrame = (spriteComponent.CurrentFrame + 1) % IDLE_FRAME_END;
         }
     }
     
@@ -137,9 +133,9 @@ public class PlayerController : SyncScript
         jumpFrame = 0;
         if (animationTimer >= animationInterval)
         {
-            animationTimer = 0f;
-            runFrame = (runFrame + 1) % 16;
-            spriteComponent.CurrentFrame = 4 + runFrame;
+            animationTimer -= animationInterval;
+            runFrame = (runFrame + 1) % RUN_FRAME_END;
+            spriteComponent.CurrentFrame = IDLE_FRAME_END + runFrame;
         }
     }
     
@@ -150,10 +146,10 @@ public class PlayerController : SyncScript
     {
         if (animationTimer >= animationInterval)
         {
-            animationTimer = 0f;
-            spriteComponent.CurrentFrame = 21 + jumpFrame;
+            animationTimer -= animationInterval;
+            spriteComponent.CurrentFrame = JUMP_FRAME_END + jumpFrame;
             
-            if (jumpFrame < 7 - 1)
+            if (jumpFrame < JUMP_FRAME_COUNT)
             {
                 jumpFrame++;
             }

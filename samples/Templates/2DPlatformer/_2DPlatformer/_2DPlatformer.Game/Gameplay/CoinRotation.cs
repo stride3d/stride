@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 using Stride.Core;
-using Stride.Core.Mathematics;
-using Stride.Input;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Sprites;
@@ -18,8 +12,10 @@ public class CoinRotation : SyncScript
     public SpriteSheet CoinSprites { get; set; }
     private SpriteFromSheet spriteComponent;
     
-    private double animationTimer = 0f;
-    private readonly float animationInterval = 1f / 12f;
+    private float animationTimer = 0f;
+    // Animation Spped: Every 1/12 passed seconds the next frame will be played. Closer to 1.0 is a slower Animation.
+    private const float animationInterval = 1f / 12f;
+    private const int COIN_FRAMES_END = 12;
     
     public override void Start()
     {
@@ -28,12 +24,12 @@ public class CoinRotation : SyncScript
 
     public override void Update()
     {
-        animationTimer += Game.UpdateTime.Elapsed.TotalSeconds;
+        animationTimer += (float) Game.UpdateTime.Elapsed.TotalSeconds;
         
         if (animationTimer >= animationInterval)
         {
-            animationTimer = 0f;
-            spriteComponent.CurrentFrame = (spriteComponent.CurrentFrame + 1) % 12;
+            animationTimer -= animationInterval;
+            spriteComponent.CurrentFrame = (spriteComponent.CurrentFrame + 1) % COIN_FRAMES_END;
         }
     }
 }
