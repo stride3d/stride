@@ -40,39 +40,73 @@ namespace Stride.Assets.SpriteFont
                 result.BuildSteps = new AssetBuildStep(assetItem);
                 result.BuildSteps.Add(new SignedDistanceFieldFontCommand(targetUrlInStorage, assetClone, assetItem.Package));
             }
+            else if (asset.FontType is RuntimeRasterizedSpriteFontType)
+            {
+                UFile fontPathOnDisk = asset.FontSource.GetFontPath(result);
+                if (fontPathOnDisk == null)
+                {
+                    result.Error($"Runtime rasterized font compilation failed. Font {asset.FontSource.GetFontName()} was not found on this machine.");
+                    result.BuildSteps = new AssetBuildStep(assetItem);
+                    result.BuildSteps.Add(new FailedFontCommand());
+                    return;
+                }
+
+                var fontImportLocation = FontHelper.GetFontPath(asset.FontSource.GetFontName(), asset.FontSource.Style);
+
+                result.BuildSteps = new AssetBuildStep(assetItem);
+                result.BuildSteps.Add(new ImportStreamCommand { SourcePath = fontPathOnDisk, Location = fontImportLocation });
+                result.BuildSteps.Add(new RuntimeRasterizedFontCommand(targetUrlInStorage, asset, assetItem.Package));
+            }
+            else if (asset.FontType is RuntimeSignedDistanceFieldSpriteFontType)
+            {
+                UFile fontPathOnDisk = asset.FontSource.GetFontPath(result);
+                if (fontPathOnDisk == null)
+                {
+                    result.Error($"Runtime SDF font compilation failed. Font {asset.FontSource.GetFontName()} was not found on this machine.");
+                    result.BuildSteps = new AssetBuildStep(assetItem);
+                    result.BuildSteps.Add(new FailedFontCommand());
+                    return;
+                }
+
+                var fontImportLocation = FontHelper.GetFontPath(asset.FontSource.GetFontName(), asset.FontSource.Style);
+
+                result.BuildSteps = new AssetBuildStep(assetItem);
+                result.BuildSteps.Add(new ImportStreamCommand { SourcePath = fontPathOnDisk, Location = fontImportLocation });
+                result.BuildSteps.Add(new RuntimeSignedDistanceFieldFontCommand(targetUrlInStorage, asset, assetItem.Package));
+            }
+            else if (asset.FontType is RuntimeRasterizedSpriteFontType)
+            {
+                UFile fontPathOnDisk = asset.FontSource.GetFontPath(result);
+                if (fontPathOnDisk == null)
+                {
+                    result.Error($"Runtime rasterized font compilation failed. Font {asset.FontSource.GetFontName()} was not found on this machine.");
+                    result.BuildSteps = new AssetBuildStep(assetItem);
+                    result.BuildSteps.Add(new FailedFontCommand());
+                    return;
+                }
+
+                var fontImportLocation = FontHelper.GetFontPath(asset.FontSource.GetFontName(), asset.FontSource.Style);
+
+                result.BuildSteps = new AssetBuildStep(assetItem);
+                result.BuildSteps.Add(new ImportStreamCommand { SourcePath = fontPathOnDisk, Location = fontImportLocation });
+                result.BuildSteps.Add(new RuntimeRasterizedFontCommand(targetUrlInStorage, asset, assetItem.Package));
+            }
+
             else
-                if (asset.FontType is RuntimeRasterizedSpriteFontType)
-                {
-                    UFile fontPathOnDisk = asset.FontSource.GetFontPath(result);
-                    if (fontPathOnDisk == null)
-                    {
-                        result.Error($"Runtime rasterized font compilation failed. Font {asset.FontSource.GetFontName()} was not found on this machine.");
-                        result.BuildSteps = new AssetBuildStep(assetItem);
-                        result.BuildSteps.Add(new FailedFontCommand());
-                        return;
-                    }
+            {
+                var fontTypeStatic = asset.FontType as OfflineRasterizedSpriteFontType;
+                if (fontTypeStatic == null)
+                    throw new ArgumentException("Tried to compile a non-offline rasterized sprite font with the compiler for offline resterized fonts!");
 
-                    var fontImportLocation = FontHelper.GetFontPath(asset.FontSource.GetFontName(), asset.FontSource.Style);
+                // copy the asset and transform the source and character set file path to absolute paths
+                var assetClone = AssetCloner.Clone(asset);
+                var assetDirectory = assetAbsolutePath.GetParent();
+                assetClone.FontSource = asset.FontSource;
+                fontTypeStatic.CharacterSet = !string.IsNullOrEmpty(fontTypeStatic.CharacterSet) ? UPath.Combine(assetDirectory, fontTypeStatic.CharacterSet) : null;
 
-                    result.BuildSteps = new AssetBuildStep(assetItem);
-                    result.BuildSteps.Add(new ImportStreamCommand { SourcePath = fontPathOnDisk, Location = fontImportLocation });
-                    result.BuildSteps.Add(new RuntimeRasterizedFontCommand(targetUrlInStorage, asset, assetItem.Package));
-                }
-                else
-                {
-                    var fontTypeStatic = asset.FontType as OfflineRasterizedSpriteFontType;
-                    if (fontTypeStatic == null)
-                        throw new ArgumentException("Tried to compile a non-offline rasterized sprite font with the compiler for offline resterized fonts!");
-
-                    // copy the asset and transform the source and character set file path to absolute paths
-                    var assetClone = AssetCloner.Clone(asset);
-                    var assetDirectory = assetAbsolutePath.GetParent();
-                    assetClone.FontSource = asset.FontSource;
-                    fontTypeStatic.CharacterSet = !string.IsNullOrEmpty(fontTypeStatic.CharacterSet) ? UPath.Combine(assetDirectory, fontTypeStatic.CharacterSet): null;
-
-                    result.BuildSteps = new AssetBuildStep(assetItem);
-                    result.BuildSteps.Add(new OfflineRasterizedFontCommand(targetUrlInStorage, assetClone, colorSpace, assetItem.Package));
-                }
+                result.BuildSteps = new AssetBuildStep(assetItem);
+                result.BuildSteps.Add(new OfflineRasterizedFontCommand(targetUrlInStorage, assetClone, colorSpace, assetItem.Package));
+            }
         }
 
         internal class OfflineRasterizedFontCommand : AssetCommand<SpriteFontAsset>
@@ -118,7 +152,7 @@ namespace Stride.Assets.SpriteFont
                 {
                     staticFont = OfflineRasterizedFontCompiler.Compile(FontDataFactory, Parameters, colorspace == ColorSpace.Linear);
                 }
-                catch (FontNotFoundException ex) 
+                catch (FontNotFoundException ex)
                 {
                     commandContext.Logger.Error($"Font [{ex.FontName}] was not found on this machine.", ex);
                     return Task.FromResult(ResultStatus.Failed);
@@ -190,9 +224,40 @@ namespace Stride.Assets.SpriteFont
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
                 var dynamicFont = FontDataFactory.NewDynamic(
-                    Parameters.FontType.Size, Parameters.FontSource.GetFontName(), Parameters.FontSource.Style, 
-                    Parameters.FontType.AntiAlias, useKerning:false, extraSpacing:Parameters.Spacing, extraLineSpacing:Parameters.LineSpacing, 
-                    defaultCharacter:Parameters.DefaultCharacter);
+                    Parameters.FontType.Size, Parameters.FontSource.GetFontName(), Parameters.FontSource.Style,
+                    Parameters.FontType.AntiAlias, useKerning: false, extraSpacing: Parameters.Spacing, extraLineSpacing: Parameters.LineSpacing,
+                    defaultCharacter: Parameters.DefaultCharacter);
+
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
+                assetManager.Save(Url, dynamicFont);
+
+                return Task.FromResult(ResultStatus.Successful);
+            }
+        }
+
+        internal class RuntimeSignedDistanceFieldFontCommand : AssetCommand<SpriteFontAsset>
+        {
+            public RuntimeSignedDistanceFieldFontCommand(string url, SpriteFontAsset description, IAssetFinder assetFinder)
+                : base(url, description, assetFinder)
+            {
+            }
+
+            protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
+            {
+                // M1 NOTE:
+                // This is a scaffolding step. We serialize a functional font so the pipeline works end-to-end.
+                // In M3/M4, this will be replaced by a real Runtime MSDF font object.
+                commandContext.Logger.Warning("Runtime SDF font is currently scaffolded in M1 (temporary). It will behave like a runtime raster font until the MSDF runtime generator is implemented.");
+
+                var dynamicFont = FontDataFactory.NewDynamic(
+                    Parameters.FontType.Size,
+                    Parameters.FontSource.GetFontName(),
+                    Parameters.FontSource.Style,
+                    Parameters.FontType.AntiAlias,
+                    useKerning: false,
+                    extraSpacing: Parameters.Spacing,
+                    extraLineSpacing: Parameters.LineSpacing,
+                    defaultCharacter: Parameters.DefaultCharacter);
 
                 var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 assetManager.Save(Url, dynamicFont);
