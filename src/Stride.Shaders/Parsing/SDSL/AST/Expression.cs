@@ -748,7 +748,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             return (new(loadResult.ResultId, loadResult.ResultType), resultType);
         }
         
-        (SpirvValue Value, SymbolType ResultType) TextureLoad(TextureType textureType, SpirvValue buffer, Expression coordinatesExpression, bool containsLod)
+        (SpirvValue Value, SymbolType ResultType) TextureLoad(TextureType textureType, SpirvValue buffer, Expression coordinatesExpression, Expression? offsetExpression, Expression? sampleIndexExpression, bool containsLod)
         {
             var resultType = new VectorType(textureType.ReturnType, 4);
             var imageCoordValue = ConvertTexCoord(context, builder, textureType, coordinatesExpression.CompileAsValue(table, compiler), ScalarType.Int, containsLod);
@@ -765,7 +765,9 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     shuffleIndices[i] = i;
 
                 // Note: assign LOD first because we truncate imageCoordValue right after
-                lod = new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(ScalarType.Int), context.Bound++, imageCoordValue.Id, [shuffleIndices.Length - 1])));
+                // Extract LOD (last coordinate) as a separate value
+                lod = new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(ScalarType.Int), context.Bound++, imageCoordValue.Id, [imageCoordSize - 1])));
+                // Remove last component (LOD) from texcoord 
                 imageCoordValue = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(imageCoordType), context.Bound++, imageCoordValue.Id, imageCoordValue.Id, new(shuffleIndices))));
             }
             else
@@ -775,7 +777,14 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
             buffer = builder.AsValue(context, buffer);
 
-            var loadResult = builder.Insert(new OpImageFetch(context.GetOrRegister(resultType), context.Bound++, buffer.Id, imageCoordValue.Id, ImageOperandsMask.Lod, new EnumerantParameters(lod.Id)));
+            SpirvValue? offset = offsetExpression != null
+                ? ConvertOffset(context, builder, textureType, offsetExpression.CompileAsValue(table, compiler))
+                : null;
+            SpirvValue? sampleIndex = sampleIndexExpression != null
+                ? builder.Convert(context, sampleIndexExpression.CompileAsValue(table, compiler), ScalarType.Int)
+                : null;
+            TextureGenerateImageOperands(lod, offset, sampleIndex, out var imask, out var imParams);
+            var loadResult = builder.Insert(new OpImageFetch(context.GetOrRegister(resultType), context.Bound++, buffer.Id, imageCoordValue.Id, imask, imParams));
             return (new(loadResult.ResultId, loadResult.ResultType), resultType);
         }
 
@@ -813,15 +822,10 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
                             var returnType = context.GetOrRegister(resultType);
 
-                            ImageOperandsMask? imask = null;
-                            EnumerantParameters imParams = [];
-                            if (implicitSampling.Arguments.Values.Count > 2)
-                            {
-                                var offset = ConvertOffset(context, builder, textureType, implicitSampling.Arguments.Values[2].CompileAsValue(table, compiler));
-                                // TODO: determine when ConstOffset
-                                imask = ImageOperandsMask.Offset;
-                                imParams = new EnumerantParameters(offset.Id);
-                            }
+                            SpirvValue? offset = implicitSampling.Arguments.Values.Count >= 3
+                                ? ConvertOffset(context, builder, textureType, implicitSampling.Arguments.Values[2].CompileAsValue(table, compiler))
+                                : null;
+                            TextureGenerateImageOperands(null, offset, null, out var imask, out var imParams);
                             var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, imask, imParams));
 
                             result = new(sample.ResultId, sample.ResultType);
@@ -839,21 +843,10 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
                             var returnType = context.GetOrRegister(resultType);
 
-                            ImageOperandsMask imask = ImageOperandsMask.None;
-                            EnumerantParameters imParams = [];
-
-                            if (explicitSampling.Arguments.Values.Count > 3)
-                            {
-                                var offset = ConvertOffset(context, builder, textureType, explicitSampling.Arguments.Values[3].CompileAsValue(table, compiler));
-                                // TODO: determine when ConstOffset
-                                imask = ImageOperandsMask.Lod | ImageOperandsMask.Offset;
-                                imParams = new EnumerantParameters(levelValue.Id, offset.Id);
-                            }
-                            else
-                            {
-                                imask = ImageOperandsMask.Lod;
-                                imParams = new EnumerantParameters(levelValue.Id);
-                            }
+                            SpirvValue? offset = explicitSampling.Arguments.Values.Count >= 4
+                                ? ConvertOffset(context, builder, textureType, explicitSampling.Arguments.Values[3].CompileAsValue(table, compiler))
+                                : null;
+                            TextureGenerateImageOperands(levelValue, offset, null, out var imask, out var imParams);
                             var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, imask, imParams));
 
                             result = new(sample.ResultId, sample.ResultType);
@@ -889,33 +882,43 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                     var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
                     var returnType = context.GetOrRegister(resultType);
-
-
-                    ImageOperandsMask flags = sampleCompare.Name.Name is "SampleCmpLevelZero" ? ImageOperandsMask.Lod : ImageOperandsMask.None;
-                    EnumerantParameters imParams = sampleCompare.Name.Name is "SampleCmpLevelZero" ? new (context.CompileConstant(0.0f).Id) : new ();
-                    //ParameterizedFlag<ImageOperandsMask> flags = sampleCompare.Name.Name == "SampleCmpLevelZero" 
-                        
-                    if (sampleCompare.Arguments.Values.Count > 3)
-                    {
-                        var offset = ConvertOffset(context, builder, textureType, sampleCompare.Arguments.Values[3].CompileAsValue(table, compiler));
-                        // TODO: determine when ConstOffset
-                        flags |= ImageOperandsMask.Offset;
-                        imParams = new EnumerantParameters([..imParams, offset.Id]);
-                        //flags = new ParameterizedFlag<ImageOperandsMask>(flags | ImageOperandsMask.Offset, new(..imParams.Span, offset.Id]);
-                    }
-
+                    
+                    SpirvValue? offset = sampleCompare.Arguments.Values.Count >= 4
+                        ? ConvertOffset(context, builder, textureType, sampleCompare.Arguments.Values[3].CompileAsValue(table, compiler))
+                        : null;
+                    TextureGenerateImageOperands(context.CompileConstant(0.0f), offset, null, out var imask, out var imParams);
                     var sample = sampleCompare.Name.Name == "SampleCmpLevelZero"
-                        ? builder.InsertData(new OpImageSampleDrefExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, flags, imParams))
-                        : builder.InsertData(new OpImageSampleDrefImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, flags, imParams));
+                        ? builder.InsertData(new OpImageSampleDrefExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, imask, imParams))
+                        : builder.InsertData(new OpImageSampleDrefImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, imask, imParams));
 
                     result = new(sample.IdResult!.Value, sample.IdResultType!.Value);
                     accessor.Type = resultType;
                     break;
                 }
-                case (PointerType { BaseType: BufferType or TextureType } pointerType, MethodCall { Name.Name: "Load", Arguments.Values.Count: 1 } load):
+                case (PointerType { BaseType: BufferType or TextureType } pointerType, MethodCall { Name.Name: "Load", Arguments.Values.Count: 1 or 2 or 3 } load):
                     {
                         if (compiler == null)
                         {
+                            // Check parameter count
+                            switch (pointerType.BaseType)
+                            {
+                                case BufferType b:
+                                    if (load.Arguments.Values.Count != 1)
+                                        table.AddError(new(info, "Buffer.Load expects a single argument"));
+                                    break;
+                                case TextureType t:
+                                    var requiredArguments = 1;
+                                    if (t.Multisampled)
+                                        requiredArguments++;
+                                    
+                                    // One optional argument (offset)
+                                    if (load.Arguments.Values.Count != requiredArguments && load.Arguments.Values.Count != requiredArguments + 1)
+                                        table.AddError(new(info, $"Texture.Load expects {requiredArguments} or {requiredArguments + 1} arguments"));
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException(nameof(pointerType.BaseType));
+                            }
+                            
                             ((MethodCall)accessor).ProcessParameterSymbols(table, null);
                             accessor.Type = ComputeBufferOrTextureAccessReturnType(pointerType);
                             break;
@@ -923,12 +926,22 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds, i - 1);
-                        
-                        (result, accessor.Type) = pointerType.BaseType switch
+
+                        switch (pointerType.BaseType)
                         {
-                            BufferType b => BufferLoad(b, result, load.Arguments.Values[0]),
-                            TextureType t => TextureLoad(t, result, load.Arguments.Values[0], true),
-                        };
+                            case BufferType b:
+                                (result, accessor.Type) = BufferLoad(b, result, load.Arguments.Values[0]);
+                                break;
+                            case TextureType t:
+                                var sampleIndex = t.Multisampled ? load.Arguments.Values[1] : null;
+                                var offsetArgIndex = t.Multisampled ? 2 : 1;
+                                var offset = load.Arguments.Values.Count >= offsetArgIndex + 1 ? load.Arguments.Values[offsetArgIndex] : null;
+                                (result, accessor.Type) = TextureLoad(t, result, load.Arguments.Values[0], offset, sampleIndex, true);
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException(nameof(pointerType.BaseType));
+                        }
+
                         break;
                     }
                 case (PointerType { BaseType: BufferType or TextureType } pointerType, IndexerExpression indexer):
@@ -946,7 +959,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     (result, accessor.Type) = pointerType.BaseType switch
                     {
                         BufferType b => BufferLoad(b, result, indexer.Index),
-                        TextureType t => TextureLoad(t, result, indexer.Index, false),
+                        TextureType t => TextureLoad(t, result, indexer.Index, null, null, false),
                     };
                     break;
                 }
@@ -1248,7 +1261,32 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
         return result;
     }
-    
+
+    private void TextureGenerateImageOperands(SpirvValue? lod, SpirvValue? offset, SpirvValue? sampleIndex, out ImageOperandsMask imask, out EnumerantParameters imParams)
+    {
+        imask = ImageOperandsMask.None;
+        // Allocate for worst case (3 operands)
+        Span<int> operands = stackalloc int[3];
+        int operandCount = 0;
+        if (lod != null)
+        {
+            imask |= ImageOperandsMask.Lod;
+            operands[operandCount++] = lod.Value.Id;
+        }
+        if (offset != null)
+        {
+            imask |= ImageOperandsMask.Offset;
+            operands[operandCount++] = offset.Value.Id;
+        }
+        if (sampleIndex != null)
+        {
+            imask |= ImageOperandsMask.Sample;
+            operands[operandCount++] = sampleIndex.Value.Id;
+        }
+
+        imParams = operandCount > 0 ? new EnumerantParameters(operands.Slice(0, operandCount)) : new EnumerantParameters();
+    }
+
     SpirvValue ConvertTexCoord(SpirvContext context, SpirvBuilder builder, TextureType textureType, SpirvValue spirvValue, ScalarType baseType, bool hasLod = false)
     {
         var textureCoordSize = textureType switch
