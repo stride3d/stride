@@ -26,9 +26,11 @@ namespace Stride.Graphics.Font
         // Single-size runtime SDF: key is just char
         private readonly Dictionary<char, CharacterSpecification> characters = new Dictionary<char, CharacterSpecification>();
         private readonly Dictionary<char, CharacterBitmapRgba> pendingSdfBitmaps = new Dictionary<char, CharacterBitmapRgba>();
+        private readonly Dictionary<char, FontCacheManagerMsdf.MsdfCachedGlyph> cacheRecords
+    = new Dictionary<char, FontCacheManagerMsdf.MsdfCachedGlyph>();
 
         private readonly HashSet<char> offsetAdjusted = new HashSet<char>();
-
+        
         [DataMemberIgnore]
         internal FontManager FontManager => FontSystem != null ? FontSystem.FontManager : null;
 
@@ -123,17 +125,32 @@ namespace Stride.Graphics.Font
 
             // 3) Upload only when drawing (MeasureString passes uploadGpuResources=false and commandList=null)
             if (commandList != null && !spec.IsBitmapUploaded)
-                {
+            {
                 var subrect = new Rectangle();
-                cache.UploadGlyphBitmap(commandList, sdfBitmap, ref subrect, out var bitmapIndex);
+                var handle = cache.UploadGlyphBitmap(commandList, spec, sdfBitmap, ref subrect, out var bitmapIndex);
 
-                spec.Glyph.Subrect = subrect;
+                spec.Glyph.Subrect = handle.InnerSubrect;
                 spec.Glyph.BitmapIndex = bitmapIndex;
                 spec.IsBitmapUploaded = true;
 
-                // Free CPU SDF bitmap after upload
+                cacheRecords[character] = handle;
+                cache.NotifyGlyphUtilization(handle);
+
                 sdfBitmap.Dispose();
                 pendingSdfBitmaps.Remove(character);
+            }
+            else if (spec.IsBitmapUploaded && cacheRecords.TryGetValue(character, out var handle))
+            {
+                // If evicted/cleared, this will flip false and we’ll reupload next draw
+                if (!handle.IsUploaded)
+                {
+                    spec.IsBitmapUploaded = false;
+                    cacheRecords.Remove(character);
+                }
+                else
+                {
+                    cache.NotifyGlyphUtilization(handle);
+                }
             }
 
             return spec.Glyph;
@@ -156,7 +173,8 @@ namespace Stride.Graphics.Font
                 {
                     var pad = ComputeTotalPad();
                     var sdf = BuildSdfRgbFromCoverage(spec.Bitmap, pad, Math.Max(1, PixelRange));
-                    spec.Glyph.Offset -= new Vector2(pad, pad);
+                    if (offsetAdjusted.Add(c))
+                        spec.Glyph.Offset -= new Vector2(pad, pad);
                     spec.Glyph.Subrect = new Rectangle(0, 0, sdf.Width, sdf.Rows);
                     pendingSdfBitmaps[c] = sdf;
                 }

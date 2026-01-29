@@ -20,9 +20,11 @@ namespace Stride.Graphics.Font
         private readonly LinkedList<MsdfCachedGlyph> cachedGlyphs = new LinkedList<MsdfCachedGlyph>();
         private readonly GuillotinePacker packer = new GuillotinePacker();
 
+        public int AtlasPaddingPixels = 2;
+
         public IReadOnlyList<Texture> Textures { get; private set; }
 
-        public FontCacheManagerMsdf(FontSystem system, int textureDefaultSize = 1024)
+        public FontCacheManagerMsdf(FontSystem system, int textureDefaultSize = 2048)
         {
             this.system = system ?? throw new ArgumentNullException(nameof(system));
             Textures = cacheTextures;
@@ -45,16 +47,27 @@ namespace Stride.Graphics.Font
         public void ClearCache()
         {
             foreach (var glyph in cachedGlyphs)
+            {
                 glyph.IsUploaded = false;
-
+                if (glyph.Owner != null)
+                    glyph.Owner.IsBitmapUploaded = false;
+            }
+                      
             cachedGlyphs.Clear();
             packer.Clear(cacheTextures[0].ViewWidth, cacheTextures[0].ViewHeight);
+
+            System.Diagnostics.Debug.WriteLine("MSDF ClearCache()");
         }
 
         /// <summary>
         /// Upload an RGBA glyph bitmap into the MSDF cache and return its packed sub-rectangle.
         /// </summary>
-        public void UploadGlyphBitmap(CommandList commandList, CharacterBitmapRgba bitmap, ref Rectangle subrect, out int bitmapIndex)
+        public MsdfCachedGlyph UploadGlyphBitmap(
+            CommandList commandList,
+            CharacterSpecification owner,
+            CharacterBitmapRgba bitmap,
+            ref Rectangle subrect,
+            out int bitmapIndex)
         {
             if (bitmap == null)
                 throw new ArgumentNullException(nameof(bitmap));
@@ -63,36 +76,50 @@ namespace Stride.Graphics.Font
 
             bitmapIndex = 0;
 
-            var targetSize = new Int2(bitmap.Width, bitmap.Rows);
-            if (!packer.Insert(targetSize.X, targetSize.Y, ref subrect))
+            var atlasPad = AtlasPaddingPixels;
+
+            // Safety check: Is the glyph bigger than the entire atlas?
+            if (bitmap.Width + atlasPad * 2 > cacheTextures[0].ViewWidth ||
+                bitmap.Rows + atlasPad * 2 > cacheTextures[0].ViewHeight)
             {
-                RemoveLessUsedGlyphs();
-                if (!packer.Insert(targetSize.X, targetSize.Y, ref subrect))
-                {
-                    // NOTE: same behavior as FontCacheManager today. Multi-page atlases come later.
-                    ClearCache();
-                    if (!packer.Insert(targetSize.X, targetSize.Y, ref subrect))
-                        throw new InvalidOperationException("The rendered glyph is too big for the MSDF cache texture.");
-                }
+                throw new InvalidOperationException("Glyph is too large for the MSDF atlas settings.");
+            }
+
+            if (!packer.Insert(bitmap.Width + atlasPad * 2, bitmap.Rows + atlasPad * 2, ref subrect))
+            {
+                if (!EnsureSpaceFor(bitmap.Width, bitmap.Rows, atlasPad))
+                    throw new InvalidOperationException("MSDF glyph does not fit in cache even after eviction.");
+
+                if (!packer.Insert(bitmap.Width + atlasPad * 2, bitmap.Rows + atlasPad * 2, ref subrect))
+                    throw new InvalidOperationException("MSDF cache allocation failed unexpectedly after eviction.");
             }
 
             if (bitmap.Rows != 0 && bitmap.Width != 0)
             {
+                int dstX = subrect.Left + atlasPad;
+                int dstY = subrect.Top + atlasPad;
+
                 var dataBox = new DataBox(bitmap.Buffer, bitmap.Pitch, bitmap.Pitch * bitmap.Rows);
-                var region = new ResourceRegion(subrect.Left, subrect.Top, 0, subrect.Right, subrect.Bottom, 1);
+                var region = new ResourceRegion(dstX, dstY, 0, dstX + bitmap.Width, dstY + bitmap.Rows, 1);
                 commandList.UpdateSubResource(cacheTextures[0], 0, dataBox, region);
             }
 
             // Track for eviction behavior parity (frame-based LRU).
+            var outer = subrect;
+            var inner = new Rectangle(outer.Left + atlasPad, outer.Top + atlasPad, bitmap.Width, bitmap.Rows);
+
             var cached = new MsdfCachedGlyph
             {
-                Subrect = subrect,
+                Owner = owner,
+                OuterSubrect = outer,
+                InnerSubrect = inner,
                 BitmapIndex = 0,
                 LastUsedFrame = system.FrameCount,
                 IsUploaded = true,
             };
-
+            cached.Owner = owner;
             cachedGlyphs.AddFirst(cached.ListNode);
+            return cached;
         }
 
         public void NotifyGlyphUtilization(MsdfCachedGlyph glyph)
@@ -105,7 +132,7 @@ namespace Stride.Graphics.Font
             cachedGlyphs.AddFirst(glyph.ListNode);
         }
 
-        private void RemoveLessUsedGlyphs(int frameCount = 5)
+        private void RemoveLessUsedGlyphs(int frameCount = 1)
         {
             var limitFrame = system.FrameCount - frameCount;
             var currentNode = cachedGlyphs.Last;
@@ -113,7 +140,9 @@ namespace Stride.Graphics.Font
             while (currentNode != null && currentNode.Value.LastUsedFrame < limitFrame)
             {
                 currentNode.Value.IsUploaded = false;
-                packer.Free(ref currentNode.Value.Subrect);
+                if (currentNode.Value.Owner != null)
+                    currentNode.Value.Owner.IsBitmapUploaded = false;
+                packer.Free(ref currentNode.Value.OuterSubrect);
 
                 var prev = currentNode.Previous;
                 cachedGlyphs.RemoveLast();
@@ -141,13 +170,55 @@ namespace Stride.Graphics.Font
             public int BitmapIndex;
             public int LastUsedFrame;
             public bool IsUploaded;
+            public CharacterSpecification Owner;
 
             public readonly LinkedListNode<MsdfCachedGlyph> ListNode;
+            public Rectangle OuterSubrect;
+            public Rectangle InnerSubrect;
+
 
             public MsdfCachedGlyph()
             {
                 ListNode = new LinkedListNode<MsdfCachedGlyph>(this);
             }
+
+
+        }
+        private bool EnsureSpaceFor(int w, int h, int pad)
+        {
+            for (int pass = 0; pass < 3; pass++)
+            {
+                RemoveLessUsedGlyphs(pass switch
+                {
+                    0 => 120,
+                    1 => 30,
+                    _ => 1,
+                });
+
+                var test = new Rectangle();
+                if (packer.Insert(w + pad * 2, h + pad * 2, ref test))
+                {
+                    packer.Free(ref test);
+                    return true;
+                }
+            }
+
+            // FINAL ATTEMPT: If partial eviction failed, wipe the whole cache.
+            // This handles high fragmentation or a very "busy" frame.
+            
+            ClearCache();
+
+            var finalTest = new Rectangle();
+            if (packer.Insert(w + pad * 2, h + pad * 2, ref finalTest))
+            {
+                packer.Free(ref finalTest);
+                return true;
+            }
+
+            return false;
         }
     }
+
+
+
 }
