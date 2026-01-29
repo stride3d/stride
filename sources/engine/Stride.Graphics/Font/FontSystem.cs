@@ -19,6 +19,8 @@ namespace Stride.Graphics.Font
         internal FontManager FontManager { get; private set; }
         internal GraphicsDevice GraphicsDevice { get; private set; }
         internal FontCacheManager FontCacheManager { get; private set; }
+        internal FontCacheManagerMsdf FontCacheManagerMsdf { get; private set; }
+
         internal readonly HashSet<SpriteFont> AllocatedSpriteFonts = new HashSet<SpriteFont>();
 
         /// <summary>
@@ -50,6 +52,7 @@ namespace Stride.Graphics.Font
             GraphicsDevice = graphicsDevice;
             FontManager = new FontManager(fileProviderService);
             FontCacheManager = new FontCacheManager(this);
+            FontCacheManagerMsdf = new FontCacheManagerMsdf(this);
             RuntimeFonts = new RuntimeFontProvider(this);
         }
 
@@ -79,6 +82,7 @@ namespace Stride.Graphics.Font
             // TODO possibly save generated characters bitmaps on the disk
             FontManager.Dispose();
             FontCacheManager.Dispose();
+            FontCacheManagerMsdf?.Dispose();
 
             // Dispose create sprite fonts
             foreach (var allocatedSpriteFont in AllocatedSpriteFonts.ToArray())
@@ -130,6 +134,40 @@ namespace Stride.Graphics.Font
                 ExtraLineSpacing = extraLineSpacing,
                 DefaultCharacter = defaultCharacter,
                 FontSystem = this,
+            };
+
+            return font;
+        }
+
+        public SpriteFont NewRuntimeSignedDistanceField(
+           float defaultSize,
+           string fontName,
+           FontStyle style,
+           int bakeSize,
+           int pixelRange,
+           int padding,
+           bool useKerning,
+           float extraSpacing,
+           float extraLineSpacing,
+           char defaultCharacter)
+        {
+            var font = new RuntimeSignedDistanceFieldSpriteFont
+            {
+                Size = defaultSize,
+                DefaultCharacter = defaultCharacter,
+
+                FontName = fontName,
+                Style = style,
+
+                BakeSize = bakeSize,
+                PixelRange = pixelRange,
+                Padding = padding,
+
+                UseKerning = useKerning,
+                ExtraSpacing = extraSpacing,
+                ExtraLineSpacing = extraLineSpacing,
+
+                FontSystem = this
             };
 
             return font;

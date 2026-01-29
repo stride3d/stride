@@ -249,18 +249,22 @@ namespace Stride.Assets.SpriteFont
                 // In M3/M4, this will be replaced by a real Runtime MSDF font object.
                 commandContext.Logger.Warning("Runtime SDF font is currently scaffolded in M1 (temporary). It will behave like a runtime raster font until the MSDF runtime generator is implemented.");
 
-                var dynamicFont = FontDataFactory.NewDynamic(
-                    Parameters.FontType.Size,
+                var runtimeSdfType = (RuntimeSignedDistanceFieldSpriteFontType)Parameters.FontType;
+
+                var sdfFont = FontDataFactory.NewRuntimeSignedDistanceField(
+                    runtimeSdfType.Size,
                     Parameters.FontSource.GetFontName(),
                     Parameters.FontSource.Style,
-                    Parameters.FontType.AntiAlias,
+                    runtimeSdfType.BakeSize,
+                    runtimeSdfType.PixelRange,
+                    runtimeSdfType.Padding,
                     useKerning: false,
                     extraSpacing: Parameters.Spacing,
                     extraLineSpacing: Parameters.LineSpacing,
                     defaultCharacter: Parameters.DefaultCharacter);
 
                 var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
-                assetManager.Save(Url, dynamicFont);
+                assetManager.Save(Url, sdfFont);
 
                 return Task.FromResult(ResultStatus.Successful);
             }
