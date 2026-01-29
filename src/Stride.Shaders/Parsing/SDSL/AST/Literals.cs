@@ -510,6 +510,65 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         return true;
     }
 
+    public bool IsMatrixSwizzle(MatrixType m, [MaybeNullWhen(false)] out List<(int Column, int Row)> swizzles)
+    {
+        /// <summary>
+        /// Parses a single component token: "11" or "m22" (no leading underscore).
+        /// </summary>
+        static bool TryParseOne(ReadOnlySpan<char> token, int cols, int rows, out (int Column, int Row) component)
+        {
+            component = default;
+
+            if ((token.Length != 3 && token.Length != 4) || token[0] != '_')
+                return false;
+
+            int i = 1;
+            if (token[i] == 'm' || token[i] == 'M')
+                i++;
+
+            // Need exactly two digits after optional 'm'
+            if (token.Length - i != 2) return false;
+
+            char cCh = token[i + 0];
+            char rCh = token[i + 1];
+
+            if (cCh < '0' || cCh > '9' || rCh < '0' || rCh > '9') return false;
+
+            // HLSL uses both zero-based and one-based indices: _11 means row 0 col 0 and _m11 means row 1 column 1
+            var offset = (i == 2 ? 0 : 1);
+            int col = (cCh - '0') - offset;
+            int row = (rCh - '0') - offset;
+
+            if (col < 0 || row < 0) return false;
+            if (col >= cols || row >= rows) return false;
+
+            component = (col, row);
+            return true;
+        }
+
+        swizzles = null;
+        if (Name[0] != '_')
+            return false;
+
+        var startIndex = 0;
+        var currentIndex = 0;
+        var result = new List<(int, int)>();
+        while (currentIndex < Name.Length)
+        {
+            if (++currentIndex == Name.Length || Name[currentIndex] == '_')
+            {
+                if (!TryParseOne(Name.AsSpan(startIndex, currentIndex - startIndex), m.Rows, m.Columns, out var component))
+                    return false;
+
+                result.Add(component);
+                startIndex = currentIndex;
+            }
+        }
+
+        swizzles = result;
+        return true;
+    }
+
     public bool IsMatrixField()
     {
         return

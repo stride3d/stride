@@ -82,6 +82,23 @@ public partial class SpirvBuilder
         else
             throw new InvalidOperationException();
     }
+    
+    public (SpirvValue, SymbolType) ApplyMatrixSwizzles(SpirvContext context, SpirvValue value, MatrixType m, Span<(int Column, int Row)> swizzles)
+    {
+        Span<int> elements = stackalloc int[swizzles.Length];
+        for (var swizzleIndex = 0; swizzleIndex < swizzles.Length; swizzleIndex++)
+        {
+            var swizzle = swizzles[swizzleIndex];
+            elements[swizzleIndex] = Insert(new OpCompositeExtract(context.GetOrRegister(m.BaseType), context.Bound++, value.Id, [swizzle.Column, swizzle.Row])).ResultId;
+        }
+
+        var resultType = m.BaseType.GetVectorOrScalar(swizzles.Length);
+        value = swizzles.Length > 1
+            ? new(InsertData(new OpCompositeConstruct(context.GetOrRegister(resultType), context.Bound++, [..elements])))
+            : new(elements[0], context.GetOrRegister(resultType));
+
+        return (value, resultType);
+    }
 
     public static ScalarType FindCommonBaseTypeForBinaryOperation(SymbolType leftElementType, SymbolType rightElementType)
     {

@@ -571,6 +571,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     // We stop there
                     return;
                 }
+                case (PointerType { BaseType: MatrixType } or MatrixType, Identifier { Name: var swizzle } id) when id.IsMatrixSwizzle((MatrixType)currentValueType.GetValueType(), out var swizzles):
+                    throw new NotImplementedException("Assign back to matrix swizzle is not implemented yet");
                 case (PointerType { BaseType: VectorType or ScalarType } or VectorType or ScalarType, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     // Swizzle: we transform the value to assign accordingly
                     
@@ -661,7 +663,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             accessChainIds[accessChainIdCount++] = accessChainIndex;
         }
         
-        void EmitOpAccessChain(Span<int> accessChainIds, int i)
+        void EmitOpAccessChain(Span<int> accessChainIds, int? intermediateValueIndex)
         {
             if (compiler == null)
                 throw new InvalidOperationException();
@@ -669,11 +671,11 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             if (accessChainIdCount > 0)
             {
                 var resultType = context.GetOrRegister(currentValueType);
-                var test = new LiteralArray<int>(accessChainIds);
                 var accessChain = builder.Insert(new OpAccessChain(resultType, context.Bound++, result.Id, [.. accessChainIds.Slice(0, accessChainIdCount)]));
                 result = new SpirvValue(accessChain.ResultId, resultType);
                 
-                intermediateValues[1 + i] = result;
+                if (intermediateValueIndex != null)
+                    intermediateValues[1 + intermediateValueIndex.Value] = result;
             }
 
             accessChainIdCount = 0;
@@ -1045,6 +1047,56 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     PushAccessChainId(accessChainIds, context.CompileConstant(index).Id);
                     break;
                 // Swizzles
+                case (PointerType { BaseType: MatrixType m } p, Identifier id) when id.IsMatrixSwizzle(m, out var swizzles):
+                {
+                    if (swizzles.Count > 1)
+                    {
+                        if (compiler == null)
+                        {
+                            if (swizzles.Count > 4)
+                            {
+                                table.AddError(new(info, $"more than four positions are referenced in matrix to vector swizzle"));
+                                return default;
+                            }
+
+                            accessor.Type = new VectorType(m.BaseType, swizzles.Count);
+                            break;
+                        }
+
+                        EmitOpAccessChain(accessChainIds, i - 1);
+                        (result, accessor.Type) = builder.ApplyMatrixSwizzles(context, result, m, swizzles.AsSpan());
+                    }
+                    else
+                    {
+                        // Keep as a pointer
+                        if (compiler == null)
+                        {
+                            accessor.Type = new PointerType(m.BaseType, p.StorageClass);
+                            break;
+                        }
+
+                        PushAccessChainId(accessChainIds, context.CompileConstant(swizzles[0].Column).Id);
+                        PushAccessChainId(accessChainIds, context.CompileConstant(swizzles[0].Row).Id);
+                    }
+                    break;
+                }
+                case (MatrixType m, Identifier id) when id.IsMatrixSwizzle(m, out var swizzles):
+                {
+                    if (compiler == null)
+                    {
+                        if (swizzles.Count > 4)
+                        {
+                            table.AddError(new(info, $"more than four positions are referenced in matrix to vector swizzle"));
+                            return default;
+                        }
+
+                        accessor.Type = m.BaseType.GetVectorOrScalar(swizzles.Count);
+                        break;
+                    }
+
+                    (result, accessor.Type) = builder.ApplyMatrixSwizzles(context, result, m, swizzles.AsSpan());
+                    break;
+                }
                 case (PointerType { BaseType: VectorType v } p, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     if (swizzle.Length > 1)
                     {
@@ -1070,6 +1122,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     }
                     else
                     {
+                        // Keep as a pointer
                         if (compiler == null)
                         {
                             accessor.Type = new PointerType(v.BaseType, p.StorageClass);

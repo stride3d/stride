@@ -8,6 +8,7 @@
 // PSMain(ExpectedResult=#02030401, cbuffer.Test=(Test1=7))
 // PSMain(ExpectedResult=#02040103, cbuffer.Test=(Test1=8))
 // PSMain(ExpectedResult=#05060308, cbuffer.Test=(Test1=9))
+// PSMain(ExpectedResult=#0109030B, cbuffer.Test=(Test1=10))
 
 namespace Stride.Shaders.Tests;
 
@@ -46,5 +47,10 @@ shader Swizzle
             streams.ColorTarget.wxyz.wyxz = streams.ColorTarget;
         if (Test1 == 9)
             streams.ColorTarget.xyw += streams.ColorTarget.w;
+        if (Test1 == 10)
+        {
+            float4x4 m = float4x4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)  / 255.0;
+            streams.ColorTarget = m._11_31_13_33;
+        }
     }
 }
