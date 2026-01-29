@@ -55,7 +55,7 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <inheritdoc/>
-        protected override float UpateValueFromFloat(float value)
+        protected override float UpdateValueFromFloat(float value)
         {
             return MathUtil.DegreesToRadians(value);
         }
