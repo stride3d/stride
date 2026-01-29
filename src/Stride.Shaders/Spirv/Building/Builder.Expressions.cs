@@ -308,6 +308,87 @@ public partial class SpirvBuilder
         return new(instruction, name);
     }
 
+    /// <summary>
+    /// Check if a type can be converted to another.
+    /// </summary>
+    /// <param name="valueType"></param>
+    /// <param name="castType"></param>
+    /// <returns>0 if perfect match, int.MaxValue if failure, a score higher than 0 otherwise.</returns>
+    public static int CanConvertScore(SymbolType valueType, SymbolType castType)
+    {
+        if (castType == valueType)
+            return 0;
+
+        if (castType is StructType || valueType is StructType)
+            throw new NotImplementedException($"Can't cast between structures (cast from {valueType} to {castType})");
+        
+        if (castType is ArrayType a1 && valueType is ArrayType a2)
+        {
+            if (a1.BaseType == a2.BaseType)
+            {
+                if (a1.Size != -1 && a1.Size != a2.Size)
+                    return int.MaxValue;
+                // Some sizes are undetermined; this can only happen during compilation due to incomplete generics type
+                // TODO: do a "check pass" later to make sure this won't happen after generics instantiation?
+                return 0;
+            }
+            else
+            {
+                return int.MaxValue;
+            }
+        }
+        
+        // We don't support cast with object yet, filter for numeral types
+        if ((castType is not ScalarType && castType is not VectorType && castType is not MatrixType)
+            || (valueType is not ScalarType && valueType is not VectorType && valueType is not MatrixType))
+            throw new NotImplementedException($"Cast only work between numeral types (cast from {valueType} to {castType})");
+
+        var conversionScore = (valueType, castType) switch
+        {
+            // Promotion scalar to scalar, vector or matrix (replicate value)
+            (ScalarType, ScalarType or VectorType or MatrixType) => 1,
+            // Truncation
+            (VectorType or MatrixType, ScalarType) => 1,
+            // Vector cast
+            (VectorType v1, VectorType v2) when v1.Size == v2.Size => 1,
+            (VectorType v1, VectorType v2) when v1.Size < v2.Size => int.MaxValue,
+            // Emit warning? (warning: implicit truncation of vector type)
+            (VectorType v1, VectorType v2) when v1.Size > v2.Size => 1,
+            (VectorType v1, MatrixType m2) when v1.Size != m2.Rows * m2.Columns => int.MaxValue,
+            (VectorType v1, MatrixType m2) when v1.Size == m2.Rows * m2.Columns => 1,
+            (MatrixType m1, VectorType v2) when v2.Size != m1.Rows * m1.Columns => int.MaxValue,
+            // Note: conversions such as float2x2=>float4 are allowed but not implemented in Convert()
+            (MatrixType m1, VectorType v2) when v2.Size == m1.Rows * m1.Columns => 1,
+            (MatrixType m1, MatrixType m2) when m1.Rows < m2.Rows || m1.Columns < m2.Columns => int.MaxValue,
+            (MatrixType m1, MatrixType m2) when m1.Rows >= m2.Rows && m1.Columns >= m2.Columns => 1,
+            _ => int.MaxValue
+        };
+
+        if (conversionScore == int.MaxValue)
+            return int.MaxValue;
+        
+        // Check element types now
+        var scalarScore = (valueType.GetElementType(), castType.GetElementType()) switch
+        {
+            (ScalarType s1, ScalarType s2) when s1 == s2 => 0,
+            
+            // https://learn.microsoft.com/en-us/windows/win32/direct3d9/casting-and-conversion
+            (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Int or Scalar.UInt }) => 7,
+            (ScalarType { Type: Scalar.Float or Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Boolean }) => 7,
+            (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Boolean }, ScalarType { Type: Scalar.Float }) => 1,
+
+            // Bitcast (int=>uint or uint=>int)
+            (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.UInt }) => 2,
+            (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Int }) => 2,
+            
+            _ => int.MaxValue,
+        };
+        if (scalarScore == int.MaxValue)
+            return int.MaxValue;
+
+        return conversionScore + scalarScore;
+    }
+
     public SpirvValue Convert(SpirvContext context, in SpirvValue value, in SymbolType castType)
     {
         var valueId = value.Id;
@@ -430,6 +511,7 @@ public partial class SpirvBuilder
 
                     (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Boolean }) => InsertData(new OpFOrdNotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 0.0, null, new()), elementSize).Id)),
                     (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Boolean }) => InsertData(new OpINotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 0, new()), elementSize).Id)),
+                    (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Boolean }) => InsertData(new OpINotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, false), 0, new()), elementSize).Id)),
 
                     (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Float }) => InsertData(new OpConvertSToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
                     (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Float }) => InsertData(new OpConvertUToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),

@@ -77,10 +77,10 @@ public class EmptyExpression(TextLocation info) : Expression(info)
     public override string ToString() => string.Empty;
 }
 
-public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLocation info) : Expression(info)
+public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLocation info) : Expression(info)
 {
     public Identifier Name = name;
-    public ShaderExpressionList Parameters = parameters;
+    public ShaderExpressionList Arguments = arguments;
     
     public SymbolType? MemberCallBaseType { get; set; }
     public SpirvValue? MemberCall { get; set; }
@@ -89,22 +89,21 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
     
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
+        ProcessParameterSymbols(table);
         if (!TryResolveFunctionSymbol(table, out var functionSymbol))
             return;
 
         var functionType = (FunctionType)functionSymbol.Type;
         Type = functionType.ReturnType;
 
-        ProcessParameterSymbols(table, functionType);
-
         ResolvedFunctionSymbol = functionSymbol;
     }
 
-    public void ProcessParameterSymbols(SymbolTable table, FunctionType? functionType)
+    public void ProcessParameterSymbols(SymbolTable table, FunctionType? functionType = null)
     {
-        for (var index = 0; index < Parameters.Values.Count; index++)
+        for (var index = 0; index < Arguments.Values.Count; index++)
         {
-            var parameter = Parameters.Values[index];
+            var parameter = Arguments.Values[index];
             var parameterExpectedType = functionType?.ParameterTypes[index].Type;
             parameter.ProcessSymbol(table, parameterExpectedType);
         }
@@ -121,10 +120,10 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 
         Span<int> compiledParams = stackalloc int[functionType.ParameterTypes.Count];
         
-        if (parameters.Values.Count > functionType.ParameterTypes.Count)
-            throw new InvalidOperationException($"Function {Name} was called with {parameters.Values.Count} arguments but only {functionType.ParameterTypes.Count} expected");
+        if (arguments.Values.Count > functionType.ParameterTypes.Count)
+            throw new InvalidOperationException($"Function {Name} was called with {arguments.Values.Count} arguments but only {functionType.ParameterTypes.Count} expected");
 
-        for (int i = 0; i < parameters.Values.Count; i++)
+        for (int i = 0; i < arguments.Values.Count; i++)
         {
             // Wrap param in proper pointer type (function)
             var paramDefinition = functionType.ParameterTypes[i];
@@ -135,7 +134,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
             var inOutFlags = paramDefinition.Modifiers & ParameterModifiers.InOut;
             if (inOutFlags != ParameterModifiers.Out)
             {
-                var paramSource = parameters.Values[i].CompileAsValue(table, compiler, paramDefinition.Type.GetValueType());
+                var paramSource = arguments.Values[i].CompileAsValue(table, compiler, paramDefinition.Type.GetValueType());
 
                 // Convert type (if necessary)
                 var paramExpectedValueType = paramDefinition.Type;
@@ -150,7 +149,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         }
         
         // Find default parameters decoration (if any)
-        var missingParameters = functionType.ParameterTypes.Count - parameters.Values.Count;
+        var missingParameters = functionType.ParameterTypes.Count - arguments.Values.Count;
         var defaultParameters = 0;
         if (missingParameters > 0 && functionSymbol.MethodDefaultParameters is {} methodDefaultParameters)
         {
@@ -160,7 +159,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
                 // Import missing parameters
                 for (int i = 0; i < missingParameters; ++i)
                 {
-                    var paramDefinition = functionType.ParameterTypes[parameters.Values.Count + i];
+                    var paramDefinition = functionType.ParameterTypes[arguments.Values.Count + i];
 
                     var source = methodDefaultParameters.DefaultValues[^(missingParameters - i)];
                     // Import in current buffer
@@ -174,14 +173,14 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
                     builder.AddFunctionVariable(context.GetOrRegister(paramDefinition.Type), paramVariable);
                     builder.Insert(new OpStore(paramVariable, source, null, []));
 
-                    compiledParams[parameters.Values.Count + i] = paramVariable;
+                    compiledParams[arguments.Values.Count + i] = paramVariable;
                 }
                 missingParameters = 0;
             }
         }
         
         if (missingParameters > 0)
-            throw new InvalidOperationException($"Function {Name} was called with {parameters.Values.Count} arguments but there was {(defaultParameters > 0 ? $"between {functionType.ParameterTypes.Count - defaultParameters} and {functionType.ParameterTypes.Count}" : functionType.ParameterTypes.Count)} expected");
+            throw new InvalidOperationException($"Function {Name} was called with {arguments.Values.Count} arguments but there was {(defaultParameters > 0 ? $"between {functionType.ParameterTypes.Count - defaultParameters} and {functionType.ParameterTypes.Count}" : functionType.ParameterTypes.Count)} expected");
 
         int? instance = null;
         if (MemberCall != null)
@@ -199,14 +198,14 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         
         var result = builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
 
-        for (int i = 0; i < parameters.Values.Count; i++)
+        for (int i = 0; i < arguments.Values.Count; i++)
         {
             var paramDefinition = functionType.ParameterTypes[i];
             if (paramDefinition.Modifiers.HasFlag(ParameterModifiers.Out))
             {
                 var paramDefinitionType = (PointerType)paramDefinition.Type;
                 var paramVariable = compiledParams[i];
-                var paramTarget = parameters.Values[i].Compile(table, compiler, paramDefinitionType);
+                var paramTarget = arguments.Values[i].Compile(table, compiler, paramDefinitionType);
                 var paramTargetType = (PointerType)context.ReverseTypes[paramTarget.TypeId];
 
                 if (paramTargetType.BaseType != paramDefinitionType.BaseType)
@@ -238,16 +237,63 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
         }
 
         // Choose appropriate method to call
+        // We just care about overload (different signature), not override (base/this/most derived) as this will be resolved in ShaderMixer later
         if (functionSymbol.Type is FunctionGroupType)
         {
-            var matchingMethods = functionSymbol.GroupMembers
-                // Find methods matching number of parameters
-                .Where(x => ((FunctionType)x.Type).ParameterTypes.Count == parameters.Values.Count);
+            // Note: int.MaxValue means incompatible
+            static int OverloadScore(Symbol functionSymbol, ShaderExpressionList arguments)
+            {
+                // Check argument count
+                var functionType = (FunctionType)functionSymbol.Type;
+                if (arguments.Values.Count > functionType.ParameterTypes.Count || arguments.Values.Count < functionType.ParameterTypes.Count + (functionSymbol.MethodDefaultParameters?.DefaultValues.Length ?? 0))
+                    return int.MaxValue;
+                
+                // Check if argument can be converted
+                var score = 0;
+                for (var index = 0; index < arguments.Values.Count; index++)
+                {
+                    var argument = arguments.Values[index];
+                    var parameter =  functionType.ParameterTypes[index];
+                    var argScore = SpirvBuilder.CanConvertScore(argument.ValueType, parameter.Type.GetValueType());
+                    if (argScore == int.MaxValue)
+                        return int.MaxValue;
+
+                    score += argScore;
+                }
+                
+                // method with fewer optional parameters that need to be filled in by default values is generally preferred
+                score += functionType.ParameterTypes.Count - arguments.Values.Count;
+
+                return score;
+            }
             
-            // TODO: find proper overload (different signature)
-            // We take first element, so in case there is multiple override, it will take the most-derived implementation
-            // Note: this will be reevaluted during ShaderMixer (which specific override depending on base/this, etc.) but it won't change overload (different signature)
-            functionSymbol = matchingMethods.First();
+            var accessibleMethods = functionSymbol.GroupMembers
+                // Check overload score
+                .Select(x => (Score: OverloadScore(x, arguments), Symbol: x))
+                // Remove non-applicable methods
+                .Where(x => x.Score != int.MaxValue)
+                // Group by signature/score (we assume method with exact same signature means they are overriding each other, but we might need to do a better check using override info)
+                .GroupBy(x => (x.Score, x.Symbol.Type))
+                // Sort by best match (score)
+                .OrderBy(x => x.Key.Score)
+                .ToList();
+
+            if (accessibleMethods.Count == 0)
+            {
+                table.AddError(new(info, $"Can't find a valid method overload to call for {Name} (among {functionSymbol.GroupMembers} candidate(s))"));
+                return false;
+            }
+
+            // Check if there is an ambiguous call (multiple method groups with the lowest score)
+            if (accessibleMethods.Count > 1 && accessibleMethods[0].Key.Score == accessibleMethods[1].Key.Score)
+            {
+                table.AddError(new(info, $"Ambiguous method overload when calling for {Name} (among {functionSymbol.GroupMembers} candidate(s))"));
+                return false;
+            }
+
+            // Note: actual override (base/this) will be reevaluted during ShaderMixer, but overload (different signature) won't be changed
+            // So we just pick the method with the lowest score
+            functionSymbol = accessibleMethods[0].First().Symbol;
         }
 
         return true;
@@ -255,7 +301,7 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
 
     public override string ToString()
     {
-        return $"{Name}({string.Join(", ", Parameters)})";
+        return $"{Name}({string.Join(", ", Arguments)})";
     }
 }
 
@@ -743,8 +789,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             switch (currentValueType, accessor)
             {
                 case (PointerType { BaseType: TextureType textureType },
-                        MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 or 3 }
-                        or MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 or 4 }):
+                        MethodCall { Name.Name: "Sample", Arguments.Values.Count: 2 or 3 }
+                        or MethodCall { Name.Name: "SampleLevel", Arguments.Values.Count: 3 or 4 }):
                     {
                         if (compiler == null)
                         {
@@ -758,10 +804,10 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         var textureValue = builder.AsValue(context, result);
                         var resultType = accessor.Type;
 
-                        if (accessor is MethodCall { Name.Name: "Sample", Parameters.Values.Count: 2 or 3 } implicitSampling)
+                        if (accessor is MethodCall { Name.Name: "Sample", Arguments.Values.Count: 2 or 3 } implicitSampling)
                         {
-                            var samplerValue = implicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
-                            var texCoordValue = ConvertTexCoord(context, builder, textureType, implicitSampling.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
+                            var samplerValue = implicitSampling.Arguments.Values[0].CompileAsValue(table, compiler);
+                            var texCoordValue = ConvertTexCoord(context, builder, textureType, implicitSampling.Arguments.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
 
                             var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
@@ -769,9 +815,9 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
                             ImageOperandsMask? imask = null;
                             EnumerantParameters imParams = [];
-                            if (implicitSampling.Parameters.Values.Count > 2)
+                            if (implicitSampling.Arguments.Values.Count > 2)
                             {
-                                var offset = ConvertOffset(context, builder, textureType, implicitSampling.Parameters.Values[2].CompileAsValue(table, compiler));
+                                var offset = ConvertOffset(context, builder, textureType, implicitSampling.Arguments.Values[2].CompileAsValue(table, compiler));
                                 // TODO: determine when ConstOffset
                                 imask = ImageOperandsMask.Offset;
                                 imParams = new EnumerantParameters(offset.Id);
@@ -781,12 +827,12 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             result = new(sample.ResultId, sample.ResultType);
                             accessor.Type = resultType;
                         }
-                        else if (accessor is MethodCall { Name.Name: "SampleLevel", Parameters.Values.Count: 3 or 4 } explicitSampling)
+                        else if (accessor is MethodCall { Name.Name: "SampleLevel", Arguments.Values.Count: 3 or 4 } explicitSampling)
                         {
-                            var samplerValue = explicitSampling.Parameters.Values[0].CompileAsValue(table, compiler);
-                            var texCoordValue = ConvertTexCoord(context, builder, textureType, explicitSampling.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
+                            var samplerValue = explicitSampling.Arguments.Values[0].CompileAsValue(table, compiler);
+                            var texCoordValue = ConvertTexCoord(context, builder, textureType, explicitSampling.Arguments.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
                             
-                            var levelValue = explicitSampling.Parameters.Values[2].CompileAsValue(table, compiler);
+                            var levelValue = explicitSampling.Arguments.Values[2].CompileAsValue(table, compiler);
                             levelValue = builder.Convert(context, levelValue, ScalarType.Float);
 
                             var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
@@ -796,9 +842,9 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                             ImageOperandsMask imask = ImageOperandsMask.None;
                             EnumerantParameters imParams = [];
 
-                            if (explicitSampling.Parameters.Values.Count > 3)
+                            if (explicitSampling.Arguments.Values.Count > 3)
                             {
-                                var offset = ConvertOffset(context, builder, textureType, explicitSampling.Parameters.Values[3].CompileAsValue(table, compiler));
+                                var offset = ConvertOffset(context, builder, textureType, explicitSampling.Arguments.Values[3].CompileAsValue(table, compiler));
                                 // TODO: determine when ConstOffset
                                 imask = ImageOperandsMask.Lod | ImageOperandsMask.Offset;
                                 imParams = new EnumerantParameters(levelValue.Id, offset.Id);
@@ -818,7 +864,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         break;
                     }
                 case (PointerType { BaseType: TextureType textureType },
-                    MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Parameters.Values.Count: 3 or 4 } sampleCompare):
+                    MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Arguments.Values.Count: 3 or 4 } sampleCompare):
                 {
                     if (compiler == null)
                     {
@@ -835,10 +881,10 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     EmitOpAccessChain(accessChainIds, i - 1);
                     var textureValue = builder.AsValue(context, result);
                     
-                    var samplerValue = sampleCompare.Parameters.Values[0].CompileAsValue(table, compiler);
-                    var texCoordValue = ConvertTexCoord(context, builder, textureType, sampleCompare.Parameters.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
+                    var samplerValue = sampleCompare.Arguments.Values[0].CompileAsValue(table, compiler);
+                    var texCoordValue = ConvertTexCoord(context, builder, textureType, sampleCompare.Arguments.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
                     
-                    var compareValue = sampleCompare.Parameters.Values[2].CompileAsValue(table, compiler);
+                    var compareValue = sampleCompare.Arguments.Values[2].CompileAsValue(table, compiler);
 
                     var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
                     var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
@@ -849,9 +895,9 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     EnumerantParameters imParams = sampleCompare.Name.Name is "SampleCmpLevelZero" ? new (context.CompileConstant(0.0f).Id) : new ();
                     //ParameterizedFlag<ImageOperandsMask> flags = sampleCompare.Name.Name == "SampleCmpLevelZero" 
                         
-                    if (sampleCompare.Parameters.Values.Count > 3)
+                    if (sampleCompare.Arguments.Values.Count > 3)
                     {
-                        var offset = ConvertOffset(context, builder, textureType, sampleCompare.Parameters.Values[3].CompileAsValue(table, compiler));
+                        var offset = ConvertOffset(context, builder, textureType, sampleCompare.Arguments.Values[3].CompileAsValue(table, compiler));
                         // TODO: determine when ConstOffset
                         flags |= ImageOperandsMask.Offset;
                         imParams = new EnumerantParameters([..imParams, offset.Id]);
@@ -866,7 +912,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     accessor.Type = resultType;
                     break;
                 }
-                case (PointerType { BaseType: BufferType or TextureType } pointerType, MethodCall { Name.Name: "Load", Parameters.Values.Count: 1 } load):
+                case (PointerType { BaseType: BufferType or TextureType } pointerType, MethodCall { Name.Name: "Load", Arguments.Values.Count: 1 } load):
                     {
                         if (compiler == null)
                         {
@@ -880,8 +926,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         
                         (result, accessor.Type) = pointerType.BaseType switch
                         {
-                            BufferType b => BufferLoad(b, result, load.Parameters.Values[0]),
-                            TextureType t => TextureLoad(t, result, load.Parameters.Values[0], true),
+                            BufferType b => BufferLoad(b, result, load.Arguments.Values[0]),
+                            TextureType t => TextureLoad(t, result, load.Arguments.Values[0], true),
                         };
                         break;
                     }
