@@ -45,14 +45,15 @@ namespace Stride.Shaders.Compilers.SDSL
 
             var globalCBufferType = new ConstantBufferSymbol("Globals", members);
             var globalCBufferTypeId = context.DeclareCBuffer(globalCBufferType);
-            var links = new (string? Link, string? LogicalGroup)[members.Count];
+            // Transfer metadata from variable to cbuffer member
+            var memberMetadata = new CBufferMemberMetadata[members.Count];
             for (var index = 0; index < members.Count; index++)
             {
                 var member = members[index];
                 context.AddMemberName(globalCBufferTypeId, index, member.Name);
 
-                var linkInfo = variableLinks[variables[index]];
-                links[index] = (linkInfo.Link, linkInfo.LogicalGroup);
+                var metadata = variableMetadata[variables[index]];
+                memberMetadata[index] = new(Link: metadata.Link, LogicalGroup: metadata.LogicalGroup, Color: metadata.Color);
             }
 
             // Note: we make sure to add at a previous variable index, otherwise the OpVariableSDSL won't be inside the root MixinNode.StartInstruction/EndInstruction
@@ -60,7 +61,7 @@ namespace Stride.Shaders.Compilers.SDSL
             context.AddName(cbufferVariable.ResultId, "Globals");
             
             // Update cbuffer links
-            cbufferMemberLinks[cbufferVariable.ResultId] = links;
+            cbufferMemberMetadata[cbufferVariable.ResultId] = memberMetadata;
             
             // Replace all accesses
             int instructionsAddedInThisMethod = 0;
@@ -162,7 +163,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
             string? GetCBufferLogicalGroup(int variableId)
             {
-                variableLinks.TryGetValue(variableId, out var linkName);
+                variableMetadata.TryGetValue(variableId, out var linkName);
                 return linkName.LogicalGroup;
             }
 
@@ -219,16 +220,15 @@ namespace Stride.Shaders.Compilers.SDSL
             }
 
             // Transfer cbufferMemberLinks to new structure
-            (string Link, string LogicalGroup)[] GenerateCBufferLinks(int cbufferVariableId, Span<(OpDataIndex Variable, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct)
+            CBufferMemberMetadata[] GenerateCBufferLinks(int cbufferVariableId, Span<(OpDataIndex Variable, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct)
             {
-                var cbufferStructId = context.Types[cbufferStruct];
                 int mergedMemberIndex = 0;
-                var links = new (string Link, string LogicalGroup)[cbufferStruct.Members.Count];
+                var links = new CBufferMemberMetadata[cbufferStruct.Members.Count];
                 foreach (ref var cbuffer in cbuffersSpan)
                 {
                     for (int memberIndex = 0; memberIndex < cbuffer.StructType.Members.Count; memberIndex++, mergedMemberIndex++)
                     {
-                        links[mergedMemberIndex] = cbufferMemberLinks[cbuffer.Variable.Data.IdResult.Value][memberIndex];
+                        links[mergedMemberIndex] = cbufferMemberMetadata[cbuffer.Variable.Data.IdResult.Value][memberIndex];
                     }
                 }
 
@@ -302,7 +302,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                     // Update first variable to use new type
                     cbuffersSpan[0].Variable.Data.IdResultType = mergedCbufferPtrStructId;
-                    cbufferMemberLinks[cbuffersSpan[0].Variable.Data.IdResult.Value] = GenerateCBufferLinks(cbuffersSpan[0].Variable.Data.IdResult.Value, cbuffersSpan, mergedCbufferStruct);
+                    cbufferMemberMetadata[cbuffersSpan[0].Variable.Data.IdResult.Value] = GenerateCBufferLinks(cbuffersSpan[0].Variable.Data.IdResult.Value, cbuffersSpan, mergedCbufferStruct);
                     foreach (var i in buffer)
                     {
                         if (i.Op == Op.OpName && (OpName)i is { } name)
@@ -404,7 +404,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 var structTypeId = context.Types[cb];
 
                 var memberInfos = new EffectValueDescription[cb.Members.Count];
-                if (!cbufferMemberLinks.TryGetValue(cbuffer.Variable.Data.IdResult.Value, out var cbufferLinks))
+                if (!cbufferMemberMetadata.TryGetValue(cbuffer.Variable.Data.IdResult.Value, out var cbufferMetadata))
                     throw new InvalidOperationException($"Could not find cbuffer member link info for {context.Names[cbuffer.Variable.Data.IdResult.Value]}; it should have been generated during {MergeCBuffers}");
                 
                 for (var index = 0; index < cb.Members.Count; index++)
@@ -415,17 +415,23 @@ namespace Stride.Shaders.Compilers.SDSL
 
                     DecorateMember(context, structTypeId, index, constantBufferOffset, memberSize, member.Type, member.TypeModifier);
 
-                    var linkInfo = cbufferLinks[index];
+                    var metadata = cbufferMetadata[index];
 
                     memberInfos[index] = new EffectValueDescription
                     {
                         Type = ConvertType(context, member.Type, member.TypeModifier, SpirvBuilder.AlignmentRules.CBuffer),
                         RawName = member.Name,
-                        KeyInfo = new EffectParameterKeyInfo { KeyName = linkInfo.Link },
+                        KeyInfo = new EffectParameterKeyInfo { KeyName = metadata.Link },
                         Offset = constantBufferOffset,
                         Size = memberSize,
-                        LogicalGroup = linkInfo.LogicalGroup,
+                        LogicalGroup = metadata.LogicalGroup,
                     };
+                    if (metadata.Color)
+                    {
+                        if (member.Type is not VectorType { BaseType: { Type: Scalar.Float }, Size: 3 or 4 })
+                            throw new InvalidOperationException("[Color] attribute can only be applied on float3/float4 vector types");
+                        memberInfos[index].Type.Class = EffectParameterClass.Color;
+                    }
 
                     // Adjust offset for next item
                     constantBufferOffset += memberSize;

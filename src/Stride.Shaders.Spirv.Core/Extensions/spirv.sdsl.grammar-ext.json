@@ -434,161 +434,171 @@
       "category": "ValueEnum",
       "kind": "Decoration",
         "enumerants": [
-            {
-                "enumerant": "LinkSDSL",
-                "value": 8000,
-                "parameters": [
-                    {
-                        "kind": "LiteralString",
-                        "name": "'Name'"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "LinkIdSDSL",
-                "value": 8001,
-                "parameters": [
-                    {
-                        "kind": "IdRef"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "ResourceGroupSDSL",
-                "value": 8002,
-                "parameters": [
-                    {
-                        "kind": "LiteralString",
-                        "name": "'ResourceGroup'"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "ResourceGroupIdSDSL",
-                "value": 8003,
-                "parameters": [
-                    {
-                        "kind": "LiteralInteger",
-                        "name": "'ResourceGroup'"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "LogicalGroupSDSL",
-                "value": 8004,
-                "parameters": [
-                    {
-                        "kind": "LiteralString",
-                        "name": "'LogicalGroup'"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "SamplerStateFilter",
-                "value": 8020,
-                "parameters": [
-                    {
-                        "kind": "SamplerFilterSDSL"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "SamplerStateAddressU",
-                "value": 8021,
-                "parameters": [
-                    {
-                        "kind": "SamplerTextureAddressModeSDSL"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "SamplerStateAddressV",
-                "value": 8022,
-                "parameters": [
-                    {
-                        "kind": "SamplerTextureAddressModeSDSL"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "SamplerStateAddressW",
-                "value": 8023,
-                "parameters": [
-                    {
-                        "kind": "SamplerTextureAddressModeSDSL"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "SamplerStateMipLODBias",
-                "value": 8024,
-                "parameters": [
-                    {
-                        "kind": "LiteralString"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "SamplerStateMaxAnisotropy",
-                "value": 8025,
-                "parameters": [
-                    {
-                        "kind": "LiteralInteger"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "SamplerStateComparisonFunc",
-                "value": 8026,
-                "parameters": [
-                    {
-                        "kind": "SamplerComparisonFuncSDSL"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "SamplerStateMinLOD",
-                "value": 8027,
-                "parameters": [
-                    {
-                        "kind": "LiteralString"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-                "enumerant": "SamplerStateMaxLOD",
-                "value": 8028,
-                "parameters": [
-                    {
-                        "kind": "LiteralString"
-                    }
-                ],
-                "version": "1.0"
-            },
-            {
-              "enumerant": "FunctionParameterDefaultValueSDSL",
-              "value": 8040,
-              "parameters": [
-                {
-                  "kind": "IdRef",
-                  "quantifier": "*"
-                }
-              ],
-              "version": "1.0"
-            },
+          {
+            "enumerant": "LinkSDSL",
+            "value": 8000,
+            "parameters": [
+              {
+                "kind": "LiteralString",
+                "name": "'Name'"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "LinkIdSDSL",
+            "value": 8001,
+            "parameters": [
+              {
+                "kind": "IdRef"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "ColorSDSL",
+            "value": 8002,
+            "parameters": [
+              {
+                "kind": "IdRef"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "ResourceGroupSDSL",
+            "value": 8010,
+            "parameters": [
+              {
+                "kind": "LiteralString",
+                "name": "'ResourceGroup'"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "ResourceGroupIdSDSL",
+            "value": 8011,
+            "parameters": [
+              {
+                "kind": "LiteralInteger",
+                "name": "'ResourceGroup'"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "LogicalGroupSDSL",
+            "value": 8004,
+            "parameters": [
+              {
+                "kind": "LiteralString",
+                "name": "'LogicalGroup'"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "SamplerStateFilter",
+            "value": 8020,
+            "parameters": [
+              {
+                "kind": "SamplerFilterSDSL"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "SamplerStateAddressU",
+            "value": 8021,
+            "parameters": [
+              {
+                "kind": "SamplerTextureAddressModeSDSL"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "SamplerStateAddressV",
+            "value": 8022,
+            "parameters": [
+              {
+                "kind": "SamplerTextureAddressModeSDSL"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "SamplerStateAddressW",
+            "value": 8023,
+            "parameters": [
+              {
+                "kind": "SamplerTextureAddressModeSDSL"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "SamplerStateMipLODBias",
+            "value": 8024,
+            "parameters": [
+              {
+                "kind": "LiteralString"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "SamplerStateMaxAnisotropy",
+            "value": 8025,
+            "parameters": [
+              {
+                "kind": "LiteralInteger"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "SamplerStateComparisonFunc",
+            "value": 8026,
+            "parameters": [
+              {
+                "kind": "SamplerComparisonFuncSDSL"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "SamplerStateMinLOD",
+            "value": 8027,
+            "parameters": [
+              {
+                "kind": "LiteralString"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "SamplerStateMaxLOD",
+            "value": 8028,
+            "parameters": [
+              {
+                "kind": "LiteralString"
+              }
+            ],
+            "version": "1.0"
+          },
+          {
+            "enumerant": "FunctionParameterDefaultValueSDSL",
+            "value": 8040,
+            "parameters": [
+              {
+                "kind": "IdRef",
+                "quantifier": "*"
+              }
+            ],
+            "version": "1.0"
+          },
           {
             "enumerant": "ShaderConstantSDSL",
             "value": 8060,

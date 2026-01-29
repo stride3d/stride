@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
@@ -9,9 +10,12 @@ namespace Stride.Shaders.Compilers.SDSL;
 
 public partial class ShaderMixer
 {
-    private Dictionary<int, (string? Link, string? ResourceGroup, string? LogicalGroup)> variableLinks = new();
+    private record struct VariableMetadata(string? Link = null, string? ResourceGroup = null, string? LogicalGroup = null, bool Color = false);
+    private record struct CBufferMemberMetadata(string? Link = null, string? LogicalGroup = null, bool Color = false);
+    
+    private Dictionary<int, VariableMetadata> variableMetadata = new();
     // Note: cbuffer might share same struct, which is why we store this info per variable instead of per struct (as per OpMemberDecorate was doing)
-    private Dictionary<int, (string? Link, string? LogicalGroup)[]> cbufferMemberLinks = new();
+    private Dictionary<int, CBufferMemberMetadata[]> cbufferMemberMetadata = new();
 
     private static bool IsResourceType(SymbolType type)
         => type is TextureType or SamplerType or BufferType or StructuredBufferType or ConstantBufferSymbol;
@@ -23,34 +27,68 @@ public partial class ShaderMixer
         string? compositionPath = null;
         string? shaderName = null;
 
-        var variableDecorationLinks = new Dictionary<int, (string? Link, string? ResourceGroup, string? LogicalGroup)>();
-        var structDecorationLinks = new Dictionary<(int, int), string>();
+        var variableDecorationMetadata = new Dictionary<int, VariableMetadata>();
+        var structDecorationMetadata = new Dictionary<(int, int), CBufferMemberMetadata>();
 
         foreach (var i in context)
         {
-            if (i.Op == Specification.Op.OpDecorateString && (OpDecorateString)i is
-                { Decoration: Specification.Decoration.LinkSDSL or Specification.Decoration.ResourceGroupSDSL or Specification.Decoration.LogicalGroupSDSL, Value: string m  } decorate)
+            if (i.Op == Specification.Op.OpDecorate && (OpDecorate)i is
+                { Decoration: Specification.Decoration.ColorSDSL } decorate)
             {
-                ref var link = ref CollectionsMarshal.GetValueRefOrAddDefault(variableDecorationLinks, decorate.Target, out _);
+                ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(variableDecorationMetadata, decorate.Target, out _);
                 switch (decorate.Decoration)
                 {
+                    case Specification.Decoration.ColorSDSL:
+                        metadata.Color = true;
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+            else if (i.Op == Specification.Op.OpDecorateString && (OpDecorateString)i is
+                { Decoration: Specification.Decoration.LinkSDSL or Specification.Decoration.ResourceGroupSDSL or Specification.Decoration.LogicalGroupSDSL } decorateString)
+            {
+                ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(variableDecorationMetadata, decorateString.Target, out _);
+                switch (decorateString.Decoration)
+                {
                     case Specification.Decoration.LinkSDSL:
-                        link.Link = m;
+                        metadata.Link = decorateString.Value;
                         break;
                     case Specification.Decoration.ResourceGroupSDSL:
-                        link.ResourceGroup = m;
+                        metadata.ResourceGroup = decorateString.Value;
                         break;
                     case Specification.Decoration.LogicalGroupSDSL:
-                        link.LogicalGroup = m;
+                        metadata.LogicalGroup = decorateString.Value;
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+            else if (i.Op == Specification.Op.OpMemberDecorate && (OpMemberDecorate)i is
+                     { Decoration: Specification.Decoration.ColorSDSL } memberDecorate)
+            {
+                ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(structDecorationMetadata, (memberDecorate.StructureType, memberDecorate.Member), out _);
+                switch (memberDecorate.Decoration)
+                {
+                    case Specification.Decoration.ColorSDSL:
+                        metadata.Color = true;
                         break;
                     default:
                         throw new NotImplementedException();
                 }
             }
             else if (i.Op == Specification.Op.OpMemberDecorateString && (OpMemberDecorateString)i is
-                     { Decoration: Specification.Decoration.LinkSDSL, Value: string m2 } memberDecorate)
+                     { Decoration: Specification.Decoration.LinkSDSL } memberDecorateString)
             {
-                structDecorationLinks[(memberDecorate.StructType, memberDecorate.Member)] = m2;
+                ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(structDecorationMetadata, (memberDecorateString.StructType, memberDecorateString.Member), out _);
+                switch (memberDecorateString.Decoration)
+                {
+                    case Specification.Decoration.LinkSDSL:
+                        metadata.Link = memberDecorateString.Value;
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
             }
         }
 
@@ -76,32 +114,33 @@ public partial class ShaderMixer
                 var variablePointerType = (PointerType)context.ReverseTypes[variableInstruction.ResultType];
                 var variableType = variablePointerType.BaseType;
 
-                if (!variableDecorationLinks.TryGetValue(variableInstruction.ResultId, out var linkInfo)
-                    || linkInfo.Link == null)
-                    linkInfo.Link = GenerateLinkName(shaderName, context.Names[variableInstruction.ResultId]);
+                if (!variableDecorationMetadata.TryGetValue(variableInstruction.ResultId, out var metadata)
+                    || metadata.Link == null)
+                    metadata.Link = GenerateLinkName(shaderName, context.Names[variableInstruction.ResultId]);
 
                 if (!isStage)
-                    linkInfo.Link = ComposeLinkName(linkInfo.Link, compositionPath);
+                    metadata.Link = ComposeLinkName(metadata.Link, compositionPath);
 
-                variableLinks[variableInstruction.ResultId] = linkInfo;
+                variableMetadata[variableInstruction.ResultId] = metadata;
                 
                 if (variableType is ConstantBufferSymbol cb)
                 {
                     var constantBufferStructId = context.Types[cb];
-                    (string Link, string LogicalGroup)[] memberLinks = new (string Link, string LogicalGroup)[cb.Members.Count];
+                    CBufferMemberMetadata[] memberLinks = new CBufferMemberMetadata[cb.Members.Count];
                     for (var index = 0; index < cb.Members.Count; index++)
                     {
                         var member = cb.Members[index];
-                        if (!structDecorationLinks.TryGetValue((constantBufferStructId, index), out var memberLink)
-                            || memberLink == null)
-                            memberLink = GenerateLinkName(shaderName, member.Name);
+                        if (!structDecorationMetadata.TryGetValue((constantBufferStructId, index), out var memberLink)
+                            || memberLink.Link == null)
+                            memberLink.Link = GenerateLinkName(shaderName, member.Name);
 
                         if (!isStage)
-                            memberLink = ComposeLinkName(memberLink, compositionPath);
-                        memberLinks[index] = (memberLink, linkInfo.LogicalGroup);
+                            memberLink.Link = ComposeLinkName(memberLink.Link, compositionPath);
+                        memberLink.LogicalGroup = metadata.LogicalGroup;
+                        memberLinks[index] = memberLink;
                     }
 
-                    cbufferMemberLinks.Add(variableInstruction.ResultId, memberLinks);
+                    cbufferMemberMetadata.Add(variableInstruction.ResultId, memberLinks);
                 }
             }
         }
@@ -261,7 +300,7 @@ public partial class ShaderMixer
                 {
                     var name = context.Names[variable.ResultId];
                     
-                    variableLinks.TryGetValue(variable.ResultId, out var linkInfo);
+                    variableMetadata.TryGetValue(variable.ResultId, out var linkInfo);
                     var linkName = variableType switch
                     {
                         // TODO: Special case, Stride EffectCompiler.CleanupReflection() expect a different format here (let's fix that later in Stride)

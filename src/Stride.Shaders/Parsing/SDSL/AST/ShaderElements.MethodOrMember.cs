@@ -244,6 +244,8 @@ public sealed class ShaderMember(
             );
         Symbol = new Symbol(sid, Type, 0, OwnerType: table.CurrentShader);
         table.CurrentShader.Variables.Add((Symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
+
+        Value?.ProcessSymbol(table, memberType);
     }
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
