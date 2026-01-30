@@ -74,24 +74,6 @@ namespace Stride.Assets.SpriteFont
                 result.BuildSteps.Add(new ImportStreamCommand { SourcePath = fontPathOnDisk, Location = fontImportLocation });
                 result.BuildSteps.Add(new RuntimeSignedDistanceFieldFontCommand(targetUrlInStorage, asset, assetItem.Package));
             }
-            else if (asset.FontType is RuntimeRasterizedSpriteFontType)
-            {
-                UFile fontPathOnDisk = asset.FontSource.GetFontPath(result);
-                if (fontPathOnDisk == null)
-                {
-                    result.Error($"Runtime rasterized font compilation failed. Font {asset.FontSource.GetFontName()} was not found on this machine.");
-                    result.BuildSteps = new AssetBuildStep(assetItem);
-                    result.BuildSteps.Add(new FailedFontCommand());
-                    return;
-                }
-
-                var fontImportLocation = FontHelper.GetFontPath(asset.FontSource.GetFontName(), asset.FontSource.Style);
-
-                result.BuildSteps = new AssetBuildStep(assetItem);
-                result.BuildSteps.Add(new ImportStreamCommand { SourcePath = fontPathOnDisk, Location = fontImportLocation });
-                result.BuildSteps.Add(new RuntimeRasterizedFontCommand(targetUrlInStorage, asset, assetItem.Package));
-            }
-
             else
             {
                 var fontTypeStatic = asset.FontType as OfflineRasterizedSpriteFontType;
