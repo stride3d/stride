@@ -7,23 +7,5 @@ using Stride.Shaders.Compilers.Direct3D;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders;
 
-Console.WriteLine(Spv2DXIL.spirv_to_dxil_get_version());
 
-// Examples.CompileSDSL("RenderTests/If");
-
-//Examples.CompileSDSL();
-var loader = new Examples.ShaderLoader();
-loader.LoadExternalBuffer("Test", [], out var testBuffer, out _);
-var shaderMixer = new ShaderMixer(loader);
-shaderMixer.MergeSDSL(new ShaderClassSource("If"), out var bytecode, out _);
-
-using var buffer = SpirvBytecode.CreateBufferFromBytecode(bytecode);
-var source = Spv.Dis(buffer);
-File.WriteAllText("test.spvdis", source);
-
-
-// Examples.TryAllFiles();
-// Examples.CreateShader();
-
-// Examples.GenerateSpirv();
-// Examples.CreateNewShader();
+Examples.CompileBasicEffect();

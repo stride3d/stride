@@ -87,7 +87,7 @@ public abstract class ShaderLoaderBase : IExternalShaderLoader
             return true;
         }
 
-        var filename = $"{code}.sdsl";
+        var filename = $"{code}{(Path.HasExtension(code) ? "" : ".sdsl")}";
 
         isFromCache = false;
         if (!LoadFromCode(filename, code, defines, out buffer))

@@ -32,12 +32,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
     public void MergeSDSL(ShaderSource shaderSource, out Span<byte> bytecode, out EffectReflection effectReflection)
     {
+        // Create new buffer for the merged result
         var temp = new NewSpirvBuffer();
 
+        // This is the global context for this merge operation
         var context = new SpirvContext();
         var table = new SymbolTable(context) { ShaderLoader = ShaderLoader };
 
         var effectEvaluator = new EffectEvaluator(ShaderLoader);
+        // We basically put the shader we want to merge through the EffectEvaluator to resolve all mixins/compositions first
         shaderSource = effectEvaluator.EvaluateEffects(shaderSource);
 
         var shaderSource2 = EvaluateInheritanceAndCompositions(context, shaderSource);
@@ -339,7 +342,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (i2.Op == Op.OpDecorate && new OpDecorate(ref i2) is { Decoration: Decoration.ResourceGroupIdSDSL, DecorationParameters: { } m } resourceGroupIdDecorate)
                 {
                     // Somehow data doesn't get mutated inside i2 if we update resourceGroupIdDecorate.Decoration, so we reference buffer directly
-                    resourceGroupIdDecorate.DecorationParameters = [m.Span[0] + resourceGroupOffset];
+                    resourceGroupIdDecorate.DecorationParameters = new(m.Span[0] + resourceGroupOffset);
                 }
 
                 if (SpirvBuilder.ContainIds(forbiddenIds, i2))

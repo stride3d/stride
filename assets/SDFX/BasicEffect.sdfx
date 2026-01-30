@@ -1,0 +1,31 @@
+namespace Stride.Rendering.Images;
+
+
+shader A
+{
+    int a;
+}
+
+shader B
+{
+    float b;
+}
+
+
+params BasicParams
+{
+    bool MixA;
+    bool MixB;
+}
+
+effect BasicEffect
+{
+    using params BasicParams;
+    
+    mixin(A);
+    
+    if(BasicParams.MixA)
+        mixin(A);
+    if(BasicParams.MixB)
+        mixin(B);
+}

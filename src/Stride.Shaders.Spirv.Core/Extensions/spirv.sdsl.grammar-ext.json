@@ -25,6 +25,98 @@
       ]
     },
     {
+      "opname": "OpSDSLParamsUse",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "paramsName"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLMixinUse",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "mixinName"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLMixinChild",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "mixinName"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLMixinClone",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "mixinName"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLParams",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLParamsField",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "name"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "cstype"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLConditionalStart",
+      "class": "Miscellaneous"
+    },
+    {
+      "opname": "OpSDSLConditionalEnd",
+      "class": "Miscellaneous"
+    },
+    {
+      "opname": "OpSDSLParamsTrue",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "paramsName"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLElse",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "mixinName"
+        }
+      ]
+    },
+    {
       "opname": "OpSDSLComposition",
       "class": "Miscellaneous",
       "operands": [
@@ -833,6 +925,16 @@
         {
           "enumerant": "Always",
           "value": 8
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "StorageClass",
+      "enumerants": [
+        {
+          "enumerant": "Params",
+          "value": 8000
         }
       ]
     }

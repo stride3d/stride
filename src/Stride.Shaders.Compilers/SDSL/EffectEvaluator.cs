@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.HighPerformance;
+using Stride.Rendering;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
@@ -16,56 +17,20 @@ namespace Stride.Shaders.Compilers.SDSL
     {
         private Stack<ShaderMixinSource> mixinSources = new();
 
-        public ShaderSource EvaluateEffects(ShaderSource source)
+        public ShaderSource EvaluateEffects(ShaderSource source, IDictionary<string, ParameterKey>? parameters = null)
         {
-            object[] GetGenericsArguments(SpirvContext context, ReadOnlySpan<int> genericIds)
-            {
-                var genericArguments = new object[genericIds.Length];
-                for (int i = 0; i < genericArguments.Length; i++)
-                {
-                    genericArguments[i] = context.GetConstantValue(genericIds[i]);
-                }
-                return genericArguments;
-            }
+            // For our tests the ShaderSource is a ShaderClassSource, just a name of a shader to load
 
             switch (source)
             {
                 case ShaderClassSource classSource:
                     var macros = mixinSources.Count > 0 ? mixinSources.Peek().Macros : [];
                     var shaderBuffers = SpirvBuilder.GetOrLoadShader(ShaderLoader, classSource.ClassName, classSource.GenericArguments, macros.AsSpan());
-
-                    if (shaderBuffers.Buffer[0].Op == Op.OpSDSLEffect)
+                    return shaderBuffers.Buffer[0].Op switch
                     {
-                        var mixinTree = new ShaderMixinSource();
-                        foreach (var instruction in shaderBuffers.Buffer)
-                        {
-                            if (instruction.Op == Op.OpSDSLMixin && (OpSDSLMixin)instruction is { } mixinInstruction)
-                            {
-                                var instSource = new ShaderClassSource(mixinInstruction.Mixin, GetGenericsArguments(shaderBuffers.Context, mixinInstruction.Values.Elements.Span));
-                                var evaluatedSource = EvaluateEffects(instSource);
-
-                                Merge(mixinTree, evaluatedSource);
-                            }
-                            else if (instruction.Op == Op.OpSDSLMixinCompose && (OpSDSLMixinCompose)instruction is { } mixinComposeInstruction)
-                            {
-                                var instSource = new ShaderClassSource(mixinComposeInstruction.Mixin, GetGenericsArguments(shaderBuffers.Context, mixinComposeInstruction.Values.Elements.Span));
-                                var evaluatedSource = EvaluateEffects(instSource);
-
-                                MergeComposition(mixinTree, mixinComposeInstruction.Identifier, evaluatedSource);
-                            }
-                            else if (instruction.Op == Op.OpSDSLMixinComposeArray && (OpSDSLMixinComposeArray)instruction is { } mixinComposeArray)
-                            {
-                                var instSource = new ShaderClassSource(mixinComposeArray.Mixin, GetGenericsArguments(shaderBuffers.Context, mixinComposeArray.Values.Elements.Span));
-                                var evaluatedSource = EvaluateEffects(instSource);
-
-                                MergeCompositionArrayItem(mixinTree, mixinComposeArray.Identifier, evaluatedSource);
-                            }
-                        }
-
-                        return mixinTree;
-                    }
-
-                    return classSource;
+                        Op.OpSDSLEffect => EffectInterpreter(shaderBuffers, parameters),
+                        _ => classSource
+                    };
                 case ShaderMixinSource mixinSource:
                     {
                         var result = new ShaderMixinSource();
@@ -109,6 +74,85 @@ namespace Stride.Shaders.Compilers.SDSL
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        private ShaderMixinSource EffectInterpreter(ShaderBuffers shaderBuffers, IDictionary<string, ParameterKey>? parameters)
+        {
+            var mixinTree = new ShaderMixinSource();
+            int i = 0;
+            var count = shaderBuffers.Buffer.Count;
+            while (i < count)
+            {
+                var instruction = shaderBuffers.Buffer[i];
+
+                // If we reach a conditional instruction we need to evaluate the conditions after it.
+                // If it's false we need to check if there's another conditional instruction after it (ParamsTrue / Else)
+                // Once we reach the OpSDSLConditionalEnd 
+                if (instruction.Op is Op.OpSDSLConditionalStart)
+                {
+                    i += 1;
+                    bool conditionMet = false;
+                    while(!conditionMet)
+                    {
+                        if (instruction.Op is Op.OpSDSLParamsTrue && (OpSDSLParamsTrue)instruction is { } condition)
+                        {
+                            if (parameters?.TryGetValue(condition.ParamsName, out var bparam) ?? false)
+                            {
+                                // TODO: Where are the values ?
+                                if (bparam is ParameterKey<bool> boolParam)
+                                {
+                                    throw new NotImplementedException();
+                                }
+                                else if (bparam is ParameterKey<ShaderSource> shparam)
+                                {
+                                    throw new NotImplementedException();
+                                }
+                            }
+                        }
+                        else if(instruction.Op is Op.OpSDSLElse)
+                        {
+                            if(!conditionMet)
+                            {
+                                conditionMet = true;
+                                // TODO: Apply else branch
+                            }
+                        }
+                        else if(instruction.Op is Op.OpSDSLConditionalEnd)
+                        {
+                            break;
+                        }
+                    }
+                }
+                else if (instruction.Op == Op.OpSDSLMixin && (OpSDSLMixin)instruction is { } mixinInstruction)
+                {
+                    var instSource = new ShaderClassSource(mixinInstruction.Mixin, GetGenericsArguments(shaderBuffers.Context, mixinInstruction.Values.Elements.Span));
+                    var evaluatedSource = EvaluateEffects(instSource);
+
+                    Merge(mixinTree, evaluatedSource);
+                }
+                else if (instruction.Op == Op.OpSDSLMixinCompose && (OpSDSLMixinCompose)instruction is { } mixinComposeInstruction)
+                {
+                    var instSource = new ShaderClassSource(mixinComposeInstruction.Mixin, GetGenericsArguments(shaderBuffers.Context, mixinComposeInstruction.Values.Elements.Span));
+                    var evaluatedSource = EvaluateEffects(instSource);
+
+                    MergeComposition(mixinTree, mixinComposeInstruction.Identifier, evaluatedSource);
+                }
+                else if (instruction.Op == Op.OpSDSLMixinComposeArray && (OpSDSLMixinComposeArray)instruction is { } mixinComposeArray)
+                {
+                    var instSource = new ShaderClassSource(mixinComposeArray.Mixin, GetGenericsArguments(shaderBuffers.Context, mixinComposeArray.Values.Elements.Span));
+                    var evaluatedSource = EvaluateEffects(instSource);
+
+                    MergeCompositionArrayItem(mixinTree, mixinComposeArray.Identifier, evaluatedSource);
+                }
+                else if (instruction.Op == Op.OpSDSLMixinChild && (OpSDSLMixinChild)instruction is { } mixinChild)
+                {
+                    throw new NotImplementedException();
+                }
+
+                i += 1;
+            }
+
+            return mixinTree;
         }
 
         private void PropagateMacrosFromParent(ShaderMixinSource parent, ShaderMixinSource child)
@@ -170,6 +214,16 @@ namespace Stride.Shaders.Compilers.SDSL
 
             var arraySource = (ShaderArraySource)composition;
             arraySource.Add(evaluatedSource);
+        }
+
+        static object[] GetGenericsArguments(SpirvContext context, ReadOnlySpan<int> genericIds)
+        {
+            var genericArguments = new object[genericIds.Length];
+            for (int i = 0; i < genericArguments.Length; i++)
+            {
+                genericArguments[i] = context.GetConstantValue(genericIds[i]);
+            }
+            return genericArguments;
         }
     }
 }

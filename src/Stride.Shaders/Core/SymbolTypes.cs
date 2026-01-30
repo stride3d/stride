@@ -89,6 +89,33 @@ public abstract record SymbolType()
     public abstract void Accept(TypeVisitor visitor);
 
     public abstract TResult Accept<TResult>(TypeVisitor<TResult> visitor);
+
+    internal static SymbolType Of<T>()
+    {
+        return typeof(T) switch
+        {
+            var t when t == typeof(void) => ScalarType.From("void"),
+            var t when t == typeof(bool) => ScalarType.From("bool"),
+            var t when t == typeof(byte) => ScalarType.From("byte"),
+            var t when t == typeof(sbyte) => ScalarType.From("sbyte"),
+            var t when t == typeof(short) => ScalarType.From("short"),
+            var t when t == typeof(ushort) => ScalarType.From("ushort"),
+            var t when t == typeof(Half) => ScalarType.From("half"),
+            var t when t == typeof(int) => ScalarType.From("int"),
+            var t when t == typeof(uint) => ScalarType.From("uint"),
+            var t when t == typeof(float) => ScalarType.From("float"),
+            var t when t == typeof(double) => ScalarType.From("double"),
+
+            var t when t == typeof(System.Numerics.Vector2) => VectorType.From("float2"),
+            var t when t == typeof(System.Numerics.Vector3) => VectorType.From("float3"),
+            var t when t == typeof(System.Numerics.Vector4) => VectorType.From("float4"),
+
+            var t when t == typeof(System.Numerics.Matrix3x2) => MatrixType.From("float3x2"),
+            var t when t == typeof(System.Numerics.Matrix4x4) => MatrixType.From("float4x4"),
+
+            _ => throw new NotSupportedException($"Type '{typeof(T)}' is not supported as a SymbolType."),
+        };  
+    }
 }
 
 public sealed partial record UndefinedType(string TypeName) : SymbolType()

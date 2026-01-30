@@ -255,7 +255,8 @@ public class UsingParams(Identifier name, TextLocation info) : EffectStatement(i
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, _) = compiler;
+        builder.Insert(new OpSDSLParamsUse(ParamsName.Name));
     }
 
 
@@ -283,7 +284,13 @@ public class EffectExpressionStatement(Statement statement, TextLocation info) :
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, _) = compiler;
+        if (Statement is ExpressionStatement { Expression: MethodCall { Name.Name: "mixin", Parameters.Values: [Identifier mixin] } })
+            builder.Insert(new OpSDSLMixinUse(mixin.Name));
+        else
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

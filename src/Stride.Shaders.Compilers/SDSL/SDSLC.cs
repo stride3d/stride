@@ -64,6 +64,22 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 
                     ShaderLoader.RegisterShader(effect.Name, macros, lastBuffer);
                 }
+                else if (declaration is EffectParameters parameters)
+                {
+                    var compiler = new CompilerUnit();
+                    SymbolTable table = new(compiler.Context)
+                    {
+                        ShaderLoader = ShaderLoader,
+                        CurrentMacros = [..macros],
+                    };
+                    compiler.Macros.AddRange(macros);
+                    parameters.Compile(table, compiler);
+
+                    var merged = compiler.ToBuffer();
+                    lastBuffer = new(merged);
+
+                    ShaderLoader.RegisterShader(parameters.Name, [], lastBuffer);
+                }
                 else
                 {
                     throw new NotImplementedException($"Compiling declaration [{declaration.GetType()}] is not implemented");
