@@ -9,6 +9,7 @@ using static Stride.Shaders.Spirv.Specification;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using CommunityToolkit.HighPerformance;
+using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Spirv.Processing
 {
@@ -31,8 +32,11 @@ namespace Stride.Shaders.Spirv.Processing
         {
             public string? Semantic { get; } = semantic;
             public string Name { get; } = name;
-            public PointerType Type { get; } = type;
+            public SymbolType Type { get; } = type.BaseType;
             public int VariableId { get; } = variableId;
+            
+            public int? InputId { get; set; }
+            public int? OutputId { get; set; }
 
             public int? InputLayoutLocation { get; set; }
             public int? OutputLayoutLocation { get; set; }
@@ -47,6 +51,8 @@ namespace Stride.Shaders.Spirv.Processing
             public bool Read { get => field; set { field = value; UsedAnyStage = true; } }
             public bool Write { get => field; set { field = value; UsedAnyStage = true; } }
             public bool UsedAnyStage { get; private set; }
+            public int? InputStructFieldIndex { get; internal set; }
+            public int? OutputStructFieldIndex { get; internal set; }
             public int StreamStructFieldIndex { get; internal set; }
 
             public override string ToString() => $"{Type} {Name} {(Read ? "R" : "")} {(Write ? "W" : "")}";
@@ -169,11 +175,14 @@ namespace Stride.Shaders.Spirv.Processing
             var entryPoints = new List<(string Name, int Id, ShaderStage Stage)>();
 
             table.TryResolveSymbol("VSMain", out var entryPointVS);
+            table.TryResolveSymbol("GSMain", out var entryPointGS);
             table.TryResolveSymbol("PSMain", out var entryPointPS);
             table.TryResolveSymbol("CSMain", out var entryPointCS);
 
             if (entryPointCS?.Type is FunctionGroupType)
                 entryPointCS = entryPointCS.GroupMembers[^1];
+            if (entryPointGS?.Type is FunctionGroupType)
+                entryPointGS = entryPointGS.GroupMembers[^1];
             if (entryPointVS?.Type is FunctionGroupType)
                 entryPointVS = entryPointVS.GroupMembers[^1];
             if (entryPointPS?.Type is FunctionGroupType)
@@ -195,20 +204,8 @@ namespace Stride.Shaders.Spirv.Processing
 
             if (entryPointCS != null)
             {
-                (var csWrapperId, var csWrapperName) = GenerateStreamWrapper(buffer, context, ExecutionModel.GLCompute, entryPointCS.IdRef, entryPointCS.Id.Name, analysisResult, liveAnalysis, false);
+                (var csWrapperId, var csWrapperName) = GenerateStreamWrapper(table, buffer, context, ExecutionModel.GLCompute, entryPointCS, analysisResult, liveAnalysis, false);
                 entryPoints.Add((csWrapperName, csWrapperId, ShaderStage.Compute));
-
-                // Move OpExecutionMode on new CSMain wrapper (and remove others)
-                foreach (var i in context)
-                {
-                    if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is { } executionMode)
-                    {
-                        if (executionMode.EntryPoint == entryPointCS.IdRef)
-                            executionMode.EntryPoint = csWrapperId;
-                        else
-                            SpirvBuilder.SetOpNop(executionMode.OpData.Memory.Span);
-                    }
-                }
             }
 
             var inputAttributes = new List<ShaderInputAttributeDescription>();
@@ -227,7 +224,7 @@ namespace Stride.Shaders.Spirv.Processing
                 // (if PSMain has been overriden with an empty method, it means we don't want to output anything and remove the pixel shader, i.e. for shadow caster)
                 if (streams.Any(x => x.Value.Output))
                 {
-                    (var psWrapperId, var psWrapperName) = GenerateStreamWrapper(buffer, context, ExecutionModel.Fragment, entryPointPS.IdRef, entryPointPS.Id.Name, analysisResult, liveAnalysis, false);
+                    (var psWrapperId, var psWrapperName) = GenerateStreamWrapper(table, buffer, context, ExecutionModel.Fragment, entryPointPS, analysisResult, liveAnalysis, false);
                     entryPoints.Add((psWrapperName, psWrapperId, ShaderStage.Pixel));
 
                     buffer.FluentAdd(new OpExecutionMode(psWrapperId, ExecutionMode.OriginUpperLeft, []));
@@ -241,32 +238,45 @@ namespace Stride.Shaders.Spirv.Processing
                 }
 
                 // Reset cbuffer/resource/methods used for next stage
-                foreach (var variable in analysisResult.Variables)
-                    variable.Value.UsedThisStage = false;
-                foreach (var resource in analysisResult.Resources)
-                    resource.Value.UsedThisStage = false;
-                foreach (var cbuffer in analysisResult.CBuffers)
-                    cbuffer.Value.UsedThisStage = false;
-                foreach (var method in liveAnalysis.ReferencedMethods)
-                {
-                    method.Value.UsedThisStage = false;
-                    method.Value.ThisStageMethodId = null;
-                }
+                ResetUsedThisStage(analysisResult, liveAnalysis);
 
                 PropagateStreamsFromPreviousStage(streams);
+                
+                if (entryPointGS != null)
+                {
+                    AnalyzeStreamReadWrites(buffer, context, entryPointGS.IdRef, analysisResult, liveAnalysis);
+                    
+                    // If specific semantic are written to (i.e. SV_Position), they are expected at the end of vertex shader
+                    foreach (var stream in streams)
+                    {
+                        if (stream.Value.Semantic is { } semantic && semantic.ToUpperInvariant().StartsWith("SV_POSITION"))
+                            stream.Value.Output = true;
+                    }
+                    
+                    (var gsWrapperId, var gsWrapperName) = GenerateStreamWrapper(table, buffer, context, ExecutionModel.Geometry, entryPointGS, analysisResult, liveAnalysis, false);
+                    entryPoints.Add((gsWrapperName, gsWrapperId, ShaderStage.Geometry));
+                    
+                    // Reset cbuffer/resource/methods used for next stage
+                    ResetUsedThisStage(analysisResult, liveAnalysis);
+                    
+                    PropagateStreamsFromPreviousStage(streams);
+                    
+                    if (entryPointVS == null)
+                        throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: If a geometry shader is specified, a vertex shader is needed too");
+                }
+                
                 if (entryPointVS != null)
                 {
                     AnalyzeStreamReadWrites(buffer, context, entryPointVS.IdRef, analysisResult, liveAnalysis);
 
-                    // If written to, they are expected at the end of vertex shader
+                    // If specific semantic are written to (i.e. SV_Position), they are expected at the end of vertex shader
                     foreach (var stream in streams)
                     {
-                        if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant().StartsWith("SV_POSITION"))
-                                                                  && stream.Value.Write)
+                        if (stream.Value.Semantic is { } semantic && semantic.ToUpperInvariant().StartsWith("SV_POSITION"))
                             stream.Value.Output = true;
                     }
 
-                    (var vsWrapperId, var vsWrapperName) = GenerateStreamWrapper(buffer, context, ExecutionModel.Vertex, entryPointVS.IdRef, entryPointVS.Id.Name, analysisResult, liveAnalysis, true);
+                    (var vsWrapperId, var vsWrapperName) = GenerateStreamWrapper(table, buffer, context, ExecutionModel.Vertex, entryPointVS, analysisResult, liveAnalysis, true);
                     entryPoints.Add((vsWrapperName, vsWrapperId, ShaderStage.Vertex));
                     
                     // Process shader input attributes
@@ -289,6 +299,21 @@ namespace Stride.Shaders.Spirv.Processing
             RemoveUnreferencedCode(buffer, context, analysisResult, streams, liveAnalysis);
 
             return new(entryPoints, inputAttributes);
+        }
+
+        private static void ResetUsedThisStage(AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
+        {
+            foreach (var variable in analysisResult.Variables)
+                variable.Value.UsedThisStage = false;
+            foreach (var resource in analysisResult.Resources)
+                resource.Value.UsedThisStage = false;
+            foreach (var cbuffer in analysisResult.CBuffers)
+                cbuffer.Value.UsedThisStage = false;
+            foreach (var method in liveAnalysis.ReferencedMethods)
+            {
+                method.Value.UsedThisStage = false;
+                method.Value.ThisStageMethodId = null;
+            }
         }
 
         private static void RemoveUnreferencedCode(NewSpirvBuffer buffer, SpirvContext context, AnalysisResult analysisResult, Dictionary<int, StreamInfo> streams, LiveAnalysis liveAnalysis)
@@ -371,7 +396,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                 if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                     {
-                        Storageclass: StorageClass.Uniform,
+                        Storageclass: Specification.StorageClass.Uniform,
                         ResultId: int
                     } variable
                     && analysisResult.CBuffers.TryGetValue(variable, out var cbufferInfo))
@@ -385,7 +410,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                 if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                     {
-                        Storageclass: StorageClass.UniformConstant,
+                        Storageclass: Specification.StorageClass.UniformConstant,
                         ResultId: int
                     } resource)
                 {
@@ -401,7 +426,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                 if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                     {
-                        Storageclass: StorageClass.Private or StorageClass.Workgroup,
+                        Storageclass: Specification.StorageClass.Private or Specification.StorageClass.Workgroup,
                         ResultId: int
                     } variable2)
                 {
@@ -422,11 +447,11 @@ namespace Stride.Shaders.Spirv.Processing
                 }
             }
 
-            // Remove all OpTypeStreamsSDSL or any type that depends on it
+            // Remove all OpTypeStreamsSDSL and OpTypeGeometryStreamOutputSDSL or any type that depends on it
             // (we do that before the OpName/OpDecorate pass)
             foreach (var i in context)
             {
-                if (i.Op == Op.OpTypeStreamsSDSL || i.Op == Op.OpTypeFunctionSDSL || i.Op == Op.OpTypePointer)
+                if (i.Op == Op.OpTypeStreamsSDSL || i.Op == Op.OpTypeGeometryStreamOutputSDSL || i.Op == Op.OpTypeFunctionSDSL || i.Op == Op.OpTypePointer || i.Op == Op.OpTypeArray)
                 {
                     if (context.ReverseTypes.TryGetValue(i.Data.IdResult.Value, out var type))
                     {
@@ -555,7 +580,7 @@ namespace Stride.Shaders.Spirv.Processing
             foreach (var i in buffer)
             {
                 if (i.Op == Op.OpVariableSDSL
-                    && ((OpVariableSDSL)i) is { Storageclass: StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
+                    && ((OpVariableSDSL)i) is { Storageclass: Specification.StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
                     && context.ReverseTypes[pointerType2] is PointerType { BaseType: ConstantBufferSymbol })
                 {
                     var name = nameTable[bufferId];
@@ -566,7 +591,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                 if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                     {
-                        Storageclass: StorageClass.Private or StorageClass.Workgroup,
+                        Storageclass: Specification.StorageClass.Private or Specification.StorageClass.Workgroup,
                         ResultId: int
                     } variable)
                 {
@@ -595,7 +620,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                 if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                     {
-                        Storageclass: StorageClass.UniformConstant or StorageClass.StorageBuffer,
+                        Storageclass: Specification.StorageClass.UniformConstant or Specification.StorageClass.StorageBuffer,
                         ResultId: int
                     } resource)
                 {
@@ -659,20 +684,20 @@ namespace Stride.Shaders.Spirv.Processing
             return new(nameTable, streams, variables, cbuffers, resourceGroups, resources);
         }
 
-        private (int Id, string Name) GenerateStreamWrapper(NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, int entryPointId, string entryPointName, AnalysisResult analysisResult, LiveAnalysis liveAnalysis, bool isFirstActiveShader)
+        private (int Id, string Name) GenerateStreamWrapper(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, Symbol entryPoint, AnalysisResult analysisResult, LiveAnalysis liveAnalysis, bool isFirstActiveShader)
         {
             var streams = analysisResult.Streams;
 
             var stage = executionModel switch
             {
-                ExecutionModel.Fragment => "PS",
                 ExecutionModel.Vertex => "VS",
+                ExecutionModel.Geometry => "GS",
+                ExecutionModel.Fragment => "PS",
                 ExecutionModel.GLCompute => "CS",
                 _ => throw new NotImplementedException()
             };
             List<(StreamInfo Info, int Id)> inputStreams = [];
             List<(StreamInfo Info, int Id)> outputStreams = [];
-            List<StreamInfo> privateStreams = [];
 
             int inputLayoutLocationCount = 0;
             int outputLayoutLocationCount = 0;
@@ -712,7 +737,7 @@ namespace Stride.Shaders.Spirv.Processing
                     (ExecutionModel.Fragment, StreamVariableType.Output, "SV_DEPTH") => AddBuiltin(variable, BuiltIn.FragDepth),
                     (ExecutionModel.Fragment, StreamVariableType.Output, {} semantic) when semantic.StartsWith("SV_TARGET") => AddLocation(variable, semantic.Substring("SV_TARGET".Length)),
                     // SV_Position
-                    (ExecutionModel.Vertex, StreamVariableType.Output, "SV_POSITION") => AddBuiltin(variable, BuiltIn.Position),
+                    (not ExecutionModel.Fragment, StreamVariableType.Output, "SV_POSITION") => AddBuiltin(variable, BuiltIn.Position),
                     (not ExecutionModel.Fragment and not ExecutionModel.Vertex, StreamVariableType.Input, "SV_POSITION") => AddBuiltin(variable, BuiltIn.Position),
                     (ExecutionModel.Fragment, StreamVariableType.Input, "SV_POSITION") => AddBuiltin(variable, BuiltIn.FragCoord),
                     // SV_InstanceID/SV_VertexID
@@ -734,17 +759,19 @@ namespace Stride.Shaders.Spirv.Processing
                 };
             }
 
+            var entryPointFunctionType = (FunctionType)entryPoint.Type;
+            var geometryInputSize = executionModel == ExecutionModel.Geometry ? ((ArrayType)((PointerType)entryPointFunctionType.ParameterTypes[0].Type).BaseType).Size : 1;
+
             foreach (var stream in streams)
             {
-                var baseType = stream.Value.Type.BaseType;
-
-                if (stream.Value.UsedThisStage)
-                    privateStreams.Add(stream.Value);
-
                 if (stream.Value.Input)
                 {
-                    context.FluentAdd(new OpTypePointer(context.Bound++, StorageClass.Input, context.Types[baseType]), out var pointerType);
-                    context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Input, null), out var variable);
+                    // Note: for geometry shader, we process multiple inputs at once (in an array)
+                    var streamInputType = new PointerType(executionModel == ExecutionModel.Geometry
+                        ? new ArrayType(stream.Value.Type, geometryInputSize)
+                        : stream.Value.Type,
+                        Specification.StorageClass.Input);
+                    context.FluentAdd(new OpVariable(context.GetOrRegister(streamInputType), context.Bound++, Specification.StorageClass.Input, null), out var variable);
                     context.AddName(variable, $"in_{stage}_{stream.Value.Name}");
 
                     if (!ProcessBuiltinsDecoration(variable.ResultId, StreamVariableType.Input, stream.Value))
@@ -756,16 +783,17 @@ namespace Stride.Shaders.Spirv.Processing
                             context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Semantic));
                     }
                     
-                    if (!baseType.GetElementType().IsFloating())
+                    if (!stream.Value.Type.GetElementType().IsFloating())
                         context.Add(new OpDecorate(variable, Decoration.Flat, []));
 
+                    stream.Value.InputId = variable.ResultId;
                     inputStreams.Add((stream.Value, variable.ResultId));
                 }
 
                 if (stream.Value.Output)
                 {
-                    context.FluentAdd(new OpTypePointer(context.Bound++, StorageClass.Output, context.Types[baseType]), out var pointerType);
-                    context.FluentAdd(new OpVariable(pointerType, context.Bound++, StorageClass.Output, null), out var variable);
+                    var streamOutputType = new PointerType(stream.Value.Type, Specification.StorageClass.Output);
+                    context.FluentAdd(new OpVariable(context.GetOrRegister(streamOutputType), context.Bound++, Specification.StorageClass.Output, null), out var variable);
                     context.AddName(variable, $"out_{stage}_{stream.Value.Name}");
 
                     if (!ProcessBuiltinsDecoration(variable.ResultId, StreamVariableType.Output, stream.Value))
@@ -784,24 +812,49 @@ namespace Stride.Shaders.Spirv.Processing
                             context.Add(new OpDecorateString(variable, Decoration.UserSemantic, stream.Value.Semantic));
                     }
                     
-                    if (!baseType.GetElementType().IsFloating())
+                    if (!stream.Value.Type.GetElementType().IsFloating())
                         context.Add(new OpDecorate(variable, Decoration.Flat, []));
 
+                    stream.Value.OutputId = variable.ResultId;
                     outputStreams.Add((stream.Value, variable.ResultId));
                 }
             }
 
             var fields = new List<StructuredTypeMember>();
-            foreach (var stream in privateStreams)
+            var inputFields = new List<StructuredTypeMember>();
+            var outputFields = new List<StructuredTypeMember>();
+            foreach (var stream in streams)
             {
-                stream.StreamStructFieldIndex = fields.Count;
-                fields.Add(new(stream.Name, stream.Type.BaseType, default));
+                stream.Value.InputStructFieldIndex = null;
+                stream.Value.OutputStructFieldIndex = null;
+                if (stream.Value.UsedThisStage)
+                {
+                    stream.Value.StreamStructFieldIndex = fields.Count;
+                    fields.Add(new(stream.Value.Name, stream.Value.Type, default));
+                }
             }
+
+            foreach (var stream in inputStreams)
+            {
+                stream.Info.InputStructFieldIndex = inputFields.Count;
+                inputFields.Add(new(stream.Info.Name, stream.Info.Type, default));
+            }
+
+            foreach (var stream in outputStreams)
+            {
+                stream.Info.OutputStructFieldIndex = outputFields.Count;
+                outputFields.Add(new(stream.Info.Name, stream.Info.Type, default));
+            }
+
+            var inputType = new StructType($"{stage}_INPUT", inputFields);
+            var outputType = new StructType($"{stage}_OUTPUT", outputFields);
             var streamsType = new StructType($"{stage}_STREAMS", fields);
-            context.DeclareStructuredType(streamsType);
+            context.DeclareStructuredType(inputType, context.Bound++);
+            context.DeclareStructuredType(outputType, context.Bound++);
+            context.DeclareStructuredType(streamsType, context.Bound++);
 
             // Create a static global streams variable
-            context.FluentAdd(new OpVariable(context.GetOrRegister(new PointerType(streamsType, StorageClass.Private)), context.Bound++, StorageClass.Private, null), out var streamsVariable);
+            context.FluentAdd(new OpVariable(context.GetOrRegister(new PointerType(streamsType, Specification.StorageClass.Private)), context.Bound++, Specification.StorageClass.Private, null), out var streamsVariable);
             context.AddName(streamsVariable.ResultId, $"streams{stage}");
 
             // Patch any OpStreams/OpAccessChain to use the new struct
@@ -810,7 +863,7 @@ namespace Stride.Shaders.Spirv.Processing
                 if (method.Value.UsedThisStage && method.Value.HasStreamAccess)
                 {
                     DuplicateMethodIfNecessary(buffer, context, method.Key, analysisResult, liveAnalysis);
-                    PatchStreamsAccesses(buffer, context, method.Key, streamsType, streamsVariable.ResultId, analysisResult, liveAnalysis);
+                    PatchStreamsAccesses(table, buffer, context, method.Key, streamsType, inputType, outputType, streamsVariable.ResultId, analysisResult, liveAnalysis);
                 }
             }
 
@@ -820,7 +873,8 @@ namespace Stride.Shaders.Spirv.Processing
             var newEntryPointFunctionType = context.GetOrRegister(new FunctionType(ScalarType.Void, []));
             buffer.FluentAdd(new OpFunction(voidType, context.Bound++, FunctionControlMask.None, newEntryPointFunctionType), out var newEntryPointFunction);
             buffer.Add(new OpLabel(context.Bound++));
-            entryPointName = $"{entryPointName}_Wrapper";
+            var variableInsertIndex = buffer.Count;
+            var entryPointName = $"{entryPoint.Id.Name}_Wrapper";
             context.AddName(newEntryPointFunction, entryPointName);
 
             {
@@ -839,24 +893,84 @@ namespace Stride.Shaders.Spirv.Processing
                     }
                 }
 
-                // Copy variables from input to streams struct
-                foreach (var stream in inputStreams)
+                // Setup input and call original main()
+                if (executionModel == ExecutionModel.Geometry)
                 {
-                    var baseType = stream.Info.Type.BaseType;
-                    buffer.FluentAdd(new OpAccessChain(context.Types[stream.Info.Type], context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id]), out var streamPointer);
-                    buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, stream.Id, null, []), out var loadedValue);
-                    buffer.Add(new OpStore(streamPointer.ResultId, loadedValue.ResultId, null, []));
+                    context.Add(new OpCapability(Capability.Geometry));
+
+                    // Copy variables to Input[X] which is first method parameter of main()
+                    // Pattern is a loop over index i looking like:
+                    //  inputs[i].Position = gl_Position[i];
+                    //  inputs[i].Normal = in_GS_normals[i];
+                    var inputsVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(new ArrayType(inputType, geometryInputSize), Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
+                    context.AddName(inputsVariable, "inputs");
+
+                    Span<int> inputLoadValues = stackalloc int[inputFields.Count];
+                    for (var inputIndex = 0; inputIndex < inputStreams.Count; inputIndex++)
+                    {
+                        var stream = inputStreams[inputIndex];
+                        buffer.FluentAdd(new OpLoad(context.GetOrRegister(new ArrayType(stream.Info.Type, geometryInputSize)), context.Bound++, stream.Id, null, []), out var loadedValue);
+                        inputLoadValues[inputIndex] = loadedValue.ResultId;
+                    }
+                    
+                    Span<int> inputFieldValues = stackalloc int[inputFields.Count];
+                    Span<int> inputValues = stackalloc int[geometryInputSize];
+                    for (int arrayIndex = 0; arrayIndex < geometryInputSize; ++arrayIndex)
+                    {
+                        for (var inputIndex = 0; inputIndex < inputStreams.Count; inputIndex++)
+                        {
+                            var stream = inputStreams[inputIndex];
+                            inputFieldValues[inputIndex] = buffer.Add(new OpCompositeExtract(context.Types[stream.Info.Type], context.Bound++, inputLoadValues[inputIndex], [arrayIndex])).IdResult.Value;
+                        }
+                        
+                        inputValues[arrayIndex] = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(inputType), context.Bound++, [..inputFieldValues])).IdResult.Value;
+                    }
+                    
+                    var inputsData = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(new ArrayType(inputType, geometryInputSize)), context.Bound++, [..inputValues])).IdResult.Value;
+                    buffer.Add(new OpStore(inputsVariable, inputsData, null, []));
+                    
+                    // Change signature of main() to not use output anymore
+                    // Note: OpFunctionParameter will be removed as part of PatchStreamsAccesses()
+                    var entryPointTypeId = context.RemoveType(entryPoint.Type);
+                    entryPoint.Type = entryPointFunctionType with { ParameterTypes = entryPointFunctionType.ParameterTypes[0..^1] };
+                    var executionMode = entryPointFunctionType.ParameterTypes[0].Modifiers;
+                    if (executionMode == ParameterModifiers.None)
+                        throw new InvalidOperationException("Execution mode primitive is missing for first parameter of geometry shader");
+                    context.Add(new OpExecutionMode(entryPoint.IdRef, executionMode switch
+                    {
+                        ParameterModifiers.Point => ExecutionMode.InputPoints,
+                        ParameterModifiers.Line => ExecutionMode.InputLines,
+                        ParameterModifiers.LineAdjacency => ExecutionMode.InputLinesAdjacency,
+                        ParameterModifiers.Triangle => ExecutionMode.Triangles,
+                        ParameterModifiers.TriangleAdjacency => ExecutionMode.InputTrianglesAdjacency,
+                    }, []));
+                    entryPointFunctionType.ParameterTypes[0] = entryPointFunctionType.ParameterTypes[0] with { Modifiers = ParameterModifiers.None };
+                    context.RegisterType(entryPoint.Type, entryPointTypeId);
+                    
+                    // Call main(inputs)
+                    buffer.Add(new OpFunctionCall(voidType, context.Bound++, entryPoint.IdRef, [inputsVariable]));
                 }
-
-                buffer.Add(new OpFunctionCall(voidType, context.Bound++, entryPointId, []));
-
-                // Copy variables from streams struct to output
-                foreach (var stream in outputStreams)
+                else
                 {
-                    var baseType = stream.Info.Type.BaseType;
-                    buffer.FluentAdd(new OpAccessChain(context.Types[stream.Info.Type], context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id]), out var streamPointer);
-                    buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, streamPointer.ResultId, null, []), out var loadedValue);
-                    buffer.Add(new OpStore(stream.Id, loadedValue.ResultId, null, []));
+                    // Copy variables from input to streams struct
+                    foreach (var stream in inputStreams)
+                    {
+                        buffer.FluentAdd(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Private)), context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id]), out var streamPointer);
+                        buffer.FluentAdd(new OpLoad(context.Types[stream.Info.Type], context.Bound++, stream.Id, null, []), out var loadedValue);
+                        buffer.Add(new OpStore(streamPointer.ResultId, loadedValue.ResultId, null, []));
+                    }
+                    
+                    // Call main()
+                    buffer.Add(new OpFunctionCall(voidType, context.Bound++, entryPoint.IdRef, []));
+                    
+                    // Copy variables from streams struct to output
+                    foreach (var stream in outputStreams)
+                    {
+                        var baseType = stream.Info.Type;
+                        buffer.FluentAdd(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Private)), context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id]), out var streamPointer);
+                        buffer.FluentAdd(new OpLoad(context.Types[baseType], context.Bound++, streamPointer.ResultId, null, []), out var loadedValue);
+                        buffer.Add(new OpStore(stream.Id, loadedValue.ResultId, null, []));
+                    }
                 }
 
                 buffer.Add(new OpReturn());
@@ -888,6 +1002,16 @@ namespace Stride.Shaders.Spirv.Processing
 
                 liveAnalysis.ExtraReferencedMethods.Add(newEntryPointFunction);
                 context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, entryPointName, [.. pvariables.Slice(0, pvariableIndex)]));
+            }
+            
+            // Move OpExecutionMode on new wrapper
+            foreach (var i in context)
+            {
+                if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is { } executionMode)
+                {
+                    if (executionMode.EntryPoint == entryPoint.IdRef)
+                        executionMode.EntryPoint = newEntryPointFunction.ResultId;
+                }
             }
 
             return (newEntryPointFunction.ResultId, entryPointName);
@@ -947,11 +1071,16 @@ namespace Stride.Shaders.Spirv.Processing
             }
         }
 
-        class StreamsTypeReplace(SymbolType streamsReplacement) : TypeRewriter
+        class StreamsTypeReplace(SymbolType streamsReplacement, SymbolType inputReplacement, SymbolType outputReplacement) : TypeRewriter
         {
             public override SymbolType Visit(StreamsType streamsType)
             {
-                return streamsReplacement;
+                return streamsType.Kind switch
+                {
+                    StreamsKindSDSL.Streams => streamsReplacement,
+                    StreamsKindSDSL.Input => inputReplacement,
+                    StreamsKindSDSL.Output => outputReplacement,
+                };
             }
         }
 
@@ -962,9 +1091,13 @@ namespace Stride.Shaders.Spirv.Processing
             {
                 Found = true;
             }
+            public override void Visit(GeometryStreamType geometryStreamsType)
+            {
+                Found = true;
+            }
         }
 
-        void PatchStreamsAccesses(NewSpirvBuffer buffer, SpirvContext context, int functionId, StructType streamsStructType, int streamsVariableId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
+        void PatchStreamsAccesses(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context, int functionId, StructType streamsStructType, StructType inputStructType, StructType outputStructType, int streamsVariableId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
         {
             var methodInfo = liveAnalysis.GetOrCreateMethodInfo(functionId);
 
@@ -977,22 +1110,42 @@ namespace Stride.Shaders.Spirv.Processing
             var method = (OpFunction)buffer[methodStart];
             var methodType = (FunctionType)context.ReverseTypes[method.FunctionType];
 
-            methodType = (FunctionType)new StreamsTypeReplace(streamsStructType).Visit(methodType);
-            method.FunctionType = context.GetOrRegister(methodType);
-
-            // Remap ids for streams type to actual struct type
-            var remapIds = new Dictionary<int, int>
+            var streamTypeReplacer = new StreamsTypeReplace(streamsStructType, inputStructType, outputStructType);
+            var newMethodType = (FunctionType)streamTypeReplacer.Visit(methodType);
+            if (!ReferenceEquals(newMethodType, methodType))
             {
-                { context.GetOrRegister(new StreamsType()), context.GetOrRegister(streamsStructType) },
-                { context.GetOrRegister(new PointerType(new StreamsType(), StorageClass.Private)), context.GetOrRegister(new PointerType(streamsStructType, StorageClass.Private)) },
-                { context.GetOrRegister(new PointerType(new StreamsType(), StorageClass.Function)), context.GetOrRegister(new PointerType(streamsStructType, StorageClass.Function)) },
-            };
+                methodType = newMethodType;
+                method.FunctionType = context.GetOrRegister(methodType);
+                var symbol = table.ResolveSymbol(functionId);
+                symbol.Type = methodType;
+            }
+
+            
+            // Remap ids for streams type to actual struct type
+            var remapIds = new Dictionary<int, int>();
+            var processedIds = new HashSet<int>();
+
+            // Check if type contains any Streams/Input/Output (and if yes, register the replacement)
+            void CheckStreamTypes(int id)
+            {
+                if (processedIds.Add(id) && context.ReverseTypes.TryGetValue(id, out var type))
+                {
+                    // New type, check it
+                    var replacedType = streamTypeReplacer.VisitType(type);
+                    if (!ReferenceEquals(replacedType, type))
+                        remapIds.Add(id, context.GetOrRegister(replacedType));
+                }
+            }
 
             // TODO: remap method type!
-            for (int index = methodStart; index < methodEnd; ++index)
+            Span<int> tempIdsForStreamCopy = stackalloc int[streams.Values.Count];
+            for (int index = methodStart; ; ++index)
             {
                 var i = buffer[index];
 
+                if (i.Op == Op.OpFunctionEnd)
+                    break;
+                
                 if (i.Op == Op.OpStreamsSDSL && (OpStreamsSDSL)i is { } streamsInstruction)
                 {
                     streamsInstructionIds.Add(streamsInstruction.ResultId, true);
@@ -1010,6 +1163,9 @@ namespace Stride.Shaders.Spirv.Processing
                     var type = context.ReverseTypes[functionParameter.ResultType];
                     if (type is PointerType { BaseType: StreamsType })
                         streamsInstructionIds.Add(functionParameter.ResultId, false);
+                    // Remove StreamOutput parameter
+                    else if (type is PointerType { BaseType: GeometryStreamType })
+                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
                 }
                 else if (i.Op == Op.OpAccessChain && (OpAccessChain)i is { } accessChain)
                 {
@@ -1032,6 +1188,73 @@ namespace Stride.Shaders.Spirv.Processing
                             accessChain.BaseId = accessChain.BaseId; 
                     }
                 }
+                else if (i.Op == Op.OpCopyLogical && (OpCopyLogical)i is { } copyLogical)
+                {
+                    // Cast input to streams
+                    var targetType = context.ReverseTypes[copyLogical.ResultType];
+                    if (targetType is StreamsType { Kind: StreamsKindSDSL.Streams })
+                    {
+                        foreach (var stream in streams)
+                        {
+                            // Part of streams?
+                            if (stream.Value.UsedThisStage)
+                            {
+                                if (stream.Value.Input)
+                                {
+                                    // Extract value from streams
+                                    tempIdsForStreamCopy[stream.Value.StreamStructFieldIndex] = buffer.Insert(index++,
+                                        new OpCompositeExtract(context.GetOrRegister(stream.Value.Type),
+                                            context.Bound++,
+                                            copyLogical.Operand,
+                                            [stream.Value.InputStructFieldIndex.Value])).ResultId;
+                                }
+                                else
+                                {
+                                    // Otherwise use default value
+                                    tempIdsForStreamCopy[stream.Value.StreamStructFieldIndex] = context.CreateDefaultConstantComposite(stream.Value.Type).Id;
+                                }
+                            }
+                        }
+                        
+                        // Update index (otherwise copyLogical fields will point to invalid data)
+                        i.Index = index;
+                        buffer.Replace(index, new OpCompositeConstruct(copyLogical.ResultType, copyLogical.ResultId, [..tempIdsForStreamCopy.Slice(0, streamsStructType.Members.Count)]));
+                    }
+                    else if (targetType is StreamsType { Kind: StreamsKindSDSL.Output })
+                    {
+                        foreach (var stream in streams)
+                        {
+                            // Part of streams?
+                            if (stream.Value.Output)
+                            {
+                                // Extract value from streams
+                                tempIdsForStreamCopy[stream.Value.OutputStructFieldIndex.Value] = buffer.Insert(index++,
+                                    new OpCompositeExtract(context.GetOrRegister(stream.Value.Type),
+                                        context.Bound++,
+                                        copyLogical.Operand,
+                                        [stream.Value.StreamStructFieldIndex])).ResultId;
+                            }
+                        }
+                        
+                        // Update index (otherwise copyLogical fields will point to invalid data)
+                        i.Index = index;
+                        buffer.Replace(index, new OpCompositeConstruct(copyLogical.ResultType, copyLogical.ResultId, [..tempIdsForStreamCopy.Slice(0, outputStructType.Members.Count)]));
+                    }
+                }
+                else if (i.Op == Op.OpEmitVertexSDSL && (OpEmitVertexSDSL)i is { } emitVertex)
+                {
+                    var output = emitVertex.Output;
+                    foreach (var stream in streams)
+                    {
+                        if (stream.Value.Output)
+                        {
+                            var outputValue = buffer.Insert(index++, new OpCompositeExtract(context.GetOrRegister(stream.Value.Type), context.Bound++, output, [stream.Value.OutputStructFieldIndex.Value])).ResultId;
+                            buffer.Insert(index++, new OpStore(stream.Value.OutputId.Value, outputValue, MemoryAccessMask.None, []));
+                        }
+                    }
+
+                    buffer.Replace(index, new OpEmitVertex());
+                }
                 else if (i.Op == Op.OpFunctionCall && (OpFunctionCall)i is { } call)
                 {
                     var calledMethodInfo = liveAnalysis.ReferencedMethods[call.Function];
@@ -1040,6 +1263,8 @@ namespace Stride.Shaders.Spirv.Processing
                         call.Function = updatedMethodId;
                 }
 
+                SpirvBuilder.CollectIds(i.Data, CheckStreamTypes);
+                
                 SpirvBuilder.RemapIds(remapIds, ref i.Data);
             }
         }

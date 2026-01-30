@@ -35,6 +35,7 @@ public class D3D11FrameRenderer(uint width = 800, uint height = 600, byte[]? fra
     ComPtr<ID3D11Buffer> vertexBuffer = default;
     ComPtr<ID3D11Buffer> indexBuffer = default;
     ComPtr<ID3D11VertexShader> vertexShader = default;
+    ComPtr<ID3D11GeometryShader> geometryShader = default;
     ComPtr<ID3D11PixelShader> pixelShader = default;
     ComPtr<ID3D11ComputeShader> computeShader = default;
     ComPtr<ID3D11InputLayout> inputLayout = default;
@@ -62,6 +63,8 @@ vs_out main(vs_in input) {
         ";
 
     public string? ComputeShaderSource;
+
+    public string? GeometryShaderSource;
 
     //Fragment shaders are run on each fragment/pixel of the geometry.
     public string PixelShaderSource = @"
@@ -107,7 +110,7 @@ float4 main(vs_out input) : SV_TARGET {
         (
             in sourceBytes[0],
             (nuint)sourceBytes.Length,
-            nameof(VertexShaderSource),
+            nameof(source),
             null,
             ref Unsafe.NullRef<ID3DInclude>(),
             "main",
@@ -280,6 +283,7 @@ float4 main(vs_out input) : SV_TARGET {
         BufferDesc bufferDesc;
         // Compile vertex shader.
         ComPtr<ID3D10Blob> vertexCode = CompileShader("vs_5_0", VertexShaderSource);
+        ComPtr<ID3D10Blob> geometryCode = GeometryShaderSource != null ? CompileShader("gs_5_0", GeometryShaderSource) : null;
         ComPtr<ID3D10Blob> pixelCode = CompileShader("ps_5_0", PixelShaderSource);
 
         // Create vertex shader.
@@ -293,6 +297,21 @@ float4 main(vs_out input) : SV_TARGET {
                 ref vertexShader
             )
         );
+        
+        // Create geometry shader.
+        if (geometryCode.Handle != null)
+        {
+            SilkMarshal.ThrowHResult
+            (
+                device.CreateGeometryShader
+                (
+                    geometryCode.GetBufferPointer(),
+                    geometryCode.GetBufferSize(),
+                    ref Unsafe.NullRef<ID3D11ClassLinkage>(),
+                    ref geometryShader
+                )
+            );
+        }
 
         // Create pixel shader.
         SilkMarshal.ThrowHResult
@@ -460,6 +479,8 @@ float4 main(vs_out input) : SV_TARGET {
 
         // Bind our shaders.
         deviceContext.VSSetShader(vertexShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
+        if (geometryShader.Handle != null)
+            deviceContext.GSSetShader(geometryShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
         deviceContext.PSSetShader(pixelShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
 
         ApplyParameters();
@@ -542,6 +563,7 @@ float4 main(vs_out input) : SV_TARGET {
                 }
                 deviceContext.CSSetConstantBuffers((uint)resourceReflection.SlotStart, 1U, &cbuffer.Handle);
                 deviceContext.VSSetConstantBuffers((uint)resourceReflection.SlotStart, 1U, &cbuffer.Handle);
+                deviceContext.GSSetConstantBuffers((uint)resourceReflection.SlotStart, 1U, &cbuffer.Handle);
                 deviceContext.PSSetConstantBuffers((uint)resourceReflection.SlotStart, 1U, &cbuffer.Handle);
             }
             else if (resourceType == "buffer")
@@ -596,6 +618,7 @@ float4 main(vs_out input) : SV_TARGET {
 
                 deviceContext.CSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
                 deviceContext.VSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
+                deviceContext.GSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
                 deviceContext.PSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
             }
             else if (resourceType == "texture")
@@ -662,6 +685,7 @@ float4 main(vs_out input) : SV_TARGET {
 
                 deviceContext.CSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &textureSRV.Handle);
                 deviceContext.VSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &textureSRV.Handle);
+                deviceContext.GSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &textureSRV.Handle);
                 deviceContext.PSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &textureSRV.Handle);
             }
         }

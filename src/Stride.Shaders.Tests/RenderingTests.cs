@@ -128,9 +128,14 @@ public class RenderingTests
         var codeVS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex))
             ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
             : null;
+        var codeGS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Geometry))
+            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Geometry))
+            : null;
 
         if (codeVS != null)
             Console.WriteLine(codeVS);
+        if (codeGS != null)
+            Console.WriteLine(codeGS);
         Console.WriteLine(codePS);
 
         // Execute test
@@ -138,6 +143,8 @@ public class RenderingTests
 
         if (codeVS != null)
             renderer.VertexShaderSource = codeVS;
+        if (codeGS != null)
+            renderer.GeometryShaderSource = codeGS;
         renderer.PixelShaderSource = codePS;
         renderer.EffectReflection = effectReflection;
         

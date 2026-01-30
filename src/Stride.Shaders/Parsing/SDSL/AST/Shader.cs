@@ -234,9 +234,13 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 RegisterType(typeGeneric.ResultId, new GenericParameterType(typeGeneric.Kind));
             }
-            else if (instruction.Op == Op.OpTypeStreamsSDSL && (OpTypePointer)instruction is { } typeStreams)
+            else if (instruction.Op == Op.OpTypeStreamsSDSL && (OpTypeStreamsSDSL)instruction is { } typeStreams)
             {
-                RegisterType(typeStreams.ResultId, new StreamsType());
+                RegisterType(typeStreams.ResultId, new StreamsType(typeStreams.Kind));
+            }
+            else if (instruction.Op == Op.OpTypeGeometryStreamOutputSDSL && (OpTypeGeometryStreamOutputSDSL)instruction is { } typeGeometryStreamOutput)
+            {
+                RegisterType(typeGeometryStreamOutput.ResultId, new GeometryStreamType(context.ReverseTypes[typeGeometryStreamOutput.BaseType], typeGeometryStreamOutput.Kind));
             }
             // Unresolved content
             // This only happens during EvaluateInheritanceAndCompositions so it's not important to have all information valid

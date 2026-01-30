@@ -45,6 +45,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var temp = new NewSpirvBuffer();
 
         var context = new SpirvContext();
+        context.Add(new OpCapability(Capability.Shader));
+        context.Add(new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
         var shaderLoader = new CaptureLoadedShaders(ShaderLoader);
         var table = new SymbolTable(context) { ShaderLoader = shaderLoader };
 
@@ -61,10 +63,24 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         var rootMixin = MergeMixinNode(globalContext, context, table, temp, shaderSource2);
         
-        context.Insert(0, new OpCapability(Capability.Shader));
-        context.Insert(1, new OpCapability(Capability.SampledBuffer));
-        context.Insert(2, new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
-        
+        // Add optional capabilities
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Buffer && typeImage.Sampled is 0 or 1)
+            {
+                context.Add(new OpCapability(Capability.SampledBuffer));
+                break;
+            }
+        }
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Buffer && typeImage.Sampled is 2)
+            {
+                context.Add(new OpCapability(Capability.ImageBuffer));
+                break;
+            }
+        }
+
         // Process streams and remove unused code/cbuffer/variable/resources
         var interfaceProcessor = new InterfaceProcessor
         {
@@ -983,7 +999,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             
             // Collect IDs (except for OpName/OpDecorate/OpDecorateString metadata)
             if (i.Op != Op.OpName && i.Op != Op.OpDecorate && i.Op != Op.OpDecorateString)
-                SpirvBuilder.CollectIds(i.Data, ids);
+                SpirvBuilder.CollectIds(i.Data, id => ids.Add(id));
         }
 
         // Remove unnecessary OpName/OpDecorate/OpDecorateString

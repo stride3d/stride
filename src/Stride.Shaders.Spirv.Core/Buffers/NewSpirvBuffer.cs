@@ -368,7 +368,7 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         Instructions.RemoveRange(index, count);
     }
 
-    public void InsertRange(int index, ReadOnlySpan<OpData> source)
+    public void InsertRange(int index, params ReadOnlySpan<OpData> source)
     {
         Instructions.InsertRange(index, source);
     }

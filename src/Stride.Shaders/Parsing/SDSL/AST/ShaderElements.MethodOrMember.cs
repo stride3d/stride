@@ -443,22 +443,37 @@ public class ShaderMethod(
 
         foreach (var attribute in Attributes)
         {
-            if (attribute is AnyShaderAttribute numThreads && numThreads.Name == "numthreads")
+            if (attribute is AnyShaderAttribute anyAttribute)
             {
-                Span<int> parameters = stackalloc int[numThreads.Parameters.Count];
-                for (var index = 0; index < numThreads.Parameters.Count; index++)
+                if (anyAttribute.Name == "numthreads")
                 {
-                    var parameter = numThreads.Parameters[index];
-                    
-                    // TODO: avoid emitting in context (use a temp buffer?)
-                    var constantArraySize = parameter.CompileConstantValue(table, context);
-                    if (!context.TryGetConstantValue(constantArraySize.Id, out var value, out _, false))
-                        throw new InvalidOperationException();
-                    
-                    parameters[index] = (int)value;
-                }
+                    Span<int> parameters = stackalloc int[anyAttribute.Parameters.Count];
+                    for (var index = 0; index < anyAttribute.Parameters.Count; index++)
+                    {
+                        var parameter = anyAttribute.Parameters[index];
 
-                context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.LocalSize, new(parameters)));
+                        // TODO: avoid emitting in context (use a temp buffer?)
+                        var constantArraySize = parameter.CompileConstantValue(table, context);
+                        if (!context.TryGetConstantValue(constantArraySize.Id, out var value, out _, false))
+                            throw new InvalidOperationException();
+
+                        parameters[index] = (int)value;
+                    }
+                    
+                    context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.LocalSize, new(parameters)));
+                }
+                else if (anyAttribute.Name == "maxvertexcount")
+                {
+                    var maxVertexCount = anyAttribute.Parameters[0].CompileConstantValue(table, context);
+                    if (!context.TryGetConstantValue(maxVertexCount.Id, out var maxVertexCountValue, out _, false))
+                        throw new InvalidOperationException();
+
+                    context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new((int)maxVertexCountValue)));
+                }
+                else
+                {
+                    throw new NotImplementedException($"Can't parse method attribute {anyAttribute} on method {Name}");
+                }
             }
         }
 

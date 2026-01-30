@@ -345,7 +345,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         if (Name == "this" || Name == "base")
             Type = new PointerType(new ShaderMixinType(), Specification.StorageClass.Private);
         else if (Name == "streams")
-            Type = new PointerType(new StreamsType(), Specification.StorageClass.Private);
+            Type = new PointerType(new StreamsType(Specification.StreamsKindSDSL.Streams), Specification.StorageClass.Private);
         else
         {
             if (!table.TryResolveSymbol(Name, out var symbol))
@@ -406,9 +406,9 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         if (Name == "streams")
         {
             var result = builder.Insert(new OpStreamsSDSL(context.Bound++));
-            return new(result.ResultId, context.GetOrRegister(new PointerType(new StreamsType(), Specification.StorageClass.Private)));
+            return new(result.ResultId, context.GetOrRegister(new PointerType(new StreamsType(Specification.StreamsKindSDSL.Streams), Specification.StorageClass.Private)));
         }
-
+        
         var symbol = LoadedShaderSymbol.ImportSymbol(table, context, ResolvedSymbol);
         return EmitSymbol(builder, context, symbol, constantOnly);
     }
@@ -604,9 +604,9 @@ public class TypeName(string name, TextLocation info) : Literal(info)
         {
             symbolType = new GenericParameterType(Specification.GenericParameterKindSDSL.MemberNameResolved);
         }
-        else if (Name == "Streams")
+        else if (Name == "Streams" || Name == "Input" || Name == "Output")
         {
-            symbolType = new StreamsType();
+            symbolType = new StreamsType(Enum.Parse<Specification.StreamsKindSDSL>(Name));
         }
         else
         {
@@ -614,6 +614,15 @@ public class TypeName(string name, TextLocation info) : Literal(info)
             if (table.DeclaredTypes.TryGetValue(fullTypeName, out symbolType))
             {
 
+            }
+            else if (Name == "PointStream" || Name == "LineStream" || Name == "TriangleStream")
+            {
+                symbolType = new GeometryStreamType(Generics[0].ResolveType(table, context), Name switch
+                {
+                    "PointStream" => Specification.GeometryStreamOutputKindSDSL.Point,
+                    "LineStream" => Specification.GeometryStreamOutputKindSDSL.Line,
+                    "TriangleStream" => Specification.GeometryStreamOutputKindSDSL.Triangle,
+                });
             }
             else if (SymbolType.TryGetNumeric(Name, out var numeric))
             {

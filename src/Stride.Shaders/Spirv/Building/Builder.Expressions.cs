@@ -354,6 +354,12 @@ public partial class SpirvBuilder
                 return int.MaxValue;
             }
         }
+
+        if (castType is StreamsType { Kind: var targetKind }
+            && valueType is StreamsType { Kind: var sourceKind }
+            // Note: order is Input, Streams, Output
+            && targetKind > sourceKind)
+            return 1;
         
         // We don't support cast with object yet, filter for numeral types
         if ((castType is not ScalarType && castType is not VectorType && castType is not MatrixType)
@@ -433,6 +439,14 @@ public partial class SpirvBuilder
             {
                 throw new InvalidOperationException(($"Can't cast between array of different types (cast from {valueType} to {castType})"));
             }
+        }
+
+        if (castType is StreamsType { Kind: var targetKind }
+            && valueType is StreamsType { Kind: var sourceKind }
+            // Note: order is Input, Streams, Output
+            && targetKind > sourceKind)
+        {
+            return new(InsertData(new OpCopyLogical(context.GetOrRegister(castType), context.Bound++, value.Id)));
         }
 
         // We don't support cast with object yet, filter for numeral types
@@ -526,15 +540,15 @@ public partial class SpirvBuilder
                     (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Int }) => InsertData(new OpConvertFToS(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
                     (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.UInt }) => InsertData(new OpConvertFToU(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
 
-                    (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Boolean }) => InsertData(new OpFOrdNotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 0.0, null, new()), elementSize).Id)),
-                    (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Boolean }) => InsertData(new OpINotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 0, new()), elementSize).Id)),
-                    (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Boolean }) => InsertData(new OpINotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, false), 0, new()), elementSize).Id)),
+                    (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Boolean }) => InsertData(new OpFOrdNotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeVectorRepeat(new FloatLiteral(new(32, true, true), 0.0, null, new()), elementSize).Id)),
+                    (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Boolean }) => InsertData(new OpINotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeVectorRepeat(new IntegerLiteral(new(32, false, true), 0, new()), elementSize).Id)),
+                    (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Boolean }) => InsertData(new OpINotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeVectorRepeat(new IntegerLiteral(new(32, false, false), 0, new()), elementSize).Id)),
 
                     (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Float }) => InsertData(new OpConvertSToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
                     (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Float }) => InsertData(new OpConvertUToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
 
-                    (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Int }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new IntegerLiteral(new(32, false, true), 1, new()), elementSize).Id, context.CompileConstant(0).Id)),
-                    (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Float }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeRepeat(new FloatLiteral(new(32, true, true), 1.0, null, new()), elementSize).Id, context.CompileConstant(0.0).Id)),
+                    (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Int }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeVectorRepeat(new IntegerLiteral(new(32, false, true), 1, new()), elementSize).Id, context.CompileConstant(0).Id)),
+                    (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Float }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeVectorRepeat(new FloatLiteral(new(32, true, true), 1.0, null, new()), elementSize).Id, context.CompileConstant(0.0).Id)),
 
                     // Bitcast (int=>uint or uint=>int)
                     (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.UInt }) => InsertData(new OpBitcast(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),

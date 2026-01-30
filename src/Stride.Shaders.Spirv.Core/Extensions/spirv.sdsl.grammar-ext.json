@@ -351,7 +351,23 @@
       "opname": "OpTypeStreamsSDSL",
       "class": "Miscellaneous",
       "operands": [
-        { "kind": "IdResult" }
+        { "kind": "IdResult" },
+        {
+          "kind": "StreamsKindSDSL",
+          "name": "kind"
+        }
+      ]
+    },
+    {
+      "opname": "OpTypeGeometryStreamOutputSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        { "kind" : "IdRef", "name" : "'Base Type'" },
+        {
+          "kind": "GeometryStreamOutputKindSDSL",
+          "name": "kind"
+        }
       ]
     },
     {
@@ -381,6 +397,16 @@
         {
           "kind": "LiteralInteger",
           "name": "shaderCodeNameEnd"
+        }
+      ]
+    },
+    {
+      "opname": "OpEmitVertexSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdRef",
+          "name": "Output"
         }
       ]
     }
@@ -625,6 +651,42 @@
         {
           "enumerant": "MemberNameResolved",
           "value": 4
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "StreamsKindSDSL",
+      "enumerants": [
+        {
+          "enumerant": "Input",
+          "value": 1
+        },
+        {
+          "enumerant": "Streams",
+          "value": 2
+        },
+        {
+          "enumerant": "Output",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "GeometryStreamOutputKindSDSL",
+      "enumerants": [
+        {
+          "enumerant": "Point",
+          "value": 1
+        },
+        {
+          "enumerant": "Line",
+          "value": 2
+        },
+        {
+          "enumerant": "Triangle",
+          "value": 3
         }
       ]
     },

@@ -982,6 +982,43 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     PushAccessChainId(accessChainIds, indexerValue.Id);
                     break;
                 }
+                case (PointerType { BaseType: GeometryStreamType geometryStreamOutput },
+                    MethodCall { Name.Name: "Append", Arguments.Values.Count: 1 } methodCall):
+                    if (compiler == null)
+                    {
+                        ((MethodCall)accessor).ProcessParameterSymbols(table, null);
+                        accessor.Type = ScalarType.Void;
+                        break;
+                    }
+
+                    // Emit OpAccessChain with everything so far
+                    EmitOpAccessChain(accessChainIds, i - 1);
+
+                    var output = methodCall.Arguments.Values[0].CompileAsValue(table, compiler);
+                    var streamsType = (StreamsType)methodCall.Arguments.Values[0].ValueType;
+                    // Note: if it was a Streams, implicit cast it to Output
+                    if (streamsType.Kind == StreamsKindSDSL.Streams)
+                        output = new (builder.InsertData(new OpCopyLogical(context.GetOrRegister(new StreamsType(StreamsKindSDSL.Output)), context.Bound++, output.Id)));
+                    else if (streamsType.Kind == StreamsKindSDSL.Input)
+                        throw new InvalidOperationException("StreamOutput.Append() only accepts Streams or Output objects");
+                    builder.Insert(new OpEmitVertexSDSL(output.Id));
+                    result = default;
+                    break;
+                case (PointerType { BaseType: GeometryStreamType geometryStreamOutput },
+                    MethodCall { Name.Name: "RestartStrip", Arguments.Values.Count: 0 }):
+                    if (compiler == null)
+                    {
+                        ((MethodCall)accessor).ProcessParameterSymbols(table, null);
+                        accessor.Type = ScalarType.Void;
+                        break;
+                    }
+
+                    // Emit OpAccessChain with everything so far
+                    EmitOpAccessChain(accessChainIds, i - 1);
+
+                    builder.Insert(new OpEndPrimitive());
+                    result = default;
+                    break;
                 case (_, MethodCall methodCall):
                     if (compiler == null)
                     {

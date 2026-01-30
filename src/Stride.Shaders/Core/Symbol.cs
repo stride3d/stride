@@ -54,6 +54,7 @@ public record struct ExternalConstant(SpirvContext SourceContext, int ConstantId
 public record Symbol(SymbolID Id, SymbolType Type, int IdRef, int? AccessChain = null, SymbolType MemberAccessWithImplicitThis = null, ImmutableArray<Symbol> GroupMembers = default, MethodSymbolDefaultParameters? MethodDefaultParameters = null, ExternalConstant? ExternalConstant = null, LoadedShaderSymbol? OwnerType = null)
 {
     public int IdRef { get; set; } = IdRef;
+    public SymbolType Type { get; set; } = Type;
 }
 
 

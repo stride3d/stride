@@ -654,7 +654,7 @@ public partial class SpirvBuilder
         }
     }
     
-    public static void CollectIds(OpData i, HashSet<int> ids)
+    public static void CollectIds(OpData i, Action<int> ids)
     {
         foreach (var op in i)
         {
@@ -666,17 +666,17 @@ public partial class SpirvBuilder
                 || op.Kind == OperandKind.PairIdRefIdRef)
             {
                 foreach (var word in op.Words)
-                    ids.Add(word);
+                    ids(word);
             }
             else if (op.Kind == OperandKind.PairIdRefLiteralInteger)
             {
                 for (int j = 0; j < op.Words.Length; j += 2)
-                    ids.Add(op.Words[j]);
+                    ids(op.Words[j]);
             }
             else if (op.Kind == OperandKind.PairLiteralIntegerIdRef)
             {
                 for (int j = 1; j < op.Words.Length; j += 2)
-                    ids.Add(op.Words[j]);
+                    ids(op.Words[j]);
             }
         }
     }

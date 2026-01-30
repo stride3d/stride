@@ -44,7 +44,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 return;
 
             var globalCBufferType = new ConstantBufferSymbol("Globals", members);
-            var globalCBufferTypeId = context.DeclareCBuffer(globalCBufferType);
+            var globalCBufferTypeId = context.DeclareCBuffer(globalCBufferType, context.Bound++);
             // Transfer metadata from variable to cbuffer member
             var memberMetadata = new CBufferMemberMetadata[members.Count];
             for (var index = 0; index < members.Count; index++)
@@ -264,7 +264,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     var structTypes = cbuffers.Select(x => x.StructType);
 
                     var mergedCbufferStruct = new ConstantBufferSymbol(cbuffersEntry.Key, structTypes.SelectMany(x => x.Members).ToList());
-                    var mergedCbufferStructId = context.DeclareCBuffer(mergedCbufferStruct);
+                    var mergedCbufferStructId = context.DeclareCBuffer(mergedCbufferStruct, context.Bound++);
                     var mergedCbufferPtrStruct = new PointerType(mergedCbufferStruct, Specification.StorageClass.Uniform);
                     var mergedCbufferPtrStructId = context.GetOrRegister(mergedCbufferPtrStruct);
 

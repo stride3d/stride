@@ -227,20 +227,50 @@ public partial class SpirvContext
         throw new Exception("Cannot find type instruction for id " + typeId);
     }
 
-    public unsafe SpirvValue CreateConstantCompositeRepeat(Literal literal, int size)
+    public SpirvValue CreateDefaultConstantComposite(SymbolType type)
+    {
+        // TODO: cache results (either here or even more generally for any composite constant even if non-zero)
+        return type switch
+        {
+            ScalarType { Type: Scalar.Boolean } => CompileConstantLiteral(new BoolLiteral(false, new())),
+            ScalarType { Type: Scalar.Int } => CompileConstantLiteral(new IntegerLiteral(new(32, false, true), 0, new())),
+            ScalarType { Type: Scalar.UInt } => CompileConstantLiteral(new IntegerLiteral(new(32, false, false), 0, new())),
+            ScalarType { Type: Scalar.Int64 } => CompileConstantLiteral(new IntegerLiteral(new(64, false, true), 0, new())),
+            ScalarType { Type: Scalar.UInt64 } => CompileConstantLiteral(new IntegerLiteral(new(64, false, false), 0, new())),
+            ScalarType { Type: Scalar.Float } => CompileConstantLiteral(new FloatLiteral(new(32, true, false), 0.0, null, new())),
+            ScalarType { Type: Scalar.Double } => CompileConstantLiteral(new FloatLiteral(new(64, true, false), 0.0, null, new())),
+            VectorType v => CreateConstantCompositeRepeat(v, CreateDefaultConstantComposite(v.BaseType), v.Size),
+            MatrixType m => CreateConstantCompositeRepeat(m, CreateDefaultConstantComposite(m.BaseType.GetVectorOrScalar(m.Rows)), m.Columns),
+            StructType s => ProcessStruct(s),
+            ArrayType a when a.Size != -1 => CreateConstantCompositeRepeat(a, CreateDefaultConstantComposite(a.BaseType), a.Size),
+        };
+
+        SpirvValue ProcessStruct(StructType structType)
+        {
+            Span<int> values = stackalloc int[structType.Members.Count];
+            for (int i = 0; i < values.Length; ++i)
+                values[i] = CreateDefaultConstantComposite(structType.Members[i].Type).Id;
+            return new(Buffer.Add(new OpConstantComposite(GetOrRegister(type), Bound++, new(values))));
+        }
+    }
+
+    public SpirvValue CreateConstantCompositeVectorRepeat(Literal literal, int size)
     {
         var value = CompileConstantLiteral(literal);
         if (size == 1)
             return value;
-
-        Span<int> values = stackalloc int[size];
-        for (int i = 0; i < size; ++i)
-            values[i] = size;
         
         var type = new VectorType((ScalarType)ReverseTypes[value.TypeId], size);
-        var instruction = Buffer.Add(new OpConstantComposite(GetOrRegister(type), Bound++, new(values)));
+        return CreateConstantCompositeRepeat(type, value, size);
+    }
 
-        return new(instruction);
+    public unsafe SpirvValue CreateConstantCompositeRepeat(SymbolType type, SpirvValue value, int size)
+    {
+        Span<int> values = stackalloc int[size];
+        for (int i = 0; i < size; ++i)
+            values[i] = value.Id;
+        
+        return new(Buffer.Add(new OpConstantComposite(GetOrRegister(type), Bound++, new(values))));
     }
 
     public Literal CreateLiteral(object value, TextLocation location = default)

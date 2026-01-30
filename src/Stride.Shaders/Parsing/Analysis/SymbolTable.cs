@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
@@ -52,7 +53,7 @@ public partial class SymbolTable : ISymbolProvider
         return scope;
     }
 
-    public bool TryResolveSymbol(string name, out Symbol symbol)
+    public bool TryResolveSymbol(string name, [MaybeNullWhen(false)] out Symbol symbol)
     {
         for (int i = CurrentSymbols.Count - 1; i >= 0; i--)
             if (CurrentSymbols[i].TryGetValue(name, out symbol))
@@ -61,25 +62,43 @@ public partial class SymbolTable : ISymbolProvider
         if (CurrentShader != null && CurrentShader.TryResolveSymbol(name, out symbol))
             return true;
 
-        symbol = default;
+        symbol = null;
         return false;
+    }
+
+    public bool TryResolveSymbol(int id, [MaybeNullWhen(false)] out Symbol symbol)
+    {
+        for (int i = CurrentSymbols.Count - 1; i >= 0; --i)
+        {
+            foreach (var symbol2 in CurrentSymbols[i])
+            {
+                if (symbol2.Value.IdRef == id)
+                {
+                    symbol = symbol2.Value;
+                    return true;
+                }
+            }
+        }
+
+        if (CurrentShader != null && CurrentShader.TryResolveSymbol(id, out symbol))
+            return true;
+
+        symbol = null;
+        return false;
+    }
+    
+    public Symbol ResolveSymbol(int id)
+    {
+        if (!TryResolveSymbol(id, out var symbol))
+            throw new NotImplementedException($"Cannot find symbol with ID {id} in main context (current shader is {CurrentShader?.Name}");
+        return symbol;
     }
 
     public Symbol ResolveSymbol(string name)
     {
-        for (int i = CurrentSymbols.Count - 1; i >= 0; --i)
-        {
-            if (CurrentSymbols[i].TryGetValue(name, out var symbol))
-            {
-                return symbol;
-            }
-        }
-
-        if (CurrentShader != null && CurrentShader.TryResolveSymbol(name, out var symbol2))
-            return symbol2;
-
-
-        throw new NotImplementedException($"Cannot find symbol {name} in main context (current shader is {CurrentShader?.Name}");
+        if (!TryResolveSymbol(name, out var symbol))
+            throw new NotImplementedException($"Cannot find symbol {name} in main context (current shader is {CurrentShader?.Name}");
+        return symbol;
     }
 
     public void AddError(SemanticError error)

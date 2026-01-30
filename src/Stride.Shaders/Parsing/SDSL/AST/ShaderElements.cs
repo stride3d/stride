@@ -69,6 +69,12 @@ public enum ParameterModifiers : int
     InOut = In | Out,
 
     Const = 0x10,
+    
+    Point = 0x20,
+    Line = 0x40,
+    LineAdjacency = 0x80,
+    Triangle = 0x100,
+    TriangleAdjacency = 0x200,
 }
 
 public static class ShaderVariableInformationExtensions
@@ -129,6 +135,11 @@ public static class ShaderVariableInformationExtensions
             "out" => ParameterModifiers.Out,
             "inout" => ParameterModifiers.InOut,
             "const" => ParameterModifiers.Const,
+            "point" => ParameterModifiers.Point,
+            "line" => ParameterModifiers.Line,
+            "lineadj" => ParameterModifiers.LineAdjacency,
+            "triangle" => ParameterModifiers.Triangle,
+            "triangleadj" => ParameterModifiers.TriangleAdjacency,
         };
     }
 }
@@ -241,7 +252,7 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
     {
         var (builder, context) = compiler;
         var structType = (StructType)Type;
-        context.DeclareStructuredType(structType);
+        context.DeclareStructuredType(structType, context.Bound++);
     }
 
     public override string ToString()
@@ -347,7 +358,7 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
             Type = constantBufferType = constantBufferType with { Name = typeName };
         }
 
-        context.DeclareCBuffer(constantBufferType);
+        context.DeclareCBuffer(constantBufferType, context.Bound++);
 
         var sid = new SymbolID(Name, SymbolKind.CBuffer, Storage.Uniform);
         Symbol = new Symbol(sid, pointerType, context.Bound++, OwnerType: table.CurrentShader);

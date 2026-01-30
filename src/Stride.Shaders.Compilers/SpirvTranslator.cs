@@ -45,7 +45,6 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
             result.Add((entryPointName, "main", entryPointModel));
         }
 
-
         cross.ContextReleaseAllocations(context);
         cross.ContextDestroy(context);
 

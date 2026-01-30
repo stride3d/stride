@@ -492,6 +492,28 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
         
         throw new InvalidOperationException($"Symbol {symbol} could not be imported because it was not found in its owner type {symbol.OwnerType}");
     }
+    
+    /// <summary>
+    /// Try to resolve a symbol in shader or inherited shader. If <see cref="importContext"/> is null, you can use this method without importing type or symbol in a context (useful for type evaluation).
+    /// </summary>
+    /// <param name="symbolTable"></param>
+    /// <param name="importContext">If not null, the method or symbol will be imported in this context.</param>
+    /// <param name="id"></param>
+    /// <param name="symbol"></param>
+    /// <returns></returns>
+    internal bool TryResolveSymbol(int id, out Symbol symbol)
+    {
+        if (TryResolveSymbolNoRecursion(id, out symbol))
+            return true;
+
+        // Process inherited classes
+        // note: since it contains all indirectly inherited method too, which is why it is splitted with TryResolveSymbolNoRecursion
+        foreach (var inheritedShader in InheritedShaders)
+            if (inheritedShader.TryResolveSymbolNoRecursion(id, out symbol))
+                return true;
+
+        return false;
+    }
 
     /// <summary>
     /// Try to resolve a symbol in shader or inherited shader. If <see cref="importContext"/> is null, you can use this method without importing type or symbol in a context (useful for type evaluation).
@@ -512,6 +534,32 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
             if (inheritedShader.TryResolveSymbolNoRecursion(name, out symbol))
                 return true;
 
+        return false;
+    }
+
+    private bool TryResolveSymbolNoRecursion(int id, out Symbol symbol)
+    {
+        var methods = CollectionsMarshal.AsSpan(Methods);
+        foreach (ref var c in methods)
+        {
+            if (c.Symbol.IdRef == id)
+            {
+                symbol = c.Symbol;
+                return true;
+            }
+        }
+        
+        var variables = CollectionsMarshal.AsSpan(Variables);
+        foreach (ref var c in variables)
+        {
+            if (c.Symbol.IdRef == id)
+            {
+                symbol = c.Symbol;
+                return true;
+            }
+        }
+
+        symbol = default;
         return false;
     }
 
@@ -592,12 +640,19 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
 
 public sealed partial record GenericParameterType(GenericParameterKindSDSL Kind) : SymbolType;
 
-public sealed partial record StreamsType : SymbolType
+
+public sealed partial record StreamsType(StreamsKindSDSL Kind) : SymbolType
 {
-    public override string ToString() => "Streams";
+    public override string ToString() => Kind.ToString();
+}
+
+public sealed partial record GeometryStreamType(SymbolType BaseType, GeometryStreamOutputKindSDSL Kind) : SymbolType
+{
+    public override string ToId() => $"{Kind.ToString()}Stream<{BaseType.ToId()}>";
+    public override string ToString() => $"{Kind.ToString()}Stream<{BaseType}>";
 }
 
 public sealed partial record ShaderMixinType : SymbolType
 {
-    public override string ToString() => "Streams";
+    public override string ToString() => "mixin";
 }

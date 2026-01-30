@@ -62,7 +62,7 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
         var position = scanner.Position;
 
         ParameterModifiers modifiers = ParameterModifiers.None;
-        if (Tokens.AnyOf(["inout", "in", "out", "triangle", "point", "const"], ref scanner, out var modifiersString, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
+        if (Tokens.AnyOf(["inout", "in", "out", "const", "point", "lineadj", "line", "triangleadj", "triangle"], ref scanner, out var modifiersString, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
         {
             modifiers = modifiersString.ToParameterModifiers();
         }
