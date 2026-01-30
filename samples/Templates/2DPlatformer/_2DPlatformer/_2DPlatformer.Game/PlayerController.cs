@@ -7,6 +7,7 @@ using Stride.Physics;
 using System.Windows.Input;
 using Stride.Graphics;
 using Stride.Rendering.Sprites;
+using System.Collections.Generic;
 
 namespace _2DPlatformer.Player;
 
@@ -21,6 +22,7 @@ public class PlayerController : SyncScript
     private float animationTimer = 0f;
     // Animation Spped: Every 1/10 passed seconds the next frame will be played. Closer to 1.0 is a slower Animation.
     private const float animationInterval = 1f / 10f;
+    private int idleFrame = 0;
     private int runFrame = 0;
     private int jumpFrame = 0;
 
@@ -82,7 +84,7 @@ public class PlayerController : SyncScript
                 }
                 
                 // Up (Jump)
-                if (Input.IsKeyDown(Keys.W) && characterComponent.IsGrounded || Input.IsKeyDown(Keys.Up) && characterComponent.IsGrounded)
+                if (Input.IsKeyPressed(Keys.W) && characterComponent.IsGrounded || Input.IsKeyPressed(Keys.Up) && characterComponent.IsGrounded)
                 {
                     characterComponent.Jump();
                 }
@@ -116,13 +118,16 @@ public class PlayerController : SyncScript
     /// </summary>
     private void PlayIdleAnimation()
     {
-        jumpFrame = 0;
-        
         if (animationTimer >= animationInterval)
         {
             animationTimer -= animationInterval;
-            spriteComponent.CurrentFrame = (spriteComponent.CurrentFrame + 1) % IDLE_FRAME_END;
+            spriteComponent.CurrentFrame = idleFrame;
+            idleFrame = (idleFrame + 1) % IDLE_FRAME_END;
+            
+            //spriteComponent.CurrentFrame = (spriteComponent.CurrentFrame + 1) % IDLE_FRAME_END;
+            
         }
+        ResetFrameCounts(ref runFrame, ref jumpFrame);
     }
     
     /// <summary>
@@ -130,13 +135,13 @@ public class PlayerController : SyncScript
     /// </summary>
     private void PlayRunAnimation()
     {
-        jumpFrame = 0;
         if (animationTimer >= animationInterval)
         {
             animationTimer -= animationInterval;
-            runFrame = (runFrame + 1) % RUN_FRAME_END;
             spriteComponent.CurrentFrame = IDLE_FRAME_END + runFrame;
+            runFrame = (runFrame + 1) % RUN_FRAME_END;
         }
+        ResetFrameCounts(ref idleFrame, ref jumpFrame);
     }
     
     /// <summary>
@@ -154,5 +159,16 @@ public class PlayerController : SyncScript
                 jumpFrame++;
             }
         }
+        ResetFrameCounts(ref idleFrame, ref runFrame);
+    }
+    
+    /// <summary>
+    /// Resets frame counters to 0.
+    /// Example: When playing the run animation, this is called to reset the idle and jump animation counter, to ensure they start at their first frame.
+    /// </summary>
+    private void ResetFrameCounts(ref int counter, ref int counter2)
+    {
+        counter = 0;
+        counter2 = 0;
     }
 }
