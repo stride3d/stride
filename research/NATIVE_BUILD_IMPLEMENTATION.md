@@ -144,6 +144,21 @@ dotnet build /v:normal
 
 **Expected output** should include:
 ```
+[Stride] Native build mode: Msvc
+...
+Build succeeded.
+```
+
+**To test the new Clang mode**:
+
+```bash
+cd sources/engine/Stride.Audio
+dotnet clean
+dotnet build /v:normal /p:StrideNativeBuildMode=Clang
+```
+
+**Expected output** for Clang mode:
+```
 [Stride] Native build mode: Clang
 ...
 [Stride] Windows native build completed using Clang+LLD
@@ -162,13 +177,13 @@ dir bin\Debug\net*\runtimes\win-x64\native\libstrideaudio.dll
 ### Full Validation Test
 
 ```bash
-# Test 1: Default (Clang+LLD)
+# Test 1: Default (MSVC, no changes needed)
 dotnet build Stride.Audio.csproj /v:normal
-# Should succeed with Clang messages
+# Should succeed with MSVC messages
 
-# Test 2: Backward compatibility (MSVC mode)
-dotnet build Stride.Audio.csproj /p:StrideNativeBuildMode=Msvc /v:normal
-# May warn about vcxproj if not available, but should attempt old path
+# Test 2: Opt-in Clang mode
+dotnet build Stride.Audio.csproj /p:StrideNativeBuildMode=Clang /v:normal
+# Should succeed with Clang+LLD messages
 
 # Test 3: Incremental build (should be fast)
 dotnet build Stride.Audio.csproj
@@ -183,15 +198,41 @@ dotnet build Stride.Audio.csproj
 
 ## Part 4: Build Modes Explained
 
-### Mode 1: Clang+LLD (Default)
+### Mode 1: MSVC (Default)
 
 **How to use**:
 ```bash
-# Just build normally - Clang+LLD is default
+# Just build normally - MSVC is default (existing behavior unchanged)
 dotnet build
 ```
 
 **Or explicitly**:
+```bash
+dotnet build /p:StrideNativeBuildMode=Msvc
+```
+
+**Or via environment**:
+```batch
+# Windows
+set StrideNativeBuildMode=Msvc
+dotnet build
+
+# Linux/macOS
+export StrideNativeBuildMode=Msvc
+dotnet build
+```
+
+**What happens**:
+1. Clang compiles C/C++ files → .obj
+2. MSBuild invokes WindowsDesktop.vcxproj
+3. MSVC linker links → .dll
+4. Requires vcxproj and MSVC toolset
+
+**Performance**: Standard (unchanged from current behavior)
+
+### Mode 2: Clang+LLD (New Option)
+
+**How to use**:
 ```bash
 dotnet build /p:StrideNativeBuildMode=Clang
 ```
@@ -213,27 +254,13 @@ dotnet build
 3. No MSBuild vcxproj invocation
 4. No MSVC dependency
 
-**Performance**: ~5-20% faster than MSVC
-
-### Mode 2: MSVC (Legacy Fallback)
-
-**How to use**:
-```bash
-dotnet build /p:StrideNativeBuildMode=Msvc
-```
-
-**What happens**:
-1. Clang compiles C/C++ files → .obj
-2. MSBuild invokes WindowsDesktop.vcxproj
-3. MSVC linker links → .dll
-4. Requires vcxproj and MSVC toolset
-
 **When to use**:
-- Debugging MSVC linker behavior
-- If critical issues found with LLD
-- Temporary fallback during transition
+- Faster linking desired
+- No MSVC toolset available
+- Cross-platform consistency needed
+- CI/CD environments (cost-saving on build agents)
 
-**Note**: This mode requires `sources/native/WindowsProjects/WindowsDesktop/WindowsDesktop.vcxproj` to exist.
+**Performance**: ~5-20% faster than MSVC
 
 ### Mode 3: Legacy (Deprecated)
 
@@ -358,13 +385,19 @@ jobs:
         with:
           dotnet-version: '6.0.x'
       
-      - name: Build with Clang+LLD
-        env:
-          StrideNativeBuildMode: Clang
+      - name: Build (default MSVC mode)
         run: dotnet build --configuration Release
       
       - name: Test
         run: dotnet test
+```
+
+**To opt-in to Clang+LLD in GitHub Actions**:
+```yaml
+      - name: Build with Clang+LLD
+        env:
+          StrideNativeBuildMode: Clang
+        run: dotnet build --configuration Release
 ```
 
 ### Azure Pipelines
@@ -379,7 +412,6 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  StrideNativeBuildMode: Clang
   buildConfiguration: Release
 
 steps:
@@ -400,6 +432,13 @@ steps:
     arguments: '--configuration $(buildConfiguration)'
 ```
 
+**To opt-in to Clang+LLD in Azure Pipelines**:
+```yaml
+variables:
+  buildConfiguration: Release
+  StrideNativeBuildMode: Clang
+```
+
 ### Jenkins
 
 **Example Jenkinsfile**:
@@ -409,7 +448,6 @@ pipeline {
     agent any
     
     environment {
-        StrideNativeBuildMode = 'Clang'
         DOTNET_VERSION = '6.0'
     }
     
@@ -429,12 +467,21 @@ pipeline {
 }
 ```
 
+**To opt-in to Clang+LLD in Jenkins**:
+```groovy
+    environment {
+        DOTNET_VERSION = '6.0'
+        StrideNativeBuildMode = 'Clang'
+    }
+```
+
 ### Key Points
 
-- Set `StrideNativeBuildMode=Clang` environment variable before building
-- No need for Visual Studio installation on build agents
-- Much smaller build agent images (no VS = ~10-15GB savings)
-- Faster build agent setup time
+- Default behavior unchanged: MSVC mode used without any configuration
+- Opt-in to Clang+LLD: Set `StrideNativeBuildMode=Clang` environment variable before building
+- Clang mode advantage: No Visual Studio required, faster linking
+- Both modes work identically for final output
+- Easy to switch during development or in CI/CD pipelines
 
 ---
 

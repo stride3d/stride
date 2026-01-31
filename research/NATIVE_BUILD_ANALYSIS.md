@@ -11,12 +11,12 @@ Stride projects like `Stride.Audio.csproj` contain mixed C# and C++ code. Curren
 
 **Solution**: Replace Windows MSVC linker with LLVM LLD (already used on Linux), enabling unified Clang+LLD across all platforms without MSVC dependency.
 
-**Key Benefits**:
+**Key Benefits of Clang Option**:
 - ✅ Cross-platform consistency (Windows, Linux, macOS)
-- ✅ No Visual Studio or MSVC required
+- ✅ No Visual Studio or MSVC required (optional)
 - ✅ 5-20% faster linking
 - ✅ Foundation for dotnet CLI-only builds
-- ✅ 100% backward compatible (MSVC mode available)
+- ✅ 100% backward compatible (MSVC remains default)
 
 ---
 
@@ -440,39 +440,39 @@ lld -flavor link -dll -machine:x64 \
 
 ## Part 7: Usage & Build Modes
 
-### Default Behavior (Clang+LLD)
+### Default Behavior (MSVC)
 
 ```bash
-# Just build normally - uses Clang+LLD by default
+# Just build normally - uses MSVC (existing behavior unchanged)
 dotnet build sources/engine/Stride.Audio/Stride.Audio.csproj
-```
-
-Output indicates: `[Stride] Native build mode: Clang`
-
-### Legacy Fallback (MSVC)
-
-```bash
-# Switch to MSVC mode if needed
-dotnet build sources/engine/Stride.Audio/Stride.Audio.csproj /p:StrideNativeBuildMode=Msvc
 ```
 
 Output indicates: `[Stride] Native build mode: Msvc`
 
+### Opt-in Clang+LLD (New)
+
+```bash
+# Switch to Clang+LLD for faster, cross-platform builds
+dotnet build sources/engine/Stride.Audio/Stride.Audio.csproj /p:StrideNativeBuildMode=Clang
+```
+
+Output indicates: `[Stride] Native build mode: Clang`
+
 ### Environment Variable Control
 
-**Windows Command Prompt**:
+**To use Clang+LLD on Windows Command Prompt**:
 ```batch
 set StrideNativeBuildMode=Clang
 dotnet build
 ```
 
-**Windows PowerShell**:
+**To use Clang+LLD on Windows PowerShell**:
 ```powershell
 $env:StrideNativeBuildMode = "Clang"
 dotnet build
 ```
 
-**Linux/macOS**:
+**To use Clang+LLD on Linux/macOS**:
 ```bash
 export StrideNativeBuildMode=Clang
 dotnet build

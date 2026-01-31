@@ -31,8 +31,8 @@
   -->
 
   <PropertyGroup>
-    <!-- Default to Clang mode for cross-platform consistency -->
-    <StrideNativeBuildMode Condition="'$(StrideNativeBuildMode)' == ''">Clang</StrideNativeBuildMode>
+    <!-- Default to MSVC mode to not disturb existing builds and CI/CD -->
+    <StrideNativeBuildMode Condition="'$(StrideNativeBuildMode)' == ''">Msvc</StrideNativeBuildMode>
     
     <!-- Validate build mode is one of the supported values -->
     <_ValidBuildModes>Clang;Msvc;Legacy</_ValidBuildModes>
@@ -57,7 +57,7 @@
   <!-- Diagnostic target to inform user of build mode -->
   <Target Name="_StrideNativeBuildModeInfo" BeforeTargets="Build" Condition="'$(StrideNativeOutputName)' != ''">
     <Message Text="[Stride] Native build mode: $(StrideNativeBuildMode)" Importance="normal" />
-    <Message Text="[Stride] To switch modes: dotnet build /p:StrideNativeBuildMode=Clang|Msvc" Importance="low" />
+    <Message Text="[Stride] To use Clang+LLD: dotnet build /p:StrideNativeBuildMode=Clang" Importance="low" />
   </Target>
 
   <!-- Help target -->
@@ -67,20 +67,21 @@
     <Message Text="Stride Native Build Modes" Importance="high" />
     <Message Text="======================================" Importance="high" />
     <Message Text="" Importance="high" />
-    <Message Text="Clang (recommended):" Importance="high" />
+    <Message Text="Msvc (default, Windows only):" Importance="high" />
+    <Message Text="  - Uses clang for compilation, MSVC linker for linking" Importance="high" />
+    <Message Text="  - Requires Visual Studio or MSVC toolset" Importance="high" />
+    <Message Text="  - DEFAULT mode (preserves existing behavior)" Importance="high" />
+    <Message Text="  - Requires: vcxproj infrastructure" Importance="high" />
+    <Message Text="" Importance="high" />
+    <Message Text="Clang (new option, cross-platform):" Importance="high" />
     <Message Text="  - Uses clang for compilation, LLVM LLD for linking" Importance="high" />
     <Message Text="  - Works on all platforms: Windows, Linux, macOS, iOS, Android" Importance="high" />
     <Message Text="  - Does NOT require Visual Studio or MSVC" Importance="high" />
-    <Message Text="  - DEFAULT mode" Importance="high" />
-    <Message Text="" Importance="high" />
-    <Message Text="Msvc (legacy, Windows only):" Importance="high" />
-    <Message Text="  - Uses clang for compilation, MSVC linker for linking" Importance="high" />
-    <Message Text="  - Requires Visual Studio or MSVC toolset" Importance="high" />
-    <Message Text="  - Not recommended for new projects" Importance="high" />
+    <Message Text="  - Faster linking, better cross-platform consistency" Importance="high" />
     <Message Text="" Importance="high" />
     <Message Text="Usage Examples:" Importance="high" />
     <Message Text="  dotnet build /p:StrideNativeBuildMode=Clang" Importance="high" />
-    <Message Text="  set StrideNativeBuildMode=Msvc &amp;&amp; dotnet build" Importance="high" />
+    <Message Text="  set StrideNativeBuildMode=Clang &amp;&amp; dotnet build" Importance="high" />
     <Message Text="" Importance="high" />
   </Target>
 
