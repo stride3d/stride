@@ -6,15 +6,14 @@
     Manages which toolchain is used for native C++ compilation and linking.
     
     Build Modes:
-    - Clang (default):   Uses clang for compilation and LLVM LLD for linking
-                        Works on Windows, Linux, macOS, iOS, Android
-                        RECOMMENDED: Cross-platform, no MSVC dependency
+    - Msvc (default on Windows): Uses clang for compilation and MSVC linker for linking (Windows only)
+                                 Requires Visual Studio or MSVC toolset
+                                 Default for Windows builds to preserve existing behavior
     
-    - Msvc:              Uses clang for compilation and MSVC linker for linking (Windows only)
-                        Requires Visual Studio or MSVC toolset
-                        LEGACY: For projects that need MSVC-specific behavior
-    
-    - Legacy:            Deprecated alias for Msvc, will be removed
+    - Clang:                     Uses clang for compilation and LLVM LLD for linking
+                                 Works on Windows, Linux, macOS, iOS, Android
+                                 RECOMMENDED: Cross-platform, no MSVC dependency
+                                 Default for non-Windows platforms
     
     Usage:
     1. Command line:
@@ -48,7 +47,7 @@
     <StrideNativeBuildMode Condition="'$(StrideNativeBuildMode)' == ''">Clang</StrideNativeBuildMode>
     
     <!-- Validate build mode is one of the supported values -->
-    <_ValidBuildModes>Clang;Msvc;Legacy</_ValidBuildModes>
+    <_ValidBuildModes>Clang;Msvc</_ValidBuildModes>
   </PropertyGroup>
 
   <!-- Set boolean flags for each build mode -->
@@ -58,13 +57,6 @@
     
     <StrideNativeBuildModeMsvc Condition="'$(StrideNativeBuildMode)' == 'Msvc'">true</StrideNativeBuildModeMsvc>
     <StrideNativeBuildModeMsvc Condition="'$(StrideNativeBuildMode)' != 'Msvc'">false</StrideNativeBuildModeMsvc>
-    
-    <!-- Legacy is treated as Msvc -->
-    <StrideNativeBuildModeLegacy Condition="'$(StrideNativeBuildMode)' == 'Legacy'">true</StrideNativeBuildModeLegacy>
-    <StrideNativeBuildModeLegacy Condition="'$(StrideNativeBuildMode)' != 'Legacy'">false</StrideNativeBuildModeLegacy>
-    
-    <!-- If Legacy, use Msvc mode -->
-    <StrideNativeBuildMode Condition="'$(StrideNativeBuildMode)' == 'Legacy'">Msvc</StrideNativeBuildMode>
   </PropertyGroup>
 
   <!-- Diagnostic target to inform user of build mode -->
@@ -81,10 +73,10 @@
     <Message Text="======================================" Importance="high" />
     <Message Text="" Importance="high" />
     <Message Text="Platform-Specific Defaults:" Importance="high" />
-    <Message Text="  Windows (on Windows):  MSVC mode (default, preserves existing behavior)" Importance="high" />
-    <Message Text="  Linux (on Linux):      Clang mode (required, MSVC unavailable)" Importance="high" />
-    <Message Text="  macOS (on macOS):      Clang mode (required, MSVC unavailable)" Importance="high" />
-    <Message Text="  iOS, Android:          Platform-specific (unchanged)" Importance="high" />
+    <Message Text="  Windows (on Windows):  Msvc mode (default, preserves existing behavior)" Importance="high" />
+    <Message Text="  Linux (on Linux):      Clang mode (MSVC unavailable)" Importance="high" />
+    <Message Text="  macOS (on macOS):      Clang mode (MSVC unavailable)" Importance="high" />
+    <Message Text="  iOS, Android:          Platform-specific" Importance="high" />
     <Message Text="" Importance="high" />
     <Message Text="Manual Override (all platforms):" Importance="high" />
     <Message Text="  Clang+LLD:" Importance="high" />
