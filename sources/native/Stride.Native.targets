@@ -18,8 +18,18 @@
     <StrideNativeLldCommand>lld</StrideNativeLldCommand>
     <StrideNativeLldCommand Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(MSBuildThisFileDirectory)..\..\deps\\LLVM\lld.exe</StrideNativeLldCommand>
 
+    <!-- 
+      Clang Command Detection Strategy:
+      1. Prefer system LLVM (C:\Program Files\LLVM\bin\clang.exe) when available
+         - Provides complete MinGW toolchain support
+         - Required for x86/ARM64 MinGW ABI builds
+      2. Fall back to deps\LLVM\clang.exe
+         - Sufficient for x64 MSVC ABI builds
+         - May lack MinGW libraries for cross-compilation
+    -->
     <StrideNativeClangCommand>clang</StrideNativeClangCommand>
-    <StrideNativeClangCommand Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe</StrideNativeClangCommand>
+    <StrideNativeClangCommand Condition="$([MSBuild]::IsOSPlatform('Windows')) AND Exists('C:\Program Files\LLVM\bin\clang.exe')">C:\Program Files\LLVM\bin\clang.exe</StrideNativeClangCommand>
+    <StrideNativeClangCommand Condition="$([MSBuild]::IsOSPlatform('Windows')) AND !Exists('C:\Program Files\LLVM\bin\clang.exe')">$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe</StrideNativeClangCommand>
     
     <StrideNativeClang>$(StrideNativeToolingDebug) -Wno-ignored-attributes -Wno-delete-non-virtual-dtor -Wno-macro-redefined -I&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath&quot; -I&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\standard&quot;</StrideNativeClang>
     <StrideNativeClangCPP>-std=c++11 -fno-rtti -fno-exceptions</StrideNativeClangCPP>

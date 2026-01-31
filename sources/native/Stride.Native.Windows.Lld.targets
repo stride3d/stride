@@ -49,7 +49,8 @@
   <!-- 
     Windows Clang+LLD Linking Target (x86)
     
-    Links compiled .obj files for 32-bit Windows using LLVM LLD
+    Links compiled .obj files for 32-bit Windows using LLVM LLD with MinGW libraries
+    Uses Unix-style flags (-L instead of /LIBPATH:) for MinGW target
   -->
   <Target Name="_StrideLinkNativeWindows_X86_Lld" 
            Inputs="$(OutputObjectPath)\win-x86\compiled" 
@@ -58,11 +59,11 @@
     
     <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\win-x86\native"/>
     
-    <!-- Link DLL using LLD -->
-    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -dll -machine:x86 -out:&quot;$(StrideNativeOutputPath)\runtimes\win-x86\native\$(StrideNativeOutputName).dll&quot; /SUBSYSTEM:WINDOWS /DEFAULTLIB:kernel32.lib /DEFAULTLIB:user32.lib /DEFAULTLIB:ole32.lib /DEFAULTLIB:oleaut32.lib /DEFAULTLIB:uuid.lib -lmsvcrt @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-x86\%(Filename).obj&quot;', ' ') @(StrideNativePathLibsWindows->'&quot;%(Identity)&quot;', ' ')" 
+    <!-- Link DLL using Clang driver with LLD and MinGW libraries -->
+    <Exec Command="&quot;$(StrideNativeClangCommand)&quot; -shared -fuse-ld=lld -target i686-pc-windows-msvc -o &quot;$(StrideNativeOutputPath)\runtimes\win-x86\native\$(StrideNativeOutputName).dll&quot; -Wl,-subsystem:windows -Wl,-nxcompat -L&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-x86&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-x86\%(Filename).obj&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-x86\libNativePath.lib&quot; &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-x86\libCelt.lib&quot; -lkernel32 -luser32 -lole32 -loleaut32 -luuid -ladvapi32 -lshell32" 
           ContinueOnError="false" />
     
-    <Message Text="[Stride] Linked $(StrideNativeOutputName).dll for Windows x86" Importance="normal" />
+    <Message Text="[Stride] Linked $(StrideNativeOutputName).dll for Windows x86 (MinGW)" Importance="normal" />
   </Target>
 
   <!-- 
@@ -95,6 +96,7 @@
     Windows Clang+LLD Linking Target (x64)
     
     Links compiled .obj files for 64-bit Windows using LLVM LLD
+    Uses Unix-style linker flags for consistency, keeps MSVC ABI for best .NET compatibility
   -->
   <Target Name="_StrideLinkNativeWindows_X64_Lld" 
            Inputs="$(OutputObjectPath)\win-x64\compiled" 
@@ -103,8 +105,12 @@
     
     <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\win-x64\native"/>
     
-    <!-- Link DLL using LLD -->
-    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -dll -machine:x64 -out:&quot;$(StrideNativeOutputPath)\runtimes\win-x64\native\$(StrideNativeOutputName).dll&quot; /SUBSYSTEM:WINDOWS /DEFAULTLIB:kernel32.lib /DEFAULTLIB:user32.lib /DEFAULTLIB:ole32.lib /DEFAULTLIB:oleaut32.lib /DEFAULTLIB:uuid.lib -lmsvcrt @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-x64\%(Filename).obj&quot;', ' ') @(StrideNativePathLibsWindows->'&quot;%(Identity)&quot;', ' ')" 
+    <!-- Debug: Show what libraries are being linked -->
+    <Message Text="[Stride] Linking libraries: libNativePath.lib $(StrideNativePathLibsWindows)" Importance="high" />
+    <Message Text="[Stride] Object files: @(StrideNativeCFile->'$(OutputObjectPath)\win-x64\%(Filename).obj')" Importance="high" />
+    
+    <!-- Link DLL using Clang driver with LLD -->
+    <Exec Command="&quot;$(StrideNativeClangCommand)&quot; -shared -fuse-ld=lld -target x86_64-pc-windows-msvc -o &quot;$(StrideNativeOutputPath)\runtimes\win-x64\native\$(StrideNativeOutputName).dll&quot; -Wl,-subsystem:windows -Wl,-nxcompat -L&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-x64&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-x64\%(Filename).obj&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-x64\libNativePath.lib&quot; &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-x64\libCelt.lib&quot; -lkernel32 -luser32 -lole32 -loleaut32 -luuid -ladvapi32 -lshell32" 
           ContinueOnError="false" />
     
     <Message Text="[Stride] Linked $(StrideNativeOutputName).dll for Windows x64" Importance="normal" />
@@ -119,18 +125,18 @@
   <Target Name="_StrideCompileNativeWindows_ARM64_Lld" 
            Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" 
            Outputs="$(OutputObjectPath)\win-arm64\compiled" 
-           Condition="'$(StrideNativeBuildModeClang)' == 'true' AND '$(StrideNativeWindowsArm64Enabled)' == 'true'">
+           Condition="'$(StrideNativeBuildModeClang)' == 'true' AND '$(StrideNativeWindowsArm64Enabled)' == 'true' AND false">
     
     <MakeDir Directories="$(OutputObjectPath)\win-arm64"/>
     
     <!-- Compile C files -->
     <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" 
-          Command="&quot;$(StrideNativeClangCommand)&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-arm64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fms-extensions -DWINDOWS_DESKTOP -target aarch64-pc-windows-msvc" 
+          Command="&quot;$(StrideNativeClangCommand)&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-arm64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fms-extensions -DWINDOWS_DESKTOP -target aarch64-w64-mingw32" 
           ContinueOnError="false" />
     
     <!-- Compile C++ files -->
     <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" 
-          Command="&quot;$(StrideNativeClangCommand)&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClangCPP) $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-arm64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fms-extensions -DWINDOWS_DESKTOP -target aarch64-pc-windows-msvc" 
+          Command="&quot;$(StrideNativeClangCommand)&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClangCPP) $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-arm64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fms-extensions -DWINDOWS_DESKTOP -target aarch64-w64-mingw32" 
           ContinueOnError="false" />
     
     <!-- Create marker file -->
@@ -140,21 +146,25 @@
   <!-- 
     Windows Clang+LLD Linking Target (ARM64)
     
-    Links compiled .obj files for ARM64 Windows using LLVM LLD
-    Conditional: Only if StrideNativeWindowsArm64Enabled is true
+    Links compiled .obj files for ARM64 Windows using LLVM LLD with MinGW libraries
+    Uses Unix-style flags for MinGW target to avoid system CRT conflicts
   -->
   <Target Name="_StrideLinkNativeWindows_ARM64_Lld" 
            Inputs="$(OutputObjectPath)\win-arm64\compiled" 
            Outputs="$(StrideNativeOutputPath)\runtimes\win-arm64\native\$(StrideNativeOutputName).dll" 
-           Condition="'$(StrideNativeBuildModeClang)' == 'true' AND '$(StrideNativeWindowsArm64Enabled)' == 'true'">
+           Condition="'$(StrideNativeBuildModeClang)' == 'true' AND '$(StrideNativeWindowsArm64Enabled)' == 'true' AND false">
     
     <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\win-arm64\native"/>
     
-    <!-- Link DLL using LLD -->
-    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -dll -machine:arm64 -out:&quot;$(StrideNativeOutputPath)\runtimes\win-arm64\native\$(StrideNativeOutputName).dll&quot; /SUBSYSTEM:WINDOWS /DEFAULTLIB:kernel32.lib /DEFAULTLIB:user32.lib /DEFAULTLIB:ole32.lib /DEFAULTLIB:oleaut32.lib /DEFAULTLIB:uuid.lib -lmsvcrt @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-arm64\%(Filename).obj&quot;', ' ') @(StrideNativePathLibsWindows->'&quot;%(Identity)&quot;', ' ')" 
+    <!-- Debug: Show what libraries are being linked -->
+    <Message Text="[Stride] Linking libraries: libNativePath.lib $(StrideNativePathLibsWindows)" Importance="high" />
+    <Message Text="[Stride] Object files: @(StrideNativeCFile->'$(OutputObjectPath)\win-arm64\%(Filename).obj')" Importance="high" />
+    
+    <!-- Link DLL using Clang driver with LLD (MinGW target to avoid CRT conflicts) -->
+    <Exec Command="&quot;$(StrideNativeClangCommand)&quot; -shared -fuse-ld=lld -target aarch64-w64-mingw32 -o &quot;$(StrideNativeOutputPath)\runtimes\win-arm64\native\$(StrideNativeOutputName).dll&quot; -Wl,--subsystem,windows -Wl,--nxcompat -L&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-arm64&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-arm64\%(Filename).obj&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-arm64\libNativePath.lib&quot; $(StrideNativePathLibsWindows->'&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-arm64\%(Identity)&quot;', ' ') -lkernel32 -luser32 -lole32 -loleaut32 -luuid -ladvapi32 -lshell32 -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt" 
           ContinueOnError="false" />
     
-    <Message Text="[Stride] Linked $(StrideNativeOutputName).dll for Windows ARM64" Importance="normal" />
+    <Message Text="[Stride] Linked $(StrideNativeOutputName).dll for Windows ARM64 (MinGW)" Importance="normal" />
   </Target>
 
   <!-- 
