@@ -59,7 +59,7 @@
     <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\win-x86\native"/>
     
     <!-- Link DLL using LLD -->
-    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -dll -machine:x86 -out:&quot;$(StrideNativeOutputPath)\runtimes\win-x86\native\$(StrideNativeOutputName).dll&quot; /SUBSYSTEM:WINDOWS /DEFAULTLIB:kernel32.lib /DEFAULTLIB:user32.lib /DEFAULTLIB:ole32.lib /DEFAULTLIB:oleaut32.lib /DEFAULTLIB:uuid.lib /DEFAULTLIB:msvcrt.lib /DEFAULTLIB:libcmt.lib @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-x86\%(Filename).obj&quot;', ' ') @(StrideNativePathLibsWindows->'&quot;%(Identity)&quot;', ' ')" 
+    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -dll -machine:x86 -out:&quot;$(StrideNativeOutputPath)\runtimes\win-x86\native\$(StrideNativeOutputName).dll&quot; /SUBSYSTEM:WINDOWS /DEFAULTLIB:kernel32.lib /DEFAULTLIB:user32.lib /DEFAULTLIB:ole32.lib /DEFAULTLIB:oleaut32.lib /DEFAULTLIB:uuid.lib -lmsvcrt @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-x86\%(Filename).obj&quot;', ' ') @(StrideNativePathLibsWindows->'&quot;%(Identity)&quot;', ' ')" 
           ContinueOnError="false" />
     
     <Message Text="[Stride] Linked $(StrideNativeOutputName).dll for Windows x86" Importance="normal" />
@@ -104,7 +104,7 @@
     <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\win-x64\native"/>
     
     <!-- Link DLL using LLD -->
-    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -dll -machine:x64 -out:&quot;$(StrideNativeOutputPath)\runtimes\win-x64\native\$(StrideNativeOutputName).dll&quot; /SUBSYSTEM:WINDOWS /DEFAULTLIB:kernel32.lib /DEFAULTLIB:user32.lib /DEFAULTLIB:ole32.lib /DEFAULTLIB:oleaut32.lib /DEFAULTLIB:uuid.lib /DEFAULTLIB:msvcrt.lib /DEFAULTLIB:libcmt.lib @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-x64\%(Filename).obj&quot;', ' ') @(StrideNativePathLibsWindows->'&quot;%(Identity)&quot;', ' ')" 
+    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -dll -machine:x64 -out:&quot;$(StrideNativeOutputPath)\runtimes\win-x64\native\$(StrideNativeOutputName).dll&quot; /SUBSYSTEM:WINDOWS /DEFAULTLIB:kernel32.lib /DEFAULTLIB:user32.lib /DEFAULTLIB:ole32.lib /DEFAULTLIB:oleaut32.lib /DEFAULTLIB:uuid.lib -lmsvcrt @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-x64\%(Filename).obj&quot;', ' ') @(StrideNativePathLibsWindows->'&quot;%(Identity)&quot;', ' ')" 
           ContinueOnError="false" />
     
     <Message Text="[Stride] Linked $(StrideNativeOutputName).dll for Windows x64" Importance="normal" />
@@ -151,7 +151,7 @@
     <MakeDir Directories="$(StrideNativeOutputPath)\runtimes\win-arm64\native"/>
     
     <!-- Link DLL using LLD -->
-    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -dll -machine:arm64 -out:&quot;$(StrideNativeOutputPath)\runtimes\win-arm64\native\$(StrideNativeOutputName).dll&quot; /SUBSYSTEM:WINDOWS /DEFAULTLIB:kernel32.lib /DEFAULTLIB:user32.lib /DEFAULTLIB:ole32.lib /DEFAULTLIB:oleaut32.lib /DEFAULTLIB:uuid.lib /DEFAULTLIB:msvcrt.lib /DEFAULTLIB:libcmt.lib @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-arm64\%(Filename).obj&quot;', ' ') @(StrideNativePathLibsWindows->'&quot;%(Identity)&quot;', ' ')" 
+    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -dll -machine:arm64 -out:&quot;$(StrideNativeOutputPath)\runtimes\win-arm64\native\$(StrideNativeOutputName).dll&quot; /SUBSYSTEM:WINDOWS /DEFAULTLIB:kernel32.lib /DEFAULTLIB:user32.lib /DEFAULTLIB:ole32.lib /DEFAULTLIB:oleaut32.lib /DEFAULTLIB:uuid.lib -lmsvcrt @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-arm64\%(Filename).obj&quot;', ' ') @(StrideNativePathLibsWindows->'&quot;%(Identity)&quot;', ' ')" 
           ContinueOnError="false" />
     
     <Message Text="[Stride] Linked $(StrideNativeOutputName).dll for Windows ARM64" Importance="normal" />
