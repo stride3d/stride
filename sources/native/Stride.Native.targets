@@ -289,4 +289,8 @@
     <Delete Files="@(OFiles)" />
     <Delete Files="@(AFiles)" />
   </Target>
+
+  <!-- Import Windows Clang+LLD targets (new cross-platform approach) -->
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Native.Windows.Lld.targets" />
+
 </Project>

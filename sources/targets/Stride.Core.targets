@@ -136,6 +136,10 @@
   </Target>
 
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.PostSettings.Dependencies.targets"/>
+  
+  <!-- Import native build mode configuration (Clang/Msvc selection) -->
+  <Import Project="$(MSBuildThisFileDirectory)Stride.NativeBuildMode.props"/>
+  
   <Import Condition="'$(StrideNativeOutputName)' != ''" Project="$(MSBuildThisFileDirectory)..\native\Stride.Native.targets" />
 
   <!-- Workaround for https://github.com/dotnet/project-system/issues/6227 (UpToDateCheck: always fail if projects.assets.json is updated) -->
