@@ -17,13 +17,31 @@ This document provides the concrete steps needed to implement Clang+LLD native c
 
 Two new files enable Clang+LLD compilation on Windows:
 
-1. **`sources/targets/Stride.NativeBuildMode.props`** (87 lines)
+1. **`sources/targets/Stride.NativeBuildMode.props`** (100+ lines)
    - Configuration file for build mode selection
+   - Platform-aware defaults (MSVC for Windows, Clang for Linux/macOS)
    - Status: ✅ Already created in repository
 
 2. **`sources/native/Stride.Native.Windows.Lld.targets`** (300 lines)
    - MSBuild targets for Windows Clang+LLD
    - Status: ✅ Already created in repository
+
+### Platform-Specific Defaults
+
+**Windows** (on Windows):
+- Default: MSVC mode (preserves existing behavior)
+- Optional: Clang mode for faster linking, no MSVC dependency
+- Both modes available
+
+**Linux** (on Linux):
+- Default: Clang+LLD (MSVC not available)
+- No configuration needed - works automatically
+- Same approach as already in use
+
+**macOS** (on macOS):
+- Default: Clang+darwin_ld (MSVC not available)
+- No configuration needed - works automatically
+- Platform-specific linker unchanged
 
 ### What's Being Modified
 
@@ -134,63 +152,74 @@ Condition="('$(TargetFramework)' == '$(StrideFramework)') And $([MSBuild]::IsOSP
 
 ### Quick Local Test
 
-**After making the changes above**, test with:
-
+**Windows**:
 ```bash
 cd sources/engine/Stride.Audio
 dotnet clean
+
+# Test default (MSVC)
 dotnet build /v:normal
+# Expected: "[Stride] Native build mode: Msvc"
+
+# Test Clang option
+dotnet build /v:normal /p:StrideNativeBuildMode=Clang
+# Expected: "[Stride] Native build mode: Clang" and "Windows native build completed using Clang+LLD"
 ```
 
-**Expected output** should include:
-```
-[Stride] Native build mode: Msvc
-...
-Build succeeded.
-```
-
-**To test the new Clang mode**:
-
+**Linux**:
 ```bash
 cd sources/engine/Stride.Audio
 dotnet clean
-dotnet build /v:normal /p:StrideNativeBuildMode=Clang
+
+# Automatically uses Clang+LLD
+dotnet build /v:normal
+# Expected: "[Stride] Native build mode: Clang"
 ```
 
-**Expected output** for Clang mode:
-```
-[Stride] Native build mode: Clang
-...
-[Stride] Windows native build completed using Clang+LLD
-...
-Build succeeded.
+**macOS**:
+```bash
+cd sources/engine/Stride.Audio
+dotnet clean
+
+# Automatically uses Clang+darwin_ld
+dotnet build /v:normal
+# Expected: "[Stride] Native build mode: Clang"
 ```
 
 **Verify output exists**:
 ```bash
-# On Windows - check DLL was created
+# Windows DLL
 dir bin\Debug\net*\runtimes\win-x64\native\libstrideaudio.dll
 
-# Should show the file exists
+# Linux SO
+ls bin/Debug/net*/runtimes/linux-x64/native/libstrideaudio.so
 ```
 
 ### Full Validation Test
 
 ```bash
-# Test 1: Default (MSVC, no changes needed)
+# Windows: Test 1: Default (MSVC, no changes needed)
 dotnet build Stride.Audio.csproj /v:normal
 # Should succeed with MSVC messages
 
-# Test 2: Opt-in Clang mode
+# Windows: Test 2: Opt-in Clang mode
 dotnet build Stride.Audio.csproj /p:StrideNativeBuildMode=Clang /v:normal
 # Should succeed with Clang+LLD messages
 
-# Test 3: Incremental build (should be fast)
+# Linux: Test 1: Automatic Clang+LLD
+dotnet build Stride.Audio.csproj /v:normal
+# Should succeed with Clang messages (MSVC unavailable, uses LLD)
+
+# macOS: Test 1: Automatic Clang+darwin_ld
+dotnet build Stride.Audio.csproj /v:normal
+# Should succeed with Clang messages (MSVC unavailable, uses darwin_ld)
+
+# All platforms: Incremental build (should be fast)
 dotnet build Stride.Audio.csproj
 # Should skip native compilation on second run
 
-# Test 4: Verify DLL works
-# Write simple C# code that P/Invoke calls into native DLL
+# All platforms: Verify DLL/SO/dylib works
+# Write simple C# code that P/Invoke calls into native library
 # Should work without errors
 ```
 
@@ -198,28 +227,19 @@ dotnet build Stride.Audio.csproj
 
 ## Part 4: Build Modes Explained
 
-### Mode 1: MSVC (Default)
+### Mode 1: MSVC (Default on Windows)
+
+**Windows only** - Linux and macOS default to Clang automatically.
 
 **How to use**:
 ```bash
-# Just build normally - MSVC is default (existing behavior unchanged)
+# Windows: Just build normally - MSVC is default (existing behavior unchanged)
 dotnet build
 ```
 
 **Or explicitly**:
 ```bash
 dotnet build /p:StrideNativeBuildMode=Msvc
-```
-
-**Or via environment**:
-```batch
-# Windows
-set StrideNativeBuildMode=Msvc
-dotnet build
-
-# Linux/macOS
-export StrideNativeBuildMode=Msvc
-dotnet build
 ```
 
 **What happens**:
@@ -230,37 +250,38 @@ dotnet build
 
 **Performance**: Standard (unchanged from current behavior)
 
-### Mode 2: Clang+LLD (New Option)
+### Mode 2: Clang+LLD (Default on Linux/macOS, Option on Windows)
 
-**How to use**:
+**Linux and macOS**:
 ```bash
+# Automatically uses Clang+LLD (MSVC not available)
+dotnet build
+```
+
+**Windows (opt-in)**:
+```bash
+# Switch from MSVC to Clang+LLD
 dotnet build /p:StrideNativeBuildMode=Clang
 ```
 
-**Or via environment**:
-```batch
-# Windows
-set StrideNativeBuildMode=Clang
+**Or via environment** (all platforms):
+```bash
+# Linux/macOS (already default, but explicit)
+export StrideNativeBuildMode=Clang
 dotnet build
 
-# Linux/macOS
-export StrideNativeBuildMode=Clang
+# Windows (opt-in)
+set StrideNativeBuildMode=Clang
 dotnet build
 ```
 
 **What happens**:
 1. Clang compiles C/C++ files → .obj
-2. LLD linker directly links → .dll
+2. LLD linker directly links → .dll (Windows) or .so (Linux)
 3. No MSBuild vcxproj invocation
 4. No MSVC dependency
 
-**When to use**:
-- Faster linking desired
-- No MSVC toolset available
-- Cross-platform consistency needed
-- CI/CD environments (cost-saving on build agents)
-
-**Performance**: ~5-20% faster than MSVC
+**Performance**: ~5-20% faster than MSVC (on Windows)
 
 ### Mode 3: Legacy (Deprecated)
 
@@ -367,7 +388,7 @@ dotnet build /p:StrideNativeToolingDebug=-v /v:diagnostic
 
 ### GitHub Actions
 
-**Example workflow** (`.github/workflows/build.yml`):
+**Default behavior** (no env var - Windows uses MSVC, Linux/macOS use Clang):
 
 ```yaml
 name: Build
@@ -375,24 +396,47 @@ name: Build
 on: [push, pull_request]
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-      
       - name: Setup .NET
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '6.0.x'
-      
-      - name: Build (default MSVC mode)
+      - name: Build (Windows - MSVC default)
         run: dotnet build --configuration Release
-      
+      - name: Test
+        run: dotnet test
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x'
+      - name: Build (Linux - Clang+LLD automatic)
+        run: dotnet build --configuration Release
+      - name: Test
+        run: dotnet test
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x'
+      - name: Build (macOS - Clang+darwin_ld automatic)
+        run: dotnet build --configuration Release
       - name: Test
         run: dotnet test
 ```
 
-**To opt-in to Clang+LLD in GitHub Actions**:
+**To opt-in to Clang+LLD on Windows in GitHub Actions**:
 ```yaml
       - name: Build with Clang+LLD
         env:
@@ -402,86 +446,167 @@ jobs:
 
 ### Azure Pipelines
 
-**Example pipeline** (`azure-pipelines.yml`):
+**Platform-specific pipelines** (each OS runs automatically with correct defaults):
 
 ```yaml
 trigger:
   - main
 
-pool:
-  vmImage: 'windows-latest'
+jobs:
+- job: Build_Windows
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+  - task: UseDotNet@2
+    inputs:
+      version: '6.x'
+  - task: DotNetCoreCLI@2
+    displayName: 'Build (Windows - MSVC default)'
+    inputs:
+      command: 'build'
+      arguments: '--configuration Release'
+  - task: DotNetCoreCLI@2
+    displayName: 'Test'
+    inputs:
+      command: 'test'
 
-variables:
-  buildConfiguration: Release
+- job: Build_Linux
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - task: UseDotNet@2
+    inputs:
+      version: '6.x'
+  - task: DotNetCoreCLI@2
+    displayName: 'Build (Linux - Clang+LLD automatic)'
+    inputs:
+      command: 'build'
+      arguments: '--configuration Release'
+  - task: DotNetCoreCLI@2
+    displayName: 'Test'
+    inputs:
+      command: 'test'
 
-steps:
-- task: UseDotNet@2
-  inputs:
-    version: '6.x'
-
-- task: DotNetCoreCLI@2
-  displayName: 'Build'
-  inputs:
-    command: 'build'
-    arguments: '--configuration $(buildConfiguration)'
-
-- task: DotNetCoreCLI@2
-  displayName: 'Test'
-  inputs:
-    command: 'test'
-    arguments: '--configuration $(buildConfiguration)'
+- job: Build_macOS
+  pool:
+    vmImage: 'macos-latest'
+  steps:
+  - task: UseDotNet@2
+    inputs:
+      version: '6.x'
+  - task: DotNetCoreCLI@2
+    displayName: 'Build (macOS - Clang+darwin_ld automatic)'
+    inputs:
+      command: 'build'
+      arguments: '--configuration Release'
+  - task: DotNetCoreCLI@2
+    displayName: 'Test'
+    inputs:
+      command: 'test'
 ```
 
-**To opt-in to Clang+LLD in Azure Pipelines**:
+**To opt-in to Clang+LLD on Windows**:
 ```yaml
-variables:
-  buildConfiguration: Release
-  StrideNativeBuildMode: Clang
+  - task: DotNetCoreCLI@2
+    env:
+      StrideNativeBuildMode: Clang
+    inputs:
+      command: 'build'
+      arguments: '--configuration Release'
 ```
 
 ### Jenkins
 
-**Example Jenkinsfile**:
+**Pipeline for multi-OS builds** (each OS gets correct defaults):
 
 ```groovy
 pipeline {
     agent any
     
-    environment {
-        DOTNET_VERSION = '6.0'
-    }
-    
     stages {
         stage('Build') {
-            steps {
-                bat 'dotnet build --configuration Release'
+            parallel {
+                stage('Windows') {
+                    agent {
+                        label 'windows'
+                    }
+                    environment {
+                        DOTNET_VERSION = '6.0'
+                    }
+                    steps {
+                        bat 'dotnet build --configuration Release'
+                    }
+                }
+                
+                stage('Linux') {
+                    agent {
+                        label 'linux'
+                    }
+                    environment {
+                        DOTNET_VERSION = '6.0'
+                    }
+                    steps {
+                        sh 'dotnet build --configuration Release'
+                    }
+                }
+                
+                stage('macOS') {
+                    agent {
+                        label 'macos'
+                    }
+                    environment {
+                        DOTNET_VERSION = '6.0'
+                    }
+                    steps {
+                        sh 'dotnet build --configuration Release'
+                    }
+                }
             }
         }
         
         stage('Test') {
-            steps {
-                bat 'dotnet test'
+            parallel {
+                stage('Windows') {
+                    agent { label 'windows' }
+                    steps { bat 'dotnet test' }
+                }
+                stage('Linux') {
+                    agent { label 'linux' }
+                    steps { sh 'dotnet test' }
+                }
+                stage('macOS') {
+                    agent { label 'macos' }
+                    steps { sh 'dotnet test' }
+                }
             }
         }
     }
 }
 ```
 
-**To opt-in to Clang+LLD in Jenkins**:
+**To opt-in to Clang+LLD on Windows in Jenkins**:
 ```groovy
-    environment {
-        DOTNET_VERSION = '6.0'
-        StrideNativeBuildMode = 'Clang'
-    }
+                stage('Windows - Clang') {
+                    agent { label 'windows' }
+                    environment {
+                        DOTNET_VERSION = '6.0'
+                        StrideNativeBuildMode = 'Clang'
+                    }
+                    steps {
+                        bat 'dotnet build --configuration Release'
+                    }
+                }
 ```
 
 ### Key Points
 
-- Default behavior unchanged: MSVC mode used without any configuration
-- Opt-in to Clang+LLD: Set `StrideNativeBuildMode=Clang` environment variable before building
-- Clang mode advantage: No Visual Studio required, faster linking
-- Both modes work identically for final output
-- Easy to switch during development or in CI/CD pipelines
+- **Zero configuration needed**: Each platform automatically uses the correct toolchain
+  - Windows: MSVC by default (existing behavior)
+  - Linux: Clang+LLD automatically (MSVC not available)
+  - macOS: Clang+darwin_ld automatically (MSVC not available)
+- **Override only when desired**: Opt-in to Clang+LLD on Windows with environment variable
+- **All platforms work identically**: Final output DLLs/.so/.dylib are functionally equivalent
+- **Easy testing**: Try Clang mode in isolated CI/CD job first
 
 ---
 

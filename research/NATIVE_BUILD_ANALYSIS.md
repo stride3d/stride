@@ -13,10 +13,11 @@ Stride projects like `Stride.Audio.csproj` contain mixed C# and C++ code. Curren
 
 **Key Benefits of Clang Option**:
 - ✅ Cross-platform consistency (Windows, Linux, macOS)
-- ✅ No Visual Studio or MSVC required (optional)
+- ✅ No Visual Studio or MSVC required (optional on Windows)
 - ✅ 5-20% faster linking
 - ✅ Foundation for dotnet CLI-only builds
-- ✅ 100% backward compatible (MSVC remains default)
+- ✅ 100% backward compatible on Windows (MSVC remains default)
+- ✅ Automatic on Linux/macOS (MSVC not available)
 
 ---
 
@@ -440,19 +441,33 @@ lld -flavor link -dll -machine:x64 \
 
 ## Part 7: Usage & Build Modes
 
-### Default Behavior (MSVC)
+### Default Behavior (Platform-Specific)
 
+**Windows builds on Windows**:
 ```bash
-# Just build normally - uses MSVC (existing behavior unchanged)
+# Default uses MSVC (existing behavior unchanged)
 dotnet build sources/engine/Stride.Audio/Stride.Audio.csproj
 ```
-
 Output indicates: `[Stride] Native build mode: Msvc`
 
-### Opt-in Clang+LLD (New)
+**Linux builds on Linux**:
+```bash
+# Automatically uses Clang+LLD (MSVC unavailable)
+dotnet build sources/engine/Stride.Audio/Stride.Audio.csproj
+```
+Output indicates: `[Stride] Native build mode: Clang`
+
+**macOS builds on macOS**:
+```bash
+# Automatically uses Clang+darwin_ld (MSVC unavailable)
+dotnet build sources/engine/Stride.Audio/Stride.Audio.csproj
+```
+Output indicates: `[Stride] Native build mode: Clang`
+
+### Opt-in Clang+LLD (New Option for Windows)
 
 ```bash
-# Switch to Clang+LLD for faster, cross-platform builds
+# Switch from MSVC to Clang+LLD on Windows
 dotnet build sources/engine/Stride.Audio/Stride.Audio.csproj /p:StrideNativeBuildMode=Clang
 ```
 
@@ -460,21 +475,21 @@ Output indicates: `[Stride] Native build mode: Clang`
 
 ### Environment Variable Control
 
-**To use Clang+LLD on Windows Command Prompt**:
+**On Windows (to use Clang+LLD instead of MSVC)**:
 ```batch
 set StrideNativeBuildMode=Clang
 dotnet build
 ```
 
-**To use Clang+LLD on Windows PowerShell**:
-```powershell
-$env:StrideNativeBuildMode = "Clang"
+**On Linux (Clang+LLD is automatic, but can be explicit)**:
+```bash
+export StrideNativeBuildMode=Clang  # Already default
 dotnet build
 ```
 
-**To use Clang+LLD on Linux/macOS**:
+**On macOS (Clang+darwin_ld is automatic, but can override)**:
 ```bash
-export StrideNativeBuildMode=Clang
+export StrideNativeBuildMode=Clang  # Already default
 dotnet build
 ```
 
