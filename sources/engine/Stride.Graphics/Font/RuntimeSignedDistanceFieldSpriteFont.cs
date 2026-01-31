@@ -1,6 +1,8 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
@@ -26,6 +28,8 @@ namespace Stride.Graphics.Font
         private readonly Dictionary<char, CharacterSpecification> characters = new Dictionary<char, CharacterSpecification>();
         private readonly Dictionary<char, FontCacheManagerMsdf.MsdfCachedGlyph> cacheRecords
     = new Dictionary<char, FontCacheManagerMsdf.MsdfCachedGlyph>();
+        private readonly Channel<SdfWorkItem> workQueue = Channel.CreateUnbounded<SdfWorkItem>(
+    new UnboundedChannelOptions { SingleReader = true, SingleWriter = false });
 
         private readonly HashSet<char> offsetAdjusted = new HashSet<char>();
         
@@ -45,6 +49,18 @@ namespace Stride.Graphics.Font
 
         // 3) Limit CPU concurrency (otherwise “paragraph appears” spawns 500 tasks)
         private readonly System.Threading.SemaphoreSlim genBudget = new(initialCount: 2, maxCount: 2);
+
+        private struct SdfWorkItem
+        {
+            public char Character;
+            public byte[] SourceBuffer;
+            public int Width;
+            public int Rows;
+            public int Pitch;
+            public int Pad;
+        }
+
+
 
         internal override FontSystem FontSystem
         {
@@ -334,49 +350,56 @@ namespace Stride.Graphics.Font
             }
         }
 
+        private void StartWorker()
+        {
+            Task.Run(async () =>
+            {
+                // One persistent loop instead of 1000s of discarded tasks
+                await foreach (var work in workQueue.Reader.ReadAllAsync())
+                {
+                    try
+                    {
+                        var sdf = BuildSdfRgbFromCoverage(
+                            work.SourceBuffer, work.Width, work.Rows, work.Pitch, work.Pad, Math.Max(1, PixelRange));
+
+                        readyForUpload.Enqueue((work.Character, sdf, work.Pad));
+                    }
+                    finally
+                    {
+                        inFlight.TryRemove(work.Character, out _);
+                    }
+                }
+            });
+        }
         private void EnsureSdfScheduled(char c, CharacterSpecification spec)
         {
-            // Already uploaded? nothing to do.
             if (spec.IsBitmapUploaded) return;
 
-            // Already have bitmap? If not, we can’t generate.
             var bmp = spec.Bitmap;
             if (bmp == null || bmp.Width == 0 || bmp.Rows == 0) return;
 
-            // Already scheduled? bail.
+            // Fast atomic check
             if (!inFlight.TryAdd(c, 0)) return;
 
-            // Copy the grayscale/coverage bitmap to an owned array so background thread is safe.
-            // (Do NOT let the worker read spec.Bitmap.Buffer directly.)
-            var width = bmp.Width;
-            var rows = bmp.Rows;
-            var pitch = bmp.Pitch;
+            // Defensive copy
+            var srcCopy = new byte[bmp.Pitch * bmp.Rows];
+            unsafe { System.Runtime.InteropServices.Marshal.Copy((IntPtr)bmp.Buffer, srcCopy, 0, srcCopy.Length); }
 
-            var srcCopy = new byte[pitch * rows];
-            unsafe
+            var work = new SdfWorkItem
             {
-                System.Runtime.InteropServices.Marshal.Copy((IntPtr)bmp.Buffer, srcCopy, 0, srcCopy.Length);
+                Character = c,
+                SourceBuffer = srcCopy,
+                Width = bmp.Width,
+                Rows = bmp.Rows,
+                Pitch = bmp.Pitch,
+                Pad = ComputeTotalPad()
+            };
+
+            // TryWrite is non-blocking and allocation-free for the queue itself
+            if (!workQueue.Writer.TryWrite(work))
+            {
+                inFlight.TryRemove(c, out _);
             }
-
-            int pad = /* your total pad, e.g. PixelRange + extra padding */ ComputeTotalPad();
-            int pixelRange = Math.Max(1, PixelRange);
-
-            _ = System.Threading.Tasks.Task.Run(async () =>
-            {
-                await genBudget.WaitAsync().ConfigureAwait(false);
-                try
-                {
-                    // Build SDF RGBA from coverage copy
-                    var sdf = BuildSdfRgbFromCoverage(srcCopy, width, rows, pitch, pad, pixelRange);
-
-                    readyForUpload.Enqueue((c, sdf, pad));
-                }
-                finally
-                {
-                    genBudget.Release();
-                    inFlight.TryRemove(c, out _);
-                }
-            });
         }
 
         private void DrainUploads(CommandList commandList, int maxUploadsPerFrame = 8)
