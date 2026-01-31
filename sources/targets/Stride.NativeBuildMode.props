@@ -33,14 +33,14 @@
   <PropertyGroup>
     <!-- 
       Platform-aware default build mode selection:
-      - Windows (build on Windows, target Windows): Msvc (preserve existing behavior)
-      - Linux (build on Linux or target Linux): Clang (MSVC not available)
-      - macOS (build on macOS or target macOS): Clang (MSVC not available, use darwin_ld)
+      - Windows (build on Windows): Msvc (preserve existing behavior)
+      - Linux (build on Linux): Clang (MSVC not available)
+      - macOS (build on macOS): Clang (MSVC not available, use darwin_ld)
       - iOS, Android: Platform-specific (unchanged)
     -->
     
-    <!-- Check if we're building on Windows for Windows target -->
-    <_IsWindowsBuildForWindows Condition="$([MSBuild]::IsOSPlatform('Windows')) And '$(TargetPlatformVersion)' == '' Or '$(TargetPlatformVersion)'.StartsWith('10.')">true</_IsWindowsBuildForWindows>
+    <!-- Check if we're building on Windows OS -->
+    <_IsWindowsBuildForWindows Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</_IsWindowsBuildForWindows>
     <_IsWindowsBuildForWindows Condition="'$(_IsWindowsBuildForWindows)' == ''">false</_IsWindowsBuildForWindows>
     
     <!-- Default to MSVC only for Windows builds on Windows platform, otherwise use Clang -->
