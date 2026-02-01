@@ -7,19 +7,20 @@ using Stride.Shaders.Compilers.Direct3D;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders;
 
-Console.WriteLine(Spv2DXIL.spirv_to_dxil_get_version());
 
-// Examples.CompileSDSL("RenderTests/If");
+// Console.WriteLine(Spv2DXIL.spirv_to_dxil_get_version());
 
-//Examples.CompileSDSL();
-var loader = new Examples.ShaderLoader();
-loader.LoadExternalBuffer("Test", [], out var testBuffer, out _, out _);
-var shaderMixer = new ShaderMixer(loader);
-shaderMixer.MergeSDSL(new ShaderClassSource("If"), new ShaderMixer.Options(), out var bytecode, out _, out _, out _);
+// // Examples.CompileSDSL("RenderTests/If");
 
-using var buffer = SpirvBytecode.CreateBufferFromBytecode(bytecode);
-var source = Spv.Dis(buffer);
-File.WriteAllText("test.spvdis", source);
+// //Examples.CompileSDSL();
+// var loader = new Examples.ShaderLoader();
+// loader.LoadExternalBuffer("Test", [], out var testBuffer, out _, out _);
+// var shaderMixer = new ShaderMixer(loader);
+// shaderMixer.MergeSDSL(new ShaderClassSource("If"), new ShaderMixer.Options(), out var bytecode, out _, out _, out _);
+
+// using var buffer = SpirvBytecode.CreateBufferFromBytecode(bytecode);
+// var source = Spv.Dis(buffer);
+// File.WriteAllText("test.spvdis", source);
 
 
 // Examples.TryAllFiles();
@@ -27,3 +28,11 @@ File.WriteAllText("test.spvdis", source);
 
 // Examples.GenerateSpirv();
 // Examples.CreateNewShader();
+
+
+Directory.SetCurrentDirectory(@"C:\Users\kafia\source\repos\SDSL\");
+
+var file = string.Join("\n", File.ReadLines(@".\submodules\DirectXShaderCompiler\utils\hct\gen_intrin_main.txt").Where(x => !x.StartsWith("//")));
+
+Stride.Shaders.Generators.Intrinsics.IntrinParser.Parse(file, out var result);
+Console.WriteLine(result);

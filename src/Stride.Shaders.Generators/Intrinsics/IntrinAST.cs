@@ -1,5 +1,6 @@
 
 using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Shaders.Generators.Intrinsics;
 
@@ -29,14 +30,19 @@ internal record TypeInfo(Typename Typename, TextLocation Location, Matching? Mat
 internal record IntrinsicOp(string Operator, TextLocation Location) : Node(Location);
 internal record ArgumentQualifier(string Qualifier, TextLocation Location, string? OptionalQualifier = null) : Node(Location);
 
-internal record ArgumentParameter(ArgumentQualifier Qualifier, TypeInfo TypeInfo, Identifier Name, TextLocation Location) : Node(Location);
+internal record IntrinsicParameter(ArgumentQualifier? Qualifier, TypeInfo TypeInfo, Identifier Name, TextLocation Location) : Node(Location);
 
-internal record IntrinsicDeclaration(Identifier Name, TypeInfo ReturnType, EquatableList<ArgumentParameter> Parameters, TextLocation Location, Attributes? Attributes = null, IntrinsicOp? Operator = null) : Node(Location);
+internal record IntrinsicDeclaration(Identifier Name, TypeInfo ReturnType, EquatableList<IntrinsicParameter> Parameters, TextLocation Location, Attributes? Attributes = null, IntrinsicOp? Operator = null) : Node(Location);
 
 internal record NamespaceDeclaration(Identifier Name, EquatableList<IntrinsicDeclaration> Intrinsics, TextLocation Location) : Node(Location);
 
 
+static class EquatableListBuilder
+{
+    public static EquatableList<T> Create<T>(ReadOnlySpan<T> items) => new([..items]);
+}
 
+[CollectionBuilder(typeof(EquatableListBuilder), "Create")]
 internal readonly struct EquatableList<T>(List<T> items)
 {
     public List<T> Items { get; } = items;

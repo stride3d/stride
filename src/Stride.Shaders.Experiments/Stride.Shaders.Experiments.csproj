@@ -24,4 +24,9 @@
     <None Include="..\..\assets\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\Stride.Shaders.Generators\Intrinsics\IntrinAST.cs" />
+    <Compile Include="..\Stride.Shaders.Generators\Intrinsics\Parser.cs" />
+  </ItemGroup>
+
 </Project>

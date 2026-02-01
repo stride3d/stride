@@ -1,6 +1,7 @@
 namespace Stride.Shaders.Generators.Intrinsics;
 
 using System;
+using System.Text.Json;
 
 internal record struct TextLocation(string Code, Range Range);
 
@@ -151,10 +152,11 @@ internal static class ParsersExtensions
     internal static bool ArgumentQualifier(this ref Scanner scanner, out ArgumentQualifier qualifier)
     {
         var position = scanner.Position;
-        if (scanner.AnyOf(out var matched, advance: true, "in", "out", "inout"))
+        if (scanner.AnyOf(out var matched, advance: true, "inout", "in", "out", "ref"))
         {
             var tmp = scanner.Position;
-            scanner.MatchWhiteSpace();
+            if (!scanner.MatchWhiteSpace(1, true))
+                return scanner.Backtrack(position, out qualifier);
             if (scanner.AnyOf(out var optionalQualifier, advance: true, "row_major", "col_major"))
             {
                 qualifier = new ArgumentQualifier(matched, new TextLocation(scanner.Code, position..scanner.Position), optionalQualifier);
@@ -198,14 +200,14 @@ internal static class ParsersExtensions
             var tmpPos1 = scanner.Position;
             while (scanner.MatchDigit(true)) ;
             int componentA = int.Parse(scanner.Code[tmpPos1..scanner.Position]);
-            scanner.MatchWhiteSpace();
+            scanner.MatchWhiteSpace(advance: true);
             if (scanner.Match(",", true))
             {
-                scanner.MatchWhiteSpace();
+                scanner.MatchWhiteSpace(advance: true);
                 var tmpPos2 = scanner.Position;
                 while (scanner.MatchDigit(true)) ;
                 int componentB = int.Parse(scanner.Code[tmpPos2..scanner.Position]);
-                scanner.MatchWhiteSpace();
+                scanner.MatchWhiteSpace(advance: true);
                 if (scanner.Match(">", true))
                 {
                     typeInfo = new Matching(componentA, componentB, new TextLocation(scanner.Code, position..scanner.Position));
@@ -223,16 +225,31 @@ internal static class ParsersExtensions
         var position = scanner.Position;
         if (scanner.TypeMatching(out var typematch))
         {
-            if(typematch is ClassTMatch or FuncMatch or Func2Match)
+            if (typematch is ClassTMatch or FuncMatch or Func2Match)
             {
                 typeInfo = new TypeInfo(new Typename("void", null, new TextLocation(scanner.Code, position..scanner.Position)), new TextLocation(scanner.Code, position..scanner.Position), typematch);
                 return scanner.Success();
             }
-            else if(typematch is TypeMatch tm)
+            else if (typematch is TypeMatch tm)
             {
                 typeInfo = new TypeInfo(new Typename("$to_resolve", null, new TextLocation(scanner.Code, position..scanner.Position)), new TextLocation(scanner.Code, position..scanner.Position), typematch);
                 return scanner.Success();
             }
+            else if (typematch is Matching m)
+            {
+                scanner.MatchWhiteSpace(advance: true);
+                if (scanner.Typename(out var typename))
+                {
+                    typeInfo = new TypeInfo(typename, new TextLocation(scanner.Code, position..scanner.Position), typematch);
+                    return scanner.Success();
+                }
+                else return scanner.Backtrack(position, out typeInfo);
+            }
+        }
+        else if (scanner.Typename(out var typename))
+        {
+            typeInfo = new TypeInfo(typename, new TextLocation(scanner.Code, position..scanner.Position), null);
+            return scanner.Success();
         }
         return scanner.Backtrack(position, out typeInfo);
     }
@@ -242,18 +259,18 @@ internal static class ParsersExtensions
         var position = scanner.Position;
         if (scanner.Match("<", true))
         {
-            scanner.MatchWhiteSpace();
+            scanner.MatchWhiteSpace(advance: true);
             var size1Pos = scanner.Position;
             while (scanner.MatchLetterOrDigit(true)) ;
             var size1 = scanner.Code[size1Pos..scanner.Position].ToString();
-            scanner.MatchWhiteSpace();
+            scanner.MatchWhiteSpace(advance: true);
             if (scanner.Match(",", true))
             {
-                scanner.MatchWhiteSpace();
+                scanner.MatchWhiteSpace(advance: true);
                 var size2Pos = scanner.Position;
                 while (scanner.MatchLetterOrDigit(true)) ;
                 var size2 = scanner.Code[size2Pos..scanner.Position].ToString();
-                scanner.MatchWhiteSpace();
+                scanner.MatchWhiteSpace(advance: true);
             }
             if (scanner.Match(">", true))
             {
@@ -269,7 +286,8 @@ internal static class ParsersExtensions
         var position = scanner.Position;
         if (scanner.Identifier(out var id))
         {
-            scanner.MatchWhiteSpace();
+            var tmpPos = scanner.Position;
+            scanner.MatchWhiteSpace(advance: true);
             if (scanner.LayoutSize(out var layout))
             {
                 typename = new Typename(id.Name, layout, new TextLocation(scanner.Code, position..scanner.Position));
@@ -277,6 +295,7 @@ internal static class ParsersExtensions
             }
             else
             {
+                scanner.Backtrack(tmpPos);
                 typename = new Typename(id.Name, null, new TextLocation(scanner.Code, position..scanner.Position));
                 return true;
             }
@@ -290,8 +309,8 @@ internal static class ParsersExtensions
         var position = scanner.Position;
         if (scanner.Match(":", true))
         {
-            scanner.MatchWhiteSpace();
-            if (scanner.Identifier(out var id) && scanner.FollowedBy(";", advance: true))
+            scanner.MatchWhiteSpace(advance: true);
+            if (scanner.Identifier(out var id))
             {
                 intrinsicOp = new IntrinsicOp(id.Name, new TextLocation(scanner.Code, position..scanner.Position));
                 return true;
@@ -302,35 +321,151 @@ internal static class ParsersExtensions
         return scanner.Backtrack(position, out intrinsicOp);
     }
 
-    internal static bool Attribute(this ref Scanner scanner, out Attributes attributes)
+    internal static bool Attributes(this ref Scanner scanner, out Attributes attributes)
     {
         var position = scanner.Position;
         if (scanner.Match("[[", true))
         {
             var attributeStart = scanner.Position;
-            scanner.MatchWhiteSpace();
-            if (scanner.AnyUntil("]]", true))
+            scanner.MatchWhiteSpace(advance: true);
+            if (scanner.AnyUntil("]]"))
             {
+                if (scanner.EOF || !scanner.Match("]]", true))
+                    return scanner.Backtrack(position, out attributes);
                 attributes = new(scanner.Code[attributeStart..(scanner.Position - 2)].ToString().Split(','), new(scanner.Code, position..scanner.Position));
+                return scanner.Success();
             }
-            else if (scanner.Match("]]", true))
-            {
-                attributes = new(Array.Empty<string>(), new(scanner.Code, position..scanner.Position));
-                return true;
-            }
-            else return scanner.Backtrack(position, out attributes);
-
         }
         return scanner.Backtrack(position, out attributes);
     }
+
+    internal static bool IntrinsicParameter(this ref Scanner scanner, out IntrinsicParameter parameter)
+    {
+        var position = scanner.Position;
+        parameter = new(null, null!, null!, new());
+        if(scanner.Match("...", true))
+        {
+            parameter = parameter with { Name = new Identifier("...", new TextLocation(scanner.Code, position..scanner.Position)), Location = new TextLocation(scanner.Code, position..scanner.Position) };
+            return scanner.Success();
+        }
+        if (scanner.ArgumentQualifier(out var qualifier))
+        {
+            parameter = parameter with { Qualifier = qualifier };
+            if (!scanner.MatchWhiteSpace(1, advance: true))
+                return scanner.Backtrack(position, out parameter);
+        }
+        if (scanner.TypeInfo(out var typeInfo))
+        {
+            parameter = parameter with { TypeInfo = typeInfo };
+            if (!scanner.MatchWhiteSpace(1, advance: true))
+                return scanner.Backtrack(position, out parameter);
+            if (scanner.Identifier(out var name))
+            {
+                parameter = parameter with { Name = name, Location = new TextLocation(scanner.Code, position..scanner.Position) };
+                return scanner.Success();
+            }
+            else return scanner.Backtrack(position, out parameter);
+        }
+        else return scanner.Backtrack(position, out parameter);
+    }
+
+    internal static bool IntrinsicDeclaration(this ref Scanner scanner, out IntrinsicDeclaration intrinsic)
+    {
+        var position = scanner.Position;
+        intrinsic = new(null!, null!, [], new());
+        if (scanner.TypeInfo(out var returnType))
+        {
+            intrinsic = intrinsic with { ReturnType = returnType };
+            if (!scanner.MatchWhiteSpace(1, true))
+                return scanner.Backtrack(position, out intrinsic);
+
+            if (scanner.Attributes(out var attributes))
+            {
+                intrinsic = intrinsic with { Attributes = attributes };
+                if (!scanner.MatchWhiteSpace(1, true))
+                    return scanner.Backtrack(position, out intrinsic);
+            }
+
+            if (scanner.Identifier(out var name))
+            {
+                scanner.MatchWhiteSpace(advance: true);
+                if (scanner.Match("(", true))
+                {
+                    do
+                    {
+                        scanner.MatchWhiteSpace(advance: true);
+                        scanner.IntrinsicParameter(out var parameter);
+                        scanner.MatchWhiteSpace(advance: true);
+                        intrinsic.Parameters.Items.Add(parameter);
+                    }
+                    while (!scanner.EOF && scanner.Match(",", true));
+                    if (scanner.EOF || !scanner.Match(")", true))
+                        return scanner.Backtrack(position, out intrinsic);
+                    scanner.MatchWhiteSpace(advance: true);
+                    if (scanner.IntrinsicOp(out var op))
+                        intrinsic = intrinsic with { Location = new TextLocation(scanner.Code, position..scanner.Position), Operator = op };
+                    if (!scanner.FollowedBy(";", advance: true))
+                        return scanner.Backtrack(position, out intrinsic);
+                    return scanner.Success();
+                }
+            }
+        }
+        return scanner.Backtrack(position, out intrinsic);
+    }
+
+    internal static bool NamespaceDeclaration(this ref Scanner scanner, out NamespaceDeclaration namespaceDecl)
+    {
+        var position = scanner.Position;
+        namespaceDecl = new(null!, [], new());
+        if (scanner.Match("namespace", true))
+        {
+            scanner.MatchWhiteSpace(1, true);
+            if (scanner.Identifier(out var name))
+            {
+                scanner.MatchWhiteSpace(advance: true);
+                if (scanner.Match("{", true))
+                {
+                    scanner.MatchWhiteSpace(advance: true);
+                    while (!scanner.EOF && scanner.IntrinsicDeclaration(out var intrinsic))
+                    {
+                        namespaceDecl.Intrinsics.Items.Add(intrinsic);
+                        scanner.MatchWhiteSpace(advance: true);
+                    }
+                    if (scanner.EOF || !(scanner.Match("}", true) && scanner.FollowedBy("namespace", advance: true)))
+                        return scanner.Backtrack(position, out namespaceDecl);
+                    namespaceDecl = namespaceDecl with { Name = name, Location = new TextLocation(scanner.Code, position..scanner.Position) };
+                    return scanner.Success();
+                }
+            }
+        }
+        return scanner.Backtrack(position, out namespaceDecl);
+    }
+    internal static bool IntrinsicFile(this ref Scanner scanner, out EquatableList<NamespaceDeclaration> namespaces)
+    {
+        var position = scanner.Position;
+        namespaces = [];
+        scanner.MatchWhiteSpace(advance: true);
+        while (!scanner.EOF && scanner.NamespaceDeclaration(out var namespaceDecl))
+        {
+            namespaces.Items.Add(namespaceDecl);
+            scanner.MatchWhiteSpace(advance: true);
+        }
+        return scanner.Success();
+    }
 }
 
-static class Machin
+public static class IntrinParser
 {
-    static void Main()
+    public static bool Parse(string code, out string result)
     {
-        var scanner = new Scanner("hello world");
-
-
+        var scanner = new Scanner(code);
+        var parsed = scanner.IntrinsicFile(out var ns);
+        if (!scanner.EOF)
+        {
+            result = $"error -> {scanner.Code[scanner.Position..Math.Min(scanner.Position + 25, scanner.Code.Length)]}";
+            return false;
+        }
+        result = JsonSerializer.Serialize(ns, new JsonSerializerOptions { WriteIndented = true });
+        return true;
     }
 }
