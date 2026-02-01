@@ -54,7 +54,6 @@ namespace Stride.Graphics.Font
             float defaultSize,
             string fontName,
             FontStyle style,
-            int bakeSize,
             int pixelRange,
             int padding,
             bool useKerning,
@@ -70,7 +69,6 @@ namespace Stride.Graphics.Font
                 FontName = fontName,
                 Style = style,
 
-                BakeSize = bakeSize,
                 PixelRange = pixelRange,
                 Padding = padding,
 

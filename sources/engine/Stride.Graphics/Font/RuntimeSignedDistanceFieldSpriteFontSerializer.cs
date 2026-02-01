@@ -37,7 +37,6 @@ namespace Stride.Graphics.Font
                 font.Style = stream.Read<FontStyle>();
                 font.UseKerning = stream.Read<bool>();
 
-                font.BakeSize = stream.Read<int>();
                 font.PixelRange = stream.Read<int>();
                 font.Padding = stream.Read<int>();
 
@@ -50,7 +49,6 @@ namespace Stride.Graphics.Font
                 stream.Write(font.Style);
                 stream.Write(font.UseKerning);
 
-                stream.Write(font.BakeSize);
                 stream.Write(font.PixelRange);
                 stream.Write(font.Padding);
             }
