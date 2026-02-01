@@ -16,7 +16,6 @@ namespace Stride.Graphics.Font
         internal string FontName;
         internal FontStyle Style;
 
-        internal int BakeSize = 32;
         internal int PixelRange = 8;
         internal int Padding = 2;
 
@@ -92,16 +91,15 @@ namespace Stride.Graphics.Font
             if (cache == null)
                 throw new InvalidOperationException("RuntimeSignedDistanceFieldSpriteFont requires FontSystem.FontCacheManagerMsdf to be initialized.");
 
-            // All glyphs baked at BakeSize
-            var bakedSizeVec = new Vector2(BakeSize, BakeSize);
+            // All glyphs are generated at Size
+            var sizeVec = new Vector2(Size, Size);
 
             // IMPORTANT:
             // SDF fonts are scaled by Stride using requestedFontSize vs SpriteFont.Size.
-            // fixScaling should only compensate baked glyph pixel size (BakeSize) -> logical font size (Size).
-            var logicalSizeVec = new Vector2(Size, Size);
-            fixScaling = logicalSizeVec / bakedSizeVec;
+            // Glyphs are baked at Size, so no compensating scaling is required.
+            fixScaling = Vector2.One;
 
-            var spec = GetOrCreateCharacterData(character, bakedSizeVec);
+            var spec = GetOrCreateCharacterData(character, sizeVec);
 
             // 1) Ensure we have the coverage bitmap + correct metrics (sync)
             if (spec.Bitmap == null)
@@ -146,12 +144,12 @@ namespace Stride.Graphics.Font
         {
 
             // Async pregen glyphs
-            var bakedSizeVec = new Vector2(BakeSize, BakeSize);
+            var sizeVec = new Vector2(Size, Size);
 
             for (int i = 0; i < text.Length; i++)
             {
                 var c = text[i];
-                var spec = GetOrCreateCharacterData(c, bakedSizeVec);
+                var spec = GetOrCreateCharacterData(c, sizeVec);
 
                 if (spec.Bitmap == null)
                     FontManager.GenerateBitmap(spec, true);
@@ -161,12 +159,12 @@ namespace Stride.Graphics.Font
             }
         }
 
-        private CharacterSpecification GetOrCreateCharacterData(char character, Vector2 bakedSize)
+        private CharacterSpecification GetOrCreateCharacterData(char character, Vector2 size)
         {
             if (!characters.TryGetValue(character, out var spec))
             {
                 // AntiAlias: use AntiAliased so coverage bitmap is smooth
-                spec = new CharacterSpecification(character, FontName, bakedSize, Style, FontAntiAliasMode.Grayscale);
+                spec = new CharacterSpecification(character, FontName, size, Style, FontAntiAliasMode.Grayscale);
                 spec.Glyph.Subrect = Rectangle.Empty;
                 spec.Glyph.BitmapIndex = 0;
                 spec.IsBitmapUploaded = false;

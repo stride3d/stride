@@ -20,19 +20,9 @@ namespace Stride.Assets.SpriteFont
         public override float Size { get; set; } = 20;
 
         /// <summary>
-        /// The fixed size (in pixels) used to generate MSDF glyph bitmaps at runtime.
-        /// The font can be rendered at other sizes by scaling in the SDF shader.
-        /// </summary>
-        [DataMember(40)]
-        [DefaultValue(64)]
-        [DataMemberRange(8, 256, 1, 8, 0)]
-        [Display("Bake Size")]
-        public int BakeSize { get; set; } = 64;
-
-        /// <summary>
         /// Distance field range/spread (in pixels) used during MSDF generation.
         /// </summary>
-        [DataMember(50)]
+        [DataMember(40)]
         [DefaultValue(8)]
         [DataMemberRange(1, 64, 1, 4, 0)]
         [Display("Pixel Range")]
@@ -41,7 +31,7 @@ namespace Stride.Assets.SpriteFont
         /// <summary>
         /// Extra padding around each glyph inside the atlas (in pixels).
         /// </summary>
-        [DataMember(60)]
+        [DataMember(50)]
         [DefaultValue(2)]
         [DataMemberRange(0, 16, 1, 2, 0)]
         [Display("Padding")]

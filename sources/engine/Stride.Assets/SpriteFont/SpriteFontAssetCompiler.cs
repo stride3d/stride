@@ -237,7 +237,6 @@ namespace Stride.Assets.SpriteFont
                     runtimeSdfType.Size,
                     Parameters.FontSource.GetFontName(),
                     Parameters.FontSource.Style,
-                    runtimeSdfType.BakeSize,
                     runtimeSdfType.PixelRange,
                     runtimeSdfType.Padding,
                     useKerning: false,
