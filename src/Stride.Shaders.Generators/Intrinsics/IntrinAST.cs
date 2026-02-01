@@ -1,0 +1,62 @@
+
+using System.Collections;
+
+namespace Stride.Shaders.Generators.Intrinsics;
+
+//   <type> \[\[[attr]\]\] <name>([<qual> <type> <name> [, ... ]]) [ : <op>]
+
+internal abstract record Node(TextLocation Location);
+
+internal record Identifier(string Name, TextLocation Location) : Node(Location);
+
+
+internal record Attributes(string[] Values, TextLocation Location) : Node(Location);
+
+
+internal record Layout(string Size1, string? Size2, TextLocation Location) : Node(Location);
+
+internal record Typename(string Name, Layout? Size, TextLocation Location) : Node(Location);
+internal record NumericType(Layout Size, TextLocation Location) : Typename("numeric", Size, Location);
+
+internal record Matching(int ComponentA, int ComponentB, TextLocation Location) : Node(Location);
+internal record ClassTMatch(TextLocation Location) : Matching(-1, 0,Location);
+internal record FuncMatch(TextLocation Location) : Matching(-3, 0, Location);
+internal record Func2Match(TextLocation Location) : Matching(-3, 0, Location);
+internal record TypeMatch(int ComponentA, TextLocation Location) : Matching(ComponentA, ComponentA, Location);
+
+
+internal record TypeInfo(Typename Typename, TextLocation Location, Matching? Match = null) : Node(Location);
+internal record IntrinsicOp(string Operator, TextLocation Location) : Node(Location);
+internal record ArgumentQualifier(string Qualifier, TextLocation Location, string? OptionalQualifier = null) : Node(Location);
+
+internal record ArgumentParameter(ArgumentQualifier Qualifier, TypeInfo TypeInfo, Identifier Name, TextLocation Location) : Node(Location);
+
+internal record IntrinsicDeclaration(Identifier Name, TypeInfo ReturnType, EquatableList<ArgumentParameter> Parameters, TextLocation Location, Attributes? Attributes = null, IntrinsicOp? Operator = null) : Node(Location);
+
+internal record NamespaceDeclaration(Identifier Name, EquatableList<IntrinsicDeclaration> Intrinsics, TextLocation Location) : Node(Location);
+
+
+
+internal readonly struct EquatableList<T>(List<T> items)
+{
+    public List<T> Items { get; } = items;
+
+    public readonly override bool Equals(object? obj)
+    {
+        if (obj is EquatableList<T> other)
+            return Items.SequenceEqual(other.Items);
+        return false;
+    }
+
+    public readonly override int GetHashCode()
+    {
+        int hash = 17;
+        foreach (var item in Items)
+            hash = hash * 31 + (item?.GetHashCode() ?? 0);
+        return hash;
+    }
+    public void Deconstruct(out List<T> items) => items = Items;
+
+    public List<T>.Enumerator GetEnumerator()
+        => Items.GetEnumerator();
+}

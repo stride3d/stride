@@ -10,6 +10,9 @@
     <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
     <Compile Remove="StrideImported\**" Condition="'$(StrideDirectory)' != ''" />
     <None Remove="StrideImported\**" Condition="'$(StrideDirectory)' != ''" />
+
+		<AdditionalFiles Include="..\..\submodules\DirectXShaderCompiler\utils\hct\gen_intrin_main.txt" />
+
   </ItemGroup>
 
   <ItemGroup>
