@@ -7,3 +7,6 @@
 [submodule "submodules/SpirvRegistry"]
 	path = submodules/SpirvRegistry
 	url = https://github.com/KhronosGroup/Registry-Root-SPIR-V
+[submodule "submodules/DirectXShaderCompiler"]
+	path = submodules/DirectXShaderCompiler
+	url = https://github.com/microsoft/DirectXShaderCompiler
