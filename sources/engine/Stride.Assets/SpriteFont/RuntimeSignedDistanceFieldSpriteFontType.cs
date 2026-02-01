@@ -17,7 +17,7 @@ namespace Stride.Assets.SpriteFont
         [DataMemberRange(MathUtil.ZeroTolerance, 2)]
         [DefaultValue(20)]
         [Display("Default Size")]
-        public override float Size { get; set; } = 20;
+        public override float Size { get; set; } = 64;
 
         /// <summary>
         /// Distance field range/spread (in pixels) used during MSDF generation.
