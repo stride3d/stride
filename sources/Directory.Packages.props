@@ -15,6 +15,8 @@
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="7.0.4" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
     <PackageVersion Include="PolySharp" Version="1.15.0" />
+    <PackageVersion Include="SDL3-CS" Version="3.3.7" />
+    <PackageVersion Include="SDL3-CS.Native" Version="3.3.7" />
     <PackageVersion Include="ServiceWire" Version="5.6.0" />
     <PackageVersion Include="SharpDX" Version="4.2.0" />
     <PackageVersion Include="SharpDX.D3DCompiler" Version="4.2.0" />

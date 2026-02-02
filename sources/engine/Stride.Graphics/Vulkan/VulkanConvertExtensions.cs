@@ -216,7 +216,7 @@ namespace Stride.Graphics
             }
         }
 
-        public static VkFormat ConvertPixelFormat(PixelFormat inputFormat)
+        public static VkFormat ConvertPixelFormat(this PixelFormat inputFormat)
         {
             ConvertPixelFormat(inputFormat, out var format, out _, out _);
             return format;
@@ -530,6 +530,228 @@ namespace Stride.Graphics
                     break;
                 default:
                     throw new InvalidOperationException("Unsupported texture format: " + inputFormat);
+            }
+        }
+
+        public static PixelFormat ConvertVkFormat(this VkFormat inputFormat)
+        {
+            ConvertVkFormat(inputFormat, out var format);
+            return format;
+        }
+
+        public static void ConvertVkFormat(VkFormat inputFormat, out PixelFormat pixelFormat)
+        {
+            switch (inputFormat)
+            {
+                case VkFormat.R8Unorm:
+                    pixelFormat = PixelFormat.R8_UNorm;
+                    break;
+                case VkFormat.R8Snorm:
+                    pixelFormat = PixelFormat.R8_SNorm;
+                    break;
+                case VkFormat.R8Uint:
+                    pixelFormat = PixelFormat.R8_UInt;
+                    break;
+                case VkFormat.R8Sint:
+                    pixelFormat = PixelFormat.R8_SInt;
+                    break;
+
+                case VkFormat.R8G8B8A8Unorm:
+                    pixelFormat = PixelFormat.R8G8B8A8_UNorm;
+                    break;
+                case VkFormat.R8G8B8A8Uint:
+                    pixelFormat = PixelFormat.R8G8B8A8_UInt;
+                    break;
+                case VkFormat.R8G8B8A8Sint:
+                    pixelFormat = PixelFormat.R8G8B8A8_SInt;
+                    break;
+                case VkFormat.B8G8R8A8Unorm:
+                    pixelFormat = PixelFormat.B8G8R8A8_UNorm;
+                    break;
+                case VkFormat.R8G8B8A8Srgb:
+                    pixelFormat = PixelFormat.R8G8B8A8_UNorm_SRgb;
+                    break;
+                case VkFormat.B8G8R8A8Srgb:
+                    pixelFormat = PixelFormat.B8G8R8A8_UNorm_SRgb;
+                    break;
+
+                case VkFormat.A2R10G10B10UintPack32:
+                    pixelFormat = PixelFormat.R10G10B10A2_UInt;
+                    break;
+                case VkFormat.A2R10G10B10UnormPack32:
+                    pixelFormat = PixelFormat.R10G10B10A2_UNorm;
+                    break;
+
+                case VkFormat.R16Sfloat:
+                    pixelFormat = PixelFormat.R16_Float;
+                    break;
+                case VkFormat.R16Unorm:
+                    pixelFormat = PixelFormat.R16_UNorm;
+                    break;
+                case VkFormat.R16Uint:
+                    pixelFormat = PixelFormat.R16_UInt;
+                    break;
+                case VkFormat.R16Sint:
+                    pixelFormat = PixelFormat.R16_SInt;
+                    break;
+
+                case VkFormat.R16G16Sfloat:
+                    pixelFormat = PixelFormat.R16G16_Float;
+                    break;
+                case VkFormat.R16G16Snorm:
+                    pixelFormat = PixelFormat.R16G16_SNorm;
+                    break;
+                case VkFormat.R16G16Unorm:
+                    pixelFormat = PixelFormat.R16G16_UNorm;
+                    break;
+                case VkFormat.R16G16Sint:
+                    pixelFormat = PixelFormat.R16G16_SInt;
+                    break;
+                case VkFormat.R16G16Uint:
+                    pixelFormat = PixelFormat.R16G16_UInt;
+                    break;
+
+                case VkFormat.R16G16B16A16Sfloat:
+                    pixelFormat = PixelFormat.R16G16B16A16_Float;
+                    break;
+                case VkFormat.R16G16B16A16Unorm:
+                    pixelFormat = PixelFormat.R16G16B16A16_UNorm;
+                    break;
+                case VkFormat.R16G16B16A16Snorm:
+                    pixelFormat = PixelFormat.R16G16B16A16_SNorm;
+                    break;
+                case VkFormat.R16G16B16A16Uint:
+                    pixelFormat = PixelFormat.R16G16B16A16_UInt;
+                    break;
+                case VkFormat.R16G16B16A16Sint:
+                    pixelFormat = PixelFormat.R16G16B16A16_SInt;
+                    break;
+
+                case VkFormat.R32Uint:
+                    pixelFormat = PixelFormat.R32_UInt;
+                    break;
+                case VkFormat.R32Sfloat:
+                    pixelFormat = PixelFormat.R32_Float;
+                    break;
+
+                case VkFormat.R32G32Sfloat:
+                    pixelFormat = PixelFormat.R32G32_Float;
+                    break;
+                case VkFormat.R32G32Uint:
+                    pixelFormat = PixelFormat.R32G32_UInt;
+                    break;
+                case VkFormat.R32G32Sint:
+                    pixelFormat = PixelFormat.R32G32_SInt;
+                    break;
+
+                case VkFormat.R32G32B32Sfloat:
+                    pixelFormat = PixelFormat.R32G32B32_Float;
+                    break;
+                case VkFormat.R32G32B32Uint:
+                    pixelFormat = PixelFormat.R32G32B32_UInt;
+                    break;
+                case VkFormat.R32G32B32Sint:
+                    pixelFormat = PixelFormat.R32G32B32_SInt;
+                    break;
+
+                case VkFormat.R32G32B32A32Sfloat:
+                    pixelFormat = PixelFormat.R32G32B32A32_Float;
+                    break;
+                case VkFormat.R32G32B32A32Uint:
+                    pixelFormat = PixelFormat.R32G32B32A32_UInt;
+                    break;
+                case VkFormat.R32G32B32A32Sint:
+                    pixelFormat = PixelFormat.R32G32B32A32_SInt;
+                    break;
+
+                case VkFormat.D16Unorm:
+                    pixelFormat = PixelFormat.D16_UNorm;
+                    break;
+                case VkFormat.D24UnormS8Uint:
+                    pixelFormat = PixelFormat.D24_UNorm_S8_UInt;
+                    break;
+                case VkFormat.D32Sfloat:
+                    pixelFormat = PixelFormat.D32_Float;
+                    break;
+                case VkFormat.D32SfloatS8Uint:
+                    pixelFormat = PixelFormat.D32_Float_S8X24_UInt;
+                    break;
+
+                // Compressed formats
+                case VkFormat.Etc2R8G8B8UnormBlock:
+                    pixelFormat = PixelFormat.ETC2_RGB; // Preferred over ETC1 (ETC2 is superset/compatible)
+                    break;
+                case VkFormat.Etc2R8G8B8SrgbBlock:
+                    pixelFormat = PixelFormat.ETC2_RGB_SRgb;
+                    break;
+                case VkFormat.Etc2R8G8B8A1UnormBlock:
+                    pixelFormat = PixelFormat.ETC2_RGB_A1;
+                    break;
+                case VkFormat.Etc2R8G8B8A8UnormBlock:
+                    pixelFormat = PixelFormat.ETC2_RGBA;
+                    break;
+                case VkFormat.Etc2R8G8B8A8SrgbBlock:
+                    pixelFormat = PixelFormat.ETC2_RGBA_SRgb;
+                    break;
+
+                case VkFormat.EacR11UnormBlock:
+                    pixelFormat = PixelFormat.EAC_R11_Unsigned;
+                    break;
+                case VkFormat.EacR11SnormBlock:
+                    pixelFormat = PixelFormat.EAC_R11_Signed;
+                    break;
+                case VkFormat.EacR11G11UnormBlock:
+                    pixelFormat = PixelFormat.EAC_RG11_Unsigned;
+                    break;
+                case VkFormat.EacR11G11SnormBlock:
+                    pixelFormat = PixelFormat.EAC_RG11_Signed;
+                    break;
+
+                case VkFormat.Bc1RgbaUnormBlock:
+                    pixelFormat = PixelFormat.BC1_UNorm;
+                    break;
+                case VkFormat.Bc1RgbaSrgbBlock:
+                    pixelFormat = PixelFormat.BC1_UNorm_SRgb;
+                    break;
+                case VkFormat.Bc2UnormBlock:
+                    pixelFormat = PixelFormat.BC2_UNorm;
+                    break;
+                case VkFormat.Bc2SrgbBlock:
+                    pixelFormat = PixelFormat.BC2_UNorm_SRgb;
+                    break;
+                case VkFormat.Bc3UnormBlock:
+                    pixelFormat = PixelFormat.BC3_UNorm;
+                    break;
+                case VkFormat.Bc3SrgbBlock:
+                    pixelFormat = PixelFormat.BC3_UNorm_SRgb;
+                    break;
+                case VkFormat.Bc4UnormBlock:
+                    pixelFormat = PixelFormat.BC4_UNorm;
+                    break;
+                case VkFormat.Bc4SnormBlock:
+                    pixelFormat = PixelFormat.BC4_SNorm;
+                    break;
+                case VkFormat.Bc5UnormBlock:
+                    pixelFormat = PixelFormat.BC5_UNorm;
+                    break;
+                case VkFormat.Bc5SnormBlock:
+                    pixelFormat = PixelFormat.BC5_SNorm;
+                    break;
+                case VkFormat.Bc6hSfloatBlock:
+                    pixelFormat = PixelFormat.BC6H_Sf16;
+                    break;
+                case VkFormat.Bc6hUfloatBlock:
+                    pixelFormat = PixelFormat.BC6H_Uf16;
+                    break;
+                case VkFormat.Bc7UnormBlock:
+                    pixelFormat = PixelFormat.BC7_UNorm;
+                    break;
+                case VkFormat.Bc7SrgbBlock:
+                    pixelFormat = PixelFormat.BC7_UNorm_SRgb;
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Unsupported Vulkan format: " + inputFormat);
             }
         }
 
