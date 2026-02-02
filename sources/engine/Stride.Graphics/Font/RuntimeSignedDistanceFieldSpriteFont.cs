@@ -24,18 +24,51 @@ namespace Stride.Graphics.Font
 
         internal bool UseKerning;
 
+        // --- Distance field configuration & generator seam (MSDF-ready) ---
+
+        private readonly record struct DistanceEncodeParams(float Bias, float Scale);
+        private readonly record struct DistanceFieldParams(int PixelRange, int Pad, DistanceEncodeParams Encode);
+
+        // Keep today’s encoding behavior explicit and centralized.
+        private static readonly DistanceEncodeParams DefaultEncode = new(Bias: 0.4f, Scale: 0.5f);
+
+        private DistanceFieldParams GetDfParams()
+        {
+            int pixelRange = Math.Max(1, PixelRange);
+            int pad = ComputeTotalPad();
+            return new DistanceFieldParams(pixelRange, pad, DefaultEncode);
+        }
+
+        private interface IDistanceFieldGenerator
+        {
+            // Current path: coverage bitmap → packed RGBA bitmap
+            CharacterBitmapRgba GenerateFromCoverage(byte[] coverage, int width, int rows, int pitch, DistanceFieldParams p);
+
+            // Future path: outline → MSDF (placeholder for msdfgen integration)
+            // CharacterBitmapRgba GenerateFromOutline(GlyphOutline outline, DistanceFieldParams p);
+        }
+
+        private sealed class SdfCoverageGenerator : IDistanceFieldGenerator
+        {
+            public CharacterBitmapRgba GenerateFromCoverage(byte[] coverage, int width, int rows, int pitch, DistanceFieldParams p)
+                => BuildSdfRgbFromCoverage(coverage, width, rows, pitch, p.Pad, p.PixelRange, p.Encode);
+        }
+
+        private readonly IDistanceFieldGenerator generator = new SdfCoverageGenerator();
+
         // Single-size runtime SDF: key is just char
         private readonly Dictionary<char, CharacterSpecification> characters = [];
         private readonly Dictionary<char, FontCacheManagerMsdf.MsdfCachedGlyph> cacheRecords = [];
 
         private readonly HashSet<char> offsetAdjusted = [];
-        
+
         [DataMemberIgnore]
         internal FontManager FontManager => FontSystem?.FontManager;
 
         [DataMemberIgnore]
         internal FontCacheManagerMsdf FontCacheManagerMsdf => FontSystem?.FontCacheManagerMsdf;
 
+        // Async wiring
         // 1) Dedup scheduling
         private readonly System.Collections.Concurrent.ConcurrentDictionary<char, byte> inFlight = new();
 
@@ -57,8 +90,7 @@ namespace Stride.Graphics.Font
             int Width,
             int Rows,
             int Pitch,
-            int Pad,
-            int PixelRange);
+            DistanceFieldParams Params);
 
         internal override FontSystem FontSystem
         {
@@ -139,7 +171,6 @@ namespace Stride.Graphics.Font
                 DrainUploads(commandList);
 
             // 3) Upload
-
             if (spec.IsBitmapUploaded && cacheRecords.TryGetValue(character, out var handle))
             {
                 // If evicted/cleared, this will flip false and we’ll reupload next draw
@@ -170,7 +201,7 @@ namespace Stride.Graphics.Font
 
                 if (spec.Bitmap == null)
                     FontManager.GenerateBitmap(spec, true);
-                
+
                 EnsureSdfScheduled(c, spec);
 
             }
@@ -252,10 +283,10 @@ namespace Stride.Graphics.Font
                         try
                         {
                             // CPU SDF build
-                            var sdf = BuildSdfRgbFromCoverage(item.Src, item.Width, item.Rows, item.Pitch, item.Pad, item.PixelRange);
+                            var sdf = generator.GenerateFromCoverage(item.Src, item.Width, item.Rows, item.Pitch, item.Params);
 
                             // hand off to render thread for GPU upload
-                            readyForUpload.Enqueue((item.C, sdf, item.Pad));
+                            readyForUpload.Enqueue((item.C, sdf, item.Params.Pad));
                         }
                         catch
                         {
@@ -263,6 +294,7 @@ namespace Stride.Graphics.Font
                         }
                         finally
                         {
+                            ArrayPool<byte>.Shared.Return(item.Src);
                             inFlight.TryRemove(item.C, out _);
                         }
                     }
@@ -289,26 +321,49 @@ namespace Stride.Graphics.Font
             // Already scheduled? bail.
             if (!inFlight.TryAdd(c, 0)) return;
 
-            // Copy coverage bitmap to owned array so background thread is safe.
+            var p = GetDfParams();
+
+            // Copy coverage bitmap to a pooled array so background thread is safe (avoid per-glyph allocations).
             var width = bmp.Width;
             var rows = bmp.Rows;
             var pitch = bmp.Pitch;
 
-            var srcCopy = new byte[pitch * rows];
-            unsafe
+            int len = pitch * rows;
+            var srcCopy = ArrayPool<byte>.Shared.Rent(len);
+            try
             {
-                System.Runtime.InteropServices.Marshal.Copy((IntPtr)bmp.Buffer, srcCopy, 0, srcCopy.Length);
+                unsafe
+                {
+                    System.Runtime.InteropServices.Marshal.Copy((IntPtr)bmp.Buffer, srcCopy, 0, len);
+                }
+
+                // Render thread must NEVER block: TryWrite only.
+                if (!workChannel.Writer.TryWrite(new WorkItem(c, srcCopy, width, rows, pitch, p)))
+                {
+                    // Queue full; allow retry next frame
+                    ArrayPool<byte>.Shared.Return(srcCopy);
+                    inFlight.TryRemove(c, out _);
+                }
             }
-
-            int pad = ComputeTotalPad();
-            int pixelRange = Math.Max(1, PixelRange);
-
-            // Render thread must NEVER block: TryWrite only.
-            if (!workChannel.Writer.TryWrite(new WorkItem(c, srcCopy, width, rows, pitch, pad, pixelRange)))
+            catch
             {
-                // Queue full; allow retry next frame
+                ArrayPool<byte>.Shared.Return(srcCopy);
                 inFlight.TryRemove(c, out _);
+                throw;
             }
+        }
+
+        private void ApplyUploadedGlyph(FontCacheManagerMsdf cache, char c, CharacterSpecification spec, FontCacheManagerMsdf.MsdfCachedGlyph handle, int bitmapIndex, int pad)
+        {
+            spec.Glyph.Subrect = handle.InnerSubrect;
+            spec.Glyph.BitmapIndex = bitmapIndex;
+            spec.IsBitmapUploaded = true;
+
+            cacheRecords[c] = handle;
+            cache.NotifyGlyphUtilization(handle);
+
+            if (offsetAdjusted.Add(c))
+                spec.Glyph.Offset -= new Vector2(pad, pad);
         }
 
         private void DrainUploads(CommandList commandList, int maxUploadsPerFrame = 8)
@@ -339,15 +394,7 @@ namespace Stride.Graphics.Font
                 var subrect = new Rectangle();
                 var handle = cache.UploadGlyphBitmap(commandList, spec, sdfBitmap, ref subrect, out var bitmapIndex);
 
-                spec.Glyph.Subrect = handle.InnerSubrect;
-                spec.Glyph.BitmapIndex = bitmapIndex;
-                spec.IsBitmapUploaded = true;
-
-                cacheRecords[c] = handle;
-                cache.NotifyGlyphUtilization(handle);
-
-                if (offsetAdjusted.Add(c))
-                    spec.Glyph.Offset -= new Vector2(pad, pad);
+                ApplyUploadedGlyph(cache, c, spec, handle, bitmapIndex, pad);
 
                 sdfBitmap.Dispose();
             }
@@ -356,7 +403,7 @@ namespace Stride.Graphics.Font
 
         // --- SDF generation (CPU), packed into RGB so median(R,G,B)=SDF value ---
 
-        private static unsafe CharacterBitmapRgba BuildSdfRgbFromCoverage(byte[] src, int srcW, int srcH, int srcPitch, int pad, int pixelRange)
+        private static unsafe CharacterBitmapRgba BuildSdfRgbFromCoverage(byte[] src, int srcW, int srcH, int srcPitch, int pad, int pixelRange, DistanceEncodeParams enc)
         {
             int w = srcW + pad * 2;
             int h = srcH + pad * 2;
@@ -383,8 +430,9 @@ namespace Stride.Graphics.Font
             var bmp = new CharacterBitmapRgba(w, h);
             byte* dst = (byte*)bmp.Buffer;
 
-            float scale = 0.5f / Math.Max(1, pixelRange);
+            float scale = enc.Scale / Math.Max(1, pixelRange);
 
+            float bias = enc.Bias;
             for (int y = 0; y < h; y++)
             {
                 byte* row = dst + y * bmp.Pitch;
@@ -397,7 +445,7 @@ namespace Stride.Graphics.Font
                     float dIn = MathF.Sqrt(distToInsideSq[i]);
                     float signed = dOut - dIn;
 
-                    float encoded = Math.Clamp(0.4f + signed * scale, 0f, 1f);
+                    float encoded = Math.Clamp(bias + signed * scale, 0f, 1f);
                     byte b = (byte)(encoded * 255f + 0.5f);
 
                     int o = x * 4;
