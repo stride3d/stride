@@ -1,6 +1,9 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
@@ -22,28 +25,40 @@ namespace Stride.Graphics.Font
         internal bool UseKerning;
 
         // Single-size runtime SDF: key is just char
-        private readonly Dictionary<char, CharacterSpecification> characters = new Dictionary<char, CharacterSpecification>();
-        private readonly Dictionary<char, FontCacheManagerMsdf.MsdfCachedGlyph> cacheRecords
-    = new Dictionary<char, FontCacheManagerMsdf.MsdfCachedGlyph>();
+        private readonly Dictionary<char, CharacterSpecification> characters = [];
+        private readonly Dictionary<char, FontCacheManagerMsdf.MsdfCachedGlyph> cacheRecords = [];
 
-        private readonly HashSet<char> offsetAdjusted = new HashSet<char>();
+        private readonly HashSet<char> offsetAdjusted = [];
         
         [DataMemberIgnore]
-        internal FontManager FontManager => FontSystem != null ? FontSystem.FontManager : null;
+        internal FontManager FontManager => FontSystem?.FontManager;
 
         [DataMemberIgnore]
-        internal FontCacheManagerMsdf FontCacheManagerMsdf => FontSystem != null ? FontSystem.FontCacheManagerMsdf : null;
+        internal FontCacheManagerMsdf FontCacheManagerMsdf => FontSystem?.FontCacheManagerMsdf;
 
         // 1) Dedup scheduling
-        private readonly System.Collections.Concurrent.ConcurrentDictionary<char, byte> inFlight
-            = new();
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<char, byte> inFlight = new();
 
         // 2) Generated SDF results waiting for GPU upload
-        private readonly System.Collections.Concurrent.ConcurrentQueue<(char c, CharacterBitmapRgba sdf, int pad)> readyForUpload
-            = new();
+        private readonly System.Collections.Concurrent.ConcurrentQueue<(char c, CharacterBitmapRgba sdf, int pad)> readyForUpload = new();
 
-        // 3) Limit CPU concurrency (otherwise “paragraph appears” spawns 500 tasks)
-        private readonly System.Threading.SemaphoreSlim genBudget = new(initialCount: 2, maxCount: 2);
+        // --- Bounded work queue + fixed worker pool ---
+
+        private const int WorkQueueCapacity = 1024;   // backpressure / memory safety
+        private const int WorkerCount = 2;
+
+        private Channel<WorkItem> workChannel;
+        private CancellationTokenSource workCts;
+        private Task[] workers;
+
+        private readonly record struct WorkItem(
+            char C,
+            byte[] Src,
+            int Width,
+            int Rows,
+            int Pitch,
+            int Pad,
+            int PixelRange);
 
         internal override FontSystem FontSystem
         {
@@ -52,23 +67,27 @@ namespace Stride.Graphics.Font
                 if (FontSystem == value)
                     return;
 
+                // if we're detaching, shut down background workers
+                if (FontSystem != null && value == null)
+                {
+                    ShutdownWorkers();
+                }
+
                 base.FontSystem = value;
 
                 if (FontSystem == null)
                     return;
 
+                EnsureWorkersStarted();
+
                 // Metrics from font
-                float relativeLineSpacing;
-                float relativeBaseOffsetY;
-                float relativeMaxWidth;
-                float relativeMaxHeight;
-                FontManager.GetFontInfo(FontName, Style, out relativeLineSpacing, out relativeBaseOffsetY, out relativeMaxWidth, out relativeMaxHeight);
+                FontManager.GetFontInfo(FontName, Style, out var relativeLineSpacing, out var relativeBaseOffsetY, out var relativeMaxWidth, out var relativeMaxHeight);
 
                 DefaultLineSpacing = relativeLineSpacing * Size;
-                BaseOffsetY = relativeBaseOffsetY * Size;          
+                BaseOffsetY = relativeBaseOffsetY * Size;
 
-            // Use RGBA MSDF cache textures
-            Textures = FontCacheManagerMsdf.Textures;
+                // Use RGBA MSDF cache textures
+                Textures = FontCacheManagerMsdf.Textures;
 
                 // Keep channels as-is (RGB median used by shader)
                 swizzle = default;
@@ -87,9 +106,7 @@ namespace Stride.Graphics.Font
 
         protected override Glyph GetGlyph(CommandList commandList, char character, in Vector2 fontSize, bool uploadGpuResources, out Vector2 fixScaling)
         {
-            var cache = FontCacheManagerMsdf;
-            if (cache == null)
-                throw new InvalidOperationException("RuntimeSignedDistanceFieldSpriteFont requires FontSystem.FontCacheManagerMsdf to be initialized.");
+            var cache = FontCacheManagerMsdf ?? throw new InvalidOperationException("RuntimeSignedDistanceFieldSpriteFont requires FontSystem.FontCacheManagerMsdf to be initialized.");
 
             // All glyphs are generated at Size
             var sizeVec = new Vector2(Size, Size);
@@ -181,6 +198,161 @@ namespace Stride.Graphics.Font
             var pad = Padding + PixelRange;
             return Math.Max(1, pad);
         }
+
+        private void EnsureWorkersStarted()
+        {
+            if (workChannel != null)
+                return;
+
+            workCts = new CancellationTokenSource();
+
+            workChannel = Channel.CreateBounded<WorkItem>(new BoundedChannelOptions(WorkQueueCapacity)
+            {
+                SingleWriter = false,
+                SingleReader = false,
+                // Writers that await will wait; render thread uses TryWrite so it never blocks.
+                FullMode = BoundedChannelFullMode.Wait
+            });
+
+            workers = new Task[WorkerCount];
+            for (int i = 0; i < workers.Length; i++)
+                workers[i] = Task.Run(() => WorkerLoop(workCts.Token));
+        }
+
+        private void ShutdownWorkers()
+        {
+            if (workChannel == null)
+                return;
+
+            try
+            {
+                workCts.Cancel();
+                workChannel.Writer.TryComplete();
+                try { Task.WaitAll(workers); } catch { /* ignore shutdown exceptions */ }
+            }
+            finally
+            {
+                workCts.Dispose();
+                workCts = null;
+                workChannel = null;
+                workers = null;
+            }
+        }
+
+        private async Task WorkerLoop(CancellationToken token)
+        {
+            try
+            {
+                var reader = workChannel.Reader;
+
+                while (await reader.WaitToReadAsync(token).ConfigureAwait(false))
+                {
+                    while (reader.TryRead(out var item))
+                    {
+                        try
+                        {
+                            // CPU SDF build
+                            var sdf = BuildSdfRgbFromCoverage(item.Src, item.Width, item.Rows, item.Pitch, item.Pad, item.PixelRange);
+
+                            // hand off to render thread for GPU upload
+                            readyForUpload.Enqueue((item.C, sdf, item.Pad));
+                        }
+                        catch
+                        {
+                            // If generation fails, we just allow rescheduling later.
+                        }
+                        finally
+                        {
+                            inFlight.TryRemove(item.C, out _);
+                        }
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // normal shutdown
+            }
+        }
+
+        private void EnsureSdfScheduled(char c, CharacterSpecification spec)
+        {
+            // Already uploaded? nothing to do.
+            if (spec.IsBitmapUploaded) return;
+
+            // Already have bitmap? If not, we can’t generate.
+            var bmp = spec.Bitmap;
+            if (bmp == null || bmp.Width == 0 || bmp.Rows == 0) return;
+
+            // Ensure worker infrastructure is alive (safe even if already started)
+            EnsureWorkersStarted();
+
+            // Already scheduled? bail.
+            if (!inFlight.TryAdd(c, 0)) return;
+
+            // Copy coverage bitmap to owned array so background thread is safe.
+            var width = bmp.Width;
+            var rows = bmp.Rows;
+            var pitch = bmp.Pitch;
+
+            var srcCopy = new byte[pitch * rows];
+            unsafe
+            {
+                System.Runtime.InteropServices.Marshal.Copy((IntPtr)bmp.Buffer, srcCopy, 0, srcCopy.Length);
+            }
+
+            int pad = ComputeTotalPad();
+            int pixelRange = Math.Max(1, PixelRange);
+
+            // Render thread must NEVER block: TryWrite only.
+            if (!workChannel.Writer.TryWrite(new WorkItem(c, srcCopy, width, rows, pitch, pad, pixelRange)))
+            {
+                // Queue full; allow retry next frame
+                inFlight.TryRemove(c, out _);
+            }
+        }
+
+        private void DrainUploads(CommandList commandList, int maxUploadsPerFrame = 8)
+        {
+            var cache = FontCacheManagerMsdf;
+            if (cache == null) return;
+
+            for (int i = 0; i < maxUploadsPerFrame; i++)
+            {
+                if (!readyForUpload.TryDequeue(out var item))
+                    break;
+
+                var (c, sdfBitmap, pad) = item;
+
+                if (!characters.TryGetValue(c, out var spec) || spec == null)
+                {
+                    sdfBitmap.Dispose();
+                    continue;
+                }
+
+                // Might have been uploaded already while task was running
+                if (spec.IsBitmapUploaded)
+                {
+                    sdfBitmap.Dispose();
+                    continue;
+                }
+
+                var subrect = new Rectangle();
+                var handle = cache.UploadGlyphBitmap(commandList, spec, sdfBitmap, ref subrect, out var bitmapIndex);
+
+                spec.Glyph.Subrect = handle.InnerSubrect;
+                spec.Glyph.BitmapIndex = bitmapIndex;
+                spec.IsBitmapUploaded = true;
+
+                cacheRecords[c] = handle;
+                cache.NotifyGlyphUtilization(handle);
+
+                if (offsetAdjusted.Add(c))
+                    spec.Glyph.Offset -= new Vector2(pad, pad);
+
+                sdfBitmap.Dispose();
+            }
+        }
+
 
         // --- SDF generation (CPU), packed into RGB so median(R,G,B)=SDF value ---
 
@@ -331,93 +503,5 @@ namespace Stride.Graphics.Font
                 d[q] = dx * dx + f[p];
             }
         }
-
-        private void EnsureSdfScheduled(char c, CharacterSpecification spec)
-        {
-            // Already uploaded? nothing to do.
-            if (spec.IsBitmapUploaded) return;
-
-            // Already have bitmap? If not, we can’t generate.
-            var bmp = spec.Bitmap;
-            if (bmp == null || bmp.Width == 0 || bmp.Rows == 0) return;
-
-            // Already scheduled? bail.
-            if (!inFlight.TryAdd(c, 0)) return;
-
-            // Copy the grayscale/coverage bitmap to an owned array so background thread is safe.
-            // (Do NOT let the worker read spec.Bitmap.Buffer directly.)
-            var width = bmp.Width;
-            var rows = bmp.Rows;
-            var pitch = bmp.Pitch;
-
-            var srcCopy = new byte[pitch * rows];
-            unsafe
-            {
-                System.Runtime.InteropServices.Marshal.Copy((IntPtr)bmp.Buffer, srcCopy, 0, srcCopy.Length);
-            }
-
-            int pad = /* your total pad, e.g. PixelRange + extra padding */ ComputeTotalPad();
-            int pixelRange = Math.Max(1, PixelRange);
-
-            _ = System.Threading.Tasks.Task.Run(async () =>
-            {
-                await genBudget.WaitAsync().ConfigureAwait(false);
-                try
-                {
-                    // Build SDF RGBA from coverage copy
-                    var sdf = BuildSdfRgbFromCoverage(srcCopy, width, rows, pitch, pad, pixelRange);
-
-                    readyForUpload.Enqueue((c, sdf, pad));
-                }
-                finally
-                {
-                    genBudget.Release();
-                    inFlight.TryRemove(c, out _);
-                }
-            });
-        }
-
-        private void DrainUploads(CommandList commandList, int maxUploadsPerFrame = 8)
-        {
-            var cache = FontCacheManagerMsdf;
-            if (cache == null) return;
-
-            for (int i = 0; i < maxUploadsPerFrame; i++)
-            {
-                if (!readyForUpload.TryDequeue(out var item))
-                    break;
-
-                var (c, sdfBitmap, pad) = item;
-
-                if (!characters.TryGetValue(c, out var spec) || spec == null)
-                {
-                    sdfBitmap.Dispose();
-                    continue;
-                }
-
-                // Might have been uploaded already while task was running
-                if (spec.IsBitmapUploaded)
-                {
-                    sdfBitmap.Dispose();
-                    continue;
-                }
-
-                var subrect = new Rectangle();
-                var handle = cache.UploadGlyphBitmap(commandList, spec, sdfBitmap, ref subrect, out var bitmapIndex);
-
-                spec.Glyph.Subrect = handle.InnerSubrect;
-                spec.Glyph.BitmapIndex = bitmapIndex;
-                spec.IsBitmapUploaded = true;
-
-                cacheRecords[c] = handle;
-                cache.NotifyGlyphUtilization(handle);
-
-                if (offsetAdjusted.Add(c))
-                    spec.Glyph.Offset -= new Vector2(pad, pad);
-
-                sdfBitmap.Dispose();
-            }
-        }
-
     }
 }
