@@ -13,15 +13,14 @@ namespace _2DPlatformer.Player;
 
 public class PlayerController : SyncScript
 {
-    private CharacterComponent characterComponent;
+    public required CharacterComponent CharacterComponent { get; init; }
     
-    [Display("Character Sprite Sheet")]
-    public SpriteSheet CoinSprites { get; set; }
-    private SpriteFromSheet spriteComponent;
+    public required SpriteComponent Sprite { get; init; }
+    public SpriteFromSheet spriteSheet;
     
     private float animationTimer = 0f;
     // Animation Spped: Every 1/10 passed seconds the next frame will be played. Closer to 1.0 is a slower Animation.
-    private const float animationInterval = 1f / 10f;
+    private const float animationInterval = 1f / 5f;
     private int idleFrame = 0;
     private int runFrame = 0;
     private int jumpFrame = 0;
@@ -38,76 +37,79 @@ public class PlayerController : SyncScript
 
     public override void Start()
     {
-        characterComponent = Entity.Get<CharacterComponent>();
-        spriteComponent = Entity.Get<SpriteComponent>().SpriteProvider as SpriteFromSheet;
+        spriteSheet = Sprite.SpriteProvider as SpriteFromSheet;
     }
 
     public override void Update()
     {
-         HandleInput();
+        // HandleAnimation uses bool isMoving from the users Input
+        HandleAnimation(HandleInput());
     }
     
     /// <summary>
     /// Handles both the Input of the Player via Keyboard (WAD- & Arrow-Keys) and the resulting Animation at the end according to input
     /// </summary>
-    private void HandleInput()
+    private bool HandleInput()
     {
-         if (Input.HasKeyboard)
-            {
-                var moveDirection = Vector3.Zero;
-                bool isMoving = false;
-                characterComponent.SetVelocity(Vector3.Zero);
+        bool isMoving = false;
+        if (Input.HasKeyboard)
+        {
+            var moveDirection = Vector3.Zero;
+            
+            CharacterComponent.SetVelocity(Vector3.Zero);
 
-                // Left
-                if (Input.IsKeyDown(Keys.A) || Input.IsKeyDown(Keys.Left))
+            // Left
+            if (Input.IsKeyDown(Keys.A) || Input.IsKeyDown(Keys.Left))
+            {
+                isMoving = true;
+                if (isFacingRight)
                 {
-                    isMoving = true;
-                    if (isFacingRight)
-                    {
-                        isFacingRight = false;
-                        characterComponent.Orientation = Quaternion.RotationY(MathUtil.DegreesToRadians(180));
-                    }
-                    moveDirection  = -Vector3.UnitX * MOVE_SPEED;
+                    isFacingRight = false;
+                    CharacterComponent.Orientation = Quaternion.RotationY(MathUtil.DegreesToRadians(180));
                 }
+                moveDirection  = -Vector3.UnitX * MOVE_SPEED;
                 
-                // Right
-                if (Input.IsKeyDown(Keys.D) || Input.IsKeyDown(Keys.Right))
-                {
-                    isMoving = true;
-                    
-                    if (!isFacingRight)
-                    {
-                        isFacingRight = true;
-                        characterComponent.Orientation = Quaternion.RotationY(MathUtil.DegreesToRadians(0));
-                    }
-                    moveDirection = Vector3.UnitX * MOVE_SPEED;
-                }
-                
-                // Up (Jump)
-                if (Input.IsKeyPressed(Keys.W) && characterComponent.IsGrounded || Input.IsKeyPressed(Keys.Up) && characterComponent.IsGrounded)
-                {
-                    characterComponent.Jump();
-                }
-                characterComponent.SetVelocity(moveDirection);
-                HandleAnimation(isMoving);
             }
+            
+            // Right
+            if (Input.IsKeyDown(Keys.D) || Input.IsKeyDown(Keys.Right))
+            {
+                isMoving = true;
+                
+                if (!isFacingRight)
+                {
+                    isFacingRight = true;
+                    CharacterComponent.Orientation = Quaternion.RotationY(MathUtil.DegreesToRadians(0));
+                }
+                moveDirection = Vector3.UnitX * MOVE_SPEED;
+            }
+            
+            // Up (Jump)
+            if ((Input.IsKeyPressed(Keys.W) || Input.IsKeyPressed(Keys.Up)) && CharacterComponent.IsGrounded)
+            {
+                CharacterComponent.Jump();
+            }
+            CharacterComponent.SetVelocity(moveDirection);
+            HandleAnimation(isMoving);
+        }
+        return isMoving;
     }
     
     private void HandleAnimation(bool isMoving)
     {
         animationTimer += (float) Game.UpdateTime.Elapsed.TotalSeconds;
         
-        if (characterComponent.IsGrounded && !isMoving)
+        if (CharacterComponent.IsGrounded && !isMoving)
         {
             PlayIdleAnimation();
         }
             
-        if (characterComponent.IsGrounded && isMoving)
+        if (CharacterComponent.IsGrounded && isMoving)
         {
             PlayRunAnimation();
         }
         
-        if (!characterComponent.IsGrounded)
+        if (!CharacterComponent.IsGrounded)
         {
             PlayJumpAnimation();
         }
@@ -121,7 +123,7 @@ public class PlayerController : SyncScript
         if (animationTimer >= animationInterval)
         {
             animationTimer -= animationInterval;
-            spriteComponent.CurrentFrame = idleFrame;
+            spriteSheet.CurrentFrame = idleFrame;
             idleFrame = (idleFrame + 1) % IDLE_FRAME_END;
             
             //spriteComponent.CurrentFrame = (spriteComponent.CurrentFrame + 1) % IDLE_FRAME_END;
@@ -138,7 +140,7 @@ public class PlayerController : SyncScript
         if (animationTimer >= animationInterval)
         {
             animationTimer -= animationInterval;
-            spriteComponent.CurrentFrame = IDLE_FRAME_END + runFrame;
+            spriteSheet.CurrentFrame = IDLE_FRAME_END + runFrame;
             runFrame = (runFrame + 1) % RUN_FRAME_END;
         }
         ResetFrameCounts(ref idleFrame, ref jumpFrame);
@@ -152,7 +154,7 @@ public class PlayerController : SyncScript
         if (animationTimer >= animationInterval)
         {
             animationTimer -= animationInterval;
-            spriteComponent.CurrentFrame = JUMP_FRAME_END + jumpFrame;
+            spriteSheet.CurrentFrame = JUMP_FRAME_END + jumpFrame;
             
             if (jumpFrame < JUMP_FRAME_COUNT)
             {
