@@ -4,7 +4,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Sprites;
 
-namespace _2DPlatformer.Gameplay;
+namespace Platformer2D.Gameplay;
 
 public class CoinRotation : SyncScript
 {

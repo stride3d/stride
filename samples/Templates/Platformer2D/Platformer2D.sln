@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 16
 VisualStudioVersion = 16.0.0.0
 MinimumVisualStudioVersion = 16.0.0.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_2DPlatformer.Windows", "_2DPlatformer.Windows\_2DPlatformer.Windows.csproj", "{2304F791-B508-4281-94E8-37B0F9CF9839}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Platformer2D.Windows", "Platformer2D.Windows\Platformer2D.Windows.csproj", "{2304F791-B508-4281-94E8-37B0F9CF9839}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_2DPlatformer", "_2DPlatformer\_2DPlatformer.csproj", "{5836D368-DBA7-4DC6-BBD0-040AF9C52765}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Platformer2D", "Platformer2D\Platformer2D.csproj", "{5836D368-DBA7-4DC6-BBD0-040AF9C52765}"
 EndProject
 Global
 EndGlobal

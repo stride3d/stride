@@ -9,7 +9,7 @@ using Stride.Graphics;
 using Stride.Rendering.Sprites;
 using System.Collections.Generic;
 
-namespace _2DPlatformer.Player;
+namespace Platformer2D.Player;
 
 public class PlayerController : SyncScript
 {

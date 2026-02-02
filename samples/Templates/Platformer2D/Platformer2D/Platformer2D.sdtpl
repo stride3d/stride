@@ -5,7 +5,7 @@ Scope: Session
 Description: A 2D Platformer template
 FullDescription: This template implements a static camera, Trigger, basic 2D Character movement and sprite animations via script.
 Group: Templates
-Icon: ../../.sdtpl/Icon2DPlatformer.png
-DefaultOutputName: 2DPlatformer
+Icon: ../../.sdtpl/IconPlatformer2D.png
+DefaultOutputName: Platformer2D
 Screenshots:
     - .sdtpl/screenshot_small.jpg

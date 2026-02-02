@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Stride.Engine;
 using Stride.Audio;
 using Stride.Physics;
-using _2DPlatformer.Player;
+using Platformer2D.Player;
 
-namespace _2DPlatformer.Gameplay;
+namespace Platformer2D.Gameplay;
 
 public class CollectCoin : AsyncScript
 {

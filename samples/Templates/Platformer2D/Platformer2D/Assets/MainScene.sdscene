@@ -131,10 +131,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: a4d83c1b-641a-4e02-8f26-ac2cee6759d4
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: 8315d1e2-fda6-4349-83f2-798494e82273
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
@@ -361,10 +361,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: cc46cca2-c94f-4a10-b633-b26259582185
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: 5daa99a2-202f-4f3d-a267-99a1efcad88f
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
@@ -571,7 +571,7 @@ Hierarchy:
                                 Radius: 0.4
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                    c6a4e0b10f6435cda498bfaa02311444: !_2DPlatformer.Player.PlayerController,_2DPlatformer
+                    c6a4e0b10f6435cda498bfaa02311444: !Platformer2D.Player.PlayerController,Platformer2D
                         Id: 61d3db51-dd47-4c05-971d-15dc8b6cb6dc
                         CoinSprites: c805102c-bb90-4d52-9429-dc7e873a001c:Sprites/knight_sheet
         -   Entity:
@@ -717,10 +717,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: 568cd032-a68a-488f-9bc3-f0bbd654ffdc
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: 2107e193-ed1f-48f0-baae-29ed2ee1b038
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
@@ -796,10 +796,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: 628d5a26-ce74-4f3e-81be-fdbfcb0a8ca1
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: e805e40d-5162-4d56-967d-d996986fb768
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
@@ -1063,10 +1063,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: 4865835e-0b40-495f-a4fb-c24f26cdc72b
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: 53c370a6-35b0-4b1e-bf23-6ea2d715570e
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
@@ -1407,10 +1407,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: bcd5566a-7b1d-40b3-9e9e-62347ac89113
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: 06b3ade1-20d1-464b-a872-85cbf1d74635
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
@@ -1637,10 +1637,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: 4421cadf-5899-4357-9b4c-f137c1359b97
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: aa67da10-80f5-4719-a8fe-71210ea6e474
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
@@ -2034,10 +2034,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: bcbf945e-0a2a-41ed-812f-96adec19cc0d
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: bad274c7-fdcc-405d-99d5-31ccbf327b4a
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
@@ -2188,10 +2188,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: 84eec927-5a28-4826-bee5-b8de5d4c8816
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: 70d8559d-abf9-4a38-9f65-2442efaeeaf9
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
@@ -2531,10 +2531,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: 0c58a5c2-e0da-4eb6-9fc4-106cddc4fa85
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: 126ff7e0-b136-45ee-aa26-53724ddf23fa
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
@@ -2572,10 +2572,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: fe93f3cf-db9a-4de8-9e5b-da2323991869
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: 6b89194b-bd00-490c-b9b4-a1faeef1ca00
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
@@ -2613,10 +2613,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: 43780b0f-f28a-4cb5-9270-9dbbf28a5229
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: fb4b7c15-66ce-4db6-8187-7952aecb5743
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
@@ -2691,10 +2691,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: 4678018c-d798-4a77-a708-e08ec3df7c2f
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: 33a94438-983a-4bb4-8b06-87f5eeb0ad29
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent

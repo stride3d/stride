@@ -5,7 +5,7 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>_2DPlatformer</RootNamespace>
+    <RootNamespace>Platformer2D</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
 
     <OutputPath>..\Bin\Windows\$(Configuration)\</OutputPath>
@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\_2DPlatformer\_2DPlatformer.csproj" />
+    <ProjectReference Include="..\Platformer2D\Platformer2D.csproj" />
   </ItemGroup>
 
 </Project>

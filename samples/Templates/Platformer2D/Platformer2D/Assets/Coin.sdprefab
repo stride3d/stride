@@ -23,10 +23,10 @@ Hierarchy:
                             Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                         Sampler: PointClamp
-                    227a9894ca38cdbfaba3ceaabddf708f: !_2DPlatformer.Gameplay.CoinRotation,_2DPlatformer
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
                         Id: efe1a55c-8b48-4e39-891e-e9ee9d93fd06
                         CoinSprites: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
-                    00333083b1a4a66664cf165b07be04fd: !_2DPlatformer.Gameplay.CollectCoin,_2DPlatformer
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
                         Id: 710fb168-8788-47e4-a553-fa3cc1a6db0a
                         SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
                     1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
