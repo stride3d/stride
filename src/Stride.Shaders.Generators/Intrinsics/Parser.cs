@@ -177,14 +177,14 @@ internal static class ParsersExtensions
             typeInfo = new ClassTMatch(new TextLocation(scanner.Code, position..scanner.Position));
             return scanner.Success();
         }
-        else if (scanner.Match("$funcT", true))
-        {
-            typeInfo = new FuncMatch(new TextLocation(scanner.Code, position..scanner.Position));
-            return scanner.Success();
-        }
         else if (scanner.Match("$funcT2", true))
         {
             typeInfo = new Func2Match(new TextLocation(scanner.Code, position..scanner.Position));
+            return scanner.Success();
+        }
+        else if (scanner.Match("$funcT", true))
+        {
+            typeInfo = new FuncMatch(new TextLocation(scanner.Code, position..scanner.Position));
             return scanner.Success();
         }
         else if (scanner.Match("$type", true))
@@ -198,6 +198,7 @@ internal static class ParsersExtensions
         else if (scanner.Match("$match<", true))
         {
             var tmpPos1 = scanner.Position;
+            scanner.Match("-", true);
             while (scanner.MatchDigit(true)) ;
             int componentA = int.Parse(scanner.Code[tmpPos1..scanner.Position]);
             scanner.MatchWhiteSpace(advance: true);
@@ -205,6 +206,7 @@ internal static class ParsersExtensions
             {
                 scanner.MatchWhiteSpace(advance: true);
                 var tmpPos2 = scanner.Position;
+                scanner.Match("-", true);
                 while (scanner.MatchDigit(true)) ;
                 int componentB = int.Parse(scanner.Code[tmpPos2..scanner.Position]);
                 scanner.MatchWhiteSpace(advance: true);
@@ -263,18 +265,19 @@ internal static class ParsersExtensions
             var size1Pos = scanner.Position;
             while (scanner.MatchLetterOrDigit(true)) ;
             var size1 = scanner.Code[size1Pos..scanner.Position].ToString();
+            string? size2 = null;
             scanner.MatchWhiteSpace(advance: true);
             if (scanner.Match(",", true))
             {
                 scanner.MatchWhiteSpace(advance: true);
                 var size2Pos = scanner.Position;
                 while (scanner.MatchLetterOrDigit(true)) ;
-                var size2 = scanner.Code[size2Pos..scanner.Position].ToString();
+                size2 = scanner.Code[size2Pos..scanner.Position].ToString();
                 scanner.MatchWhiteSpace(advance: true);
             }
             if (scanner.Match(">", true))
             {
-                layout = new Layout(size1, null, new TextLocation(scanner.Code, position..scanner.Position));
+                layout = new Layout(size1, size2, new TextLocation(scanner.Code, position..scanner.Position));
                 return true;
             }
             else return scanner.Backtrack(position, out layout);
@@ -388,6 +391,7 @@ internal static class ParsersExtensions
 
             if (scanner.Identifier(out var name))
             {
+                intrinsic = intrinsic with { Name = name };
                 scanner.MatchWhiteSpace(advance: true);
                 if (scanner.Match("(", true))
                 {
@@ -454,18 +458,58 @@ internal static class ParsersExtensions
     }
 }
 
-public static class IntrinParser
+internal static class IntrinParser
 {
-    public static bool Parse(string code, out string result)
+
+    internal static bool ProcessAndParse(string code, out EquatableList<NamespaceDeclaration> result)
+        => Parse(PreProcess(code), out result);
+    
+    internal static string PreProcess(string code)
+        => string.Join("\n", code.Split('\n').Where(line => !line.TrimStart().StartsWith("//")));
+    internal static bool Parse(string code, out EquatableList<NamespaceDeclaration> result)
     {
         var scanner = new Scanner(code);
-        var parsed = scanner.IntrinsicFile(out var ns);
+        if(scanner.IntrinsicFile(out var ns))
+        {
+            foreach(var n in ns)
+            {
+                for(int i = 0; i < n.Intrinsics.Items.Count; i++)
+                {
+                    var intrinsic = n.Intrinsics.Items[i];
+                    if(intrinsic.ReturnType is { Typename.Name: "$to_resolve" })
+                    {
+                        intrinsic = intrinsic with
+                        {
+                            ReturnType = intrinsic.Parameters.Items[intrinsic.ReturnType.Match is TypeMatch tm ? tm.ComponentA - 1 : 0].TypeInfo
+                        };
+                    }
+                    for(int j = 0; j < intrinsic.Parameters.Items.Count; j++)
+                    {
+                        var parameter = intrinsic.Parameters.Items[j];
+                        if(parameter is not null && parameter.TypeInfo is { Typename.Name: "$to_resolve", Match: TypeMatch {ComponentA : >= 0} tm})
+                        {
+                            parameter = tm switch
+                            {
+                                { ComponentA: 0 } => parameter with { TypeInfo = intrinsic.ReturnType },
+                                _ => parameter with { TypeInfo = intrinsic.Parameters.Items[tm.ComponentA - 1].TypeInfo }
+                            };
+                            
+                            intrinsic.Parameters.Items[j] = parameter;
+                        }
+                    }
+                    
+                    n.Intrinsics.Items[i] = intrinsic;
+                    
+                }
+            }
+        }
+        
         if (!scanner.EOF)
         {
-            result = $"error -> {scanner.Code[scanner.Position..Math.Min(scanner.Position + 25, scanner.Code.Length)]}";
+            result = [];
             return false;
         }
-        result = JsonSerializer.Serialize(ns, new JsonSerializerOptions { WriteIndented = true });
+        result = ns;
         return true;
     }
 }

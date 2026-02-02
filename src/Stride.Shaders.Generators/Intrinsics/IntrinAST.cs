@@ -1,12 +1,13 @@
 
 using System.Collections;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace Stride.Shaders.Generators.Intrinsics;
 
 //   <type> \[\[[attr]\]\] <name>([<qual> <type> <name> [, ... ]]) [ : <op>]
 
-internal abstract record Node(TextLocation Location);
+internal abstract record Node([property:JsonIgnore]TextLocation Location);
 
 internal record Identifier(string Name, TextLocation Location) : Node(Location);
 

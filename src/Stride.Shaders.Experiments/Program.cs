@@ -6,6 +6,7 @@ using Stride.Shaders.Spirv.Tools;
 using Stride.Shaders.Compilers.Direct3D;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders;
+using System.Text.Json;
 
 
 // Console.WriteLine(Spv2DXIL.spirv_to_dxil_get_version());
@@ -28,11 +29,3 @@ using Stride.Shaders;
 
 // Examples.GenerateSpirv();
 // Examples.CreateNewShader();
-
-
-Directory.SetCurrentDirectory(@"C:\Users\kafia\source\repos\SDSL\");
-
-var file = string.Join("\n", File.ReadLines(@".\submodules\DirectXShaderCompiler\utils\hct\gen_intrin_main.txt").Where(x => !x.StartsWith("//")));
-
-Stride.Shaders.Generators.Intrinsics.IntrinParser.Parse(file, out var result);
-Console.WriteLine(result);
