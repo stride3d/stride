@@ -36,7 +36,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         get => _visible;
         set
         {
-            if (_sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } proc)
+            if (_sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } proc && _visibilityGroup is not null)
             {
                 if (_visible == value)
                     return;
@@ -88,7 +88,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
     public override void Draw(RenderContext context)
     {
-        if (_latent)
+        if (_visibilityGroup is null)
         {
             if (_sceneSystem.SceneInstance.VisibilityGroups.Count == 0)
                 return;
@@ -98,8 +98,10 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
             {
                 _sceneSystem.GraphicsCompositor.RenderFeatures.Add(new SinglePassWireframeRenderFeature());
             }
+        }
 
-
+        if (_latent)
+        {
             Visible = true;
             if (Visible)
                 _latent = false;
