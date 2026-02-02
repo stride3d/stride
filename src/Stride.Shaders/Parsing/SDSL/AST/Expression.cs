@@ -1059,12 +1059,15 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     {
                         streamVar.AllowStreamVariables = true;
                         streamVar.ProcessSymbol(table);
-                        accessor.Type = streamVar.Type;
+                        accessor.Type = (PointerType)streamVar.Type with { StorageClass = p.StorageClass };
                         break;
                     }
 
-                    // Since STREAMS struct is built later for each shader, we simply make a reference to variable for now\
+                    // Since we cheated a bit by overwriting the accessor.Type, set it back during Compile()
+                    accessor.Type = (PointerType)accessor.Type with { StorageClass = Specification.StorageClass.Private };
+                    // Since STREAMS struct is built later for each shader, we simply make a reference to variable for now
                     var streamVariableResult = streamVar.Compile(table, compiler);
+                    accessor.Type = (PointerType)accessor.Type with { StorageClass = p.StorageClass };
                     PushAccessChainId(accessChainIds, streamVariableResult.Id);
                     break;
                 case (PointerType { BaseType: StructType s } p, Identifier field):
@@ -1305,6 +1308,18 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         --i;
                         break;
                     }
+                case (PointerType { BaseType: PatchType { BaseType: var t } } p, IndexerExpression indexer):
+                {
+                    if (compiler == null)
+                    {
+                        indexer.Index.ProcessSymbol(table);
+                        accessor.Type = new PointerType(t, p.StorageClass);
+                        break;
+                    }
+                    var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                    PushAccessChainId(accessChainIds, indexerValue.Id);
+                    break;
+                }
                 case (PointerType { BaseType: var type }, PostfixIncrement postfix):
                     {
                         if (compiler == null)
@@ -1335,7 +1350,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         break;
                     }
                 default:
-                    throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
+                    throw new NotImplementedException($"unknown accessor {accessor} on type {currentValueType} in expression {this}");
             }
 
             currentValueType = accessor.Type;

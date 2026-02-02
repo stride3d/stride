@@ -125,11 +125,14 @@ public class RenderingTests
         var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
         var entryPoints = translator.GetEntryPoints();
         var codePS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Fragment));
-        var codeVS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex))
-            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
+        var codeHS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.TessellationControl))
+            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.TessellationControl))
             : null;
         var codeGS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Geometry))
             ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Geometry))
+            : null;
+        var codeVS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex))
+            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
             : null;
 
         if (codeVS != null)

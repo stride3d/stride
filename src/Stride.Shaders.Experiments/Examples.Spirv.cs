@@ -32,8 +32,8 @@ public static partial class Examples
             new(ScalarType.Int, [new(ScalarType.Int, default), new(ScalarType.Int, default)])
         );
         builder.BeginFunction(context, function);
-        builder.AddFunctionParameter(context, "a", ScalarType.Int);
-        builder.AddFunctionParameter(context, "b", ScalarType.Int);
+        builder.EmitFunctionParameter(context, "a", ScalarType.Int);
+        builder.EmitFunctionParameter(context, "b", ScalarType.Int);
         builder.SetPositionTo(function);
         var block = builder.CreateBlock(context, "sourceBlock");
         builder.SetPositionTo(block);

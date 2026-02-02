@@ -584,7 +584,7 @@ public class TypeName(string name, TextLocation info) : Literal(info)
     public string Name { get; set; } = name;
     public bool IsArray => ArraySize != null && ArraySize.Count > 0;
     public List<Expression>? ArraySize { get; set; }
-    public List<TypeName> Generics { get; set; } = [];
+    public List<Literal> Generics { get; set; } = [];
     
     public bool TryResolveType(SymbolTable table, SpirvContext context, [MaybeNullWhen(false)] out SymbolType symbolType)
     {
@@ -604,8 +604,15 @@ public class TypeName(string name, TextLocation info) : Literal(info)
         {
             symbolType = new GenericParameterType(Specification.GenericParameterKindSDSL.MemberNameResolved);
         }
-        else if (Name == "Streams" || Name == "Input" || Name == "Output")
+        else if (Name is nameof(Specification.StreamsKindSDSL.Streams)
+                 or nameof(Specification.StreamsKindSDSL.Input)
+                 or nameof(Specification.StreamsKindSDSL.Output)
+                 or "Input2"
+                 or nameof(Specification.StreamsKindSDSL.Constants))
         {
+            // In Hull shader, Input2 (obsolete) is same as Output
+            if (Name == "Input2")
+                Name = nameof(Specification.StreamsKindSDSL.Output);
             symbolType = new StreamsType(Enum.Parse<Specification.StreamsKindSDSL>(Name));
         }
         else
@@ -617,12 +624,20 @@ public class TypeName(string name, TextLocation info) : Literal(info)
             }
             else if (Name == "PointStream" || Name == "LineStream" || Name == "TriangleStream")
             {
-                symbolType = new GeometryStreamType(Generics[0].ResolveType(table, context), Name switch
+                symbolType = new GeometryStreamType(((TypeName)Generics[0]).ResolveType(table, context), Name switch
                 {
                     "PointStream" => Specification.GeometryStreamOutputKindSDSL.Point,
                     "LineStream" => Specification.GeometryStreamOutputKindSDSL.Line,
                     "TriangleStream" => Specification.GeometryStreamOutputKindSDSL.Triangle,
                 });
+            }
+            else if (Name == "InputPatch" || Name == "OutputPatch")
+            {
+                symbolType = new PatchType(((TypeName)Generics[0]).ResolveType(table, context), Name switch
+                {
+                    "InputPatch" => Specification.PatchTypeKindSDSL.Input,
+                    "OutputPatch" => Specification.PatchTypeKindSDSL.Output,
+                }, ((NumberLiteral)Generics[1]).IntValue);
             }
             else if (SymbolType.TryGetNumeric(Name, out var numeric))
             {
@@ -634,7 +649,7 @@ public class TypeName(string name, TextLocation info) : Literal(info)
                 table.DeclaredTypes.Add(fullTypeName, bufferType);
                 symbolType = bufferType;
             }
-            else if (Generics.Count == 1 && SymbolType.TryGetBufferType(Name, Generics[0], out var genericBufferType))
+            else if (Generics.Count == 1 && SymbolType.TryGetBufferType(Name, (TypeName)Generics[0], out var genericBufferType))
             {
                 table.DeclaredTypes.Add(fullTypeName, genericBufferType);
                 symbolType = genericBufferType;

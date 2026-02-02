@@ -366,7 +366,23 @@
         { "kind" : "IdRef", "name" : "'Base Type'" },
         {
           "kind": "GeometryStreamOutputKindSDSL",
-          "name": "kind"
+          "name": "Kind"
+        }
+      ]
+    },
+    {
+      "opname": "OpTypePatchSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResult" },
+        { "kind" : "IdRef", "name" : "'Base Type'" },
+        {
+          "kind": "PatchTypeKindSDSL",
+          "name": "Kind"
+        },
+        {
+          "kind": "LiteralInteger",
+          "name": "Size"
         }
       ]
     },
@@ -629,6 +645,11 @@
             "enumerant": "ShaderConstantSDSL",
             "value": 8060,
             "version": "1.0"
+          },
+          {
+            "enumerant": "PatchConstantFuncSDSL",
+            "value": 8070,
+            "version": "1.0"
           }
         ]
     },
@@ -669,6 +690,10 @@
         {
           "enumerant": "Output",
           "value": 3
+        },
+        {
+          "enumerant": "Constants",
+          "value": 4
         }
       ]
     },
@@ -687,6 +712,20 @@
         {
           "enumerant": "Triangle",
           "value": 3
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "PatchTypeKindSDSL",
+      "enumerants": [
+        {
+          "enumerant": "Input",
+          "value": 1
+        },
+        {
+          "enumerant": "Output",
+          "value": 2
         }
       ]
     },

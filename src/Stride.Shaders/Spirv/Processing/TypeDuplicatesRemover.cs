@@ -282,6 +282,7 @@ public class TypeDuplicateHelper
             || op == Op.OpTypeGenericSDSL
             || op == Op.OpTypeStreamsSDSL
             || op == Op.OpTypeGeometryStreamOutputSDSL
+            || op == Op.OpTypePatchSDSL
             || op == Op.OpSDSLImportShader
             || op == Op.OpSDSLImportVariable
             || op == Op.OpSDSLImportFunction

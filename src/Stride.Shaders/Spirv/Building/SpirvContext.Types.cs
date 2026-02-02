@@ -6,11 +6,6 @@ namespace Stride.Shaders.Spirv.Building;
 
 public partial class SpirvContext
 {
-    public void ReplaceType()
-    {
-        throw new NotImplementedException();
-    }
-
     public int GetOrRegister(SymbolType? type)
     {
         if (type is null)
@@ -21,21 +16,34 @@ public partial class SpirvContext
         return RegisterType(type, Bound++);
     }
 
+    public void ReplaceType(SymbolType type, int id)
+    {
+        RemoveType(id);
+        RegisterType(type, id);
+    }
+
     public int RemoveType(SymbolType type)
     {
         var typeId = Types[type];
+        RemoveType(typeId);
+        return typeId;
+    }
+    
+    public void RemoveType(int typeId)
+    {
         foreach (var i in Buffer)
         {
             if (i.Data.IdResult == typeId)
             {
                 SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                var type = ReverseTypes[typeId];
                 Types.Remove(type);
                 ReverseTypes.Remove(typeId);
-                return typeId;
+                return;
             }
         }
 
-        throw new InvalidOperationException($"Type to remove {type} was not found");
+        throw new InvalidOperationException($"Type to remove {typeId} was not found");
     }
 
     public int RegisterType(SymbolType type, int id)
@@ -82,6 +90,7 @@ public partial class SpirvContext
             GenericParameterType g => Buffer.Add(new OpTypeGenericSDSL(id, g.Kind)).IdResult,
             StreamsType s => Buffer.Add(new OpTypeStreamsSDSL(id, s.Kind)).IdResult,
             GeometryStreamType so => Buffer.Add(new OpTypeGeometryStreamOutputSDSL(id, GetOrRegister(so.BaseType), so.Kind)).IdResult,
+            PatchType patch => Buffer.Add(new OpTypePatchSDSL(id, GetOrRegister(patch.BaseType), patch.Kind, patch.Size)).IdResult,
             // StructSymbol st => RegisterStruct(st),
             _ => throw new NotImplementedException($"Can't add type {type}")
         };

@@ -205,10 +205,10 @@ public sealed class ShaderMember(
             (StructuredBufferType, _, _) => Specification.StorageClass.StorageBuffer,
             (_, StorageClass.GroupShared, _) => Specification.StorageClass.Workgroup,
             (_, StorageClass.Static, _) => Specification.StorageClass.Private,
-            (_, _, StreamKind.Stream) => Specification.StorageClass.Private,
+            (_, _, StreamKind.Stream or StreamKind.PatchStream) => Specification.StorageClass.Private,
             _ => Specification.StorageClass.Uniform, 
         };
-
+        
         if (TypeModifier == TypeModifier.Const)
         {
             if (Value == null)
@@ -257,7 +257,7 @@ public sealed class ShaderMember(
         var pointerType = (PointerType)Type;
 
         var variableFlags = IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None;
-        if (StreamKind == StreamKind.Stream)
+        if (StreamKind == StreamKind.Stream || StreamKind == StreamKind.PatchStream)
             variableFlags |= Specification.VariableFlagsMask.Stream;
 
         int? initializerMethod = null;
@@ -288,10 +288,11 @@ public sealed class ShaderMember(
         
         Symbol.IdRef = variable;
 
+        if (StreamKind == StreamKind.PatchStream)
+            context.Add(new OpDecorate(variable, Specification.Decoration.Patch, []));
+        
         if (pointerType.BaseType is StructuredBufferType)
-        {
             context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, $"structuredbuffer:<{pointerType.BaseType.ToId().ToLowerInvariant()}>"));
-        }
 
         RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
     }
@@ -409,6 +410,13 @@ public class ShaderMethod(
                     firstDefaultParameter = index;
                 defaultParameters[index] = arg.DefaultValue.CompileConstantValue(table, context, arg.Type).Id;
             }
+            
+            if (arg.Semantic != null)
+            {
+                // We use OpMemberDecorateString on the function ID
+                // but this is not valid so we'll need to make sure to remove that after the ShaderMixer
+                context.Add(new OpMemberDecorateString(function.Id, index, Specification.Decoration.UserSemantic, arg.Semantic));
+            }
         }
 
         var symbol = new Symbol(new(Name, SymbolKind.Method, IsStage: IsStaged), ftype, function.Id, MemberAccessWithImplicitThis: ftype, OwnerType: table.CurrentShader);
@@ -470,6 +478,49 @@ public class ShaderMethod(
 
                     context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new((int)maxVertexCountValue)));
                 }
+                else if (anyAttribute.Name == "outputcontrolpoints")
+                {
+                    var outputControlPoints = anyAttribute.Parameters[0].CompileConstantValue(table, context);
+                    if (!context.TryGetConstantValue(outputControlPoints.Id, out var outputControlPointsValue, out _, false))
+                        throw new InvalidOperationException();
+
+                    context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new((int)outputControlPointsValue)));
+                }
+                else if (anyAttribute.Name == "patchconstantfunc")
+                {
+                    context.Add(new OpDecorateString(function.Id, Specification.Decoration.PatchConstantFuncSDSL, ((StringLiteral)anyAttribute.Parameters[0]).Value));
+                }
+                else if (anyAttribute.Name == "domain")
+                {
+                    context.Add(new OpExecutionMode(function.Id, ((StringLiteral)anyAttribute.Parameters[0]).Value switch
+                    {
+                        "tri" => Specification.ExecutionMode.Triangles,
+                        "quad" => Specification.ExecutionMode.Quads,
+                        "isolined" => Specification.ExecutionMode.Isolines,
+                    }, []));
+                }
+                else if (anyAttribute.Name == "partitioning")
+                {
+                    context.Add(new OpExecutionMode(function.Id, ((StringLiteral)anyAttribute.Parameters[0]).Value switch
+                    {
+                        "fractional_odd" => Specification.ExecutionMode.SpacingFractionalOdd,
+                        "fractional_even" => Specification.ExecutionMode.SpacingFractionalEven,
+                        "integer" => Specification.ExecutionMode.SpacingEqual,
+                        "pow2" => throw new NotSupportedException("partitioning pow2 is not supported in SPIR-V"),
+                    }, []));
+                }
+                else if (anyAttribute.Name == "outputtopology")
+                {
+                    var value = ((StringLiteral)anyAttribute.Parameters[0]).Value;
+                    if (value != "line")
+                    {
+                        context.Add(new OpExecutionMode(function.Id, ((StringLiteral)anyAttribute.Parameters[0]).Value switch
+                        {
+                            "triangle_cw" => Specification.ExecutionMode.VertexOrderCw,
+                            "triangle_ccw" => Specification.ExecutionMode.VertexOrderCcw,
+                        }, []));
+                    }
+                }
                 else
                 {
                     throw new NotImplementedException($"Can't parse method attribute {anyAttribute} on method {Name}");
@@ -513,7 +564,7 @@ public class ShaderMethod(
             var p = Parameters[index];
             var parameterSymbol = ParameterSymbols[index];
             var parameterType = parameterSymbol.Type;
-            var paramValue = builder.AddFunctionParameter(context, p.Name, parameterType);
+            var paramValue = builder.EmitFunctionParameter(context, p.Name, parameterType);
             parameterSymbol.IdRef = paramValue.Id;
         }
 

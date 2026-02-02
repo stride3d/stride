@@ -242,6 +242,10 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 RegisterType(typeGeometryStreamOutput.ResultId, new GeometryStreamType(context.ReverseTypes[typeGeometryStreamOutput.BaseType], typeGeometryStreamOutput.Kind));
             }
+            else if (instruction.Op == Op.OpTypePatchSDSL && (OpTypePatchSDSL)instruction is { } typePatch)
+            {
+                RegisterType(typePatch.ResultId, new PatchType(context.ReverseTypes[typePatch.BaseType], typePatch.Kind, typePatch.Size));
+            }
             // Unresolved content
             // This only happens during EvaluateInheritanceAndCompositions so it's not important to have all information valid
             else if (instruction.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)instruction is { } importShader)

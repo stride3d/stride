@@ -1,0 +1,52 @@
+// PSMain(ExpectedResult=#7F7F7F7F, stream.EXTRA_COLOR=(0.498 0.498 0.498 0.498))
+
+namespace Stride.Shaders.Tests;
+
+shader StreamTessellation
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 ExtraColor : EXTRA_COLOR;
+    stream float4 ExtraColor2;
+    
+    patchstream float Edges[3] : SV_TessFactor;
+    patchstream float Inside[2] : SV_InsideTessFactor;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+        streams.ExtraColor2 = streams.ExtraColor;
+    }
+    
+    void HSConstantMain(InputPatch<Input, 3> input, const OutputPatch<Input2, 3> output, out Constants constants)
+    {
+        constants.Edges[0] = 1.0;
+        constants.Edges[1] = 1.0;
+        constants.Edges[2] = 1.0;
+        constants.Edges[3] = 1.0;
+        constants.Inside[0] = 1.0 * 3.12;
+        constants.Inside[1] = 1.0 * 3.12;
+    }
+    
+    [outputcontrolpoints(3)]
+    [patchconstantfunc("HSConstantMain")]
+    void HSMain(InputPatch<Input, 3> input, out Output output, uint uCPID : SV_OutputControlPointID) 
+    {
+        streams = input[uCPID];
+
+        output = streams;
+    }
+
+    [domain("tri")]
+    void DSMain(const OutputPatch<Input, 3> input, out Output output, in Constants constants, float3 f3BarycentricCoords : SV_DomainLocation)
+    {
+        streams = input[0];
+        output = streams;
+    } 
+
+    void PSMain()
+    {
+        streams.ColorTarget = streams.ExtraColor2;
+    }
+}

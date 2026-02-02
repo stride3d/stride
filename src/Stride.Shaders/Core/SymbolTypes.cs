@@ -652,6 +652,12 @@ public sealed partial record GeometryStreamType(SymbolType BaseType, GeometryStr
     public override string ToString() => $"{Kind.ToString()}Stream<{BaseType}>";
 }
 
+public sealed partial record PatchType(SymbolType BaseType, PatchTypeKindSDSL Kind, int Size) : SymbolType
+{
+    public override string ToId() => $"{Kind.ToString()}Patch<{BaseType.ToId()}, {Size}>";
+    public override string ToString() => $"{Kind.ToString()}Patch<{BaseType}, {Size}>";
+}
+
 public sealed partial record ShaderMixinType : SymbolType
 {
     public override string ToString() => "mixin";
