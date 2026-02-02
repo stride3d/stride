@@ -160,3 +160,4 @@ fastlane/report.xml
 fastlane/screenshots
 *.user
 project.lock.json
+/sources/engine/Stride.Graphics/Font/RuntimeSignedDistanceFieldSpriteFont.channel.20260202-1.cs
