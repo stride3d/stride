@@ -487,7 +487,7 @@
                       </i:Interaction.Behaviors>
                     </Button>
                   </Grid>
-                  <ComboBox Margin="0,4" Name="FrameworkSelector" IsEnabled="{Binding ActiveVersion.Frameworks.Count, Converter={sskk:Chained {sskk:IsGreater}, Parameter1={sskk:Double 1}}}" ItemsSource="{Binding ActiveVersion.Frameworks}" SelectedItem="{Binding ActiveVersion.SelectedFramework}" SelectionChanged="FrameworkChanged">
+                  <ComboBox Margin="0,4" Name="FrameworkSelector" IsEnabled="{Binding ActiveVersion.Frameworks.Count, Converter={sskk:Chained {sskk:IsGreater}, Parameter1={sskk:Double 0}}}" ItemsSource="{Binding ActiveVersion.Frameworks}" SelectedItem="{Binding ActiveVersion.SelectedFramework}" SelectionChanged="FrameworkChanged">
                     <ComboBox.ItemTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Converter={vm:FrameworkConverter}}" />
