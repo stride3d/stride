@@ -127,16 +127,16 @@ public sealed class CompoundCollider : ICollider
         }
     }
 
-    void ICollider.RayTest<TRayHitHandler>(Shapes shapes, TypedIndex shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler)
+    void ICollider.RayTest<TRayHitHandler>(Shapes shapes, TypedIndex shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler, BufferPool pool)
     {
         if (shapeIndex.Type == Compound.TypeId)
         {
-            shapes.GetShape<Compound>(shapeIndex.Index).RayTest(pose, in ray, ref maximumT, shapes, ref hitHandler);
+            shapes.GetShape<Compound>(shapeIndex.Index).RayTest(pose, in ray, ref maximumT, shapes, pool, ref hitHandler);
         }
         else
         {
             Debug.Assert(shapeIndex.Type == BigCompound.TypeId);
-            shapes.GetShape<BigCompound>(shapeIndex.Index).RayTest(pose, in ray, ref maximumT, shapes, ref hitHandler);
+            shapes.GetShape<BigCompound>(shapeIndex.Index).RayTest(pose, in ray, ref maximumT, shapes, pool, ref hitHandler);
         }
     }
 }

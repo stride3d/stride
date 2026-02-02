@@ -66,7 +66,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     protected override void OnEntityComponentAdding(Entity entity, DebugRenderComponent component, DebugRenderComponent data)
     {
         base.OnEntityComponentAdding(entity, component, data);
-        if (_sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is not null)
+        if (_sceneSystem?.SceneInstance?.GetProcessor<CollidableProcessor>() is not null && _visibilityGroup is not null)
             Visible = component.Visible;
         else if (component.Visible)
             _latent = true;
@@ -76,19 +76,9 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
     protected override void OnSystemAdd()
     {
-        SinglePassWireframeRenderFeature wireframeRenderFeature;
-
         _shapeCacheSystem = Services.GetOrCreate<ShapeCacheSystem>();
         _game = Services.GetSafeServiceAs<IGame>();
         _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
-
-        if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is null)
-        {
-            wireframeRenderFeature = new();
-            _sceneSystem.GraphicsCompositor.RenderFeatures.Add(wireframeRenderFeature);
-        }
-
-        _visibilityGroup = _sceneSystem.SceneInstance.VisibilityGroups.First();
     }
 
     protected override void OnSystemRemove()
@@ -100,6 +90,16 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     {
         if (_latent)
         {
+            if (_sceneSystem.SceneInstance.VisibilityGroups.Count == 0)
+                return;
+
+            _visibilityGroup = _sceneSystem.SceneInstance.VisibilityGroups.First();
+            if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is null)
+            {
+                _sceneSystem.GraphicsCompositor.RenderFeatures.Add(new SinglePassWireframeRenderFeature());
+            }
+
+
             Visible = true;
             if (Visible)
                 _latent = false;
