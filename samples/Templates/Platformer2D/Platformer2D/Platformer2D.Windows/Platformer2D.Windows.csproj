@@ -2,11 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Platformer2D</RootNamespace>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
 
     <OutputPath>..\Bin\Windows\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -16,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Platformer2D\Platformer2D.csproj" />
+    <ProjectReference Include="..\Platformer2D.Game\Platformer2D.csproj" />
   </ItemGroup>
 
 </Project>
