@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Stride.Core;
 using System.Threading.Tasks;
 using Stride.Engine;
@@ -13,7 +13,7 @@ public class CollectCoin : AsyncScript
     public required StaticColliderComponent StaticColliderComponent { get; init; }
     
     [Display("Collect Coin")]
-    public Sound SoundEffect { get; set; }
+    public Sound? SoundEffect { get; set; }
     private SoundInstance? sfxInstance;
 
     public override async Task Execute()

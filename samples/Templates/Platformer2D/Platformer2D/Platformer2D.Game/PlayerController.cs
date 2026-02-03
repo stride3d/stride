@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Stride.Core.Mathematics;
 using Stride.Input;
 using Stride.Engine;
@@ -16,7 +16,6 @@ public class PlayerController : SyncScript
     public required CharacterComponent CharacterComponent { get; init; }
     
     public required SpriteComponent Sprite { get; init; }
-    public SpriteFromSheet spriteSheet;
     
     private float animationTimer = 0f;
     // Animation Spped: Every 1/10 passed seconds the next frame will be played. Closer to 1.0 is a slower Animation.
@@ -35,10 +34,7 @@ public class PlayerController : SyncScript
     
     private bool isFacingRight = true;
 
-    public override void Start()
-    {
-        spriteSheet = Sprite.SpriteProvider as SpriteFromSheet;
-    }
+    private SpriteFromSheet SpriteSheet => (SpriteFromSheet)Sprite.SpriteProvider;
 
     public override void Update()
     {
@@ -123,11 +119,8 @@ public class PlayerController : SyncScript
         if (animationTimer >= animationInterval)
         {
             animationTimer -= animationInterval;
-            spriteSheet.CurrentFrame = idleFrame;
+            SpriteSheet.CurrentFrame = idleFrame;
             idleFrame = (idleFrame + 1) % IDLE_FRAME_END;
-            
-            //spriteComponent.CurrentFrame = (spriteComponent.CurrentFrame + 1) % IDLE_FRAME_END;
-            
         }
         ResetFrameCounts(ref runFrame, ref jumpFrame);
     }
@@ -140,7 +133,7 @@ public class PlayerController : SyncScript
         if (animationTimer >= animationInterval)
         {
             animationTimer -= animationInterval;
-            spriteSheet.CurrentFrame = IDLE_FRAME_END + runFrame;
+            SpriteSheet.CurrentFrame = IDLE_FRAME_END + runFrame;
             runFrame = (runFrame + 1) % RUN_FRAME_END;
         }
         ResetFrameCounts(ref idleFrame, ref jumpFrame);
@@ -154,7 +147,7 @@ public class PlayerController : SyncScript
         if (animationTimer >= animationInterval)
         {
             animationTimer -= animationInterval;
-            spriteSheet.CurrentFrame = JUMP_FRAME_END + jumpFrame;
+            SpriteSheet.CurrentFrame = JUMP_FRAME_END + jumpFrame;
             
             if (jumpFrame < JUMP_FRAME_COUNT)
             {
