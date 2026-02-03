@@ -11,17 +11,17 @@ using System.Text.Json;
 
 // Console.WriteLine(Spv2DXIL.spirv_to_dxil_get_version());
 
-// // Examples.CompileSDSL("RenderTests/If");
+// Examples.CompileSDSL("RenderTests/If");
 
-// //Examples.CompileSDSL();
-// var loader = new Examples.ShaderLoader();
-// loader.LoadExternalBuffer("Test", [], out var testBuffer, out _, out _);
-// var shaderMixer = new ShaderMixer(loader);
-// shaderMixer.MergeSDSL(new ShaderClassSource("If"), new ShaderMixer.Options(), out var bytecode, out _, out _, out _);
+//Examples.CompileSDSL();
+var loader = new Examples.ShaderLoader();
+loader.LoadExternalBuffer("Test", [], out var testBuffer, out _, out _);
+var shaderMixer = new ShaderMixer(loader);
+shaderMixer.MergeSDSL(new ShaderClassSource("If"), new ShaderMixer.Options(), out var bytecode, out _, out _, out _);
 
-// using var buffer = SpirvBytecode.CreateBufferFromBytecode(bytecode);
-// var source = Spv.Dis(buffer);
-// File.WriteAllText("test.spvdis", source);
+using var buffer = SpirvBytecode.CreateBufferFromBytecode(bytecode);
+var source = Spv.Dis(buffer);
+File.WriteAllText("test.spvdis", source);
 
 
 // Examples.TryAllFiles();

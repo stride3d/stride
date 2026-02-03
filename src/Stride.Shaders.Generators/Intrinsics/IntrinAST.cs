@@ -9,7 +9,10 @@ namespace Stride.Shaders.Generators.Intrinsics;
 
 internal abstract record Node([property:JsonIgnore]TextLocation Location);
 
-internal record Identifier(string Name, TextLocation Location) : Node(Location);
+internal record Identifier(string Name, TextLocation Location) : Node(Location)
+{
+    public override string ToString() => Name;
+}
 
 
 internal record Attributes(string[] Values, TextLocation Location) : Node(Location);
@@ -17,8 +20,16 @@ internal record Attributes(string[] Values, TextLocation Location) : Node(Locati
 
 internal record Layout(string Size1, string? Size2, TextLocation Location) : Node(Location);
 
-internal record Typename(string Name, Layout? Size, TextLocation Location) : Node(Location);
-internal record NumericType(Layout Size, TextLocation Location) : Typename("numeric", Size, Location);
+internal record Typename(string Name, Layout? Size, TextLocation Location) : Node(Location)
+{
+    public override string ToString() => Size switch
+    {
+        null => Name,
+        _ when Size.Size2 is null => $"{Name}{Size.Size1}",
+        _ => $"{Name}{Size.Size1}x{Size.Size2}",
+    };
+}
+// internal record NumericType(Layout Size, TextLocation Location) : Typename("numeric", Size, Location);
 
 internal record Matching(int ComponentA, int ComponentB, TextLocation Location) : Node(Location);
 internal record ClassTMatch(TextLocation Location) : Matching(-1, 0,Location);
