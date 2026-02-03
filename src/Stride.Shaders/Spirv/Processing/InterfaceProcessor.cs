@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Parsing.SDSL.AST;
+using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
 
 namespace Stride.Shaders.Spirv.Processing
 {
@@ -21,155 +22,6 @@ namespace Stride.Shaders.Spirv.Processing
         public delegate void CodeInsertedDelegate(int index, int count);
 
         public CodeInsertedDelegate CodeInserted { get; set; }
-        
-        enum StreamVariableType
-        {
-            Input,
-            Output,
-        }
-        
-        class StreamInfo(string? semantic, string name, PointerType type, int variableId)
-        {
-            public bool Patch { get; set; }
-            public string? Semantic { get; } = semantic;
-            public string Name { get; } = name;
-            public SymbolType Type { get; } = type.BaseType;
-            public int VariableId { get; } = variableId;
-            
-            public int? InputId { get; set; }
-            public int? OutputId { get; set; }
-
-            public int? InputLayoutLocation { get; set; }
-            public int? OutputLayoutLocation { get; set; }
-
-            /// <summary>
-            /// We automatically mark input: a variable read before it's written to, or an output without a write
-            /// </summary>
-            public bool Input => Read || (Output && !Write);
-            public bool Output { get => field; set { field = value; UsedAnyStage = true; } }
-            public bool UsedThisStage => Input || Output || Read || Write;
-
-            public bool Read { get => field; set { field = value; UsedAnyStage = true; } }
-            public bool Write { get => field; set { field = value; UsedAnyStage = true; } }
-            public bool UsedAnyStage { get; private set; }
-            public int? InputStructFieldIndex { get; internal set; }
-            public int? OutputStructFieldIndex { get; internal set; }
-            
-            // Note: if Patch is true, it will be index in CONSTANTS struct, otherwise STREAMS struct
-            public int StreamStructFieldIndex { get; internal set; }
-
-            public override string ToString() => $"{Type} {Name} {(Read ? "R" : "")} {(Write ? "W" : "")}";
-        }
-
-        class VariableInfo(string name, PointerType type, int variableId)
-        {
-            public string Name { get; } = name;
-            public PointerType Type { get; } = type;
-
-            public int VariableId { get; } = variableId;
-            public int? VariableMethodInitializerId { get; set; }
-
-
-            /// <summary>
-            /// Used during current stage being processed?
-            /// </summary>
-            public bool UsedThisStage { get => field; set { field = value; UsedAnyStage |= value; } }
-            /// <summary>
-            /// Used at all (in any stage)
-            /// </summary>
-            public bool UsedAnyStage { get; private set; }
-        }
-
-        class ResourceInfo(string name)
-        {
-            public string Name { get; } = name;
-
-            public ResourceGroup ResourceGroup { get; set; }
-
-            /// <summary>
-            /// Used during current stage being processed?
-            /// </summary>
-            public bool UsedThisStage { get => field; set { field = value; UsedAnyStage |= value; } }
-            /// <summary>
-            /// Used at all (in any stage)
-            /// </summary>
-            public bool UsedAnyStage { get; private set; }
-        }
-
-        record class ResourceGroup
-        {
-            public bool Used { get; set; }
-            public string Name { get; set; }
-            public string? LogicalGroup { get; set; }
-            public List<ResourceInfo> Resources { get; } = new();
-        }
-
-        record class CBufferInfo(string name)
-        {
-            public string Name { get; } = name;
-
-            public string? LogicalGroup { get; set; }
-
-            /// <summary>
-            /// Used during current stage being processed?
-            /// </summary>
-            public bool UsedThisStage { get => field; set { field = value; UsedAnyStage |= value; } }
-            /// <summary>
-            /// Used at all (in any stage)
-            /// </summary>
-            public bool UsedAnyStage { get; private set; }
-        }
-
-        class LogicalGroupInfo
-        {
-            public List<ResourceGroup> Resources { get; } = new();
-            public List<CBufferInfo> CBuffers { get; } = new();
-        }
-
-        record struct AnalysisResult(Dictionary<int, string> Names, Dictionary<int, StreamInfo> Streams, Dictionary<int, VariableInfo> Variables, Dictionary<int, CBufferInfo> CBuffers, Dictionary<int, ResourceGroup> ResourceGroups, Dictionary<int, ResourceInfo> Resources);
-
-        class MethodInfo
-        {
-            /// <summary>
-            /// Used during current stage being processed?
-            /// </summary>
-            public bool UsedThisStage { get => field; set { field = value; UsedAnyStage |= value; } }
-            /// <summary>
-            /// Used at all (in any stage)
-            /// </summary>
-            public bool UsedAnyStage { get; private set; }
-
-            public List<OpData>? OriginalMethodCode { get; set; }
-            public int? ThisStageMethodId { get; set; }
-
-            // True if the method depends on STREAMS type (also if used by any OpFunctionCall recursively)
-            public bool HasStreamAccess { get; internal set; }
-        }
-
-        class LiveAnalysis
-        {
-            public Dictionary<int, MethodInfo> ReferencedMethods { get; } = new();
-
-            public HashSet<int> ExtraReferencedMethods { get; } = new();
-
-            public MethodInfo GetOrCreateMethodInfo(int functionId)
-            {
-                if (!ReferencedMethods.TryGetValue(functionId, out MethodInfo methodInfo))
-                    ReferencedMethods.Add(functionId, methodInfo = new MethodInfo());
-
-                return methodInfo;
-            }
-
-            public bool MarkMethodUsed(int functionId)
-            {
-                var methodInfo = GetOrCreateMethodInfo(functionId);
-
-                var previousValue = methodInfo.UsedThisStage;
-                methodInfo.UsedThisStage = true;
-                // Returns tree when added first time
-                return !previousValue;
-            }
-        }
 
         public record Result(List<(string Name, int Id, ShaderStage Stage)> EntryPoints, List<ShaderInputAttributeDescription> InputAttributes);
 
@@ -347,7 +199,7 @@ namespace Stride.Shaders.Spirv.Processing
             }
         }
 
-        private static void RemoveUnreferencedCode(NewSpirvBuffer buffer, SpirvContext context, AnalysisResult analysisResult, Dictionary<int, StreamInfo> streams, LiveAnalysis liveAnalysis)
+        private static void RemoveUnreferencedCode(NewSpirvBuffer buffer, SpirvContext context, AnalysisResult analysisResult, Dictionary<int, StreamVariableInfo> streams, LiveAnalysis liveAnalysis)
         {
             // Remove unreferenced code
             var removedIds = new HashSet<int>();
@@ -556,7 +408,7 @@ namespace Stride.Shaders.Spirv.Processing
             throw new InvalidOperationException($"outputcontrolpoints not found on hull shader {entryPoint.Id.Name}");
         }
 
-        private static void PropagateStreamsFromPreviousStage(Dictionary<int, StreamInfo> streams)
+        private static void PropagateStreamsFromPreviousStage(Dictionary<int, StreamVariableInfo> streams)
         {
             foreach (var stream in streams)
             {
@@ -570,7 +422,7 @@ namespace Stride.Shaders.Spirv.Processing
 
         private AnalysisResult Analyze(NewSpirvBuffer buffer, SpirvContext context)
         {
-            var streams = new Dictionary<int, StreamInfo>();
+            var streams = new Dictionary<int, StreamVariableInfo>();
 
             HashSet<int> blockTypes = [];
             Dictionary<int, int> blockPointerTypes = [];
@@ -662,7 +514,7 @@ namespace Stride.Shaders.Spirv.Processing
                         if (variable.MethodInitializer != null)
                             throw new NotImplementedException("Variable initializer is not supported on streams variable");
 
-                        streams.Add(variable.ResultId, new StreamInfo(semantic, name, type, variable.ResultId) { Patch = patchVariables.Contains(variable.ResultId) });
+                        streams.Add(variable.ResultId, new StreamVariableInfo(semantic, name, type, variable.ResultId) { Patch = patchVariables.Contains(variable.ResultId) });
                     }
                     else
                     {
@@ -753,10 +605,10 @@ namespace Stride.Shaders.Spirv.Processing
                 ExecutionModel.GLCompute => "CS",
                 _ => throw new NotImplementedException()
             };
-            List<(StreamInfo Info, int InterfaceId, SymbolType InterfaceType)> inputStreams = [];
-            List<(StreamInfo Info, int Id, SymbolType InterfaceType)> outputStreams = [];
-            List<(StreamInfo Info, int Id, SymbolType InterfaceType)> patchInputStreams = [];
-            List<(StreamInfo Info, int Id, SymbolType InterfaceType)> patchOutputStreams = [];
+            List<(StreamVariableInfo Info, int InterfaceId, SymbolType InterfaceType)> inputStreams = [];
+            List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> outputStreams = [];
+            List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> patchInputStreams = [];
+            List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> patchOutputStreams = [];
             List<int> entryPointExtraVariables = [];
 
             int inputLayoutLocationCount = 0;
