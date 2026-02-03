@@ -29,7 +29,6 @@ public class CollectCoin : AsyncScript
                 // Disable Sprite
                 Entity.Get<SpriteComponent>().Enabled = false;
                 sfxInstance = SoundEffect?.CreateInstance();
-                sfxInstance?.Stop();
                  
                 // Play Sound
                 sfxInstance?.Play();
