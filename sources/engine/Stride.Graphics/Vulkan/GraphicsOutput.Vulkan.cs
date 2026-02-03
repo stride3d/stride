@@ -40,18 +40,15 @@ namespace Stride.Graphics
         /// <summary>
         /// Find the display mode that most closely matches the requested display mode.
         /// </summary>
-        /// <param name="targetProfiles">The target profile, as available formats are different depending on the feature level..</param>
+        /// <param name="_">Vulkan does not rely on GraphicsProfile when finding the closest matching display mode.</param>
         /// <param name="mode">The mode.</param>
         /// <returns>Returns the closes display mode.</returns>
-        public DisplayMode FindClosestMatchingDisplayMode(GraphicsProfile[] targetProfiles, DisplayMode mode)
+        public DisplayMode FindClosestMatchingDisplayMode(GraphicsProfile[] _, DisplayMode mode)
         {
-            ArgumentNullException.ThrowIfNull(targetProfiles);
-
             if (supportedDisplayModes == null || supportedDisplayModes.Length == 0)
                 throw new Exception("Couldn't find any supported display modes for selected display.");
 
-            // Vulkan: No DirectX-style feature-level restrictions.
-            // We ignore targetProfiles.
+            // Display mode selection is based solely on the GraphicsOutput’s supported display modes and VkFormats.
             //
             // Strategy:
             // - Primary: Closest resolution.
