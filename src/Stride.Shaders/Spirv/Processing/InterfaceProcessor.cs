@@ -13,6 +13,7 @@ using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
 using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Analysis;
 using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Cleanup;
+using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Transformation;
 
 namespace Stride.Shaders.Spirv.Processing
 {
@@ -21,9 +22,7 @@ namespace Stride.Shaders.Spirv.Processing
     /// </summary>
     public class InterfaceProcessor
     {
-        public delegate void CodeInsertedDelegate(int index, int count);
-
-        public CodeInsertedDelegate CodeInserted { get; set; }
+        public Action<int, int>? CodeInserted { get; set; }
 
         public record Result(List<(string Name, int Id, ShaderStage Stage)> EntryPoints, List<ShaderInputAttributeDescription> InputAttributes);
 
@@ -469,8 +468,8 @@ namespace Stride.Shaders.Spirv.Processing
             {
                 if (method.Value.UsedThisStage && method.Value.HasStreamAccess)
                 {
-                    DuplicateMethodIfNecessary(buffer, context, method.Key, analysisResult, liveAnalysis);
-                    PatchStreamsAccesses(table, buffer, context, method.Key, streamsType, inputType, outputType, constantsType, streamsVariable.ResultId, analysisResult, liveAnalysis);
+                    MethodDuplicator.DuplicateMethodIfNecessary(buffer, context, method.Key, analysisResult, liveAnalysis, CodeInserted);
+                    StreamAccessPatcher.PatchStreamsAccesses(table, buffer, context, method.Key, streamsType, inputType, outputType, constantsType, streamsVariable.ResultId, analysisResult, liveAnalysis);
                 }
             }
 
@@ -922,242 +921,6 @@ namespace Stride.Shaders.Spirv.Processing
             }
 
             return patchConstantEntryPoint;
-        }
-
-        void DuplicateMethodIfNecessary(NewSpirvBuffer buffer, SpirvContext context, int functionId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
-        {
-            var methodInfo = liveAnalysis.GetOrCreateMethodInfo(functionId);
-
-            (var methodStart, var methodEnd) = SpirvBuilder.FindMethodBounds(buffer, functionId);
-
-            // One function might need to be duplicated in case it is used by different shader stages with STREAMS:
-            // On first time (in a stage), we backup method original content before mutation
-            // On second time (in a different stage), we copy the method (from original content)
-            if (methodInfo.OriginalMethodCode == null)
-            {
-                // Copy instructions memory (since we're going to mutate them and want to retain original version)
-                var methodInstructions = buffer.Slice(methodStart, methodEnd - methodStart);
-                foreach (ref var i in methodInstructions.AsSpan())
-                    i = new OpData(i.Memory.Span);
-
-                methodInfo.OriginalMethodCode = methodInstructions;
-            }
-            else
-            {
-                // Need to reinsert method with new IDs
-                var remapIds = new Dictionary<int, int>();
-                var copiedInstructions = new List<OpData>();
-                foreach (var i in methodInfo.OriginalMethodCode)
-                {
-                    // Save copied function ID
-                    if (i.Op == Op.OpFunction)
-                        methodInfo.ThisStageMethodId = context.Bound;
-
-                    var i2 = new OpData(i.Memory.Span);
-                    if (i2.IdResult.HasValue)
-                        remapIds.Add(i2.IdResult.Value, context.Bound++);
-                    SpirvBuilder.RemapIds(remapIds, ref i2);
-                    copiedInstructions.Add(i2);
-
-                    // Copy names too
-                    if (i.IdResult is int resultId)
-                    {
-                        if (analysisResult.Names.TryGetValue(resultId, out var name))
-                            context.AddName(i2.IdResult!.Value, name);
-                    }
-                }
-
-                if (methodInfo.ThisStageMethodId == null)
-                    throw new InvalidOperationException();
-
-                liveAnalysis.ExtraReferencedMethods.Add(methodInfo.ThisStageMethodId.Value);
-
-                // TODO: adjust mixin instructions ranges
-                buffer.InsertRange(methodEnd, copiedInstructions.AsSpan());
-                CodeInserted?.Invoke(methodEnd, copiedInstructions.Count);
-            }
-        }
-
-        class StreamsTypeReplace(SymbolType streamsReplacement, SymbolType inputReplacement, SymbolType outputReplacement, SymbolType? constantsReplacement) : TypeRewriter
-        {
-            public override SymbolType Visit(StreamsType streamsType)
-            {
-                return streamsType.Kind switch
-                {
-                    StreamsKindSDSL.Streams => streamsReplacement,
-                    StreamsKindSDSL.Input => inputReplacement,
-                    StreamsKindSDSL.Output => outputReplacement,
-                    StreamsKindSDSL.Constants => constantsReplacement ?? throw new InvalidOperationException(),
-                };
-            }
-        }
-
-        void PatchStreamsAccesses(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context, int functionId, StructType streamsStructType, StructType inputStructType, StructType outputStructType, StructType? constantsStructType, int streamsVariableId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
-        {
-            var methodInfo = liveAnalysis.GetOrCreateMethodInfo(functionId);
-
-            (var methodStart, _) = SpirvBuilder.FindMethodBounds(buffer, methodInfo.ThisStageMethodId ?? functionId);
-
-            var streams = analysisResult.Streams;
-            // true => implicit (streams.), false => specific variable
-            var streamsInstructionIds = new Dictionary<int, bool>();
-
-            var method = (OpFunction)buffer[methodStart];
-            var methodType = (FunctionType)context.ReverseTypes[method.FunctionType];
-
-            var streamTypeReplacer = new StreamsTypeReplace(streamsStructType, inputStructType, outputStructType, constantsStructType);
-            var newMethodType = (FunctionType)streamTypeReplacer.Visit(methodType);
-            if (!ReferenceEquals(newMethodType, methodType))
-            {
-                methodType = newMethodType;
-                method.FunctionType = context.GetOrRegister(methodType);
-                var symbol = table.ResolveSymbol(functionId);
-                symbol.Type = methodType;
-            }
-            
-            // Remap ids for streams type to actual struct type
-            var remapIds = new Dictionary<int, int>();
-            var processedIds = new HashSet<int>();
-
-            // Check if type contains any Streams/Input/Output (and if yes, register the replacement)
-            void CheckStreamTypes(int id)
-            {
-                if (processedIds.Add(id) && context.ReverseTypes.TryGetValue(id, out var type))
-                {
-                    // New type, check it
-                    var replacedType = streamTypeReplacer.VisitType(type);
-                    if (!ReferenceEquals(replacedType, type))
-                        remapIds.Add(id, context.GetOrRegister(replacedType));
-                }
-            }
-
-            // TODO: remap method type!
-            Span<int> tempIdsForStreamCopy = stackalloc int[streams.Values.Count];
-            for (int index = methodStart; ; ++index)
-            {
-                var i = buffer[index];
-
-                if (i.Op == Op.OpFunctionEnd)
-                    break;
-                
-                if (i.Op == Op.OpStreamsSDSL && (OpStreamsSDSL)i is { } streamsInstruction)
-                {
-                    streamsInstructionIds.Add(streamsInstruction.ResultId, true);
-                    remapIds.Add(streamsInstruction.ResultId, streamsVariableId);
-                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-                }
-                else if (i.Op is Op.OpVariable && (OpVariable)i is { } variable)
-                {
-                    var type = context.ReverseTypes[variable.ResultType];
-                    if (type is PointerType { BaseType: StreamsType })
-                        streamsInstructionIds.Add(variable.ResultId, false);
-                }
-                else if (i.Op is Op.OpFunctionParameter && (OpFunctionParameter)i is { } functionParameter)
-                {
-                    var type = context.ReverseTypes[functionParameter.ResultType];
-                    if (type is PointerType { BaseType: StreamsType })
-                        streamsInstructionIds.Add(functionParameter.ResultId, false);
-                }
-                else if (i.Op == Op.OpAccessChain && (OpAccessChain)i is { } accessChain)
-                {
-                    // In case it's a streams access, patch acces to use STREAMS struct with proper index
-                    if (streamsInstructionIds.TryGetValue(accessChain.BaseId, out var isImplicit))
-                    {
-                        var streamVariableId = accessChain.Values.Elements.Span[0];
-                        var streamInfo = streams[streamVariableId];
-                        var streamStructMemberIndex = streamInfo.StreamStructFieldIndex;
-
-                        // TODO: this won't update accessChain.Memory yet but setting accessChain.Base later will fix that
-                        //       we'll need a better way to update LiteralArray and propagate changes
-                        accessChain.Values.Elements.Span[0] = context.CompileConstant(streamStructMemberIndex).Id;
-
-                        if (isImplicit)
-                            accessChain.BaseId = streamsVariableId;
-                        else
-                            // Force refresh of InstructionMemory
-                            // TODO: remove when accessChain.Values update properly the instruction
-                            accessChain.BaseId = accessChain.BaseId; 
-                    }
-                }
-                else if (i.Op == Op.OpCopyLogical && (OpCopyLogical)i is { } copyLogical)
-                {
-                    // Cast input to streams
-                    var targetType = context.ReverseTypes[copyLogical.ResultType];
-                    if (targetType is StreamsType { Kind: StreamsKindSDSL.Streams })
-                    {
-                        foreach (var stream in streams)
-                        {
-                            // Part of streams?
-                            if (!stream.Value.Patch && stream.Value.UsedThisStage)
-                            {
-                                if (stream.Value.Input)
-                                {
-                                    // Extract value from streams
-                                    tempIdsForStreamCopy[stream.Value.StreamStructFieldIndex] = buffer.Insert(index++,
-                                        new OpCompositeExtract(context.GetOrRegister(stream.Value.Type),
-                                            context.Bound++,
-                                            copyLogical.Operand,
-                                            [stream.Value.InputStructFieldIndex.Value])).ResultId;
-                                }
-                                else
-                                {
-                                    // Otherwise use default value
-                                    tempIdsForStreamCopy[stream.Value.StreamStructFieldIndex] = context.CreateDefaultConstantComposite(stream.Value.Type).Id;
-                                }
-                            }
-                        }
-                        
-                        // Update index (otherwise copyLogical fields will point to invalid data)
-                        i.Index = index;
-                        buffer.Replace(index, new OpCompositeConstruct(copyLogical.ResultType, copyLogical.ResultId, [..tempIdsForStreamCopy.Slice(0, streamsStructType.Members.Count)]));
-                    }
-                    else if (targetType is StreamsType { Kind: StreamsKindSDSL.Output })
-                    {
-                        foreach (var stream in streams)
-                        {
-                            // Part of streams?
-                            if (!stream.Value.Patch && stream.Value.Output)
-                            {
-                                // Extract value from streams
-                                tempIdsForStreamCopy[stream.Value.OutputStructFieldIndex.Value] = buffer.Insert(index++,
-                                    new OpCompositeExtract(context.GetOrRegister(stream.Value.Type),
-                                        context.Bound++,
-                                        copyLogical.Operand,
-                                        [stream.Value.StreamStructFieldIndex])).ResultId;
-                            }
-                        }
-                        
-                        // Update index (otherwise copyLogical fields will point to invalid data)
-                        i.Index = index;
-                        buffer.Replace(index, new OpCompositeConstruct(copyLogical.ResultType, copyLogical.ResultId, [..tempIdsForStreamCopy.Slice(0, outputStructType.Members.Count)]));
-                    }
-                }
-                else if (i.Op == Op.OpEmitVertexSDSL && (OpEmitVertexSDSL)i is { } emitVertex)
-                {
-                    var output = emitVertex.Output;
-                    foreach (var stream in streams)
-                    {
-                        if (stream.Value.Output)
-                        {
-                            var outputValue = buffer.Insert(index++, new OpCompositeExtract(context.GetOrRegister(stream.Value.Type), context.Bound++, output, [stream.Value.OutputStructFieldIndex.Value])).ResultId;
-                            buffer.Insert(index++, new OpStore(stream.Value.OutputId.Value, outputValue, MemoryAccessMask.None, []));
-                        }
-                    }
-
-                    buffer.Replace(index, new OpEmitVertex());
-                }
-                else if (i.Op == Op.OpFunctionCall && (OpFunctionCall)i is { } call)
-                {
-                    var calledMethodInfo = liveAnalysis.ReferencedMethods[call.Function];
-                    // In case we copied the method, use the new ID
-                    if (calledMethodInfo.ThisStageMethodId is int updatedMethodId)
-                        call.Function = updatedMethodId;
-                }
-
-                SpirvBuilder.CollectIds(i.Data, CheckStreamTypes);
-                
-                SpirvBuilder.RemapIds(remapIds, ref i.Data);
-            }
         }
     }
 }
