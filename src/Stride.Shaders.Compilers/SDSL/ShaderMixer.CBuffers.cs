@@ -428,7 +428,8 @@ namespace Stride.Shaders.Compilers.SDSL
                     };
                     if (metadata.Color)
                     {
-                        if (member.Type is not VectorType { BaseType: { Type: Scalar.Float }, Size: 3 or 4 })
+                        var baseType = member.Type is ArrayType arrayType ? arrayType.BaseType : member.Type;
+                        if (baseType is not VectorType { BaseType: { Type: Scalar.Float }, Size: 3 or 4 })
                             throw new InvalidOperationException("[Color] attribute can only be applied on float3/float4 vector types");
                         memberInfos[index].Type.Class = EffectParameterClass.Color;
                     }
