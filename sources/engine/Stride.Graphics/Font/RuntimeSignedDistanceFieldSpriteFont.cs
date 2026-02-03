@@ -8,6 +8,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using Stride.Graphics.Font.RuntimeMsdf;
 
 namespace Stride.Graphics.Font
 {
@@ -55,7 +56,7 @@ namespace Stride.Graphics.Font
 
         // Placeholder container for future outline/MSDF generators.
         // This keeps the scheduling/upload pipeline unchanged when we swap in msdfgen.
-        private sealed record OutlineInput(object OutlineData) : GlyphInput;
+        private sealed record OutlineInput(GlyphOutline Outline, int Width, int Height) : GlyphInput;
 
         private interface IDistanceFieldGenerator
         {
@@ -68,12 +69,47 @@ namespace Stride.Graphics.Font
                 => input switch
                 {
                     CoverageInput c => BuildSdfRgbFromCoverage(c.Buffer, c.Width, c.Rows, c.Pitch, p.Pad, p.PixelRange, p.Encode),
-                    OutlineInput => throw new NotSupportedException("Outline input is not supported by SdfCoverageGenerator."),
+                    _ => throw new ArgumentOutOfRangeException(nameof(input), "Unsupported input for SDF generator."),
+                };
+        }
+
+        /// <summary>
+        /// Composite generator: CoverageInput -> SDF (existing path), OutlineInput -> MSDF (Remora).
+        /// Keeps the scheduling/upload pipeline unchanged while we add MSDF support.
+        /// </summary>
+        private sealed class SdfOrMsdfGenerator : IDistanceFieldGenerator
+        {
+            private readonly SdfCoverageGenerator sdf = new();
+            private readonly IGlyphMsdfRasterizer msdf;
+            private readonly MsdfEncodeSettings msdfEncode;
+
+            public SdfOrMsdfGenerator(IGlyphMsdfRasterizer msdf, MsdfEncodeSettings msdfEncode)
+            {
+                this.msdf = msdf ?? throw new ArgumentNullException(nameof(msdf));
+                this.msdfEncode = msdfEncode;
+            }
+
+            public CharacterBitmapRgba Generate(GlyphInput input, DistanceFieldParams p)
+                => input switch
+                {
+                    CoverageInput => sdf.Generate(input, p),
+
+                    OutlineInput o => msdf.RasterizeMsdf(
+                        o.Outline,
+                        new DistanceFieldSettings(
+                            PixelRange: p.PixelRange,
+                            Padding: p.Pad,
+                            Width: o.Width,
+                            Height: o.Height),
+                        msdfEncode),
+
                     _ => throw new ArgumentOutOfRangeException(nameof(input)),
                 };
         }
 
-        private readonly IDistanceFieldGenerator generator = new SdfCoverageGenerator();
+        // Swap MSDF backend here without touching the runtime font pipeline.
+        private readonly IDistanceFieldGenerator generator =
+            new SdfOrMsdfGenerator(new RemoraMsdfRasterizer(), MsdfEncodeSettings.Default);
 
         // Runtime SDF glyph cache key (future-proof for multiple ranges/modes)
         private readonly Dictionary<GlyphKey, CharacterSpecification> characters = [];
@@ -337,10 +373,6 @@ namespace Stride.Graphics.Font
             // Already uploaded? nothing to do.
             if (spec.IsBitmapUploaded) return;
 
-            // Already have bitmap? If not, we can’t generate.
-            var bmp = spec.Bitmap;
-            if (bmp == null || bmp.Width == 0 || bmp.Rows == 0) return;
-
             // Ensure worker infrastructure is alive (safe even if already started)
             EnsureWorkersStarted();
 
@@ -348,6 +380,43 @@ namespace Stride.Graphics.Font
             if (!inFlight.TryAdd(key, 0)) return;
 
             var p = new DistanceFieldParams(key.PixelRange, key.Pad, DefaultEncode);
+
+            // Prefer outline-based MSDF generation when available.
+            // We still rely on the bitmap path to populate glyph metrics today, but MSDF uses the outline.
+            if (FontManager != null &&
+                FontManager.TryGetGlyphOutline(FontName, Style, Size, key.C, out var outline, out _))
+            {
+                // Prefer bitmap dimensions if available (matches current atlas/layout), otherwise fall back to outline bounds.
+                int w = 0, h = 0;
+                if (spec.Bitmap != null && spec.Bitmap.Width > 0 && spec.Bitmap.Rows > 0)
+                {
+                    w = spec.Bitmap.Width;
+                    h = spec.Bitmap.Rows;
+                }
+                else if (outline?.Bounds.Width > 0 && outline.Bounds.Height > 0)
+                {
+                    w = Math.Max(1, (int)MathF.Ceiling(outline.Bounds.Width));
+                    h = Math.Max(1, (int)MathF.Ceiling(outline.Bounds.Height));
+                }
+
+                if (w > 0 && h > 0)
+                {
+                    var input = (GlyphInput)new OutlineInput(outline, w, h);
+
+                    if (workChannel.Writer.TryWrite(new WorkItem(key, input, p)))
+                        return;
+                }
+                // If outline path can't be scheduled (no dims / queue full), fall back to coverage below.
+            }
+
+            // Fallback: bitmap/coverage-based SDF.
+            var bmp = spec.Bitmap;
+            if (bmp == null || bmp.Width == 0 || bmp.Rows == 0)
+            {
+                inFlight.TryRemove(key, out _);
+                return;
+            }
+
             // Copy coverage bitmap to a pooled array so background thread is safe (avoid per-glyph allocations).
             var width = bmp.Width;
             var rows = bmp.Rows;

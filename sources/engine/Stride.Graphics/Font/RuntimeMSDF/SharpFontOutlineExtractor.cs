@@ -47,6 +47,7 @@ namespace Stride.Graphics.Font.RuntimeMsdf
 
             var bbox = ftOutline.GetBBox();
             outline.Bounds = new RectangleF(
+
                 Fixed26Dot6ToFloat(bbox.Left),
                 Fixed26Dot6ToFloat(bbox.Top),
                 Fixed26Dot6ToFloat(bbox.Right - bbox.Left),

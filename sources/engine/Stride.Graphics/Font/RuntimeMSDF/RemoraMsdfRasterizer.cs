@@ -7,6 +7,7 @@ using Remora.MSDFGen;
 using Remora.MSDFGen.Graphics;
 using Stride.Core.Mathematics;
 using Stride.Graphics.Font;
+using Color3 = Remora.MSDFGen.Graphics.Color3;
 
 namespace Stride.Graphics.Font.RuntimeMsdf
 {
@@ -25,9 +26,20 @@ namespace Stride.Graphics.Font.RuntimeMsdf
         // If your outline extractor already flips Y, set this to false.
         private const bool FlipOutlineYAxis = true;
 
+        // Stride's existing runtime SDF pipeline encodes "inside" as *higher* values.
+        // Remora.MSDFGen follows the msdfgen convention where inside is negative -> values below 0.5.
+        // Until Stride has an MSDF-aware shader, we invert to match the existing SDF shader convention.
+        private const bool InvertDistanceForStrideSdfShader = true;
+
+        // Stride's current SDF font effect samples a single channel.
+        // To get correct visuals now (without a new MSDF shader), we pack the median of RGB into all channels.
+        // When you add an MSDF shader (median on GPU), set this to false to keep true MSDF in RGB.
+        private const bool PackMedianToAllChannels = true;
+
         CharacterBitmapRgba IGlyphMsdfRasterizer.RasterizeMsdf(GlyphOutline outline, DistanceFieldSettings df, MsdfEncodeSettings encode)
         {
-            ArgumentNullException.ThrowIfNull(outline);
+            if (outline == null)
+                throw new ArgumentNullException(nameof(outline));
 
             var totalWidth = df.TotalWidth;
             var totalHeight = df.TotalHeight;
@@ -45,7 +57,7 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             MSDF.EdgeColoringSimple(shape, DefaultAngleThresholdRadians);
 
             // 3) Generate float MSDF into a pixmap
-            var pix = new Pixmap<Remora.MSDFGen.Graphics.Color3>(totalWidth, totalHeight);
+            var pix = new Pixmap<Color3>(totalWidth, totalHeight);
 
             // We treat outline units as pixel units (after scaling in FreeType).
             // Place the shape so its min corner starts at (Padding, Padding).
@@ -144,8 +156,8 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             return shape;
         }
 
-        private static NVector2 ToRemora(Vector2 v, bool flipY)
-            => new(v.X, flipY ? -v.Y : v.Y);
+        private static NVector2 ToRemora(Stride.Core.Mathematics.Vector2 v, bool flipY)
+            => new NVector2(v.X, flipY ? -v.Y : v.Y);
 
         private static void UpdateBounds(NVector2 p, ref double minX, ref double minY, ref double maxX, ref double maxY)
         {
@@ -155,7 +167,7 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             if (p.Y > maxY) maxY = p.Y;
         }
 
-        private static unsafe void PackPixmapToRgba8(Pixmap<Remora.MSDFGen.Graphics.Color3> pix, CharacterBitmapRgba dst, MsdfEncodeSettings encode)
+        private static unsafe void PackPixmapToRgba8(Pixmap<Color3> pix, CharacterBitmapRgba dst, MsdfEncodeSettings encode)
         {
             // Encode settings apply around the 0.5 midpoint.
             // encode.Scale is defined so that 0.5 means "identity".
@@ -172,9 +184,26 @@ namespace Stride.Graphics.Font.RuntimeMsdf
                 {
                     var c = pix[x, y];
 
-                    float r = ApplyEncode(c.R, encode.Bias, scaleFactor);
-                    float g = ApplyEncode(c.G, encode.Bias, scaleFactor);
-                    float b = ApplyEncode(c.B, encode.Bias, scaleFactor);
+                    float r0 = c.R;
+                    float g0 = c.G;
+                    float b0 = c.B;
+
+                    if (PackMedianToAllChannels)
+                    {
+                        var m = Median3(r0, g0, b0);
+                        r0 = g0 = b0 = m;
+                    }
+
+                    if (InvertDistanceForStrideSdfShader)
+                    {
+                        r0 = 1f - r0;
+                        g0 = 1f - g0;
+                        b0 = 1f - b0;
+                    }
+
+                    float r = ApplyEncode(r0, encode.Bias, scaleFactor);
+                    float g = ApplyEncode(g0, encode.Bias, scaleFactor);
+                    float b = ApplyEncode(b0, encode.Bias, scaleFactor);
 
                     int o = x * 4;
                     row[o + 0] = FloatToByte(r);
@@ -201,6 +230,21 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             if (v <= 0f) return 0;
             if (v >= 1f) return 255;
             return (byte)(v * 255f + 0.5f);
+        }
+
+        private static float Median3(float a, float b, float c)
+        {
+            // branchy but tiny; avoids allocations.
+            if (a > b)
+            {
+                if (b > c) return b;
+                return a > c ? c : a;
+            }
+            else
+            {
+                if (a > c) return a;
+                return b > c ? c : b;
+            }
         }
     }
 }
