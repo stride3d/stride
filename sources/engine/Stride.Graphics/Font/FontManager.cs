@@ -16,7 +16,7 @@ namespace Stride.Graphics.Font
     /// <summary>
     /// A font manager is in charge of loading in memory the ttf files, looking for font informations, rendering and then caching the <see cref="CharacterBitmap"/>s on the CPU .
     /// </summary>
-    internal class FontManager : IDisposable
+    internal partial class FontManager : IDisposable
     {
         /// <summary>
         /// Lock both <see cref="generatedBitmaps"/> and <see cref="bitmapsToGenerate"/>.
