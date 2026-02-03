@@ -199,11 +199,9 @@ internal class ContactEventsManager : IDisposable
             var offsetStride = offsetN.ToStride();
             var normalStride = normalN.ToStride();
 
-            // Point monde: origin + rotate(offset)
-            var worldPointStride = worldOriginStride + offsetStride; 
+            var worldPointStride = worldOriginStride + offsetStride;
 
-            // Normal monde: rotate(normal)
-            var worldNormalStride = Vector3.Transform(normalStride, worldRotStride);
+            var worldNormalStride = normalStride;// Vector3.Transform(normalStride, worldRotStride); 
 
             _debugPointsPerWorker[workerIndex].Add(new DebugContactPoint
             {
