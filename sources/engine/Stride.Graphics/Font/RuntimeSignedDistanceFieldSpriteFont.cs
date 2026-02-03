@@ -29,6 +29,8 @@ namespace Stride.Graphics.Font
         private readonly record struct DistanceEncodeParams(float Bias, float Scale);
         private readonly record struct DistanceFieldParams(int PixelRange, int Pad, DistanceEncodeParams Encode);
 
+        private readonly record struct GlyphKey(char C, int PixelRange, int Pad);
+
         // Keep today’s encoding behavior explicit and centralized.
         private static readonly DistanceEncodeParams DefaultEncode = new(Bias: 0.4f, Scale: 0.5f);
 
@@ -39,28 +41,45 @@ namespace Stride.Graphics.Font
             return new DistanceFieldParams(pixelRange, pad, DefaultEncode);
         }
 
+        private GlyphKey MakeKey(char c, DistanceFieldParams p) => new(c, p.PixelRange, p.Pad);
+
+        // --- Generator input: discriminated union (coverage today, outline later) ---
+        private abstract record GlyphInput;
+
+        private sealed record CoverageInput(
+            byte[] Buffer,
+            int Length,
+            int Width,
+            int Rows,
+            int Pitch) : GlyphInput;
+
+        // Placeholder container for future outline/MSDF generators.
+        // This keeps the scheduling/upload pipeline unchanged when we swap in msdfgen.
+        private sealed record OutlineInput(object OutlineData) : GlyphInput;
+
         private interface IDistanceFieldGenerator
         {
-            // Current path: coverage bitmap → packed RGBA bitmap
-            CharacterBitmapRgba GenerateFromCoverage(byte[] coverage, int width, int rows, int pitch, DistanceFieldParams p);
-
-            // Future path: outline → MSDF (placeholder for msdfgen integration)
-            // CharacterBitmapRgba GenerateFromOutline(GlyphOutline outline, DistanceFieldParams p);
+            CharacterBitmapRgba Generate(GlyphInput input, DistanceFieldParams p);
         }
 
         private sealed class SdfCoverageGenerator : IDistanceFieldGenerator
         {
-            public CharacterBitmapRgba GenerateFromCoverage(byte[] coverage, int width, int rows, int pitch, DistanceFieldParams p)
-                => BuildSdfRgbFromCoverage(coverage, width, rows, pitch, p.Pad, p.PixelRange, p.Encode);
+            public CharacterBitmapRgba Generate(GlyphInput input, DistanceFieldParams p)
+                => input switch
+                {
+                    CoverageInput c => BuildSdfRgbFromCoverage(c.Buffer, c.Width, c.Rows, c.Pitch, p.Pad, p.PixelRange, p.Encode),
+                    OutlineInput => throw new NotSupportedException("Outline input is not supported by SdfCoverageGenerator."),
+                    _ => throw new ArgumentOutOfRangeException(nameof(input)),
+                };
         }
 
         private readonly IDistanceFieldGenerator generator = new SdfCoverageGenerator();
 
-        // Single-size runtime SDF: key is just char
-        private readonly Dictionary<char, CharacterSpecification> characters = [];
-        private readonly Dictionary<char, FontCacheManagerMsdf.MsdfCachedGlyph> cacheRecords = [];
+        // Runtime SDF glyph cache key (future-proof for multiple ranges/modes)
+        private readonly Dictionary<GlyphKey, CharacterSpecification> characters = [];
+        private readonly Dictionary<GlyphKey, FontCacheManagerMsdf.MsdfCachedGlyph> cacheRecords = [];
 
-        private readonly HashSet<char> offsetAdjusted = [];
+        private readonly HashSet<GlyphKey> offsetAdjusted = [];
 
         [DataMemberIgnore]
         internal FontManager FontManager => FontSystem?.FontManager;
@@ -70,10 +89,10 @@ namespace Stride.Graphics.Font
 
         // Async wiring
         // 1) Dedup scheduling
-        private readonly System.Collections.Concurrent.ConcurrentDictionary<char, byte> inFlight = new();
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<GlyphKey, byte> inFlight = new();
 
         // 2) Generated SDF results waiting for GPU upload
-        private readonly System.Collections.Concurrent.ConcurrentQueue<(char c, CharacterBitmapRgba sdf, int pad)> readyForUpload = new();
+        private readonly System.Collections.Concurrent.ConcurrentQueue<(GlyphKey key, CharacterBitmapRgba sdf)> readyForUpload = new();
 
         // --- Bounded work queue + fixed worker pool ---
 
@@ -85,11 +104,8 @@ namespace Stride.Graphics.Font
         private Task[] workers;
 
         private readonly record struct WorkItem(
-            char C,
-            byte[] Src,
-            int Width,
-            int Rows,
-            int Pitch,
+            GlyphKey Key,
+            GlyphInput Input,
             DistanceFieldParams Params);
 
         internal override FontSystem FontSystem
@@ -143,12 +159,17 @@ namespace Stride.Graphics.Font
             // All glyphs are generated at Size
             var sizeVec = new Vector2(Size, Size);
 
+            var p = GetDfParams();
+
             // IMPORTANT:
             // SDF fonts are scaled by Stride using requestedFontSize vs SpriteFont.Size.
             // Glyphs are baked at Size, so no compensating scaling is required.
             fixScaling = Vector2.One;
 
-            var spec = GetOrCreateCharacterData(character, sizeVec);
+
+
+            var key = MakeKey(character, p);
+            var spec = GetOrCreateCharacterData(key, sizeVec);
 
             // 1) Ensure we have the coverage bitmap + correct metrics (sync)
             if (spec.Bitmap == null)
@@ -166,18 +187,19 @@ namespace Stride.Graphics.Font
             }
 
             // 2) Schedule async SDF generation (only once per char)
-            EnsureSdfScheduled(character, spec);
+            EnsureSdfScheduled(key, spec);
             if (commandList != null)
                 DrainUploads(commandList);
 
             // 3) Upload
-            if (spec.IsBitmapUploaded && cacheRecords.TryGetValue(character, out var handle))
+
+            if (spec.IsBitmapUploaded && cacheRecords.TryGetValue(key, out var handle))
             {
                 // If evicted/cleared, this will flip false and we’ll reupload next draw
                 if (!handle.IsUploaded)
                 {
                     spec.IsBitmapUploaded = false;
-                    cacheRecords.Remove(character);
+                    cacheRecords.Remove(key);
                 }
                 else
                 {
@@ -193,30 +215,32 @@ namespace Stride.Graphics.Font
 
             // Async pregen glyphs
             var sizeVec = new Vector2(Size, Size);
+            var p = GetDfParams();
 
             for (int i = 0; i < text.Length; i++)
             {
                 var c = text[i];
-                var spec = GetOrCreateCharacterData(c, sizeVec);
+                var key = MakeKey(c, p);
+                var spec = GetOrCreateCharacterData(key, sizeVec);
 
                 if (spec.Bitmap == null)
                     FontManager.GenerateBitmap(spec, true);
 
-                EnsureSdfScheduled(c, spec);
+                EnsureSdfScheduled(key, spec);
 
             }
         }
 
-        private CharacterSpecification GetOrCreateCharacterData(char character, Vector2 size)
+        private CharacterSpecification GetOrCreateCharacterData(GlyphKey key, Vector2 size)
         {
-            if (!characters.TryGetValue(character, out var spec))
+            if (!characters.TryGetValue(key, out var spec))
             {
                 // AntiAlias: use AntiAliased so coverage bitmap is smooth
-                spec = new CharacterSpecification(character, FontName, size, Style, FontAntiAliasMode.Grayscale);
+                spec = new CharacterSpecification(key.C, FontName, size, Style, FontAntiAliasMode.Grayscale);
                 spec.Glyph.Subrect = Rectangle.Empty;
                 spec.Glyph.BitmapIndex = 0;
                 spec.IsBitmapUploaded = false;
-                characters[character] = spec;
+                characters[key] = spec;
             }
 
             return spec;
@@ -283,10 +307,10 @@ namespace Stride.Graphics.Font
                         try
                         {
                             // CPU SDF build
-                            var sdf = generator.GenerateFromCoverage(item.Src, item.Width, item.Rows, item.Pitch, item.Params);
+                            var sdf = generator.Generate(item.Input, item.Params);
 
                             // hand off to render thread for GPU upload
-                            readyForUpload.Enqueue((item.C, sdf, item.Params.Pad));
+                            readyForUpload.Enqueue((item.Key, sdf));
                         }
                         catch
                         {
@@ -294,8 +318,10 @@ namespace Stride.Graphics.Font
                         }
                         finally
                         {
-                            ArrayPool<byte>.Shared.Return(item.Src);
-                            inFlight.TryRemove(item.C, out _);
+                            if (item.Input is CoverageInput c)
+                                ArrayPool<byte>.Shared.Return(c.Buffer);
+
+                            inFlight.TryRemove(item.Key, out _);
                         }
                     }
                 }
@@ -306,7 +332,7 @@ namespace Stride.Graphics.Font
             }
         }
 
-        private void EnsureSdfScheduled(char c, CharacterSpecification spec)
+        private void EnsureSdfScheduled(GlyphKey key, CharacterSpecification spec)
         {
             // Already uploaded? nothing to do.
             if (spec.IsBitmapUploaded) return;
@@ -319,10 +345,9 @@ namespace Stride.Graphics.Font
             EnsureWorkersStarted();
 
             // Already scheduled? bail.
-            if (!inFlight.TryAdd(c, 0)) return;
+            if (!inFlight.TryAdd(key, 0)) return;
 
-            var p = GetDfParams();
-
+            var p = new DistanceFieldParams(key.PixelRange, key.Pad, DefaultEncode);
             // Copy coverage bitmap to a pooled array so background thread is safe (avoid per-glyph allocations).
             var width = bmp.Width;
             var rows = bmp.Rows;
@@ -337,33 +362,35 @@ namespace Stride.Graphics.Font
                     System.Runtime.InteropServices.Marshal.Copy((IntPtr)bmp.Buffer, srcCopy, 0, len);
                 }
 
+                var input = (GlyphInput)new CoverageInput(srcCopy, len, width, rows, pitch);
+
                 // Render thread must NEVER block: TryWrite only.
-                if (!workChannel.Writer.TryWrite(new WorkItem(c, srcCopy, width, rows, pitch, p)))
+                if (!workChannel.Writer.TryWrite(new WorkItem(key, input, p)))
                 {
                     // Queue full; allow retry next frame
                     ArrayPool<byte>.Shared.Return(srcCopy);
-                    inFlight.TryRemove(c, out _);
+                    inFlight.TryRemove(key, out _);
                 }
             }
             catch
             {
                 ArrayPool<byte>.Shared.Return(srcCopy);
-                inFlight.TryRemove(c, out _);
+                inFlight.TryRemove(key, out _);
                 throw;
             }
         }
 
-        private void ApplyUploadedGlyph(FontCacheManagerMsdf cache, char c, CharacterSpecification spec, FontCacheManagerMsdf.MsdfCachedGlyph handle, int bitmapIndex, int pad)
+        private void ApplyUploadedGlyph(FontCacheManagerMsdf cache, GlyphKey key, CharacterSpecification spec, FontCacheManagerMsdf.MsdfCachedGlyph handle, int bitmapIndex)
         {
             spec.Glyph.Subrect = handle.InnerSubrect;
             spec.Glyph.BitmapIndex = bitmapIndex;
             spec.IsBitmapUploaded = true;
 
-            cacheRecords[c] = handle;
+            cacheRecords[key] = handle;
             cache.NotifyGlyphUtilization(handle);
 
-            if (offsetAdjusted.Add(c))
-                spec.Glyph.Offset -= new Vector2(pad, pad);
+            if (offsetAdjusted.Add(key))
+                spec.Glyph.Offset -= new Vector2(key.Pad, key.Pad);
         }
 
         private void DrainUploads(CommandList commandList, int maxUploadsPerFrame = 8)
@@ -376,9 +403,9 @@ namespace Stride.Graphics.Font
                 if (!readyForUpload.TryDequeue(out var item))
                     break;
 
-                var (c, sdfBitmap, pad) = item;
+                var (key, sdfBitmap) = item;
 
-                if (!characters.TryGetValue(c, out var spec) || spec == null)
+                if (!characters.TryGetValue(key, out var spec) || spec == null)
                 {
                     sdfBitmap.Dispose();
                     continue;
@@ -394,7 +421,7 @@ namespace Stride.Graphics.Font
                 var subrect = new Rectangle();
                 var handle = cache.UploadGlyphBitmap(commandList, spec, sdfBitmap, ref subrect, out var bitmapIndex);
 
-                ApplyUploadedGlyph(cache, c, spec, handle, bitmapIndex, pad);
+                ApplyUploadedGlyph(cache, key, spec, handle, bitmapIndex);
 
                 sdfBitmap.Dispose();
             }
