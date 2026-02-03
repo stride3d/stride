@@ -12,6 +12,7 @@ using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
 using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Analysis;
+using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Cleanup;
 
 namespace Stride.Shaders.Spirv.Processing
 {
@@ -52,7 +53,7 @@ namespace Stride.Shaders.Spirv.Processing
                 throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: Found both a pixel and a compute shader");
 
             var analysisResult = StreamAnalyzer.Analyze(buffer, context);
-            MergeSameSemanticVariables(table, context, buffer, analysisResult);
+            VariableMerger.MergeSameSemanticVariables(table, context, buffer, analysisResult);
             var streams = analysisResult.Streams;
 
             var liveAnalysis = new LiveAnalysis();
@@ -101,9 +102,9 @@ namespace Stride.Shaders.Spirv.Processing
                 }
 
                 // Reset cbuffer/resource/methods used for next stage
-                ResetUsedThisStage(analysisResult, liveAnalysis);
+                DeadCodeRemover.ResetUsedThisStage(analysisResult, liveAnalysis);
 
-                PropagateStreamsFromPreviousStage(streams);
+                VariableMerger.PropagateStreamsFromPreviousStage(streams);
 
                 foreach (var entryPoint in new[] { (ExecutionModel.TessellationControl, entryPointHS), (ExecutionModel.TessellationEvaluation, entryPointDS), (ExecutionModel.Geometry, entryPointGS) })
                 {
@@ -140,9 +141,9 @@ namespace Stride.Shaders.Spirv.Processing
                         entryPoints.Add((wrapperName, wrapperId, stage));
                     
                         // Reset cbuffer/resource/methods used for next stage
-                        ResetUsedThisStage(analysisResult, liveAnalysis);
+                        DeadCodeRemover.ResetUsedThisStage(analysisResult, liveAnalysis);
                     
-                        PropagateStreamsFromPreviousStage(streams);
+                        VariableMerger.PropagateStreamsFromPreviousStage(streams);
                     
                         if (entryPointVS == null)
                             throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: If a {stage} shader is specified, a vertex shader is needed too");
@@ -180,216 +181,11 @@ namespace Stride.Shaders.Spirv.Processing
 
             // This will remove a lot of unused methods, resources and variables
             // (while following proper rules to preserve rgroup, cbuffer, logical groups, etc.)
-            RemoveUnreferencedCode(buffer, context, analysisResult, streams, liveAnalysis);
+            DeadCodeRemover.RemoveUnreferencedCode(buffer, context, analysisResult, streams, liveAnalysis);
 
             return new(entryPoints, inputAttributes);
         }
 
-        private static void ResetUsedThisStage(AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
-        {
-            foreach (var variable in analysisResult.Variables)
-                variable.Value.UsedThisStage = false;
-            foreach (var resource in analysisResult.Resources)
-                resource.Value.UsedThisStage = false;
-            foreach (var cbuffer in analysisResult.CBuffers)
-                cbuffer.Value.UsedThisStage = false;
-            foreach (var method in liveAnalysis.ReferencedMethods)
-            {
-                method.Value.UsedThisStage = false;
-                method.Value.ThisStageMethodId = null;
-            }
-        }
-
-        private static void RemoveUnreferencedCode(NewSpirvBuffer buffer, SpirvContext context, AnalysisResult analysisResult, Dictionary<int, StreamVariableInfo> streams, LiveAnalysis liveAnalysis)
-        {
-            // Remove unreferenced code
-            var removedIds = new HashSet<int>();
-
-            // First, build resource group (used status and logical groups)
-            var logicalGroups = new Dictionary<string, LogicalGroupInfo>();
-            foreach (var resourceGroup in analysisResult.ResourceGroups)
-            {
-                foreach (var resource in resourceGroup.Value.Resources)
-                {
-                    if (resource.UsedAnyStage)
-                    {
-                        resourceGroup.Value.Used = true;
-                    }
-
-                    if (resourceGroup.Value.LogicalGroup != null)
-                    {
-                        ref var logicalGroup = ref CollectionsMarshal.GetValueRefOrAddDefault(logicalGroups, $"{resourceGroup.Value.Name}.{resourceGroup.Value.LogicalGroup}", out var exists);
-                        if (!exists)
-                            logicalGroup = new();
-                        logicalGroup.Resources.Add(resourceGroup.Value);
-                    }
-                }
-            }
-            // Complete logical groups with cbuffers
-            foreach (var cbuffer in analysisResult.CBuffers)
-            {
-                if (cbuffer.Value.LogicalGroup != null)
-                {
-                    ref var logicalGroup = ref CollectionsMarshal.GetValueRefOrAddDefault(logicalGroups, $"{cbuffer.Value.Name}.{cbuffer.Value.LogicalGroup}", out var exists);
-                    if (!exists)
-                        logicalGroup = new();
-                    logicalGroup.CBuffers.Add(cbuffer.Value);
-                }
-            }
-
-            // Check logical group: if any resource is used, mark everything as used
-            // TODO: make sure register allocation is contiguous
-            foreach (var logicalGroup in logicalGroups)
-            {
-                var logicalGroupUsed = false;
-                foreach (var resource in logicalGroup.Value.Resources)
-                    logicalGroupUsed |= resource.Used;
-                foreach (var cbuffer in logicalGroup.Value.CBuffers)
-                    logicalGroupUsed |= cbuffer.UsedAnyStage;
-
-                if (logicalGroupUsed)
-                {
-                    // Mark everything as used
-                    foreach (var resource in logicalGroup.Value.Resources)
-                        resource.Used = logicalGroupUsed;
-                    foreach (var cbuffer in logicalGroup.Value.CBuffers)
-                        cbuffer.UsedThisStage = logicalGroupUsed;
-                }
-            }
-
-            for (var index = 0; index < buffer.Count; index++)
-            {
-                var i = buffer[index];
-                if (i.Op == Op.OpFunction && (OpFunction)i is { } function)
-                {
-                    bool isReferenced = liveAnalysis.ReferencedMethods.ContainsKey(function.ResultId)
-                        || liveAnalysis.ExtraReferencedMethods.Contains(function.ResultId);
-                    if (!isReferenced)
-                    {
-                        removedIds.Add(function.ResultId);
-                        while (buffer[index].Op != Op.OpFunctionEnd)
-                        {
-                            if (buffer[index].Data.IdResult is int resultId)
-                                removedIds.Add(resultId);
-                            SpirvBuilder.SetOpNop(buffer[index++].Data.Memory.Span);
-                        }
-
-                        SpirvBuilder.SetOpNop(buffer[index].Data.Memory.Span);
-                    }
-                }
-
-                if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
-                    {
-                        Storageclass: Specification.StorageClass.Uniform,
-                        ResultId: int
-                    } variable
-                    && analysisResult.CBuffers.TryGetValue(variable, out var cbufferInfo))
-                {
-                    if (!cbufferInfo.UsedAnyStage)
-                    {
-                        removedIds.Add(variable.ResultId);
-                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-                    }
-                }
-
-                if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
-                    {
-                        Storageclass: Specification.StorageClass.UniformConstant,
-                        ResultId: int
-                    } resource)
-                {
-                    var resourceInfo = analysisResult.Resources[resource.ResultId];
-                    // If resource has a rgroup, check its state (if any resource is used in the group, we need to keep every resource)
-                    // If no rgroup, we check the resource itself
-                    if (!(resourceInfo.ResourceGroup?.Used ?? false || resourceInfo.UsedAnyStage))
-                    {
-                        removedIds.Add(resource.ResultId);
-                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-                    }
-                }
-
-                if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
-                    {
-                        Storageclass: Specification.StorageClass.Private or Specification.StorageClass.Workgroup,
-                        ResultId: int
-                    } variable2)
-                {
-                    if (variable2.Flags.HasFlag(VariableFlagsMask.Stream))
-                    {
-                        // Always removed as we now use streams structure
-                        removedIds.Add(variable2.ResultId);
-                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-                    }
-                    else
-                    {
-                        if (!analysisResult.Variables.TryGetValue(variable2.ResultId, out var variableInfo) || !variableInfo.UsedAnyStage)
-                        {
-                            removedIds.Add(variable2.ResultId);
-                            SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-                        }
-                    }
-                }
-            }
-
-            // Remove all OpTypeStreamsSDSL, OpTypePatchSDSL and OpTypeGeometryStreamOutputSDSL or any type that depends on it
-            // (we do that before the OpName/OpDecorate pass)
-            foreach (var i in context)
-            {
-                if (i.Op == Op.OpTypeStreamsSDSL || i.Op == Op.OpTypeGeometryStreamOutputSDSL || i.Op == Op.OpTypePatchSDSL || i.Op == Op.OpTypeFunctionSDSL || i.Op == Op.OpTypePointer || i.Op == Op.OpTypeArray)
-                {
-                    if (context.ReverseTypes.TryGetValue(i.Data.IdResult.Value, out var type))
-                    {
-                        var streamsTypeSearch = new ReadWriteAnalyzer.StreamsTypeSearch();
-                        streamsTypeSearch.VisitType(type);
-                        if (streamsTypeSearch.Found)
-                        {
-                            removedIds.Add(i.Data.IdResult.Value);
-                            SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-                        }
-                    }
-                }
-            }
-
-            // Remove OpName/OpDecorate
-            context.RemoveNameAndDecorations(removedIds);
-        }
-
-        private void MergeSameSemanticVariables(SymbolTable table, SpirvContext context, NewSpirvBuffer buffer, AnalysisResult analysisResult)
-        {
-            Dictionary<int, int> remapIds = new();
-            foreach (var streamWithSameSemantic in analysisResult.Streams.Where(x => x.Value.Semantic != null).GroupBy(x => x.Value.Semantic))
-            {
-                // Make sure they all have the same type
-                var firstStream = streamWithSameSemantic.First();
-                foreach (var stream in streamWithSameSemantic.Skip(1))
-                {
-                    if (stream.Value.Type != firstStream.Value.Type)
-                        throw new InvalidOperationException($"Two variables with same semantic {stream.Value.Semantic} have different types {stream.Value.Type} and {firstStream.Value.Type}");
-
-                    // Remap variable
-                    remapIds.Add(stream.Key, firstStream.Key);
-                }
-            }
-
-            // Remove duplicate streams
-            HashSet<int> removedIds = new();
-            foreach (var i in buffer)
-            {
-                if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is { } variable && remapIds.ContainsKey(variable.ResultId))
-                {
-                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-                    removedIds.Add(variable.ResultId);
-                }
-            }
-            
-            // Remove OpName/OpDecorate
-            context.RemoveNameAndDecorations(removedIds);
-
-            foreach (var remapId in remapIds)
-                analysisResult.Streams.Remove(remapId.Key);
-
-            SpirvBuilder.RemapIds(buffer, 0, buffer.Count, remapIds);
-        }
         
         static int FindOutputPatchSize(SpirvContext context, Symbol entryPoint)
         {
@@ -407,18 +203,6 @@ namespace Stride.Shaders.Spirv.Processing
             }
 
             throw new InvalidOperationException($"outputcontrolpoints not found on hull shader {entryPoint.Id.Name}");
-        }
-
-        private static void PropagateStreamsFromPreviousStage(Dictionary<int, StreamVariableInfo> streams)
-        {
-            foreach (var stream in streams)
-            {
-                stream.Value.OutputLayoutLocation = stream.Value.InputLayoutLocation;
-                stream.Value.InputLayoutLocation = null;
-                stream.Value.Output = stream.Value.Input;
-                stream.Value.Read = false;
-                stream.Value.Write = false;
-            }
         }
 
         private (int Id, string Name) GenerateStreamWrapper(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, Symbol entryPoint, AnalysisResult analysisResult, LiveAnalysis liveAnalysis, bool isFirstActiveShader)
