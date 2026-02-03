@@ -36,7 +36,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         get => _visible;
         set
         {
-            if (_sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } proc && _visibilityGroup is not null)
+            if (_sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } proc)
             {
                 if (_visible == value)
                     return;
@@ -66,7 +66,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     protected override void OnEntityComponentAdding(Entity entity, DebugRenderComponent component, DebugRenderComponent data)
     {
         base.OnEntityComponentAdding(entity, component, data);
-        if (_sceneSystem?.SceneInstance?.GetProcessor<CollidableProcessor>() is not null && _visibilityGroup is not null)
+        if (_sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is not null)
             Visible = component.Visible;
         else if (component.Visible)
             _latent = true;
@@ -76,9 +76,19 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
     protected override void OnSystemAdd()
     {
+        SinglePassWireframeRenderFeature wireframeRenderFeature;
+
         _shapeCacheSystem = Services.GetOrCreate<ShapeCacheSystem>();
         _game = Services.GetSafeServiceAs<IGame>();
         _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
+
+        if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is null)
+        {
+            wireframeRenderFeature = new();
+            _sceneSystem.GraphicsCompositor.RenderFeatures.Add(wireframeRenderFeature);
+        }
+
+        _visibilityGroup = _sceneSystem.SceneInstance.VisibilityGroups.First();
     }
 
     protected override void OnSystemRemove()
@@ -88,18 +98,6 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
     public override void Draw(RenderContext context)
     {
-        if (_visibilityGroup is null)
-        {
-            if (_sceneSystem.SceneInstance.VisibilityGroups.Count == 0)
-                return;
-
-            _visibilityGroup = _sceneSystem.SceneInstance.VisibilityGroups.First();
-            if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is null)
-            {
-                _sceneSystem.GraphicsCompositor.RenderFeatures.Add(new SinglePassWireframeRenderFeature());
-            }
-        }
-
         if (_latent)
         {
             Visible = true;
