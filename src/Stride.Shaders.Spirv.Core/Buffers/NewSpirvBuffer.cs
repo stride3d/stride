@@ -307,7 +307,14 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         return new OpDataIndex(index, this);
     }
 
-    public OpData Add<T>(in T instruction) where T : struct, IMemoryInstruction, allows ref struct
+    public T Add<T>(in T instruction) where T : struct, IMemoryInstruction, allows ref struct
+    {
+        Instructions.Add(new(instruction.InstructionMemory));
+        instruction.Attach(new(Instructions.Count - 1, this));
+        return instruction;
+    }
+
+    public OpData AddData<T>(in T instruction) where T : struct, IMemoryInstruction, allows ref struct
     {
         Instructions.Add(new(instruction.InstructionMemory));
         return Instructions[^1];

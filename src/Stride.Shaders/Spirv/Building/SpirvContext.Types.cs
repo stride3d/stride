@@ -53,44 +53,44 @@ public partial class SpirvContext
             ScalarType s =>
                 s.Type switch
                 {
-                    Scalar.Void => Buffer.Add(new OpTypeVoid(id)).IdResult,
-                    Scalar.Boolean => Buffer.Add(new OpTypeBool(id)).IdResult,
-                    Scalar.Int => Buffer.Add(new OpTypeInt(id, 32, 1)).IdResult,
-                    Scalar.UInt => Buffer.Add(new OpTypeInt(id, 32, 0)).IdResult,
-                    Scalar.Int64 => Buffer.Add(new OpTypeInt(id, 64, 1)).IdResult,
-                    Scalar.UInt64 => Buffer.Add(new OpTypeInt(id, 64, 0)).IdResult,
-                    Scalar.Float => Buffer.Add(new OpTypeFloat(id, 32, null)).IdResult,
-                    Scalar.Double => Buffer.Add(new OpTypeFloat(id, 64, null)).IdResult,
+                    Scalar.Void => Buffer.AddData(new OpTypeVoid(id)).IdResult,
+                    Scalar.Boolean => Buffer.AddData(new OpTypeBool(id)).IdResult,
+                    Scalar.Int => Buffer.AddData(new OpTypeInt(id, 32, 1)).IdResult,
+                    Scalar.UInt => Buffer.AddData(new OpTypeInt(id, 32, 0)).IdResult,
+                    Scalar.Int64 => Buffer.AddData(new OpTypeInt(id, 64, 1)).IdResult,
+                    Scalar.UInt64 => Buffer.AddData(new OpTypeInt(id, 64, 0)).IdResult,
+                    Scalar.Float => Buffer.AddData(new OpTypeFloat(id, 32, null)).IdResult,
+                    Scalar.Double => Buffer.AddData(new OpTypeFloat(id, 64, null)).IdResult,
                     _ => throw new NotImplementedException($"Can't add type {type}")
                 },
-            VectorType v => Buffer.Add(new OpTypeVector(id, GetOrRegister(v.BaseType), v.Size)).IdResult,
+            VectorType v => Buffer.AddData(new OpTypeVector(id, GetOrRegister(v.BaseType), v.Size)).IdResult,
             MatrixType m => Buffer
-                .Add(new OpTypeMatrix(id, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns))
+                .AddData(new OpTypeMatrix(id, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns))
                 .IdResult,
             ArrayType a when a.Size != -1 || a.SizeExpression != null => RegisterArrayType(a),
             ArrayType a when a.Size == -1 && a.SizeExpression == null => Buffer
-                .Add(new OpTypeRuntimeArray(id, GetOrRegister(a.BaseType))).IdResult,
+                .AddData(new OpTypeRuntimeArray(id, GetOrRegister(a.BaseType))).IdResult,
             StructType st => RegisterStructuredType(st.ToId(), st),
             FunctionType f => RegisterFunctionType(f, id),
             PointerType p => RegisterPointerType(p, id),
             LoadedShaderSymbol s => ImportShaderType(s, id),
-            Texture1DType t => Buffer.Add(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
+            Texture1DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
-            Texture2DType t => Buffer.Add(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
+            Texture2DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
-            Texture3DType t => Buffer.Add(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
+            Texture3DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
-            TextureCubeType t => Buffer.Add(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
+            TextureCubeType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
-            SamplerType st => Buffer.Add(new OpTypeSampler(id)).IdResult,
-            BufferType b => Buffer.Add(new OpTypeImage(id, GetOrRegister(b.BaseType), Specification.Dim.Buffer,
+            SamplerType st => Buffer.AddData(new OpTypeSampler(id)).IdResult,
+            BufferType b => Buffer.AddData(new OpTypeImage(id, GetOrRegister(b.BaseType), Specification.Dim.Buffer,
                 2, 0, 0, b.WriteAllowed ? 2 : 1, Specification.ImageFormat.Unknown, null)).IdResult,
             StructuredBufferType b => RegisterStructuredBufferType(b),
-            SampledImage si => Buffer.Add(new OpTypeSampledImage(id, GetOrRegister(si.ImageType))).IdResult,
-            GenericParameterType g => Buffer.Add(new OpTypeGenericSDSL(id, g.Kind)).IdResult,
-            StreamsType s => Buffer.Add(new OpTypeStreamsSDSL(id, s.Kind)).IdResult,
-            GeometryStreamType so => Buffer.Add(new OpTypeGeometryStreamOutputSDSL(id, GetOrRegister(so.BaseType), so.Kind)).IdResult,
-            PatchType patch => Buffer.Add(new OpTypePatchSDSL(id, GetOrRegister(patch.BaseType), patch.Kind, patch.Size)).IdResult,
+            SampledImage si => Buffer.AddData(new OpTypeSampledImage(id, GetOrRegister(si.ImageType))).IdResult,
+            GenericParameterType g => Buffer.AddData(new OpTypeGenericSDSL(id, g.Kind)).IdResult,
+            StreamsType s => Buffer.AddData(new OpTypeStreamsSDSL(id, s.Kind)).IdResult,
+            GeometryStreamType so => Buffer.AddData(new OpTypeGeometryStreamOutputSDSL(id, GetOrRegister(so.BaseType), so.Kind)).IdResult,
+            PatchType patch => Buffer.AddData(new OpTypePatchSDSL(id, GetOrRegister(patch.BaseType), patch.Kind, patch.Size)).IdResult,
             // StructSymbol st => RegisterStruct(st),
             _ => throw new NotImplementedException($"Can't add type {type}")
         };
@@ -101,9 +101,9 @@ public partial class SpirvContext
 
     private int RegisterStructuredBufferType(StructuredBufferType structuredBufferType)
     {
-        var runtimeArrayType = Buffer.Add(new OpTypeRuntimeArray(Bound++, GetOrRegister(structuredBufferType.BaseType))).IdResult.Value;
+        var runtimeArrayType = Buffer.Add(new OpTypeRuntimeArray(Bound++, GetOrRegister(structuredBufferType.BaseType))).ResultId;
         
-        var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).IdResult.Value;
+        var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).ResultId;
         AddName(bufferType, $"type.{(structuredBufferType.WriteAllowed ? "RW" : "")}StructuredBuffer.{structuredBufferType.BaseType.ToId()}");
         Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.Offset, [0]));
         
@@ -113,7 +113,7 @@ public partial class SpirvContext
         return bufferType;
     }
 
-    private int? RegisterArrayType(ArrayType a)
+    private int RegisterArrayType(ArrayType a)
     {
         int sizeId;
         if (a.Size != -1)
@@ -144,7 +144,7 @@ public partial class SpirvContext
             throw new InvalidOperationException();
         }
 
-        return Buffer.Add(new OpTypeArray(Bound++, GetOrRegister(a.BaseType), sizeId)).IdResult;
+        return Buffer.Add(new OpTypeArray(Bound++, GetOrRegister(a.BaseType), sizeId)).ResultId;
     }
 
     public int ImportShaderType(LoadedShaderSymbol shaderSymbol, int id)
@@ -166,7 +166,7 @@ public partial class SpirvContext
 
     private void ImportShaderStruct(int shaderId, StructuredType structType, out int structImportedId)
     {
-        FluentAdd(new OpSDSLImportStruct(Bound++, structType.ToId(), shaderId), out var @struct);
+        var @struct = Add(new OpSDSLImportStruct(Bound++, structType.ToId(), shaderId));
         AddName(@struct.ResultId, structType.Name);
 
         // Fill the ID

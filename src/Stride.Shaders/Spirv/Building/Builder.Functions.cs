@@ -21,7 +21,7 @@ public partial class SpirvBuilder
 
     public void BeginFunction(SpirvContext context, SpirvFunction function, FunctionControlMask mask = FunctionControlMask.None)
     {
-        Buffer.FluentAdd(new OpFunction(context.GetOrRegister(function.FunctionType.ReturnType), function.Id, mask, context.GetOrRegister(function.FunctionType)), out var func);
+        Buffer.Add(new OpFunction(context.GetOrRegister(function.FunctionType.ReturnType), function.Id, mask, context.GetOrRegister(function.FunctionType)));
         Position = Buffer.Count;
         CurrentFunction = function;
     }

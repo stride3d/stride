@@ -237,7 +237,7 @@ namespace Stride.Shaders.Spirv.Processing
                     (var psWrapperId, var psWrapperName) = GenerateStreamWrapper(table, buffer, context, ExecutionModel.Fragment, entryPointPS, analysisResult, liveAnalysis, false);
                     entryPoints.Add((psWrapperName, psWrapperId, ShaderStage.Pixel));
 
-                    buffer.FluentAdd(new OpExecutionMode(psWrapperId, ExecutionMode.OriginUpperLeft, []));
+                    buffer.Add(new OpExecutionMode(psWrapperId, ExecutionMode.OriginUpperLeft, []));
                 }
 
                 // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
@@ -800,11 +800,11 @@ namespace Stride.Shaders.Spirv.Processing
                     for (int i = 0; i < v2.Size; ++i)
                     {
                         components[i] = i < v1.Size
-                            ? buffer.Add(new OpCompositeExtract(context.GetOrRegister(v1.BaseType), context.Bound++, value, [i])).IdResult.Value
+                            ? buffer.Add(new OpCompositeExtract(context.GetOrRegister(v1.BaseType), context.Bound++, value, [i])).ResultId
                             : context.CreateDefaultConstantComposite(v1.BaseType).Id;
                     }
 
-                    return buffer.Add(new OpCompositeConstruct(context.GetOrRegister(v2), context.Bound++, new(components))).IdResult.Value;
+                    return buffer.Add(new OpCompositeConstruct(context.GetOrRegister(v2), context.Bound++, new(components))).ResultId;
                 }
                 
                 if (sourceType is ArrayType a1 && castType is ArrayType a2 && a1.BaseType == a2.BaseType)
@@ -813,11 +813,11 @@ namespace Stride.Shaders.Spirv.Processing
                     for (int i = 0; i < a2.Size; ++i)
                     {
                         components[i] = i < a1.Size
-                            ? buffer.Add(new OpCompositeExtract(context.GetOrRegister(a1.BaseType), context.Bound++, value, [i])).IdResult.Value
+                            ? buffer.Add(new OpCompositeExtract(context.GetOrRegister(a1.BaseType), context.Bound++, value, [i])).ResultId
                             : context.CreateDefaultConstantComposite(a1.BaseType).Id;
                     }
 
-                    return buffer.Add(new OpCompositeConstruct(context.GetOrRegister(a2), context.Bound++, new(components))).IdResult.Value;
+                    return buffer.Add(new OpCompositeConstruct(context.GetOrRegister(a2), context.Bound++, new(components))).ResultId;
                 }
                 
                 throw new InvalidOperationException($"Can't convert interface variable from {sourceType} to {castType}");
@@ -906,7 +906,7 @@ namespace Stride.Shaders.Spirv.Processing
                             ? new ArrayType(variableType, arrayInputSize.Value)
                             : variableType,
                         Specification.StorageClass.Input);
-                    context.FluentAdd(new OpVariable(context.GetOrRegister(streamInputType), variableId, Specification.StorageClass.Input, null), out var variable);
+                    var variable = context.Add(new OpVariable(context.GetOrRegister(streamInputType), variableId, Specification.StorageClass.Input, null));
                     context.AddName(variable, $"in_{stage}_{stream.Value.Name}");
                     
                     if (stream.Value.Type is ScalarType or VectorType or MatrixType && !stream.Value.Type.GetElementType().IsFloating())
@@ -941,7 +941,7 @@ namespace Stride.Shaders.Spirv.Processing
                             ? new ArrayType(variableType, arrayOutputSize.Value)
                             : variableType,
                         Specification.StorageClass.Output);
-                    context.FluentAdd(new OpVariable(context.GetOrRegister(streamOutputType), variableId, Specification.StorageClass.Output, null), out var variable);
+                    var variable = context.Add(new OpVariable(context.GetOrRegister(streamOutputType), variableId, Specification.StorageClass.Output, null));
                     context.AddName(variable, $"out_{stage}_{stream.Value.Name}");
                     
                     if (stream.Value.Type is ScalarType or VectorType or MatrixType && !stream.Value.Type.GetElementType().IsFloating())
@@ -992,7 +992,7 @@ namespace Stride.Shaders.Spirv.Processing
                 context.DeclareStructuredType(constantsType, context.Bound++);
 
             // Create a static global streams variable
-            context.FluentAdd(new OpVariable(context.GetOrRegister(new PointerType(streamsType, Specification.StorageClass.Private)), context.Bound++, Specification.StorageClass.Private, null), out var streamsVariable);
+            var streamsVariable = context.Add(new OpVariable(context.GetOrRegister(new PointerType(streamsType, Specification.StorageClass.Private)), context.Bound++, Specification.StorageClass.Private, null));
             context.AddName(streamsVariable.ResultId, $"streams{stage}");
             
             // Find patch constant entry point
@@ -1012,7 +1012,7 @@ namespace Stride.Shaders.Spirv.Processing
 
             // Add new entry point wrapper
             var newEntryPointFunctionType = context.GetOrRegister(new FunctionType(ScalarType.Void, []));
-            buffer.FluentAdd(new OpFunction(voidType, context.Bound++, FunctionControlMask.None, newEntryPointFunctionType), out var newEntryPointFunction);
+            var newEntryPointFunction = buffer.Add(new OpFunction(voidType, context.Bound++, FunctionControlMask.None, newEntryPointFunctionType));
             buffer.Add(new OpLabel(context.Bound++));
             var variableInsertIndex = buffer.Count;
             var entryPointName = $"{entryPoint.Id.Name}_Wrapper";
@@ -1029,7 +1029,7 @@ namespace Stride.Shaders.Spirv.Processing
                         liveAnalysis.ExtraReferencedMethods.Add(methodInitializerId);
 
                         var variableValueType = variable.Value.Type.BaseType;
-                        buffer.FluentAdd(new OpFunctionCall(context.GetOrRegister(variableValueType), context.Bound++, methodInitializerId, []), out var methodInitializerCall);
+                        var methodInitializerCall = buffer.Add(new OpFunctionCall(context.GetOrRegister(variableValueType), context.Bound++, methodInitializerId, []));
                         buffer.Add(new OpStore(variable.Value.VariableId, methodInitializerCall.ResultId, null, []));
                     }
                 }
@@ -1052,9 +1052,9 @@ namespace Stride.Shaders.Spirv.Processing
                     var variableId = context.Bound++;
                     if (!ProcessBuiltinsDecoration(variableId, StreamVariableType.Input, semantic, ref type))
                         throw new InvalidOperationException();
-                    var variable = context.Add(new OpVariable(context.GetOrRegister(new PointerType(type, Specification.StorageClass.Input)), variableId, Specification.StorageClass.Input, null)).IdResult.Value;
+                    var variable = context.Add(new OpVariable(context.GetOrRegister(new PointerType(type, Specification.StorageClass.Input)), variableId, Specification.StorageClass.Input, null)).ResultId;
                     entryPointExtraVariables.Add(variable);
-                    var value = buffer.Add(new OpLoad(context.GetOrRegister(type), context.Bound++, variable, null, [])).IdResult.Value;
+                    var value = buffer.Add(new OpLoad(context.GetOrRegister(type), context.Bound++, variable, null, [])).ResultId;
                     builtinVariables.Add(semantic, (type, value));
                     return value;
                 }
@@ -1106,7 +1106,7 @@ namespace Stride.Shaders.Spirv.Processing
                         for (var inputIndex = 0; inputIndex < inputStreams.Count; inputIndex++)
                         {
                             var stream = inputStreams[inputIndex];
-                            buffer.FluentAdd(new OpLoad(context.GetOrRegister(new ArrayType(stream.Info.Type, arrayInputSize.Value)), context.Bound++, stream.InterfaceId, null, []), out var loadedValue);
+                            var loadedValue = buffer.Add(new OpLoad(context.GetOrRegister(new ArrayType(stream.Info.Type, arrayInputSize.Value)), context.Bound++, stream.InterfaceId, null, []));
                             inputLoadValues[inputIndex] = loadedValue.ResultId;
                         }
                     
@@ -1117,14 +1117,14 @@ namespace Stride.Shaders.Spirv.Processing
                             for (var inputIndex = 0; inputIndex < inputStreams.Count; inputIndex++)
                             {
                                 var stream = inputStreams[inputIndex];
-                                inputFieldValues[inputIndex] = buffer.Add(new OpCompositeExtract(context.Types[stream.Info.Type], context.Bound++, inputLoadValues[inputIndex], [arrayIndex])).IdResult.Value;
+                                inputFieldValues[inputIndex] = buffer.Add(new OpCompositeExtract(context.Types[stream.Info.Type], context.Bound++, inputLoadValues[inputIndex], [arrayIndex])).ResultId;
                                 inputFieldValues[inputIndex] = ConvertInterfaceVariable(stream.InterfaceType, stream.Info.Type, inputFieldValues[inputIndex]);
                             }
                         
-                            inputValues[arrayIndex] = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(inputType), context.Bound++, [..inputFieldValues])).IdResult.Value;
+                            inputValues[arrayIndex] = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(inputType), context.Bound++, [..inputFieldValues])).ResultId;
                         }
                     
-                        var inputsData1 = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(new ArrayType(inputType, arrayInputSize.Value)), context.Bound++, [..inputValues])).IdResult.Value;
+                        var inputsData1 = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(new ArrayType(inputType, arrayInputSize.Value)), context.Bound++, [..inputValues])).ResultId;
                         return inputsData1;
                     }
 
@@ -1151,11 +1151,11 @@ namespace Stride.Shaders.Spirv.Processing
                                     var stream = outputStreams[outputIndex];
                                     var outputsVariablePtr = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Function)),
                                         context.Bound++, outputsVariable,
-                                        [context.CompileConstant(arrayIndex).Id, context.CompileConstant(outputIndex).Id])).IdResult.Value;
+                                        [context.CompileConstant(arrayIndex).Id, context.CompileConstant(outputIndex).Id])).ResultId;
                                     var outputSourcePtr = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Output)),
                                         context.Bound++, stream.Id,
-                                        [context.CompileConstant(arrayIndex).Id])).IdResult.Value;
-                                    var outputsSourceValue = buffer.Add(new OpLoad(context.GetOrRegister(stream.Info.Type), context.Bound++, outputSourcePtr, null, [])).IdResult.Value;
+                                        [context.CompileConstant(arrayIndex).Id])).ResultId;
+                                    var outputsSourceValue = buffer.Add(new OpLoad(context.GetOrRegister(stream.Info.Type), context.Bound++, outputSourcePtr, null, [])).ResultId;
                                     outputsSourceValue = ConvertInterfaceVariable(stream.Info.Type, stream.InterfaceType, outputsSourceValue);
                                     buffer.Add(new OpStore(outputsVariablePtr, outputsSourceValue, null, []));
                                 }
@@ -1204,8 +1204,8 @@ namespace Stride.Shaders.Spirv.Processing
                                         // Copy back values from semantic/builtin variables to Constants struct
                                         foreach (var stream in patchInputStreams)
                                         {
-                                            var inputPtr = buffer.Add(new OpAccessChain(context.GetOrRegister(stream.Info.Type), context.Bound++, constantVariable, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).IdResult.Value;
-                                            var inputResult = buffer.Add(new OpLoad(context.GetOrRegister(stream.Info.Type), stream.Id, constantVariable, null, [])).IdResult.Value;
+                                            var inputPtr = buffer.Add(new OpAccessChain(context.GetOrRegister(stream.Info.Type), context.Bound++, constantVariable, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
+                                            var inputResult = buffer.Add(new OpLoad(context.GetOrRegister(stream.Info.Type), stream.Id, constantVariable, null, [])).ResultId;
                                             inputResult = ConvertInterfaceVariable(stream.InterfaceType, stream.Info.Type, inputResult);
                                             buffer.Add(new OpStore(inputPtr, inputResult, null, []));
                                         }
@@ -1238,19 +1238,19 @@ namespace Stride.Shaders.Spirv.Processing
                                         // Parameter is "out HS_OUTPUT output"
                                         var outputVariable = arguments[i];
                                         // Load as value
-                                        outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(t), context.Bound++, outputVariable, null, [])).IdResult.Value;
+                                        outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(t), context.Bound++, outputVariable, null, [])).ResultId;
                                         // Do we need to index into array? if yes, get index (gl_invocationID)
                                         int? invocationIdValue = arrayOutputSize != null ? GetOrDeclareBuiltInValue(ScalarType.UInt, "SV_OutputControlPointID") : null;
                                         // Copy back values from Output struct to semantic/builtin variables
                                         for (var outputIndex = 0; outputIndex < outputStreams.Count; outputIndex++)
                                         {
                                             var stream = outputStreams[outputIndex];
-                                            var outputResult = buffer.Add(new OpCompositeExtract(context.GetOrRegister(stream.Info.Type), context.Bound++, outputVariable, [outputIndex])).IdResult.Value;
+                                            var outputResult = buffer.Add(new OpCompositeExtract(context.GetOrRegister(stream.Info.Type), context.Bound++, outputVariable, [outputIndex])).ResultId;
                                             outputResult = ConvertInterfaceVariable(stream.Info.Type, stream.InterfaceType, outputResult);
                                             var outputTargetPtr = arrayOutputSize != null
                                                 ? buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Output)),
                                                     context.Bound++, stream.Id,
-                                                    [invocationIdValue.Value])).IdResult.Value
+                                                    [invocationIdValue.Value])).ResultId
                                                 : stream.Id;
                                             buffer.Add(new OpStore(outputTargetPtr, outputResult, null, []));
                                         }
@@ -1261,11 +1261,11 @@ namespace Stride.Shaders.Spirv.Processing
                                         // Parameter is "out HS_OUTPUT output"
                                         var outputVariable = arguments[i];
                                         // Load as value
-                                        outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(t), context.Bound++, outputVariable, null, [])).IdResult.Value;
+                                        outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(t), context.Bound++, outputVariable, null, [])).ResultId;
                                         // Copy back values from Output struct to semantic/builtin variables
                                         foreach (var stream in patchOutputStreams)
                                         {
-                                            var outputResult = buffer.Add(new OpCompositeExtract(context.GetOrRegister(stream.Info.Type), context.Bound++, outputVariable, [stream.Info.StreamStructFieldIndex])).IdResult.Value;
+                                            var outputResult = buffer.Add(new OpCompositeExtract(context.GetOrRegister(stream.Info.Type), context.Bound++, outputVariable, [stream.Info.StreamStructFieldIndex])).ResultId;
                                             outputResult = ConvertInterfaceVariable(stream.Info.Type, stream.InterfaceType, outputResult);
                                             buffer.Add(new OpStore(stream.Id, outputResult, null, []));
                                         }
@@ -1294,7 +1294,7 @@ namespace Stride.Shaders.Spirv.Processing
 
                             // Compare with 0
                             var zeroConstant = context.CompileConstant(0u).Id;
-                            var isInvocationZero = buffer.Add(new OpIEqual(context.GetOrRegister(ScalarType.Boolean), context.Bound++, invocationIdValue, zeroConstant)).IdResult.Value;
+                            var isInvocationZero = buffer.Add(new OpIEqual(context.GetOrRegister(ScalarType.Boolean), context.Bound++, invocationIdValue, zeroConstant)).ResultId;
 
                             // Create labels for if-then-merge
                             var thenLabel = context.Bound++;
@@ -1355,10 +1355,10 @@ namespace Stride.Shaders.Spirv.Processing
                     // Copy variables from input to streams struct
                     foreach (var stream in inputStreams)
                     {
-                        buffer.FluentAdd(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Private)), context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id]), out var streamPointer);
-                        var inputResult = buffer.Add(new OpLoad(context.Types[stream.Info.Type], context.Bound++, stream.InterfaceId, null, [])).IdResult.Value;
+                        var streamPointer = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Private)), context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
+                        var inputResult = buffer.Add(new OpLoad(context.Types[stream.Info.Type], context.Bound++, stream.InterfaceId, null, [])).ResultId;
                         inputResult = ConvertInterfaceVariable(stream.InterfaceType, stream.Info.Type, inputResult);
-                        buffer.Add(new OpStore(streamPointer.ResultId, inputResult, null, []));
+                        buffer.Add(new OpStore(streamPointer, inputResult, null, []));
                     }
                     
                     // Call main()
@@ -1368,8 +1368,8 @@ namespace Stride.Shaders.Spirv.Processing
                     foreach (var stream in outputStreams)
                     {
                         var baseType = stream.Info.Type;
-                        buffer.FluentAdd(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Private)), context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id]), out var streamPointer);
-                        var outputResult = buffer.Add(new OpLoad(context.Types[baseType], context.Bound++, streamPointer.ResultId, null, [])).IdResult.Value;
+                        var streamPointer = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Private)), context.Bound++, streamsVariable.ResultId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
+                        var outputResult = buffer.Add(new OpLoad(context.Types[baseType], context.Bound++, streamPointer, null, [])).ResultId;
                         outputResult = ConvertInterfaceVariable(stream.Info.Type, stream.InterfaceType, outputResult);
                         buffer.Add(new OpStore(stream.Id, outputResult, null, []));
                     }

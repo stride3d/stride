@@ -384,8 +384,7 @@ public partial class ShaderMixer
                         });
 
                         context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
-                        context.Add(
-                            new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [samplerSlot]));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [samplerSlot]));
 
                         if (samplerStates.TryGetValue(variable.ResultId, out var samplerState))
                             globalContext.Reflection.SamplerStates.Add(
@@ -405,8 +404,7 @@ public partial class ShaderMixer
                         });
 
                         context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
-                        context.Add(
-                            new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [cbufferSlot]));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [cbufferSlot]));
 
                         cbufferSlot++;
                     }

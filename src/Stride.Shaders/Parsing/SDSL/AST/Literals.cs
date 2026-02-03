@@ -34,9 +34,9 @@ public class StringLiteral(string value, TextLocation info) : Literal(info)
     {
         var (builder, context) = compiler;
 
-        var i = context.Add(new OpConstantStringSDSL(context.Bound++, Value));
+        var constantString = context.Add(new OpConstantStringSDSL(context.Bound++, Value)).ResultId;
         // Note: we rely on undefined type (0); we assume those string literals will be used in only very specific cases where we expect them (i.e. generic instantiation parameters) and will be removed
-        return new SpirvValue(i.IdResult.Value, 0);
+        return new SpirvValue(constantString, 0);
     }
 
     public override SpirvValue CompileAsValue(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)

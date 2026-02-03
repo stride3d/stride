@@ -458,12 +458,12 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                         }
                         else
                         {
-                            generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, identifier.Name)).IdResult.Value;
+                            generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, identifier.Name)).ResultId;
                         }
                     }
                     else if (mixin.Generics.Values[i] is AccessorChainExpression accessChain)
                     {
-                        generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, accessChain.ToString())).IdResult.Value;
+                        generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, accessChain.ToString())).ResultId;
                     }
                     else
                     {

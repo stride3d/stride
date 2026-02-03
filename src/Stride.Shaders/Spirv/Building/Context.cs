@@ -164,7 +164,7 @@ public partial class SpirvContext
     }
     
     public void AddMemberName(int target, int accessor, string name)
-        => Buffer.Add(new OpMemberName(target, accessor, name.Replace('.', '_')));
+        => Buffer.AddData(new OpMemberName(target, accessor, name.Replace('.', '_')));
 
     public void SetEntryPoint(ExecutionModel model, int function, string name, ReadOnlySpan<Symbol> variables)
     {
@@ -187,9 +187,13 @@ public partial class SpirvContext
     public OpDataIndex Insert(int index, OpData data)
         => Buffer.Insert(index, data);
 
-    public OpData Add<T>(in T value)
+    public T Add<T>(in T value)
         where T : struct, IMemoryInstruction, allows ref struct
         => Buffer.Add(value);
+    
+    public OpData AddData<T>(in T value)
+        where T : struct, IMemoryInstruction, allows ref struct
+        => Buffer.AddData(value);
 
     public OpDataIndex Add(OpData data)
         => Buffer.Add(data);

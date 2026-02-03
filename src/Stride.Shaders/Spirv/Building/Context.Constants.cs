@@ -17,13 +17,13 @@ public partial class SpirvContext
     {
         var data = value switch
         {
-            uint v => Buffer.Add(new OpConstant<uint>(GetOrRegister(ScalarType.UInt), Bound++, v)),
-            int v => Buffer.Add(new OpConstant<int>(GetOrRegister(ScalarType.Int), Bound++, v)),
-            ulong v => Buffer.Add(new OpConstant<ulong>(GetOrRegister(ScalarType.UInt64), Bound++, v)),
-            long v => Buffer.Add(new OpConstant<long>(GetOrRegister(ScalarType.Int64), Bound++, v)),
+            uint v => Buffer.AddData(new OpConstant<uint>(GetOrRegister(ScalarType.UInt), Bound++, v)),
+            int v => Buffer.AddData(new OpConstant<int>(GetOrRegister(ScalarType.Int), Bound++, v)),
+            ulong v => Buffer.AddData(new OpConstant<ulong>(GetOrRegister(ScalarType.UInt64), Bound++, v)),
+            long v => Buffer.AddData(new OpConstant<long>(GetOrRegister(ScalarType.Int64), Bound++, v)),
             //Half v => Buffer.Add(new OpConstant<Half>(GetOrRegister(ScalarType.From("half")), Bound++, v)),
-            float v => Buffer.Add(new OpConstant<float>(GetOrRegister(ScalarType.Float), Bound++, v)),
-            double v => Buffer.Add(new OpConstant<double>(GetOrRegister(ScalarType.Double), Bound++, v)),
+            float v => Buffer.AddData(new OpConstant<float>(GetOrRegister(ScalarType.Float), Bound++, v)),
+            double v => Buffer.AddData(new OpConstant<double>(GetOrRegister(ScalarType.Double), Bound++, v)),
             _ => throw new NotImplementedException()
         };
         if (InstructionInfo.GetInfo(data).GetResultIndex(out var index))
@@ -250,7 +250,7 @@ public partial class SpirvContext
             Span<int> values = stackalloc int[structType.Members.Count];
             for (int i = 0; i < values.Length; ++i)
                 values[i] = CreateDefaultConstantComposite(structType.Members[i].Type).Id;
-            return new(Buffer.Add(new OpConstantComposite(GetOrRegister(type), Bound++, new(values))));
+            return new(Buffer.AddData(new OpConstantComposite(GetOrRegister(type), Bound++, new(values))));
         }
     }
 
@@ -270,7 +270,7 @@ public partial class SpirvContext
         for (int i = 0; i < size; ++i)
             values[i] = value.Id;
         
-        return new(Buffer.Add(new OpConstantComposite(GetOrRegister(type), Bound++, new(values))));
+        return new(Buffer.AddData(new OpConstantComposite(GetOrRegister(type), Bound++, new(values))));
     }
 
     public Literal CreateLiteral(object value, TextLocation location = default)
@@ -320,24 +320,24 @@ public partial class SpirvContext
 
         var instruction = literal switch
         {
-            BoolLiteral { Value: true } lit => Buffer.Add(new OpConstantTrue(GetOrRegister(lit.Type), Bound++)),
-            BoolLiteral { Value: false } lit => Buffer.Add(new OpConstantFalse(GetOrRegister(lit.Type), Bound++)),
+            BoolLiteral { Value: true } lit => Buffer.AddData(new OpConstantTrue(GetOrRegister(lit.Type), Bound++)),
+            BoolLiteral { Value: false } lit => Buffer.AddData(new OpConstantFalse(GetOrRegister(lit.Type), Bound++)),
             IntegerLiteral lit => lit.Suffix switch
             {
-                { Size: <= 8, Signed: false } => Buffer.Add(new OpConstant<byte>(GetOrRegister(lit.Type), Bound++, (byte)lit.IntValue)),
-                { Size: <= 8, Signed: true } => Buffer.Add(new OpConstant<sbyte>(GetOrRegister(lit.Type), Bound++, (sbyte)lit.IntValue)),
-                { Size: <= 16, Signed: false } => Buffer.Add(new OpConstant<ushort>(GetOrRegister(lit.Type), Bound++, (ushort)lit.IntValue)),
-                { Size: <= 16, Signed: true } => Buffer.Add(new OpConstant<short>(GetOrRegister(lit.Type), Bound++, (short)lit.IntValue)),
-                { Size: <= 32, Signed: false } => Buffer.Add(new OpConstant<uint>(GetOrRegister(lit.Type), Bound++, unchecked((uint)lit.IntValue))),
-                { Size: <= 32, Signed: true } => Buffer.Add(new OpConstant<int>(GetOrRegister(lit.Type), Bound++, lit.IntValue)),
-                { Size: <= 64, Signed: false } => Buffer.Add(new OpConstant<ulong>(GetOrRegister(lit.Type), Bound++, unchecked((uint)lit.LongValue))),
-                { Size: <= 64, Signed: true } => Buffer.Add(new OpConstant<long>(GetOrRegister(lit.Type), Bound++, lit.LongValue)),
+                { Size: <= 8, Signed: false } => Buffer.AddData(new OpConstant<byte>(GetOrRegister(lit.Type), Bound++, (byte)lit.IntValue)),
+                { Size: <= 8, Signed: true } => Buffer.AddData(new OpConstant<sbyte>(GetOrRegister(lit.Type), Bound++, (sbyte)lit.IntValue)),
+                { Size: <= 16, Signed: false } => Buffer.AddData(new OpConstant<ushort>(GetOrRegister(lit.Type), Bound++, (ushort)lit.IntValue)),
+                { Size: <= 16, Signed: true } => Buffer.AddData(new OpConstant<short>(GetOrRegister(lit.Type), Bound++, (short)lit.IntValue)),
+                { Size: <= 32, Signed: false } => Buffer.AddData(new OpConstant<uint>(GetOrRegister(lit.Type), Bound++, unchecked((uint)lit.IntValue))),
+                { Size: <= 32, Signed: true } => Buffer.AddData(new OpConstant<int>(GetOrRegister(lit.Type), Bound++, lit.IntValue)),
+                { Size: <= 64, Signed: false } => Buffer.AddData(new OpConstant<ulong>(GetOrRegister(lit.Type), Bound++, unchecked((uint)lit.LongValue))),
+                { Size: <= 64, Signed: true } => Buffer.AddData(new OpConstant<long>(GetOrRegister(lit.Type), Bound++, lit.LongValue)),
                 _ => throw new NotImplementedException()
             },
             FloatLiteral lit => lit.Suffix.Size switch
             {
-                > 32 => Buffer.Add(new OpConstant<double>(GetOrRegister(lit.Type), Bound++, lit.DoubleValue)),
-                _ => Buffer.Add(new OpConstant<float>(GetOrRegister(lit.Type), Bound++, (float)lit.DoubleValue)),
+                > 32 => Buffer.AddData(new OpConstant<double>(GetOrRegister(lit.Type), Bound++, lit.DoubleValue)),
+                _ => Buffer.AddData(new OpConstant<float>(GetOrRegister(lit.Type), Bound++, (float)lit.DoubleValue)),
             },
             _ => throw new NotImplementedException()
         };
