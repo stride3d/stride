@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using BepuPhysics.Collidables;
+using SharpFont;
 using Stride.BepuPhysics.Debug.Effects;
 using Stride.BepuPhysics.Debug.Effects.RenderFeatures;
 using Stride.BepuPhysics.Definitions;
@@ -17,6 +19,7 @@ namespace Stride.BepuPhysics.Debug;
 public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 {
     public SynchronizationMode Mode { get; set; } = SynchronizationMode.Physics; // Setting it to Physics by default to show when there is a large discrepancy between the entity and physics
+    public bool ShowCollisions { get; set; } = true;
 
     private bool _latent;
     private bool _visible;
@@ -25,6 +28,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     private ShapeCacheSystem _shapeCacheSystem = null!;
     private VisibilityGroup _visibilityGroup = null!;
     private readonly Dictionary<CollidableComponent, (WireFrameRenderObject[] Wireframes, object? cache)> _wireFrameRenderObject = new();
+    private readonly List<WireFrameRenderObject> _wireFrameRenderObjectCollisions = new();
 
     public DebugRenderProcessor()
     {
@@ -70,7 +74,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
             Visible = component.Visible;
         else if (component.Visible)
             _latent = true;
-
+        Mode = component.Mode;
         component._processor = this;
     }
 
@@ -108,9 +112,13 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         }
 
         base.Draw(context);
+        var simulations = new List<BepuSimulation>();
 
         foreach (var (collidable, (wireframes, cache)) in _wireFrameRenderObject)
         {
+            if (collidable.Simulation != null && !simulations.Contains(collidable.Simulation))
+                simulations.Add(collidable.Simulation);
+
             Matrix matrix;
             switch (Mode)
             {
@@ -144,6 +152,110 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
                 wireframe.Color = GetCurrentColor(collidable);
             }
         }
+
+        foreach (var collisionWireframe in _wireFrameRenderObjectCollisions)
+        {
+            collisionWireframe.Dispose();
+            _visibilityGroup.RenderObjects.Remove(collisionWireframe);
+        }
+        _wireFrameRenderObjectCollisions.Clear();
+
+        foreach (var sim in simulations)
+        {
+            sim.ContactEvents.DebugCollectAllContacts = ShowCollisions;
+
+            var points = sim.ContactEvents.DebugPoints;
+            for (int i = 0; i < points.Length; i++)
+            {
+                var p = points[i];
+
+                // -------------------------
+                // 1) Point de contact (sphère)
+                // -------------------------
+                {
+                    var w = WireFrameRenderObject.New(
+                        _game.GraphicsDevice,
+                        _shapeCacheSystem._sphereShapeData.Indices,
+                        _shapeCacheSystem._sphereShapeData.Vertices);
+
+                    w.Color = Color.Red;
+
+                    var scale = new Vector3(0.05f);
+                    Matrix.Scaling(ref scale, out w.CollidableBaseMatrix);
+
+                    Matrix world;
+                    var wpos = p.WorldPoint;
+                    Matrix.Translation(ref wpos, out world);
+
+                    w.WorldMatrix = w.CollidableBaseMatrix * world;
+
+                    _wireFrameRenderObjectCollisions.Add(w);
+                    _visibilityGroup.RenderObjects.Add(w);
+                }
+
+                // -------------------------
+                // 2) Normale (cylindre = tige)
+                // + petite sphère au bout = "pointe"
+                // -------------------------
+                {
+                    // Paramètres visuels
+                    float normalLength = 0.35f;      // longueur de la normale
+                    float shaftRadius = 0.02f;       // rayon du cylindre
+                    float tipRadius = 0.035f;        // rayon de la pointe (sphère)
+
+                    var n = p.WorldNormal;
+                    if (n.LengthSquared() < 1e-6f)
+                        continue;
+
+                    n.Normalize();
+
+                    var start = p.WorldPoint;
+                    var end = start + n * normalLength;
+                    var mid = (start + end) * 0.5f;
+
+                    // Rotation : aligner l'axe Y du cylindre sur la normale
+                    // (le Cylinder.New(...) est généralement aligné sur Y dans Stride)
+                    var rot = Quaternion.BetweenDirections(Vector3.UnitY, n);
+
+                    // ---- tige (cylindre) ----
+                    var shaft = WireFrameRenderObject.New(
+                        _game.GraphicsDevice,
+                        _shapeCacheSystem._cylinderShapeData.Indices,
+                        _shapeCacheSystem._cylinderShapeData.Vertices);
+
+                    shaft.Color = Color.Yellow;
+
+                    // Cylinder.New(1,1,8) => hauteur ~ 1 autour de Y.
+                    // On scale Y = normalLength, XZ = rayon
+                    var shaftScale = new Vector3(shaftRadius, normalLength, shaftRadius);
+                    Matrix.Transformation(ref shaftScale, ref rot, ref mid, out shaft.CollidableBaseMatrix);
+
+                    // Ici on a directement construit une matrice monde dans CollidableBaseMatrix,
+                    // donc WorldMatrix = CollidableBaseMatrix et world = Identity.
+                    shaft.WorldMatrix = shaft.CollidableBaseMatrix;
+
+                    _wireFrameRenderObjectCollisions.Add(shaft);
+                    _visibilityGroup.RenderObjects.Add(shaft);
+
+                    // ---- pointe (petite sphère au bout) ----
+                    var tip = WireFrameRenderObject.New(
+                        _game.GraphicsDevice,
+                        _shapeCacheSystem._sphereShapeData.Indices,
+                        _shapeCacheSystem._sphereShapeData.Vertices);
+
+                    tip.Color = Color.Yellow;
+
+                    var tipScale = new Vector3(tipRadius);
+                    Matrix.Transformation(ref tipScale, ref rot, ref end, out tip.CollidableBaseMatrix);
+                    tip.WorldMatrix = tip.CollidableBaseMatrix;
+
+                    _wireFrameRenderObjectCollisions.Add(tip);
+                    _visibilityGroup.RenderObjects.Add(tip);
+                }
+            }
+        }
+
+
     }
 
     private void StartTracking(CollidableProcessor proc)
