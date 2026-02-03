@@ -37,7 +37,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
 
         using System.Collections.Frozen;
 
-        internal static partial class IntrinsicsDefinitions
+        public static partial class IntrinsicsDefinitions
         {
         """);
 
@@ -46,7 +46,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
 
         foreach (var ns in namespaces)
         {
-            builder.AppendLine($"internal static FrozenDictionary<string, IntrinsicDefinition[]> {ns.Name.Name} {{ get; }} = new Dictionary<string, IntrinsicDefinition[]>()")
+            builder.AppendLine($"public static FrozenDictionary<string, IntrinsicDefinition[]> {ns.Name.Name} {{ get; }} = new Dictionary<string, IntrinsicDefinition[]>()")
             .AppendLine("{");
             foreach (var intrinsicGroup in ns.Intrinsics.Items.GroupBy(i => i.Name).Where(x => x.Key is not null && x.Key.Name is not "printf"))
             {
@@ -71,40 +71,34 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                     builder.AppendLine("), ");
                     // Parameters
                     builder.AppendLine("[");
-                    try
+                    
+                    if(overload is not null && overload.Parameters.Items is not null)
+                    foreach (var param in overload.Parameters.Items.Where(p => p is not null && p.Name.Name != "..."))
                     {
-                        if(overload is not null && overload.Parameters.Items is not null)
-                        foreach (var param in overload.Parameters.Items.Where(p => p is not null && p.Name.Name != "..."))
+                        builder.Append("new(");
+                        // Qualifier
+                        _ = param.Qualifier switch
                         {
-                            builder.Append("new(");
-                            // Qualifier
-                            _ = param.Qualifier switch
-                            {
-                                { Qualifier: string q, OptionalQualifier: string oq } => builder.Append($"FromString(\"{q}\"), FromStringOptional(\"{oq}\"), "),
-                                { Qualifier: string q } => builder.Append($"FromString(\"{q}\"), null, "),
-                                _ => builder.Append("null, null, ")
-                            };
-                            
-                            // Type
-                            builder.Append($"new(\"{param.TypeInfo.Typename.Name}\"");
-                            _ = param.TypeInfo.Typename switch
-                            {
-                                {Size : {Size1 : string, Size2 : string}} => builder.Append($", new(\"{param.TypeInfo.Typename.Size.Size1}\", \"{param.TypeInfo.Typename.Size.Size2}\")"),
-                                { Size.Size1: string } => builder.Append($", new(\"{param.TypeInfo.Typename.Size.Size1}\")"),
-                                _ => builder.Append(", null")
-                            };
-                            _ = param.TypeInfo.Match switch
-                            {
-                                Matching m => builder.Append($", new({m.ComponentA}, {m.ComponentB})"),
-                                _ => builder.Append(", null")
-                            };
-                            builder.Append($"), \"{param.Name.Name}\"");
-                            builder.Append("), ");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        builder.Append($"/* ERROR: {ex.StackTrace} {ex.Source} {ex.TargetSite} {ex.Message} */");
+                            { Qualifier: string q, OptionalQualifier: string oq } => builder.Append($"FromString(\"{q}\"), FromStringOptional(\"{oq}\"), "),
+                            { Qualifier: string q } => builder.Append($"FromString(\"{q}\"), null, "),
+                            _ => builder.Append("null, null, ")
+                        };
+                        
+                        // Type
+                        builder.Append($"new(\"{param.TypeInfo.Typename.Name}\"");
+                        _ = param.TypeInfo.Typename switch
+                        {
+                            {Size : {Size1 : string, Size2 : string}} => builder.Append($", new(\"{param.TypeInfo.Typename.Size.Size1}\", \"{param.TypeInfo.Typename.Size.Size2}\")"),
+                            { Size.Size1: string } => builder.Append($", new(\"{param.TypeInfo.Typename.Size.Size1}\")"),
+                            _ => builder.Append(", null")
+                        };
+                        _ = param.TypeInfo.Match switch
+                        {
+                            Matching m => builder.Append($", new({m.ComponentA}, {m.ComponentB})"),
+                            _ => builder.Append(", null")
+                        };
+                        builder.Append($"), \"{param.Name.Name}\"");
+                        builder.Append("), ");
                     }
                     builder.AppendLine("]), ");
                 }
@@ -132,9 +126,4 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
             return ns;
         else return [];
     }
-}
-
-public static class IntrinsicsGeneratorExtensions
-{
-
 }
