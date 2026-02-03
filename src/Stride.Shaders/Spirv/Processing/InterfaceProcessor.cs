@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
+using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Analysis;
 
 namespace Stride.Shaders.Spirv.Processing
 {
@@ -50,12 +51,12 @@ namespace Stride.Shaders.Spirv.Processing
             if (entryPointPS == null && entryPointCS == null)
                 throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: Found both a pixel and a compute shader");
 
-            var analysisResult = Analyze(buffer, context);
+            var analysisResult = StreamAnalyzer.Analyze(buffer, context);
             MergeSameSemanticVariables(table, context, buffer, analysisResult);
             var streams = analysisResult.Streams;
 
             var liveAnalysis = new LiveAnalysis();
-            AnalyzeStreamReadWrites(buffer, context, entryPointPSOrCS.IdRef, analysisResult, liveAnalysis);
+            ReadWriteAnalyzer.AnalyzeStreamReadWrites(buffer, context, entryPointPSOrCS.IdRef, analysisResult, liveAnalysis);
 
             if (entryPointCS != null)
             {
@@ -108,12 +109,12 @@ namespace Stride.Shaders.Spirv.Processing
                 {
                     if (entryPoint.Item2 != null)
                     {
-                        AnalyzeStreamReadWrites(buffer, context, entryPoint.Item2.IdRef, analysisResult, liveAnalysis);
+                        ReadWriteAnalyzer.AnalyzeStreamReadWrites(buffer, context, entryPoint.Item2.IdRef, analysisResult, liveAnalysis);
 
                         // Find patch constant entry point and process it as well
                         var patchConstantEntryPoint = entryPoint.Item1 == ExecutionModel.TessellationControl ? ResolveHullPatchConstantEntryPoint(table, context, entryPoint.Item2) : null;
                         if (patchConstantEntryPoint != null)
-                            AnalyzeStreamReadWrites(buffer, context, patchConstantEntryPoint.IdRef, analysisResult, liveAnalysis);
+                            ReadWriteAnalyzer.AnalyzeStreamReadWrites(buffer, context, patchConstantEntryPoint.IdRef, analysisResult, liveAnalysis);
                     
                         // If specific semantic are written to (i.e. SV_Position), they are expected at the end of vertex shader
                         foreach (var stream in streams)
@@ -150,7 +151,7 @@ namespace Stride.Shaders.Spirv.Processing
                 
                 if (entryPointVS != null)
                 {
-                    AnalyzeStreamReadWrites(buffer, context, entryPointVS.IdRef, analysisResult, liveAnalysis);
+                    ReadWriteAnalyzer.AnalyzeStreamReadWrites(buffer, context, entryPointVS.IdRef, analysisResult, liveAnalysis);
 
                     // If specific semantic are written to (i.e. SV_Position), they are expected at the end of vertex shader
                     foreach (var stream in streams)
@@ -170,7 +171,7 @@ namespace Stride.Shaders.Spirv.Processing
                         {
                             if (stream.Value.Semantic == null)
                                 throw new InvalidOperationException($"Vertex shader input {stream.Value.Name} doesn't have semantic");
-                            var semantic = ParseSemantic(stream.Value.Semantic);
+                            var semantic = SemanticAnalyzer.ParseSemantic(stream.Value.Semantic);
                             inputAttributes.Add(new ShaderInputAttributeDescription { Location = inputLayoutLocation, SemanticName = semantic.Name, SemanticIndex = semantic.Index });
                         }
                     }
@@ -338,7 +339,7 @@ namespace Stride.Shaders.Spirv.Processing
                 {
                     if (context.ReverseTypes.TryGetValue(i.Data.IdResult.Value, out var type))
                     {
-                        var streamsTypeSearch = new StreamsTypeSearch();
+                        var streamsTypeSearch = new ReadWriteAnalyzer.StreamsTypeSearch();
                         streamsTypeSearch.VisitType(type);
                         if (streamsTypeSearch.Found)
                         {
@@ -418,177 +419,6 @@ namespace Stride.Shaders.Spirv.Processing
                 stream.Value.Read = false;
                 stream.Value.Write = false;
             }
-        }
-
-        private AnalysisResult Analyze(NewSpirvBuffer buffer, SpirvContext context)
-        {
-            var streams = new Dictionary<int, StreamVariableInfo>();
-
-            HashSet<int> blockTypes = [];
-            Dictionary<int, int> blockPointerTypes = [];
-            Dictionary<int, CBufferInfo> cbuffers = [];
-            Dictionary<int, ResourceInfo> resources = [];
-            Dictionary<int, VariableInfo> variables = [];
-
-            // Build name table
-            Dictionary<int, string> nameTable = [];
-            Dictionary<int, string> semanticTable = [];
-            HashSet<int> patchVariables = [];
-            foreach (var i in context)
-            {
-                // Names
-                {
-                    if (i.Op == Op.OpName
-                        && ((OpName)i) is
-                        {
-                            Target: int t,
-                            Name: string n
-                        }
-                        )
-                    {
-                        nameTable[t] = new(n);
-                    }
-                    else if (i.Op == Op.OpMemberName
-                        && ((OpMemberName)i) is
-                        {
-                            Type: int t2,
-                            Member: int m,
-                            Name: string n2
-                        }
-                        )
-                    {
-                        nameTable[t2] = new(n2);
-                    }
-                }
-
-                // Semantic
-                {
-                    if (i.Op == Op.OpDecorateString
-                        && ((OpDecorateString)i) is
-                        {
-                            Target: int t,
-                            Decoration: Decoration.UserSemantic,
-                            Value: string m
-                        }
-                        )
-                    {
-                        semanticTable[t] = m;
-                    }
-                }
-                
-                // Patch
-                if (i.Op == Op.OpDecorate && (OpDecorate)i is { Target: int t3, Decoration: Decoration.Patch })
-                {
-                    patchVariables.Add(t3);
-                }
-            }
-
-            // Analyze streams
-            foreach (var i in buffer)
-            {
-                if (i.Op == Op.OpVariableSDSL
-                    && ((OpVariableSDSL)i) is { Storageclass: Specification.StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
-                    && context.ReverseTypes[pointerType2] is PointerType { BaseType: ConstantBufferSymbol })
-                {
-                    var name = nameTable[bufferId];
-                    // Note: cbuffer names might be suffixed with .0 .1 (as in Shader.RenameCBufferVariables)
-                    // Adjust for it
-                    cbuffers.Add(bufferId, new(name));
-                }
-
-                if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
-                    {
-                        Storageclass: Specification.StorageClass.Private or Specification.StorageClass.Workgroup,
-                        ResultId: int
-                    } variable)
-                {
-                    var name = nameTable.TryGetValue(variable.ResultId, out var nameId)
-                        ? nameId
-                        : $"unnamed_{variable.ResultId}";
-                    var type = (PointerType)context.ReverseTypes[variable.ResultType];
-
-                    if (variable.Flags.HasFlag(VariableFlagsMask.Stream))
-                    {
-                        semanticTable.TryGetValue(variable.ResultId, out var semantic);
-
-                        if (variable.MethodInitializer != null)
-                            throw new NotImplementedException("Variable initializer is not supported on streams variable");
-
-                        streams.Add(variable.ResultId, new StreamVariableInfo(semantic, name, type, variable.ResultId) { Patch = patchVariables.Contains(variable.ResultId) });
-                    }
-                    else
-                    {
-                        variables.Add(variable.ResultId, new VariableInfo(name, type, variable.ResultId)
-                        {
-                            VariableMethodInitializerId = variable.MethodInitializer,
-                        });
-                    }
-                }
-
-                if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
-                    {
-                        Storageclass: Specification.StorageClass.UniformConstant or Specification.StorageClass.StorageBuffer,
-                        ResultId: int
-                    } resource)
-                {
-                    var name = nameTable.TryGetValue(resource.ResultId, out var nameId)
-                        ? nameId
-                        : $"unnamed_{resource.ResultId}";
-                    var type = context.ReverseTypes[resource.ResultType];
-
-                    resources.Add(resource.ResultId, new ResourceInfo(name));
-                }
-            }
-
-            // Process ResourceGroupId and build ResourceGroups
-            Dictionary<int, ResourceGroup> resourceGroups = new();
-            foreach (var i in context)
-            {
-                if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: Decoration.ResourceGroupIdSDSL, DecorationParameters: { } m } resourceGroupIdDecorate)
-                {
-                    var n = m.To<DecorationParams.ResourceGroupIdSDSL>();
-
-                    if (resources.TryGetValue(resourceGroupIdDecorate.Target, out var resourceInfo))
-                    {
-                        if (!resourceGroups.TryGetValue(n.ResourceGroup, out var resourceGroup))
-                            resourceGroups.Add(n.ResourceGroup, resourceGroup = new());
-
-                        resourceGroup.Resources.Add(resourceInfo);
-
-                        resourceInfo.ResourceGroup = resourceGroup;
-
-                    }
-                }
-            }
-
-            // Process ResourceGroup and LogicalGroup decorations
-            foreach (var i in context)
-            {
-                if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: Decoration.ResourceGroupSDSL, Value: string m2  } resourceGroupDecorate)
-                {
-                    if (resources.TryGetValue(resourceGroupDecorate.Target, out var resourceInfo)
-                        // Note: ResourceGroup should not be null if set
-                        && resourceInfo.ResourceGroup.Name == null)
-                    {
-                        resourceInfo.ResourceGroup.Name = m2;
-                    }
-                }
-                else if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: Decoration.LogicalGroupSDSL, Value: string m3 } logicalGroupDecorate)
-                {
-                    if (resources.TryGetValue(logicalGroupDecorate.Target, out var resourceInfo)
-                        // Note: ResourceGroup should not be null if this decoration is set
-                        && resourceInfo.ResourceGroup.LogicalGroup == null)
-                    {
-                        resourceInfo.ResourceGroup.LogicalGroup = m3;
-                    }
-                    else if (cbuffers.TryGetValue(logicalGroupDecorate.Target, out var cbufferInfo))
-                    {
-                        cbufferInfo.LogicalGroup = m3;
-                    }
-                }
-            }
-
-            return new(nameTable, streams, variables, cbuffers, resourceGroups, resources);
         }
 
         private (int Id, string Name) GenerateStreamWrapper(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, Symbol entryPoint, AnalysisResult analysisResult, LiveAnalysis liveAnalysis, bool isFirstActiveShader)
@@ -1378,24 +1208,6 @@ namespace Stride.Shaders.Spirv.Processing
             }
         }
 
-        class StreamsTypeSearch : TypeWalker
-        {
-            public bool Found { get; private set; }
-            public override void Visit(StreamsType streamsType)
-            {
-                Found = true;
-            }
-            public override void Visit(GeometryStreamType geometryStreamsType)
-            {
-                Found = true;
-            }
-
-            public override void Visit(PatchType patchType)
-            {
-                Found = true;
-            }
-        }
-
         void PatchStreamsAccesses(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context, int functionId, StructType streamsStructType, StructType inputStructType, StructType outputStructType, StructType? constantsStructType, int streamsVariableId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
         {
             var methodInfo = liveAnalysis.GetOrCreateMethodInfo(functionId);
@@ -1562,154 +1374,6 @@ namespace Stride.Shaders.Spirv.Processing
                 
                 SpirvBuilder.RemapIds(remapIds, ref i.Data);
             }
-        }
-
-        /// <summary>
-        /// Figure out (recursively) which streams are being read from and written to.
-        /// </summary>
-        private bool AnalyzeStreamReadWrites(NewSpirvBuffer buffer, SpirvContext context, int functionId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
-        {
-            // Check if already processed
-            var methodInfo = liveAnalysis.GetOrCreateMethodInfo(functionId);
-            if (methodInfo.UsedThisStage)
-            {
-                return methodInfo.HasStreamAccess;
-            }
-
-            // Mark as used
-            methodInfo.UsedThisStage = true;
-
-            // If method was mutated by another stage, we work on the original copy instead
-            List<OpData> methodInstructions;
-            if (methodInfo.OriginalMethodCode != null)
-            {
-                methodInstructions = methodInfo.OriginalMethodCode;
-            }
-            else
-            {
-                (var methodStart, var methodEnd) = SpirvBuilder.FindMethodBounds(buffer, functionId);
-                methodInstructions = buffer.Slice(methodStart, methodEnd - methodStart);
-            }
-
-            var streamsInstructionIds = new HashSet<int>();
-            var streams = analysisResult.Streams;
-            var variables = analysisResult.Variables;
-            var accessChainBases = new Dictionary<int, int>();
-
-            foreach (ref var i in methodInstructions.AsSpan())
-            {
-                // Check for any Streams variable
-                if (i.Op is Op.OpFunction && new OpFunction(ref i) is { } function)
-                {
-                    var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
-                    var streamsTypeSearch = new StreamsTypeSearch();
-                    streamsTypeSearch.Visit(functionType);
-                    if (streamsTypeSearch.Found)
-                        methodInfo.HasStreamAccess = true;
-                }
-                else if (i.Op is Op.OpVariable && new OpVariable(ref i) is { } variable)
-                {
-                    var type = context.ReverseTypes[variable.ResultType];
-                    if (type is PointerType { BaseType: StreamsType })
-                    {
-                        // Note: we should restrict to R except if inout variable
-                        streamsInstructionIds.Add(variable.ResultId);
-                        methodInfo.HasStreamAccess = true;
-                    }
-                }
-                // and for any Streams parameter
-                else if (i.Op is Op.OpFunctionParameter && new OpFunctionParameter(ref i) is { } functionParameter)
-                {
-                    var type = context.ReverseTypes[functionParameter.ResultType];
-                    if (type is PointerType { BaseType: StreamsType })
-                    {
-                        // Note: we should restrict to R except if inout variable
-                        streamsInstructionIds.Add(functionParameter.ResultId);
-                        methodInfo.HasStreamAccess = true;
-                    }
-                }
-                else if (i.Op is Op.OpLoad && new OpLoad(ref i) is { } load)
-                {
-                    // Check for indirect access chains
-                    if (!accessChainBases.TryGetValue(load.Pointer, out var pointer))
-                        pointer = load.Pointer;
-
-                    if (streams.TryGetValue(pointer, out var streamInfo) && !streamInfo.Write)
-                        streamInfo.Read = true;
-                    if (variables.TryGetValue(pointer, out var variableInfo))
-                        variableInfo.UsedThisStage = true;
-                    if (analysisResult.Resources.TryGetValue(pointer, out var resourceInfo))
-                        resourceInfo.UsedThisStage = true;
-                    if (analysisResult.CBuffers.TryGetValue(pointer, out var cbufferInfo))
-                        cbufferInfo.UsedThisStage = true;
-                }
-                else if (i.Op is Op.OpStore && new OpStore(ref i) is { } store)
-                {
-                    // Check for indirect access chains
-                    if (!accessChainBases.TryGetValue(store.Pointer, out var pointer))
-                        pointer = store.Pointer;
-
-                    if (streams.TryGetValue(pointer, out var streamInfo))
-                        streamInfo.Write = true;
-                    if (variables.TryGetValue(pointer, out var variableInfo))
-                        variableInfo.UsedThisStage = true;
-                    if (analysisResult.Resources.TryGetValue(pointer, out var resourceInfo))
-                        resourceInfo.UsedThisStage = true;
-                    if (analysisResult.CBuffers.TryGetValue(pointer, out var cbufferInfo))
-                        cbufferInfo.UsedThisStage = true;
-                }
-                else if (i.Op == Op.OpStreamsSDSL && new OpStreamsSDSL(ref i) is { } streamsInstruction)
-                {
-                    streamsInstructionIds.Add(streamsInstruction.ResultId);
-                    methodInfo.HasStreamAccess = true;
-                }
-                else if (i.Op == Op.OpAccessChain && new OpAccessChain(ref i) is { } accessChain)
-                {
-                    var currentBase = accessChain.BaseId;
-
-                    // In case it's a streams access, mark the stream as being the base
-                    if (streamsInstructionIds.Contains(currentBase))
-                    {
-                        var streamVariableId = accessChain.Values.Elements.Span[0];
-                        var streamInfo = streams[streamVariableId];
-
-                        // Set this base for OpStore/OpLoad stream R/W analysis
-                        currentBase = streamVariableId;
-                    }
-
-                    // Any read or write through an access chain will be treated as doing it on the main variable.
-                    // i.e., streams.A.B will share same streamInfo as streams.A
-                    // TODO: what happens in case of partial write?
-                    // Recurse in case we have multiple access chain chained after each other
-                    while (accessChainBases.TryGetValue(currentBase, out var nextBase))
-                        currentBase = nextBase;
-                    accessChainBases.Add(accessChain.ResultId, currentBase);
-                }
-                else if (i.Op == Op.OpFunctionCall && new OpFunctionCall(ref i) is { } call)
-                {
-                    // Process call
-                    methodInfo.HasStreamAccess |= AnalyzeStreamReadWrites(buffer, context, call.Function, analysisResult, liveAnalysis);
-                }
-            }
-
-            return methodInfo.HasStreamAccess;
-        }
-
-        private static readonly Regex MatchSemanticName = new Regex(@"([A-Za-z_]+)(\d*)");
-        private static (string Name, int Index) ParseSemantic(string semantic)
-        {
-            var match = MatchSemanticName.Match(semantic);
-            if (!match.Success)
-                return (semantic, 0);
-
-            string baseName = match.Groups[1].Value;
-            int value = 0;
-            if (!string.IsNullOrEmpty(match.Groups[2].Value))
-            {
-                value = int.Parse(match.Groups[2].Value);
-            }
-
-            return (baseName, value);
         }
     }
 }
