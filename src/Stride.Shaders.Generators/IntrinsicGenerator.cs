@@ -48,7 +48,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
         {
             builder.AppendLine($"public static FrozenDictionary<string, IntrinsicDefinition[]> {ns.Name.Name} {{ get; }} = new Dictionary<string, IntrinsicDefinition[]>()")
             .AppendLine("{");
-            foreach (var intrinsicGroup in ns.Intrinsics.Items.GroupBy(i => i.Name).Where(x => x.Key is not null && x.Key.Name is not "printf"))
+            foreach (var intrinsicGroup in ns.Intrinsics.Items.GroupBy(i => i.Name.Name).Where(x => x.Key is not null && x.Key is not "printf"))
             {
                 builder.AppendLine($"[\"{intrinsicGroup.Key}\"] = [");
                 foreach (var overload in intrinsicGroup.Where(i => i is not null))
