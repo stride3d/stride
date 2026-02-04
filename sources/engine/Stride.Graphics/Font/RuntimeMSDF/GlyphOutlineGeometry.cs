@@ -12,7 +12,7 @@ namespace Stride.Graphics.Font.RuntimeMsdf
     /// </summary>
     public sealed class GlyphOutline
     {
-        public readonly List<GlyphContour> Contours = new();
+        public readonly List<GlyphContour> Contours = [];
 
         /// <summary>
         /// Outline bounds in the same coordinate space as the points.
@@ -35,7 +35,7 @@ namespace Stride.Graphics.Font.RuntimeMsdf
 
     public sealed class GlyphContour
     {
-        public readonly List<GlyphSegment> Segments = new();
+        public readonly List<GlyphSegment> Segments = [];
         public bool IsClosed = true;
     }
 

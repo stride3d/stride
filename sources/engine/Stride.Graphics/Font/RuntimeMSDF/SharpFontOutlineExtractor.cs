@@ -45,13 +45,20 @@ namespace Stride.Graphics.Font.RuntimeMsdf
 
             outline = DecomposeOutline(ftOutline);
 
+            // FreeType bounding box is in 26.6 fixed point format
             var bbox = ftOutline.GetBBox();
-            outline.Bounds = new RectangleF(
+            float left = Fixed26Dot6ToFloat(bbox.Left);
+            float bottom = Fixed26Dot6ToFloat(bbox.Bottom);
+            float right = Fixed26Dot6ToFloat(bbox.Right);
+            float top = Fixed26Dot6ToFloat(bbox.Top);
 
-                Fixed26Dot6ToFloat(bbox.Left),
-                Fixed26Dot6ToFloat(bbox.Top),
-                Fixed26Dot6ToFloat(bbox.Right - bbox.Left),
-                Fixed26Dot6ToFloat(bbox.Bottom - bbox.Top));
+            // FreeType uses Y-up coordinates (bottom < top)
+            outline.Bounds = new RectangleF(
+                left,           // X position (left edge)
+                bottom,         // Y position (bottom edge in Y-up space)
+                right - left,   // Width
+                top - bottom    // Height (positive because top > bottom)
+            );
 
             return true;
         }
@@ -62,8 +69,7 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             GlyphContour currentContour = null;
             Vector2 lastPoint = Vector2.Zero;
 
-            // Using the constructor found in your decompiled definition
-            // Parameter names must match: moveTo, lineTo, conicTo, cubicTo, shift, delta
+            // FreeType automatically closes contours, so we don't need to add closing segments
             var funcs = new OutlineFuncs(
                 moveTo: (ref FTVector to, IntPtr user) =>
                 {
@@ -107,15 +113,14 @@ namespace Stride.Graphics.Font.RuntimeMsdf
 
         private static Vector2 ConvertVector(FTVector v)
         {
-            // Outline points in your version use Fixed16Dot16
-            return new Vector2(Fixed16Dot16ToFloat(v.X), Fixed16Dot16ToFloat(v.Y));
+            // FreeType outline points are in 26.6 fixed point format
+            // Even though FTVector uses Fixed16Dot16 type, the actual values are 26.6
+            // This is a quirk of the SharpFont wrapper that's included in Stride.
+            return new Vector2(v.X.Value / 64f, v.Y.Value / 64f);
         }
 
-        // Helper for 26.6 (used for Metrics and BBox)
+        // Helper for 26.6 fixed point (used for Metrics and BBox)
         private static float Fixed26Dot6ToFloat(Fixed26Dot6 v) => v.Value / 64f;
         private static float Fixed26Dot6ToFloat(int v) => v / 64f;
-
-        // Helper for 16.16 (used for Outline Points to fix CS1503)
-        private static float Fixed16Dot16ToFloat(Fixed16Dot16 v) => v.Value / 65536f;
     }
 }
