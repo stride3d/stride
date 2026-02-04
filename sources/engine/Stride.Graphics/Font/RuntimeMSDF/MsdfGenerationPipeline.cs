@@ -43,19 +43,4 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             DistanceFieldSettings df,
             MsdfEncodeSettings encode);
     }
-
-    /// <summary>
-    /// Placeholder implementation.
-    ///
-    /// NOTE: This compiles without taking a hard dependency on Remora.MSDFGen.
-    /// When you're ready, create a second file that references the NuGet package
-    /// directly (e.g. RemoraMsdfRasterizer.cs) and plug it in through your generator seam.
-    /// </summary>
-/*    public sealed class NotImplementedMsdfRasterizer : IGlyphMsdfRasterizer
-    {
-        internal CharacterBitmapRgba RasterizeMsdf(GlyphOutline outline, DistanceFieldSettings df, MsdfEncodeSettings encode)
-        {
-            IGlyphMsdfRasterizer rasterizer = new RemoraMsdfRasterizer();
-        }
-    }*/
 }

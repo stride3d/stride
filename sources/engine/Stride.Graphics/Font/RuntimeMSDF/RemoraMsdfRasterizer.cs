@@ -5,8 +5,6 @@ using System;
 using NVector2 = System.Numerics.Vector2;
 using Remora.MSDFGen;
 using Remora.MSDFGen.Graphics;
-using Stride.Core.Mathematics;
-using Stride.Graphics.Font;
 using Color3 = Remora.MSDFGen.Graphics.Color3;
 
 namespace Stride.Graphics.Font.RuntimeMsdf

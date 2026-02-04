@@ -9,7 +9,7 @@ namespace Stride.Graphics.Font
 {
     /// <summary>
     /// An RGBA bitmap representing a glyph (4 bytes per pixel).
-    /// Intended for runtime MSDF (stored in RGB, alpha optional).
+    /// Intended for runtime MSDF font (stored in RGB, alpha optional).
     /// </summary>
     internal sealed class CharacterBitmapRgba : IDisposable
     {

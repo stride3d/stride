@@ -3,9 +3,6 @@
 
 using System;
 using Msdfgen;
-using Silk.NET.DXGI;
-using Stride.Core.Mathematics;
-using Stride.Graphics.Font;
 using static Msdfgen.ErrorCorrectionConfig;
 using MsdfVector2 = Msdfgen.Vector2;
 
@@ -13,7 +10,7 @@ namespace Stride.Graphics.Font.RuntimeMsdf
 {
     /// <summary>
     /// MSDFGen-Sharp (Msdfgen.Core) implementation for generating MSDF textures from font outlines.
-    /// Handles self-intersecting contours and overlapping strokes.
+    /// For fonts with self intersecting contours, it's best to preprocess it with FontForge first.
     /// </summary>
     public sealed class MsdfGenCoreRasterizer : IGlyphMsdfRasterizer
     {
@@ -22,8 +19,7 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             DistanceFieldSettings df,
             MsdfEncodeSettings encode)
         {
-            if (outline == null)
-                throw new ArgumentNullException(nameof(outline));
+            ArgumentNullException.ThrowIfNull(outline);
 
             int width = df.TotalWidth;
             int height = df.TotalHeight;
@@ -37,14 +33,14 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             if (shape.Contours.Count == 0)
                 return new CharacterBitmapRgba(width, height);
 
-            // CRITICAL: Normalize BEFORE orienting for self-intersecting shapes
+            // Normalize BEFORE orienting for self-intersecting shapes
             shape.Normalize();
             
             // Orient contours consistently
             shape.OrientContours();
 
             // Use ink trap aware edge coloring for better self-intersection handling
-            //EdgeColoringInkTrap(shape, 3.0);
+            EdgeColoringInkTrap(shape, 3.0);
 
             // Calculate shape bounds
             var bounds = shape.GetBounds();
@@ -74,7 +70,7 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             // Create output bitmap (3 channels for RGB MSDF)
             var msdfBitmap = new Bitmap<float>(width, height, 3);
 
-            // CRITICAL: Use overlap support and aggressive error correction for self-intersecting shapes
+            // Overlap support on by default.
             var config = new MSDFGeneratorConfig
             {
             };

@@ -4,6 +4,9 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Graphics.Font.RuntimeMsdf
 {
+    /// <summary>
+    /// Using SharpFont to extract an outline from a glyph. 
+    /// </summary>
     public static class SharpFontOutlineExtractor
     {
         public static bool TryExtractGlyphOutline(

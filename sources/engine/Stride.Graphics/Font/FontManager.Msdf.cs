@@ -13,7 +13,7 @@ namespace Stride.Graphics.Font
         /// Extracts a glyph outline (vector shape) for MSDF generation.
         ///
         /// This is intentionally synchronous and protected by the same FreeType lock as bitmap generation.
-        /// If you later want more serialization/perf control, route this request through the existing
+        /// If serialization/perf control is needed later, route this request through the existing
         /// bitmap builder thread and return a copied <see cref="GlyphOutline"/>.
         /// </summary>
         public bool TryGetGlyphOutline(

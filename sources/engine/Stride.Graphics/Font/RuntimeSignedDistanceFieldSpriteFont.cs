@@ -11,10 +11,13 @@ using Stride.Core.Serialization.Contents;
 using Stride.Graphics.Font.RuntimeMsdf;
 
 namespace Stride.Graphics.Font
-{
+{    /// <summary>
+    /// A dynamic font that asynchronously generates multi-channel signed distance mapping for glyphs as needed, enabling sharp, smooth edges and resizability.
+    /// </summary>
     [ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<RuntimeSignedDistanceFieldSpriteFont>), Profile = "Content")]
     [ContentSerializer(typeof(RuntimeSignedDistanceFieldSpriteFontContentSerializer))]
     [DataSerializer(typeof(RuntimeSignedDistanceFieldSpriteFontSerializer))]
+
     internal sealed class RuntimeSignedDistanceFieldSpriteFont : SpriteFont
     {
         internal string FontName;
@@ -54,8 +57,7 @@ namespace Stride.Graphics.Font
             int Rows,
             int Pitch) : GlyphInput;
 
-        // Placeholder container for future outline/MSDF generators.
-        // This keeps the scheduling/upload pipeline unchanged when we swap in msdfgen.
+        // This keeps the scheduling/upload pipeline unchanged when MSDF generators are swapped.
         private sealed record OutlineInput(GlyphOutline Outline, int Width, int Height) : GlyphInput;
 
         private interface IDistanceFieldGenerator
@@ -107,7 +109,7 @@ namespace Stride.Graphics.Font
                 };
         }
 
-        // Swap MSDF backend here without touching the runtime font pipeline.
+        // Swap MSDF backend HERE without touching the runtime font pipeline.
         private readonly IDistanceFieldGenerator generator =
             new SdfOrMsdfGenerator(new MsdfGenCoreRasterizer(), MsdfEncodeSettings.Default);
 
@@ -202,8 +204,6 @@ namespace Stride.Graphics.Font
             // Glyphs are baked at Size, so no compensating scaling is required.
             fixScaling = Vector2.One;
 
-
-
             var key = MakeKey(character, p);
             var spec = GetOrCreateCharacterData(key, sizeVec);
 
@@ -228,7 +228,6 @@ namespace Stride.Graphics.Font
                 DrainUploads(commandList);
 
             // 3) Upload
-
             if (spec.IsBitmapUploaded && cacheRecords.TryGetValue(key, out var handle))
             {
                 // If evicted/cleared, this will flip false and we’ll reupload next draw
@@ -284,8 +283,8 @@ namespace Stride.Graphics.Font
 
         private int ComputeTotalPad()
         {
-            // You generally want enough room to represent distance out to PixelRange
-            // plus your own explicit Padding.
+            // Generally, want enough room to represent distance out to PixelRange, 
+            // plus explicit Padding.
             var pad = Padding + PixelRange;
             return Math.Max(1, pad);
         }
@@ -497,7 +496,7 @@ namespace Stride.Graphics.Font
         }
 
 
-        // --- SDF generation (CPU), packed into RGB so median(R,G,B)=SDF value ---
+        // --- Bitmap based SDF generation (CPU) for fallback purposes, packed into RGB so median(R,G,B) = SDF value ---
 
         private static unsafe CharacterBitmapRgba BuildSdfRgbFromCoverage(byte[] src, int srcW, int srcH, int srcPitch, int pad, int pixelRange, DistanceEncodeParams enc)
         {
