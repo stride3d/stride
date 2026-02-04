@@ -6,17 +6,18 @@ using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Trees;
+using BepuUtilities.Memory;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Definitions.Contacts;
+using Stride.BepuPhysics.Definitions.Raycast;
+using Stride.BepuPhysics.Definitions.SimTests;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
-using Stride.BepuPhysics.Definitions.Raycast;
-using Stride.BepuPhysics.Definitions.SimTests;
 using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics;
@@ -251,7 +252,7 @@ public abstract class CollidableComponent : EntityComponent
 
     internal void TryUpdateFeatures()
     {
-        #warning Norbo: Some of the callsites for this method may not require a full reconstruction of the body ? Something we should validate
+#warning Norbo: Some of the callsites for this method may not require a full reconstruction of the body ? Something we should validate
         if (Simulation is not null)
             ReAttach(Simulation);
         else if (Processor is not null) // We may have to fall back to this when 'Collider.TryAttach' failed previously; when this collidable didn't have any collider before
@@ -464,6 +465,6 @@ public abstract class CollidableComponent : EntityComponent
         if (ShapeIndex.Exists == false || Simulation is null)
             return;
 
-        Collider.RayTest(Simulation.Simulation.Shapes, ShapeIndex, Pose!.Value, new RayData { Origin = origin, Direction = dir }, ref maximumT, ref hitHandler);
+        Collider.RayTest(Simulation.Simulation.Shapes, ShapeIndex, Pose!.Value, new RayData { Origin = origin, Direction = dir }, ref maximumT, Simulation.BufferPool, ref hitHandler);
     }
 }
