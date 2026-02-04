@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
@@ -114,10 +115,8 @@ namespace Stride.Graphics.Font
             new SdfOrMsdfGenerator(new MsdfGenCoreRasterizer(), MsdfEncodeSettings.Default);
 
         // Runtime SDF glyph cache key (future-proof for multiple ranges/modes)
-        private readonly Dictionary<GlyphKey, CharacterSpecification> characters = [];
-        private readonly Dictionary<GlyphKey, FontCacheManagerMsdf.MsdfCachedGlyph> cacheRecords = [];
-
-        private readonly HashSet<GlyphKey> offsetAdjusted = [];
+        private readonly ConcurrentDictionary<GlyphKey, CharacterSpecification> characters = [];
+        private readonly ConcurrentDictionary<GlyphKey, FontCacheManagerMsdf.MsdfCachedGlyph> cacheRecords = [];
 
         [DataMemberIgnore]
         internal FontManager FontManager => FontSystem?.FontManager;
@@ -212,6 +211,12 @@ namespace Stride.Graphics.Font
             {
                 FontManager.GenerateBitmap(spec, true);
 
+                //Apply padding offset once metrics are loaded
+                if (spec.Bitmap != null && spec.Glyph.XAdvance != 0)
+                {
+                    spec.Glyph.Offset -= new Vector2(p.Pad, p.Pad);
+                }
+
                 // Missing glyph (glyphIndex == 0 => XAdvance==0 and Bitmap null/empty)
                 if (spec.Bitmap == null || spec.Bitmap.Width == 0 || spec.Bitmap.Rows == 0 || spec.Glyph.XAdvance == 0)
                 {
@@ -234,7 +239,7 @@ namespace Stride.Graphics.Font
                 if (!handle.IsUploaded)
                 {
                     spec.IsBitmapUploaded = false;
-                    cacheRecords.Remove(key);
+                    cacheRecords.TryRemove(key, out _); ;
                 }
                 else
                 {
@@ -260,6 +265,12 @@ namespace Stride.Graphics.Font
 
                 if (spec.Bitmap == null)
                     FontManager.GenerateBitmap(spec, true);
+
+                // Apply padding offset
+                if (spec.Bitmap != null && spec.Glyph.XAdvance != 0)
+                {
+                    spec.Glyph.Offset -= new Vector2(p.Pad, p.Pad);
+                }
 
                 EnsureSdfScheduled(key, spec);
 
@@ -457,8 +468,6 @@ namespace Stride.Graphics.Font
             cacheRecords[key] = handle;
             cache.NotifyGlyphUtilization(handle);
 
-            if (offsetAdjusted.Add(key))
-                spec.Glyph.Offset -= new Vector2(key.Pad, key.Pad);
         }
 
         private void DrainUploads(CommandList commandList, int maxUploadsPerFrame = 8)
