@@ -65,7 +65,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
 
                     _ = overload.ReturnType.Match switch
                     {
-                        Matching m => builder.Append($", new({m.ComponentA}, {m.ComponentB})"),
+                        Matching m => builder.Append($", new({m.LayoutIndex}, {m.BaseTypeIndex})"),
                         _ => builder.Append(", null")
                     };
                     builder.AppendLine("), ");
@@ -94,7 +94,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                         };
                         _ = param.TypeInfo.Match switch
                         {
-                            Matching m => builder.Append($", new({m.ComponentA}, {m.ComponentB})"),
+                            Matching m => builder.Append($", new({m.LayoutIndex}, {m.BaseTypeIndex})"),
                             _ => builder.Append(", null")
                         };
                         builder.Append($"), \"{param.Name.Name}\"");

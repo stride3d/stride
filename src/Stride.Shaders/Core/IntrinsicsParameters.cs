@@ -8,10 +8,10 @@ public enum OptionalQualifier { RowMajor, ColumnMajor };
 
 
 public record struct VectorSize(string X, string? Y = null);
-public record struct ParameterType(BaseType BaseType, VectorSize? VectorSize = null, (int, int)? Match = null)
+public record struct ParameterType(BaseType BaseType, VectorSize? VectorSize = null, (int Layout, int BaseType)? Match = null)
 {
-	public ParameterType(int a, int b) : this(BaseType.Match, Match: (a, b)){}
-	public ParameterType(string baseType,VectorSize? VectorSize = null, (int, int)? matching = null) : 
+	public ParameterType(int matchLayout, int matchBaseType) : this(BaseType.Match, Match: (matchLayout, matchBaseType)){}
+	public ParameterType(string baseType,VectorSize? VectorSize = null, (int Layout, int BaseType)? matching = null) : 
 		this(
 			baseType switch
 			{

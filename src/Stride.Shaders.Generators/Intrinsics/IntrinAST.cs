@@ -31,11 +31,11 @@ internal record Typename(string Name, Layout? Size, TextLocation Location) : Nod
 }
 // internal record NumericType(Layout Size, TextLocation Location) : Typename("numeric", Size, Location);
 
-internal record Matching(int ComponentA, int ComponentB, TextLocation Location) : Node(Location);
+internal record Matching(int LayoutIndex, int BaseTypeIndex, TextLocation Location) : Node(Location);
 internal record ClassTMatch(TextLocation Location) : Matching(-1, 0,Location);
 internal record FuncMatch(TextLocation Location) : Matching(-3, 0, Location);
 internal record Func2Match(TextLocation Location) : Matching(-3, 0, Location);
-internal record TypeMatch(int ComponentA, TextLocation Location) : Matching(ComponentA, ComponentA, Location);
+internal record TypeMatch(int Index, TextLocation Location) : Matching(Index, Index, Location);
 
 
 internal record TypeInfo(Typename Typename, TextLocation Location, Matching? Match = null) : Node(Location);

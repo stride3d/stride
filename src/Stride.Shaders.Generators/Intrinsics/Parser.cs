@@ -483,23 +483,30 @@ internal static class IntrinParser
                     var intrinsic = n.Intrinsics.Items[i];
                     if(intrinsic.ReturnType is { Typename.Name: "$to_resolve" })
                     {
+                        var name = intrinsic.Parameters.Items[intrinsic.ReturnType.Match is TypeMatch tm ? tm.Index - 1 : throw new InvalidOperationException()].TypeInfo.Typename.Name;
                         intrinsic = intrinsic with
                         {
-                            ReturnType = intrinsic.Parameters.Items[intrinsic.ReturnType.Match is TypeMatch tm ? tm.ComponentA - 1 : 0].TypeInfo
+                            ReturnType = intrinsic.ReturnType with
+                            {
+                                Typename = intrinsic.ReturnType.Typename with { Name = name },
+                            }
                         };
                     }
                     for(int j = 0; j < intrinsic.Parameters.Items.Count; j++)
                     {
                         var parameter = intrinsic.Parameters.Items[j];
-                        if(parameter is not null && parameter.TypeInfo is { Typename.Name: "$to_resolve", Match: TypeMatch {ComponentA : >= 0} tm})
+                        if(parameter is not null && parameter.TypeInfo is { Typename.Name: "$to_resolve", Match: TypeMatch {Index : >= 0} tm})
                         {
-                            parameter = tm switch
+                            var name = tm switch
                             {
-                                { ComponentA: 0 } => parameter with { TypeInfo = intrinsic.ReturnType },
-                                _ => parameter with { TypeInfo = intrinsic.Parameters.Items[tm.ComponentA - 1].TypeInfo }
+                                { Index: 0 } => intrinsic.ReturnType.Typename.Name,
+                                _ => intrinsic.Parameters.Items[tm.Index - 1].TypeInfo.Typename.Name,
                             };
-                            
-                            intrinsic.Parameters.Items[j] = parameter;
+
+                            intrinsic.Parameters.Items[j] = intrinsic.Parameters.Items[j] with
+                            {
+                                TypeInfo = parameter.TypeInfo with { Typename = parameter.TypeInfo.Typename with { Name = name } }
+                            };
                         }
                     }
                     
