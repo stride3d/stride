@@ -14,6 +14,7 @@ using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
 using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Analysis;
 using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Cleanup;
 using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Transformation;
+using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Generation;
 
 namespace Stride.Shaders.Spirv.Processing
 {
@@ -238,104 +239,16 @@ namespace Stride.Shaders.Spirv.Processing
                 }
             }
 
-            bool AddBuiltin(int variable, BuiltIn builtin)
-            {
-                context.Add(new OpDecorate(variable, Decoration.BuiltIn, [(int)builtin]));
-                return true;
-            }
-            
-            bool AddLocation(int variable, string location)
-            {
-                // If it fails, default is 0
-                int.TryParse(location, out var targetIndex);
-                context.Add(new OpDecorate(variable, Decoration.Location, [targetIndex]));
-                return true;
-            }
+            // Delegate to BuiltinProcessor
+            bool AddBuiltin(int variable, BuiltIn builtin) => BuiltinProcessor.AddBuiltin(context, variable, builtin);
 
-            // Handle some conversions for builtins where type is not flexible
-            // need to handle array size adjust, and vector size adjust as per ProcessBuiltinsDecoration() symbolType processing
-            int ConvertInterfaceVariable(SymbolType sourceType, SymbolType castType, int value)
-            {
-                if (sourceType == castType)
-                    return value;
+            bool AddLocation(int variable, string location) => BuiltinProcessor.AddLocation(context, variable, location);
 
-                if (sourceType is VectorType v1 && castType is VectorType v2 && v1.BaseType == v2.BaseType)
-                {
-                    Span<int> components = stackalloc int[v2.Size];
-                    for (int i = 0; i < v2.Size; ++i)
-                    {
-                        components[i] = i < v1.Size
-                            ? buffer.Add(new OpCompositeExtract(context.GetOrRegister(v1.BaseType), context.Bound++, value, [i])).ResultId
-                            : context.CreateDefaultConstantComposite(v1.BaseType).Id;
-                    }
+            int ConvertInterfaceVariable(SymbolType sourceType, SymbolType castType, int value) =>
+                BuiltinProcessor.ConvertInterfaceVariable(buffer, context, sourceType, castType, value);
 
-                    return buffer.Add(new OpCompositeConstruct(context.GetOrRegister(v2), context.Bound++, new(components))).ResultId;
-                }
-                
-                if (sourceType is ArrayType a1 && castType is ArrayType a2 && a1.BaseType == a2.BaseType)
-                {
-                    Span<int> components = stackalloc int[a2.Size];
-                    for (int i = 0; i < a2.Size; ++i)
-                    {
-                        components[i] = i < a1.Size
-                            ? buffer.Add(new OpCompositeExtract(context.GetOrRegister(a1.BaseType), context.Bound++, value, [i])).ResultId
-                            : context.CreateDefaultConstantComposite(a1.BaseType).Id;
-                    }
-
-                    return buffer.Add(new OpCompositeConstruct(context.GetOrRegister(a2), context.Bound++, new(components))).ResultId;
-                }
-                
-                throw new InvalidOperationException($"Can't convert interface variable from {sourceType} to {castType}");
-            }
-            
-            bool ProcessBuiltinsDecoration(int variable, StreamVariableType type, string? semantic, ref SymbolType symbolType)
-            {
-                semantic = semantic?.ToUpperInvariant();
-                symbolType = (executionModel, type, semantic) switch
-                {
-                    // DX might use float[2] or float[3] or float[4] but Vulkan expects float[4] in all cases
-                    (ExecutionModel.TessellationControl, StreamVariableType.Output, "SV_TESSFACTOR") => new ArrayType(ScalarType.Float, 4),
-                    // DX might use float or float[2] but Vulkan expects float[2] in all cases
-                    (ExecutionModel.TessellationControl, StreamVariableType.Output, "SV_INSIDETESSFACTOR") => new ArrayType(ScalarType.Float, 2),
-                    // DX might use float2 or float3 but Vulkan expects float3 in all cases
-                    (ExecutionModel.TessellationControl, StreamVariableType.Output, "SV_DOMAINLOCATION") => new VectorType(ScalarType.Float, 3),
-                    _ => symbolType,
-                };
-                
-                // Note: false means it needs to be forwarded
-                // TODO: review the case where we don't use automatic forwarding for HS/DS/GS stages, i.e. SV_POSITION and SV_PrimitiveID
-                return (executionModel, type, semantic) switch
-                {
-                    // SV_Depth/SV_Target
-                    (ExecutionModel.Fragment, StreamVariableType.Output, "SV_DEPTH") => AddBuiltin(variable, BuiltIn.FragDepth),
-                    (ExecutionModel.Fragment, StreamVariableType.Output, {} semantic2) when semantic2.StartsWith("SV_TARGET") => AddLocation(variable, semantic2.Substring("SV_TARGET".Length)),
-                    // SV_Position
-                    (not ExecutionModel.Fragment, StreamVariableType.Output, "SV_POSITION") => AddBuiltin(variable, BuiltIn.Position),
-                    (not ExecutionModel.Fragment and not ExecutionModel.Vertex, StreamVariableType.Input, "SV_POSITION") => AddBuiltin(variable, BuiltIn.Position),
-                    (ExecutionModel.Fragment, StreamVariableType.Input, "SV_POSITION") => AddBuiltin(variable, BuiltIn.FragCoord),
-                    // SV_InstanceID/SV_VertexID
-                    (ExecutionModel.Vertex, StreamVariableType.Input, "SV_INSTANCEID") => AddBuiltin(variable, BuiltIn.InstanceIndex),
-                    (ExecutionModel.Vertex, StreamVariableType.Input, "SV_VERTEXID") => AddBuiltin(variable, BuiltIn.VertexIndex),
-                    (not ExecutionModel.Vertex, StreamVariableType.Input, "SV_INSTANCEID" or "SV_VERTEXID") => false,
-                    // SV_IsFrontFace
-                    (ExecutionModel.Fragment, StreamVariableType.Input, "SV_ISFRONTFACE") => AddBuiltin(variable, BuiltIn.FrontFacing),
-                    // SV_PrimitiveID
-                    (ExecutionModel.Geometry, StreamVariableType.Output, "SV_PRIMITIVEID") => AddBuiltin(variable, BuiltIn.PrimitiveId),
-                    (not ExecutionModel.Vertex, StreamVariableType.Input, "SV_PRIMITIVEID") => AddBuiltin(variable, BuiltIn.PrimitiveId),
-                    // Tessellation
-                    (ExecutionModel.TessellationControl or ExecutionModel.TessellationEvaluation, _, "SV_TESSFACTOR") => AddBuiltin(variable, BuiltIn.TessLevelOuter),
-                    (ExecutionModel.TessellationControl or ExecutionModel.TessellationEvaluation, _, "SV_INSIDETESSFACTOR") => AddBuiltin(variable, BuiltIn.TessLevelInner),
-                    (ExecutionModel.TessellationEvaluation, StreamVariableType.Input, "SV_DOMAINLOCATION") => AddBuiltin(variable, BuiltIn.TessCoord),
-                    (ExecutionModel.TessellationControl, StreamVariableType.Input, "SV_OUTPUTCONTROLPOINTID") => AddBuiltin(variable, BuiltIn.InvocationId),
-                    // Compute shaders
-                    (ExecutionModel.GLCompute, StreamVariableType.Input, "SV_GROUPID") => AddBuiltin(variable, BuiltIn.WorkgroupId),
-                    (ExecutionModel.GLCompute, StreamVariableType.Input, "SV_GROUPINDEX") => AddBuiltin(variable, BuiltIn.LocalInvocationIndex),
-                    (ExecutionModel.GLCompute, StreamVariableType.Input, "SV_GROUPTHREADID") => AddBuiltin(variable, BuiltIn.LocalInvocationId),
-                    (ExecutionModel.GLCompute, StreamVariableType.Input, "SV_DISPATCHTHREADID") => AddBuiltin(variable, BuiltIn.GlobalInvocationId),
-                    (_, _, {} semantic2) when semantic2.StartsWith("SV_") => throw new NotImplementedException($"System-value Semantic not implemented: {semantic2} for stage {executionModel} as {type}"),
-                    _ => false,
-                };
-            }
+            bool ProcessBuiltinsDecoration(int variable, StreamVariableType type, string? semantic, ref SymbolType symbolType) =>
+                BuiltinProcessor.ProcessBuiltinsDecoration(context, executionModel, variable, type, semantic, ref symbolType);
 
             var entryPointFunctionType = (FunctionType)entryPoint.Type;
             // TODO: check all parameters instead of hardcoded 0
