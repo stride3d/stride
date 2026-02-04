@@ -46,7 +46,7 @@ namespace Stride.Graphics.Font
             return new DistanceFieldParams(pixelRange, pad, DefaultEncode);
         }
 
-        private GlyphKey MakeKey(char c, DistanceFieldParams p) => new(c, p.PixelRange, p.Pad);
+        private static GlyphKey MakeKey(char c, DistanceFieldParams p) => new(c, p.PixelRange, p.Pad);
 
         // --- Generator input: discriminated union (coverage today, outline later) ---
         private abstract record GlyphInput;
@@ -80,17 +80,11 @@ namespace Stride.Graphics.Font
         /// Composite generator: CoverageInput -> SDF (existing path), OutlineInput -> MSDF (Remora).
         /// Keeps the scheduling/upload pipeline unchanged while we add MSDF support.
         /// </summary>
-        private sealed class SdfOrMsdfGenerator : IDistanceFieldGenerator
+        private sealed class SdfOrMsdfGenerator(IGlyphMsdfRasterizer msdf, MsdfEncodeSettings msdfEncode) : IDistanceFieldGenerator
         {
             private readonly SdfCoverageGenerator sdf = new();
-            private readonly IGlyphMsdfRasterizer msdf;
-            private readonly MsdfEncodeSettings msdfEncode;
-
-            public SdfOrMsdfGenerator(IGlyphMsdfRasterizer msdf, MsdfEncodeSettings msdfEncode)
-            {
-                this.msdf = msdf ?? throw new ArgumentNullException(nameof(msdf));
-                this.msdfEncode = msdfEncode;
-            }
+            private readonly IGlyphMsdfRasterizer msdf = msdf ?? throw new ArgumentNullException(nameof(msdf));
+            private readonly MsdfEncodeSettings msdfEncode = msdfEncode;
 
             public CharacterBitmapRgba Generate(GlyphInput input, DistanceFieldParams p)
                 => input switch
