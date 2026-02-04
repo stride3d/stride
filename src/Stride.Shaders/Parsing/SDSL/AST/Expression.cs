@@ -120,6 +120,33 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
 
         Span<int> compiledParams = stackalloc int[functionType.ParameterTypes.Count];
         
+        ProcessInputArguments(table, compiler, functionType, compiledParams, functionSymbol.MethodDefaultParameters);
+
+        int? instance = null;
+        if (MemberCall != null)
+        {
+            instance = MemberCall.Value.Id;
+        }
+        else if (functionSymbol.MemberAccessWithImplicitThis is { } thisType)
+        {
+            instance = builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
+        }
+
+        if (instance is int instanceId)
+            // Note: we make a copy to not mutate original
+            functionSymbol = functionSymbol with { IdRef = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(functionType), context.Bound++, instanceId, functionSymbol.IdRef)).ResultId };
+        
+        var result = builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
+
+        ProcessOutputArguments(table, compiler, functionType, compiledParams);
+
+        return result;
+    }
+
+    protected void ProcessInputArguments(SymbolTable table, CompilerUnit compiler, FunctionType functionType, Span<int> compiledParams, MethodSymbolDefaultParameters? methodDefaultParameters = null)
+    {
+        var (builder, context) = compiler;
+        
         if (arguments.Values.Count > functionType.ParameterTypes.Count)
             throw new InvalidOperationException($"Function {Name} was called with {arguments.Values.Count} arguments but only {functionType.ParameterTypes.Count} expected");
 
@@ -151,21 +178,21 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
         // Find default parameters decoration (if any)
         var missingParameters = functionType.ParameterTypes.Count - arguments.Values.Count;
         var defaultParameters = 0;
-        if (missingParameters > 0 && functionSymbol.MethodDefaultParameters is {} methodDefaultParameters)
+        if (missingParameters > 0 && methodDefaultParameters is {} methodDefaultParametersValue)
         {
             // Is there enough parameters now?
-            if (missingParameters <= methodDefaultParameters.DefaultValues.Length)
+            if (missingParameters <= methodDefaultParametersValue.DefaultValues.Length)
             {
                 // Import missing parameters
                 for (int i = 0; i < missingParameters; ++i)
                 {
                     var paramDefinition = functionType.ParameterTypes[arguments.Values.Count + i];
 
-                    var source = methodDefaultParameters.DefaultValues[^(missingParameters - i)];
+                    var source = methodDefaultParametersValue.DefaultValues[^(missingParameters - i)];
                     // Import in current buffer
-                    if (methodDefaultParameters.SourceContext != context)
+                    if (methodDefaultParametersValue.SourceContext != context)
                     {
-                        var bufferForConstant = methodDefaultParameters.SourceContext.ExtractConstantAsSpirvBuffer(source);
+                        var bufferForConstant = methodDefaultParametersValue.SourceContext.ExtractConstantAsSpirvBuffer(source);
                         source = context.InsertWithoutDuplicates(null, bufferForConstant);
                     }
                     
@@ -181,22 +208,11 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
         
         if (missingParameters > 0)
             throw new InvalidOperationException($"Function {Name} was called with {arguments.Values.Count} arguments but there was {(defaultParameters > 0 ? $"between {functionType.ParameterTypes.Count - defaultParameters} and {functionType.ParameterTypes.Count}" : functionType.ParameterTypes.Count)} expected");
-
-        int? instance = null;
-        if (MemberCall != null)
-        {
-            instance = MemberCall.Value.Id;
-        }
-        else if (functionSymbol.MemberAccessWithImplicitThis is { } thisType)
-        {
-            instance = builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
-        }
-
-        if (instance is int instanceId)
-            // Note: we make a copy to not mutate original
-            functionSymbol = functionSymbol with { IdRef = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(functionType), context.Bound++, instanceId, functionSymbol.IdRef)).ResultId };
-        
-        var result = builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
+    }
+    
+    protected void ProcessOutputArguments(SymbolTable table, CompilerUnit compiler, FunctionType functionType, Span<int> compiledParams)
+    {
+        var (builder, context) = compiler;
 
         for (int i = 0; i < arguments.Values.Count; i++)
         {
@@ -215,8 +231,32 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
                 builder.Insert(new OpStore(paramTarget.Id, loadedResult, null, []));
             }
         }
+    }
 
-        return result;
+    // Note: int.MaxValue means incompatible
+    public static int OverloadScore(FunctionType functionType, int defaultParameters, ShaderExpressionList arguments)
+    {
+        // Check argument count
+        if (arguments.Values.Count > functionType.ParameterTypes.Count || arguments.Values.Count < functionType.ParameterTypes.Count + defaultParameters)
+            return int.MaxValue;
+                
+        // Check if argument can be converted
+        var score = 0;
+        for (var index = 0; index < arguments.Values.Count; index++)
+        {
+            var argument = arguments.Values[index];
+            var parameter =  functionType.ParameterTypes[index];
+            var argScore = SpirvBuilder.CanConvertScore(argument.ValueType, parameter.Type.GetValueType());
+            if (argScore == int.MaxValue)
+                return int.MaxValue;
+
+            score += argScore;
+        }
+                
+        // method with fewer optional parameters that need to be filled in by default values is generally preferred
+        score += functionType.ParameterTypes.Count - arguments.Values.Count;
+
+        return score;
     }
 
     private bool TryResolveFunctionSymbol(SymbolTable table, out Symbol functionSymbol)
@@ -240,36 +280,9 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
         // We just care about overload (different signature), not override (base/this/most derived) as this will be resolved in ShaderMixer later
         if (functionSymbol.Type is FunctionGroupType)
         {
-            // Note: int.MaxValue means incompatible
-            static int OverloadScore(Symbol functionSymbol, ShaderExpressionList arguments)
-            {
-                // Check argument count
-                var functionType = (FunctionType)functionSymbol.Type;
-                if (arguments.Values.Count > functionType.ParameterTypes.Count || arguments.Values.Count < functionType.ParameterTypes.Count + (functionSymbol.MethodDefaultParameters?.DefaultValues.Length ?? 0))
-                    return int.MaxValue;
-                
-                // Check if argument can be converted
-                var score = 0;
-                for (var index = 0; index < arguments.Values.Count; index++)
-                {
-                    var argument = arguments.Values[index];
-                    var parameter =  functionType.ParameterTypes[index];
-                    var argScore = SpirvBuilder.CanConvertScore(argument.ValueType, parameter.Type.GetValueType());
-                    if (argScore == int.MaxValue)
-                        return int.MaxValue;
-
-                    score += argScore;
-                }
-                
-                // method with fewer optional parameters that need to be filled in by default values is generally preferred
-                score += functionType.ParameterTypes.Count - arguments.Values.Count;
-
-                return score;
-            }
-            
             var accessibleMethods = functionSymbol.GroupMembers
                 // Check overload score
-                .Select(x => (Score: OverloadScore(x, arguments), Symbol: x))
+                .Select(x => (Score: OverloadScore((FunctionType)x.Type, x.MethodDefaultParameters?.DefaultValues.Length ?? 0, arguments), Symbol: x))
                 // Remove non-applicable methods
                 .Where(x => x.Score != int.MaxValue)
                 // Group by signature/score (we assume method with exact same signature means they are overriding each other, but we might need to do a better check using override info)

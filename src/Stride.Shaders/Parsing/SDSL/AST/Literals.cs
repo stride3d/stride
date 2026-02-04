@@ -174,7 +174,7 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
         (var compositeCount, var totalCount, var expectedElementType) = Type switch
         {
             VectorType v => (v.Size, v.Size, v.BaseType),
-            MatrixType m => (m.Rows, m.Columns * m.Rows, m.BaseType),
+            MatrixType m => (m.Columns, m.Columns * m.Rows, m.BaseType),
             ArrayType t => (t.Size, t.Size, t.BaseType),
         };
 
@@ -199,7 +199,7 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
                 {
                     SpirvValue extractedValue = valueType switch
                     {
-                        MatrixType m => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(sourceElementType), context.Bound++, value.Id, [j / m.Rows, j % m.Rows]))),
+                        MatrixType m => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(sourceElementType), context.Bound++, value.Id, [j / m.Columns, j % m.Rows]))),
                         VectorType v => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(sourceElementType), context.Bound++, value.Id, [j]))),
                         ScalarType s => value,
                     };

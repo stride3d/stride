@@ -1,13 +1,40 @@
-// PSMain(ExpectedResult=#00FFFF00)
+// PSMain(ExpectedResult=#00FFFF00, cbuffer.Test=(Test1=0))
+// PSMain(ExpectedResult=#9CB8D400, cbuffer.Test=(Test1=1))
+// PSMain(ExpectedResult=#04060809, cbuffer.Test=(Test1=2))
+// PSMain(ExpectedResult=#FF000000, cbuffer.Test=(Test1=3))
 
 namespace Stride.Shaders.Tests;
 
 shader Intrinsics
 {
     stream float4 ColorTarget : SV_Target0;
+    
+    cbuffer Test
+    {
+        int Test1;
+    }
 
     void PSMain()
     {
-        streams.ColorTarget = float4(sin(0), cos(0), sin(radians(90)), cos(radians(90)));
+        streams.ColorTarget = 0.0;
+        if (Test1 == 0)
+            streams.ColorTarget = float4(sin(0), cos(0), sin(radians(90)), cos(radians(90)));
+        else if (Test1 == 1)
+        {
+            float2x4 a1 = float2x4(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);
+            float4x3 a2 = float4x3(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0);
+            float2x3 a3 = mul(a1, a2) / 255.0;
+            streams.ColorTarget = float4(a3[0] + a3[1], 0.0);
+        }
+        else if (Test1 == 2)
+        {
+            // Test auto-generated loop over matrix type
+            float2x4 a = min(float2x4(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0), 6.0f) / 255.0;
+            streams.ColorTarget = a[0] + a[1];
+        }
+        else if (Test1 == 3)
+        {
+            streams.ColorTarget = normalize(float4(0.1, 0.0, 0.0, 0.0));
+        }
     }
 }

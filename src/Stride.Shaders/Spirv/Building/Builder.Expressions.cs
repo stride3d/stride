@@ -362,22 +362,32 @@ public partial class SpirvBuilder
 
         var conversionScore = (valueType, castType) switch
         {
+            // Same size
+            (ScalarType, ScalarType) => 0,
+            (VectorType v1, VectorType v2) when v1.Size == v2.Size => 0,
+            (MatrixType m1, MatrixType m2) when m1.Rows == m2.Rows && m1.Columns == m2.Columns => 0,
+
             // Promotion scalar to scalar, vector or matrix (replicate value)
-            (ScalarType, ScalarType or VectorType or MatrixType) => 1,
+            (ScalarType, VectorType or MatrixType) => 1,
+            
             // Truncation
-            (VectorType or MatrixType, ScalarType) => 1,
-            // Vector cast
-            (VectorType v1, VectorType v2) when v1.Size == v2.Size => 1,
-            (VectorType v1, VectorType v2) when v1.Size < v2.Size => int.MaxValue,
             // Emit warning? (warning: implicit truncation of vector type)
-            (VectorType v1, VectorType v2) when v1.Size > v2.Size => 1,
-            (VectorType v1, MatrixType m2) when v1.Size != m2.Rows * m2.Columns => int.MaxValue,
-            (VectorType v1, MatrixType m2) when v1.Size == m2.Rows * m2.Columns => 1,
-            (MatrixType m1, VectorType v2) when v2.Size != m1.Rows * m1.Columns => int.MaxValue,
-            // Note: conversions such as float2x2=>float4 are allowed but not implemented in Convert()
+            (VectorType or MatrixType, ScalarType) => 13,
+            (VectorType v1, VectorType v2) when v1.Size > v2.Size => 13,
+            (MatrixType m1, MatrixType m2) when m1.Rows > m2.Rows && m1.Columns > m2.Columns => 13,
+            
+            // Note: conversions such as float2x2<=>float4 are allowed but not implemented in Convert()
             (MatrixType m1, VectorType v2) when v2.Size == m1.Rows * m1.Columns => 1,
+            (VectorType v1, MatrixType m2) when v1.Size == m2.Rows * m2.Columns => 1,
+            
+            // vector<=>matrix but size doesn't match (impossible)
+            (VectorType v1, MatrixType m2) when v1.Size != m2.Rows * m2.Columns => int.MaxValue,
+            (MatrixType m1, VectorType v2) when v2.Size != m1.Rows * m1.Columns => int.MaxValue,
+            
+            // Expansion not from scalar (impossible)
+            (VectorType v1, VectorType v2) when v1.Size < v2.Size => int.MaxValue,
             (MatrixType m1, MatrixType m2) when m1.Rows < m2.Rows || m1.Columns < m2.Columns => int.MaxValue,
-            (MatrixType m1, MatrixType m2) when m1.Rows >= m2.Rows && m1.Columns >= m2.Columns => 1,
+            
             _ => int.MaxValue
         };
 
@@ -557,8 +567,8 @@ public partial class SpirvBuilder
                 valueType = v2;
                 break;
             case (ScalarType, MatrixType m2):
-                result = Insert(new OpCompositeConstruct(context.GetOrRegister(new VectorType(m2.BaseType, m2.Columns)), context.Bound++, new LiteralArray<int>(Enumerable.Repeat(result, m2.Columns).ToArray())));
-                result = Insert(new OpCompositeConstruct(context.GetOrRegister(m2), context.Bound++, new LiteralArray<int>(Enumerable.Repeat(result, m2.Rows).ToArray())));
+                result = Insert(new OpCompositeConstruct(context.GetOrRegister(new VectorType(m2.BaseType, m2.Rows)), context.Bound++, new LiteralArray<int>(Enumerable.Repeat(result, m2.Rows).ToArray())));
+                result = Insert(new OpCompositeConstruct(context.GetOrRegister(m2), context.Bound++, new LiteralArray<int>(Enumerable.Repeat(result, m2.Columns).ToArray())));
                 valueType = m2;
                 break;
             case (VectorType, MatrixType m2):

@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
@@ -20,6 +21,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
             .Select(ParseInstrinsics);
 
         context.RegisterSourceOutput(file, GenerateIntrinsicsData);
+        context.RegisterSourceOutput(file, GenerateIntrinsicsCall);
 
         // context.RegisterSourceOutput(file, (spc, ns) => 
         // {
@@ -110,6 +112,70 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
 
         spc.AddSource(
             "IntrinsicsData.g.cs",
+            SourceText.From(
+                SyntaxFactory.ParseCompilationUnit(builder.ToString())
+                .NormalizeWhitespace()
+                .ToFullString(),
+                Encoding.UTF8
+            )
+        );
+    }
+
+    static string GenerateParameters(List<IntrinsicParameter> parameters)
+    {
+        return string.Concat(parameters.Where(x => x is not null).Select(p => $", SpirvValue {p.Name.Name}"));
+    }
+
+    static string GenerateArguments(List<IntrinsicParameter> parameters)
+    {
+        return string.Concat(parameters.Where(x => x is not null).Select((p, i) => $", new SpirvValue(compiledParams[{i}], context.GetOrRegister(functionType.ParameterTypes[{i}].Type))"));
+    }
+    
+    static string CapitalizeFirstLetter(string s) => char.ToUpper(s[0]) + s[1..];
+    
+    static void GenerateIntrinsicsCall(SourceProductionContext spc, EquatableList<NamespaceDeclaration> namespaces)
+    {
+        var builder = new StringBuilder();
+
+        builder.AppendLine("""
+                           namespace Stride.Shaders.Parsing.SDSL;
+
+                           using System.Collections.Frozen;
+                           using Stride.Shaders.Core;
+                           using Stride.Shaders.Spirv.Building;
+                           using Stride.Shaders.Parsing.Analysis;
+                           
+                           """);
+
+        foreach (var ns in namespaces.Items.Where(x => x.Name.Name == "Intrinsics"))
+        {
+            builder.AppendLine($"public abstract class {ns.Name.Name}Declarations");
+            builder.AppendLine("{");
+            foreach (var intrinsicGroup in ns.Intrinsics.Items.GroupBy(i => i.Name.Name).Where(x => x.Key is not null && x.Key is not "printf"))
+            {
+                foreach (var overload in intrinsicGroup.Where(i => i is not null).GroupBy(x => GenerateParameters(x.Parameters.Items)))
+                {
+                    builder.AppendLine($"public virtual SpirvValue Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(SpirvContext context, SpirvBuilder builder, FunctionType functionType{overload.Key}) => throw new NotImplementedException();");
+                }
+            }
+
+            builder.AppendLine("public SpirvValue CompileIntrinsic(SymbolTable table, CompilerUnit compiler, string name, FunctionType functionType, Span<int> compiledParams) {");
+            builder.AppendLine("var (builder, context) = compiler;");
+            builder.AppendLine("return (name, compiledParams.Length) switch {");
+            foreach (var intrinsicGroup in ns.Intrinsics.Items.GroupBy(i => i.Name.Name).Where(x => x.Key is not null && x.Key is not "printf"))
+            {
+                foreach (var overload in intrinsicGroup.Where(i => i is not null).GroupBy(x => GenerateParameters(x.Parameters.Items)))
+                {
+                    builder.AppendLine($"(\"{intrinsicGroup.Key}\", {overload.First().Parameters.Items.Count}) => Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(context, builder, functionType{GenerateArguments(overload.First().Parameters.Items)}),");
+                }
+            }
+            builder.AppendLine("};");
+            builder.AppendLine("}");
+        }
+        builder.AppendLine("}");
+
+        spc.AddSource(
+            "IntrinsicsCall.g.cs",
             SourceText.From(
                 SyntaxFactory.ParseCompilationUnit(builder.ToString())
                 .NormalizeWhitespace()

@@ -8,6 +8,9 @@ using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders;
 using System.Text.Json;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Parsing.SDSL.AST;
+using Stride.Shaders.Spirv.Building;
 
 
 // Console.WriteLine(Spv2DXIL.spirv_to_dxil_get_version());
@@ -25,9 +28,19 @@ using Stride.Shaders.Core;
 // File.WriteAllText("test.spvdis", source);
 
 
-var i = IntrinsicsDefinitions.Intrinsics["saturate"];
-
-Console.WriteLine(i);
+var table = new SymbolTable(new SpirvContext());
+foreach (var i in IntrinsicsDefinitions.Intrinsics)
+{
+    try
+    {
+        var test = new IntrinsicCall(new(i.Key, default), new ShaderExpressionList(default), default);
+        test.ProcessSymbol(table);
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine($"{i.Key}: couldn't process {e}");
+    }
+}
 
 // Examples.TryAllFiles();
 // Examples.CreateShader();
