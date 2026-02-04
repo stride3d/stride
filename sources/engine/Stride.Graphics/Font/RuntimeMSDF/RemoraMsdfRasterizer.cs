@@ -50,6 +50,8 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             // 1) Convert neutral outline -> Remora shape
             var shape = BuildShape(outline, FlipOutlineYAxis, out var minX, out var minY, out var maxX, out var maxY);
 
+            shape.Normalize();
+
             if (shape.Contours.Count == 0)
                 return new CharacterBitmapRgba(totalWidth, totalHeight);
 

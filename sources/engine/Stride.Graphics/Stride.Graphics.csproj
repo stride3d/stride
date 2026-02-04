@@ -43,6 +43,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
     <ProjectReference Include="..\Stride\Stride.csproj" />
+    <PackageReference Include="MSDF-Sharp.Core" />
     <PackageReference Include="Remora.MSDFGen" />
     <PackageReference Include="System.Memory" />
     <PackageReference Include="WinPixEventRuntime" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />

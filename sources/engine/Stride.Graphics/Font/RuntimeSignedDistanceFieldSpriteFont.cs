@@ -109,7 +109,7 @@ namespace Stride.Graphics.Font
 
         // Swap MSDF backend here without touching the runtime font pipeline.
         private readonly IDistanceFieldGenerator generator =
-            new SdfOrMsdfGenerator(new RemoraMsdfRasterizer(), MsdfEncodeSettings.Default);
+            new SdfOrMsdfGenerator(new MsdfGenCoreRasterizer(), MsdfEncodeSettings.Default);
 
         // Runtime SDF glyph cache key (future-proof for multiple ranges/modes)
         private readonly Dictionary<GlyphKey, CharacterSpecification> characters = [];
