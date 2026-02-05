@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using SymbolType = Stride.Shaders.Core.SymbolType;
@@ -40,15 +41,20 @@ public class IntrinsicTemplateExpander(FrozenDictionary<string, IntrinsicDefinit
     public record struct IntrinsicOverload(FunctionType Type, List<(int SourceArgument, int TemplateIndex)>? AutoMatrixLoopLocations, int AutoMatrixLoopSize);
     Dictionary<string, List<IntrinsicOverload>> intrinsicDefinitionsCache = new();
 
-    public List<IntrinsicOverload> GetOrGenerateIntrinsicsDefinition(string name)
+    public bool TryGetOrGenerateIntrinsicsDefinition(string name, [MaybeNullWhen(false)] out List<IntrinsicOverload> result)
     {
         lock (intrinsicDefinitionsCache)
         {
-            if (intrinsicDefinitionsCache.TryGetValue(name, out var result))
-                return result;
+            if (intrinsicDefinitionsCache.TryGetValue(name, out result))
+                return true;
+
+            if (!intrinsicsDefinitions.TryGetValue(name, out var intrinsicDefinitions))
+            {
+                result = null;
+                return false;
+            }
 
             result = new();
-            var intrinsicDefinitions = intrinsicsDefinitions[name];
             foreach (var intrinsicDefinition in intrinsicDefinitions)
             {
                 List<BaseTypePermutationGenerator> baseTypePermutationGenerators = new();
@@ -314,7 +320,7 @@ public class IntrinsicTemplateExpander(FrozenDictionary<string, IntrinsicDefinit
             }
             
             intrinsicDefinitionsCache.Add(name, result);
-            return result;
+            return true;
         }
     }
     

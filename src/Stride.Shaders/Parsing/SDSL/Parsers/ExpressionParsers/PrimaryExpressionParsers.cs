@@ -53,14 +53,7 @@ public record struct PrimaryParsers : IParser<Expression>
             Parsers.Spaces0(ref scanner, result, out _);
             if (Tokens.Char(')', ref scanner, advance: true))
             {
-                if (IntrinsicsDefinitions.Intrinsics.TryGetValue(identifier.Name, out var intrinsicDefinitions))
-                {
-                    parsed = new IntrinsicCall(identifier, parameters, scanner[position..scanner.Position]);
-                }
-                else
-                {
-                    parsed = new MethodCall(identifier, parameters, scanner[position..scanner.Position]);
-                }
+                parsed = new MethodCall(identifier, parameters, scanner[position..scanner.Position]);
                 return true;
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0018, scanner[scanner.Position], scanner.Memory));

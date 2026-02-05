@@ -33,7 +33,7 @@ foreach (var i in IntrinsicsDefinitions.Intrinsics)
 {
     try
     {
-        var test = new IntrinsicCall(new(i.Key, default), new ShaderExpressionList(default), default);
+        var test = new MethodCall(new(i.Key, default), new ShaderExpressionList(default), default);
         test.ProcessSymbol(table);
     }
     catch (Exception e)

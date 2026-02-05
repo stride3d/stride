@@ -7,53 +7,49 @@ using System;
 
 namespace Stride.Shaders.Parsing.SDSL;
 
-public class IntrinsicCall(Identifier name, ShaderExpressionList arguments, TextLocation info) : MethodCall(name, arguments, info)
+public class IntrinsicCallHelper
 {
     private static IntrinsicTemplateExpander TemplateExpander { get; } = new(IntrinsicsDefinitions.Intrinsics);
     private IntrinsicTemplateExpander.IntrinsicOverload BestOverload { get; set; }
     
-    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    public static bool TryResolveIntrinsic(SymbolTable table, string name, ShaderExpressionList arguments, out IntrinsicTemplateExpander.IntrinsicOverload bestOverload)
     {
-        // Process arguments
-        ProcessParameterSymbols(table);
+        bestOverload = default;
+        if (!TemplateExpander.TryGetOrGenerateIntrinsicsDefinition(name, out var overloads))
+        {
+            return false;
+        }
 
-        var overloads = TemplateExpander.GetOrGenerateIntrinsicsDefinition(Name.Name);
-        
         // Figure out the best overload
-        BestOverload = default;
+        bestOverload = default;
         var bestOverloadScore = int.MaxValue;
         foreach (var overload in overloads)
         {
-            var overloadScore = OverloadScore(overload.Type, 0, Arguments);
+            var overloadScore = MethodCall.OverloadScore(overload.Type, 0, arguments);
             if (overloadScore < bestOverloadScore)
             {
                 // Better overload
-                BestOverload = overload;
+                bestOverload = overload;
                 bestOverloadScore = overloadScore;
                 // We won't get better than that (perfect match), stop there
                 if (overloadScore == 0)
                     break;
             }
         }
-        
-        if (BestOverload.Type == null)
-            throw new InvalidOperationException($"No overload found for intrinsic {Name} with arguments {Arguments}");
-        
-        // Now we know the return type
-        Type = BestOverload.Type.ReturnType;
+
+        if (bestOverloadScore == int.MaxValue)
+            return false;
+
+        return true;
     }
 
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    public static SpirvValue CompileIntrinsic(SymbolTable table, CompilerUnit compiler, string name, IntrinsicTemplateExpander.IntrinsicOverload bestOverload, Span<int> compiledParams)
     {
-        var functionType = BestOverload.Type;
+        var functionType = bestOverload.Type;
         
-        Span<int> compiledParams = stackalloc int[functionType.ParameterTypes.Count];
-        
-        ProcessInputArguments(table, compiler, functionType, compiledParams);
-
         // Check if we can automatically handle matrix (SPIR-V doesn't but HLSL does allow matrix on most types)
         SpirvValue result;
-        if (BestOverload.AutoMatrixLoopLocations != null)
+        if (bestOverload.AutoMatrixLoopLocations != null)
         {
             var (builder, context) = compiler;
 
@@ -61,10 +57,10 @@ public class IntrinsicCall(Identifier name, ShaderExpressionList arguments, Text
             
             // Extract rows
             bool isReturnUsingLoop = false;
-            Span<int> vectorValues = stackalloc int[BestOverload.AutoMatrixLoopLocations.Count * BestOverload.AutoMatrixLoopSize];
-            for (var index = 0; index < BestOverload.AutoMatrixLoopLocations.Count; index++)
+            Span<int> vectorValues = stackalloc int[bestOverload.AutoMatrixLoopLocations.Count * bestOverload.AutoMatrixLoopSize];
+            for (var index = 0; index < bestOverload.AutoMatrixLoopLocations.Count; index++)
             {
-                var location = BestOverload.AutoMatrixLoopLocations[index];
+                var location = bestOverload.AutoMatrixLoopLocations[index];
 
                 if (location.TemplateIndex != 0)
                     throw new InvalidOperationException("Matrix loop should only be generated for HLSL row parameter");
@@ -83,36 +79,36 @@ public class IntrinsicCall(Identifier name, ShaderExpressionList arguments, Text
 
                 var parameterType = (MatrixType)functionType.ParameterTypes[location.SourceArgument - 1].Type;
                 var vectorType = new VectorType(parameterType.BaseType, parameterType.Rows);
-                for (int col = 0; col < BestOverload.AutoMatrixLoopSize; col++)
+                for (int col = 0; col < bestOverload.AutoMatrixLoopSize; col++)
                 {
-                    vectorValues[index * BestOverload.AutoMatrixLoopSize + col] = builder.Insert(new OpCompositeExtract(context.GetOrRegister(vectorType), context.Bound++, compiledParams[location.SourceArgument - 1], [col])).ResultId;
+                    vectorValues[index * bestOverload.AutoMatrixLoopSize + col] = builder.Insert(new OpCompositeExtract(context.GetOrRegister(vectorType), context.Bound++, compiledParams[location.SourceArgument - 1], [col])).ResultId;
                 }
                 
                 innerFunctionType.ParameterTypes[location.SourceArgument - 1] = innerFunctionType.ParameterTypes[location.SourceArgument - 1] with { Type = vectorType }; 
             }
             
             // Call core function
-            Span<int> results = stackalloc int[BestOverload.AutoMatrixLoopSize];
-            for (int col = 0; col < BestOverload.AutoMatrixLoopSize; col++)
+            Span<int> results = stackalloc int[bestOverload.AutoMatrixLoopSize];
+            for (int col = 0; col < bestOverload.AutoMatrixLoopSize; col++)
             {
-                for (var index = 0; index < BestOverload.AutoMatrixLoopLocations.Count; index++)
+                for (var index = 0; index < bestOverload.AutoMatrixLoopLocations.Count; index++)
                 {
-                    var location = BestOverload.AutoMatrixLoopLocations[index];
+                    var location = bestOverload.AutoMatrixLoopLocations[index];
                     if (location.SourceArgument == 0)
                         continue;
-                    compiledParams[location.SourceArgument - 1] = vectorValues[index * BestOverload.AutoMatrixLoopSize + col];
+                    compiledParams[location.SourceArgument - 1] = vectorValues[index * bestOverload.AutoMatrixLoopSize + col];
                 }
                 
-                results[col] = IntrinsicImplementations.Instance.CompileIntrinsic(table, compiler, Name.Name, innerFunctionType, compiledParams).Id;
+                results[col] = IntrinsicImplementations.Instance.CompileIntrinsic(table, compiler, name, innerFunctionType, compiledParams).Id;
             }
             
             // Rebuild return value
             if (isReturnUsingLoop)
             {
-                if (Type is not MatrixType)
+                if (functionType.ReturnType is not MatrixType)
                     throw new InvalidOperationException("Return type should be a matrix");
                 
-                result = new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(Type), context.Bound++, [..results])));
+                result = new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(functionType.ReturnType), context.Bound++, [..results])));
             }
             else
             {
@@ -122,10 +118,8 @@ public class IntrinsicCall(Identifier name, ShaderExpressionList arguments, Text
         else
         {
             // No auto matrix loop
-            result = IntrinsicImplementations.Instance.CompileIntrinsic(table, compiler, Name.Name, functionType, compiledParams);
+            result = IntrinsicImplementations.Instance.CompileIntrinsic(table, compiler, name, functionType, compiledParams);
         }
-        
-        ProcessOutputArguments(table, compiler, functionType, compiledParams);
 
         return result;
     }

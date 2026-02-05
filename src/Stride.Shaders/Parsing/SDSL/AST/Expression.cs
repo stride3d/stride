@@ -86,15 +86,27 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
     public SpirvValue? MemberCall { get; set; }
 
     public Symbol ResolvedFunctionSymbol { get; set; }
+
+    private IntrinsicTemplateExpander.IntrinsicOverload? resolvedIntrinsicOverload;
     
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         ProcessParameterSymbols(table);
-        if (!TryResolveFunctionSymbol(table, out var functionSymbol))
-            return;
 
-        var functionType = (FunctionType)functionSymbol.Type;
-        Type = functionType.ReturnType;
+        if (TryResolveFunctionSymbol(table, out var functionSymbol))
+        {
+            var functionType = (FunctionType)functionSymbol.Type;
+            Type = functionType.ReturnType;
+        }
+        else if (IntrinsicCallHelper.TryResolveIntrinsic(table, name, arguments, out var resolvedIntrinsicOverloadValue))
+        {
+            resolvedIntrinsicOverload = resolvedIntrinsicOverloadValue;
+            Type = resolvedIntrinsicOverload.Value.Type.ReturnType;
+        }
+        else
+        {
+            table.AddError(new(info, $"Can't find a valid method overload or intrinsic to call for {name}({string.Join(", ", arguments)})"));
+        }
 
         ResolvedFunctionSymbol = functionSymbol;
     }
@@ -113,30 +125,36 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
     {
         var (builder, context) = compiler;
 
-        var functionSymbol = LoadedShaderSymbol.ImportSymbol(table, context, ResolvedFunctionSymbol);
-        var functionType = (FunctionType)functionSymbol.Type;
-
-        Type = functionType.ReturnType;
+        var functionSymbol = resolvedIntrinsicOverload != null ? null : LoadedShaderSymbol.ImportSymbol(table, context, ResolvedFunctionSymbol);
+        var functionType = resolvedIntrinsicOverload != null ? resolvedIntrinsicOverload.Value.Type : (FunctionType)functionSymbol.Type;
 
         Span<int> compiledParams = stackalloc int[functionType.ParameterTypes.Count];
         
-        ProcessInputArguments(table, compiler, functionType, compiledParams, functionSymbol.MethodDefaultParameters);
+        ProcessInputArguments(table, compiler, functionType, compiledParams, functionSymbol?.MethodDefaultParameters);
 
-        int? instance = null;
-        if (MemberCall != null)
+        SpirvValue result;
+        if (resolvedIntrinsicOverload != null)
         {
-            instance = MemberCall.Value.Id;
+            result = IntrinsicCallHelper.CompileIntrinsic(table, compiler, name.Name, resolvedIntrinsicOverload.Value, compiledParams);
         }
-        else if (functionSymbol.MemberAccessWithImplicitThis is { } thisType)
+        else
         {
-            instance = builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
-        }
+            int? instance = null;
+            if (MemberCall != null)
+            {
+                instance = MemberCall.Value.Id;
+            }
+            else if (functionSymbol.MemberAccessWithImplicitThis is { } thisType)
+            {
+                instance = builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
+            }
 
-        if (instance is int instanceId)
-            // Note: we make a copy to not mutate original
-            functionSymbol = functionSymbol with { IdRef = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(functionType), context.Bound++, instanceId, functionSymbol.IdRef)).ResultId };
-        
-        var result = builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
+            if (instance is int instanceId)
+                // Note: we make a copy to not mutate original
+                functionSymbol = functionSymbol with { IdRef = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(functionType), context.Bound++, instanceId, functionSymbol.IdRef)).ResultId };
+
+            result = builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
+        }
 
         ProcessOutputArguments(table, compiler, functionType, compiledParams);
 
@@ -273,7 +291,8 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
         }
         else
         {
-            functionSymbol = table.ResolveSymbol(Name);
+            if (!table.TryResolveSymbol(Name, out functionSymbol))
+                return false;
         }
 
         // Choose appropriate method to call
