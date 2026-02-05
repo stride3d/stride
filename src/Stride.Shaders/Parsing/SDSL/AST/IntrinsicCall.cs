@@ -9,7 +9,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public class IntrinsicCall(Identifier name, ShaderExpressionList arguments, TextLocation info) : MethodCall(name, arguments, info)
 {
-    private static IntrinsicTemplateExpander TemplateExpander { get; } = new();
+    private static IntrinsicTemplateExpander TemplateExpander { get; } = new(IntrinsicsDefinitions.Intrinsics);
     private IntrinsicTemplateExpander.IntrinsicOverload BestOverload { get; set; }
     
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)

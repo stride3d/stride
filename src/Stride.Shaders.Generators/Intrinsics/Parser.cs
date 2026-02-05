@@ -405,7 +405,8 @@ internal static class ParsersExtensions
                         scanner.MatchWhiteSpace(advance: true);
                         scanner.IntrinsicParameter(out var parameter);
                         scanner.MatchWhiteSpace(advance: true);
-                        intrinsic.Parameters.Items.Add(parameter);
+                        if (parameter != null)
+                            intrinsic.Parameters.Items.Add(parameter);
                     }
                     while (!scanner.EOF && scanner.Match(",", true));
                     if (scanner.EOF || !scanner.Match(")", true))

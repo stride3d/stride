@@ -42,7 +42,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
         public static partial class IntrinsicsDefinitions
         {
         """);
-
+        
         if (namespaces.Items.Count == 0)
             builder.AppendLine("// No intrinsics parsed");
 
@@ -50,10 +50,10 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
         {
             builder.AppendLine($"public static FrozenDictionary<string, IntrinsicDefinition[]> {ns.Name.Name} {{ get; }} = new Dictionary<string, IntrinsicDefinition[]>()")
             .AppendLine("{");
-            foreach (var intrinsicGroup in ns.Intrinsics.Items.GroupBy(i => i.Name.Name).Where(x => x.Key is not null && x.Key is not "printf"))
+            foreach (var intrinsicGroup in ns.Intrinsics.Items.GroupBy(i => i.Name.Name).Where(x => x.Key is not "printf"))
             {
                 builder.AppendLine($"[\"{intrinsicGroup.Key}\"] = [");
-                foreach (var overload in intrinsicGroup.Where(i => i is not null))
+                foreach (var overload in intrinsicGroup)
                 {
                     builder.Append("new(");
                     // Return type
@@ -74,8 +74,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                     // Parameters
                     builder.AppendLine("[");
                     
-                    if(overload is not null && overload.Parameters.Items is not null)
-                    foreach (var param in overload.Parameters.Items.Where(p => p is not null && p.Name.Name != "..."))
+                    foreach (var param in overload.Parameters.Items.Where(p => p.Name.Name != "..."))
                     {
                         builder.Append("new(");
                         // Qualifier
@@ -121,17 +120,23 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
         );
     }
 
-    static string GenerateParameters(List<IntrinsicParameter> parameters)
+    static string GenerateParameters(List<IntrinsicParameter> parameters, bool optional = false)
     {
-        return string.Concat(parameters.Where(x => x is not null).Select(p => $", SpirvValue {p.Name.Name}"));
+        return string.Concat(parameters.Where(p => p.Name.Name != "...").Select(p => optional ? $", SpirvValue? {p.Name.Name} = null" : $", SpirvValue {p.Name.Name}"));
     }
 
     static string GenerateArguments(List<IntrinsicParameter> parameters)
     {
-        return string.Concat(parameters.Where(x => x is not null).Select((p, i) => $", new SpirvValue(compiledParams[{i}], context.GetOrRegister(functionType.ParameterTypes[{i}].Type))"));
+        return string.Concat(parameters.Where(p => p.Name.Name != "...").Select((p, i) => $", new SpirvValue(compiledParams[{i}], context.GetOrRegister(functionType.ParameterTypes[{i}].Type))"));
     }
     
     static string CapitalizeFirstLetter(string s) => char.ToUpper(s[0]) + s[1..];
+
+    // Group of intrinsics with same parameter names (parameter types might differ)
+    record IntrinsicOverloadGroup(string Name, List<IntrinsicParameter> Parameters, List<IntrinsicDeclaration> Overloads)
+    {
+        public TrieNode<IntrinsicOverloadGroup> TrieNode { get; set; }
+    }
     
     static void GenerateIntrinsicsCall(SourceProductionContext spc, EquatableList<NamespaceDeclaration> namespaces)
     {
@@ -147,35 +152,72 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                            
                            """);
 
-        foreach (var ns in namespaces.Items.Where(x => x.Name.Name == "Intrinsics"))
+        foreach (var ns in namespaces.Items)
         {
+            var intrinsicGroups = new Dictionary<string, Trie<IntrinsicOverloadGroup>>();
+            
+            foreach (var intrinsicGroup in ns.Intrinsics.Items
+                         .Where(x => x.Parameters.Items.All(p => p.Name.Name != "..."))
+                         .GroupBy(i => i.Name.Name))
+            {
+                var trie = new Trie<IntrinsicOverloadGroup>();
+                foreach (var overload in intrinsicGroup.GroupBy(x => GenerateParameters(x.Parameters.Items)))
+                {
+                    var parameters = overload.First().Parameters.Items.Where(p => p.Name.Name != "...").ToList();
+                    var intrinsicOverloadGroup = new IntrinsicOverloadGroup(intrinsicGroup.Key, parameters, overload.ToList());
+                    intrinsicOverloadGroup.TrieNode = trie.Insert(parameters.Select(p => p.Name.Name).ToList(), intrinsicOverloadGroup);
+                }
+                
+                // Try to attach method definition to a parent definition with optional parameter (only if one option)
+                // i.e. (a,b) and (a,b,c) will be grouped into (a,b,c?)
+                // however (a,b) (a,b,c) and (a,b,d) won't be merged as (a,b) has two possible optional parameter branches
+            
+                // To do that, we will simplify node with only a single leaves
+                trie.SimplifySingleLeaves();
+                
+                intrinsicGroups.Add(intrinsicGroup.Key, trie);
+            }
+            
+            
             builder.AppendLine($"public abstract class {ns.Name.Name}Declarations");
             builder.AppendLine("{");
-            foreach (var intrinsicGroup in ns.Intrinsics.Items.GroupBy(i => i.Name.Name).Where(x => x.Key is not null && x.Key is not "printf"))
+
+            foreach (var intrinsicGroup in intrinsicGroups)
             {
-                foreach (var overload in intrinsicGroup.Where(i => i is not null).GroupBy(x => GenerateParameters(x.Parameters.Items)))
+                foreach (var intrinsicOverloadGroup in intrinsicGroup.Value.EnumerateNodes())
                 {
-                    builder.AppendLine($"public virtual SpirvValue Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(SpirvContext context, SpirvBuilder builder, FunctionType functionType{overload.Key}) => throw new NotImplementedException();");
+                    if (intrinsicOverloadGroup.Values.Count == 0)
+                        continue;
+
+                    // Get parameters of first and last overload (the ones with the less and most parameters)
+                    var mandatoryParameters1 = intrinsicOverloadGroup.Values.First().Parameters;
+                    var mandatoryParameters2 = intrinsicOverloadGroup.Values.Last().Parameters;
+                    var optionalParameters = mandatoryParameters2.GetRange(mandatoryParameters1.Count, mandatoryParameters2.Count - mandatoryParameters1.Count);
+                    builder.AppendLine($"public virtual SpirvValue Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(SpirvContext context, SpirvBuilder builder, FunctionType functionType{GenerateParameters(mandatoryParameters1)}{GenerateParameters(optionalParameters, true)}) => throw new NotImplementedException();");
                 }
             }
-
+            
             builder.AppendLine("public SpirvValue CompileIntrinsic(SymbolTable table, CompilerUnit compiler, string name, FunctionType functionType, Span<int> compiledParams) {");
             builder.AppendLine("var (builder, context) = compiler;");
             builder.AppendLine("return (name, compiledParams.Length) switch {");
-            foreach (var intrinsicGroup in ns.Intrinsics.Items.GroupBy(i => i.Name.Name).Where(x => x.Key is not null && x.Key is not "printf"))
+            foreach (var intrinsicGroup in intrinsicGroups)
             {
-                foreach (var overload in intrinsicGroup.Where(i => i is not null).GroupBy(x => GenerateParameters(x.Parameters.Items)))
+                foreach (var intrinsicOverloadGroup in intrinsicGroup.Value.EnumerateNodes())
                 {
-                    builder.AppendLine($"(\"{intrinsicGroup.Key}\", {overload.First().Parameters.Items.Count}) => Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(context, builder, functionType{GenerateArguments(overload.First().Parameters.Items)}),");
+                    foreach (var overload in intrinsicOverloadGroup.Values)
+                    {
+                        builder.AppendLine($"(\"{overload.Name}\", {overload.Parameters.Count}) => Compile{CapitalizeFirstLetter(overload.Name)}(context, builder, functionType{GenerateArguments(overload.Parameters)}),");
+                    }
                 }
             }
+
             builder.AppendLine("};");
             builder.AppendLine("}");
+            builder.AppendLine("}");
         }
-        builder.AppendLine("}");
 
         spc.AddSource(
-            "IntrinsicsCall.g.cs",
+            "IntrinsicsDeclarations.g.cs",
             SourceText.From(
                 SyntaxFactory.ParseCompilationUnit(builder.ToString())
                 .NormalizeWhitespace()

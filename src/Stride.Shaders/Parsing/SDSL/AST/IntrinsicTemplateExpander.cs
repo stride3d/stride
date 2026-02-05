@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using SymbolType = Stride.Shaders.Core.SymbolType;
@@ -7,7 +8,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 /// <summary>
 /// Helps expand intrinsics from <see cref="IntrinsicDefinition"/> to multiple <see cref="FunctionType"/>. 
 /// </summary>
-public class IntrinsicTemplateExpander
+public class IntrinsicTemplateExpander(FrozenDictionary<string, IntrinsicDefinition[]> intrinsicsDefinitions)
 {
     record SizePermutationGenerator(string? Name, List<int> Sizes, List<(int SourceArgument, int TemplateIndex)> Locations)
     {
@@ -47,7 +48,7 @@ public class IntrinsicTemplateExpander
                 return result;
 
             result = new();
-            var intrinsicDefinitions = IntrinsicsDefinitions.Intrinsics[name];
+            var intrinsicDefinitions = intrinsicsDefinitions[name];
             foreach (var intrinsicDefinition in intrinsicDefinitions)
             {
                 List<BaseTypePermutationGenerator> baseTypePermutationGenerators = new();
