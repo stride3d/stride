@@ -2,10 +2,10 @@ using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
-using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
+using Stride.Shaders.Spirv.Processing.Interfaces.Models;
 using static Stride.Shaders.Spirv.Specification;
 
-namespace Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Generation;
+namespace Stride.Shaders.Spirv.Processing.Interfaces.Generation;
 
 /// <summary>
 /// Handles processing of builtin variables and semantics (SV_*).

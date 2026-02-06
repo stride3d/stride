@@ -1,4 +1,4 @@
-namespace Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
+namespace Stride.Shaders.Spirv.Processing.Interfaces.Models;
 
 internal record struct AnalysisResult(
     Dictionary<int, string> Names,

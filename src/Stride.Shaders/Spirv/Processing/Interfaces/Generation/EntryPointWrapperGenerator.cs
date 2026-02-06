@@ -4,27 +4,23 @@ using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
-using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
+using Stride.Shaders.Spirv.Processing.Interfaces.Models;
 using static Stride.Shaders.Spirv.Specification;
 
-namespace Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Generation;
+namespace Stride.Shaders.Spirv.Processing.Interfaces.Generation;
 
 internal static class EntryPointWrapperGenerator
 {
-    public static (int ResultId, string Name) GenerateWrapper(
+    public static (int ResultId, string Name) GenerateWrapper(SpirvContext context,
         NewSpirvBuffer buffer,
-        SpirvContext context,
         Symbol entryPoint,
         ExecutionModel executionModel,
-        string stage,
         AnalysisResult analysisResult,
         LiveAnalysis liveAnalysis,
-        List<(StreamVariableInfo Info, int InterfaceId, SymbolType InterfaceType)> inputStreams,
+        List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> inputStreams,
         List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> outputStreams,
         List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> patchInputStreams,
         List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> patchOutputStreams,
-        List<StructuredTypeMember> inputFields,
-        List<StructuredTypeMember> outputFields,
         StructType inputType,
         StructType outputType,
         StructType streamsType,
@@ -32,8 +28,7 @@ internal static class EntryPointWrapperGenerator
         int? arrayInputSize,
         int? arrayOutputSize,
         int streamsVariableId,
-        Symbol? patchConstantEntryPoint,
-        List<int> entryPointExtraVariables)
+        Symbol? patchConstantEntryPoint)
     {
         var entryPointFunctionType = (FunctionType)entryPoint.Type;
         var voidType = context.GetOrRegister(ScalarType.Void);
@@ -65,6 +60,7 @@ internal static class EntryPointWrapperGenerator
         entryPointFunctionType = (FunctionType)entryPoint.Type;
 
         var builtinVariables = new Dictionary<string, (SymbolType Type, int Id)>();
+        var entryPointExtraVariables = new List<int>();
 
         int GetOrDeclareBuiltInValue(SymbolType type, string semantic)
         {
@@ -131,15 +127,15 @@ internal static class EntryPointWrapperGenerator
 
             int ConvertInputsArray()
             {
-                Span<int> inputLoadValues = stackalloc int[inputFields.Count];
+                Span<int> inputLoadValues = stackalloc int[inputType.Members.Count];
                 for (var inputIndex = 0; inputIndex < inputStreams.Count; inputIndex++)
                 {
                     var stream = inputStreams[inputIndex];
-                    var loadedValue = buffer.Add(new OpLoad(context.GetOrRegister(new ArrayType(stream.Info.Type, arrayInputSize.Value)), context.Bound++, stream.InterfaceId, null, []));
+                    var loadedValue = buffer.Add(new OpLoad(context.GetOrRegister(new ArrayType(stream.Info.Type, arrayInputSize.Value)), context.Bound++, stream.Id, null, []));
                     inputLoadValues[inputIndex] = loadedValue.ResultId;
                 }
 
-                Span<int> inputFieldValues = stackalloc int[inputFields.Count];
+                Span<int> inputFieldValues = stackalloc int[inputType.Members.Count];
                 Span<int> inputValues = stackalloc int[arrayInputSize.Value];
                 for (int arrayIndex = 0; arrayIndex < arrayInputSize; ++arrayIndex)
                 {
@@ -385,7 +381,7 @@ internal static class EntryPointWrapperGenerator
             foreach (var stream in inputStreams)
             {
                 var streamPointer = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Private)), context.Bound++, streamsVariableId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
-                var inputResult = buffer.Add(new OpLoad(context.Types[stream.Info.Type], context.Bound++, stream.InterfaceId, null, [])).ResultId;
+                var inputResult = buffer.Add(new OpLoad(context.Types[stream.Info.Type], context.Bound++, stream.Id, null, [])).ResultId;
                 inputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.InterfaceType, stream.Info.Type, inputResult);
                 buffer.Add(new OpStore(streamPointer, inputResult, null, []));
             }
@@ -411,7 +407,7 @@ internal static class EntryPointWrapperGenerator
         Span<int> entryPointInterfaceVariables = stackalloc int[inputStreams.Count + outputStreams.Count + patchInputStreams.Count + patchOutputStreams.Count + 1 + analysisResult.Variables.Count + analysisResult.CBuffers.Count + analysisResult.Resources.Count + entryPointExtraVariables.Count];
         int pvariableIndex = 0;
         foreach (var inputStream in inputStreams)
-            entryPointInterfaceVariables[pvariableIndex++] = inputStream.InterfaceId;
+            entryPointInterfaceVariables[pvariableIndex++] = inputStream.Id;
         foreach (var outputStream in outputStreams)
             entryPointInterfaceVariables[pvariableIndex++] = outputStream.Id;
         foreach (var inputStream in patchInputStreams)

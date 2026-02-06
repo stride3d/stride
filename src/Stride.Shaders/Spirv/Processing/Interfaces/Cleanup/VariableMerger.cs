@@ -3,10 +3,10 @@ using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
-using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
+using Stride.Shaders.Spirv.Processing.Interfaces.Models;
 using static Stride.Shaders.Spirv.Specification;
 
-namespace Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Cleanup;
+namespace Stride.Shaders.Spirv.Processing.Interfaces.Cleanup;
 
 /// <summary>
 /// Handles merging of variables with the same semantic and propagating streams between shader stages.

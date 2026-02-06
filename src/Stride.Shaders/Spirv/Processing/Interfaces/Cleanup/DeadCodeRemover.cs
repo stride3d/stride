@@ -2,11 +2,11 @@ using System.Runtime.InteropServices;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
-using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Analysis;
-using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
+using Stride.Shaders.Spirv.Processing.Interfaces.Analysis;
+using Stride.Shaders.Spirv.Processing.Interfaces.Models;
 using static Stride.Shaders.Spirv.Specification;
 
-namespace Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Cleanup;
+namespace Stride.Shaders.Spirv.Processing.Interfaces.Cleanup;
 
 /// <summary>
 /// Handles removal of unreferenced code including methods, variables, resources, and types.
@@ -36,7 +36,7 @@ internal static class DeadCodeRemover
     /// Removes unreferenced code including methods, variables, resources, cbuffers, and stream types.
     /// Preserves logical groups and resource groups where at least one member is used.
     /// </summary>
-    public static void RemoveUnreferencedCode(NewSpirvBuffer buffer, SpirvContext context, AnalysisResult analysisResult, Dictionary<int, StreamVariableInfo> streams, LiveAnalysis liveAnalysis)
+    public static void RemoveUnreferencedCode(NewSpirvBuffer buffer, SpirvContext context, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
     {
         // Remove unreferenced code
         var removedIds = new HashSet<int>();

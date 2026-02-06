@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Analysis;
+namespace Stride.Shaders.Spirv.Processing.Interfaces.Analysis;
 
 internal static class SemanticAnalyzer
 {

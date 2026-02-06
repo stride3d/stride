@@ -1,7 +1,7 @@
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 
-namespace Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
+namespace Stride.Shaders.Spirv.Processing.Interfaces.Models;
 
 internal class MethodInfo
 {

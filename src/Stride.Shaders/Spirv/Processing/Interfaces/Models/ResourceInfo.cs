@@ -1,4 +1,4 @@
-namespace Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
+namespace Stride.Shaders.Spirv.Processing.Interfaces.Models;
 
 internal class ResourceInfo(string name)
 {

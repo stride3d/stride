@@ -10,11 +10,11 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Parsing.SDSL.AST;
-using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
-using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Analysis;
-using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Cleanup;
-using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Transformation;
-using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Generation;
+using Stride.Shaders.Spirv.Processing.Interfaces.Models;
+using Stride.Shaders.Spirv.Processing.Interfaces.Analysis;
+using Stride.Shaders.Spirv.Processing.Interfaces.Cleanup;
+using Stride.Shaders.Spirv.Processing.Interfaces.Transformation;
+using Stride.Shaders.Spirv.Processing.Interfaces.Generation;
 
 namespace Stride.Shaders.Spirv.Processing.Interfaces
 {
@@ -181,7 +181,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
 
             // This will remove a lot of unused methods, resources and variables
             // (while following proper rules to preserve rgroup, cbuffer, logical groups, etc.)
-            DeadCodeRemover.RemoveUnreferencedCode(buffer, context, analysisResult, streams, liveAnalysis);
+            DeadCodeRemover.RemoveUnreferencedCode(buffer, context, analysisResult, liveAnalysis);
 
             return new(entryPoints, inputAttributes);
         }
@@ -209,46 +209,16 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
         {
             var streams = analysisResult.Streams;
 
-            var stage = executionModel switch
-            {
-                ExecutionModel.Vertex => "VS",
-                ExecutionModel.TessellationControl => "HS",
-                ExecutionModel.TessellationEvaluation => "DS",
-                ExecutionModel.Geometry => "GS",
-                ExecutionModel.Fragment => "PS",
-                ExecutionModel.GLCompute => "CS",
-                _ => throw new NotImplementedException()
-            };
-            List<(StreamVariableInfo Info, int InterfaceId, SymbolType InterfaceType)> inputStreams = [];
-            List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> outputStreams = [];
-            List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> patchInputStreams = [];
-            List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> patchOutputStreams = [];
-            List<int> entryPointExtraVariables = [];
+            var stage = ExecutionModelToStageId(executionModel);
 
-            int inputLayoutLocationCount = 0;
-            int outputLayoutLocationCount = 0;
 
-            foreach (var stream in streams)
-            {
-                if (stream.Value.Output)
-                {
-                    if (stream.Value.OutputLayoutLocation is { } outputLayoutLocation)
-                    {
-                        outputLayoutLocationCount = Math.Max(outputLayoutLocation + 1, outputLayoutLocationCount);
-                    }
-                }
-            }
 
-            // Delegate to BuiltinProcessor
             bool AddBuiltin(int variable, BuiltIn builtin) => BuiltinProcessor.AddBuiltin(context, variable, builtin);
 
             bool AddLocation(int variable, string location) => BuiltinProcessor.AddLocation(context, variable, location);
 
             int ConvertInterfaceVariable(SymbolType sourceType, SymbolType castType, int value) =>
                 BuiltinProcessor.ConvertInterfaceVariable(buffer, context, sourceType, castType, value);
-
-            bool ProcessBuiltinsDecoration(int variable, StreamVariableType type, string? semantic, ref SymbolType symbolType) =>
-                BuiltinProcessor.ProcessBuiltinsDecoration(context, executionModel, variable, type, semantic, ref symbolType);
 
             var entryPointFunctionType = (FunctionType)entryPoint.Type;
             // TODO: check all parameters instead of hardcoded 0
@@ -263,7 +233,131 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 ExecutionModel.TessellationControl => FindOutputPatchSize(context, entryPoint),
                 _ => null,
             };
+            
+            // Generate stream variables
+            GenerateStreamVariables(context, executionModel, streams, arrayInputSize, arrayOutputSize, out var inputStreams, out var outputStreams, out var patchInputStreams, out var patchOutputStreams);
 
+            // Generate streams struct types (i.e. VS_STREAMS VS_INPUT and VS_OUTPUT)
+            GenerateStreamStructTypes(context, executionModel, streams, inputStreams, outputStreams, out var inputType, out var outputType, out var streamsType, out var constantsType);
+
+            // Create a static global streams variable
+            var streamsVariable = context.Add(new OpVariable(context.GetOrRegister(new PointerType(streamsType, Specification.StorageClass.Private)), context.Bound++, Specification.StorageClass.Private, null));
+            context.AddName(streamsVariable.ResultId, $"streams{stage}");
+            
+            // Find patch constant entry point
+            var patchConstantEntryPoint = executionModel == ExecutionModel.TessellationControl ? ResolveHullPatchConstantEntryPoint(table, context, entryPoint) : null;
+
+            // Patch any OpStreams/OpAccessChain to use the new struct
+            foreach (var method in liveAnalysis.ReferencedMethods)
+            {
+                if (method.Value.UsedThisStage && method.Value.HasStreamAccess)
+                {
+                    MethodDuplicator.DuplicateMethodIfNecessary(buffer, context, method.Key, analysisResult, liveAnalysis, CodeInserted);
+                    StreamAccessPatcher.PatchStreamsAccesses(table, buffer, context, method.Key, streamsType, inputType, outputType, constantsType, streamsVariable.ResultId, analysisResult, liveAnalysis);
+                }
+            }
+
+            // Generate entry point wrapper
+            var (newEntryPointFunctionResultId, entryPointName) = EntryPointWrapperGenerator.GenerateWrapper(context,
+                buffer, entryPoint, executionModel, analysisResult,
+                liveAnalysis, inputStreams, outputStreams, patchInputStreams,
+                patchOutputStreams, inputType, outputType, streamsType,
+                constantsType, arrayInputSize, arrayOutputSize, streamsVariable.ResultId,
+                patchConstantEntryPoint);
+
+            // Move OpExecutionMode on new wrapper
+            foreach (var i in context)
+            {
+                if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is { } executionMode)
+                {
+                    if (executionMode.EntryPoint == entryPoint.IdRef)
+                        executionMode.EntryPoint = newEntryPointFunctionResultId;
+                }
+            }
+
+            return (newEntryPointFunctionResultId, entryPointName);
+        }
+
+        private static string ExecutionModelToStageId(ExecutionModel executionModel)
+        {
+            return executionModel switch
+            {
+                ExecutionModel.Vertex => "VS",
+                ExecutionModel.TessellationControl => "HS",
+                ExecutionModel.TessellationEvaluation => "DS",
+                ExecutionModel.Geometry => "GS",
+                ExecutionModel.Fragment => "PS",
+                ExecutionModel.GLCompute => "CS",
+                _ => throw new NotImplementedException()
+            };
+        }
+
+        private static void GenerateStreamStructTypes(SpirvContext context, ExecutionModel executionModel, Dictionary<int, StreamVariableInfo> streams, List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> inputStreams, List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> outputStreams, out StructType inputType, out StructType outputType, out StructType streamsType, out StructType? constantsType)
+        {
+            var streamFields = new List<StructuredTypeMember>();
+            var constantFields = new List<StructuredTypeMember>();
+            var inputFields = new List<StructuredTypeMember>();
+            var outputFields = new List<StructuredTypeMember>();
+            foreach (var stream in streams)
+            {
+                stream.Value.InputStructFieldIndex = null;
+                stream.Value.OutputStructFieldIndex = null;
+                if (stream.Value.UsedThisStage)
+                {
+                    var fields = (stream.Value.Patch) ? constantFields : streamFields;
+                    stream.Value.StreamStructFieldIndex = fields.Count;
+                    fields.Add(new(stream.Value.Name, stream.Value.Type, default));
+                }
+            }
+
+            // Build input/output types
+            foreach (var stream in inputStreams)
+            {
+                stream.Info.InputStructFieldIndex = inputFields.Count;
+                inputFields.Add(new(stream.Info.Name, stream.Info.Type, default));
+            }
+
+            foreach (var stream in outputStreams)
+            {
+                stream.Info.OutputStructFieldIndex = outputFields.Count;
+                outputFields.Add(new(stream.Info.Name, stream.Info.Type, default));
+            }
+
+            var stage = ExecutionModelToStageId(executionModel);
+
+            inputType = new StructType($"{stage}_INPUT", inputFields);
+            outputType = new StructType($"{stage}_OUTPUT", outputFields);
+            streamsType = new StructType($"{stage}_STREAMS", streamFields);
+            bool hasConstants = executionModel is ExecutionModel.TessellationControl or ExecutionModel.TessellationEvaluation;
+            constantsType = hasConstants ? new StructType($"{stage}_CONSTANTS", constantFields) : null;
+            context.DeclareStructuredType(inputType, context.Bound++);
+            context.DeclareStructuredType(outputType, context.Bound++);
+            context.DeclareStructuredType(streamsType, context.Bound++);
+            if (hasConstants)
+                context.DeclareStructuredType(constantsType, context.Bound++);
+        }
+
+        private static void GenerateStreamVariables(SpirvContext context, ExecutionModel executionModel, Dictionary<int, StreamVariableInfo> streams, int? arrayInputSize, int? arrayOutputSize, out List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> inputStreams, out List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> outputStreams, out List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> patchInputStreams, out List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> patchOutputStreams)
+        {
+            int inputLayoutLocationCount = 0;
+            int outputLayoutLocationCount = 0;
+
+            foreach (var stream in streams)
+            {
+                if (stream.Value.Output)
+                {
+                    if (stream.Value.OutputLayoutLocation is { } outputLayoutLocation)
+                    {
+                        outputLayoutLocationCount = Math.Max(outputLayoutLocation + 1, outputLayoutLocationCount);
+                    }
+                }
+            }
+            inputStreams = [];
+            outputStreams = [];
+            patchInputStreams = [];
+            patchOutputStreams = [];
+
+            var stage = ExecutionModelToStageId(executionModel);
             foreach (var stream in streams)
             {
                 if (stream.Value.Input)
@@ -286,7 +380,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                         Specification.StorageClass.Input);
                     var variable = context.Add(new OpVariable(context.GetOrRegister(streamInputType), variableId, Specification.StorageClass.Input, null));
                     context.AddName(variable, $"in_{stage}_{stream.Value.Name}");
-                    
+                
                     if (stream.Value.Type is ScalarType or VectorType or MatrixType && !stream.Value.Type.GetElementType().IsFloating())
                         context.Add(new OpDecorate(variable, Decoration.Flat, []));
 
@@ -321,7 +415,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                         Specification.StorageClass.Output);
                     var variable = context.Add(new OpVariable(context.GetOrRegister(streamOutputType), variableId, Specification.StorageClass.Output, null));
                     context.AddName(variable, $"out_{stage}_{stream.Value.Name}");
-                    
+                
                     if (stream.Value.Type is ScalarType or VectorType or MatrixType && !stream.Value.Type.GetElementType().IsFloating())
                         context.Add(new OpDecorate(variable, Decoration.Flat, []));
 
@@ -330,81 +424,8 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 }
             }
 
-            var streamFields = new List<StructuredTypeMember>();
-            var constantFields = new List<StructuredTypeMember>();
-            var inputFields = new List<StructuredTypeMember>();
-            var outputFields = new List<StructuredTypeMember>();
-            foreach (var stream in streams)
-            {
-                stream.Value.InputStructFieldIndex = null;
-                stream.Value.OutputStructFieldIndex = null;
-                if (stream.Value.UsedThisStage)
-                {
-                    var fields = (stream.Value.Patch) ? constantFields : streamFields;
-                    stream.Value.StreamStructFieldIndex = fields.Count;
-                    fields.Add(new(stream.Value.Name, stream.Value.Type, default));
-                }
-            }
-
-            foreach (var stream in inputStreams)
-            {
-                stream.Info.InputStructFieldIndex = inputFields.Count;
-                inputFields.Add(new(stream.Info.Name, stream.Info.Type, default));
-            }
-
-            foreach (var stream in outputStreams)
-            {
-                stream.Info.OutputStructFieldIndex = outputFields.Count;
-                outputFields.Add(new(stream.Info.Name, stream.Info.Type, default));
-            }
-
-            var inputType = new StructType($"{stage}_INPUT", inputFields);
-            var outputType = new StructType($"{stage}_OUTPUT", outputFields);
-            var streamsType = new StructType($"{stage}_STREAMS", streamFields);
-            bool hasConstants = executionModel is ExecutionModel.TessellationControl or ExecutionModel.TessellationEvaluation;
-            var constantsType = hasConstants ? new StructType($"{stage}_CONSTANTS", constantFields) : null;
-            context.DeclareStructuredType(inputType, context.Bound++);
-            context.DeclareStructuredType(outputType, context.Bound++);
-            context.DeclareStructuredType(streamsType, context.Bound++);
-            if (hasConstants)
-                context.DeclareStructuredType(constantsType, context.Bound++);
-
-            // Create a static global streams variable
-            var streamsVariable = context.Add(new OpVariable(context.GetOrRegister(new PointerType(streamsType, Specification.StorageClass.Private)), context.Bound++, Specification.StorageClass.Private, null));
-            context.AddName(streamsVariable.ResultId, $"streams{stage}");
-            
-            // Find patch constant entry point
-            var patchConstantEntryPoint = executionModel == ExecutionModel.TessellationControl ? ResolveHullPatchConstantEntryPoint(table, context, entryPoint) : null;
-
-            // Patch any OpStreams/OpAccessChain to use the new struct
-            foreach (var method in liveAnalysis.ReferencedMethods)
-            {
-                if (method.Value.UsedThisStage && method.Value.HasStreamAccess)
-                {
-                    MethodDuplicator.DuplicateMethodIfNecessary(buffer, context, method.Key, analysisResult, liveAnalysis, CodeInserted);
-                    StreamAccessPatcher.PatchStreamsAccesses(table, buffer, context, method.Key, streamsType, inputType, outputType, constantsType, streamsVariable.ResultId, analysisResult, liveAnalysis);
-                }
-            }
-
-            // Generate entry point wrapper
-            var (newEntryPointFunctionResultId, entryPointName) = EntryPointWrapperGenerator.GenerateWrapper(
-                buffer, context, entryPoint, executionModel, stage, analysisResult, liveAnalysis,
-                inputStreams, outputStreams, patchInputStreams, patchOutputStreams,
-                inputFields, outputFields, inputType, outputType, streamsType, constantsType,
-                arrayInputSize, arrayOutputSize, streamsVariable.ResultId, patchConstantEntryPoint,
-                entryPointExtraVariables);
-
-            // Move OpExecutionMode on new wrapper
-            foreach (var i in context)
-            {
-                if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is { } executionMode)
-                {
-                    if (executionMode.EntryPoint == entryPoint.IdRef)
-                        executionMode.EntryPoint = newEntryPointFunctionResultId;
-                }
-            }
-
-            return (newEntryPointFunctionResultId, entryPointName);
+            bool ProcessBuiltinsDecoration(int variable, StreamVariableType type, string? semantic, ref SymbolType symbolType) =>
+                BuiltinProcessor.ProcessBuiltinsDecoration(context, executionModel, variable, type, semantic, ref symbolType);
         }
 
         private Symbol? ResolveHullPatchConstantEntryPoint(SymbolTable table, SpirvContext context, Symbol entryPoint)

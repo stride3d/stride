@@ -1,6 +1,6 @@
 using Stride.Shaders.Core;
 
-namespace Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
+namespace Stride.Shaders.Spirv.Processing.Interfaces.Models;
 
 internal class VariableInfo(string name, PointerType type, int variableId)
 {

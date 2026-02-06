@@ -3,10 +3,10 @@ using System.Runtime.InteropServices;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
-using Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Models;
+using Stride.Shaders.Spirv.Processing.Interfaces.Models;
 using static Stride.Shaders.Spirv.Specification;
 
-namespace Stride.Shaders.Spirv.Processing.InterfaceProcessorInternal.Analysis;
+namespace Stride.Shaders.Spirv.Processing.Interfaces.Analysis;
 
 internal static class ReadWriteAnalyzer
 {
