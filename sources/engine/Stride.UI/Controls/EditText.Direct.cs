@@ -15,7 +15,7 @@ namespace Stride.UI.Controls
     {
         private void OnTouchMoveImpl(TouchEventArgs args)
         {
-            var currentPosition = FindNearestCharacterIndex(new Vector2(args.WorldPosition.X - WorldMatrix.M41, args.WorldPosition.Y - WorldMatrix.M42));
+            var currentPosition = FindNearestCharacterIndex(args.WorldPosition.XY());
 
             if (caretAtStart)
             {
@@ -36,62 +36,32 @@ namespace Stride.UI.Controls
         private void OnTouchDownImpl(TouchEventArgs args)
         {
             // Find the appropriate position for the caret.
-            CaretPosition = FindNearestCharacterIndex(new Vector2(args.WorldPosition.X - WorldMatrix.M41, args.WorldPosition.Y - WorldMatrix.M42));
+            CaretPosition = FindNearestCharacterIndex(args.WorldPosition.XY());
         }
         
         /// <summary>
-        /// Find the index of the nearest character to the provided position.
+        /// Find the index of the nearest character to the provided position in <see cref="TouchEventArgs.WorldPosition"/> space
         /// </summary>
-        /// <param name="position">The position in edit text space</param>
-        /// <returns>The 0-based index of the nearest character</returns>
-        protected virtual int FindNearestCharacterIndex(Vector2 position)
+        protected virtual int FindNearestCharacterIndex(Vector2 worldPosition)
         {
             if (Font == null)
                 return 0;
 
-            var textRegionSize = (ActualWidth - Padding.Left - Padding.Right);
-            var fontScale = LayoutingContext.RealVirtualResolutionRatio;
-            var fontSize = new Vector2(fontScale.Y * ActualTextSize); // we don't want letters non-uniform ratio
+            var textRegion = GetTextRegionSize();
+            var regionHalf = textRegion / 2;
+            var worldMatrix = WorldMatrix;
 
-            // calculate the offset of the beginning of the text due to text alignment
-            var alignmentOffset = -textRegionSize / 2f;
-            if (TextAlignment != TextAlignment.Left)
-            {
-                var textWidth = Font.MeasureString(TextToDisplay, ref fontSize).X;
-                if (Font.FontType == SpriteFontType.Dynamic)
-                    textWidth /= fontScale.X;
+            var offset = worldMatrix.TranslationVector;
+            // Text draws from the upper left corner of the rect, let's account for that
+            offset -= worldMatrix.Right * regionHalf.X - worldMatrix.Up * regionHalf.Y;
+            worldPosition -= offset.XY();
 
-                alignmentOffset = TextAlignment == TextAlignment.Center ? -textWidth / 2 : -textRegionSize / 2f + (textRegionSize - textWidth);
-            }
-            var touchInText = position.X - alignmentOffset;
+            var snapText = false;
+            var realVirtualResolutionRatio = LayoutingContext.RealVirtualResolutionRatio;
 
-            // Find the first character starting after the click
-            var characterIndex = 1;
-            var previousCharacterOffset = 0f;
-            var currentCharacterOffset = Font.MeasureString(TextToDisplay, ref fontSize, characterIndex).X;
-            while (currentCharacterOffset < touchInText && characterIndex < textToDisplay.Length)
-            {
-                ++characterIndex;
-                previousCharacterOffset = currentCharacterOffset;
-                currentCharacterOffset = Font.MeasureString(TextToDisplay, ref fontSize, characterIndex).X;
-                if (Font.FontType == SpriteFontType.Dynamic)
-                    currentCharacterOffset /= fontScale.X;
-            }
+            Font.TypeSpecificRatios(ActualTextSize, ref snapText, ref realVirtualResolutionRatio, out var fontSize);
 
-            // determine the caret position.
-            if (touchInText < 0) // click before the start of the text
-            {
-                return 0;
-            }
-            if (currentCharacterOffset < touchInText) // click after the end of the text
-            {
-                return textToDisplay.Length;
-            }
-
-            const float Alpha = 0.66f;
-            var previousElementRatio = Math.Abs(touchInText - previousCharacterOffset) / Alpha;
-            var currentElementRation = Math.Abs(currentCharacterOffset - touchInText) / (1 - Alpha);
-            return previousElementRatio < currentElementRation ? characterIndex - 1 : characterIndex;
+            return Font.IndexInString(TextToDisplay, fontSize, worldPosition, (TextAlignment, textRegion));
         }
 
         internal override void OnKeyPressed(KeyEventArgs args)

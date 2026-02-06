@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
+using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Font;
@@ -20,54 +22,57 @@ namespace Stride.UI.Renderers
         {
         }
 
-        private void RenderSelection(EditText editText, UIRenderingContext context, int start, int length, Color color, out float offsetTextStart, out float offsetAlignment, out float selectionSize)
+        private void RenderSelection([NotNull] EditText editText, [NotNull] UIRenderingContext context, in Vector2 textRegion, int start, int length, Color color, out Matrix caret, out float caretHeight)
         {
-            // calculate the size of the text region by removing padding
-            var textRegionSize = new Vector2(editText.ActualWidth - editText.Padding.Left - editText.Padding.Right,
-                                                editText.ActualHeight - editText.Padding.Top - editText.Padding.Bottom);
-
+            var snapText = context.ShouldSnapText && !editText.DoNotSnapText;
+            var requestedFontSize = editText.ActualTextSize;
+            var realVirtualResolutionRatio = editText.LayoutingContext.RealVirtualResolutionRatio;
             var font = editText.Font;
 
-            // determine the image to draw in background of the edit text
-            var fontScale = editText.LayoutingContext.RealVirtualResolutionRatio;
-            var provider = editText.IsSelectionActive ? editText.ActiveImage : editText.MouseOverState == MouseOverState.MouseOverElement ? editText.MouseOverImage : editText.InactiveImage;
-            var image = provider?.GetSprite();
+            font.TypeSpecificRatios(requestedFontSize, ref snapText, ref realVirtualResolutionRatio, out var fontSize);
 
-            var fontSize = new Vector2(fontScale.Y * editText.ActualTextSize);
-            offsetTextStart = font.MeasureString(editText.TextToDisplay, ref fontSize, start).X;
-            selectionSize = font.MeasureString(editText.TextToDisplay, ref fontSize, start + length).X - offsetTextStart;
-            var lineSpacing = font.GetTotalLineSpacing(editText.ActualTextSize);
-            if (font.FontType == SpriteFontType.Dynamic)
+            var totalSize = Vector2.Zero;
+            var sizeToSelection = Vector2.Zero;
+            var sizeToEnd = Vector2.Zero;
+            foreach (var glyphInfo in new SpriteFont.GlyphEnumerator(null, new SpriteFont.StringProxy(editText.TextToDisplay), fontSize, false, 0, editText.TextToDisplay.Length, font))
             {
-                offsetTextStart /= fontScale.X;
-                selectionSize /= fontScale.X;
+                font.MeasureStringGlyph(ref totalSize, in fontSize, glyphInfo);
+                if (glyphInfo.index < start)
+                    sizeToEnd = sizeToSelection = totalSize;
+                else if (glyphInfo.index < start + length)
+                    sizeToEnd = totalSize;
             }
 
-            var scaleRatio = editText.ActualTextSize / font.Size;
-            if (font.FontType == SpriteFontType.SDF)
+            float signedAlignment = editText.TextAlignment switch
             {
-                offsetTextStart *= scaleRatio;
-                selectionSize *= scaleRatio;
-                lineSpacing *= editText.ActualTextSize / font.Size;
-            }
+                TextAlignment.Left => -1f,
+                TextAlignment.Center => 0f,
+                TextAlignment.Right => 1f,
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
+            var regionHalf = textRegion / 2;
+            var lineHalf = totalSize / 2;
+            var selectionRect = new Vector3(sizeToEnd.X - sizeToSelection.X, totalSize.Y, 0);
 
-            offsetAlignment = -textRegionSize.X / 2f;
-            if (editText.TextAlignment != TextAlignment.Left)
-            {
-                var textWidth = font.MeasureString(editText.TextToDisplay, ref fontSize).X;
-                if (font.FontType == SpriteFontType.Dynamic)
-                    textWidth /= fontScale.X;
-                if (font.FontType == SpriteFontType.SDF)
-                    textWidth *= scaleRatio;
+            Vector2 offset2D;
+            offset2D.Y = -regionHalf.Y; // Top box corner
+            offset2D.Y += lineHalf.Y; // Align with top of the text
+            
+            offset2D.X = regionHalf.X * signedAlignment; // Which side corner to align to
+            offset2D.X -= lineHalf.X * signedAlignment; // Align with the left or the right of the text
+            offset2D.X -= lineHalf.X; // Rect grows from the center, let's start from the left edge,
+            offset2D.X += sizeToSelection.X; // Move to the start of the selection
 
-                offsetAlignment = editText.TextAlignment == TextAlignment.Center ? -textWidth / 2 : -textRegionSize.X / 2f + (textRegionSize.X - textWidth);
-            }
+            var worldMatrix = editText.WorldMatrixInternal;
+            worldMatrix.TranslationVector += worldMatrix.Right * offset2D.X + worldMatrix.Up * offset2D.Y;
+            caret = worldMatrix;
 
-            var selectionWorldMatrix = editText.WorldMatrixInternal;
-            selectionWorldMatrix.M41 += offsetTextStart + selectionSize / 2 + offsetAlignment;
-            var selectionScaleVector = new Vector3(selectionSize, editText.LineCount * lineSpacing, 0);
-            Batch.DrawRectangle(ref selectionWorldMatrix, ref selectionScaleVector, ref color, context.DepthBias + 1);
+            worldMatrix.TranslationVector += worldMatrix.Right * (selectionRect.X / 2); // Move it by half its expected size since the rect is supposed to be centered
+            
+            Batch.DrawRectangle(ref worldMatrix, ref selectionRect, ref color, context.DepthBias + 1);
+
+            caretHeight = totalSize.Y;
         }
 
         public override void RenderColor(UIElement element, UIRenderingContext context)
@@ -91,27 +96,25 @@ namespace Stride.UI.Renderers
             }
             
             // calculate the size of the text region by removing padding
-            var textRegionSize = new Vector2(editText.ActualWidth - editText.Padding.Left - editText.Padding.Right,
-                                                editText.ActualHeight - editText.Padding.Top - editText.Padding.Bottom);
+            var textRegionSize = editText.GetTextRegionSize();
 
             var font = editText.Font;
             var caretColor = editText.RenderOpacity * editText.CaretColor;
 
-            var offsetTextStart = 0f;
-            var offsetAlignment = 0f;
-            var selectionSize = 0f;
+            var caretMatrix = Matrix.Identity;
+            var caretHeight = 0f;
 
             // Draw the composition selection
             if (editText.Composition.Length > 0)
             {
                 var imeSelectionColor = editText.RenderOpacity * editText.IMESelectionColor;
-                RenderSelection(editText, context, editText.SelectionStart, editText.Composition.Length, imeSelectionColor, out offsetTextStart, out offsetAlignment, out selectionSize);
+                RenderSelection(editText, context, textRegionSize, editText.SelectionStart, editText.Composition.Length, imeSelectionColor, out caretMatrix, out caretHeight);
             }
             // Draw the regular selection
             else if (editText.IsSelectionActive)
             {
                 var selectionColor = editText.RenderOpacity * editText.SelectionColor;
-                RenderSelection(editText, context, editText.SelectionStart, editText.SelectionLength, selectionColor, out offsetTextStart, out offsetAlignment, out selectionSize);
+                RenderSelection(editText, context, textRegionSize, editText.SelectionStart, editText.SelectionLength, selectionColor, out caretMatrix, out caretHeight);
             }
 
             // create the text draw command
@@ -146,15 +149,8 @@ namespace Stride.UI.Renderers
             // Draw the cursor
             if (editText.IsCaretVisible)
             {
-                var lineSpacing = editText.Font.GetTotalLineSpacing(editText.ActualTextSize);
-                if (editText.Font.FontType == SpriteFontType.SDF)
-                    lineSpacing *= editText.ActualTextSize / font.Size;
-
-                var sizeCaret = editText.CaretWidth / fontScale.X;
-                var caretWorldMatrix = element.WorldMatrixInternal;
-                caretWorldMatrix.M41 += offsetTextStart + offsetAlignment + (editText.CaretPosition > editText.SelectionStart? selectionSize: 0);
-                var caretScaleVector = new Vector3(sizeCaret, editText.LineCount * lineSpacing, 0);
-                Batch.DrawRectangle(ref caretWorldMatrix, ref caretScaleVector, ref caretColor, context.DepthBias + 3);
+                var caretScaleVector = new Vector3(editText.CaretWidth / fontScale.X, caretHeight, 0);
+                Batch.DrawRectangle(ref caretMatrix, ref caretScaleVector, ref caretColor, context.DepthBias + 3);
             }
         }
     }

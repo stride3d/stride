@@ -2,11 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
@@ -60,16 +62,6 @@ namespace Stride.Graphics
         protected SwizzleMode swizzle;
 
         private FontSystem fontSystem;
-        private readonly GlyphAction<InternalDrawCommand> internalDrawGlyphAction;
-        private readonly GlyphAction<InternalUIDrawCommand> internalUIDrawGlyphAction;
-        private readonly GlyphAction<Vector2> measureStringGlyphAction;
-
-        protected internal SpriteFont()
-        {
-            internalDrawGlyphAction = InternalDrawGlyph;
-            internalUIDrawGlyphAction = InternalUIDrawGlyph;
-            measureStringGlyphAction = MeasureStringGlyph;
-        }
 
         /// <summary>
         /// Gets the textures containing the font character data.
@@ -144,11 +136,6 @@ namespace Stride.Graphics
             // unregister itself from its managing system
             FontSystem.AllocatedSpriteFonts.Remove(this);
         }
-
-        public interface IFontManager
-        {
-            void New();
-        }
         
         /// <summary>
         /// Get the value of the extra line spacing for the given font size.
@@ -199,16 +186,21 @@ namespace Stride.Graphics
             return GetExtraLineSpacing(fontSize) + GetFontDefaultLineSpacing(fontSize);
         }
         
-        internal void InternalDraw(CommandList commandList, ref StringProxy text, ref InternalDrawCommand drawCommand, TextAlignment alignment)
+        internal void InternalDraw(CommandList commandList, in StringProxy text, ref InternalDrawCommand drawCommand, TextAlignment alignment)
         {
             // If the text is mirrored, offset the start position accordingly.
             if (drawCommand.SpriteEffects != SpriteEffects.None)
             {
-                drawCommand.Origin -= MeasureString(ref text, ref drawCommand.FontSize) * AxisIsMirroredTable[(int)drawCommand.SpriteEffects & 3];
+                drawCommand.Origin -= MeasureString(text, drawCommand.FontSize) * AxisIsMirroredTable[(int)drawCommand.SpriteEffects & 3];
             }
 
+            (TextAlignment alignment, Vector2 textboxSize)? scanOption = alignment == TextAlignment.Left ? null : (alignment, MeasureString(text, drawCommand.FontSize));
+            
             // Draw each character in turn.
-            ForEachGlyph(commandList, ref text, ref drawCommand.FontSize, internalDrawGlyphAction, ref drawCommand, alignment, true);
+            foreach (var glyphInfo in new GlyphEnumerator(commandList, text, drawCommand.FontSize, true, 0, text.Length, this, scanOption))
+            {
+                InternalDrawGlyph(ref drawCommand, in drawCommand.FontSize, glyphInfo);
+            }
         }        
         
         /// <summary>
@@ -226,14 +218,14 @@ namespace Stride.Graphics
         {
         }
 
-        internal void InternalDrawGlyph(ref InternalDrawCommand parameters, in Vector2 fontSize, in Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling)
+        internal void InternalDrawGlyph(ref InternalDrawCommand parameters, in Vector2 fontSize, in GlyphPosition glyphPosition)
         {
-            if (char.IsWhiteSpace((char)glyph.Character) || glyph.Subrect.Width == 0 || glyph.Subrect.Height == 0)
+            if (char.IsWhiteSpace((char)glyphPosition.Glyph.Character) || glyphPosition.Glyph.Subrect.Width == 0 || glyphPosition.Glyph.Subrect.Height == 0)
                 return;
 
             var spriteEffects = parameters.SpriteEffects;
 
-            var offset = new Vector2(x, y + GetBaseOffsetY(fontSize.Y) + glyph.Offset.Y);
+            var offset = new Vector2(glyphPosition.X, glyphPosition.Y + GetBaseOffsetY(fontSize.Y) + glyphPosition.Glyph.Offset.Y);
             Vector2.Modulate(ref offset, ref AxisDirectionTable[(int)spriteEffects & 3], out offset);
             Vector2.Add(ref offset, ref parameters.Origin, out offset);
             offset.X = MathF.Round(offset.X);
@@ -242,39 +234,41 @@ namespace Stride.Graphics
             if (spriteEffects != SpriteEffects.None)
             {
                 // For mirrored characters, specify bottom and/or right instead of top left.
-                var glyphRect = new Vector2(glyph.Subrect.Right - glyph.Subrect.Left, glyph.Subrect.Top - glyph.Subrect.Bottom);
+                var glyphRect = new Vector2(glyphPosition.Glyph.Subrect.Right - glyphPosition.Glyph.Subrect.Left, glyphPosition.Glyph.Subrect.Top - glyphPosition.Glyph.Subrect.Bottom);
                 Vector2.Modulate(ref glyphRect, ref AxisIsMirroredTable[(int)spriteEffects & 3], out offset);
             }
             var destination = new RectangleF(parameters.Position.X, parameters.Position.Y, parameters.Scale.X, parameters.Scale.Y);
-            RectangleF? sourceRectangle = glyph.Subrect;
-            parameters.SpriteBatch.DrawSprite(Textures[glyph.BitmapIndex], ref destination, true, ref sourceRectangle, parameters.Color, new Color4(0, 0, 0, 0),  parameters.Rotation, ref offset, spriteEffects, ImageOrientation.AsIs, parameters.Depth, swizzle, true);            
+            RectangleF? sourceRectangle = glyphPosition.Glyph.Subrect;
+            parameters.SpriteBatch.DrawSprite(Textures[glyphPosition.Glyph.BitmapIndex], ref destination, true, ref sourceRectangle, parameters.Color, new Color4(0, 0, 0, 0), parameters.Rotation, ref offset, spriteEffects, ImageOrientation.AsIs, parameters.Depth, swizzle, true);            
         }
 
-        internal void InternalUIDraw(CommandList commandList, ref StringProxy text, ref InternalUIDrawCommand drawCommand)
+        internal void InternalUIDraw(CommandList commandList, in StringProxy text, ref InternalUIDrawCommand drawCommand, in Vector2 actualFontSize)
         {
             // We don't want to have letters with non uniform ratio
-            var requestedFontSize = new Vector2(drawCommand.RequestedFontSize * drawCommand.RealVirtualResolutionRatio.Y);
 
             var textBoxSize = drawCommand.TextBoxSize * drawCommand.RealVirtualResolutionRatio;
-            ForEachGlyph(commandList, ref text, ref requestedFontSize, internalUIDrawGlyphAction, ref drawCommand, drawCommand.Alignment, true, textBoxSize);
+            foreach (var glyphInfo in new GlyphEnumerator(commandList, text, actualFontSize, true, 0, text.Length, this, (drawCommand.Alignment, textBoxSize)))
+            {
+                InternalUIDrawGlyph(ref drawCommand, in actualFontSize, glyphInfo);
+            }
         }
 
-        internal void InternalUIDrawGlyph(ref InternalUIDrawCommand parameters, in Vector2 requestedFontSize, in Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling)
+        internal void InternalUIDrawGlyph(ref InternalUIDrawCommand parameters, in Vector2 requestedFontSize, in GlyphPosition glyphPosition)
         {
-            if (char.IsWhiteSpace((char)glyph.Character))
+            if (char.IsWhiteSpace((char)glyphPosition.Glyph.Character))
                 return;
 
             var realVirtualResolutionRatio = requestedFontSize / parameters.RequestedFontSize;
 
             // Skip items with null size
             var elementSize = new Vector2(
-                auxiliaryScaling.X * glyph.Subrect.Width / realVirtualResolutionRatio.X,
-                auxiliaryScaling.Y * glyph.Subrect.Height / realVirtualResolutionRatio.Y);
+                glyphPosition.AuxiliaryScaling.X * glyphPosition.Glyph.Subrect.Width / realVirtualResolutionRatio.X,
+                glyphPosition.AuxiliaryScaling.Y * glyphPosition.Glyph.Subrect.Height / realVirtualResolutionRatio.Y);
             if (elementSize.LengthSquared() < MathUtil.ZeroTolerance) 
                 return;
 
-            var xShift = x;
-            var yShift = y + (GetBaseOffsetY(requestedFontSize.Y) + glyph.Offset.Y * auxiliaryScaling.Y);
+            var xShift = glyphPosition.X;
+            var yShift = glyphPosition.Y + (GetBaseOffsetY(requestedFontSize.Y) + glyphPosition.Glyph.Offset.Y * glyphPosition.AuxiliaryScaling.Y);
             if (parameters.SnapText)
             {
                 xShift = MathF.Round(xShift);
@@ -299,8 +293,32 @@ namespace Stride.Graphics
             worldMatrix.M23 *= elementSize.Y;
             worldMatrix.M24 *= elementSize.Y;
 
-            RectangleF sourceRectangle = glyph.Subrect;
-            parameters.Batch.DrawCharacter(Textures[glyph.BitmapIndex], in worldMatrix, in sourceRectangle, in parameters.Color, parameters.DepthBias, swizzle);
+            RectangleF sourceRectangle = glyphPosition.Glyph.Subrect;
+            parameters.Batch.DrawCharacter(Textures[glyphPosition.Glyph.BitmapIndex], in worldMatrix, in sourceRectangle, in parameters.Color, parameters.DepthBias, swizzle);
+        }
+
+        public int IndexInString([NotNull] string text, in Vector2 fontSize, Vector2 pointOnText, (TextAlignment text, Vector2 boxSize)? scanOption)
+        {
+            pointOnText.Y -= GetTotalLineSpacing(fontSize.Y); // Characters go from 0->+Y downwards, 
+            var proxy = new StringProxy(text, text.Length);
+            (int index, float score, float x) = (0, float.PositiveInfinity, 0);
+            foreach (var glyphInfo in new GlyphEnumerator(null, proxy, fontSize, false, 0, text.Length, this, scanOption))
+            {
+                var sqrd = Vector2.DistanceSquared(new Vector2(glyphInfo.X, glyphInfo.Y), pointOnText);
+                if (sqrd < score)
+                {
+                    index = glyphInfo.index;
+                    score = sqrd;
+                    x = glyphInfo.X * 0.5f + glyphInfo.NextX * 0.5f;
+                }
+            }
+
+            if (index == text.Length - 1 && x < pointOnText.X)
+            {
+                return text.Length;
+            }
+
+            return index;
         }
 
         /// <summary>
@@ -308,7 +326,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="text">The string to measure.</param>
         /// <returns>Vector2.</returns>
-        public Vector2 MeasureString(string text)
+        public Vector2 MeasureString([NotNull] string text)
         {
             var fontSize = new Vector2(Size, Size);
             return MeasureString(text, fontSize, text.Length);
@@ -319,7 +337,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="text">The string to measure.</param>
         /// <returns>Vector2.</returns>
-        public Vector2 MeasureString(StringBuilder text)
+        public Vector2 MeasureString([NotNull] StringBuilder text)
         {
             var fontSize = new Vector2(Size, Size);
             return MeasureString(text, fontSize, text.Length);
@@ -331,7 +349,7 @@ namespace Stride.Graphics
         /// <param name="text">The string to measure.</param>
         /// <param name="fontSize">The size of the font (ignored in the case of static fonts)</param>
         /// <returns>Vector2.</returns>
-        public Vector2 MeasureString(string text, float fontSize)
+        public Vector2 MeasureString([NotNull] string text, float fontSize)
         {
             return MeasureString(text, new Vector2(fontSize, fontSize), text.Length);
         }
@@ -342,7 +360,7 @@ namespace Stride.Graphics
         /// <param name="text">The string to measure.</param>
         /// <param name="fontSize">The size of the font (ignored in the case of static fonts)</param>
         /// <returns>Vector2.</returns>
-        public Vector2 MeasureString(StringBuilder text, float fontSize)
+        public Vector2 MeasureString([NotNull] StringBuilder text, float fontSize)
         {
             return MeasureString(text, new Vector2(fontSize, fontSize), text.Length);
         }
@@ -353,7 +371,7 @@ namespace Stride.Graphics
         /// <param name="text">The string to measure.</param>
         /// <param name="fontSize">The size of the font (ignored in the case of static fonts)</param>
         /// <returns>Vector2.</returns>
-        public Vector2 MeasureString(string text, Vector2 fontSize)
+        public Vector2 MeasureString([NotNull] string text, Vector2 fontSize)
         {
             return MeasureString(text, ref fontSize, text.Length);
         }
@@ -364,7 +382,7 @@ namespace Stride.Graphics
         /// <param name="text">The string to measure.</param>
         /// <param name="fontSize">The size of the font (ignored in the case of static fonts)</param>
         /// <returns>Vector2.</returns>
-        public Vector2 MeasureString(StringBuilder text, Vector2 fontSize)
+        public Vector2 MeasureString([NotNull] StringBuilder text, Vector2 fontSize)
         {
             return MeasureString(text, ref fontSize, text.Length);
         }
@@ -375,7 +393,7 @@ namespace Stride.Graphics
         /// <param name="text">The string to measure.</param>
         /// <param name="fontSize">The size of the font (ignored in the case of static fonts)</param>
         /// <returns>Vector2.</returns>
-        public Vector2 MeasureString(string text, ref Vector2 fontSize)
+        public Vector2 MeasureString([NotNull] string text, ref Vector2 fontSize)
         {
             return MeasureString(text, ref fontSize, text.Length);
         }
@@ -386,7 +404,7 @@ namespace Stride.Graphics
         /// <param name="text">The string to measure.</param>
         /// <param name="fontSize">The size of the font (ignored in the case of static fonts)</param>
         /// <returns>Vector2.</returns>
-        public Vector2 MeasureString(StringBuilder text, ref Vector2 fontSize)
+        public Vector2 MeasureString([NotNull] StringBuilder text, ref Vector2 fontSize)
         {
             return MeasureString(text, ref fontSize, text.Length);
         }
@@ -398,7 +416,7 @@ namespace Stride.Graphics
         /// <param name="fontSize">The size of the font (ignored in the case of static fonts)</param>
         /// <param name="length">The length of the string to measure</param>
         /// <returns>Vector2.</returns>
-        public Vector2 MeasureString(string text, Vector2 fontSize, int length)
+        public Vector2 MeasureString([NotNull] string text, Vector2 fontSize, int length)
         {
             return MeasureString(text, ref fontSize, length);
         }
@@ -410,7 +428,7 @@ namespace Stride.Graphics
         /// <param name="fontSize">The size of the font (ignored in the case of static fonts)</param>
         /// <param name="length">The length of the string to measure</param>
         /// <returns>Vector2.</returns>
-        public Vector2 MeasureString(StringBuilder text, Vector2 fontSize, int length)
+        public Vector2 MeasureString([NotNull] StringBuilder text, Vector2 fontSize, int length)
         {
             return MeasureString(text, ref fontSize, length);
         }
@@ -422,13 +440,13 @@ namespace Stride.Graphics
         /// <param name="fontSize">The size of the font (ignored in the case of static fonts)</param>
         /// <param name="length">The length of the string to measure</param>
         /// <returns>Vector2.</returns>
-        public Vector2 MeasureString(string text, ref Vector2 fontSize, int length)
+        public Vector2 MeasureString([NotNull] string text, ref Vector2 fontSize, int length)
         {
             if (text == null)
                 throw new ArgumentNullException(nameof(text));
 
             var proxy = new StringProxy(text, length);
-            return MeasureString(ref proxy, ref fontSize);
+            return MeasureString(proxy, fontSize);
         }
 
         /// <summary>
@@ -438,19 +456,22 @@ namespace Stride.Graphics
         /// <param name="fontSize">The size of the font (ignored in the case of static fonts)</param>
         /// <param name="length">The length of the string to measure</param>
         /// <returns>Vector2.</returns>
-        public Vector2 MeasureString(StringBuilder text, ref Vector2 fontSize, int length)
+        public Vector2 MeasureString([NotNull] StringBuilder text, ref Vector2 fontSize, int length)
         {
             if (text == null)
                 throw new ArgumentNullException(nameof(text));
 
             var proxy = new StringProxy(text, length);
-            return MeasureString(ref proxy, ref fontSize);
+            return MeasureString(proxy, fontSize);
         }
 
-        internal Vector2 MeasureString(ref StringProxy text, ref Vector2 size)
+        internal Vector2 MeasureString(in StringProxy text, in Vector2 size)
         {
             var result = Vector2.Zero;
-            ForEachGlyph(null, ref text, ref size, measureStringGlyphAction, ref result, TextAlignment.Left, false); // text size is independent from the text alignment
+            foreach (var glyphInfo in new GlyphEnumerator(null, text, size, false, 0, text.Length, this))
+            {
+                MeasureStringGlyph(ref result, in size, glyphInfo);
+            }
             return result;
         }
 
@@ -462,6 +483,30 @@ namespace Stride.Graphics
         public virtual bool IsCharPresent(char c)
         {
             return false;
+        }
+
+        internal void TypeSpecificRatios(float requestedFontSize, ref bool snapText, ref Vector2 realVirtualResolutionRatio, out Vector2 actualFontSize)
+        {
+            if (FontType == SpriteFontType.SDF)
+            {
+                snapText = false;
+                float scaling = requestedFontSize / Size;
+                realVirtualResolutionRatio = 1 / new Vector2(scaling, scaling);
+            }
+            if (FontType == SpriteFontType.Static)
+            {
+                realVirtualResolutionRatio = Vector2.One; // ensure that static font are not scaled internally
+            }
+            if (FontType == SpriteFontType.Dynamic)
+            {
+                // Dynamic: if we're not displaying in a situation where we can snap text, we're probably in 3D.
+                // Let's use virtual resolution (otherwise requested size might change on every camera move)
+                // TODO: some step function to have LOD without regenerating on every small change?
+                if (!snapText)
+                    realVirtualResolutionRatio = Vector2.One;
+            }
+            
+            actualFontSize = new Vector2(realVirtualResolutionRatio.Y * requestedFontSize); // we don't want letters non-uniform ratio
         }
 
         /// <summary>
@@ -479,13 +524,13 @@ namespace Stride.Graphics
             return null;
         }
         
-        private void MeasureStringGlyph(ref Vector2 result, in Vector2 fontSize, in Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling)
+        internal void MeasureStringGlyph(ref Vector2 result, in Vector2 fontSize, in GlyphPosition glyphPosition)
         {
             // TODO Do we need auxiliaryScaling
-            var h = y + GetTotalLineSpacing(fontSize.Y);
-            if (nextx > result.X)
+            var h = glyphPosition.Y + GetTotalLineSpacing(fontSize.Y);
+            if (glyphPosition.NextX > result.X)
             {
-                result.X = nextx;
+                result.X = glyphPosition.NextX;
             }
             if (h > result.Y)
             {
@@ -493,140 +538,157 @@ namespace Stride.Graphics
             }
         }
 
-        private delegate void GlyphAction<T>(ref T parameters, in Vector2 fontSize, in Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling);
+        public record struct GlyphPosition(Glyph Glyph, float X, float Y, float NextX, int index, Vector2 AuxiliaryScaling);
 
-        private static int FindCariageReturn(ref StringProxy text, int startIndex)
+        internal struct GlyphEnumerator : IEnumerator<GlyphPosition>, IEnumerable<GlyphPosition>
         {
-            var index = startIndex;
+            private int index;
+            private int key;
+            private float x;
+            private float y;
+            private int forEnd;
+            private Vector2 textboxSize;
+            private GlyphPosition current;
+            private readonly bool updateGpuResources;
+            private readonly TextAlignment scanOrder;
+            private readonly StringProxy text;
+            private readonly Vector2 fontSize;
+            [CanBeNull] private readonly CommandList commandList;
+            [NotNull] private readonly SpriteFont font;
 
-            while (index < text.Length && text[index] != '\n')
-                ++index;
-
-            return index;
-        }
-
-        private void ForEachGlyph<T>(CommandList commandList, ref StringProxy text, ref Vector2 requestedFontSize, GlyphAction<T> action, ref T parameters, TextAlignment scanOrder, bool updateGpuResources, Vector2? textBoxSize = null)
-        {
-            if (scanOrder == TextAlignment.Left)
+            public GlyphEnumerator(
+                [CanBeNull] CommandList commandList, 
+                StringProxy text, 
+                Vector2 fontSize, 
+                bool updateGpuResources,
+                int forStart, 
+                int forEnd, 
+                [NotNull] SpriteFont font,
+                (TextAlignment alignment, Vector2 textboxSize)? scanOptions = null)
             {
-                // scan the whole text only one time following the text letter order
-                ForGlyph(commandList, ref text, ref requestedFontSize, action, ref parameters, 0, text.Length, updateGpuResources);
+                this.commandList = commandList;
+                this.text = text;
+                this.fontSize = fontSize;
+                this.updateGpuResources = updateGpuResources;
+                this.forEnd = forEnd;
+                this.font = font;
+                this.scanOrder = scanOptions?.alignment ?? TextAlignment.Left;
+                textboxSize = scanOptions?.textboxSize ?? default;
+                index = forStart;
+                y = 0;
+                x = FindHorizontalOffset(index);
             }
-            else
+
+            public bool MoveNext()
             {
-                // scan the text line by line incrementing y start position
-
-                // measure the whole string in order to be able to determine xStart
-                var wholeSize = textBoxSize ?? MeasureString(ref text, ref requestedFontSize);
-
-                // scan the text line by line
-                var yStart = 0f;
-                var startIndex = 0;
-                var endIndex = FindCariageReturn(ref text, 0);
-                while (startIndex < text.Length)
+                while (index < forEnd)
                 {
-                    // measure the size of the current line
-                    var lineSize = Vector2.Zero;
-                    ForGlyph(commandList, ref text, ref requestedFontSize, MeasureStringGlyph, ref lineSize, startIndex, endIndex, updateGpuResources);
+                    char character = text[index];
+                    index++;
 
-                    // Determine the start position of the line along the x axis
-                    // We round this value to the closest integer to force alignment of all characters to the same pixels
-                    // Otherwise the starting offset can fall just in between two pixels and due to float imprecision 
-                    // some characters can be aligned to the pixel before and others to the pixel after, resulting in gaps and character overlapping
-                    var xStart = (scanOrder == TextAlignment.Center) ? (wholeSize.X - lineSize.X) / 2 : wholeSize.X - lineSize.X;
-                    xStart = MathF.Round(xStart); 
-
-                    // scan the line
-                    ForGlyph(commandList, ref text, ref requestedFontSize, action, ref parameters, startIndex, endIndex, updateGpuResources, xStart, yStart);
-                    
-                    // update variable before going to next line
-                    yStart += GetTotalLineSpacing(requestedFontSize.Y);
-                    startIndex = endIndex + 1;
-                    endIndex = FindCariageReturn(ref text, startIndex);
-                }
-            }
-        }
-
-        private void ForGlyph<T>(CommandList commandList, ref StringProxy text, ref Vector2 fontSize, GlyphAction<T> action, ref T parameters, int forStart, int forEnd, bool updateGpuResources, float startX = 0, float startY = 0)
-        {
-            var key = 0;
-            var x = startX;
-            var y = startY;
-            for (var i = forStart; i < forEnd; i++)
-            {
-                var character = text[i];
-
-                switch (character)
-                {
-                    case '\r':
-                        // Skip carriage returns.
-                        key |= character;
+                    if (character == '\r')
                         continue;
 
-                    case '\n':
-                        // New line.
-                        x = 0;
-                        y += GetTotalLineSpacing(fontSize.Y);
-                        key |= character;
-                        break;
+                    var currentKey = key;
+                    key |= character;
+                    key = (key << 16);
 
-                    default:
-                        // Output this character.
-                        Vector2 auxiliaryScaling;
-                        var glyph = GetGlyph(commandList, character, in fontSize, updateGpuResources, out auxiliaryScaling);
-                        if (glyph == null && !IgnoreUnkownCharacters && DefaultCharacter.HasValue)
-                            glyph = GetGlyph(commandList, DefaultCharacter.Value, in fontSize, updateGpuResources, out auxiliaryScaling);
-                        if (glyph == null)
-                            continue;
+                    switch (character)
+                    {
+                        case '\n':
+                            x = FindHorizontalOffset(index);
+                            y += font.GetTotalLineSpacing(fontSize.Y);
+                            break;
 
-                        key |= character;
+                        default:
+                            Vector2 auxiliaryScaling;
+                            var glyph = font.GetGlyph(commandList, character, in fontSize, updateGpuResources, out auxiliaryScaling);
+                            if (glyph == null && !font.IgnoreUnkownCharacters && font.DefaultCharacter.HasValue)
+                                glyph = font.GetGlyph(commandList, font.DefaultCharacter.Value, in fontSize, updateGpuResources, out auxiliaryScaling);
+                            if (glyph == null)
+                                break;
 
-                        var dx = glyph.Offset.X;
+                            var dx = glyph.Offset.X;
+                            if (font.KerningMap != null && font.KerningMap.TryGetValue(currentKey, out var kerningOffset))
+                                dx += kerningOffset;
 
-                        float kerningOffset;
-                        if (KerningMap != null && KerningMap.TryGetValue(key, out kerningOffset))
-                            dx += kerningOffset;
-
-                        float nextX = x + (glyph.XAdvance + GetExtraSpacing(fontSize.X)) * auxiliaryScaling.X;
-                        action(ref parameters, in fontSize, in glyph, x + dx * auxiliaryScaling.X, y, nextX, ref auxiliaryScaling);
-                        x = nextX;
-                        break;
+                            float nextX = x + (glyph.XAdvance + font.GetExtraSpacing(fontSize.X)) * auxiliaryScaling.X;
+                            current = new(glyph, x + dx * auxiliaryScaling.X, y, nextX, index - 1, auxiliaryScaling);
+                            x = nextX;
+                            return true;
+                    }
                 }
 
-                // Shift the kerning key
-                key = (key << 16);
+                return false;
             }
+
+            private float FindHorizontalOffset(int scanStart)
+            {
+                if (scanOrder == TextAlignment.Left)
+                {
+                    return 0;
+                }
+
+                var nextLine = scanStart;
+                while (nextLine < text.Length && text[nextLine] != '\n')
+                    ++nextLine;
+
+                var lineSize = Vector2.Zero;
+                foreach (var glyphInfo in new GlyphEnumerator(commandList, text, fontSize, updateGpuResources, scanStart, nextLine, font))
+                {
+                    font.MeasureStringGlyph(ref lineSize, in fontSize, glyphInfo);
+                }
+
+                // Determine the start position of the line along the x axis
+                // We round this value to the closest integer to force alignment of all characters to the same pixels
+                // Otherwise the starting offset can fall just in between two pixels and due to float imprecision 
+                // some characters can be aligned to the pixel before and others to the pixel after, resulting in gaps and character overlapping
+                var xStart = (scanOrder == TextAlignment.Center) ? (textboxSize.X - lineSize.X) / 2 : textboxSize.X - lineSize.X;
+                xStart = MathF.Round(xStart);
+                return xStart;
+            }
+
+            public void Reset() => throw new NotSupportedException();
+
+            public void Dispose() { }
+
+            public GlyphPosition Current => current;
+            [NotNull] object IEnumerator.Current => current;
+
+            public GlyphEnumerator GetEnumerator() => this;
+            IEnumerator<GlyphPosition> IEnumerable<GlyphPosition>.GetEnumerator() => this;
+            IEnumerator IEnumerable.GetEnumerator() => this;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct StringProxy
+        internal readonly struct StringProxy
         {
             private readonly string textString;
             private readonly StringBuilder textBuilder;
             public readonly int Length;
 
-            public StringProxy(string text)
+            public StringProxy([NotNull] string text)
             {
                 textString = text;
                 textBuilder = null;
                 Length = text.Length;
             }
 
-            public StringProxy(StringBuilder text)
+            public StringProxy([NotNull] StringBuilder text)
             {
                 textBuilder = text;
                 textString = null;
                 Length = text.Length;
             }
             
-            public StringProxy(string text, int length)
+            public StringProxy([NotNull] string text, int length)
             {
                 textString = text;
                 textBuilder = null;
                 Length = Math.Max(0, Math.Min(length, text.Length));
             }
 
-            public StringProxy(StringBuilder text, int length)
+            public StringProxy([NotNull] StringBuilder text, int length)
             {
                 textBuilder = text;
                 textString = null;
