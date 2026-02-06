@@ -178,6 +178,7 @@ public sealed partial record MatrixType(ScalarType BaseType, int Rows, int Colum
     public int Columns { get; } = Columns >= 2 ? Columns : throw new ArgumentException("Argument must be at least 2.", nameof(Columns));
 
     // Note: this is HLSL-style so Rows/Columns meaning is swapped
+    // float2x3 = OpTypeMatrix vec3 2 = MatrixType(Rows: 3, Columns: 2)
     public override string ToString() => $"{BaseType}{Columns}x{Rows}";
 }
 /// <summary>

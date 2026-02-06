@@ -6,21 +6,41 @@ using Stride.Shaders.Spirv.Tools;
 using Stride.Shaders.Compilers.Direct3D;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders;
+using System.Text.Json;
+using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Parsing.SDSL.AST;
+using Stride.Shaders.Spirv.Building;
 
-Console.WriteLine(Spv2DXIL.spirv_to_dxil_get_version());
+
+// Console.WriteLine(Spv2DXIL.spirv_to_dxil_get_version());
 
 // Examples.CompileSDSL("RenderTests/If");
 
 //Examples.CompileSDSL();
-var loader = new Examples.ShaderLoader();
-loader.LoadExternalBuffer("Test", [], out var testBuffer, out _, out _);
-var shaderMixer = new ShaderMixer(loader);
-shaderMixer.MergeSDSL(new ShaderClassSource("If"), new ShaderMixer.Options(), out var bytecode, out _, out _, out _);
+// var loader = new Examples.ShaderLoader();
+// loader.LoadExternalBuffer("Test", [], out var testBuffer, out _, out _);
+// var shaderMixer = new ShaderMixer(loader);
+// shaderMixer.MergeSDSL(new ShaderClassSource("If"), new ShaderMixer.Options(), out var bytecode, out _, out _, out _);
 
-using var buffer = SpirvBytecode.CreateBufferFromBytecode(bytecode);
-var source = Spv.Dis(buffer);
-File.WriteAllText("test.spvdis", source);
+// using var buffer = SpirvBytecode.CreateBufferFromBytecode(bytecode);
+// var source = Spv.Dis(buffer);
+// File.WriteAllText("test.spvdis", source);
 
+
+var table = new SymbolTable(new SpirvContext());
+foreach (var i in IntrinsicsDefinitions.Intrinsics)
+{
+    try
+    {
+        var test = new MethodCall(new(i.Key, default), new ShaderExpressionList(default), default);
+        test.ProcessSymbol(table);
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine($"{i.Key}: couldn't process {e}");
+    }
+}
 
 // Examples.TryAllFiles();
 // Examples.CreateShader();

@@ -130,6 +130,14 @@ public partial class SpirvContext
         GLSLSet = Bound - 1;
     }
 
+    public int GetGLSL()
+    {
+        if (GLSLSet == null)
+            ImportGLSL();
+
+        return GLSLSet.Value;
+    }
+
     /// <summary>
     /// Add a new name to a target ID. It should not have been set before.
     /// </summary>
