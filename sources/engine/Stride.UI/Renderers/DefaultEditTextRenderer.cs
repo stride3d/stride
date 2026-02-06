@@ -31,48 +31,63 @@ namespace Stride.UI.Renderers
 
             font.TypeSpecificRatios(requestedFontSize, ref snapText, ref realVirtualResolutionRatio, out var fontSize);
 
-            var totalSize = Vector2.Zero;
-            var sizeToSelection = Vector2.Zero;
-            var sizeToEnd = Vector2.Zero;
-            foreach (var glyphInfo in new SpriteFont.GlyphEnumerator(null, new SpriteFont.StringProxy(editText.TextToDisplay), fontSize, false, 0, editText.TextToDisplay.Length, font))
-            {
-                font.MeasureStringGlyph(ref totalSize, in fontSize, glyphInfo);
-                if (glyphInfo.index < start)
-                    sizeToEnd = sizeToSelection = totalSize;
-                else if (glyphInfo.index < start + length)
-                    sizeToEnd = totalSize;
-            }
-
-            float signedAlignment = editText.TextAlignment switch
-            {
-                TextAlignment.Left => -1f,
-                TextAlignment.Center => 0f,
-                TextAlignment.Right => 1f,
-                _ => throw new ArgumentOutOfRangeException()
-            };
-
-            var regionHalf = textRegion / 2;
-            var lineHalf = totalSize / 2;
-            var selectionRect = new Vector3(sizeToEnd.X - sizeToSelection.X, totalSize.Y, 0);
-
-            Vector2 offset2D;
-            offset2D.Y = -regionHalf.Y; // Top box corner
-            offset2D.Y += lineHalf.Y; // Align with top of the text
-            
-            offset2D.X = regionHalf.X * signedAlignment; // Which side corner to align to
-            offset2D.X -= lineHalf.X * signedAlignment; // Align with the left or the right of the text
-            offset2D.X -= lineHalf.X; // Rect grows from the center, let's start from the left edge,
-            offset2D.X += sizeToSelection.X; // Move to the start of the selection
+            var lineHeight = font.GetTotalLineSpacing(fontSize.Y);
 
             var worldMatrix = editText.WorldMatrixInternal;
-            worldMatrix.TranslationVector += worldMatrix.Right * offset2D.X + worldMatrix.Up * offset2D.Y;
+            worldMatrix.TranslationVector -= worldMatrix.Right * textRegion.X * 0.5f + worldMatrix.Up * (textRegion.Y * 0.5f - lineHeight * 0.5f);
+
+            Vector2 selectionStart = default, selectionEnd = default, lineStart = default, lineEnd = default;
+            var end = start + length;
+            foreach (var glyphInfo in new SpriteFont.GlyphEnumerator(null, new SpriteFont.StringProxy(editText.TextToDisplay), fontSize, false, 0, editText.TextToDisplay.Length, font, (editText.TextAlignment, textRegion)))
+            {
+                if (glyphInfo.Index < start)
+                {
+                    lineEnd = lineStart = selectionEnd = selectionStart = new Vector2(glyphInfo.NextX, glyphInfo.Position.Y);
+                }
+                else if (glyphInfo.Index == start)
+                {
+                    lineStart = selectionEnd = selectionStart = glyphInfo.Position;
+                    lineEnd = new Vector2(glyphInfo.NextX, glyphInfo.Position.Y);
+                }
+                else if (glyphInfo.Index <= end)
+                {
+                    // We're between start and end
+                    if (lineStart.Y != glyphInfo.Y) // Skipped a line, draw a selection rect between the edges of the previous line
+                    {
+                        DrawSelectionOnGlyphRange(context, color, worldMatrix, lineStart, lineEnd, lineHeight);
+                        lineStart = glyphInfo.Position;
+                    }
+
+                    lineEnd = new Vector2(glyphInfo.NextX, glyphInfo.Position.Y);
+                    if (glyphInfo.Index < end)
+                        selectionEnd = new Vector2(glyphInfo.NextX, glyphInfo.Position.Y);
+                    else
+                        selectionEnd = glyphInfo.Position;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (end == editText.TextToDisplay.Length) // Edge case for single character selected at the end of a string
+            {
+                selectionEnd.X = lineEnd.X;
+            }
+
+            DrawSelectionOnGlyphRange(context, color, worldMatrix, lineStart, selectionEnd, lineHeight);
+
+            caretHeight = lineHeight;
             caret = worldMatrix;
+            caret.TranslationVector += caret.Right * selectionStart.X + caret.Up * selectionStart.Y;
+        }
 
-            worldMatrix.TranslationVector += worldMatrix.Right * (selectionRect.X / 2); // Move it by half its expected size since the rect is supposed to be centered
-            
-            Batch.DrawRectangle(ref worldMatrix, ref selectionRect, ref color, context.DepthBias + 1);
-
-            caretHeight = totalSize.Y;
+        private void DrawSelectionOnGlyphRange(UIRenderingContext context, Color color, in Matrix worldMatrix, Vector2 start, Vector2 end, float lineHeight)
+        {
+            var tempMatrix = worldMatrix;
+            var selectionRect = new Vector3(end.X - start.X, lineHeight, 0);
+            tempMatrix.TranslationVector += worldMatrix.Right * (start.X + selectionRect.X * 0.5f) + worldMatrix.Up * start.Y;
+            Batch.DrawRectangle(ref tempMatrix, ref selectionRect, ref color, context.DepthBias + 1);
         }
 
         public override void RenderColor(UIElement element, UIRenderingContext context)

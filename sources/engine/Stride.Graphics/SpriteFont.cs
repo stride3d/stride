@@ -307,7 +307,7 @@ namespace Stride.Graphics
                 var sqrd = Vector2.DistanceSquared(new Vector2(glyphInfo.X, glyphInfo.Y), pointOnText);
                 if (sqrd < score)
                 {
-                    index = glyphInfo.index;
+                    index = glyphInfo.Index;
                     score = sqrd;
                     x = glyphInfo.X * 0.5f + glyphInfo.NextX * 0.5f;
                 }
@@ -538,7 +538,10 @@ namespace Stride.Graphics
             }
         }
 
-        public record struct GlyphPosition(Glyph Glyph, float X, float Y, float NextX, int index, Vector2 AuxiliaryScaling);
+        public record struct GlyphPosition(Glyph Glyph, float X, float Y, float NextX, int Index, Vector2 AuxiliaryScaling)
+        {
+            public Vector2 Position => new(X, Y);
+        }
 
         internal struct GlyphEnumerator : IEnumerator<GlyphPosition>, IEnumerable<GlyphPosition>
         {
