@@ -17,7 +17,6 @@ internal record Identifier(string Name, TextLocation Location) : Node(Location)
 
 internal record Attributes(string[] Values, TextLocation Location) : Node(Location);
 
-
 internal record Layout(string Size1, string? Size2, TextLocation Location) : Node(Location);
 
 internal record Typename(string Name, Layout? Size, TextLocation Location) : Node(Location)

@@ -30,7 +30,7 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
     public SpirvValue Compile(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         if (Type == null)
-            throw new InvalidOperationException($"{nameof(ProcessSymbol)} was not called on expression {this}");
+            throw new InvalidOperationException($"{nameof(ProcessSymbol)} was not called on expression {this} or type resolution failed");
         
         var result = CompileImpl(table, compiler);
         
@@ -87,25 +87,36 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
 
     public Symbol ResolvedFunctionSymbol { get; set; }
 
+    private IIntrinsicCompiler? resolvedIntrinsicCompiler;
+    private string? resolvedIntrinsicNamespace;
     private IntrinsicTemplateExpander.IntrinsicOverload? resolvedIntrinsicOverload;
     
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         ProcessParameterSymbols(table);
 
-        if (TryResolveFunctionSymbol(table, out var functionSymbol))
+        var argumentValueTypes = new SymbolType[arguments.Values.Count];
+        for (int i = 0; i < arguments.Values.Count; ++i)
+            argumentValueTypes[i] = arguments.Values[i].ValueType;
+        
+        if (TryResolveFunctionSymbol(table, argumentValueTypes, out var functionSymbol))
         {
             var functionType = (FunctionType)functionSymbol.Type;
             Type = functionType.ReturnType;
         }
-        else if (IntrinsicCallHelper.TryResolveIntrinsic(table, name, arguments, out var resolvedIntrinsicOverloadValue))
-        {
-            resolvedIntrinsicOverload = resolvedIntrinsicOverloadValue;
-            Type = resolvedIntrinsicOverload.Value.Type.ReturnType;
-        }
         else
         {
-            table.AddError(new(info, $"Can't find a valid method overload or intrinsic to call for {name}({string.Join(", ", arguments)})"));
+            if (IntrinsicCallHelper.TryResolveIntrinsic(table, MemberCallBaseType, name, argumentValueTypes, out var resolvedIntrinsic))
+            {
+                resolvedIntrinsicCompiler = resolvedIntrinsic.Compiler;
+                resolvedIntrinsicNamespace = resolvedIntrinsic.Namespace;
+                resolvedIntrinsicOverload = resolvedIntrinsic.Overload;
+                Type = resolvedIntrinsicOverload.Value.Type.ReturnType;
+            }
+            else
+            {
+                table.AddError(new(info, $"Can't find a valid method overload or intrinsic to call for {name}({string.Join(", ", arguments)})"));
+            }
         }
 
         ResolvedFunctionSymbol = functionSymbol;
@@ -135,7 +146,8 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
         SpirvValue result;
         if (resolvedIntrinsicOverload != null)
         {
-            result = IntrinsicCallHelper.CompileIntrinsic(table, compiler, name.Name, resolvedIntrinsicOverload.Value, compiledParams);
+            SpirvValue? @this = MemberCall != null ? builder.AsValue(context, MemberCall.Value) : null;
+            result = IntrinsicCallHelper.CompileIntrinsic(table, compiler, resolvedIntrinsicCompiler, resolvedIntrinsicNamespace, name.Name, resolvedIntrinsicOverload.Value, @this, compiledParams);
         }
         else
         {
@@ -172,25 +184,39 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
         {
             // Wrap param in proper pointer type (function)
             var paramDefinition = functionType.ParameterTypes[i];
-            var paramVariable = context.Bound++;
-            builder.AddFunctionVariable(context.GetOrRegister(paramDefinition.Type), paramVariable);
 
             // Note: "in" is implicit, so we match in all cases except if out
             var inOutFlags = paramDefinition.Modifiers & ParameterModifiers.InOut;
-            if (inOutFlags != ParameterModifiers.Out)
+
+            if (paramDefinition.Type is PointerType)
             {
-                var paramSource = arguments.Values[i].CompileAsValue(table, compiler, paramDefinition.Type.GetValueType());
+                var paramVariable = context.Bound++;
+                builder.AddFunctionVariable(context.GetOrRegister(paramDefinition.Type), paramVariable);
 
-                // Convert type (if necessary)
-                var paramExpectedValueType = paramDefinition.Type;
-                if (paramExpectedValueType is PointerType pointerType)
-                    paramExpectedValueType = pointerType.BaseType;
-                paramSource = builder.Convert(context, paramSource, paramExpectedValueType);
+                if (inOutFlags != ParameterModifiers.Out)
+                {
+                    var paramSource = arguments.Values[i].CompileAsValue(table, compiler, paramDefinition.Type.GetValueType());
 
-                builder.Insert(new OpStore(paramVariable, paramSource.Id, null, []));
+                    // Convert type (if necessary)
+                    var paramExpectedValueType = paramDefinition.Type;
+                    if (paramExpectedValueType is PointerType pointerType)
+                        paramExpectedValueType = pointerType.BaseType;
+                    paramSource = builder.Convert(context, paramSource, paramExpectedValueType);
+
+                    builder.Insert(new OpStore(paramVariable, paramSource.Id, null, []));
+                }
+                
+                compiledParams[i] = paramVariable;
             }
+            else
+            {
+                if ((inOutFlags & ParameterModifiers.Out) != 0)
+                    throw new InvalidOperationException($"Function {Name} has an out parameter at index {i} but it's not a pointer type");
 
-            compiledParams[i] = paramVariable;
+                var paramSource = arguments.Values[i].CompileAsValue(table, compiler, paramDefinition.Type.GetValueType());
+                paramSource = builder.Convert(context, paramSource, paramDefinition.Type);
+                compiledParams[i] = paramSource.Id;
+            }
         }
         
         // Find default parameters decoration (if any)
@@ -252,19 +278,19 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
     }
 
     // Note: int.MaxValue means incompatible
-    public static int OverloadScore(FunctionType functionType, int defaultParameters, ShaderExpressionList arguments)
+    public static int OverloadScore(FunctionType functionType, int defaultParameters, SymbolType[] argumentValueTypes)
     {
         // Check argument count
-        if (arguments.Values.Count > functionType.ParameterTypes.Count || arguments.Values.Count < functionType.ParameterTypes.Count + defaultParameters)
+        if (argumentValueTypes.Length > functionType.ParameterTypes.Count || argumentValueTypes.Length < functionType.ParameterTypes.Count + defaultParameters)
             return int.MaxValue;
                 
         // Check if argument can be converted
         var score = 0;
-        for (var index = 0; index < arguments.Values.Count; index++)
+        for (var index = 0; index < argumentValueTypes.Length; index++)
         {
-            var argument = arguments.Values[index];
+            var argumentValueType = argumentValueTypes[index];
             var parameter =  functionType.ParameterTypes[index];
-            var argScore = SpirvBuilder.CanConvertScore(argument.ValueType, parameter.Type.GetValueType());
+            var argScore = SpirvBuilder.CanConvertScore(argumentValueType, parameter.Type.GetValueType());
             if (argScore == int.MaxValue)
                 return int.MaxValue;
 
@@ -272,12 +298,12 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
         }
                 
         // method with fewer optional parameters that need to be filled in by default values is generally preferred
-        score += functionType.ParameterTypes.Count - arguments.Values.Count;
+        score += functionType.ParameterTypes.Count - argumentValueTypes.Length;
 
         return score;
     }
 
-    private bool TryResolveFunctionSymbol(SymbolTable table, out Symbol functionSymbol)
+    private bool TryResolveFunctionSymbol(SymbolTable table, SymbolType[] argumentValueTypes, out Symbol functionSymbol)
     {
         // Note: for now, TypeId 0 is used for this/base; let's improve that later
         if (MemberCallBaseType is LoadedShaderSymbol loadedShaderSymbol)
@@ -301,7 +327,7 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
         {
             var accessibleMethods = functionSymbol.GroupMembers
                 // Check overload score
-                .Select(x => (Score: OverloadScore((FunctionType)x.Type, x.MethodDefaultParameters?.DefaultValues.Length ?? 0, arguments), Symbol: x))
+                .Select(x => (Score: OverloadScore((FunctionType)x.Type, x.MethodDefaultParameters?.DefaultValues.Length ?? 0, argumentValueTypes), Symbol: x))
                 // Remove non-applicable methods
                 .Where(x => x.Score != int.MaxValue)
                 // Group by signature/score (we assume method with exact same signature means they are overriding each other, but we might need to do a better check using override info)
@@ -761,67 +787,6 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         // Some accessors push up to 2 values on the stack
         Span<int> accessChainIds = stackalloc int[Accessors.Count * 2];
 
-        VectorType ComputeBufferOrTextureAccessReturnType(PointerType pointerType)
-        {
-            return pointerType.BaseType switch
-            {
-                BufferType b => new VectorType(b.BaseType, 4),
-                TextureType t => new VectorType(t.ReturnType, 4),
-            };
-        }
-
-        (SpirvValue Value, SymbolType ResultType) BufferLoad(BufferType bufferType, SpirvValue buffer, Expression locationExpression)
-        {
-            var resultType = new VectorType(bufferType.BaseType, 4);
-            
-            buffer = builder.AsValue(context, buffer);
-            var location = locationExpression.CompileAsValue(table, compiler);
-            location = builder.Convert(context, location, ScalarType.Int);
-            
-            var loadResult = builder.Insert(new OpImageRead(context.GetOrRegister(resultType), context.Bound++, buffer.Id, location.Id, null, []));
-            return (new(loadResult.ResultId, loadResult.ResultType), resultType);
-        }
-        
-        (SpirvValue Value, SymbolType ResultType) TextureLoad(TextureType textureType, SpirvValue buffer, Expression coordinatesExpression, Expression? offsetExpression, Expression? sampleIndexExpression, bool containsLod)
-        {
-            var resultType = new VectorType(textureType.ReturnType, 4);
-            var imageCoordValue = ConvertTexCoord(context, builder, textureType, coordinatesExpression.CompileAsValue(table, compiler), ScalarType.Int, containsLod);
-            var imageCoordType = context.ReverseTypes[imageCoordValue.TypeId];
-            SpirvValue lod;
-            
-            if (containsLod)
-            {
-                // We get all components except last one (LOD)
-                var imageCoordSize = imageCoordType.GetElementCount();
-                imageCoordType = imageCoordType.GetElementType().GetVectorOrScalar(imageCoordSize - 1);
-                Span<int> shuffleIndices = stackalloc int[imageCoordSize - 1];
-                for (int i = 0; i < shuffleIndices.Length; ++i)
-                    shuffleIndices[i] = i;
-
-                // Note: assign LOD first because we truncate imageCoordValue right after
-                // Extract LOD (last coordinate) as a separate value
-                lod = new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(ScalarType.Int), context.Bound++, imageCoordValue.Id, [imageCoordSize - 1])));
-                // Remove last component (LOD) from texcoord 
-                imageCoordValue = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(imageCoordType), context.Bound++, imageCoordValue.Id, imageCoordValue.Id, new(shuffleIndices))));
-            }
-            else
-            {
-                lod = context.CompileConstant(0.0f);
-            }
-
-            buffer = builder.AsValue(context, buffer);
-
-            SpirvValue? offset = offsetExpression != null
-                ? ConvertOffset(context, builder, textureType, offsetExpression.CompileAsValue(table, compiler))
-                : null;
-            SpirvValue? sampleIndex = sampleIndexExpression != null
-                ? builder.Convert(context, sampleIndexExpression.CompileAsValue(table, compiler), ScalarType.Int)
-                : null;
-            TextureGenerateImageOperands(lod, offset, sampleIndex, out var imask, out var imParams);
-            var loadResult = builder.Insert(new OpImageFetch(context.GetOrRegister(resultType), context.Bound++, buffer.Id, imageCoordValue.Id, imask, imParams));
-            return (new(loadResult.ResultId, loadResult.ResultType), resultType);
-        }
-
         for (var i = 0; i < Accessors.Count; ++i)
         {
             var accessor = Accessors[i];
@@ -831,170 +796,59 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
             switch (currentValueType, accessor)
             {
-                case (PointerType { BaseType: TextureType textureType },
-                        MethodCall { Name.Name: "Sample", Arguments.Values.Count: 2 or 3 }
-                        or MethodCall { Name.Name: "SampleLevel", Arguments.Values.Count: 3 or 4 }):
-                    {
-                        if (compiler == null)
-                        {
-                            ((MethodCall)accessor).ProcessParameterSymbols(table, null);
-                            accessor.Type = new VectorType(textureType.ReturnType, 4);
-                            break;
-                        }
-                        
-                        // Emit OpAccessChain with everything so far
-                        EmitOpAccessChain(accessChainIds, i - 1);
-                        var textureValue = builder.AsValue(context, result);
-                        var resultType = accessor.Type;
-
-                        if (accessor is MethodCall { Name.Name: "Sample", Arguments.Values.Count: 2 or 3 } implicitSampling)
-                        {
-                            var samplerValue = implicitSampling.Arguments.Values[0].CompileAsValue(table, compiler);
-                            var texCoordValue = ConvertTexCoord(context, builder, textureType, implicitSampling.Arguments.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
-
-                            var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
-                            var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
-                            var returnType = context.GetOrRegister(resultType);
-
-                            SpirvValue? offset = implicitSampling.Arguments.Values.Count >= 3
-                                ? ConvertOffset(context, builder, textureType, implicitSampling.Arguments.Values[2].CompileAsValue(table, compiler))
-                                : null;
-                            TextureGenerateImageOperands(null, offset, null, out var imask, out var imParams);
-                            var sample = builder.Insert(new OpImageSampleImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, imask, imParams));
-
-                            result = new(sample.ResultId, sample.ResultType);
-                            accessor.Type = resultType;
-                        }
-                        else if (accessor is MethodCall { Name.Name: "SampleLevel", Arguments.Values.Count: 3 or 4 } explicitSampling)
-                        {
-                            var samplerValue = explicitSampling.Arguments.Values[0].CompileAsValue(table, compiler);
-                            var texCoordValue = ConvertTexCoord(context, builder, textureType, explicitSampling.Arguments.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
-                            
-                            var levelValue = explicitSampling.Arguments.Values[2].CompileAsValue(table, compiler);
-                            levelValue = builder.Convert(context, levelValue, ScalarType.Float);
-
-                            var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
-                            var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
-                            var returnType = context.GetOrRegister(resultType);
-
-                            SpirvValue? offset = explicitSampling.Arguments.Values.Count >= 4
-                                ? ConvertOffset(context, builder, textureType, explicitSampling.Arguments.Values[3].CompileAsValue(table, compiler))
-                                : null;
-                            TextureGenerateImageOperands(levelValue, offset, null, out var imask, out var imParams);
-                            var sample = builder.Insert(new OpImageSampleExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, imask, imParams));
-
-                            result = new(sample.ResultId, sample.ResultType);
-                            accessor.Type = resultType;
-                        }
-                        else
-                            throw new InvalidOperationException("Invalid Sample method call");
-                        break;
-                    }
-                case (PointerType { BaseType: TextureType textureType },
-                    MethodCall { Name.Name: "SampleCmp" or "SampleCmpLevelZero", Arguments.Values.Count: 3 or 4 } sampleCompare):
-                {
-                    if (compiler == null)
-                    {
-                        ((MethodCall)accessor).ProcessParameterSymbols(table, null);
-                        accessor.Type = textureType.ReturnType;
-                        if (accessor.Type is not ScalarType)
-                            throw new InvalidOperationException();
-                        break;
-                    }
-
-                    var resultType = textureType.ReturnType;
-
-                    // Emit OpAccessChain with everything so far
-                    EmitOpAccessChain(accessChainIds, i - 1);
-                    var textureValue = builder.AsValue(context, result);
-                    
-                    var samplerValue = sampleCompare.Arguments.Values[0].CompileAsValue(table, compiler);
-                    var texCoordValue = ConvertTexCoord(context, builder, textureType, sampleCompare.Arguments.Values[1].CompileAsValue(table, compiler), ScalarType.Float);
-                    
-                    var compareValue = sampleCompare.Arguments.Values[2].CompileAsValue(table, compiler);
-
-                    var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
-                    var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, textureValue.Id, samplerValue.Id));
-                    var returnType = context.GetOrRegister(resultType);
-                    
-                    SpirvValue? offset = sampleCompare.Arguments.Values.Count >= 4
-                        ? ConvertOffset(context, builder, textureType, sampleCompare.Arguments.Values[3].CompileAsValue(table, compiler))
-                        : null;
-                    TextureGenerateImageOperands(context.CompileConstant(0.0f), offset, null, out var imask, out var imParams);
-                    var sample = sampleCompare.Name.Name == "SampleCmpLevelZero"
-                        ? builder.InsertData(new OpImageSampleDrefExplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, imask, imParams))
-                        : builder.InsertData(new OpImageSampleDrefImplicitLod(returnType, context.Bound++, sampledImage.ResultId, texCoordValue.Id, compareValue.Id, imask, imParams));
-
-                    result = new(sample.IdResult!.Value, sample.IdResultType!.Value);
-                    accessor.Type = resultType;
-                    break;
-                }
-                case (PointerType { BaseType: BufferType or TextureType } pointerType, MethodCall { Name.Name: "Load", Arguments.Values.Count: 1 or 2 or 3 } load):
-                    {
-                        if (compiler == null)
-                        {
-                            // Check parameter count
-                            switch (pointerType.BaseType)
-                            {
-                                case BufferType b:
-                                    if (load.Arguments.Values.Count != 1)
-                                        table.AddError(new(info, "Buffer.Load expects a single argument"));
-                                    break;
-                                case TextureType t:
-                                    var requiredArguments = 1;
-                                    if (t.Multisampled)
-                                        requiredArguments++;
-                                    
-                                    // One optional argument (offset)
-                                    if (load.Arguments.Values.Count != requiredArguments && load.Arguments.Values.Count != requiredArguments + 1)
-                                        table.AddError(new(info, $"Texture.Load expects {requiredArguments} or {requiredArguments + 1} arguments"));
-                                    break;
-                                default:
-                                    throw new ArgumentOutOfRangeException(nameof(pointerType.BaseType));
-                            }
-                            
-                            ((MethodCall)accessor).ProcessParameterSymbols(table, null);
-                            accessor.Type = ComputeBufferOrTextureAccessReturnType(pointerType);
-                            break;
-                        }
-
-                        // Emit OpAccessChain with everything so far
-                        EmitOpAccessChain(accessChainIds, i - 1);
-
-                        switch (pointerType.BaseType)
-                        {
-                            case BufferType b:
-                                (result, accessor.Type) = BufferLoad(b, result, load.Arguments.Values[0]);
-                                break;
-                            case TextureType t:
-                                var sampleIndex = t.Multisampled ? load.Arguments.Values[1] : null;
-                                var offsetArgIndex = t.Multisampled ? 2 : 1;
-                                var offset = load.Arguments.Values.Count >= offsetArgIndex + 1 ? load.Arguments.Values[offsetArgIndex] : null;
-                                (result, accessor.Type) = TextureLoad(t, result, load.Arguments.Values[0], offset, sampleIndex, true);
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException(nameof(pointerType.BaseType));
-                        }
-
-                        break;
-                    }
                 case (PointerType { BaseType: BufferType or TextureType } pointerType, IndexerExpression indexer):
                 {
                     if (compiler == null)
                     {
                         indexer.Index.ProcessSymbol(table);
-                        accessor.Type = ComputeBufferOrTextureAccessReturnType(pointerType);
+
+                        // Note: Texture.Load expects one more coordinate
+                        // i.e. tex[coord.xy] => tex.Load(int3(coord.xy, 0))
+                        var indexerType = pointerType.BaseType is TextureType
+                            ? indexer.Index.ValueType.GetElementType().GetVectorOrScalar(indexer.Index.ValueType.GetElementCount() + 1)
+                            : indexer.Index.ValueType;
+                        
+                        if (!IntrinsicCallHelper.TryResolveIntrinsic(table, pointerType.BaseType, "Load", [indexerType], out var resolvedIntrinsic2))
+                            throw new InvalidOperationException($"Unable to resolve intrinsic Load for type {pointerType.BaseType}");
+                        accessor.Type = resolvedIntrinsic2.Overload.Type.ReturnType;
                         break;
                     }
 
                     // Emit OpAccessChain with everything so far
                     EmitOpAccessChain(accessChainIds, i - 1);
-
-                    (result, accessor.Type) = pointerType.BaseType switch
+                    
+                    // Note: Texture.Load expects one more coordinate
+                    // i.e. tex[coord.xy] => tex.Load(int3(coord.xy, 0))
+                    var indexerType2 = pointerType.BaseType is TextureType
+                        ? indexer.Index.ValueType.GetElementType().GetVectorOrScalar(indexer.Index.ValueType.GetElementCount() + 1)
+                        : indexer.Index.ValueType;
+                    
+                    if (!IntrinsicCallHelper.TryResolveIntrinsic(table, pointerType.BaseType, "Load", [indexerType2], out var resolvedIntrinsic))
+                        throw new InvalidOperationException($"Unable to resolve intrinsic Load for type {pointerType.BaseType}");
+                    
+                    // Generate Load parameter
+                    var indexValue = indexer.Index.CompileAsValue(table, compiler);
+                    var texcoordType = resolvedIntrinsic.Overload.Type.ParameterTypes[0].Type;
+                    if (pointerType.BaseType is TextureType)
                     {
-                        BufferType b => BufferLoad(b, result, indexer.Index),
-                        TextureType t => TextureLoad(t, result, indexer.Index, null, null, false),
-                    };
+                        // Find expected type for array (same as Load() but with 1 less component)
+                        var texcoordSize = texcoordType.GetElementCount();
+                        indexValue = builder.Convert(context, indexValue, texcoordType.GetElementType().GetVectorOrScalar(texcoordSize - 1));
+
+                        Span<int> values = stackalloc int[texcoordSize];
+                        for (int j = 0; j < texcoordSize - 1; ++j)
+                            values[j] = builder.Insert(new OpCompositeExtract(context.GetOrRegister(context.ReverseTypes[indexValue.TypeId].GetElementType()), context.Bound++, indexValue.Id, [j])).ResultId;
+                        values[^1] = context.CompileConstant((int)0).Id;
+                        indexValue = new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(texcoordType), context.Bound++, [..values])));
+                    }
+                    else
+                    {
+                        indexValue = builder.Convert(context, indexValue, texcoordType);
+                    }
+
+                    result = resolvedIntrinsic.Compiler.CompileIntrinsic(table, compiler, resolvedIntrinsic.Namespace, "Load", resolvedIntrinsic.Overload.Type, result, [indexValue.Id]);
+                    accessor.Type = resolvedIntrinsic.Overload.Type.ReturnType;
+                    
                     break;
                 }
                 case (PointerType { BaseType: StructuredBufferType bufferType }, IndexerExpression indexer):

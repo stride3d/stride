@@ -1,4 +1,4 @@
-// PSMain(ExpectedResult=#1357ABCD, buffer.Buffer1=#1357ABCD)
+// PSMain(ExpectedResult=#22446688, buffer.Buffer1=#11223344)
 
 namespace Stride.Shaders.Tests;
 
@@ -11,6 +11,6 @@ shader Buffers
 
     void PSMain()
     {
-        streams.ColorTarget = Buffer1.Load(0);
+        streams.ColorTarget = Buffer1.Load(0) + Buffer1[0];
     }
 }

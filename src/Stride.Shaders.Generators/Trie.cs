@@ -37,19 +37,19 @@ public class Trie<TValue> where TValue : class
         return node;
     }
     
-    public void SimplifySingleLeaves() => SimplifySingleLeaves(root);
+    public void SimplifyRoot() => SimplifyRoot(root);
     
     public IEnumerable<TrieNode<TValue>> EnumerateNodes() => EnumerateNodes(root);
 
     // Try to attach method definition to a parent definition with optional parameter (only if one option)
     // i.e. (a,b) and (a,b,c) will be grouped into (a,b,c?)
     // however (a,b) (a,b,c) and (a,b,d) won't be merged as (a,b) has two possible optional parameter branches
-    private void SimplifySingleLeaves(TrieNode<TValue> node)
+    private void SimplifyRoot(TrieNode<TValue> node)
     {
         // First we recurse
         foreach (var child in node.Children.Values)
         {
-            SimplifySingleLeaves(child);
+            SimplifyRoot(child);
         }
         
         // Check if we can merge node with its child

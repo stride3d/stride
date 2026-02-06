@@ -9,8 +9,10 @@ namespace Stride.Shaders.Parsing.SDSL;
 /// <summary>
 /// Helps expand intrinsics from <see cref="IntrinsicDefinition"/> to multiple <see cref="FunctionType"/>. 
 /// </summary>
-public class IntrinsicTemplateExpander(FrozenDictionary<string, IntrinsicDefinition[]> intrinsicsDefinitions)
+public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, FrozenDictionary<string, IntrinsicDefinition[]> intrinsicsDefinitions)
 {
+    public string Namespace { get; } = @namespace;
+    
     record SizePermutationGenerator(string? Name, List<int> Sizes, List<(int SourceArgument, int TemplateIndex)> Locations)
     {
         public IEnumerable<SizePermutation> Generate()
@@ -41,6 +43,8 @@ public class IntrinsicTemplateExpander(FrozenDictionary<string, IntrinsicDefinit
     public record struct IntrinsicOverload(FunctionType Type, List<(int SourceArgument, int TemplateIndex)>? AutoMatrixLoopLocations, int AutoMatrixLoopSize);
     Dictionary<string, List<IntrinsicOverload>> intrinsicDefinitionsCache = new();
 
+    record struct ParameterTypeInfo(SymbolType BaseType, SizeValue Size1, SizeValue Size2);
+
     public bool TryGetOrGenerateIntrinsicsDefinition(string name, [MaybeNullWhen(false)] out List<IntrinsicOverload> result)
     {
         lock (intrinsicDefinitionsCache)
@@ -53,7 +57,7 @@ public class IntrinsicTemplateExpander(FrozenDictionary<string, IntrinsicDefinit
                 result = null;
                 return false;
             }
-
+            
             result = new();
             foreach (var intrinsicDefinition in intrinsicDefinitions)
             {
@@ -183,7 +187,7 @@ public class IntrinsicTemplateExpander(FrozenDictionary<string, IntrinsicDefinit
                 var sizePermutations = CartesianProduct.Generate(sizeSequences);
                 
                 // Step 4: generate signature using permutations
-                (SymbolType BaseType, SizeValue Size1, SizeValue Size2)[] parameterTypeHelper = new (SymbolType BaseType, SizeValue Size1, SizeValue Size2)[intrinsicDefinition.Parameters.Length + 1];
+                ParameterTypeInfo[] parameterTypeHelper = new ParameterTypeInfo[intrinsicDefinition.Parameters.Length + 1];
                 SymbolType[] parameterTypes = new SymbolType[intrinsicDefinition.Parameters.Length + 1];
                 foreach (var baseTypePermutationList in baseTypePermutations)
                 {
@@ -235,6 +239,20 @@ public class IntrinsicTemplateExpander(FrozenDictionary<string, IntrinsicDefinit
                             }
                         }
 
+                        ParameterTypeInfo GetParameterInfo(int index)
+                        {
+                            if (index == -1)
+                            {
+                                return thisType switch
+                                {
+                                    null => throw new ArgumentNullException(nameof(thisType)),
+                                    TextureType t => new(t.ReturnType, new(4, null), default),
+                                    BufferType b => new(b.BaseType, new(4, null), default),
+                                };
+                            }
+                            return parameterTypeHelper[index];
+                        }
+
                         // Use match() to fill size info
                         for (var index = 0; index < intrinsicDefinition.Parameters.Length + 1; index++)
                         {
@@ -244,8 +262,11 @@ public class IntrinsicTemplateExpander(FrozenDictionary<string, IntrinsicDefinit
                             {
                                 if (parameterType.Match != null && parameterType.Match.Value.Layout != index)
                                 {
-                                    parameterTypeHelper[index].Size1 = parameterTypeHelper[parameterType.Match.Value.Layout].Size1;
-                                    parameterTypeHelper[index].Size2 = parameterTypeHelper[parameterType.Match.Value.Layout].Size2;
+                                    var paramInfo = GetParameterInfo(parameterType.Match.Value.Layout);
+                                    if (parameterTypeHelper[index].BaseType == ScalarType.Void)
+                                        parameterTypeHelper[index].BaseType = paramInfo.BaseType;
+                                    parameterTypeHelper[index].Size1 = paramInfo.Size1;
+                                    parameterTypeHelper[index].Size2 = paramInfo.Size2;
 
                                     // Also register locations (to easily analyze matrix loops later) 
                                     if (firstIteration)

@@ -16,8 +16,13 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     // Cast
     public override SpirvValue CompileAsfloat(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileBitcastCall(context, builder, functionType, x);
     public override SpirvValue CompileAsint(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileBitcastCall(context, builder, functionType, x);
-    public override SpirvValue CompileAsuint(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileBitcastCall(context, builder, functionType, x);
-    public override SpirvValue CompileAsuint(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue d, SpirvValue x, SpirvValue y) => throw new NotImplementedException();
+    public override SpirvValue CompileAsuint(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue? d = null, SpirvValue? x = null, SpirvValue? y = null)
+    {
+        if (d == null && y == null)
+            return CompileBitcastCall(context, builder, functionType, x.Value);
+        throw new NotImplementedException();
+    }
+
     public override SpirvValue CompileAsdouble(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue y) => throw new NotImplementedException();
     public override SpirvValue CompileAsfloat16(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileAsint16(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
