@@ -61,21 +61,13 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <summary>
-        /// Converts radians to degrees for display, handling edge cases like -0.
+        /// Converts radians to degrees for display.
         /// </summary>
         /// <param name="angleRadians">The angle in radians.</param>
         /// <returns>The angle in degrees.</returns>
         private static float GetDisplayValue(float angleRadians)
         {
-            var degrees = MathUtil.RadiansToDegrees(angleRadians);
-
-            // Normalize -0 to +0 for cleaner display
-            if (degrees == 0 && float.IsNegative(degrees))
-            {
-                degrees = 0;
-            }
-
-            return degrees;
+            return MathF.Round(MathUtil.RadiansToDegrees(angleRadians), 4);
         }
     }
 }
