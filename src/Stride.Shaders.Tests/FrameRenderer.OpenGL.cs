@@ -77,7 +77,7 @@ public class OpenGLFrameRenderer(uint width = 800, uint height = 600, byte[]? fr
         Debug.WriteLine($"[{severity}] {messageDecoded}");
     }
 
-    public override unsafe void RenderFrame(Span<byte> result)
+    public unsafe void RenderFrame(Span<byte> result)
     {
         var options = WindowOptions.Default;
         options.Size = new Vector2D<int>((int)width, (int)height);

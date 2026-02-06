@@ -39,7 +39,7 @@ public ref partial struct EnumerantParameters
         Words = MemoryOwner<int>.Allocate(words.Length);
         words.CopyTo(Words.Span);
     }
-    public EnumerantParameters(Span<int> words)
+    public EnumerantParameters(scoped Span<int> words)
     {
         Words = MemoryOwner<int>.Allocate(words.Length);
         words.CopyTo(Words.Span);

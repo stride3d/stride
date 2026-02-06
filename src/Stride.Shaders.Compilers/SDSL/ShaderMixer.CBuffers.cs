@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using static Stride.Shaders.Spirv.Specification;
-using StorageClass = Stride.Shaders.Parsing.SDSL.AST.StorageClass;
 
 namespace Stride.Shaders.Compilers.SDSL
 {
@@ -45,15 +44,16 @@ namespace Stride.Shaders.Compilers.SDSL
                 return;
 
             var globalCBufferType = new ConstantBufferSymbol("Globals", members);
-            var globalCBufferTypeId = context.DeclareCBuffer(globalCBufferType);
-            var links = new (string? Link, string? LogicalGroup)[members.Count];
+            var globalCBufferTypeId = context.DeclareCBuffer(globalCBufferType, context.Bound++);
+            // Transfer metadata from variable to cbuffer member
+            var memberMetadata = new CBufferMemberMetadata[members.Count];
             for (var index = 0; index < members.Count; index++)
             {
                 var member = members[index];
                 context.AddMemberName(globalCBufferTypeId, index, member.Name);
 
-                var linkInfo = variableLinks[variables[index]];
-                links[index] = (linkInfo.Link, linkInfo.LogicalGroup);
+                var metadata = variableMetadata[variables[index]];
+                memberMetadata[index] = new(Link: metadata.Link, LogicalGroup: metadata.LogicalGroup, Color: metadata.Color);
             }
 
             // Note: we make sure to add at a previous variable index, otherwise the OpVariableSDSL won't be inside the root MixinNode.StartInstruction/EndInstruction
@@ -61,7 +61,7 @@ namespace Stride.Shaders.Compilers.SDSL
             context.AddName(cbufferVariable.ResultId, "Globals");
             
             // Update cbuffer links
-            cbufferMemberLinks[cbufferVariable.ResultId] = links;
+            cbufferMemberMetadata[cbufferVariable.ResultId] = memberMetadata;
             
             // Replace all accesses
             int instructionsAddedInThisMethod = 0;
@@ -120,7 +120,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 }
             }
             
-            // Remap decorations
+            // Remap decorations and remove OpName
             foreach (var i in context)
             {
                 if (i.Op == Op.OpDecorate && (OpDecorate)i is {} decorate)
@@ -132,6 +132,11 @@ namespace Stride.Shaders.Compilers.SDSL
                 {
                     if (variableToMemberIndices.TryGetValue(decorateString.Target, out var memberIndex))
                         i.Buffer.Replace(i.Index, new OpMemberDecorateString(globalCBufferTypeId, memberIndex, decorateString.Decoration, decorateString.Value));
+                }
+                else if (i.Op == Op.OpName && (OpName)i is { } name)
+                {
+                    if (variableToMemberIndices.ContainsKey(name.Target))
+                        SetOpNop(i.Data.Memory.Span);
                 }
             }
         }
@@ -158,7 +163,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
             string? GetCBufferLogicalGroup(int variableId)
             {
-                variableLinks.TryGetValue(variableId, out var linkName);
+                variableMetadata.TryGetValue(variableId, out var linkName);
                 return linkName.LogicalGroup;
             }
 
@@ -195,7 +200,6 @@ namespace Stride.Shaders.Compilers.SDSL
             {
                 var cbufferStructId = context.Types[cbufferStruct];
                 int mergedMemberIndex = 0;
-                var links = new string[cbufferStruct.Members.Count];
                 foreach (ref var cbuffer in cbuffersSpan)
                 {
                     for (int memberIndex = 0; memberIndex < cbuffer.StructType.Members.Count; memberIndex++, mergedMemberIndex++)
@@ -216,16 +220,15 @@ namespace Stride.Shaders.Compilers.SDSL
             }
 
             // Transfer cbufferMemberLinks to new structure
-            (string Link, string LogicalGroup)[] GenerateCBufferLinks(int cbufferVariableId, Span<(OpDataIndex Variable, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct)
+            CBufferMemberMetadata[] GenerateCBufferLinks(int cbufferVariableId, Span<(OpDataIndex Variable, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct)
             {
-                var cbufferStructId = context.Types[cbufferStruct];
                 int mergedMemberIndex = 0;
-                var links = new (string Link, string LogicalGroup)[cbufferStruct.Members.Count];
+                var links = new CBufferMemberMetadata[cbufferStruct.Members.Count];
                 foreach (ref var cbuffer in cbuffersSpan)
                 {
                     for (int memberIndex = 0; memberIndex < cbuffer.StructType.Members.Count; memberIndex++, mergedMemberIndex++)
                     {
-                        links[mergedMemberIndex] = cbufferMemberLinks[cbuffer.Variable.Data.IdResult.Value][memberIndex];
+                        links[mergedMemberIndex] = cbufferMemberMetadata[cbuffer.Variable.Data.IdResult.Value][memberIndex];
                     }
                 }
 
@@ -261,7 +264,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     var structTypes = cbuffers.Select(x => x.StructType);
 
                     var mergedCbufferStruct = new ConstantBufferSymbol(cbuffersEntry.Key, structTypes.SelectMany(x => x.Members).ToList());
-                    var mergedCbufferStructId = context.DeclareCBuffer(mergedCbufferStruct);
+                    var mergedCbufferStructId = context.DeclareCBuffer(mergedCbufferStruct, context.Bound++);
                     var mergedCbufferPtrStruct = new PointerType(mergedCbufferStruct, Specification.StorageClass.Uniform);
                     var mergedCbufferPtrStructId = context.GetOrRegister(mergedCbufferPtrStruct);
 
@@ -299,7 +302,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                     // Update first variable to use new type
                     cbuffersSpan[0].Variable.Data.IdResultType = mergedCbufferPtrStructId;
-                    cbufferMemberLinks[cbuffersSpan[0].Variable.Data.IdResult.Value] = GenerateCBufferLinks(cbuffersSpan[0].Variable.Data.IdResult.Value, cbuffersSpan, mergedCbufferStruct);
+                    cbufferMemberMetadata[cbuffersSpan[0].Variable.Data.IdResult.Value] = GenerateCBufferLinks(cbuffersSpan[0].Variable.Data.IdResult.Value, cbuffersSpan, mergedCbufferStruct);
                     foreach (var i in buffer)
                     {
                         if (i.Op == Op.OpName && (OpName)i is { } name)
@@ -334,6 +337,53 @@ namespace Stride.Shaders.Compilers.SDSL
             SpirvBuilder.RemapIds(context.GetBuffer(), 0, context.GetBuffer().Count, idRemapping);
         }
 
+        EffectTypeDescription ConvertStructType(SpirvContext context, StructType s, SpirvBuilder.AlignmentRules alignmentRules)
+        {
+            EmitStructDecorations(context, s, alignmentRules, out int size, out var offsets);
+            
+            var members = new EffectTypeMemberDescription[s.Members.Count];
+            for (int i = 0; i < s.Members.Count; ++i)
+            {
+                members[i] = new EffectTypeMemberDescription
+                {
+                    Name = s.Members[i].Name,
+                    Type = ConvertType(context, s.Members[i].Type, s.Members[i].TypeModifier, alignmentRules),
+                    Offset = offsets[i],
+                };
+            }
+            return new EffectTypeDescription { Class = EffectParameterClass.Struct, RowCount = 1, ColumnCount = 1, Name = s.Name, Members = members, ElementSize = size };
+        }
+
+        EffectTypeDescription ConvertType(SpirvContext context, SymbolType symbolType, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules)
+        {
+            return symbolType switch
+            {
+                ScalarType { Type: Scalar.Boolean } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Bool, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ScalarType { Type: Scalar.UInt } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.UInt, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ScalarType { Type: Scalar.Int } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Int, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ScalarType { Type: Scalar.Float } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Float, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
+                ScalarType { Type: Scalar.Double } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Double, RowCount = 1, ColumnCount = 1, ElementSize = 8 },
+                ArrayType a => ConvertArrayType(context, a, typeModifier, alignmentRules),
+                StructType s => ConvertStructType(context, s, alignmentRules),
+                // TODO: should we use RowCount instead? (need to update Stride)
+                VectorType v => ConvertType(context, v.BaseType, typeModifier, alignmentRules) with { Class = EffectParameterClass.Vector, RowCount = 1, ColumnCount = v.Size },
+                // Note: this is HLSL-style so Rows/Columns meaning is swapped
+                //       however, for type/class, both TypeModifier and EffectParameterType are following HLSL
+                MatrixType m when typeModifier == TypeModifier.ColumnMajor || typeModifier == TypeModifier.None
+                    => ConvertType(context, m.BaseType, typeModifier, alignmentRules) with { Class = EffectParameterClass.MatrixColumns, RowCount = m.Columns, ColumnCount = m.Rows },
+                MatrixType m when typeModifier == TypeModifier.RowMajor
+                    => ConvertType(context, m.BaseType, typeModifier, alignmentRules) with { Class = EffectParameterClass.MatrixRows, RowCount = m.Columns, ColumnCount = m.Rows },
+            };
+
+            EffectTypeDescription ConvertArrayType(SpirvContext context, ArrayType a, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules)
+            {
+                EmitArrayStrideDecorations(context, a, typeModifier, alignmentRules, out var arrayStride);
+
+                var elementType = ConvertType(context, a.BaseType, typeModifier, alignmentRules);
+                return elementType with { Elements = a.Size };
+            }
+        }
+
         private void ComputeCBufferReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
         {
             var cbuffers = buffer
@@ -347,86 +397,6 @@ namespace Stride.Shaders.Compilers.SDSL
                 .Where(x => x.StructType != null)
                 .ToList();
 
-            EffectTypeDescription ConvertStructType(SpirvContext context, StructType s)
-            {
-                var structId = context.Types[s];
-
-                var hasOffsetDecorations = false;
-                foreach (var i in context)
-                {
-                    if (i.Op == Op.OpMemberDecorate && (OpMemberDecorate)i is { Decoration: Decoration.Offset } memberDecorate && memberDecorate.StructureType == structId)
-                    {
-                        hasOffsetDecorations = true;
-                        break;
-                    }
-                }
-
-                var members = new EffectTypeMemberDescription[s.Members.Count];
-                var offset = 0;
-                for (int i = 0; i < s.Members.Count; ++i)
-                {
-                    var memberSize = SpirvBuilder.ComputeCBufferOffset(s.Members[i].Type, s.Members[i].TypeModifier, ref offset);
-
-                    members[i] = new EffectTypeMemberDescription
-                    {
-                        Name = s.Members[i].Name,
-                        Type = ConvertType(context, s.Members[i].Type, s.Members[i].TypeModifier),
-                        Offset = offset,
-                    };
-
-                    // Note: we assume if already added by another cbuffer using this type, the offsets were computed the same way
-                    if (!hasOffsetDecorations)
-                        DecorateMember(context, structId, i, offset, memberSize, s.Members[i].Type, s.Members[i].TypeModifier);
-
-                    offset += memberSize;
-                }
-                return new EffectTypeDescription { Class = EffectParameterClass.Struct, RowCount = 1, ColumnCount = 1, Name = s.Name, Members = members, ElementSize = offset };
-            }
-
-
-            EffectTypeDescription ConvertType(SpirvContext context, SymbolType symbolType, TypeModifier typeModifier)
-            {
-                return symbolType switch
-                {
-                    ScalarType { TypeName: "int" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Int, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
-                    ScalarType { TypeName: "float" } => new EffectTypeDescription { Class = EffectParameterClass.Scalar, Type = EffectParameterType.Float, RowCount = 1, ColumnCount = 1, ElementSize = 4 },
-                    ArrayType a => ConvertArrayType(context, a, typeModifier),
-                    StructType s => ConvertStructType(context, s),
-                    // TODO: should we use RowCount instead? (need to update Stride)
-                    VectorType v => ConvertType(context, v.BaseType, typeModifier) with { Class = EffectParameterClass.Vector, RowCount = 1, ColumnCount = v.Size },
-                    // Note: this is HLSL-style so Rows/Columns meaning is swapped
-                    //       however, for type/class, both TypeModifier and EffectParameterType are following HLSL
-                    MatrixType m when typeModifier == TypeModifier.ColumnMajor || typeModifier == TypeModifier.None
-                        => ConvertType(context, m.BaseType, typeModifier) with { Class = EffectParameterClass.MatrixColumns, RowCount = m.Columns, ColumnCount = m.Rows },
-                    MatrixType m when typeModifier == TypeModifier.RowMajor
-                        => ConvertType(context, m.BaseType, typeModifier) with { Class = EffectParameterClass.MatrixRows, RowCount = m.Columns, ColumnCount = m.Rows },
-                };
-
-                EffectTypeDescription ConvertArrayType(SpirvContext context, ArrayType a, TypeModifier typeModifier)
-                {
-                    var typeId = context.Types[a];
-                    var elementType = ConvertType(context, a.BaseType, typeModifier);
-
-                    var hasStrideDecoration = false;
-                    foreach (var i in context)
-                    {
-                        if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: Decoration.ArrayStride } arrayStrideDecoration && arrayStrideDecoration.Target == typeId)
-                        {
-                            hasStrideDecoration = true;
-                        }
-                    }
-
-                    if (!hasStrideDecoration)
-                    {
-                        var elementSize = SpirvBuilder.TypeSizeInBuffer(a.BaseType, typeModifier).Size;
-                        var arrayStride = (elementSize + 15) / 16 * 16;
-                        context.Add(new OpDecorate(typeId, Decoration.ArrayStride, [arrayStride]));
-                    }
-
-                    return elementType with { Elements = a.Size };
-                }
-            }
-
             foreach (var cbuffer in cbuffers)
             {
                 int constantBufferOffset = 0;
@@ -434,28 +404,35 @@ namespace Stride.Shaders.Compilers.SDSL
                 var structTypeId = context.Types[cb];
 
                 var memberInfos = new EffectValueDescription[cb.Members.Count];
-                if (!cbufferMemberLinks.TryGetValue(cbuffer.Variable.Data.IdResult.Value, out var cbufferLinks))
+                if (!cbufferMemberMetadata.TryGetValue(cbuffer.Variable.Data.IdResult.Value, out var cbufferMetadata))
                     throw new InvalidOperationException($"Could not find cbuffer member link info for {context.Names[cbuffer.Variable.Data.IdResult.Value]}; it should have been generated during {MergeCBuffers}");
                 
                 for (var index = 0; index < cb.Members.Count; index++)
                 {
                     // Properly compute size and offset according to DirectX rules
                     var member = cb.Members[index];
-                    var memberSize = SpirvBuilder.ComputeCBufferOffset(member.Type, member.TypeModifier, ref constantBufferOffset);
+                    var memberSize = SpirvBuilder.ComputeBufferOffset(member.Type, member.TypeModifier, ref constantBufferOffset, SpirvBuilder.AlignmentRules.CBuffer).Size;
 
                     DecorateMember(context, structTypeId, index, constantBufferOffset, memberSize, member.Type, member.TypeModifier);
 
-                    var linkInfo = cbufferLinks[index];
+                    var metadata = cbufferMetadata[index];
 
                     memberInfos[index] = new EffectValueDescription
                     {
-                        Type = ConvertType(context, member.Type, member.TypeModifier),
+                        Type = ConvertType(context, member.Type, member.TypeModifier, SpirvBuilder.AlignmentRules.CBuffer),
                         RawName = member.Name,
-                        KeyInfo = new EffectParameterKeyInfo { KeyName = linkInfo.Link },
+                        KeyInfo = new EffectParameterKeyInfo { KeyName = metadata.Link },
                         Offset = constantBufferOffset,
                         Size = memberSize,
-                        LogicalGroup = linkInfo.LogicalGroup,
+                        LogicalGroup = metadata.LogicalGroup,
                     };
+                    if (metadata.Color)
+                    {
+                        var baseType = member.Type is ArrayType arrayType ? arrayType.BaseType : member.Type;
+                        if (baseType is not VectorType { BaseType: { Type: Scalar.Float }, Size: 3 or 4 })
+                            throw new InvalidOperationException("[Color] attribute can only be applied on float3/float4 vector types");
+                        memberInfos[index].Type.Class = EffectParameterClass.Color;
+                    }
 
                     // Adjust offset for next item
                     constantBufferOffset += memberSize;

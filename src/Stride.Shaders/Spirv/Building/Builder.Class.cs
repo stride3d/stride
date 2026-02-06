@@ -17,6 +17,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Stride.Core.Storage;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Building;
@@ -189,12 +190,23 @@ public partial class SpirvBuilder
 
     abstract class GenericResolver
     {
-        public abstract bool NeedsResolve();
+        public abstract int GenericArgumentCount { get; }
+        public virtual IShaderCache? Cache => null;
+
+        public abstract string ResolveGenericAsString(int genericIndex);
 
         public abstract bool TryResolveGenericValue(SymbolType genericParameterType, string genericParameterName, int index, out object value);
         public abstract bool ResolveGenericValueInBuffer(SymbolType genericParameterType, string genericParameterName, int genericIndex, SpirvContext context, ref int instructionIndex, out string textValue);
 
-        public virtual void PostProcess(string classNameWithGenerics, List<GenericParameter> genericParameters)
+        public virtual void ValidateGenericParameters(string classNameWithGenerics, List<GenericParameter> genericParameters)
+        {
+        }
+
+        /// <summary>
+        /// This will be executed in all cases for generic classes (even if generic instantiation was in the cache). 
+        /// </summary>
+        /// <param name="classNameWithGenerics"></param>
+        public virtual void PostProcess(string classNameWithGenerics)
         {
         }
     }
@@ -204,20 +216,21 @@ public partial class SpirvBuilder
     /// </summary>
     class GenericResolverFromValues(string[]? genericValues) : GenericResolver
     {
-        public override bool NeedsResolve() => genericValues != null && genericValues.Length > 0;
+        public override int GenericArgumentCount => genericValues?.Length ?? 0;
+        public override string ResolveGenericAsString(int genericIndex) => genericValues[genericIndex];
 
         public override bool TryResolveGenericValue(SymbolType genericParameterType, string genericParameterName, int index, out object value)
         {
             var genericValue = genericValues![index];
             switch (genericParameterType)
             {
-                case ScalarType { TypeName: "int" }:
+                case ScalarType { Type: Scalar.Int }:
                     value = int.Parse(genericValue);
                     return true;
-                case ScalarType { TypeName: "float" }:
+                case ScalarType { Type: Scalar.Float }:
                     value = float.Parse(genericValue);
                     return true;
-                case ScalarType { TypeName: "bool" }:
+                case ScalarType { Type: Scalar.Boolean }:
                     value = bool.Parse(genericValue);
                     return true;
                 case GenericParameterType g:
@@ -259,9 +272,24 @@ public partial class SpirvBuilder
     /// </summary>
     class GenericResolverFromInstantiatingBuffer(ShaderClassInstantiation classSource, ResolveStep resolveStep, SpirvContext declaringContext) : GenericResolver
     {
-        private Dictionary<int, string> names;
+        public override int GenericArgumentCount => classSource.GenericArguments.Length;
 
-        public override bool NeedsResolve() => classSource.GenericArguments.Length > 0;
+        public override IShaderCache? Cache => declaringContext.GenericCache;
+
+        public override string ResolveGenericAsString(int genericIndex)
+        {
+            var constantId = classSource.GenericArguments[genericIndex];
+            if (!declaringContext.GenericValueCache.TryGetValue(constantId, out var textValue))
+            {
+                textValue = declaringContext.TryGetConstantValue(constantId, out var constantValue, out _, false)
+                    ? constantValue.ToString()
+                    : GetIdRefAsString(genericIndex);
+                
+                declaringContext.GenericValueCache.Add(constantId, textValue);
+            }
+
+            return textValue;
+        }
 
         private string GetIdRefAsString(int index)
         {
@@ -283,16 +311,8 @@ public partial class SpirvBuilder
 
         public override bool ResolveGenericValueInBuffer(SymbolType genericParameterType, string genericParameterName, int genericIndex, SpirvContext context, ref int instructionIndex, out string textValue)
         {
-            // Check if generic value can already be computed (no OpSDSLGenericParameter and such)
-            if (declaringContext.TryGetConstantValue(classSource.GenericArguments[genericIndex], out var constantValue, out _, false))
-            {
-                // TODO: shortcut: store it right away and finish here
-                textValue = constantValue.ToString();
-            }
-            else
-            {
-                textValue = GetIdRefAsString(genericIndex);
-            }
+            // TODO: optimization: if it can be resolved fully (declaringContext.TryGetConstantValue succeeds), we could simply use/inject the value as is
+            textValue = ResolveGenericAsString(genericIndex);
 
             var genericParameter = (OpSDSLGenericParameter)context[instructionIndex];
             var bufferWithConstant = declaringContext.ExtractConstantAsSpirvBuffer(classSource.GenericArguments[genericIndex]);
@@ -321,29 +341,33 @@ public partial class SpirvBuilder
             return true;
         }
 
-        public override void PostProcess(string classNameWithGenerics, List<GenericParameter> genericParameters)
+        public override void ValidateGenericParameters(string classNameWithGenerics, List<GenericParameter> genericParameters)
         {
             // Fully resolved?
-            if (genericParameters.All(x => x.Resolved))
+            if (resolveStep == ResolveStep.Mix)
             {
-                if (resolveStep == ResolveStep.Mix)
+                if (!genericParameters.All(x => x.Resolved))
                 {
-                    classSource.ClassName = classNameWithGenerics;
-                    classSource.GenericArguments = [];
+                    throw new InvalidOperationException("During mix phase, shaders generics are expected to be fully resolved");
                 }
             }
-            else if (resolveStep == ResolveStep.Mix)
+        }
+
+        public override void PostProcess(string classNameWithGenerics)
+        {
+            if (resolveStep == ResolveStep.Mix)
             {
-                throw new InvalidOperationException("During mix phase, shaders generics are expected to be fully resolved");
+                classSource.ClassName = classNameWithGenerics;
+                classSource.GenericArguments = [];
             }
         }
     }
 
-    private static void InstantiateGenericShader(ref ShaderBuffers shaderBuffers, string className, GenericResolver genericResolver, IExternalShaderLoader shaderLoader, ReadOnlySpan<ShaderMacro> macros)
+    private static void InstantiateGenericShader(ref ShaderBuffers shaderBuffers, string classNameWithGenerics, GenericResolver genericResolver, IExternalShaderLoader shaderLoader, ReadOnlySpan<ShaderMacro> macros)
     {
         var resolvedLinks = new Dictionary<int, string>();
         var semantics = new Dictionary<string, string>();
-
+        
         var genericParameters = new List<GenericParameter>();
         for (int index = 0; index < shaderBuffers.Context.Count; ++index)
         {
@@ -385,34 +409,33 @@ public partial class SpirvBuilder
             }
         }
 
-        Console.WriteLine($"[Shader] Instantiating {className} with values {string.Join(",", genericParameters.Select(x => x.Value))}");
-
-        StringBuilder classNameWithGenericsBuilder = new();
-        classNameWithGenericsBuilder.Append(className).Append("<");
-
-        for (int i = 0; i < genericParameters.Count; i++)
-        {
-            var genericParameter = genericParameters[i];
-            var index = genericParameter.Index;
-            if (i > 0)
-                classNameWithGenericsBuilder.Append(",");
-            classNameWithGenericsBuilder.Append(genericParameter.Value.ToString());
-        }
-        classNameWithGenericsBuilder.Append(">");
-        var classNameWithGenerics = classNameWithGenericsBuilder.ToString();
+        //Console.WriteLine($"[Shader] Instantiating {classNameWithGenerics}");
 
         foreach (var i in shaderBuffers.Buffer)
         {
             if (i.Op == Op.OpSDSLShader && (OpSDSLShader)i is { } shaderDeclaration)
-            {
                 shaderDeclaration.ShaderName = classNameWithGenerics;
-            }
         }
 
         TransformResolvedSemantics(shaderBuffers.Context, semantics);
         TransformResolvedLinkIdIntoLinkString(shaderBuffers.Context, resolvedLinks);
 
-        genericResolver.PostProcess(classNameWithGenerics, genericParameters);
+        genericResolver.ValidateGenericParameters(classNameWithGenerics, genericParameters);
+    }
+
+    private static string BuildGenericClassName(string className, GenericResolver resolver)
+    {
+        StringBuilder sb = new();
+        sb.Append(className).Append("<");
+
+        for (int i = 0; i < resolver.GenericArgumentCount; i++)
+        {
+            if (i > 0)
+                sb.Append(",");
+            sb.Append(resolver.ResolveGenericAsString(i));
+        }
+        sb.Append(">");
+        return sb.ToString();
     }
 
     private static void TransformResolvedSemantics(SpirvContext context, Dictionary<string, string> semantics)
@@ -484,10 +507,8 @@ public partial class SpirvBuilder
                 }
 
                 // TODO: Cache?
-                if (!shaderLoader.LoadExternalBuffer(shaderName, code, macros, out var shader, out _))
+                if (!shaderLoader.LoadExternalBuffer(shaderName, code, macros, out shaderBuffers, out _, out _))
                     throw new InvalidOperationException();
-
-                shaderBuffers = CreateShaderBuffers(shader);
             }
         }
     }
@@ -528,22 +549,28 @@ public partial class SpirvBuilder
     {
         foreach (var op in i)
         {
-            if ((op.Kind == OperandKind.IdRef
+            if (op.Kind == OperandKind.IdRef
                  || op.Kind == OperandKind.IdResult
                  || op.Kind == OperandKind.IdResultType
-                 || op.Kind == OperandKind.PairIdRefLiteralInteger
+                 || op.Kind == OperandKind.IdScope
+                 || op.Kind == OperandKind.IdMemorySemantics
                  || op.Kind == OperandKind.PairIdRefIdRef)
-                && op.Words.Length > 0
-                && ids.Contains(op.Words[0]))
             {
-                return true;
+                foreach (var word in op.Words)
+                    if (ids.Contains(word))
+                        return true;
             }
-
-            if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
-                 || op.Kind == OperandKind.PairIdRefIdRef)
-                && ids.Contains(op.Words[1]))
+            else if (op.Kind == OperandKind.PairIdRefLiteralInteger)
             {
-                return true;
+                for (int j = 0; j < op.Words.Length; j += 2)
+                    if (ids.Contains(op.Words[j]))
+                        return true;
+            }
+            else if (op.Kind == OperandKind.PairLiteralIntegerIdRef)
+            {
+                for (int j = 1; j < op.Words.Length; j += 2)
+                    if (ids.Contains(op.Words[j]))
+                        return true;
             }
         }
 
@@ -574,11 +601,12 @@ public partial class SpirvBuilder
 
         foreach (var op in i)
         {
-            if ((op.Kind == OperandKind.IdRef
+            if (op.Kind == OperandKind.IdRef
                  || op.Kind == OperandKind.IdResult
                  || op.Kind == OperandKind.IdResultType
-                 || op.Kind == OperandKind.PairIdRefLiteralInteger
-                 || op.Kind == OperandKind.PairIdRefIdRef))
+                 || op.Kind == OperandKind.IdScope
+                 || op.Kind == OperandKind.IdMemorySemantics
+                 || op.Kind == OperandKind.PairIdRefIdRef)
             {
                 foreach (ref var word in op.Words)
                 {
@@ -606,21 +634,49 @@ public partial class SpirvBuilder
                 }
             }
 
-            if ((op.Kind == OperandKind.PairIdRefLiteralInteger)
-                && idRemapping.TryGetValue(op.Words[0], out var to2))
+            if (op.Kind == OperandKind.PairIdRefLiteralInteger)
             {
-                if (op.Quantifier != OperandQuantifier.One)
-                    throw new NotImplementedException();
-                op.Words[0] = to2;
+                for (int j = 0; j < op.Words.Length; j += 2)
+                {
+                    if (idRemapping.TryGetValue(op.Words[j], out var to2))
+                        op.Words[j] = to2;
+                }
             }
 
-            if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
-                 || op.Kind == OperandKind.PairIdRefIdRef)
-                && idRemapping.TryGetValue(op.Words[1], out var to3))
+            if (op.Kind == OperandKind.PairLiteralIntegerIdRef)
             {
-                if (op.Quantifier != OperandQuantifier.One)
-                    throw new NotImplementedException();
-                op.Words[1] = to3;
+                for (int j = 1; j < op.Words.Length; j += 2)
+                {
+                    if (idRemapping.TryGetValue(op.Words[j], out var to2))
+                        op.Words[j] = to2;
+                }
+            }
+        }
+    }
+    
+    public static void CollectIds(OpData i, Action<int> ids)
+    {
+        foreach (var op in i)
+        {
+            if (op.Kind == OperandKind.IdRef
+                || op.Kind == OperandKind.IdResult
+                || op.Kind == OperandKind.IdResultType
+                || op.Kind == OperandKind.IdScope
+                || op.Kind == OperandKind.IdMemorySemantics
+                || op.Kind == OperandKind.PairIdRefIdRef)
+            {
+                foreach (var word in op.Words)
+                    ids(word);
+            }
+            else if (op.Kind == OperandKind.PairIdRefLiteralInteger)
+            {
+                for (int j = 0; j < op.Words.Length; j += 2)
+                    ids(op.Words[j]);
+            }
+            else if (op.Kind == OperandKind.PairLiteralIntegerIdRef)
+            {
+                for (int j = 1; j < op.Words.Length; j += 2)
+                    ids(op.Words[j]);
             }
         }
     }
@@ -646,53 +702,43 @@ public partial class SpirvBuilder
 
     private static ShaderBuffers GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, GenericResolver genericResolver, ReadOnlySpan<ShaderMacro> macros)
     {
-        var shader = GetOrLoadShader(shaderLoader, className, macros, out var isFromCache);
-        var shaderBuffers = CreateShaderBuffers(shader);
+        var shaderBuffers = GetOrLoadShader(shaderLoader, className, macros, out var hash, out var isFromCache);
 
         // Split context and buffer
 
         // TODO: generics cache?
-        if (genericResolver.NeedsResolve())
+        if (genericResolver.GenericArgumentCount > 0)
         {
-            InstantiateMemberNames(ref shaderBuffers, className, genericResolver, shaderLoader, macros);
-
-            // Copy buffers (we don't want to edit original buffer as it might be reloaded through caching
-            shaderBuffers.Context = new SpirvContext(CopyBuffer(shaderBuffers.Context.GetBuffer()))
+            // First, try to build name for cache lookup
+            var classNameWithGenerics = BuildGenericClassName(className, genericResolver);
+            var cache = genericResolver.Cache ?? shaderLoader.GenericCache;
+            if (shaderLoader.GenericCache.TryLoadFromCache(classNameWithGenerics, macros, out var cachedShaderBuffers, out var cachedHash))
             {
-                Bound = shaderBuffers.Context.Bound,
-                Names = new(shaderBuffers.Context.Names),
-                Types = new(shaderBuffers.Context.Types),
-                ReverseTypes = new(shaderBuffers.Context.ReverseTypes),
-            };
-            shaderBuffers.Buffer = CopyBuffer(shaderBuffers.Buffer);
-
-            InstantiateGenericShader(ref shaderBuffers, className, genericResolver, shaderLoader, macros);
-        }
-
-        return shaderBuffers;
-    }
-
-    private static ShaderBuffers CreateShaderBuffers(SpirvBytecode shader)
-    {
-        var context = new SpirvContext();
-        var buffer = new NewSpirvBuffer();
-        var isContext = true;
-        foreach (var i in shader.Buffer)
-        {
-            // Find when switching from context to actual shader/effect
-            if (i.Op == Op.OpSDSLShader || i.Op == Op.OpSDSLEffect)
-                isContext = false;
-
-            if (isContext)
-                context.Add(i.Data);
+                shaderBuffers = cachedShaderBuffers;
+                hash = cachedHash;
+            }
             else
-                buffer.Add(i.Data);
+            {
+                InstantiateMemberNames(ref shaderBuffers, className, genericResolver, shaderLoader, macros);
+
+                // Copy buffers (we don't want to edit original non-instantiated code as it might be reloaded through caching
+                shaderBuffers.Context = new SpirvContext(CopyBuffer(shaderBuffers.Context.GetBuffer()))
+                {
+                    Bound = shaderBuffers.Context.Bound,
+                    Names = new(shaderBuffers.Context.Names),
+                    Types = new(shaderBuffers.Context.Types),
+                    ReverseTypes = new(shaderBuffers.Context.ReverseTypes),
+                };
+                shaderBuffers.Buffer = CopyBuffer(shaderBuffers.Buffer);
+
+                InstantiateGenericShader(ref shaderBuffers, classNameWithGenerics, genericResolver, shaderLoader, macros);
+                shaderLoader.GenericCache.RegisterShader(classNameWithGenerics, macros, shaderBuffers, hash);
+            }
+            
+            // Run in all cases (even if cached)
+            genericResolver.PostProcess(classNameWithGenerics);
         }
 
-        context.Bound = shader.Header.Bound;
-
-        var shaderBuffers = new ShaderBuffers(context, buffer);
-        ShaderClass.ProcessNameAndTypes(shaderBuffers.Context);
         return shaderBuffers;
     }
 
@@ -725,15 +771,15 @@ public partial class SpirvBuilder
         return generics;
     }
 
-    public static SpirvBytecode GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, ReadOnlySpan<ShaderMacro> defines, out bool isFromCache)
+    public static ShaderBuffers GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, ReadOnlySpan<ShaderMacro> defines, out ObjectId hash, out bool isFromCache)
     {
-        Console.WriteLine($"[Shader] Requesting non-generic class {className}");
+        //Console.WriteLine($"[Shader] Requesting non-generic class {className}");
 
-        if (!shaderLoader.LoadExternalBuffer(className, defines, out var buffer, out isFromCache))
+        if (!shaderLoader.LoadExternalBuffer(className, defines, out var buffer, out hash, out isFromCache))
             throw new InvalidOperationException($"Could not load shader [{className}]");
 
-        if (!isFromCache)
-            Console.WriteLine($"[Shader] Loading non-generic class {className} for 1st time");
+        //if (!isFromCache)
+        //    Console.WriteLine($"[Shader] Loading non-generic class {className} for 1st time");
 
         return buffer;
     }

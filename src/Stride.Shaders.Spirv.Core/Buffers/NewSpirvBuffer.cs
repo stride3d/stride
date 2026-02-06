@@ -307,7 +307,14 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         return new OpDataIndex(index, this);
     }
 
-    public OpData Add<T>(in T instruction) where T : struct, IMemoryInstruction, allows ref struct
+    public T Add<T>(in T instruction) where T : struct, IMemoryInstruction, allows ref struct
+    {
+        Instructions.Add(new(instruction.InstructionMemory));
+        instruction.Attach(new(Instructions.Count - 1, this));
+        return instruction;
+    }
+
+    public OpData AddData<T>(in T instruction) where T : struct, IMemoryInstruction, allows ref struct
     {
         Instructions.Add(new(instruction.InstructionMemory));
         return Instructions[^1];
@@ -368,27 +375,29 @@ public sealed class NewSpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         Instructions.RemoveRange(index, count);
     }
 
-    public void InsertRange(int index, ReadOnlySpan<OpData> source)
+    public void InsertRange(int index, params ReadOnlySpan<OpData> source)
     {
         Instructions.InsertRange(index, source);
     }
 
-    public OpData Replace(int index, OpData i)
+    public OpData Replace(int index, OpData i, bool dispose = true)
     {
         if (index < 0 || index >= Instructions.Count)
             throw new InvalidOperationException();
 
-        Instructions[index].Dispose();
+        if (dispose)
+            Instructions[index].Dispose();
         Instructions[index] = i;
         return Instructions[index];
     }
 
-    public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction, allows ref struct
+    public OpData Replace<T>(int index, in T instruction, bool dispose = true) where T : struct, IMemoryInstruction, allows ref struct
     {
         if (index < 0 || index >= Instructions.Count)
             throw new InvalidOperationException();
 
-        Instructions[index].Dispose();
+        if (dispose)
+            Instructions[index].Dispose();
         Instructions[index] = new(instruction.InstructionMemory);
         return Instructions[index];
     }

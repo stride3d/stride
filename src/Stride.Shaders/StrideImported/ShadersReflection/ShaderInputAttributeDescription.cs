@@ -8,6 +8,8 @@ namespace Stride.Shaders
     [DataContract]
     public struct ShaderInputAttributeDescription
     {
+        public int Location;
+        
         public string SemanticName;
 
         public int SemanticIndex;

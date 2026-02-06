@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Core.Parsing;
@@ -17,27 +18,30 @@ public static partial class Examples
     {
         var compiler = new CompilerUnit();
         var (builder, context) = compiler;
+        var table = new SymbolTable(context);
 
-        context.GetOrRegister(new MatrixType(ScalarType.From("float"), 4, 3));
-        context.GetOrRegister(ScalarType.From("int"));
+        context.GetOrRegister(new MatrixType(ScalarType.Float, 4, 3));
+        context.GetOrRegister(ScalarType.Int);
 
 
         // context.AddGlobalVariable(new(new("color", SymbolKind.Variable, Storage.Stream), VectorType.From("float4")));
 
-        var function = builder.DeclareFunction(
+        var function = SpirvBuilder.DeclareFunction(
             context,
             "add",
-            new(ScalarType.From("int"), [new(ScalarType.From("int"), default), new(ScalarType.From("int"), default)])
+            new(ScalarType.Int, [new(ScalarType.Int, default), new(ScalarType.Int, default)])
         );
         builder.BeginFunction(context, function);
-        builder.AddFunctionParameter(context, "a", ScalarType.From("int"));
-        builder.AddFunctionParameter(context, "b", ScalarType.From("int"));
+        builder.EmitFunctionParameter(context, "a", ScalarType.Int);
+        builder.EmitFunctionParameter(context, "b", ScalarType.Int);
         builder.SetPositionTo(function);
         var block = builder.CreateBlock(context, "sourceBlock");
         builder.SetPositionTo(block);
         var v = builder.BinaryOperation(
+            table,
             context,
-            function.Parameters["a"], Operator.Plus, function.Parameters["b"]
+            function.Parameters["a"], Operator.Plus, function.Parameters["b"],
+            default
         );
         builder.Return(v);
         builder.EndFunction();

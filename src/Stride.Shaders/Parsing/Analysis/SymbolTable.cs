@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
@@ -7,7 +8,10 @@ using System.Xml.Linq;
 namespace Stride.Shaders.Parsing.Analysis;
 
 
-public record struct SemanticErrors(TextLocation Location, string Message);
+public record struct SemanticError(TextLocation Location, string Message)
+{
+    override public string ToString() => $"{Location}: {Message}";
+}
 
 public partial class SymbolTable : ISymbolProvider
 {
@@ -16,7 +20,7 @@ public partial class SymbolTable : ISymbolProvider
     public SpirvContext Context { get; init; }
 
     public RootSymbolFrame RootSymbols { get; }
-    public List<SemanticErrors> Errors { get; } = [];
+    public List<SemanticError> Errors { get; } = [];
 
     // Used by Identifier.ResolveSymbol
     public SymbolFrame CurrentFrame => CurrentSymbols[^1];
@@ -32,51 +36,73 @@ public partial class SymbolTable : ISymbolProvider
     public SymbolTable(SpirvContext context)
     {
         Context = context;
-        RootSymbols = new(context);
+        RootSymbols = new();
         Push(RootSymbols);
     }
 
-    public void Push() => CurrentSymbols.Add(new(Context));
+    public void Push() => CurrentSymbols.Add(new());
 
     public void Push(SymbolFrame symbolFrame) => CurrentSymbols.Add(symbolFrame);
 
     public IExternalShaderLoader ShaderLoader { get; set; }
 
-    public SymbolFrame? Pop()
+    public SymbolFrame Pop()
     {
-        var scope = CurrentSymbols?[^1];
-        CurrentSymbols?.RemoveAt(CurrentSymbols.Count - 1);
+        var scope = CurrentSymbols[^1];
+        CurrentSymbols.RemoveAt(CurrentSymbols.Count - 1);
         return scope;
     }
 
-    public bool TryResolveSymbol(string name, out Symbol symbol)
+    public bool TryResolveSymbol(string name, [MaybeNullWhen(false)] out Symbol symbol)
     {
-
         for (int i = CurrentSymbols.Count - 1; i >= 0; i--)
             if (CurrentSymbols[i].TryGetValue(name, out symbol))
                 return true;
 
-        if (CurrentShader != null && CurrentShader.TryResolveSymbol(this, Context, name, out symbol))
+        if (CurrentShader != null && CurrentShader.TryResolveSymbol(name, out symbol))
             return true;
 
-        symbol = default;
+        symbol = null;
         return false;
+    }
+
+    public bool TryResolveSymbol(int id, [MaybeNullWhen(false)] out Symbol symbol)
+    {
+        for (int i = CurrentSymbols.Count - 1; i >= 0; --i)
+        {
+            foreach (var symbol2 in CurrentSymbols[i])
+            {
+                if (symbol2.Value.IdRef == id)
+                {
+                    symbol = symbol2.Value;
+                    return true;
+                }
+            }
+        }
+
+        if (CurrentShader != null && CurrentShader.TryResolveSymbol(id, out symbol))
+            return true;
+
+        symbol = null;
+        return false;
+    }
+    
+    public Symbol ResolveSymbol(int id)
+    {
+        if (!TryResolveSymbol(id, out var symbol))
+            throw new NotImplementedException($"Cannot find symbol with ID {id} in main context (current shader is {CurrentShader?.Name}");
+        return symbol;
     }
 
     public Symbol ResolveSymbol(string name)
     {
-        for (int i = CurrentSymbols.Count - 1; i >= 0; --i)
-        {
-            if (CurrentSymbols[i].TryGetValue(name, out var symbol))
-            {
-                return symbol;
-            }
-        }
+        if (!TryResolveSymbol(name, out var symbol))
+            throw new NotImplementedException($"Cannot find symbol {name} in main context (current shader is {CurrentShader?.Name}");
+        return symbol;
+    }
 
-        if (CurrentShader != null && CurrentShader.TryResolveSymbol(this, Context, name, out var symbol2))
-            return symbol2;
-
-
-        throw new NotImplementedException($"Cannot find symbol {name} in main context (current shader is {CurrentShader?.Name}");
+    public void AddError(SemanticError error)
+    {
+        Errors.Add(error);
     }
 }

@@ -21,7 +21,7 @@ public partial class SpirvBuilder()
     public SpirvBlock? CurrentBlock { get; internal set; }
     public ref int Position => ref position;
 
-    public void AddFunctionVariable(int paramType, int paramVariable)
+    public int AddFunctionVariable(int paramType, int paramVariable)
     {
         if (CurrentFunction is not SpirvFunction f)
             throw new InvalidOperationException();
@@ -38,6 +38,8 @@ public partial class SpirvBuilder()
 
         Position = currentPosition + 1;
         CurrentBlock = currentBlock;
+
+        return paramVariable;
     }
 
 

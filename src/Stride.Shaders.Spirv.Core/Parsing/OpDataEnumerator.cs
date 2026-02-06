@@ -91,10 +91,12 @@ public ref struct OpDataEnumerator
             var logOp = logicalOperands[oid];
             (int newWid, int newOid, int newPid, startOperand) = logOp switch
             {
-                { Parameters: OperandParameters { Count: > 0 } p } when pid == -1 && p.ContainsKey(new(logOp.Kind ?? OperandKind.None, Operands[wid])) && p[new(logOp.Kind ?? OperandKind.None, Operands[wid])].Length > 0 =>
+                { Parameters: OperandParameters { Count: > 0 } p }
+                    when pid == -1 && FindOperandInfo(p, new(logOp.Kind ?? OperandKind.None, Operands[wid]), out var operands) && operands.Length > 0 =>
                     (wid + 1, oid, 0, wid),
-                { Parameters: OperandParameters { Count: > 0 } p } when p.ContainsKey(new(logOp.Kind ?? OperandKind.None, Operands[wid])) && pid < p[new(logOp.Kind ?? OperandKind.None, Operands[startOperand])].Length =>
-                    p[new(logOp.Kind ?? OperandKind.None, Operands[startOperand])][pid] switch
+                { Parameters: OperandParameters { Count: > 0 } p }
+                    when startOperand != -1 && FindOperandInfo(p, new(logOp.Kind ?? OperandKind.None, Operands[startOperand]), out var operands) && pid < operands.Length =>
+                    operands[pid] switch
                     {
                         { Kind: OperandKind.PairIdRefIdRef or OperandKind.PairIdRefLiteralInteger or OperandKind.PairLiteralIntegerIdRef } => (wid + 2, oid, pid + 1, startOperand),
                         { Kind: OperandKind.LiteralString } => (wid + Operands[wid..].LengthOfString(), oid, pid + 1, startOperand),

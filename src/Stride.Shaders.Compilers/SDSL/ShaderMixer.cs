@@ -23,27 +23,41 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
+using Stride.Core.Storage;
+using Stride.Shaders.Spirv.Processing.Interfaces;
 using static Stride.Shaders.Spirv.Specification;
+using EntryPoint = Stride.Shaders.Core.EntryPoint;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
 public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="ResourcesRegisterSeparate">For D3D11/12: t, b and s registers are separate (and should be kept as low as possible so we number them from 0 in each category).</param>
+    public record struct Options(bool ResourcesRegisterSeparate);
+    
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
-    public void MergeSDSL(ShaderSource shaderSource, out Span<byte> bytecode, out EffectReflection effectReflection)
+    
+    public void MergeSDSL(ShaderSource shaderSource, Options options, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<(string Name, int Id, ShaderStage Stage)> entryPoints)
     {
         // Create new buffer for the merged result
         var temp = new NewSpirvBuffer();
 
         // This is the global context for this merge operation
         var context = new SpirvContext();
-        var table = new SymbolTable(context) { ShaderLoader = ShaderLoader };
+        context.Add(new OpCapability(Capability.Shader));
+        context.Add(new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
+        var shaderLoader = new CaptureLoadedShaders(ShaderLoader);
+        var table = new SymbolTable(context) { ShaderLoader = shaderLoader };
 
-        var effectEvaluator = new EffectEvaluator(ShaderLoader);
+        var effectEvaluator = new EffectEvaluator(shaderLoader);
         // We basically put the shader we want to merge through the EffectEvaluator to resolve all mixins/compositions first
         shaderSource = effectEvaluator.EvaluateEffects(shaderSource);
 
-        var shaderSource2 = EvaluateInheritanceAndCompositions(context, shaderSource);
+        var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, shaderSource);
 
         // Root shader
         var globalContext = new MixinGlobalContext();
@@ -52,18 +66,31 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         ShaderClass.ProcessNameAndTypes(context);
 
         var rootMixin = MergeMixinNode(globalContext, context, table, temp, shaderSource2);
-
-        context.Insert(0, new OpCapability(Capability.Shader));
-        context.Insert(1, new OpCapability(Capability.SampledBuffer));
-        context.Insert(2, new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
-        context.Insert(3, new OpExtension("SPV_GOOGLE_hlsl_functionality1"));
+        
+        // Add optional capabilities
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Buffer && typeImage.Sampled is 0 or 1)
+            {
+                context.Add(new OpCapability(Capability.SampledBuffer));
+                break;
+            }
+        }
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Buffer && typeImage.Sampled is 2)
+            {
+                context.Add(new OpCapability(Capability.ImageBuffer));
+                break;
+            }
+        }
 
         // Process streams and remove unused code/cbuffer/variable/resources
         var interfaceProcessor = new InterfaceProcessor
         {
             CodeInserted = (int index, int count) => AdjustIndicesAfterAppendInstructions(rootMixin, index, count)
         };
-        interfaceProcessor.Process(table, temp, context);
+        (entryPoints, globalContext.Reflection.InputAttributes) = interfaceProcessor.Process(table, temp, context);
         
         // Process Link (add CompositionPath, generate missing ones, etc.)
         ProcessLinks(context, temp);
@@ -83,8 +110,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         RenameVariables(globalContext, context, temp);
 
         // Process reflection
-        ProcessReflection(globalContext, context, temp);
+        ProcessReflection(globalContext, context, temp, options);
 
+        SimplifyNotSupportedConstantsInShader(context, temp);
+        
         foreach (var inst in context)
             temp.Add(inst.Data);
 
@@ -95,6 +124,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         bytecode = SpirvBytecode.CreateBytecodeFromBuffers(temp);
 
         effectReflection = globalContext.Reflection;
+        usedHashSources = shaderLoader.Sources;
     }
 
     class MixinGlobalContext
@@ -170,11 +200,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     private void ProcessMixinClasses(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode mixinNode)
     {
         mixinNode.StartInstruction = buffer.Count;
+        var typeDuplicateInserter = new TypeDuplicateHelper(context);
+
         foreach (var shaderClass in mixinSource.Mixins)
         {
             var contextStart = context.Count;
 
-            var shaderInfo = MergeClassInBuffers(globalContext, context, buffer, mixinNode, shaderClass);
+            var shaderInfo = MergeClassInBuffers(globalContext, context, buffer, mixinNode, shaderClass, typeDuplicateInserter);
 
             mixinNode.ShadersByName.Add(shaderClass.ToClassNameWithGenerics(), shaderInfo);
             mixinNode.Shaders.Add(shaderInfo);
@@ -202,7 +234,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     // Append CompositionPath to "Link" for any non-stage variable
     // Also force-emit the missing "Link" decorations
 
-    private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass)
+    private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass, TypeDuplicateHelper typeDuplicateInserter)
     {
         var isRootMixin = mixinNode.Stage == null;
         if (shaderClass.ImportStageOnly)
@@ -257,8 +289,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             return include;
         }
-
-        var typeDuplicateInserter = new TypeDuplicateHelper(context);
 
         var structTypes = new Dictionary<string, int>();
 
@@ -425,7 +455,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                     if (addToContext)
                     {
-                        context.Add(i2);
+                        typeDuplicateInserter.InsertInstruction(context.Count, i2);
                     }
                 }
             }
@@ -453,6 +483,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         // Build ShaderInfo
         var shaderInfo = new ShaderInfo(mixinNode.Shaders.Count, shaderClass.ClassName, shaderStart, buffer.Count);
+        shaderInfo.Symbol = shaderClass.Symbol;
         foreach (var structType in structTypes)
             shaderInfo.StructTypes.Add(structType.Key, structType.Value);
         shaderInfo.CompositionPath = mixinNode.CompositionPath;
@@ -464,18 +495,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     private static void BuildTypesAndMethodGroups(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, NewSpirvBuffer temp, MixinNode mixinNode)
     {
-        // Add symbol for each method in current type (equivalent to implicit this pointer)
-        for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
-        {
-            var i = temp[index];
-            if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
-            {
-                var functionName = context.Names[function.ResultId];
-                var symbol = new Symbol(new(functionName, SymbolKind.Method), context.ReverseTypes[function.FunctionType], function.ResultId);
-                table.CurrentFrame.Add(functionName, symbol);
-            }
-        }
-
         // Build method group info (override, etc.)
         ShaderInfo? currentShader = null;
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
@@ -498,6 +517,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     var functionName = context.Names[function.ResultId];
                     var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
+                    
+                    // Add symbol for each method in current type (equivalent to implicit this pointer)
+                    var symbol = new Symbol(new(functionName, SymbolKind.Method), context.ReverseTypes[function.FunctionType], function.ResultId, OwnerType: currentShader.Symbol);
+                    table.CurrentFrame.Add(functionName, symbol);
 
                     var methodMixinGroup = mixinNode;
                     if (!mixinNode.IsRoot && (functionInfo.Flags & FunctionFlagsMask.Stage) != 0)
@@ -530,10 +553,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     // If abstract, let's erase the whole function
                     if ((functionInfo.Flags & FunctionFlagsMask.Abstract) != 0)
                     {
+                        var removedIds = new HashSet<int>();
                         while (temp[index].Op != Op.OpFunctionEnd)
                         {
+                            if (temp[index].Data.IdResult is {} idResult)
+                                removedIds.Add(idResult);
                             SetOpNop(temp[index++].Data.Memory.Span);
                         }
+                        context.RemoveNameAndDecorations(removedIds);
 
                         SetOpNop(temp[index].Data.Memory.Span);
                     }
@@ -607,7 +634,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 foreachBufferCopy.Add(i2);
             }
         }
+        
+        // Clean OpName used by removed instructions (only for IdResult)
+        var removedIds = new HashSet<int>();
+        foreach (var i in foreachBuffer)
+            if (i.IdResult is { } idResult)
+                removedIds.Add(idResult);
+        context.RemoveNameAndDecorations(removedIds);
+        
+        // Insert new code
         buffer.InsertRange(index, foreachBufferCopy.AsSpan());
+        
         // Note: mixinNode is not added to rootMixin hierarchy yet
         //       Moreover, we are the last mixin (or one of our child is)
         //       So we need (and it's safe) to call this on mixinNode rather than root node
@@ -706,12 +743,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 // Find out the proper mixin node (the member instance)
                 var isThis = thisInstructions.Contains(memberAccess.Instance);
                 var isBase = baseInstructions.Contains(memberAccess.Instance);
-                var isStage = stageInstructions.Contains(memberAccess.Instance);
                 MixinNode instanceMixinGroup;
                 if (isThis || isBase)
                     instanceMixinGroup = mixinNode;
-                else if (isStage)
-                    instanceMixinGroup = mixinNode.Stage ?? mixinNode;
                 else
                 {
                     if (!compositionArrayAccesses.TryGetValue(memberAccess.Instance, out instanceMixinGroup)
@@ -727,13 +761,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     if (!shaderInfo.Variables.TryGetValue(variable.Name, out var variableInfo))
                     {
                         // Try as a stage variable
-                        if (instanceMixinGroup.Stage != null
+                        if (!(instanceMixinGroup.Stage != null
                             && instanceMixinGroup.Stage.ShadersByName.TryGetValue(shaderName, out shaderInfo)
-                            && shaderInfo.Variables.TryGetValue(variable.Name, out variableInfo))
-                        {
-
-                        }
-                        else
+                            && shaderInfo.Variables.TryGetValue(variable.Name, out variableInfo)))
                         {
                             throw new InvalidOperationException($"External variable {variable.Name} not found");
                         }
@@ -745,8 +775,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     // In case of functions, OpMemberAccessSDSL.Member could either be a OpFunction or a OpImportFunctionSDSL
                     var functionId = memberAccess.Member;
                     if (globalContext.ExternalFunctions.TryGetValue(memberAccess.Member, out var function))
+                    {
                         // Process member call (composition)
-                        functionId = instanceMixinGroup.MethodGroupsByName[(function.Name, functionType)];
+                        if (!instanceMixinGroup.MethodGroupsByName.TryGetValue((function.Name, functionType), out functionId)
+                            && (instanceMixinGroup.Stage == null || !instanceMixinGroup.Stage.MethodGroupsByName.TryGetValue((function.Name, functionType), out functionId)))
+                            throw new InvalidOperationException($"Can't find function ID for {context.Names[functionId]}");
+                    }
 
                     bool foundInStage = false;
                     if (!instanceMixinGroup.MethodGroups.TryGetValue(functionId, out var methodGroupEntry))
@@ -825,7 +859,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         {
             if (o.Kind == OperandKind.IdRef
                 || o.Kind == OperandKind.IdResult
-                || o.Kind == OperandKind.IdResultType)
+                || o.Kind == OperandKind.IdResultType
+                || o.Kind == OperandKind.IdScope
+                || o.Kind == OperandKind.IdMemorySemantics
+                || o.Kind == OperandKind.PairIdRefIdRef)
             {
                 for (int i = 0; i < o.Words.Length; ++i)
                 {
@@ -834,18 +871,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 }
             }
             else if (o.Kind == OperandKind.PairIdRefLiteralInteger
-                     || o.Kind == OperandKind.PairLiteralIntegerIdRef
-                     || o.Kind == OperandKind.PairIdRefIdRef)
+                     || o.Kind == OperandKind.PairLiteralIntegerIdRef)
             {
                 for (int i = 0; i < o.Words.Length; i += 2)
                 {
-                    if (o.Kind == OperandKind.PairIdRefLiteralInteger || o.Kind == OperandKind.PairIdRefIdRef)
+                    if (o.Kind == OperandKind.PairIdRefLiteralInteger)
                     {
                         if (o.Words[i + 0] != 0)
                             o.Words[i + 0] += offset;
                     }
 
-                    if (o.Kind == OperandKind.PairLiteralIntegerIdRef || o.Kind == OperandKind.PairIdRefIdRef)
+                    if (o.Kind == OperandKind.PairLiteralIntegerIdRef)
                     {
                         if (o.Words[i + 1] != 0)
                             o.Words[i + 1] += offset;
@@ -854,32 +890,56 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
     }
+    
+    private void SimplifyNotSupportedConstantsInShader(SpirvContext context, NewSpirvBuffer temp)
+    {
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpSpecConstantOp && (OpSpecConstantOp)i is { } specConstantOp)
+            {
+                if (!ExpressionExtensions.ShaderSpecConstantOpSupportedOps.Contains((Op)specConstantOp.Opcode))
+                {
+                    // Simplify the constant
+                    context.TryGetConstantValue(i, out _, out _, true);
+                }
+            }
+        }
+    }
+
+    private static void RemoveInstructionWhere(NewSpirvBuffer buffer, Func<OpDataIndex, bool> match)
+    {
+        int insertIndex = 0;
+        for (int sourceIndex = 0; sourceIndex < buffer.Count; sourceIndex++)
+        {
+            var i = buffer[sourceIndex];
+            var remove = match(i);
+
+            if (!remove)
+            {
+                if (insertIndex++ != sourceIndex)
+                    // Note: we're not using Dispose() since we simply move it
+                    buffer.Replace(insertIndex - 1, buffer[sourceIndex].Data, false);
+            }
+            else
+            {
+                buffer[sourceIndex].Data.Dispose();
+            }
+        }
+        
+        // Remove leftover instructions (they have been either disposed or moved so no need to dispose them)
+        buffer.RemoveRange(insertIndex, buffer.Count - insertIndex, false);
+    }
 
     private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
     {
-        for (int index = 0; index < temp.Count; index++)
+        // Remove in a single pass (we do in-place without RemoveAt otherwise it would be up to O(n^2) complexity)
+        RemoveInstructionWhere(temp, i =>
         {
-            var i = temp[index];
-
-            // Transform OpVariableSDSL into OpVariable (we don't need extra info anymore)
-            // Note: we ignore initializer as we store a method which is already processed during InterfaceProcessor (as opposed to a const for OpVariable)
-            if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
-                temp.Replace(index, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
-
-            // Transform OpTypeFunctionSDSL into OpTypeFunction (we don't need extra info anymore)
-            if (i.Op == Op.OpTypeFunctionSDSL && (OpTypeFunctionSDSL)i is { } functionType)
-            {
-                Span<int> parameterTypes = stackalloc int[functionType.Values.Elements.Span.Length];
-                for (int j = 0; j < functionType.Values.Elements.Span.Length; ++j)
-                    parameterTypes[j] = functionType.Values.Elements.Span[j].Item1;
-                temp.Replace(index, new OpTypeFunction(functionType.ResultId, functionType.ReturnType, [..parameterTypes]));
-            }
-
             // Remove Nop
             if (i.Op == Op.OpNop)
-                temp.RemoveAt(index--);
+                return true;
             // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
-            else if (i.Op == Op.OpSDSLShader
+            if (i.Op == Op.OpSDSLShader
                 || i.Op == Op.OpSDSLShaderEnd
                 || i.Op == Op.OpSDSLComposition
                 || i.Op == Op.OpSDSLCompositionEnd
@@ -890,36 +950,116 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpSDSLImportFunction
                 || i.Op == Op.OpSDSLImportVariable
                 || i.Op == Op.OpSDSLFunctionInfo)
-                temp.RemoveAt(index--);
-            else if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && ((OpDecorate)i).Decoration is
+                return true;
+            if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && ((OpDecorate)i).Decoration is
                     Decoration.FunctionParameterDefaultValueSDSL
-                    or Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL or Decoration.ResourceGroupIdSDSL
+                    or Decoration.ShaderConstantSDSL
+                    or Decoration.PatchConstantFuncSDSL
+                    or Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL or Decoration.ResourceGroupIdSDSL
                     or Decoration.SamplerStateFilter or Decoration.SamplerStateAddressU or Decoration.SamplerStateAddressV or Decoration.SamplerStateAddressW
                     or Decoration.SamplerStateMipLODBias or Decoration.SamplerStateMaxAnisotropy or Decoration.SamplerStateComparisonFunc or Decoration.SamplerStateMinLOD or Decoration.SamplerStateMaxLOD)
-                temp.RemoveAt(index--);
-            else if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && ((OpMemberDecorate)i).Decoration is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
-                temp.RemoveAt(index--);
+                return true;
+            if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && ((OpMemberDecorate)i).Decoration is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
+                return true;
 
             // Remove SPIR-V about pointer types to other shaders (variable and types themselves are removed as well)
-            else if (i.Op == Op.OpTypePointer && (OpTypePointer)i is { } typePointer)
+            if (i.Op == Op.OpTypePointer && (OpTypePointer)i is { } typePointer)
             {
                 var pointedType = context.ReverseTypes[typePointer.Type];
                 if (pointedType is ShaderSymbol || pointedType is ArrayType { BaseType: ShaderSymbol })
-                    temp.RemoveAt(index--);
+                    return true;
             }
             // Also remove arrays of shaders (used in composition arrays)
             else if (i.Op == Op.OpTypeArray && (OpTypeArray)i is { } typeArray)
             {
                 var innerType = context.ReverseTypes[typeArray.ElementType];
                 if (innerType is ShaderSymbol)
-                    temp.RemoveAt(index--);
+                    return true;
             }
             else if (i.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)i is { } typeRuntimeArray)
             {
                 var innerType = context.ReverseTypes[typeRuntimeArray.ElementType];
                 if (innerType is ShaderSymbol)
-                    temp.RemoveAt(index--);
+                    return true;
             }
+            return false;
+        });
+        
+        var ids = new HashSet<int>();
+        foreach (var i in temp)
+        {
+            // Transform OpVariableSDSL into OpVariable (we don't need extra info anymore)
+            // Note: we ignore initializer as we store a method which is already processed during InterfaceProcessor (as opposed to a const for OpVariable)
+            if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
+                temp.Replace(i.Index, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
+
+            // Transform OpTypeFunctionSDSL into OpTypeFunction (we don't need extra info anymore)
+            if (i.Op == Op.OpTypeFunctionSDSL && (OpTypeFunctionSDSL)i is { } functionType)
+            {
+                Span<int> parameterTypes = stackalloc int[functionType.Values.Elements.Span.Length];
+                for (int j = 0; j < functionType.Values.Elements.Span.Length; ++j)
+                    parameterTypes[j] = functionType.Values.Elements.Span[j].Item1;
+                temp.Replace(i.Index, new OpTypeFunction(functionType.ResultId, functionType.ReturnType, [..parameterTypes]));
+            }
+            
+            // Collect IDs (except for OpName/OpDecorate/OpDecorateString metadata)
+            if (i.Op != Op.OpName && i.Op != Op.OpDecorate && i.Op != Op.OpDecorateString)
+                SpirvBuilder.CollectIds(i.Data, id => ids.Add(id));
         }
+
+        // Remove unnecessary OpName/OpDecorate/OpDecorateString
+        // Note: we should issue a warning and make sure those are deleted as we process stuff?
+        RemoveInstructionWhere(temp, i =>
+        {
+            if (i.Op == Op.OpName && (OpName)i is {} nameInstruction)
+            {
+                if (!ids.Contains(nameInstruction.Target))
+                    return true;
+            }
+            if (i.Op == Op.OpDecorate && (OpDecorate)i is {} decorate)
+            {
+                if (!ids.Contains(decorate.Target))
+                    return true;
+            }
+            if (i.Op == Op.OpDecorate && (OpDecorateString)i is {} decorateString)
+            {
+                if (!ids.Contains(decorateString.Target))
+                    return true;
+            }
+
+            return false;
+        });
     }
+}
+
+public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShaderLoader
+{
+    /// <summary>
+    /// Cache per file.
+    /// </summary>
+    /// <remarks>Expects hash to be stored.</remarks>
+    public IShaderCache FileCache => inner.FileCache;
+    /// <summary>
+    /// Cache per generic instantiation.
+    /// </summary>
+    /// <remarks>Hashes are not needed.</remarks>
+    public IShaderCache GenericCache => inner.GenericCache;
+
+    public HashSourceCollection Sources { get; } = new();
+    
+    public bool Exists(string name) => inner.Exists(name);
+    
+    public bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash)
+        =>  inner.LoadExternalFileContent(name, out filename, out code, out hash);
+
+    public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
+    {
+        var result = inner.LoadExternalBuffer(name, defines, out bytecode, out hash, out isFromCache);
+        if (!Sources.ContainsKey(name))
+            Sources.Add(name, hash);
+        return result;
+    }
+
+    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
+        => inner.LoadExternalBuffer(name, code, defines, out bytecode, out hash, out isFromCache);
 }

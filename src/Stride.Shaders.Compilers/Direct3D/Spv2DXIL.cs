@@ -112,16 +112,16 @@ public unsafe struct DXILSpirvLogger
 public unsafe struct DXILSpirvObject {
     // Some sysval or other type of data is accessed which needs to be piped
     // from the app/API implementation into the shader via a buffer
-    bool metadata_requires_runtime_data;
+    public bool metadata_requires_runtime_data;
 
     // Specifically if a vertex shader needs the first-vertex or base-instance
     // sysval. These are relevant since these can come from an indirect arg
     // buffer, and therefore piping them to the runtime data buffer is extra
     // complex.
-    bool metadata_needs_draw_sysvals;
+    public bool metadata_needs_draw_sysvals;
 
-    void *buffer;
-    nint size;
+    public void *buffer;
+    public nint size;
 }
 public unsafe struct Specialization
 {

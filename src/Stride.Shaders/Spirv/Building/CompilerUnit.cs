@@ -43,6 +43,12 @@ public class CompilerUnit
         Context.Sort();
         return NewSpirvBuffer.Merge(Context.GetBuffer(), Builder.GetBuffer());
     }
+
+    public ShaderBuffers ToShaderBuffers()
+    {
+        Context.Sort();
+        return new(Context,  Builder.GetBuffer());
+    }
     // public override string ToString()
     // {
     //     var builder = new StringBuilder();

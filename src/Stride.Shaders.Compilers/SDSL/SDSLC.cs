@@ -9,16 +9,17 @@ using Stride.Shaders.Spirv.Processing;
 using Stride.Shaders.Spirv.Tools;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Stride.Core.Storage;
 using Stride.Shaders.Parsing.SDFX.AST;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
 public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 {
-    public readonly bool Compile(string code, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out SpirvBytecode lastBuffer)
+    public readonly bool Compile(string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out ShaderBuffers lastBuffer)
     {
         var parsed = SDSLParser.Parse(code);
-        lastBuffer = null;
+        lastBuffer = default;
         if (parsed.Errors.Count > 0)
         {
             throw new Exception($"Some parse errors:{Environment.NewLine}{string.Join(Environment.NewLine, parsed.Errors)}");
@@ -41,12 +42,10 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     shader.Compile(table, compiler);
 
                     if (table.Errors.Count > 0)
-                        throw new Exception("Some parse errors");
+                        throw new Exception($"Some parse errors:{Environment.NewLine}{string.Join(Environment.NewLine, table.Errors)}");
 
-                    var merged = compiler.ToBuffer();
-                    lastBuffer = new(merged);
-
-                    ShaderLoader.RegisterShader(shader.Name, macros, lastBuffer);
+                    lastBuffer = compiler.ToShaderBuffers();
+                    ShaderLoader.FileCache.RegisterShader(shader.Name, macros, lastBuffer, hash);
                 }
                 else if (declaration is ShaderEffect effect)
                 {
@@ -59,10 +58,8 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     compiler.Macros.AddRange(macros);
                     effect.Compile(table, compiler);
 
-                    var merged = compiler.ToBuffer();
-                    lastBuffer = new(merged);
-
-                    ShaderLoader.RegisterShader(effect.Name, macros, lastBuffer);
+                    lastBuffer = compiler.ToShaderBuffers();
+                    ShaderLoader.FileCache.RegisterShader(effect.Name, macros, lastBuffer, hash);
                 }
                 else if (declaration is EffectParameters parameters)
                 {
@@ -75,10 +72,9 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     compiler.Macros.AddRange(macros);
                     parameters.Compile(table, compiler);
 
-                    var merged = compiler.ToBuffer();
-                    lastBuffer = new(merged);
+                    lastBuffer = compiler.ToShaderBuffers();
 
-                    ShaderLoader.RegisterShader(parameters.Name, [], lastBuffer);
+                    ShaderLoader.FileCache.RegisterShader(parameters.Name, [], lastBuffer, hash);
                 }
                 else
                 {
@@ -90,7 +86,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
         }
         else
         {
-            lastBuffer = null;
+            lastBuffer = default;
             return false;
         }
     }

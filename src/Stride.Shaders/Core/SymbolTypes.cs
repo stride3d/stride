@@ -43,47 +43,71 @@ public abstract record SymbolType()
             result = m;
             return true;
         }
-        else if (name == "void")
-        {
-            result = ScalarType.From("void");
-            return true;
-        }
         else
         {
             result = null;
             return false;
         }
     }
-    public static bool TryGetBufferType(string name, string? templateTypeName, [MaybeNullWhen(false)] out SymbolType result)
+    public static bool TryGetBufferType(string name, TypeName? templateTypeName, [MaybeNullWhen(false)] out SymbolType result)
     {
-        SymbolType? templateType = null;
-        if (templateTypeName != null && !SymbolType.TryGetNumeric(templateTypeName, out templateType))
+        // Special case: StructuredBuffer allows non vector/scalar types so treat it earlier
+        switch (name)
         {
-            result = null;
-            return false;
+            case "StructuredBuffer":
+            case "RWStructuredBuffer":
+                var templateType = templateTypeName.Type;
+                result = new StructuredBufferType(templateType, name.StartsWith("RW"));
+                return true;
         }
 
-        if (templateType == null)
-            templateType = ScalarType.From("float");
-
-        var scalarType = templateType switch
+        // Note: templateTypeName is resolved lazily (because it might not be a buffer type and we don't need to resolve it)
+        static ScalarType ResolveScalarType(TypeName? templateTypeName)
         {
-            VectorType v => v.BaseType,
-            ScalarType s => s,
+            var templateType = templateTypeName?.Type ?? ScalarType.Float;
+
+            return templateType switch
+            {
+                VectorType v => v.BaseType,
+                ScalarType s => s,
+            };
+        }
+
+        SymbolType? foundType = name switch
+        {
+            "Buffer" => new BufferType(ResolveScalarType(templateTypeName)),
+            "RWBuffer" => new BufferType(ResolveScalarType(templateTypeName), true),
+
+            "Texture1D" => new Texture1DType(ResolveScalarType(templateTypeName)),
+            "Texture2D" => new Texture2DType(ResolveScalarType(templateTypeName)),
+            "Texture2DMS" => new Texture2DType(ResolveScalarType(templateTypeName)) { Multisampled = true },
+            "Texture3D" => new Texture3DType(ResolveScalarType(templateTypeName)),
+            "TextureCube" => new TextureCubeType(ResolveScalarType(templateTypeName)),
+            
+            "Texture1DArray" => new Texture1DType(ResolveScalarType(templateTypeName)) { Arrayed = true },
+            "Texture2DArray" => new Texture2DType(ResolveScalarType(templateTypeName)) { Arrayed = true },
+            "Texture2DMSArray" => new Texture2DType(ResolveScalarType(templateTypeName)) { Multisampled = true, Arrayed = true },
+            "Texture3DArray" => new Texture3DType(ResolveScalarType(templateTypeName)) { Arrayed = true },
+            "TextureCubeArray" => new TextureCubeType(ResolveScalarType(templateTypeName)) { Arrayed = true },
+
+            "RWTexture1D" => new Texture1DType(ResolveScalarType(templateTypeName)) { Sampled = 2 },
+            "RWTexture2D" => new Texture2DType(ResolveScalarType(templateTypeName)) { Sampled = 2 },
+            "RWTexture3D" => new Texture3DType(ResolveScalarType(templateTypeName)) { Sampled = 2 },
+
+            "RWTexture1DArray" => new Texture1DType(ResolveScalarType(templateTypeName)) { Sampled = 2, Arrayed = true },
+            "RWTexture2DArray" => new Texture2DType(ResolveScalarType(templateTypeName)) { Sampled = 2, Arrayed = true },
+            
+            _ => null,
         };
 
-        (result, bool found) = (name, scalarType) switch
+        if (foundType != null)
         {
-            ("Buffer", ScalarType { TypeName: "float" or "int" or "uint" }) => (new BufferType(scalarType) as SymbolType, true),
-            ("Texture", ScalarType { TypeName: "float" or "int" or "uint" }) => (new Texture1DType(scalarType) as SymbolType, true),
-            ("Texture1D", ScalarType { TypeName: "float" or "int" or "uint" }) => (new Texture1DType(scalarType) as SymbolType, true),
-            ("Texture2D", ScalarType { TypeName: "float" or "int" or "uint" }) => (new Texture2DType(scalarType) as SymbolType, true),
-            ("Texture3D", ScalarType { TypeName: "float" or "int" or "uint" }) => (new Texture3DType(scalarType) as SymbolType, true),
-            ("TextureCube", ScalarType { TypeName: "float" or "int" or "uint" }) => (new TextureCubeType(scalarType) as SymbolType, true),
+            result = foundType;
+            return true;
+        }
 
-            _ => (null, false)
-        };
-        return found;
+        result = null;
+        return false;
     }
 
     public abstract void Accept(TypeVisitor visitor);
@@ -132,9 +156,42 @@ public sealed partial record PointerType(SymbolType BaseType, Specification.Stor
     public override string ToString() => $"*{BaseType}";
 }
 
-public sealed partial record ScalarType(string TypeName) : SymbolType()
+public enum Scalar
 {
-    public override string ToString() => TypeName;
+    Void,
+    Boolean,
+    Int,
+    UInt,
+    Int64,
+    UInt64,
+    //Half,
+    Float,
+    Double
+}
+
+public sealed partial record ScalarType(Scalar Type) : SymbolType()
+{
+    public static ScalarType Void { get; } = new(Scalar.Void);
+    public static ScalarType Boolean { get; } = new(Scalar.Boolean);
+    public static ScalarType Int { get; } = new(Scalar.Int);
+    public static ScalarType UInt { get; } = new(Scalar.UInt);
+    public static ScalarType Int64 { get; } = new(Scalar.Int64);
+    public static ScalarType UInt64 { get; } = new(Scalar.UInt64);
+    public static ScalarType Float { get; } = new(Scalar.Float);
+    public static ScalarType Double { get; } = new(Scalar.Double);
+
+    public override string ToString() => Type switch
+    {
+        Scalar.Void => "void",
+        Scalar.Boolean => "bool",
+        Scalar.Int => "int",
+        Scalar.UInt => "uint",
+        Scalar.Int64 => "long",
+        Scalar.UInt64 => "ulong",
+        Scalar.Float => "float",
+        Scalar.Double => "double",
+        _ => throw new ArgumentOutOfRangeException()
+    };
 }
 public sealed partial record VectorType(ScalarType BaseType, int Size) : SymbolType()
 {
@@ -148,6 +205,7 @@ public sealed partial record MatrixType(ScalarType BaseType, int Rows, int Colum
     public int Columns { get; } = Columns >= 2 ? Columns : throw new ArgumentException("Argument must be at least 2.", nameof(Columns));
 
     // Note: this is HLSL-style so Rows/Columns meaning is swapped
+    // float2x3 = OpTypeMatrix vec3 2 = MatrixType(Rows: 3, Columns: 2)
     public override string ToString() => $"{BaseType}{Columns}x{Rows}";
 }
 /// <summary>
@@ -202,9 +260,16 @@ public sealed partial record StructType(string Name, List<StructuredTypeMember> 
     public override string ToString() => $"struct {base.ToString()}";
 }
 
-public sealed partial record BufferType(ScalarType BaseType) : SymbolType()
+public sealed partial record StructuredBufferType(SymbolType BaseType, bool WriteAllowed = false) : StructuredType($"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType.ToId()}>", [new(string.Empty, BaseType, TypeModifier.None)])
 {
-    public override string ToString() => $"Buffer<{BaseType}>";
+    public override string ToId() => $"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType.ToId()}>";
+
+    public override string ToString() => $"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType}>";
+}
+
+public sealed partial record BufferType(ScalarType BaseType, bool WriteAllowed = false) : SymbolType()
+{
+    public override string ToString() => $"{(WriteAllowed ? "RW" : "")}Buffer<{BaseType}>";
 }
 
 // TODO: Add sampler parameters
@@ -226,20 +291,20 @@ public abstract partial record TextureType(ScalarType ReturnType, Dim Dimension,
 
 public sealed partial record Texture1DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim1D, 2, false, false, 1, ImageFormat.Unknown)
 {
-    public override string ToString() => $"Texture1D<{ReturnType}>";
+    public override string ToString() => $"{(Sampled == 2 ? "RW" : "")}Texture1D{(Arrayed ? "Array" : "")}<{ReturnType}>";
 }
 public sealed partial record Texture2DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim2D, 2, false, false, 1, ImageFormat.Unknown)
 {
-    public override string ToString() => $"Texture2D<{ReturnType}>";
+    public override string ToString() => $"{(Sampled == 2 ? "RW" : "")}Texture2D{(Multisampled ? "MS" : "")}{(Arrayed ? "Array" : "")}<{ReturnType}>";
 }
 public sealed partial record Texture3DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim3D, 2, false, false, 1, ImageFormat.Unknown)
 {
-    public override string ToString() => $"Texture3D<{ReturnType}>";
+    public override string ToString() => $"{(Sampled == 2 ? "RW" : "")}Texture3D{(Arrayed ? "Array" : "")}<{ReturnType}>";
 }
 
 public sealed partial record TextureCubeType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Cube, 2, false, false, 1, ImageFormat.Unknown)
 {
-    public override string ToString() => $"TextureCube<{ReturnType}>";
+    public override string ToString() => $"TextureCube{(Arrayed ? "Array" : "")}<{ReturnType}>";
 }
 
 public sealed partial record FunctionGroupType() : SymbolType();
@@ -360,31 +425,183 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
     public List<(StructuredType Type, int ImportedId)> StructTypes { get; init; } = [];
     public List<LoadedShaderSymbol> InheritedShaders { get; init; } = [];
 
-    internal bool TryResolveSymbol(SymbolTable symbolTable, SpirvContext context, string name, out Symbol symbol)
+    public static Symbol ImportSymbol(SymbolTable table, SpirvContext context, Symbol symbol)
     {
-        if (TryResolveSymbolNoRecursion(this == symbolTable.CurrentShader, context, name, out symbol))
+        bool isCurrentShader = symbol.OwnerType == table.CurrentShader;
+
+        // Check if symbol is already imported
+        if (symbol.IdRef != 0)
+        {
+            if (!isCurrentShader)
+                symbol = symbol with { MemberAccessWithImplicitThis = symbol.Type };
+            return symbol;
+        }
+
+        // Find same symbol in owner type
+        if (symbol.OwnerType == null)
+            throw new InvalidOperationException();
+
+        if (isCurrentShader && symbol.IdRef == 0)
+            throw new InvalidOperationException("Symbols in current shader should be resolved");
+
+        if (symbol.Type is FunctionGroupType)
+            throw new InvalidOperationException($"Can't import symbol for {nameof(FunctionGroupType)}");
+        
+        if (symbol.Type is FunctionType)
+        {
+            var methods = CollectionsMarshal.AsSpan(symbol.OwnerType.Methods);
+            foreach (ref var c in methods)
+            {
+                if (c.Symbol.Id == symbol.Id && c.Symbol.Type == symbol.Type)
+                {
+                    if (c.Symbol.IdRef == 0)
+                    {
+                        // Emit symbol
+                        // TODO: emit it only when this specific method is *selected* as proper overload (signature) & override (base vs this)
+                        var shaderId = context.GetOrRegister(symbol.OwnerType);
+                        context.ImportShaderMethod(shaderId, ref c.Symbol, c.Flags);
+                    }
+
+                    symbol.IdRef = c.Symbol.IdRef;
+                    if (!isCurrentShader)
+                        symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+
+                    return symbol;
+                }
+            }
+        }
+        else
+        {
+            var variables = CollectionsMarshal.AsSpan(symbol.OwnerType.Variables);
+            foreach (ref var c in variables)
+            {
+                if (c.Symbol.Id == symbol.Id && c.Symbol.Type == symbol.Type)
+                {
+                    if (c.Symbol.IdRef == 0)
+                    {
+                        // Emit symbol
+                        var shaderId = context.GetOrRegister(symbol.OwnerType);
+                        context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
+                    }
+
+                    symbol.IdRef = c.Symbol.IdRef;
+                    if (!isCurrentShader)
+                        symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+                    return symbol;
+                }
+                
+                if (c.Symbol.Type is PointerType { StorageClass: Specification.StorageClass.Uniform } p && p.BaseType is ConstantBufferSymbol cb)
+                {
+                    for (int index = 0; index < cb.Members.Count; index++)
+                    {
+                        var member = cb.Members[index];
+                        var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
+                        var cbufferSymbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.Symbol.IdRef, AccessChain: index, OwnerType: symbol.OwnerType);
+
+                        if (cbufferSymbol.Id == symbol.Id && cbufferSymbol.Type == symbol.Type)
+                        {
+                            if (c.Symbol.IdRef == 0 && context != null)
+                            {
+                                // Emit symbol
+                                var shaderId = context.GetOrRegister(symbol.OwnerType);
+                                context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
+                            }
+                            
+                            symbol.IdRef = c.Symbol.IdRef;
+                            if (!isCurrentShader)
+                                symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+
+                            return symbol;
+                        }
+                    }
+                }
+            }
+        }
+        
+        throw new InvalidOperationException($"Symbol {symbol} could not be imported because it was not found in its owner type {symbol.OwnerType}");
+    }
+    
+    /// <summary>
+    /// Try to resolve a symbol in shader or inherited shader. If <see cref="importContext"/> is null, you can use this method without importing type or symbol in a context (useful for type evaluation).
+    /// </summary>
+    /// <param name="symbolTable"></param>
+    /// <param name="importContext">If not null, the method or symbol will be imported in this context.</param>
+    /// <param name="id"></param>
+    /// <param name="symbol"></param>
+    /// <returns></returns>
+    internal bool TryResolveSymbol(int id, out Symbol symbol)
+    {
+        if (TryResolveSymbolNoRecursion(id, out symbol))
             return true;
 
         // Process inherited classes
         // note: since it contains all indirectly inherited method too, which is why it is splitted with TryResolveSymbolNoRecursion
         foreach (var inheritedShader in InheritedShaders)
-            if (inheritedShader.TryResolveSymbolNoRecursion(false, context, name, out symbol))
+            if (inheritedShader.TryResolveSymbolNoRecursion(id, out symbol))
                 return true;
 
         return false;
     }
 
-    private bool TryResolveSymbolNoRecursion(bool isCurrentShader, SpirvContext context, string name, out Symbol symbol)
+    /// <summary>
+    /// Try to resolve a symbol in shader or inherited shader. If <see cref="importContext"/> is null, you can use this method without importing type or symbol in a context (useful for type evaluation).
+    /// </summary>
+    /// <param name="symbolTable"></param>
+    /// <param name="importContext">If not null, the method or symbol will be imported in this context.</param>
+    /// <param name="name"></param>
+    /// <param name="symbol"></param>
+    /// <returns></returns>
+    internal bool TryResolveSymbol(string name, out Symbol symbol)
+    {
+        if (TryResolveSymbolNoRecursion(name, out symbol))
+            return true;
+
+        // Process inherited classes
+        // note: since it contains all indirectly inherited method too, which is why it is splitted with TryResolveSymbolNoRecursion
+        foreach (var inheritedShader in InheritedShaders)
+            if (inheritedShader.TryResolveSymbolNoRecursion(name, out symbol))
+                return true;
+
+        return false;
+    }
+
+    private bool TryResolveSymbolNoRecursion(int id, out Symbol symbol)
+    {
+        var methods = CollectionsMarshal.AsSpan(Methods);
+        foreach (ref var c in methods)
+        {
+            if (c.Symbol.IdRef == id)
+            {
+                symbol = c.Symbol;
+                return true;
+            }
+        }
+        
+        var variables = CollectionsMarshal.AsSpan(Variables);
+        foreach (ref var c in variables)
+        {
+            if (c.Symbol.IdRef == id)
+            {
+                symbol = c.Symbol;
+                return true;
+            }
+        }
+
+        symbol = default;
+        return false;
+    }
+
+    private bool TryResolveSymbolNoRecursion(string name, out Symbol symbol)
     {
         symbol = default;
 
-        var found = BuildMethodGroup(isCurrentShader, context, name, ref symbol);
+        var found = BuildMethodGroup(name, ref symbol);
         if (found)
         {
             // If any method is found, let's process inherited classes too: we need all method groups to find proper override
             foreach (var inheritedClass in InheritedShaders)
             {
-                inheritedClass.BuildMethodGroup(false, context, name, ref symbol);
+                inheritedClass.BuildMethodGroup(name, ref symbol);
             }
             return true;
         }
@@ -394,16 +611,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
         {
             if (c.Symbol.Id.Name == name)
             {
-                if (c.Symbol.IdRef == 0)
-                {
-                    // Emit symbol
-                    var shaderId = context.GetOrRegister(this);
-                    context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
-                }
-
                 symbol = c.Symbol;
-                if (!isCurrentShader)
-                    symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
                 return true;
             }
 
@@ -415,17 +623,8 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
                     var member = cb.Members[index];
                     if (member.Name == name)
                     {
-                        if (c.Symbol.IdRef == 0)
-                        {
-                            // Emit symbol
-                            var shaderId = context.GetOrRegister(this);
-                            context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
-                        }
-
                         var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
-                        symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.Symbol.IdRef, AccessChain: index);
-                        if (!isCurrentShader)
-                            symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
+                        symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), c.Symbol.IdRef, AccessChain: index, OwnerType: c.Symbol.OwnerType);
                         return true;
                     }
                 }
@@ -436,7 +635,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
         return false;
     }
 
-    private bool BuildMethodGroup(bool isCurrentShader, SpirvContext context, string name, ref Symbol symbol)
+    private bool BuildMethodGroup(string name, ref Symbol symbol)
     {
         var found = false;
         var methods = CollectionsMarshal.AsSpan(Methods);
@@ -444,22 +643,11 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
         {
             if (c.Symbol.Id.Name == name)
             {
-                if (c.Symbol.IdRef == 0)
-                {
-                    // Emit symbol
-                    // TODO: emit it only when this specific method is *selected* as proper overload (signature) & override (base vs this)
-                    var shaderId = context.GetOrRegister(this);
-                    context.ImportShaderMethod(shaderId, ref c.Symbol, c.Flags);
-                }
-
                 // Combine method symbols if multiple matches
                 var methodSymbol = c.Symbol;
 
-                if (!isCurrentShader)
-                    methodSymbol = methodSymbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
-
                 // If symbol is set, complete it as a method group
-                symbol = symbol.Type switch
+                symbol = symbol?.Type switch
                 {
                     // First time: just assign to symbol
                     null => methodSymbol,
@@ -480,7 +668,25 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
 
 public sealed partial record GenericParameterType(GenericParameterKindSDSL Kind) : SymbolType;
 
-public sealed partial record StreamsType : SymbolType
+
+public sealed partial record StreamsType(StreamsKindSDSL Kind) : SymbolType
 {
-    public override string ToString() => "Streams";
+    public override string ToString() => Kind.ToString();
+}
+
+public sealed partial record GeometryStreamType(SymbolType BaseType, GeometryStreamOutputKindSDSL Kind) : SymbolType
+{
+    public override string ToId() => $"{Kind.ToString()}Stream<{BaseType.ToId()}>";
+    public override string ToString() => $"{Kind.ToString()}Stream<{BaseType}>";
+}
+
+public sealed partial record PatchType(SymbolType BaseType, PatchTypeKindSDSL Kind, int Size) : SymbolType
+{
+    public override string ToId() => $"{Kind.ToString()}Patch<{BaseType.ToId()}, {Size}>";
+    public override string ToString() => $"{Kind.ToString()}Patch<{BaseType}, {Size}>";
+}
+
+public sealed partial record ShaderMixinType : SymbolType
+{
+    public override string ToString() => "mixin";
 }

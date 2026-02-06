@@ -71,7 +71,7 @@ public struct BoundReducer() : INanoPass
         {
             foreach (var op in i.Data)
             {
-                if (op.Kind == OperandKind.IdRef || op.Kind == OperandKind.IdResultType)
+                if (op.Kind == OperandKind.IdRef || op.Kind == OperandKind.IdResultType || op.Kind == OperandKind.IdScope || op.Kind == OperandKind.IdMemorySemantics)
                     op.Words[0] = op.Words[0] == from ? to : op.Words[0];
                 else if (op.Kind == OperandKind.PairIdRefLiteralInteger)
                     op.Words[0] = op.Words[0] == from ? to : op.Words[0];

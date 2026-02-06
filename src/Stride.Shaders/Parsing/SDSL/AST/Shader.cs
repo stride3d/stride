@@ -102,9 +102,9 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
                 RegisterType(floatInstruction.ResultId, floatInstruction.Width switch
                 {
-                    16 => ScalarType.From("half"),
-                    32 => ScalarType.From("float"),
-                    64 => ScalarType.From("double"),
+                    16 => throw new NotImplementedException(),
+                    32 => ScalarType.Float,
+                    64 => ScalarType.Double,
                     _ => throw new InvalidOperationException(),
                 });
             }
@@ -113,16 +113,16 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 OpTypeInt intInstruction = instruction;
                 RegisterType(intInstruction.ResultId, (intInstruction.Width, intInstruction.Signedness == 1) switch
                 {
-                    (32, true) => ScalarType.From("int"),
-                    (32, false) => ScalarType.From("uint"),
-                    (64, true) => ScalarType.From("long"),
-                    (64, false) => ScalarType.From("ulong"),
+                    (32, true) => ScalarType.Int,
+                    (32, false) => ScalarType.UInt,
+                    (64, true) => ScalarType.Int64,
+                    (64, false) => ScalarType.UInt64,
                 });
             }
             else if (instruction.Op == Op.OpTypeBool)
             {
                 OpTypeBool boolInstruction = instruction;
-                RegisterType(boolInstruction.ResultId, ScalarType.From("bool"));
+                RegisterType(boolInstruction.ResultId, ScalarType.Boolean);
             }
             else if (instruction.Op == Op.OpTypePointer && (OpTypePointer)instruction is { } pointerInstruction)
             {
@@ -131,7 +131,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (instruction.Op == Op.OpTypeVoid && (OpTypeVoid)instruction is { } voidInstruction)
             {
-                RegisterType(voidInstruction.ResultId, ScalarType.From("void"));
+                RegisterType(voidInstruction.ResultId, ScalarType.Void);
             }
             else if (instruction.Op == Op.OpTypeVector && (OpTypeVector)instruction is { } vectorInstruction)
             {
@@ -152,11 +152,18 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 {
                     var fieldData = fieldsData.Words[index];
                     var type = context.ReverseTypes[fieldData];
-                    var name = memberNames[(typeStructInstruction.ResultId, index)];
+                    if (!memberNames.TryGetValue((typeStructInstruction.ResultId, index), out var name))
+                        name = $"_member{index}";
                     fields.Add(new(name, type, TypeModifier.None));
                 }
                 StructuredType structType = (blocks.Contains(typeStructInstruction.ResultId))
-                    ? new ConstantBufferSymbol(structName.StartsWith("type.") ? structName.Substring("type.".Length) : throw new InvalidOperationException(), fields)
+                    ? structName switch 
+                    {
+                        var s when s.StartsWith("type.StructuredBuffer.") => new StructuredBufferType(fields[0].Type),
+                        var s when s.StartsWith("type.RWStructuredBuffer.") => new StructuredBufferType(fields[0].Type, true),
+                        var s when s.StartsWith("type.") => new ConstantBufferSymbol(structName.Substring("type.".Length), fields),
+                        _ => throw new InvalidOperationException(),
+                    }
                     : new StructType(structName, fields);
                 RegisterType(typeStructInstruction.ResultId, structType);
             }
@@ -195,7 +202,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var sampledType = (ScalarType)context.ReverseTypes[typeImage.SampledType];
                 if (typeImage.Dim == Dim.Buffer)
                 {
-                    RegisterType(typeImage.ResultId, new BufferType(sampledType));
+                    RegisterType(typeImage.ResultId, new BufferType(sampledType, typeImage.Sampled == 2));
                 }
                 else
                 {
@@ -227,9 +234,17 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 RegisterType(typeGeneric.ResultId, new GenericParameterType(typeGeneric.Kind));
             }
-            else if (instruction.Op == Op.OpTypeStreamsSDSL && (OpTypePointer)instruction is { } typeStreams)
+            else if (instruction.Op == Op.OpTypeStreamsSDSL && (OpTypeStreamsSDSL)instruction is { } typeStreams)
             {
-                RegisterType(typeStreams.ResultId, new StreamsType());
+                RegisterType(typeStreams.ResultId, new StreamsType(typeStreams.Kind));
+            }
+            else if (instruction.Op == Op.OpTypeGeometryStreamOutputSDSL && (OpTypeGeometryStreamOutputSDSL)instruction is { } typeGeometryStreamOutput)
+            {
+                RegisterType(typeGeometryStreamOutput.ResultId, new GeometryStreamType(context.ReverseTypes[typeGeometryStreamOutput.BaseType], typeGeometryStreamOutput.Kind));
+            }
+            else if (instruction.Op == Op.OpTypePatchSDSL && (OpTypePatchSDSL)instruction is { } typePatch)
+            {
+                RegisterType(typePatch.ResultId, new PatchType(context.ReverseTypes[typePatch.BaseType], typePatch.Kind, typePatch.Size));
             }
             // Unresolved content
             // This only happens during EvaluateInheritanceAndCompositions so it's not important to have all information valid
@@ -297,59 +312,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         var methods = new List<(Symbol Symbol, FunctionFlagsMask Flags)>();
         var methodsDefaultParameters = new Dictionary<int, MethodSymbolDefaultParameters>();
         var structTypes = new List<(StructuredType Type, int ImportedId)>();
-
-        foreach (var i in shaderBuffers.Context)
-        {
-            if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStructInstruction)
-            {
-                structTypes.Add(((StructuredType)shaderBuffers.Context.ReverseTypes[typeStructInstruction.ResultId], -1));
-            }
-            else if (i.Op == Op.OpDecorate && (OpDecorate)i is
-                {
-                    Decoration: Decoration.FunctionParameterDefaultValueSDSL,
-                    Target: var target,
-                } decorateFunctionParameters)
-            {
-                methodsDefaultParameters.Add(target, new(shaderBuffers.Context, decorateFunctionParameters.DecorationParameters.Span.ToArray()));
-            }
-        }
-        for (var index = 0; index < shaderBuffers.Buffer.Count; index++)
-        {
-            var instruction = shaderBuffers.Buffer[index];
-            if (instruction.Op == Op.OpVariableSDSL && (OpVariableSDSL)instruction is { } variable &&
-                variable.Storageclass != Specification.StorageClass.Function)
-            {
-                if (!shaderBuffers.Context.Names.TryGetValue(variable.ResultId, out var variableName))
-                    variableName = $"_{variable.ResultId}";
-                var variableType = shaderBuffers.Context.ReverseTypes[variable.ResultType];
-
-                var sid = new SymbolID(variableName, SymbolKind.Variable, variable.Flags.HasFlag(VariableFlagsMask.Stream) ? Storage.Stream : 0, IsStage: (variable.Flags & VariableFlagsMask.Stage) != 0);
-                variables.Add((new(sid, variableType, 0), variable.Flags));
-            }
-
-            if (instruction.Op == Op.OpFunction)
-            {
-                var functionFlags = FunctionFlagsMask.None;
-                if (shaderBuffers.Buffer[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shaderBuffers.Buffer[index + 1] is { } functionInfo)
-                    functionFlags = functionInfo.Flags;
-
-                OpFunction functionInstruction = instruction;
-                var functionName = shaderBuffers.Context.Names[functionInstruction.ResultId];
-                var functionType = shaderBuffers.Context.ReverseTypes[functionInstruction.FunctionType];
-
-                var sid = new SymbolID(functionName, SymbolKind.Method, IsStage: (functionFlags & FunctionFlagsMask.Stage) != 0);
-                MethodSymbolDefaultParameters? methodDefaultParameters = methodsDefaultParameters.TryGetValue(functionInstruction.ResultId, out var methodDefaultParametersValue)
-                    ? methodDefaultParametersValue
-                    : null;
-                methods.Add((new(sid, functionType, 0, MethodDefaultParameters: methodDefaultParameters), functionFlags));
-            }
-
-            if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
-            {
-                structTypes.Add(((StructuredType)shaderBuffers.Context.ReverseTypes[typeStructInstruction.ResultId], -1));
-            }
-        }
-
+        
         // Build full inheritance list
         List<ShaderClassInstantiation> inheritanceList = new();
         SpirvBuilder.BuildInheritanceListWithoutSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), shaderBuffers.Context, inheritanceList, ResolveStep.Compile);
@@ -366,6 +329,72 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             StructTypes = structTypes,
             InheritedShaders = inheritedShaderSymbols,
         };
+
+        foreach (var i in shaderBuffers.Context)
+        {
+            if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStructInstruction)
+            {
+                structTypes.Add(((StructuredType)shaderBuffers.Context.ReverseTypes[typeStructInstruction.ResultId], -1));
+            }
+            else if (i.Op == Op.OpDecorate && (OpDecorate)i is
+                {
+                    Decoration: Decoration.FunctionParameterDefaultValueSDSL,
+                    Target: var target,
+                } decorateFunctionParameters)
+            {
+                methodsDefaultParameters.Add(target, new(shaderBuffers.Context, decorateFunctionParameters.DecorationParameters.Span.ToArray()));
+            }
+            else if (i.Op == Op.OpDecorate && (OpDecorate)i is
+                 {
+                     Decoration: Decoration.ShaderConstantSDSL,
+                     Target: var target2,
+                 } decorateShaderConstant)
+            {
+                if (!shaderBuffers.Context.GetBuffer().TryGetInstructionById(target2, out var typeInstruction))
+                    throw new InvalidOperationException();
+                var resultType = typeInstruction.Data.IdResultType.Value;
+                var symbol = new Symbol(new(shaderBuffers.Context.Names[target2], SymbolKind.Constant), shaderBuffers.Context.ReverseTypes[resultType], 0, ExternalConstant: new(shaderBuffers.Context, target2), OwnerType: shaderType);
+                variables.Add((symbol, VariableFlagsMask.None));
+            }
+        }
+        
+        for (var index = 0; index < shaderBuffers.Buffer.Count; index++)
+        {
+            var instruction = shaderBuffers.Buffer[index];
+            if (instruction.Op == Op.OpVariableSDSL && (OpVariableSDSL)instruction is { } variable &&
+                variable.Storageclass != Specification.StorageClass.Function)
+            {
+                if (!shaderBuffers.Context.Names.TryGetValue(variable.ResultId, out var variableName))
+                    variableName = $"_{variable.ResultId}";
+                var variableType = shaderBuffers.Context.ReverseTypes[variable.ResultType];
+
+                var sid = new SymbolID(variableName, SymbolKind.Variable, variable.Flags.HasFlag(VariableFlagsMask.Stream) ? Storage.Stream : 0, IsStage: (variable.Flags & VariableFlagsMask.Stage) != 0);
+                variables.Add((new(sid, variableType, 0, OwnerType: shaderType), variable.Flags));
+            }
+
+            if (instruction.Op == Op.OpFunction)
+            {
+                var functionFlags = FunctionFlagsMask.None;
+                if (shaderBuffers.Buffer[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shaderBuffers.Buffer[index + 1] is { } functionInfo)
+                    functionFlags = functionInfo.Flags;
+
+                OpFunction functionInstruction = instruction;
+                var functionName = shaderBuffers.Context.Names[functionInstruction.ResultId];
+                var functionType = shaderBuffers.Context.ReverseTypes[functionInstruction.FunctionType];
+
+                var sid = new SymbolID(functionName, SymbolKind.Method, IsStage: (functionFlags & FunctionFlagsMask.Stage) != 0);
+                MethodSymbolDefaultParameters? methodDefaultParameters = methodsDefaultParameters.TryGetValue(functionInstruction.ResultId, out var methodDefaultParametersValue)
+                    ? methodDefaultParametersValue
+                    : null;
+                methods.Add((new(sid, functionType, 0, MethodDefaultParameters: methodDefaultParameters, OwnerType: shaderType), functionFlags));
+            }
+
+            if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
+            {
+                structTypes.Add(((StructuredType)shaderBuffers.Context.ReverseTypes[typeStructInstruction.ResultId], -1));
+            }
+        }
+
         return shaderType;
     }
 
@@ -373,22 +402,25 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     {
         table.DeclaredTypes.Add(shaderType.ToClassName(), shaderType);
     }
-
+    
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
         builder.Insert(new OpSDSLShader(name));
 
-        table.Push();
-
         var openGenerics = new int[Generics != null ? Generics.Parameters.Count : 0];
+        var currentShader = new LoadedShaderSymbol(Name, openGenerics);
+        table.Push();
+        table.CurrentShader = currentShader;
+        
         var hasUnresolvableGenerics = false;
         if (Generics != null)
         {
             for (int i = 0; i < Generics.Parameters.Count; i++)
             {
                 var genericParameter = Generics.Parameters[i];
-                var genericParameterType = genericParameter.TypeName.ResolveType(table, context);
+                genericParameter.TypeName.ProcessSymbol(table);
+                var genericParameterType = genericParameter.TypeName.Type;
                 table.DeclaredTypes.TryAdd(genericParameterType.ToString(), genericParameterType);
 
                 var genericParameterTypeId = context.GetOrRegister(genericParameterType);
@@ -397,7 +429,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
                 // Note: we skip MemberName because they should have been replaced with the preprocessor during SpirvBuilder.InstantiateMemberNames() step
                 if (genericParameterType is not GenericParameterType { Kind: GenericParameterKindSDSL.MemberName or GenericParameterKindSDSL.MemberNameResolved })
-                    table.CurrentFrame.Add(genericParameter.Name, new(new(genericParameter.Name, SymbolKind.ConstantGeneric), genericParameterType, context.Bound));
+                    table.CurrentFrame.Add(genericParameter.Name, new(new(genericParameter.Name, SymbolKind.ConstantGeneric), genericParameterType, context.Bound, OwnerType: table.CurrentShader));
 
                 openGenerics[i] = context.Bound;
 
@@ -421,19 +453,21 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     {
                         if (table.TryResolveSymbol(identifier.Name, out var symbol))
                         {
+                            mixin.Generics.Values[i].ProcessSymbol(table);
                             generics[i] = mixin.Generics.Values[i].CompileConstantValue(table, context).Id;
                         }
                         else
                         {
-                            generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, identifier.Name)).IdResult.Value;
+                            generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, identifier.Name)).ResultId;
                         }
                     }
                     else if (mixin.Generics.Values[i] is AccessorChainExpression accessChain)
                     {
-                        generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, accessChain.ToString())).IdResult.Value;
+                        generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, accessChain.ToString())).ResultId;
                     }
                     else
                     {
+                        mixin.Generics.Values[i].ProcessSymbol(table);
                         generics[i] = mixin.Generics.Values[i].CompileConstantValue(table, context).Id;
                     }
                 }
@@ -442,7 +476,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, shaderClassSource, table.CurrentMacros.AsSpan(), inheritanceList, ResolveStep.Compile);
         }
 
-        var currentShader = new LoadedShaderSymbol(Name, openGenerics);
         RegisterShaderType(table, currentShader);
 
         table.CurrentShader = currentShader;
@@ -459,81 +492,39 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             Inherit(table, context, shaderType, true);
         }
 
-        foreach (var member in Elements)
-        {
-            // Do this early: we want struct to be available for function parameters (same loop)
+        // Process symbols and generate types
+        foreach (var member in Elements.OfType<ShaderStruct>())
             member.ProcessSymbol(table, context);
-
-            if (member is ShaderMethod func)
-            {
-                var ftype = new FunctionType(func.ReturnTypeName.ResolveType(table, context), []);
-                foreach (var arg in func.Parameters)
-                {
-                    var argSym = arg.TypeName.ResolveType(table, context);
-                    table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
-                    arg.Type = argSym;
-                    ftype.ParameterTypes.Add(new(new PointerType(arg.Type, Specification.StorageClass.Function), arg.Modifiers));
-                }
-                func.Type = ftype;
-
-                table.DeclaredTypes.TryAdd(func.Type.ToString(), func.Type);
-            }
-            else if (member is ShaderMember svar)
-            {
-                if (!svar.TypeName.TryResolveType(table, context, out var memberType))
-                {
-                    if (svar.TypeName.Name.Contains("<"))
-                        throw new NotImplementedException("Can't have member variables with generic shader types");
-                    var classSource = new ShaderClassInstantiation(svar.TypeName.Name, []);
-                    var shader = SpirvBuilder.GetOrLoadShader(table.ShaderLoader, classSource, table.CurrentMacros.AsSpan(), ResolveStep.Compile, context);
-                    classSource.Buffer = shader;
-                    var shaderType = LoadAndCacheExternalShaderType(table, context, classSource);
-
-                    // Resolve again (we don't use shaderType direclty, because it might lack info such as ArrayType)
-                    memberType = svar.TypeName.ResolveType(table, context);
-                }
-
-                var storageClass = svar.StorageClass == StorageClass.Static || svar.StreamKind == StreamKind.Stream
-                    ? Specification.StorageClass.Private
-                    : Specification.StorageClass.Uniform;
-                if (memberType is TextureType || memberType is BufferType)
-                    storageClass = Specification.StorageClass.UniformConstant;
-
-                svar.Type = new PointerType(memberType, storageClass);
-                table.DeclaredTypes.TryAdd(svar.Type.ToString(), svar.Type);
-            }
-            else if (member is CBuffer cb)
-            {
-                foreach (var cbMember in cb.Members)
-                {
-                    cbMember.Type = cbMember.TypeName.ResolveType(table, context);
-                    //var symbol = new Symbol(new(cbMember.Name, SymbolKind.CBuffer), cbMember.Type);
-                    //symbols.Add(symbol);
-                }
-            }
-            else if (member is ShaderSamplerState samplerState)
-            {
-                samplerState.Type = new SamplerType();
-                table.DeclaredTypes.TryAdd(samplerState.Type.ToString(), samplerState.Type);
-            }
+        foreach (var member in Elements.OfType<ShaderMember>())
+            member.ProcessSymbol(table, context);
+        foreach (var member in Elements.OfType<ShaderBuffer>())
+            member.ProcessSymbol(table, context);
+        foreach (var member in Elements.OfType<ShaderSamplerState>())
+            member.ProcessSymbol(table, context);
+        // In case a method is calling another method not yet processed, we first declare all methods, then analysis of method body
+        // (SPIR-V allow forward calling)
+        foreach (var method in Elements.OfType<ShaderMethod>())
+            method.ProcessSymbol(table, context);
+        if (!hasUnresolvableGenerics)
+        {
+            foreach (var member in Elements.OfType<ShaderMethod>())
+                member.ProcessSymbolBody(table, context);
         }
 
         RenameCBufferVariables();
 
         foreach (var member in Elements.OfType<ShaderStruct>())
             member.Compile(table, this, compiler);
-        foreach (var member in Elements.OfType<ShaderBuffer>())
-            member.Compile(table, this, compiler);
         foreach (var member in Elements.OfType<ShaderMember>())
+        {
+            if (member.TypeModifier == TypeModifier.Const)
+                continue;
+            member.Compile(table, this, compiler);
+        }
+        foreach (var member in Elements.OfType<ShaderBuffer>())
             member.Compile(table, this, compiler);
         foreach (var member in Elements.OfType<ShaderSamplerState>())
             member.Compile(table, this, compiler);
-
-        // In case calling a method not yet processed, we first register method types
-        // (SPIR-V allow forward calling)
-        foreach (var method in Elements.OfType<ShaderMethod>())
-            method.Declare(table, this, compiler);
-
         foreach (var method in Elements.OfType<ShaderMethod>())
             method.Compile(table, this, compiler, hasUnresolvableGenerics);
 

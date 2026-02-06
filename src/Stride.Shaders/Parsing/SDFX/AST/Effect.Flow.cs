@@ -51,9 +51,9 @@ public class If(Expression condition, EffectStatement body, TextLocation info) :
 
         _ = Body switch
         {
-            EffectExpressionStatement {Statement : ExpressionStatement { Expression : MethodCall {Name.Name : "mixin", Parameters.Values : [Identifier m]}}} 
+            EffectExpressionStatement {Statement : ExpressionStatement { Expression : MethodCall {Name.Name : "mixin", Arguments.Values : [Identifier m]}}} 
                 => compiler.Builder.Insert(new OpSDSLMixinUse(m.Name)),
-            EffectExpressionStatement {Statement : ExpressionStatement { Expression : MethodCall {Name.Name : "mixin", Parameters.Values : [AccessorChainExpression {Source : Identifier, Accessors : [Identifier]} ace]}}} 
+            EffectExpressionStatement {Statement : ExpressionStatement { Expression : MethodCall {Name.Name : "mixin", Arguments.Values : [AccessorChainExpression {Source : Identifier, Accessors : [Identifier]} ace]}}} 
                 => compiler.Builder.Insert(new OpSDSLMixinUse(ace.ToString())),
             _ => throw new NotImplementedException()
         };
@@ -82,9 +82,9 @@ public class Else(EffectStatement body, TextLocation info) : EffectFlow(info)
         compiler.Builder.Insert(new OpSDSLElse());
         _ = Body switch
         {
-            EffectExpressionStatement {Statement : ExpressionStatement { Expression : MethodCall {Name.Name : "mixin", Parameters.Values : [Identifier m]}}} 
+            EffectExpressionStatement {Statement : ExpressionStatement { Expression : MethodCall {Name.Name : "mixin", Arguments.Values : [Identifier m]}}} 
                 => compiler.Builder.Insert(new OpSDSLMixinUse(m.Name)),
-            EffectExpressionStatement {Statement : ExpressionStatement { Expression : MethodCall {Name.Name : "mixin", Parameters.Values : [AccessorChainExpression {Source : Identifier, Accessors : [Identifier]} ace]}}} 
+            EffectExpressionStatement {Statement : ExpressionStatement { Expression : MethodCall {Name.Name : "mixin", Arguments.Values : [AccessorChainExpression {Source : Identifier, Accessors : [Identifier]} ace]}}} 
                 => compiler.Builder.Insert(new OpSDSLMixinUse(ace.ToString())),
             _ => throw new NotImplementedException()
         };

@@ -16,7 +16,7 @@ public abstract class Node(TextLocation info)
 /// <summary>
 /// AST Node with a type
 /// </summary>
-public class ValueNode(TextLocation info) : Node(info)
+public abstract  class ValueNode(TextLocation info) : Node(info)
 {
     public virtual SymbolType? Type { get; set; } = null;
 }

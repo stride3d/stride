@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
@@ -9,12 +10,15 @@ namespace Stride.Shaders.Compilers.SDSL;
 
 public partial class ShaderMixer
 {
-    private Dictionary<int, (string? Link, string? ResourceGroup, string? LogicalGroup)> variableLinks = new();
+    private record struct VariableMetadata(string? Link = null, string? ResourceGroup = null, string? LogicalGroup = null, bool Color = false);
+    private record struct CBufferMemberMetadata(string? Link = null, string? LogicalGroup = null, bool Color = false);
+    
+    private Dictionary<int, VariableMetadata> variableMetadata = new();
     // Note: cbuffer might share same struct, which is why we store this info per variable instead of per struct (as per OpMemberDecorate was doing)
-    private Dictionary<int, (string? Link, string? LogicalGroup)[]> cbufferMemberLinks = new();
+    private Dictionary<int, CBufferMemberMetadata[]> cbufferMemberMetadata = new();
 
     private static bool IsResourceType(SymbolType type)
-        => type is TextureType or SamplerType or BufferType or ConstantBufferSymbol;
+        => type is TextureType or SamplerType or BufferType or StructuredBufferType or ConstantBufferSymbol;
 
     // Process LinkSDSL, ResourceGroupSDSL and LogicalGroupSDSL; Info will be stored in resourceLinks and cbufferMemberLinks
     private void ProcessLinks(SpirvContext context, NewSpirvBuffer buffer)
@@ -23,34 +27,68 @@ public partial class ShaderMixer
         string? compositionPath = null;
         string? shaderName = null;
 
-        var variableDecorationLinks = new Dictionary<int, (string? Link, string? ResourceGroup, string? LogicalGroup)>();
-        var structDecorationLinks = new Dictionary<(int, int), string>();
+        var variableDecorationMetadata = new Dictionary<int, VariableMetadata>();
+        var structDecorationMetadata = new Dictionary<(int, int), CBufferMemberMetadata>();
 
         foreach (var i in context)
         {
-            if (i.Op == Specification.Op.OpDecorateString && (OpDecorateString)i is
-                { Decoration: Specification.Decoration.LinkSDSL or Specification.Decoration.ResourceGroupSDSL or Specification.Decoration.LogicalGroupSDSL, Value: string m  } decorate)
+            if (i.Op == Specification.Op.OpDecorate && (OpDecorate)i is
+                { Decoration: Specification.Decoration.ColorSDSL } decorate)
             {
-                ref var link = ref CollectionsMarshal.GetValueRefOrAddDefault(variableDecorationLinks, decorate.Target, out _);
+                ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(variableDecorationMetadata, decorate.Target, out _);
                 switch (decorate.Decoration)
                 {
+                    case Specification.Decoration.ColorSDSL:
+                        metadata.Color = true;
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+            else if (i.Op == Specification.Op.OpDecorateString && (OpDecorateString)i is
+                { Decoration: Specification.Decoration.LinkSDSL or Specification.Decoration.ResourceGroupSDSL or Specification.Decoration.LogicalGroupSDSL } decorateString)
+            {
+                ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(variableDecorationMetadata, decorateString.Target, out _);
+                switch (decorateString.Decoration)
+                {
                     case Specification.Decoration.LinkSDSL:
-                        link.Link = m;
+                        metadata.Link = decorateString.Value;
                         break;
                     case Specification.Decoration.ResourceGroupSDSL:
-                        link.ResourceGroup = m;
+                        metadata.ResourceGroup = decorateString.Value;
                         break;
                     case Specification.Decoration.LogicalGroupSDSL:
-                        link.LogicalGroup = m;
+                        metadata.LogicalGroup = decorateString.Value;
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+            else if (i.Op == Specification.Op.OpMemberDecorate && (OpMemberDecorate)i is
+                     { Decoration: Specification.Decoration.ColorSDSL } memberDecorate)
+            {
+                ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(structDecorationMetadata, (memberDecorate.StructureType, memberDecorate.Member), out _);
+                switch (memberDecorate.Decoration)
+                {
+                    case Specification.Decoration.ColorSDSL:
+                        metadata.Color = true;
                         break;
                     default:
                         throw new NotImplementedException();
                 }
             }
             else if (i.Op == Specification.Op.OpMemberDecorateString && (OpMemberDecorateString)i is
-                     { Decoration: Specification.Decoration.LinkSDSL, Value: string m2 } memberDecorate)
+                     { Decoration: Specification.Decoration.LinkSDSL } memberDecorateString)
             {
-                structDecorationLinks[(memberDecorate.StructType, memberDecorate.Member)] = m2;
+                ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(structDecorationMetadata, (memberDecorateString.StructType, memberDecorateString.Member), out _);
+                switch (memberDecorateString.Decoration)
+                {
+                    case Specification.Decoration.LinkSDSL:
+                        metadata.Link = memberDecorateString.Value;
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
             }
         }
 
@@ -76,32 +114,33 @@ public partial class ShaderMixer
                 var variablePointerType = (PointerType)context.ReverseTypes[variableInstruction.ResultType];
                 var variableType = variablePointerType.BaseType;
 
-                if (!variableDecorationLinks.TryGetValue(variableInstruction.ResultId, out var linkInfo)
-                    || linkInfo.Link == null)
-                    linkInfo.Link = GenerateLinkName(shaderName, context.Names[variableInstruction.ResultId]);
+                if (!variableDecorationMetadata.TryGetValue(variableInstruction.ResultId, out var metadata)
+                    || metadata.Link == null)
+                    metadata.Link = GenerateLinkName(shaderName, context.Names[variableInstruction.ResultId]);
 
                 if (!isStage)
-                    linkInfo.Link = ComposeLinkName(linkInfo.Link, compositionPath);
+                    metadata.Link = ComposeLinkName(metadata.Link, compositionPath);
 
-                variableLinks[variableInstruction.ResultId] = linkInfo;
+                variableMetadata[variableInstruction.ResultId] = metadata;
                 
                 if (variableType is ConstantBufferSymbol cb)
                 {
                     var constantBufferStructId = context.Types[cb];
-                    (string Link, string LogicalGroup)[] memberLinks = new (string Link, string LogicalGroup)[cb.Members.Count];
+                    CBufferMemberMetadata[] memberLinks = new CBufferMemberMetadata[cb.Members.Count];
                     for (var index = 0; index < cb.Members.Count; index++)
                     {
                         var member = cb.Members[index];
-                        if (!structDecorationLinks.TryGetValue((constantBufferStructId, index), out var memberLink)
-                            || memberLink == null)
-                            memberLink = GenerateLinkName(shaderName, member.Name);
+                        if (!structDecorationMetadata.TryGetValue((constantBufferStructId, index), out var memberLink)
+                            || memberLink.Link == null)
+                            memberLink.Link = GenerateLinkName(shaderName, member.Name);
 
                         if (!isStage)
-                            memberLink = ComposeLinkName(memberLink, compositionPath);
-                        memberLinks[index] = (memberLink, linkInfo.LogicalGroup);
+                            memberLink.Link = ComposeLinkName(memberLink.Link, compositionPath);
+                        memberLink.LogicalGroup = metadata.LogicalGroup;
+                        memberLinks[index] = memberLink;
                     }
 
-                    cbufferMemberLinks.Add(variableInstruction.ResultId, memberLinks);
+                    cbufferMemberMetadata.Add(variableInstruction.ResultId, memberLinks);
                 }
             }
         }
@@ -130,7 +169,7 @@ public partial class ShaderMixer
                     : shader.ShaderName;
             }
             else if (i.Op == Specification.Op.OpVariableSDSL && (OpVariableSDSL)i is
-                     { Storageclass: Specification.StorageClass.UniformConstant } variable)
+                     { Storageclass: Specification.StorageClass.UniformConstant or Specification.StorageClass.StorageBuffer } variable)
             {
                 // Note: we don't rename cbuffer as they have been merged and don't belong to a specific shader/composition anymore
                 var type = context.ReverseTypes[variable.ResultType];
@@ -167,27 +206,16 @@ public partial class ShaderMixer
     }
 
     // Emit reflection (except ConstantBuffers which was emitted during ComputeCBufferReflection)
-    private void ProcessReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
+    private unsafe void ProcessReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, Options options)
     {
-        // First, figure out latest used bindings (assume they are filled in order)
-        int srvSlot = 0;
-        int samplerSlot = 0;
-        int cbufferSlot = 0;
-        foreach (var resourceBinding in globalContext.Reflection.ResourceBindings)
-        {
-            switch (resourceBinding)
-            {
-                case { Class: EffectParameterClass.ShaderResourceView }:
-                    srvSlot = resourceBinding.SlotStart + resourceBinding.SlotCount;
-                    break;
-                case { Class: EffectParameterClass.Sampler }:
-                    samplerSlot = resourceBinding.SlotStart + resourceBinding.SlotCount;
-                    break;
-                case { Class: EffectParameterClass.ConstantBuffer }:
-                    cbufferSlot = resourceBinding.SlotStart + resourceBinding.SlotCount;
-                    break;
-            }
-        }
+        Span<int> slotCounts = stackalloc int[options.ResourcesRegisterSeparate ? 4 : 1];
+        slotCounts.Clear();
+        
+        // If areResourcesSharingSlots is true, every slot type will point to same value
+        ref var srvSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 0 : 0];
+        ref var samplerSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 1 : 0];
+        ref var cbufferSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 2 : 0];
+        ref var uavSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 3 : 0];
 
         // TODO: do this once at root level and reuse for child mixin
         var samplerStates = new Dictionary<int, Graphics.SamplerStateDescription>();
@@ -272,7 +300,7 @@ public partial class ShaderMixer
                 {
                     var name = context.Names[variable.ResultId];
                     
-                    variableLinks.TryGetValue(variable.ResultId, out var linkInfo);
+                    variableMetadata.TryGetValue(variable.ResultId, out var linkInfo);
                     var linkName = variableType switch
                     {
                         // TODO: Special case, Stride EffectCompiler.CleanupReflection() expect a different format here (let's fix that later in Stride)
@@ -291,44 +319,59 @@ public partial class ShaderMixer
                         LogicalGroup = linkInfo.LogicalGroup,
                     };
 
-                    if (variableType is TextureType t)
+                    if (variableType is TextureType or BufferType or StructuredBufferType)
                     {
-                        var slot = globalContext.Reflection.ResourceBindings.Count;
-                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                        bool isUAV = variableType switch
                         {
-                            Class = EffectParameterClass.ShaderResourceView,
-                            Type = (t, t.Multisampled) switch
+                            TextureType t1 => t1.Sampled == 2,
+                            BufferType b1 => b1.WriteAllowed,
+                            StructuredBufferType sb1 => sb1.WriteAllowed,
+                        };
+                        ref var slot = ref (isUAV ? ref uavSlot : ref srvSlot);
+                        effectResourceBinding.Class = isUAV ? EffectParameterClass.UnorderedAccessView : EffectParameterClass.ShaderResourceView;
+                        effectResourceBinding.SlotStart = slot;
+                        effectResourceBinding.SlotCount = 1;
+
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [slot]));
+
+                        slot++;
+
+                        if (variableType is TextureType t)
+                        {
+                            globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
                             {
-                                (Texture1DType, false) => EffectParameterType.Texture1D,
-                                (Texture2DType, false) => EffectParameterType.Texture2D,
-                                (Texture2DType, true) => EffectParameterType.Texture2DMultisampled,
-                                (Texture3DType, false) => EffectParameterType.Texture3D,
-                                (TextureCubeType, false) => EffectParameterType.TextureCube,
-                            },
-                            SlotStart = srvSlot,
-                            SlotCount = 1,
-                        });
-
-                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
-                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [srvSlot]));
-
-                        srvSlot++;
-                    }
-                    else if (variableType is BufferType)
-                    {
-                        var slot = globalContext.Reflection.ResourceBindings.Count;
-                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                                Type = (t, t.Multisampled, t.Sampled == 2) switch
+                                {
+                                    (Texture1DType, false, false) => EffectParameterType.Texture1D,
+                                    (Texture2DType, false, false) => EffectParameterType.Texture2D,
+                                    (Texture2DType, true, false) => EffectParameterType.Texture2DMultisampled,
+                                    (Texture3DType, false, false) => EffectParameterType.Texture3D,
+                                    (TextureCubeType, false, false) => EffectParameterType.TextureCube,
+                                    (Texture1DType, false, true) => EffectParameterType.RWTexture1D,
+                                    (Texture2DType, false, true) => EffectParameterType.RWTexture2D,
+                                    (Texture3DType, false, true) => EffectParameterType.RWTexture3D,
+                                },
+                            });
+                        }
+                        else if (variableType is BufferType bufferType)
                         {
-                            Class = EffectParameterClass.ShaderResourceView,
-                            Type = EffectParameterType.Buffer,
-                            SlotStart = srvSlot,
-                            SlotCount = 1,
-                        });
+                            globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                            {
+                                Type = bufferType.WriteAllowed ? EffectParameterType.RWBuffer : EffectParameterType.Buffer,
+                            });
+                        }
+                        else if (variableType is StructuredBufferType structuredBufferType)
+                        {
+                            globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                            {
+                                Type = structuredBufferType.WriteAllowed ? EffectParameterType.RWStructuredBuffer : EffectParameterType.StructuredBuffer,
+                            });
 
-                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
-                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [srvSlot]));
-
-                        srvSlot++;
+                            var baseType = structuredBufferType.BaseType;
+                            // This will add array stride and offsets decorations
+                            EmitTypeDecorationsRecursively(context, baseType, SpirvBuilder.AlignmentRules.StructuredBuffer);
+                        }
                     }
                     else if (variableType is SamplerType)
                     {
@@ -341,8 +384,7 @@ public partial class ShaderMixer
                         });
 
                         context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
-                        context.Add(
-                            new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [samplerSlot]));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [samplerSlot]));
 
                         if (samplerStates.TryGetValue(variable.ResultId, out var samplerState))
                             globalContext.Reflection.SamplerStates.Add(
@@ -362,8 +404,7 @@ public partial class ShaderMixer
                         });
 
                         context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
-                        context.Add(
-                            new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [cbufferSlot]));
+                        context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [cbufferSlot]));
 
                         cbufferSlot++;
                     }

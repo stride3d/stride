@@ -80,7 +80,7 @@ public record struct LiteralsParser : IParser<Literal>
             if (Parsers.FollowedBy(ref scanner, Tokens.Char('<'), withSpaces: true, advance: true))
             {
                 Parsers.Spaces0(ref scanner, result, out _);
-                Parsers.Repeat(ref scanner, result, TypeNameOrNumber, out List<TypeName> generics, 1, withSpaces: true, separator: ",");
+                Parsers.Repeat(ref scanner, result, TypeNameOrNumber, out List<Literal> generics, 1, withSpaces: true, separator: ",");
                 if (!Parsers.FollowedBy(ref scanner, Tokens.Char('>'), withSpaces: true, advance: true))
                     return Parsers.Exit(ref scanner, result, out name, position);
                 name.Info = scanner[position..scanner.Position];
@@ -107,17 +107,17 @@ public record struct LiteralsParser : IParser<Literal>
         else return Parsers.Exit(ref scanner, result, out name, position, orError);
     }
 
-    public static bool TypeNameOrNumber<TScanner>(ref TScanner scanner, ParseResult result, out TypeName parsed, in ParseError? orError = null)
+    public static bool TypeNameOrNumber<TScanner>(ref TScanner scanner, ParseResult result, out Literal parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         if (TypeName(ref scanner, result, out var typename))
         {
-            parsed = (TypeName)typename;
+            parsed = typename;
             return true;
         }
         else if (Number(ref scanner, result, out var number))
         {
-            parsed = new TypeName(number.ToString() ?? "", number.Info);
+            parsed = number;
             return true;
         }
         else return Parsers.Exit(ref scanner, result, out parsed, scanner.Position, orError);

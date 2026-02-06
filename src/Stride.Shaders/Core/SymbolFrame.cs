@@ -1,11 +1,13 @@
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Building;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Xml.Linq;
 
 namespace Stride.Shaders.Core;
 
-public class SymbolFrame(SpirvContext context)
+public class SymbolFrame
 {
     readonly Dictionary<string, Symbol> symbols = [];
 
@@ -23,14 +25,22 @@ public class SymbolFrame(SpirvContext context)
             if (existingSymbol.Type is FunctionType)
                 existingSymbol = new Symbol(new(name, SymbolKind.MethodGroup, IsStage: existingSymbol.Id.IsStage), new FunctionGroupType(), 0, GroupMembers: [existingSymbol]);
 
-            existingSymbol.GroupMembers = existingSymbol.GroupMembers.Add(symbol);
-
+            existingSymbol = existingSymbol with { GroupMembers =  existingSymbol.GroupMembers.Add(symbol) };
             symbols[name] = existingSymbol;
         }
         else
         {
             symbols.Add(name, symbol);
         }
+    }
+
+    public void UpdateId(string name, int id)
+    {
+        ref var symbol = ref CollectionsMarshal.GetValueRefOrNullRef(symbols, name);
+        if (Unsafe.IsNullRef(ref symbol))
+            throw new InvalidOperationException();
+
+        symbol.IdRef = id;
     }
 
     public void Remove(string name)
@@ -56,6 +66,6 @@ public class SymbolFrame(SpirvContext context)
     public Dictionary<string, Symbol>.Enumerator GetEnumerator() => symbols.GetEnumerator();
 }
 
-public sealed class RootSymbolFrame(SpirvContext context) : SymbolFrame(context)
+public sealed class RootSymbolFrame() : SymbolFrame()
 {
 }
