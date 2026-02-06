@@ -30,6 +30,9 @@
         <Setter Property="Width" Value="28"/>
         <Setter Property="Height" Value="28"/>
         <Setter Property="Padding" Value="0"/>
+        <Setter Property="ToolTip" Value="{Binding Converter={sd:EnumToTooltip}}"/>
+        <Setter Property="sd:ToolTipHelper.Status" Value="{Binding Editor.Status, Source={x:Static sd:SessionViewModel.Instance}}"/>
+        <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
       </Style>
 
       <Style x:Key="EnumListBox" BasedOn="{StaticResource {x:Type ListBox}}" TargetType="ListBox">
@@ -44,8 +47,7 @@
         <Setter Property="ItemTemplate">
           <Setter.Value>
             <DataTemplate>
-              <Border Width="28" Height="28"
-                      ToolTip="{Binding Converter={sd:EnumToTooltip}}" sd:ToolTipHelper.Status="{Binding Editor.Status, Source={x:Static sd:SessionViewModel.Instance}}" ToolTipService.ShowOnDisabled="True">
+              <Border Width="28" Height="28">
                 <Image Width="16" Height="16" Source="{Binding Converter={sd:EnumToResource}}" />
               </Border>
             </DataTemplate>
