@@ -99,8 +99,10 @@ namespace Stride.UI.Controls
             get { return field; }
             set
             {
-                if (Math.Abs(field - value) < float.Epsilon)
+                if (field == value)
+                {
                     return;
+                }
 
                 field = value;
                 UpdateLocalMatrix();
@@ -152,7 +154,7 @@ namespace Stride.UI.Controls
         /// </summary>
         private void UpdateLocalMatrix()
         {
-            if (Math.Abs(Rotation) < float.Epsilon)
+            if (Rotation == 0)
             {
                 LocalMatrix = Matrix.Identity;
             }
