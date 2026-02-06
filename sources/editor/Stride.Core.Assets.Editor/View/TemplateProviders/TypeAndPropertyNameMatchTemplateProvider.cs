@@ -5,9 +5,9 @@ using Stride.Core.Presentation.Quantum.ViewModels;
 namespace Stride.Core.Assets.Editor.View.TemplateProviders
 {
     /// <summary>
-    /// A template provider that matches nodes based on both their type and name.
+    /// A template provider that matches nodes based on both their type and property name.
     /// </summary>
-    public class TypeNameMatchTemplateProvider : TypeMatchTemplateProvider
+    public class TypeAndPropertyNameMatchTemplateProvider : TypeMatchTemplateProvider
     {
         /// <inheritdoc/>
         public override string Name => $"{base.Name}_{PropertyName}";

@@ -10,11 +10,11 @@
     <ResourceDictionary Source="ImageDictionary.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
-  <tp:TypeNameMatchTemplateProvider x:Key="RotationTemplateProvider" Type="{x:Type s:Single}" PropertyName="Rotation" sd:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <tp:TypeAndPropertyNameMatchTemplateProvider x:Key="RotationTemplateProvider" Type="{x:Type s:Single}" PropertyName="Rotation" sd:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate>
       <sd:AngleEditor Value="{Binding NodeValue}" />
     </DataTemplate>
-  </tp:TypeNameMatchTemplateProvider>
+  </tp:TypeAndPropertyNameMatchTemplateProvider>
 
   <sd:TypeMatchTemplateProvider x:Key="StripDefinitionTemplateProvider" Type="{x:Type ui:StripDefinition}" sd:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate>
@@ -91,8 +91,4 @@
       <views:ThicknessEditor Value="{Binding NodeValue}" DecimalPlaces="3" />
     </DataTemplate>
   </sd:TypeMatchTemplateProvider>
-
 </ResourceDictionary>
-
-
-
