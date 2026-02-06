@@ -25,6 +25,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Stride.Core.Storage;
+using Stride.Shaders.Spirv.Processing.Interfaces;
 using static Stride.Shaders.Spirv.Specification;
 using EntryPoint = Stride.Shaders.Core.EntryPoint;
 
