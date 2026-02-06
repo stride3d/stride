@@ -170,7 +170,14 @@ namespace Stride.Rendering.UI
                 // TODO: add the pointer type to the event args?
                 var touchEvent = new TouchEventArgs
                 {
-                    Action = TouchAction.Down,
+                    Action = pointerEvent.EventType switch
+                    {
+                        PointerEventType.Pressed => TouchAction.Down,
+                        PointerEventType.Moved => TouchAction.Move,
+                        PointerEventType.Released => TouchAction.Up,
+                        PointerEventType.Canceled => TouchAction.Move,
+                        _ => throw new ArgumentOutOfRangeException()
+                    },
                     Timestamp = time,
                     ScreenPosition = currentTouchPosition,
                     ScreenTranslation = pointerEvent.DeltaPosition,
@@ -181,13 +188,10 @@ namespace Stride.Rendering.UI
                 switch (pointerEvent.EventType)
                 {
                     case PointerEventType.Pressed:
-                        touchEvent.Action = TouchAction.Down;
                         currentTouchedElement?.RaiseTouchDownEvent(touchEvent);
                         break;
 
                     case PointerEventType.Released:
-                        touchEvent.Action = TouchAction.Up;
-
                         // generate enter/leave events if we passed from an element to another without move events
                         if (currentTouchedElement != lastTouchedElement)
                             ThrowEnterAndLeaveTouchEvents(currentTouchedElement, lastTouchedElement, touchEvent);
@@ -197,8 +201,6 @@ namespace Stride.Rendering.UI
                         break;
 
                     case PointerEventType.Moved:
-                        touchEvent.Action = TouchAction.Move;
-
                         // first notify the move event (even if the touched element changed in between it is still coherent in one of its parents)
                         currentTouchedElement?.RaiseTouchMoveEvent(touchEvent);
 
@@ -208,8 +210,6 @@ namespace Stride.Rendering.UI
                         break;
 
                     case PointerEventType.Canceled:
-                        touchEvent.Action = TouchAction.Move;
-
                         // generate enter/leave events if we passed from an element to another without move events
                         if (currentTouchedElement != lastTouchedElement)
                             ThrowEnterAndLeaveTouchEvents(currentTouchedElement, lastTouchedElement, touchEvent);

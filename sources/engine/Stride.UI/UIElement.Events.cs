@@ -14,40 +14,40 @@ namespace Stride.UI
     {
         #region Routed Events
 
-        private static readonly RoutedEvent<TouchEventArgs> PreviewTouchDownEvent =
+        public static readonly RoutedEvent<TouchEventArgs> PreviewTouchDownEvent =
             EventManager.RegisterRoutedEvent<TouchEventArgs>("PreviewTouchDown", RoutingStrategy.Tunnel, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> PreviewTouchMoveEvent =
+        public static readonly RoutedEvent<TouchEventArgs> PreviewTouchMoveEvent =
             EventManager.RegisterRoutedEvent<TouchEventArgs>("PreviewTouchMove", RoutingStrategy.Tunnel, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> PreviewTouchUpEvent =
+        public static readonly RoutedEvent<TouchEventArgs> PreviewTouchUpEvent =
             EventManager.RegisterRoutedEvent<TouchEventArgs>("PreviewTouchUp", RoutingStrategy.Tunnel, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> TouchDownEvent =
+        public static readonly RoutedEvent<TouchEventArgs> TouchDownEvent =
             EventManager.RegisterRoutedEvent<TouchEventArgs>("TouchDown", RoutingStrategy.Bubble, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> TouchEnterEvent =
+        public static readonly RoutedEvent<TouchEventArgs> TouchEnterEvent =
             EventManager.RegisterRoutedEvent<TouchEventArgs>("TouchEnter", RoutingStrategy.Direct, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> TouchLeaveEvent =
+        public static readonly RoutedEvent<TouchEventArgs> TouchLeaveEvent =
             EventManager.RegisterRoutedEvent<TouchEventArgs>("TouchLeave", RoutingStrategy.Direct, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> TouchMoveEvent =
+        public static readonly RoutedEvent<TouchEventArgs> TouchMoveEvent =
             EventManager.RegisterRoutedEvent<TouchEventArgs>("TouchMove", RoutingStrategy.Bubble, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> TouchUpEvent =
+        public static readonly RoutedEvent<TouchEventArgs> TouchUpEvent =
             EventManager.RegisterRoutedEvent<TouchEventArgs>("TouchUp", RoutingStrategy.Bubble, typeof(UIElement));
 
-        private static readonly RoutedEvent<KeyEventArgs> KeyPressedEvent =
+        public static readonly RoutedEvent<KeyEventArgs> KeyPressedEvent =
             EventManager.RegisterRoutedEvent<KeyEventArgs>("KeyPressed", RoutingStrategy.Bubble, typeof(UIElement));
 
-        private static readonly RoutedEvent<KeyEventArgs> KeyDownEvent =
+        public static readonly RoutedEvent<KeyEventArgs> KeyDownEvent =
             EventManager.RegisterRoutedEvent<KeyEventArgs>("KeyDown", RoutingStrategy.Bubble, typeof(UIElement));
 
-        private static readonly RoutedEvent<KeyEventArgs> KeyReleasedEvent =
+        public static readonly RoutedEvent<KeyEventArgs> KeyReleasedEvent =
             EventManager.RegisterRoutedEvent<KeyEventArgs>("KeyReleased", RoutingStrategy.Bubble, typeof(UIElement));
 
-        private static readonly RoutedEvent<TextEventArgs> TextInputEvent =
+        public static readonly RoutedEvent<TextEventArgs> TextInputEvent =
             EventManager.RegisterRoutedEvent<TextEventArgs>("TextInput", RoutingStrategy.Bubble, typeof(UIElement));
 
         #endregion
