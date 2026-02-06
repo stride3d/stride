@@ -81,11 +81,6 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// The <see cref="UIElement"/> that currently has the focus.
-        /// </summary>
-        internal static UIElement FocusedElement { get; set; }
-
-        /// <summary>
         /// A unique ID defining the UI element.
         /// </summary>
         /// <userdoc>A unique ID defining the UI element.</userdoc>

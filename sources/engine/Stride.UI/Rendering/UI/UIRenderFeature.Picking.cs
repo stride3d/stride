@@ -290,7 +290,7 @@ namespace Stride.Rendering.UI
                 }
             }
 
-            UIElementUnderMouseCursor = mouseOverElement;
+            uiSystem.UIElementUnderMouseCursor = mouseOverElement;
 
             // update cached values
             state.LastMouseOverElement = mouseOverElement;
