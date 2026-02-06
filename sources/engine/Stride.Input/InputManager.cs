@@ -72,7 +72,7 @@ namespace Stride.Input
 
         private GameContext gameContext;
 
-        private Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>> devicesCollectionChangedActions = new Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>>();
+        private Dictionary<IInputSource, EventHandler<TrackingKeyedCollectionChangedEventArgs<Guid, IInputDevice>>> devicesCollectionChangedActions = [];
 
 #if STRIDE_INPUT_RAWINPUT
         private bool rawInputEnabled = false;
@@ -584,16 +584,16 @@ namespace Stride.Input
             }
         }
 
-        private void SourcesOnCollectionChanged(object o, TrackingCollectionChangedEventArgs e)
+        private void SourcesOnCollectionChanged(object o, TrackingCollectionChangedEventArgs<IInputSource> e)
         {
-            var source = (IInputSource)e.Item;
+            var source = e.Item;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     if (Sources.Count(x => x == source) > 1)
                         throw new InvalidOperationException("Input Source already added");
 
-                    EventHandler<TrackingCollectionChangedEventArgs> eventHandler = (sender, args) => InputDevicesOnCollectionChanged(source, args);
+                    EventHandler<TrackingKeyedCollectionChangedEventArgs<Guid, IInputDevice>> eventHandler = (sender, args) => InputDevicesOnCollectionChanged(source, args);
                     devicesCollectionChangedActions.Add(source, eventHandler);
                     source.Devices.CollectionChanged += eventHandler;
                     source.Initialize(this);
@@ -722,15 +722,15 @@ namespace Stride.Input
             }
         }
 
-        private void GesturesOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs trackingCollectionChangedEventArgs)
+        private void GesturesOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs<GestureConfig> trackingCollectionChangedEventArgs)
         {
             switch (trackingCollectionChangedEventArgs.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    StartGestureRecognition((GestureConfig)trackingCollectionChangedEventArgs.Item);
+                    StartGestureRecognition(trackingCollectionChangedEventArgs.Item);
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    StopGestureRecognition((GestureConfig)trackingCollectionChangedEventArgs.Item);
+                    StopGestureRecognition(trackingCollectionChangedEventArgs.Item);
                     break;
                 case NotifyCollectionChangedAction.Replace:
                 case NotifyCollectionChangedAction.Reset:
@@ -762,15 +762,15 @@ namespace Stride.Input
             }
         }
 
-        private void InputDevicesOnCollectionChanged(IInputSource source, TrackingCollectionChangedEventArgs e)
+        private void InputDevicesOnCollectionChanged(IInputSource source, TrackingKeyedCollectionChangedEventArgs<Guid, IInputDevice> e)
         {
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    OnInputDeviceAdded(source, (IInputDevice)e.Item);
+                    OnInputDeviceAdded(source, e.Item);
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    OnInputDeviceRemoved((IInputDevice)e.Item);
+                    OnInputDeviceRemoved(e.Item);
                     break;
                 default:
                     throw new InvalidOperationException("Unsupported collection operation");
