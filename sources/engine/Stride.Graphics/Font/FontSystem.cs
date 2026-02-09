@@ -64,7 +64,7 @@ namespace Stride.Graphics.Font
         /// <param name="defaultSize">The default font size in pixels.</param>
         /// <param name="style">The font style.</param>
         /// <returns>A <see cref="SpriteFont"/> instance if the font is registered; otherwise, <c>null</c>.</returns>
-        public SpriteFont? LoadRuntimeFont(string fontName, float defaultSize = 16f, FontStyle style = FontStyle.Regular)
+        public SpriteFont LoadRuntimeFont(string fontName, float defaultSize = 16f, FontStyle style = FontStyle.Regular)
         {
             if (!RuntimeFonts.IsRegistered(fontName, style))
                 return null;
@@ -82,7 +82,7 @@ namespace Stride.Graphics.Font
             // TODO possibly save generated characters bitmaps on the disk
             FontManager.Dispose();
             FontCacheManager.Dispose();
-            FontCacheManagerMsdf?.Dispose();
+            FontCacheManagerMsdf.Dispose();
 
             // Dispose create sprite fonts
             foreach (var allocatedSpriteFont in AllocatedSpriteFonts.ToArray())
