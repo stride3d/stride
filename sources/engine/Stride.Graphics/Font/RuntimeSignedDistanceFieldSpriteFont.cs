@@ -246,7 +246,6 @@ namespace Stride.Graphics.Font
 
         internal override void PreGenerateGlyphs(ref StringProxy text, ref Vector2 size)
         {
-
             // Async pregen glyphs
             var sizeVec = new Vector2(Size, Size);
             var p = GetDfParams();
@@ -267,7 +266,6 @@ namespace Stride.Graphics.Font
                 }
 
                 EnsureSdfScheduled(key, spec);
-
             }
         }
 
