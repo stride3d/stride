@@ -4834,22 +4834,11 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ctrl:AngleEditor">
-          <Grid>
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="*" />
-              <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Border Grid.Column="0" CornerRadius="4" Background="{StaticResource NormalBrush}" BorderThickness="1" BorderBrush="{StaticResource NormalBorderBrush}">
-              <DockPanel>
-                <TextBlock Text="°" Margin="0,0,3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource TextBrush}" />
-                <ctrl:NumericTextBox Value="{Binding Degrees, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}"
-                                     DecimalPlaces="{Binding DecimalPlaces, RelativeSource={RelativeSource Mode=TemplatedParent}}"
-                                     DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="3,0" TextAlignment="Left"
-                                     WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
-                                     WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
-              </DockPanel>
-            </Border>
-          </Grid>
+          <ctrl:NumericTextBox Value="{Binding Degrees, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}"
+                               DecimalPlaces="{Binding DecimalPlaces, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                               DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="2,0" TextAlignment="Left"
+                               WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                               WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
         </ControlTemplate>
       </Setter.Value>
     </Setter>
