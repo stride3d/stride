@@ -13,8 +13,8 @@ using Stride.Graphics.Font.RuntimeMsdf;
 
 namespace Stride.Graphics.Font
 {    /// <summary>
-    /// A dynamic font that asynchronously generates multi-channel signed distance mapping for glyphs as needed, enabling sharp, smooth edges and resizability.
-    /// </summary>
+     /// A dynamic font that asynchronously generates multi-channel signed distance mapping for glyphs as needed, enabling sharp, smooth edges and resizability.
+     /// </summary>
     [ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<RuntimeSignedDistanceFieldSpriteFont>), Profile = "Content")]
     [ContentSerializer(typeof(RuntimeSignedDistanceFieldSpriteFontContentSerializer))]
     [DataSerializer(typeof(RuntimeSignedDistanceFieldSpriteFontSerializer))]
@@ -430,10 +430,7 @@ namespace Stride.Graphics.Font
             var srcCopy = ArrayPool<byte>.Shared.Rent(len);
             try
             {
-                unsafe
-                {
-                    System.Runtime.InteropServices.Marshal.Copy((IntPtr)bmp.Buffer, srcCopy, 0, len);
-                }
+                System.Runtime.InteropServices.Marshal.Copy(bmp.Buffer, srcCopy, 0, len);
 
                 var input = (GlyphInput)new CoverageInput(srcCopy, len, width, rows, pitch);
 
