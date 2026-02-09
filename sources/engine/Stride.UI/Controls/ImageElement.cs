@@ -99,7 +99,7 @@ namespace Stride.UI.Controls
             get { return field; }
             set
             {
-                if (field == value)
+                if (Math.Abs(field - value) <= MathUtil.ZeroTolerance)
                 {
                     return;
                 }
