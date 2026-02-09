@@ -113,10 +113,10 @@ namespace Stride.Graphics.Font
         private readonly ConcurrentDictionary<GlyphKey, FontCacheManagerMsdf.MsdfCachedGlyph> cacheRecords = [];
 
         [DataMemberIgnore]
-        internal FontManager FontManager => FontSystem?.FontManager;
+        private FontManager FontManager => FontSystem?.FontManager;
 
         [DataMemberIgnore]
-        internal FontCacheManagerMsdf FontCacheManagerMsdf => FontSystem?.FontCacheManagerMsdf;
+        private FontCacheManagerMsdf FontCacheManagerMsdf => FontSystem?.FontCacheManagerMsdf;
 
         // Async wiring
         // 1) Dedup scheduling
