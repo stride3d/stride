@@ -233,7 +233,7 @@ namespace Stride.Graphics.Font
                 if (!handle.IsUploaded)
                 {
                     spec.IsBitmapUploaded = false;
-                    cacheRecords.TryRemove(key, out _); ;
+                    cacheRecords.TryRemove(key, out _);
                 }
                 else
                 {
