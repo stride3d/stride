@@ -11,7 +11,7 @@ using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Core;
 
-public interface ISymbolTypeNode
+public interface ISymbolTypeItem
 {
     public void Accept(TypeVisitor visitor);
 
@@ -221,7 +221,7 @@ public sealed partial record ArrayType(SymbolType BaseType, int Size, (int Id, N
     public override string ToString() => $"{BaseType}[{(Size != -1 ? Size : string.Empty)}]";
 }
 
-public partial record struct StructuredTypeMember(string Name, SymbolType Type, TypeModifier TypeModifier) : ISymbolTypeNode;
+public partial record struct StructuredTypeMember(string Name, SymbolType Type, TypeModifier TypeModifier) : ISymbolTypeItem;
 
 public partial record StructuredType(string Name, List<StructuredTypeMember> Members) : SymbolType()
 {
@@ -309,7 +309,7 @@ public sealed partial record TextureCubeType(ScalarType ReturnType) : TextureTyp
 
 public sealed partial record FunctionGroupType() : SymbolType();
 
-public partial record struct FunctionParameter(SymbolType Type, ParameterModifiers Modifiers) : ISymbolTypeNode;
+public partial record struct FunctionParameter(SymbolType Type, ParameterModifiers Modifiers) : ISymbolTypeItem;
 
 public sealed partial record FunctionType(SymbolType ReturnType, List<FunctionParameter> ParameterTypes) : SymbolType()
 {
