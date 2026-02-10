@@ -12,7 +12,7 @@ namespace Stride.Shaders.Parsing.SDFX.AST;
 public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : ShaderDeclaration(info)
 {
     public TypeName Name { get; set; } = name;
-    public List<EffectStatement> Members { get; set; } = [];
+    public List<Statement> Members { get; set; } = [];
     public bool IsPartial { get; set; } = isPartial;
 
     public override string ToString()
@@ -25,6 +25,8 @@ public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : Sh
         var (builder, context) = compiler;
 
         compiler.Builder.Insert(new OpSDSLEffect(Name.Name));
+        foreach (var statement in Members)
+            statement.ProcessSymbol(table);
         foreach (var statement in Members)
             statement.Compile(table, compiler);
     }
@@ -50,9 +52,8 @@ public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : Sh
     }
 }
 
-public abstract class EffectStatement(TextLocation info) : Node(info)
+public abstract class EffectStatement(TextLocation info) : Statement(info)
 {
-    public abstract void Compile(SymbolTable table, CompilerUnit compiler);
 }
 
 public class ShaderSourceDeclaration(Identifier name, TextLocation info, Expression? value = null) : EffectStatement(info)
@@ -72,24 +73,13 @@ public class ShaderSourceDeclaration(Identifier name, TextLocation info, Express
     }
 }
 
-public class EffectStatementBlock(TextLocation info) : EffectStatement(info)
-{
-    public List<EffectStatement> Statements { get; set; } = [];
-
-    public override void Compile(SymbolTable table, CompilerUnit compiler)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override string ToString()
-    {
-        return string.Join("\n", Statements);
-    }
-}
-
 public class MixinUse(List<Mixin> mixin, TextLocation info) : EffectStatement(info)
 {
     public List<Mixin> MixinName { get; set; } = mixin;
+
+    public override void ProcessSymbol(SymbolTable table)
+    {
+    }
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
@@ -262,34 +252,6 @@ public class UsingParams(Identifier name, TextLocation info) : EffectStatement(i
     public override string ToString()
     {
         return $"using params {ParamsName}";
-    }
-}
-
-public class EffectBlock(TextLocation info) : EffectStatement(info)
-{
-    public List<EffectStatement> Statements { get; set; } = [];
-
-    public override void Compile(SymbolTable table, CompilerUnit compiler)
-    {
-        throw new NotImplementedException();
-    }
-
-}
-
-
-public class EffectExpressionStatement(Statement statement, TextLocation info) : EffectStatement(info)
-{
-    public Statement Statement { get; set; } = statement;
-
-    public override void Compile(SymbolTable table, CompilerUnit compiler)
-    {
-        var (builder, _) = compiler;
-        if (Statement is ExpressionStatement { Expression: MethodCall { Name.Name: "mixin", Arguments.Values: [Identifier mixin] } })
-            builder.Insert(new OpSDSLMixinUse(mixin.Name));
-        else
-        {
-            throw new NotImplementedException();
-        }
     }
 }
 

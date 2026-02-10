@@ -6,9 +6,9 @@ using Stride.Shaders.Parsing.SDSL.AST;
 namespace Stride.Shaders.Parsing.SDFX.Parsers;
 
 
-public record struct EffectStatementParsers : IParser<EffectStatement>
+public record struct EffectStatementParsers : IParser<Statement>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out EffectStatement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (EffectBlock(ref scanner, result, out var block))
@@ -68,7 +68,7 @@ public record struct EffectStatementParsers : IParser<EffectStatement>
         }
         else if (StatementParsers.Expression(ref scanner, result, out var exp))
         {
-            parsed = new EffectExpressionStatement(exp, scanner[position..scanner.Position]);
+            parsed = exp;
             return true;
         }
         else if (
@@ -82,7 +82,7 @@ public record struct EffectStatementParsers : IParser<EffectStatement>
         return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool Statement<TScanner>(ref TScanner scanner, ParseResult result, out EffectStatement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool Statement<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
         => new EffectStatementParsers().Match(ref scanner, result, out parsed, orError);
     public static bool UsingParams<TScanner>(ref TScanner scanner, ParseResult result, out UsingParams parsed, in ParseError? orError = null) where TScanner : struct, IScanner
         => new UsingParamsParser().Match(ref scanner, result, out parsed, orError);
@@ -125,20 +125,20 @@ public record struct EffectStatementParsers : IParser<EffectStatement>
     public static bool Flow<TScanner>(ref TScanner scanner, ParseResult result, out EffectFlow parsed, in ParseError? orError = null) where TScanner : struct, IScanner
         => new FlowParsers().Match(ref scanner, result, out parsed, orError);
 
-    public static bool EffectBlock<TScanner>(ref TScanner scanner, ParseResult result, out EffectStatement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool EffectBlock<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
 
         if (Tokens.Char('{', ref scanner, advance: true))
         {
-            List<EffectStatement> statements = [];
-            while (SDSL.Parsers.FollowedByDel(ref scanner, result, Statement, out EffectStatement statement, withSpaces: true, advance: true))
+            List<Statement> statements = [];
+            while (SDSL.Parsers.FollowedByDel(ref scanner, result, Statement, out Statement statement, withSpaces: true, advance: true))
             {
                 statements.Add(statement);
             }
             if (!SDSL.Parsers.FollowedBy(ref scanner, Tokens.Char('}'), withSpaces: true, advance: true))
                 return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
-            parsed = new EffectBlock(scanner[position..scanner.Position]) { Statements = statements };
+            parsed = new BlockStatement(scanner[position..scanner.Position]) { Statements = statements };
             return true;
         }
         return SDSL.Parsers.Exit(ref scanner, result, out parsed, position);
@@ -308,7 +308,7 @@ public record struct MixinUseParser : IParser<MixinUse>
         var position = scanner.Position;
         if (
             Tokens.Literal("mixin", ref scanner, advance: true)
-            && SDSL.Parsers.Spaces1(ref scanner, result, out _)
+            && SDSL.Parsers.Spaces0(ref scanner, result, out _)
         )
         {
             var betweenParenthesis = SDSL.Parsers.FollowedBy(ref scanner, Tokens.Char('('), withSpaces: true, advance: true);
