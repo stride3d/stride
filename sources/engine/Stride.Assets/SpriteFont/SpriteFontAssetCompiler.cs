@@ -28,8 +28,7 @@ namespace Stride.Assets.SpriteFont
             UFile assetAbsolutePath = assetItem.FullPath;
             var colorSpace = context.GetColorSpace();
 
-            var fontTypeSdf = asset.FontType as SignedDistanceFieldSpriteFontType;
-            if (fontTypeSdf != null)
+            if (asset.FontType is SignedDistanceFieldSpriteFontType fontTypeSdf)
             {
                 // copy the asset and transform the source and character set file path to absolute paths
                 var assetClone = AssetCloner.Clone(asset);
@@ -76,8 +75,7 @@ namespace Stride.Assets.SpriteFont
             }
             else
             {
-                var fontTypeStatic = asset.FontType as OfflineRasterizedSpriteFontType;
-                if (fontTypeStatic == null)
+                if (asset.FontType is not OfflineRasterizedSpriteFontType fontTypeStatic)
                     throw new ArgumentException("Tried to compile a non-offline rasterized sprite font with the compiler for offline resterized fonts!");
 
                 // copy the asset and transform the source and character set file path to absolute paths
@@ -104,15 +102,13 @@ namespace Stride.Assets.SpriteFont
             public override IEnumerable<ObjectUrl> GetInputFiles()
             {
                 var asset = Parameters;
-                var fontTypeStatic = asset.FontType as OfflineRasterizedSpriteFontType;
-                if (fontTypeStatic != null)
+                if (asset.FontType is OfflineRasterizedSpriteFontType fontTypeStatic)
                 {
                     if (File.Exists(fontTypeStatic.CharacterSet))
                         yield return new ObjectUrl(UrlType.File, fontTypeStatic.CharacterSet);
                 }
 
-                var fontTypeSdf = asset.FontType as SignedDistanceFieldSpriteFontType;
-                if (fontTypeSdf != null)
+                if (asset.FontType is SignedDistanceFieldSpriteFontType fontTypeSdf)
                 {
                     if (File.Exists(fontTypeSdf.CharacterSet))
                         yield return new ObjectUrl(UrlType.File, fontTypeSdf.CharacterSet);
@@ -226,10 +222,7 @@ namespace Stride.Assets.SpriteFont
 
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
-                // M1 NOTE:
-                // This is a scaffolding step. We serialize a functional font so the pipeline works end-to-end.
-                // In M3/M4, this will be replaced by a real Runtime MSDF font object.
-                commandContext.Logger.Warning("Runtime SDF font is currently scaffolded in M1 (temporary). It will behave like a runtime raster font until the MSDF runtime generator is implemented.");
+                commandContext.Logger.Warning("Runtime SDF font is currently an experimental feature.");
 
                 var runtimeSdfType = (RuntimeSignedDistanceFieldSpriteFontType)Parameters.FontType;
 
