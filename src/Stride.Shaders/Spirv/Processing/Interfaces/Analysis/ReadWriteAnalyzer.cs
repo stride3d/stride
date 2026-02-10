@@ -49,7 +49,7 @@ internal static class ReadWriteAnalyzer
             {
                 var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
                 var streamsTypeSearch = new StreamsTypeSearch();
-                streamsTypeSearch.Visit(functionType);
+                streamsTypeSearch.VisitType(functionType);
                 if (streamsTypeSearch.Found)
                     methodInfo.HasStreamAccess = true;
             }
@@ -144,16 +144,16 @@ internal static class ReadWriteAnalyzer
     internal class StreamsTypeSearch : TypeWalker
     {
         public bool Found { get; private set; }
-        public override void Visit(StreamsType streamsType)
+        public override void VisitStreamsType(StreamsType streamsType)
         {
             Found = true;
         }
-        public override void Visit(GeometryStreamType geometryStreamsType)
+        public override void VisitGeometryStreamType(GeometryStreamType geometryStreamsType)
         {
             Found = true;
         }
 
-        public override void Visit(PatchType patchType)
+        public override void VisitPatchType(PatchType patchType)
         {
             Found = true;
         }

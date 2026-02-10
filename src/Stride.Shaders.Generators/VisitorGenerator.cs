@@ -35,6 +35,11 @@ namespace Stride.Shaders.Spirv.Generators
 
             return variableName;
         }
+
+        private string GenerateVisitSuffix(INamedTypeSymbol type)
+        {
+            return type.Name;
+        }
         
         private void GenerateVisitorsBase(SourceProductionContext context, Compilation compilation, bool generateRewriter, string visitorName, Func<ITypeSymbol, bool> isNodeType)
         {
@@ -59,7 +64,7 @@ namespace Stride.Shaders.Spirv.Generators
                 var variableName = GenerateVariableName(type.Name);
                 var genericParameters = type.IsGenericType ? $"<{string.Join(",", type.TypeArguments)}>" : string.Empty;
 
-                sb.AppendLine($"        public virtual void Visit{type.Name}{genericParameters}({typeName} {variableName})");
+                sb.AppendLine($"        public virtual void Visit{GenerateVisitSuffix(type)}{genericParameters}({typeName} {variableName})");
                 sb.AppendLine("        {");
                 sb.AppendLine($"            DefaultVisit({variableName});");
                 sb.AppendLine("        }");
@@ -73,7 +78,7 @@ namespace Stride.Shaders.Spirv.Generators
                 var variableName = GenerateVariableName(type.Name);
                 var genericParameters = type.IsGenericType ? $"<{string.Join(",", type.TypeArguments)}>" : string.Empty;
 
-                sb.AppendLine($"        public override void Visit{type.Name}{genericParameters}({typeName} {variableName})");
+                sb.AppendLine($"        public override void Visit{GenerateVisitSuffix(type)}{genericParameters}({typeName} {variableName})");
                 sb.AppendLine("        {");
                 // Process public fields and properties (with getter+setter)
                 var ilistName = typeof(IList<>).FullName.Replace("`1", "<>");
@@ -97,7 +102,7 @@ namespace Stride.Shaders.Spirv.Generators
                         sb.AppendLine($"            Visit{(nodeListElementType.IsValueType ? "Item" : visitorName)}List({variableName}.{member.Name});");
                     }
                 }
-                sb.AppendLine($"            base.Visit{genericParameters}({variableName});");
+                sb.AppendLine($"            base.Visit{GenerateVisitSuffix(type)}{genericParameters}({variableName});");
                 sb.AppendLine("        }");
             }
 
@@ -119,7 +124,7 @@ namespace Stride.Shaders.Spirv.Generators
                     }
 
                     var returnType = type.IsValueType ? "bool" : "TResult";
-                    sb.AppendLine($"        public virtual {returnType} Visit{genericParameters}({(type.IsValueType ? "ref " : "")}{typeName} {variableName})");
+                    sb.AppendLine($"        public virtual {returnType} Visit{GenerateVisitSuffix(type)}{genericParameters}({(type.IsValueType ? "ref " : "")}{typeName} {variableName})");
                     sb.AppendLine("{");
                     if (type.IsValueType)
                         sb.AppendLine($"return DefaultVisit(ref {variableName});");
@@ -139,7 +144,7 @@ namespace Stride.Shaders.Spirv.Generators
                     var genericParameters = type.IsGenericType ? $"<{string.Join(",", type.TypeArguments)}>" : string.Empty;
 
                     var returnType = type.IsValueType ? "bool" : "SymbolType";
-                    sb.AppendLine($"        public override {returnType} Visit{type.Name}{genericParameters}({(type.IsValueType ? "ref " : "")}{typeName} {variableName})");
+                    sb.AppendLine($"        public override {returnType} Visit{GenerateVisitSuffix(type)}{genericParameters}({(type.IsValueType ? "ref " : "")}{typeName} {variableName})");
                     sb.AppendLine("{");
                     // Process public fields and properties (with getter+setter)
                     var ilistName = typeof(IList<>).FullName.Replace("`1", "<>");
@@ -173,11 +178,11 @@ namespace Stride.Shaders.Spirv.Generators
                     }
                     if (type.IsValueType)
                     {
-                        sb.AppendLine($"            return base.Visit{genericParameters}(ref {variableName});");
+                        sb.AppendLine($"            return base.Visit{GenerateVisitSuffix(type)}{genericParameters}(ref {variableName});");
                     }
                     else
                     {
-                        sb.AppendLine($"            return (SymbolType)base.Visit{genericParameters}({variableName});");
+                        sb.AppendLine($"            return (SymbolType)base.Visit{GenerateVisitSuffix(type)}{genericParameters}({variableName});");
                     }
                     sb.AppendLine("}");
                 }
@@ -205,7 +210,7 @@ namespace Stride.Shaders.Spirv.Generators
                 sb.AppendLine("{");
                 sb.AppendLine($"public {(!type.IsValueType ? "override" : string.Empty)} void Accept({visitorName}Visitor visitor)");
                 sb.AppendLine("{");
-                sb.AppendLine("visitor.Visit(this);");
+                sb.AppendLine($"visitor.Visit{GenerateVisitSuffix(type)}(this);");
                 sb.AppendLine("}");
                 if (generateRewriter)
                 {
@@ -213,14 +218,14 @@ namespace Stride.Shaders.Spirv.Generators
                     {
                         sb.AppendLine($"public bool Accept<TResult>({visitorName}Visitor<TResult> visitor)");
                         sb.AppendLine("{");
-                        sb.AppendLine("return visitor.Visit(ref this);");
+                        sb.AppendLine($"return visitor.Visit{GenerateVisitSuffix(type)}(ref this);");
                         sb.AppendLine("}");
                     }
                     else
                     {
                         sb.AppendLine($"public override TResult Accept<TResult>({visitorName}Visitor<TResult> visitor)");
                         sb.AppendLine("{");
-                        sb.AppendLine("return visitor.Visit(this);");
+                        sb.AppendLine($"return visitor.Visit{GenerateVisitSuffix(type)}(this);");
                         sb.AppendLine("}");
                     }
                 }
