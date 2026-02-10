@@ -17,11 +17,11 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 public abstract class MethodOrMember(TextLocation info, bool isStaged = false) : ShaderElement(info)
 {
     public bool IsStaged { get; set; } = isStaged;
-    public List<ShaderAttribute> Attributes { get; set; } = [];
+    public List<ShaderAttribute>? Attributes { get; set; } = null;
 }
 
 
-public class SamplerStateParameter(Identifier name, Expression value, TextLocation info) : ShaderElement(info)
+public partial class SamplerStateParameter(Identifier name, Expression value, TextLocation info) : ShaderElement(info)
 {
     public Identifier Name { get; set; } = name;
     public Expression Value { get; set; } = value;
@@ -32,7 +32,7 @@ public class SamplerStateParameter(Identifier name, Expression value, TextLocati
     }
 }
 
-public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMember(info)
+public partial class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMember(info)
 {
     public Identifier Name { get; set; } = name;
     public List<SamplerStateParameter> Parameters { get; set; } = [];
@@ -137,7 +137,7 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
         return $"SamplerState {Name} ({string.Join(", ", Parameters)})";
     }
 }
-public class ShaderSamplerComparisonState(Identifier name, TextLocation info) : ShaderSamplerState(name, info)
+public partial class ShaderSamplerComparisonState(Identifier name, TextLocation info) : ShaderSamplerState(name, info)
 {
     public override string ToString()
     {
@@ -146,7 +146,7 @@ public class ShaderSamplerComparisonState(Identifier name, TextLocation info) : 
 }
 
 
-public class ShaderCompose(Identifier name, Mixin mixin, bool isArray, TextLocation info) : MethodOrMember(info)
+public partial class ShaderCompose(Identifier name, Mixin mixin, bool isArray, TextLocation info) : MethodOrMember(info)
 {
     public Identifier Name { get; set; } = name;
     public Mixin Mixin { get; set; } = mixin;
@@ -154,7 +154,7 @@ public class ShaderCompose(Identifier name, Mixin mixin, bool isArray, TextLocat
     public override string ToString() => $"compose {Mixin}{(IsArray ? "[]" : "")} {Name}";
 }
 
-public sealed class ShaderMember(
+public sealed partial class ShaderMember(
         TypeName typeName,
         Identifier identifier,
         Expression? initialValue,
@@ -306,7 +306,7 @@ public sealed class ShaderMember(
     }
 }
 
-public class MethodParameter(TypeName type, Identifier name, TextLocation info, ParameterModifiers modifiers = ParameterModifiers.None, Expression? defaultValue = null, Identifier? semantic = null) : Node(info)
+public partial class MethodParameter(TypeName type, Identifier name, TextLocation info, ParameterModifiers modifiers = ParameterModifiers.None, Expression? defaultValue = null, Identifier? semantic = null) : Node(info)
 {
     public TypeName TypeName { get; set; } = type;
     public SymbolType? Type { get; set; }
@@ -321,7 +321,7 @@ public class MethodParameter(TypeName type, Identifier name, TextLocation info, 
     }
 }
 
-public class ShaderMethod(
+public partial class ShaderMethod(
         TypeName returnType,
         Identifier name,
         TextLocation info,
@@ -592,12 +592,12 @@ public record struct ShaderParameter(TypeName TypeName, Identifier Name);
 
 public abstract class ParameterListNode(TextLocation info) : Node(info);
 
-public class ShaderParameterDeclarations(TextLocation info) : ParameterListNode(info)
+public partial class ShaderParameterDeclarations(TextLocation info) : ParameterListNode(info)
 {
     public List<ShaderParameter> Parameters { get; set; } = [];
 }
 
-public class ShaderExpressionList(TextLocation info) : ParameterListNode(info)
+public partial class ShaderExpressionList(TextLocation info) : ParameterListNode(info)
 {
     public List<Expression> Values { get; set; } = [];
 

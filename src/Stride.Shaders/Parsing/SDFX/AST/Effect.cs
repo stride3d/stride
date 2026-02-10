@@ -9,26 +9,22 @@ using Stride.Shaders.Spirv.Core;
 namespace Stride.Shaders.Parsing.SDFX.AST;
 
 
-public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : ShaderDeclaration(info)
+public partial class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : ShaderDeclaration(info)
 {
     public TypeName Name { get; set; } = name;
-    public List<Statement> Members { get; set; } = [];
+
+    public BlockStatement Block { get; set; }
     public bool IsPartial { get; set; } = isPartial;
 
-    public override string ToString()
-    {
-        return string.Join("", Members.Select(x => $"{x}\n"));
-    }
+    public override string ToString() => Block.ToString();
 
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
         compiler.Builder.Insert(new OpSDSLEffect(Name.Name));
-        foreach (var statement in Members)
-            statement.ProcessSymbol(table);
-        foreach (var statement in Members)
-            statement.Compile(table, compiler);
+        Block.ProcessSymbol(table);
+        Block.Compile(table, compiler);
     }
 
     internal static int[] CompileGenerics(SymbolTable table, SpirvContext context, ShaderExpressionList? generics)
@@ -56,7 +52,7 @@ public abstract class EffectStatement(TextLocation info) : Statement(info)
 {
 }
 
-public class ShaderSourceDeclaration(Identifier name, TextLocation info, Expression? value = null) : EffectStatement(info)
+public partial class ShaderSourceDeclaration(Identifier name, TextLocation info, Expression? value = null) : EffectStatement(info)
 {
     public Identifier Name { get; set; } = name;
     public Expression? Value { get; set; } = value;
@@ -73,7 +69,7 @@ public class ShaderSourceDeclaration(Identifier name, TextLocation info, Express
     }
 }
 
-public class MixinUse(List<Mixin> mixin, TextLocation info) : EffectStatement(info)
+public partial class MixinUse(List<Mixin> mixin, TextLocation info) : EffectStatement(info)
 {
     public List<Mixin> MixinName { get; set; } = mixin;
 
@@ -99,7 +95,7 @@ public class MixinUse(List<Mixin> mixin, TextLocation info) : EffectStatement(in
         return $"mixin {MixinName}";
     }
 }
-public class MixinChild(Mixin mixin, TextLocation info) : EffectStatement(info)
+public partial class MixinChild(Mixin mixin, TextLocation info) : EffectStatement(info)
 {
     public Mixin MixinName { get; set; } = mixin;
 
@@ -114,7 +110,7 @@ public class MixinChild(Mixin mixin, TextLocation info) : EffectStatement(info)
     }
 }
 
-public class MixinClone(Mixin mixin, TextLocation info) : EffectStatement(info)
+public partial class MixinClone(Mixin mixin, TextLocation info) : EffectStatement(info)
 {
     public Mixin MixinName { get; set; } = mixin;
 
@@ -129,7 +125,7 @@ public class MixinClone(Mixin mixin, TextLocation info) : EffectStatement(info)
     }
 }
 
-public class MixinConst(string identifier, TextLocation info) : EffectStatement(info)
+public partial class MixinConst(string identifier, TextLocation info) : EffectStatement(info)
 {
     public string Identifier { get; set; } = identifier;
 
@@ -148,7 +144,7 @@ public abstract class ComposeValue(TextLocation info) : Node(info)
     public abstract void Compile(SymbolTable table, CompilerUnit compiler, Identifier identifier, AssignOperator @operator);
 }
 
-public class ComposePathValue(string path, TextLocation info) : ComposeValue(info)
+public partial class ComposePathValue(string path, TextLocation info) : ComposeValue(info)
 {
     public string Path { get; set; } = path;
 
@@ -162,7 +158,7 @@ public class ComposePathValue(string path, TextLocation info) : ComposeValue(inf
         return Path.ToString();
     }
 }
-public class ComposeMixinValue(Mixin mixin, TextLocation info) : ComposeValue(info)
+public partial class ComposeMixinValue(Mixin mixin, TextLocation info) : ComposeValue(info)
 {
     public Mixin Mixin { get; set; } = mixin;
 
@@ -195,7 +191,7 @@ public class ComposeMixinValue(Mixin mixin, TextLocation info) : ComposeValue(in
     }
 }
 
-public class MixinCompose(Identifier identifier, AssignOperator op, ComposeValue value, TextLocation info) : EffectStatement(info)
+public partial class MixinCompose(Identifier identifier, AssignOperator op, ComposeValue value, TextLocation info) : EffectStatement(info)
 {
     public Identifier Identifier { get; set; } = identifier;
     AssignOperator Operator { get; set; } = op;
@@ -212,7 +208,7 @@ public class MixinCompose(Identifier identifier, AssignOperator op, ComposeValue
         return $"mixin compose {Identifier} {Operator.ToAssignSymbol()} {ComposeValue}";
     }
 }
-public class MixinComposeAdd(Identifier identifier, Identifier source, TextLocation info) : EffectStatement(info)
+public partial class MixinComposeAdd(Identifier identifier, Identifier source, TextLocation info) : EffectStatement(info)
 {
     public Identifier Identifier { get; set; } = identifier;
     public Identifier Source { get; set; } = source;
@@ -228,7 +224,7 @@ public class MixinComposeAdd(Identifier identifier, Identifier source, TextLocat
     }
 }
 
-public class ComposeParams(Mixin mixin, TextLocation info) : EffectStatement(info)
+public partial class ComposeParams(Mixin mixin, TextLocation info) : EffectStatement(info)
 {
     public Mixin MixinName { get; set; } = mixin;
 
@@ -236,9 +232,9 @@ public class ComposeParams(Mixin mixin, TextLocation info) : EffectStatement(inf
     {
         throw new NotImplementedException();
     }
-
 }
-public class UsingParams(Identifier name, TextLocation info) : EffectStatement(info)
+
+public partial class UsingParams(Identifier name, TextLocation info) : EffectStatement(info)
 {
     public Identifier ParamsName { get; set; } = name;
 
@@ -248,14 +244,13 @@ public class UsingParams(Identifier name, TextLocation info) : EffectStatement(i
         builder.Insert(new OpSDSLParamsUse(ParamsName.Name));
     }
 
-
     public override string ToString()
     {
         return $"using params {ParamsName}";
     }
 }
 
-public class EffectDiscardStatement(TextLocation info) : EffectStatement(info)
+public partial class EffectDiscardStatement(TextLocation info) : EffectStatement(info)
 {
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {

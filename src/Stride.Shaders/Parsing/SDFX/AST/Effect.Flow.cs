@@ -5,7 +5,7 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 namespace Stride.Shaders.Parsing.SDFX.AST;
 
-public class EffectFlow(TextLocation info) : EffectStatement(info)
+public partial class EffectFlow(TextLocation info) : EffectStatement(info)
 {
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
@@ -13,7 +13,7 @@ public class EffectFlow(TextLocation info) : EffectStatement(info)
     }
 }
 
-public class EffectForEach(TypeName typename, Identifier variable, Expression collection, Statement body, TextLocation info) : EffectFlow(info)
+public partial class EffectForEach(TypeName typename, Identifier variable, Expression collection, Statement body, TextLocation info) : EffectFlow(info)
 {
     public TypeName Typename { get; set; } = typename;
     public Identifier Variable { get; set; } = variable;

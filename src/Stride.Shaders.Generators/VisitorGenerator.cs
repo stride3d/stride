@@ -14,7 +14,7 @@ namespace Stride.Shaders.Spirv.Generators
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             context.RegisterImplementationSourceOutput(context.CompilationProvider, GenerateTypeVisitors);
-            //context.RegisterImplementationSourceOutput(context.CompilationProvider, GenerateNodeVisitors);
+            context.RegisterImplementationSourceOutput(context.CompilationProvider, GenerateNodeVisitors);
         }
 
         private void GenerateTypeVisitors(SourceProductionContext context, Compilation compilation)
@@ -59,30 +59,22 @@ namespace Stride.Shaders.Spirv.Generators
                 var variableName = GenerateVariableName(type.Name);
                 var genericParameters = type.IsGenericType ? $"<{string.Join(",", type.TypeArguments)}>" : string.Empty;
 
-                sb.Append("        public virtual void Visit");
-                sb.Append(genericParameters);
-                sb.Append("(");
-                sb.Append(typeName);
-                sb.Append(" ");
-                sb.Append(variableName);
-                sb.Append(")\r\n        {\r\n            DefaultVisit(");
-                sb.Append(variableName);
-                sb.Append(");\r\n        }\r\n");
+                sb.AppendLine($"        public virtual void Visit{type.Name}{genericParameters}({typeName} {variableName})");
+                sb.AppendLine("        {");
+                sb.AppendLine($"            DefaultVisit({variableName});");
+                sb.AppendLine("        }");
             }
-            sb.Append($"    }}\r\n\r\n    public partial class {visitorName}Walker\r\n    {{\r\n");
+            sb.Append("    }");
+            sb.AppendLine($"    public partial class {visitorName}Walker");
+            sb.AppendLine("    {");
             foreach (var type in symbolTypes)
             {
                 var typeName = type.ToDisplayString();
                 var variableName = GenerateVariableName(type.Name);
                 var genericParameters = type.IsGenericType ? $"<{string.Join(",", type.TypeArguments)}>" : string.Empty;
 
-                sb.Append("        public override void Visit");
-                sb.Append(genericParameters);
-                sb.Append("(");
-                sb.Append(typeName);
-                sb.Append(" ");
-                sb.Append(variableName);
-                sb.Append(")\r\n        {\r\n");
+                sb.AppendLine($"        public override void Visit{type.Name}{genericParameters}({typeName} {variableName})");
+                sb.AppendLine("        {");
                 // Process public fields and properties (with getter+setter)
                 var ilistName = typeof(IList<>).FullName.Replace("`1", "<>");
                 foreach (var member in GetNodeMembers(type, isNodeType))
@@ -91,28 +83,22 @@ namespace Stride.Shaders.Spirv.Generators
                     var memberTypeName = memberType.ToDisplayString();
                     var nodeListElementType = memberType.AllInterfaces.FirstOrDefault(x => x.IsGenericType && x.ConstructUnboundGenericType().ToDisplayString() == ilistName && isNodeType(x.TypeArguments[0]))?.TypeArguments[0];
                     var isNode = isNodeType(memberType);
+                    var hasNullableAnnoation = memberType.NullableAnnotation; 
                     if (isNode)
                     {
-                        sb.Append($"            Visit{(memberType.IsValueType ? "Item" : visitorName)}(");
-                        sb.Append(variableName);
-                        sb.Append(".");
-                        sb.Append(member.Name);
-                        sb.Append(");\r\n");
+                        if (memberType.NullableAnnotation == NullableAnnotation.Annotated)
+                            sb.AppendLine($"if ({variableName}.{member.Name} != null)");
+                        sb.AppendLine($"            Visit{(memberType.IsValueType ? "Item" : visitorName)}({variableName}.{member.Name});");
                     }
                     else if (nodeListElementType != null)
                     {
-                        sb.Append($"            Visit{(nodeListElementType.IsValueType ? "Item" : visitorName)}List(");
-                        sb.Append(variableName);
-                        sb.Append(".");
-                        sb.Append(member.Name);
-                        sb.Append(");\r\n");
+                        if (memberType.NullableAnnotation == NullableAnnotation.Annotated)
+                            sb.AppendLine($"if ({variableName}.{member.Name} != null)");
+                        sb.AppendLine($"            Visit{(nodeListElementType.IsValueType ? "Item" : visitorName)}List({variableName}.{member.Name});");
                     }
                 }
-                sb.Append("            base.Visit");
-                sb.Append(genericParameters);
-                sb.Append("(");
-                sb.Append(variableName);
-                sb.Append(");\r\n        }\r\n");
+                sb.AppendLine($"            base.Visit{genericParameters}({variableName});");
+                sb.AppendLine("        }");
             }
 
             sb.AppendLine("    }");
@@ -153,7 +139,7 @@ namespace Stride.Shaders.Spirv.Generators
                     var genericParameters = type.IsGenericType ? $"<{string.Join(",", type.TypeArguments)}>" : string.Empty;
 
                     var returnType = type.IsValueType ? "bool" : "SymbolType";
-                    sb.AppendLine($"        public override {returnType} Visit{genericParameters}({(type.IsValueType ? "ref " : "")}{typeName} {variableName})");
+                    sb.AppendLine($"        public override {returnType} Visit{type.Name}{genericParameters}({(type.IsValueType ? "ref " : "")}{typeName} {variableName})");
                     sb.AppendLine("{");
                     // Process public fields and properties (with getter+setter)
                     var ilistName = typeof(IList<>).FullName.Replace("`1", "<>");
@@ -166,15 +152,23 @@ namespace Stride.Shaders.Spirv.Generators
                         var isNode = isNodeType(memberType);
                         if (isNode)
                         {
+                            if (memberType.NullableAnnotation == NullableAnnotation.Annotated)
+                                sb.Append($"if ({variableName}.{member.Name} != null) {{");
                             sb.AppendLine($"            var {memberVariableName} = ({memberTypeName})Visit{(memberType.IsValueType ? "Item" : visitorName)}({variableName}.{member.Name});");
                             sb.AppendLine($"            if (!ReferenceEquals({memberVariableName}, {variableName}.{member.Name}))");
                             sb.AppendLine($"                {variableName} = {variableName} with {{ {member.Name} = {memberVariableName} }};");
+                            if (memberType.NullableAnnotation == NullableAnnotation.Annotated)
+                                sb.Append("}");
                         }
                         else if (nodeListElementType != null)
                         {
+                            if (memberType.NullableAnnotation == NullableAnnotation.Annotated)
+                                sb.Append($"if ({variableName}.{member.Name} != null) {{");
                             sb.AppendLine($"            var {memberVariableName} = ({memberTypeName})Visit{(nodeListElementType.IsValueType ? "Item" : visitorName)}List({variableName}.{member.Name});");
                             sb.AppendLine($"            if (!ReferenceEquals({memberVariableName}, {variableName}.{member.Name}))");
                             sb.AppendLine($"                {variableName} = {variableName} with {{ {member.Name} = {memberVariableName} }};");
+                            if (memberType.NullableAnnotation == NullableAnnotation.Annotated)
+                                sb.Append("}");
                         }
                     }
                     if (type.IsValueType)
@@ -185,7 +179,7 @@ namespace Stride.Shaders.Spirv.Generators
                     {
                         sb.AppendLine($"            return (SymbolType)base.Visit{genericParameters}({variableName});");
                     }
-                    sb.Append("}\r\n");
+                    sb.AppendLine("}");
                 }
 
                 sb.AppendLine("    }");
@@ -207,12 +201,10 @@ namespace Stride.Shaders.Spirv.Generators
                     (false, false) => "class",
                 };
 
-                sb.AppendLine($"public partial {typeKind}");
-                sb.Append(type.ToDisplayString(typeAndGenericFormat));
-                sb.Append(@$"
-    {{
-        public {(!type.IsValueType ? "override" : string.Empty)} void Accept({visitorName}Visitor visitor)
-        {{");
+                sb.AppendLine($"public partial {typeKind} {type.ToDisplayString(typeAndGenericFormat)}");
+                sb.AppendLine("{");
+                sb.AppendLine($"public {(!type.IsValueType ? "override" : string.Empty)} void Accept({visitorName}Visitor visitor)");
+                sb.AppendLine("{");
                 sb.AppendLine("visitor.Visit(this);");
                 sb.AppendLine("}");
                 if (generateRewriter)

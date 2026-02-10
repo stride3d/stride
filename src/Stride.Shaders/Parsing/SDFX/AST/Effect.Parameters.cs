@@ -7,7 +7,7 @@ using Stride.Shaders.Spirv.Core;
 namespace Stride.Shaders.Parsing.SDFX.AST;
 
 
-public class EffectParameters(TypeName name, TextLocation info) : ShaderDeclaration(info)
+public partial class EffectParameters(TypeName name, TextLocation info) : ShaderDeclaration(info)
 {
     public TypeName Name { get; set; } = name;
     public List<EffectParameter> Parameters { get; set; } = [];
@@ -21,7 +21,7 @@ public class EffectParameters(TypeName name, TextLocation info) : ShaderDeclarat
 }
 
 
-public class EffectParameter(TypeName type, Identifier identifier, TextLocation info, Expression? value = null) : Node(info)
+public partial class EffectParameter(TypeName type, Identifier identifier, TextLocation info, Expression? value = null) : Node(info)
 {
     public TypeName Type { get; set; } = type;
     public Identifier Identifier { get; set;} = identifier;

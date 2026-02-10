@@ -31,7 +31,7 @@ public class EmptyShaderImporter : IShaderImporter
     }
 }
 
-public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration(info)
+public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration(info)
 {
     public Identifier Name { get; set; } = name;
     public List<ShaderElement> Elements { get; set; } = [];
@@ -293,7 +293,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         public override SymbolType DefaultVisit(SymbolType node) => TypesToReplace.TryGetValue(node, out var result) ? result : node;
     }
 
-    public class ShaderImporter(SymbolTable table, SpirvContext context) : IShaderImporter
+    public partial class ShaderImporter(SymbolTable table, SpirvContext context) : IShaderImporter
     {
         public ShaderSymbol Import(ShaderClassInstantiation classSource, SpirvContext declaringContext)
         {
@@ -644,13 +644,13 @@ Body :
 }
 
 
-public class ShaderGenerics(Identifier typename, Identifier name, TextLocation info) : Node(info)
+public partial class ShaderGenerics(Identifier typename, Identifier name, TextLocation info) : Node(info)
 {
     public Identifier Name { get; set; } = name;
     public Identifier TypeName { get; set; } = typename;
 }
 
-public class Mixin(Identifier name, TextLocation info) : Node(info)
+public partial class Mixin(Identifier name, TextLocation info) : Node(info)
 {
     public List<Identifier> Path { get; set; } = [];
     public Identifier Name { get; set; } = name;
@@ -664,11 +664,11 @@ public class Mixin(Identifier name, TextLocation info) : Node(info)
 }
 
 public abstract class ShaderMixinValue(TextLocation info) : Node(info);
-public class ShaderMixinExpression(Expression expression, TextLocation info) : ShaderMixinValue(info)
+public partial class ShaderMixinExpression(Expression expression, TextLocation info) : ShaderMixinValue(info)
 {
     public Expression Value { get; set; } = expression;
 }
-public class ShaderMixinIdentifier(Identifier identifier, TextLocation info) : ShaderMixinValue(info)
+public partial class ShaderMixinIdentifier(Identifier identifier, TextLocation info) : ShaderMixinValue(info)
 {
     public Identifier Value { get; set; } = identifier;
 }

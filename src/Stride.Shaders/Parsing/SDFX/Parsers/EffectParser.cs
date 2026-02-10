@@ -20,28 +20,12 @@ public record struct EffectParser : IParser<ShaderEffect>
             if (LiteralsParser.TypeName(ref scanner, result, out var effectName) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
             {
                 parsed = new((TypeName)effectName, isPartial, new());
-                if (Tokens.Char('{', ref scanner, advance: true) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
+                if (EffectStatementParsers.EffectBlock(ref scanner, result, out var s) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
                 {
-                    while(
-                       !scanner.IsEof
-                       && !Tokens.Char('}', ref scanner)
-                    )
-                    {
-                        if (EffectStatementParsers.Statement(ref scanner, result, out var s) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
-                        {
-                            parsed.Members.Add(s);
-                        }
-                        else return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0009, scanner[scanner.Position], scanner.Memory));
-                    }
-                    if(scanner.IsEof)
-                        return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0011, scanner[scanner.Position], scanner.Memory));
-                    else if(Tokens.Char('}', ref scanner, advance: true))
-                    {
-                        parsed.Info = scanner[position..scanner.Position];
-                        SDSL.Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true);
-                        return true;
-                    }
+                    parsed.Block = s;
+                    return true;
                 }
+                else return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0011, scanner[scanner.Position], scanner.Memory));
             }
         }
         return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, orError);

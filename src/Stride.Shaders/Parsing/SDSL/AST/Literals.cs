@@ -20,7 +20,7 @@ public abstract class Literal(TextLocation info) : Expression(info);
 public abstract class ValueLiteral(TextLocation info) : Literal(info);
 public abstract class ScalarLiteral(TextLocation info) : ValueLiteral(info);
 
-public class StringLiteral(string value, TextLocation info) : Literal(info)
+public partial class StringLiteral(string value, TextLocation info) : Literal(info)
 {
     public string Value { get; set; } = value;
 
@@ -74,7 +74,7 @@ public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info
 
 }
 
-public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, value, info)
+public partial class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, value, info)
 {
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
@@ -96,7 +96,7 @@ public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : Numb
     }
 }
 
-public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, TextLocation info) : NumberLiteral<double>(suffix, value, info)
+public sealed partial class FloatLiteral(Suffix suffix, double value, int? exponent, TextLocation info) : NumberLiteral<double>(suffix, value, info)
 {
     public int? Exponent { get; set; } = exponent;
     public static implicit operator FloatLiteral(double v) => new(new(), v, null, new());
@@ -112,13 +112,13 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
     }
 }
 
-public sealed class HexLiteral(ulong value, TextLocation info) : IntegerLiteral(new(value > uint.MaxValue ? 64 : 32, false, false), (long)value, info)
+public sealed partial class HexLiteral(ulong value, TextLocation info) : IntegerLiteral(new(value > uint.MaxValue ? 64 : 32, false, false), (long)value, info)
 {
     public override SymbolType? Type => Suffix.Size > 32 ? ScalarType.UInt64 : ScalarType.UInt;
 }
 
 
-public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
+public partial class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
 {
     public bool Value { get; set; } = value;
     public override SymbolType? Type => ScalarType.Boolean;
@@ -134,7 +134,7 @@ public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
     }
 }
 
-public class ExpressionLiteral(Expression value, TypeName typeName, TextLocation info) : ValueLiteral(info)
+public partial class ExpressionLiteral(Expression value, TypeName typeName, TextLocation info) : ValueLiteral(info)
 {
     public Expression Value { get; set; } = value;
     public TypeName TypeName { get; set; } = typeName;
@@ -235,7 +235,7 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
         return new(instruction.ResultId, instruction.ResultType);
     }
 }
-public class VectorLiteral(TypeName typeName, TextLocation info) : CompositeLiteral(info)
+public partial class VectorLiteral(TypeName typeName, TextLocation info) : CompositeLiteral(info)
 {
     public TypeName TypeName { get; set; } = typeName;
 
@@ -264,7 +264,7 @@ public class VectorLiteral(TypeName typeName, TextLocation info) : CompositeLite
 }
 
 
-public class MatrixLiteral(TypeName typeName, int rows, int cols, TextLocation info) : CompositeLiteral(info)
+public partial class MatrixLiteral(TypeName typeName, int rows, int cols, TextLocation info) : CompositeLiteral(info)
 {
     public TypeName TypeName { get; set; } = typeName;
     public int Rows { get; set; } = rows;
@@ -295,7 +295,7 @@ public class MatrixLiteral(TypeName typeName, int rows, int cols, TextLocation i
     }
 }
 
-public class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
+public partial class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
 {
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
@@ -331,7 +331,7 @@ public class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
         => $"{Values.Count}({string.Join(", ", Values.Select(x => x.ToString()))})";
 }
 
-public class Identifier(string name, TextLocation info) : Literal(info)
+public partial class Identifier(string name, TextLocation info) : Literal(info)
 {
     internal bool AllowStreamVariables { get; set; }
     public string Name { get; set; } = name;
@@ -579,7 +579,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
     }
 }
 
-public class TypeName(string name, TextLocation info) : Literal(info)
+public partial class TypeName(string name, TextLocation info) : Literal(info)
 {
     public string Name { get; set; } = name;
     public bool IsArray => ArraySize != null && ArraySize.Count > 0;

@@ -9,7 +9,7 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 public abstract class Flow(TextLocation info) : Statement(info);
 
 public abstract class Loop(TextLocation info) : Flow(info);
-public class Break(TextLocation info) : Statement(info)
+public partial class Break(TextLocation info) : Statement(info)
 {
     public override void ProcessSymbol(SymbolTable table)
     {
@@ -24,7 +24,7 @@ public class Break(TextLocation info) : Statement(info)
         builder.Insert(new OpBranch(escapeBlocks.MergeBlock));
     }
 }
-public class Discard(TextLocation info) : Statement(info)
+public partial class Discard(TextLocation info) : Statement(info)
 {
     public override void ProcessSymbol(SymbolTable table)
     {
@@ -34,7 +34,7 @@ public class Discard(TextLocation info) : Statement(info)
         throw new NotImplementedException();
     }
 }
-public class Continue(TextLocation info) : Statement(info)
+public partial class Continue(TextLocation info) : Statement(info)
 {
     public override void ProcessSymbol(SymbolTable table)
     {
@@ -51,7 +51,7 @@ public class Continue(TextLocation info) : Statement(info)
 }
 
 
-public class ForEach(TypeName typename, Identifier variable, Expression collection, Statement body, TextLocation info) : Loop(info)
+public partial class ForEach(TypeName typename, Identifier variable, Expression collection, Statement body, TextLocation info) : Loop(info)
 {
     public TypeName TypeName { get; set; } = typename;
     public Identifier Variable { get; set; } = variable;
@@ -112,7 +112,7 @@ public class ForEach(TypeName typename, Identifier variable, Expression collecti
 }
 
 
-public class While(Expression condition, Statement body, TextLocation info, ShaderAttribute? attribute = null) : Loop(info)
+public partial class While(Expression condition, Statement body, TextLocation info, ShaderAttribute? attribute = null) : Loop(info)
 {
     public Expression Condition { get; set; } = condition;
     public Statement Body { get; set; } = body;
@@ -148,7 +148,7 @@ public enum ForAnnotationKind
 }
 public record struct ForAnnotation(ForAnnotationKind Kind, int? Count = null);
 
-public class For(Statement initializer, Expression cond, List<Statement> update, Statement body, TextLocation info, ShaderAttribute? attribute = null) : Loop(info)
+public partial class For(Statement initializer, Expression cond, List<Statement> update, Statement body, TextLocation info, ShaderAttribute? attribute = null) : Loop(info)
 {
     public Statement Initializer { get; set; } = initializer;
     public Expression Condition { get; set; } = cond;

@@ -70,14 +70,14 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
 /// Used only for <see cref="TypeName.ArraySize"/> when size is not explicitly defined.
 /// </summary>
 /// <param name="info"></param>
-public class EmptyExpression(TextLocation info) : Expression(info)
+public partial class EmptyExpression(TextLocation info) : Expression(info)
 {
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null) => throw new NotImplementedException();
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler) => throw new NotImplementedException();
     public override string ToString() => string.Empty;
 }
 
-public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLocation info) : Expression(info)
+public partial class MethodCall(Identifier name, ShaderExpressionList arguments, TextLocation info) : Expression(info)
 {
     public Identifier Name = name;
     public ShaderExpressionList Arguments = arguments;
@@ -366,7 +366,7 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
 /// <summary>
 /// Represents an accessed mixin.
 /// </summary>
-public class MixinAccess(Mixin mixin, TextLocation info) : Expression(info)
+public partial class MixinAccess(Mixin mixin, TextLocation info) : Expression(info)
 {
     public Mixin Mixin { get; set; } = mixin;
 
@@ -422,7 +422,7 @@ public abstract class UnaryExpression(Expression expression, Operator op, TextLo
     public Operator Operator { get; set; } = op;
 }
 
-public class PrefixExpression(Operator op, Expression expression, TextLocation info) : UnaryExpression(expression, op, info)
+public partial class PrefixExpression(Operator op, Expression expression, TextLocation info) : UnaryExpression(expression, op, info)
 {
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
@@ -516,7 +516,7 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
     }
 }
 
-public class CastExpression(TypeName typeName, Operator op, Expression expression, TextLocation info) : PrefixExpression(op, expression, info)
+public partial class CastExpression(TypeName typeName, Operator op, Expression expression, TextLocation info) : PrefixExpression(op, expression, info)
 {
     public TypeName TypeName { get; set; } = typeName;
 
@@ -541,7 +541,7 @@ public class CastExpression(TypeName typeName, Operator op, Expression expressio
 }
 
 
-public class IndexerExpression(Expression index, TextLocation info) : Expression(info)
+public partial class IndexerExpression(Expression index, TextLocation info) : Expression(info)
 {
     public Expression Index { get; set; } = index;
 
@@ -554,7 +554,7 @@ public class IndexerExpression(Expression index, TextLocation info) : Expression
     }
 }
 
-public class PostfixIncrement(Operator op, TextLocation info) : Expression(info)
+public partial class PostfixIncrement(Operator op, TextLocation info) : Expression(info)
 {
     public Operator Operator { get; set; } = op;
 
@@ -567,7 +567,7 @@ public class PostfixIncrement(Operator op, TextLocation info) : Expression(info)
     }
 }
 
-public class AccessorChainExpression(Expression source, TextLocation info) : Expression(info)
+public partial class AccessorChainExpression(Expression source, TextLocation info) : Expression(info)
 {
     public Expression Source { get; set; } = source;
     public List<Expression> Accessors { get; set; } = [];
@@ -1336,7 +1336,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     }
 }
 
-public class BinaryExpression(Expression left, Operator op, Expression right, TextLocation info) : Expression(info)
+public partial class BinaryExpression(Expression left, Operator op, Expression right, TextLocation info) : Expression(info)
 {
     public Operator Op { get; set; } = op;
     public Expression Left { get; set; } = left;
@@ -1386,7 +1386,7 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
     }
 }
 
-public class TernaryExpression(Expression cond, Expression left, Expression right, TextLocation info) : Expression(info)
+public partial class TernaryExpression(Expression cond, Expression left, Expression right, TextLocation info) : Expression(info)
 {
     public Expression Condition { get; set; } = cond;
     public Expression Left { get; set; } = left;

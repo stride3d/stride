@@ -125,7 +125,7 @@ public record struct EffectStatementParsers : IParser<Statement>
     public static bool Flow<TScanner>(ref TScanner scanner, ParseResult result, out EffectFlow parsed, in ParseError? orError = null) where TScanner : struct, IScanner
         => new FlowParsers().Match(ref scanner, result, out parsed, orError);
 
-    public static bool EffectBlock<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public static bool EffectBlock<TScanner>(ref TScanner scanner, ParseResult result, out BlockStatement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
 
