@@ -74,6 +74,15 @@ namespace Stride.Graphics.Font
 
             var atlasPad = AtlasPaddingPixels;
 
+            if (!packer.Insert(bitmap.Width + atlasPad * 2, bitmap.Rows + atlasPad * 2, ref subrect))
+            {
+                if (!EnsureSpaceFor(bitmap.Width, bitmap.Rows, atlasPad))
+                    throw new InvalidOperationException("MSDF glyph does not fit in cache even after eviction.");
+
+                if (!packer.Insert(bitmap.Width + atlasPad * 2, bitmap.Rows + atlasPad * 2, ref subrect))
+                    throw new InvalidOperationException("MSDF cache allocation failed unexpectedly after eviction.");
+            }
+
             if (bitmap.Rows != 0 && bitmap.Width != 0)
             {
                 int dstX = subrect.Left + atlasPad;
