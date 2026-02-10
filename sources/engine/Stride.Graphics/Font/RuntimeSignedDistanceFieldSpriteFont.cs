@@ -386,7 +386,7 @@ namespace Stride.Graphics.Font
             // Prefer outline-based MSDF generation when available.
             // We still rely on the bitmap path to populate glyph metrics today, but MSDF uses the outline.
             if (FontManager != null &&
-                FontManager.TryGetGlyphOutline(FontName, Style, Size, key.C, out var outline, out _))
+                FontManager.TryGetGlyphOutline(FontName, Style, new Vector2(Size, Size), key.C, out var outline, out _))
             {
                 // Prefer bitmap dimensions if available (matches current atlas/layout), otherwise fall back to outline bounds.
                 int w = 0, h = 0;
