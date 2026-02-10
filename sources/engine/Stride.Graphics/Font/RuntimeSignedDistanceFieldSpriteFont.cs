@@ -384,32 +384,30 @@ namespace Stride.Graphics.Font
 
             var p = new DistanceFieldParams(key.PixelRange, key.Pad, DefaultEncode);
 
-            // Prefer outline-based MSDF generation when available.
-            // We still rely on the bitmap path to populate glyph metrics today, but MSDF uses the outline.
+
+            // Try Outline-based MSDF first
+            // Uses the merged TryGetGlyphOutline signature
             if (FontManager != null &&
                 FontManager.TryGetGlyphOutline(FontName, Style, new Vector2(Size, Size), key.C, out var outline, out _))
             {
-                // Prefer bitmap dimensions if available (matches current atlas/layout), otherwise fall back to outline bounds.
-                int w = 0, h = 0;
-                if (spec.Bitmap != null && spec.Bitmap.Width > 0 && spec.Bitmap.Rows > 0)
+                // Resolve dimensions: Prefer existing bitmap metrics, fallback to outline bounds
+                int w = (spec.Bitmap != null && spec.Bitmap.Width > 0) ? spec.Bitmap.Width : (outline != null ? (int)MathF.Ceiling(outline.Bounds.Width) : 0);
+                int h = (spec.Bitmap != null && spec.Bitmap.Rows > 0) ? spec.Bitmap.Rows : (outline != null ? (int)MathF.Ceiling(outline.Bounds.Height) : 0);
+
+                // Handle zero-dimension glyphs (like spaces) immediately
+                if (w <= 0 || h <= 0)
                 {
-                    w = spec.Bitmap.Width;
-                    h = spec.Bitmap.Rows;
-                }
-                else if (outline?.Bounds.Width > 0 && outline.Bounds.Height > 0)
-                {
-                    w = Math.Max(1, (int)MathF.Ceiling(outline.Bounds.Width));
-                    h = Math.Max(1, (int)MathF.Ceiling(outline.Bounds.Height));
+                    inFlight.TryRemove(key, out _);
+                    return;
                 }
 
-                if (w > 0 && h > 0)
-                {
-                    var input = (GlyphInput)new OutlineInput(outline, w, h);
+                // If the queue is full, exit now. 
+                // Do NOT fall through to the coverage logic if the channel is already saturated.
+                if (workChannel.Writer.TryWrite(new WorkItem(key, new OutlineInput(outline, w, h), p)))
+                    return;
 
-                    if (workChannel.Writer.TryWrite(new WorkItem(key, input, p)))
-                        return;
-                }
-                // If outline path can't be scheduled (no dims / queue full), fall back to coverage below.
+                inFlight.TryRemove(key, out _);
+                return;
             }
 
             // Fallback: bitmap/coverage-based SDF.
@@ -421,17 +419,12 @@ namespace Stride.Graphics.Font
             }
 
             // Copy coverage bitmap to a pooled array so background thread is safe (avoid per-glyph allocations).
-            var width = bmp.Width;
-            var rows = bmp.Rows;
-            var pitch = bmp.Pitch;
-
-            int len = pitch * rows;
+            int len = bmp.Pitch * bmp.Rows;
             var srcCopy = ArrayPool<byte>.Shared.Rent(len);
             try
             {
                 System.Runtime.InteropServices.Marshal.Copy(bmp.Buffer, srcCopy, 0, len);
-
-                var input = (GlyphInput)new CoverageInput(srcCopy, len, width, rows, pitch);
+                var input = new CoverageInput(srcCopy, len, bmp.Width, bmp.Rows, bmp.Pitch);
 
                 // Render thread must NEVER block: TryWrite only.
                 if (!workChannel.Writer.TryWrite(new WorkItem(key, input, p)))
