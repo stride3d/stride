@@ -394,8 +394,11 @@ namespace Stride.Graphics.Font
                 int w = (spec.Bitmap != null && spec.Bitmap.Width > 0) ? spec.Bitmap.Width : (outline != null ? (int)MathF.Ceiling(outline.Bounds.Width) : 0);
                 int h = (spec.Bitmap != null && spec.Bitmap.Rows > 0) ? spec.Bitmap.Rows : (outline != null ? (int)MathF.Ceiling(outline.Bounds.Height) : 0);
 
-                // Handle zero-dimension glyphs (like spaces) immediately
-                if (w <= 0 || h <= 0)
+                // Handle zero-dimension glyphs (like spaces) AND oversized glyphs immediately
+                var cache = FontCacheManagerMsdf;
+                if (w <= 0 || h <= 0 ||
+                    w + cache.AtlasPaddingPixels * 2 > cache.Textures[0].ViewWidth ||
+                    h + cache.AtlasPaddingPixels * 2 > cache.Textures[0].ViewHeight)
                 {
                     inFlight.TryRemove(key, out _);
                     return;
