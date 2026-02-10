@@ -223,10 +223,11 @@ namespace Stride.Graphics.Font
 
             // 2) Schedule async SDF generation (only once per char)
             EnsureSdfScheduled(key, spec);
+            
+            // 3) Upload
             if (commandList != null)
                 DrainUploads(commandList);
-
-            // 3) Upload
+                        
             if (spec.IsBitmapUploaded && cacheRecords.TryGetValue(key, out var handle))
             {
                 // If evicted/cleared, this will flip false and we’ll reupload next draw
