@@ -49,6 +49,9 @@ public record struct LiteralsParser : IParser<Literal>
     public static bool Identifier<TScanner>(ref TScanner scanner, ParseResult result, out Identifier identifier, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new IdentifierParser().Match(ref scanner, result, out identifier, orError);
+    public static bool GenericIdentifier<TScanner>(ref TScanner scanner, ParseResult result, out GenericIdentifier parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+        => new GenericIdentifierParser().Match(ref scanner, result, out parsed);
 
 
     public static bool TypeNameLiteral<TScanner>(ref TScanner scanner, ParseResult result, out Literal parsed, in ParseError? orError = null)

@@ -21,7 +21,7 @@ public record struct PrimaryParsers : IParser<Expression>
             Parenthesis,
             ArrayLiteral,
             Method,
-            MixinAccess,
+            GenericIdentifier,
             Literal
         );
     }
@@ -95,16 +95,16 @@ public record struct PrimaryParsers : IParser<Expression>
         else return Parsers.Exit(ref scanner, result, out parsed, position);
     }
     
-    public static bool MixinAccess<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool GenericIdentifier<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (
-            ShaderClassParsers.Mixin(ref scanner, result, out var mixin)
+            ShaderClassParsers.GenericIdentifier(ref scanner, result, out var mixin)
             && Parsers.FollowedBy(ref scanner, Tokens.Char('.'), withSpaces: true)
         )
         {
-            parsed = new MixinAccess(mixin, scanner[position..scanner.Position]);
+            parsed = new ExternalShaderAccess(mixin, scanner[position..scanner.Position]);
             return true;
         }
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);

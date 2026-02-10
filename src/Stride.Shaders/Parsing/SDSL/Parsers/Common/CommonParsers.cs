@@ -312,7 +312,7 @@ public static class Parsers
         return false;
     }
 
-    public static bool MixinIdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out Mixin mixin, out Identifier identifier, out List<Expression> arraySize, out Expression? value, bool advance = true)
+    public static bool MixinIdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out GenericIdentifier mixin, out Identifier identifier, out List<Expression> arraySize, out Expression? value, bool advance = true)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -320,7 +320,7 @@ public static class Parsers
         value = null!;
 
         if (
-            ShaderClassParsers.Mixin(ref scanner, result, out mixin)
+            ShaderClassParsers.GenericIdentifier(ref scanner, result, out mixin)
             && Spaces1(ref scanner, result, out _)
             && LiteralsParser.Identifier(ref scanner, result, out identifier))
         {
@@ -348,7 +348,7 @@ public static class Parsers
         {
             scanner.Position = position;
             if (
-                ShaderClassParsers.Mixin(ref scanner, result, out mixin)
+                ShaderClassParsers.GenericIdentifier(ref scanner, result, out mixin)
                 && FollowedByDelList(ref scanner, result, ArraySizes, out List<Expression> sizes, withSpaces: true, advance: true)
                 && Spaces1(ref scanner, result, out _)
                 && LiteralsParser.Identifier(ref scanner, result, out identifier))
@@ -402,7 +402,7 @@ public static class Parsers
         return arraySizes.Count > 0;
     }
 
-    public static bool TypeNameMixinArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out TypeName typeName, out Mixin mixin, out Expression? arraySize, out Expression? value, bool advance = true)
+    public static bool TypeNameMixinArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out TypeName typeName, out GenericIdentifier mixin, out Expression? arraySize, out Expression? value, bool advance = true)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -411,7 +411,7 @@ public static class Parsers
         if (
             LiteralsParser.TypeName(ref scanner, result, out typeName)
             && Spaces1(ref scanner, result, out _)
-            && ShaderClassParsers.Mixin(ref scanner, result, out mixin))
+            && ShaderClassParsers.GenericIdentifier(ref scanner, result, out mixin))
         {
             var tmp = scanner.Position;
             Spaces0(ref scanner, result, out _);
@@ -451,7 +451,7 @@ public static class Parsers
                 && ExpressionParser.Expression(ref scanner, result, out arraySize)
                 && FollowedBy(ref scanner, Tokens.Char(']'), withSpaces: true, advance: true)
                 && Spaces1(ref scanner, result, out _)
-                && ShaderClassParsers.Mixin(ref scanner, result, out mixin))
+                && ShaderClassParsers.GenericIdentifier(ref scanner, result, out mixin))
             {
                 var tmp = scanner.Position;
                 Spaces0(ref scanner, result, out _);

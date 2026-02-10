@@ -4,6 +4,7 @@ using Stride.Core.Storage;
 using Stride.Shaders.Compilers;
 using Stride.Shaders.Compilers.SDSL;
 using Stride.Shaders.Parsing;
+using Stride.Shaders.Parsing.SDFX;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
@@ -16,11 +17,18 @@ public static partial class Examples
 
     public static void CompileBasicEffect()
     {
-        var loader = new EffectLoader();
-        loader.LoadExternalBuffer("BasicEffect.sdfx", [], out var effectBuffer, out _, out _);
-        loader.LoadExternalBuffer("BasicEffect", [], out effectBuffer, out _, out _);
+        var effect = File.ReadAllText("./assets/SDFX/BasicEffect.sdfx");
+        var parsed = SDSLParser.Parse(effect);
+        if (parsed.Errors.Count > 0)
+        {
+            throw new Exception($"Some parse errors:{Environment.NewLine}{string.Join(Environment.NewLine, parsed.Errors)}");
+        }
 
-        Spv.Dis(effectBuffer, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        var effectGenerator = new EffectGenerator();
+        effectGenerator.Run(parsed.AST);
+        var code = effectGenerator.Text;
+        
+        Console.WriteLine(code);
     }
 
     public class EffectLoader() : ShaderLoaderBase(new ShaderCache())

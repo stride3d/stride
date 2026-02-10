@@ -120,7 +120,7 @@ public record struct ForParser : IParser<For>
         scanner.Position = position;
         if(
             ExpressionParser.Expression(ref scanner, result, out var expression) 
-            && Parsers.FollowedBy(ref scanner, Tokens.Char(')')) 
+            && Parsers.FollowedBy(ref scanner, Tokens.Char(')'), true) 
         )
         {
             parsed = new ExpressionStatement(expression, scanner[position..scanner.Position]);

@@ -366,9 +366,9 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
 /// <summary>
 /// Represents an accessed mixin.
 /// </summary>
-public partial class MixinAccess(Mixin mixin, TextLocation info) : Expression(info)
+public partial class ExternalShaderAccess(GenericIdentifier mixin, TextLocation info) : Expression(info)
 {
-    public Mixin Mixin { get; set; } = mixin;
+    public GenericIdentifier Mixin { get; set; } = mixin;
 
     public Symbol ResolvedSymbol { get; set; }
 
@@ -409,10 +409,8 @@ public partial class MixinAccess(Mixin mixin, TextLocation info) : Expression(in
         
         return Identifier.EmitSymbol(builder, context, ResolvedSymbol, builder.CurrentFunction == null);
     }
-    public override string ToString()
-    {
-        return $"{Mixin}";
-    }
+
+    public override string ToString() => Mixin.ToString();
 }
 
 

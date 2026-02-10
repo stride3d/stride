@@ -22,10 +22,14 @@ effect BasicEffect
 {
     using params BasicParams;
     
-    mixin(A);
+    mixin compose Target1 = Test123;
+    mixin compose Target2 += Test123;
+    mixin macro Test = 1;
+    mixin A;
+    mixin (A);
     
     if(BasicParams.MixA)
-        mixin(A);
+        mixin (A);
     if(BasicParams.MixB)
-        mixin(B);
+        mixin (B);
 }

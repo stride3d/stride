@@ -146,12 +146,12 @@ public partial class ShaderSamplerComparisonState(Identifier name, TextLocation 
 }
 
 
-public partial class ShaderCompose(Identifier name, Mixin mixin, bool isArray, TextLocation info) : MethodOrMember(info)
+public partial class ShaderCompose(Identifier name, IdentifierBase mixin, bool isArray, TextLocation info) : MethodOrMember(info)
 {
     public Identifier Name { get; set; } = name;
-    public Mixin Mixin { get; set; } = mixin;
+    public IdentifierBase Shader { get; set; } = mixin;
     public bool IsArray { get; set; } = isArray;
-    public override string ToString() => $"compose {Mixin}{(IsArray ? "[]" : "")} {Name}";
+    public override string ToString() => $"compose {Shader}{(IsArray ? "[]" : "")} {Name}";
 }
 
 public sealed partial class ShaderMember(
@@ -449,81 +449,84 @@ public partial class ShaderMethod(
     {
         var (builder, context) = compiler;
 
-        foreach (var attribute in Attributes)
+        if (Attributes != null)
         {
-            if (attribute is AnyShaderAttribute anyAttribute)
+            foreach (var attribute in Attributes)
             {
-                if (anyAttribute.Name == "numthreads")
+                if (attribute is AnyShaderAttribute anyAttribute)
                 {
-                    Span<int> parameters = stackalloc int[anyAttribute.Parameters.Count];
-                    for (var index = 0; index < anyAttribute.Parameters.Count; index++)
+                    if (anyAttribute.Name == "numthreads")
                     {
-                        var parameter = anyAttribute.Parameters[index];
+                        Span<int> parameters = stackalloc int[anyAttribute.Parameters.Count];
+                        for (var index = 0; index < anyAttribute.Parameters.Count; index++)
+                        {
+                            var parameter = anyAttribute.Parameters[index];
 
-                        // TODO: avoid emitting in context (use a temp buffer?)
-                        var constantArraySize = parameter.CompileConstantValue(table, context);
-                        if (!context.TryGetConstantValue(constantArraySize.Id, out var value, out _, false))
+                            // TODO: avoid emitting in context (use a temp buffer?)
+                            var constantArraySize = parameter.CompileConstantValue(table, context);
+                            if (!context.TryGetConstantValue(constantArraySize.Id, out var value, out _, false))
+                                throw new InvalidOperationException();
+
+                            parameters[index] = (int)value;
+                        }
+
+                        context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.LocalSize, new(parameters)));
+                    }
+                    else if (anyAttribute.Name == "maxvertexcount")
+                    {
+                        var maxVertexCount = anyAttribute.Parameters[0].CompileConstantValue(table, context);
+                        if (!context.TryGetConstantValue(maxVertexCount.Id, out var maxVertexCountValue, out _, false))
                             throw new InvalidOperationException();
 
-                        parameters[index] = (int)value;
+                        context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new((int)maxVertexCountValue)));
                     }
-                    
-                    context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.LocalSize, new(parameters)));
-                }
-                else if (anyAttribute.Name == "maxvertexcount")
-                {
-                    var maxVertexCount = anyAttribute.Parameters[0].CompileConstantValue(table, context);
-                    if (!context.TryGetConstantValue(maxVertexCount.Id, out var maxVertexCountValue, out _, false))
-                        throw new InvalidOperationException();
-
-                    context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new((int)maxVertexCountValue)));
-                }
-                else if (anyAttribute.Name == "outputcontrolpoints")
-                {
-                    var outputControlPoints = anyAttribute.Parameters[0].CompileConstantValue(table, context);
-                    if (!context.TryGetConstantValue(outputControlPoints.Id, out var outputControlPointsValue, out _, false))
-                        throw new InvalidOperationException();
-
-                    context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new((int)outputControlPointsValue)));
-                }
-                else if (anyAttribute.Name == "patchconstantfunc")
-                {
-                    context.Add(new OpDecorateString(function.Id, Specification.Decoration.PatchConstantFuncSDSL, ((StringLiteral)anyAttribute.Parameters[0]).Value));
-                }
-                else if (anyAttribute.Name == "domain")
-                {
-                    context.Add(new OpExecutionMode(function.Id, ((StringLiteral)anyAttribute.Parameters[0]).Value switch
+                    else if (anyAttribute.Name == "outputcontrolpoints")
                     {
-                        "tri" => Specification.ExecutionMode.Triangles,
-                        "quad" => Specification.ExecutionMode.Quads,
-                        "isolined" => Specification.ExecutionMode.Isolines,
-                    }, []));
-                }
-                else if (anyAttribute.Name == "partitioning")
-                {
-                    context.Add(new OpExecutionMode(function.Id, ((StringLiteral)anyAttribute.Parameters[0]).Value switch
+                        var outputControlPoints = anyAttribute.Parameters[0].CompileConstantValue(table, context);
+                        if (!context.TryGetConstantValue(outputControlPoints.Id, out var outputControlPointsValue, out _, false))
+                            throw new InvalidOperationException();
+
+                        context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new((int)outputControlPointsValue)));
+                    }
+                    else if (anyAttribute.Name == "patchconstantfunc")
                     {
-                        "fractional_odd" => Specification.ExecutionMode.SpacingFractionalOdd,
-                        "fractional_even" => Specification.ExecutionMode.SpacingFractionalEven,
-                        "integer" => Specification.ExecutionMode.SpacingEqual,
-                        "pow2" => throw new NotSupportedException("partitioning pow2 is not supported in SPIR-V"),
-                    }, []));
-                }
-                else if (anyAttribute.Name == "outputtopology")
-                {
-                    var value = ((StringLiteral)anyAttribute.Parameters[0]).Value;
-                    if (value != "line")
+                        context.Add(new OpDecorateString(function.Id, Specification.Decoration.PatchConstantFuncSDSL, ((StringLiteral)anyAttribute.Parameters[0]).Value));
+                    }
+                    else if (anyAttribute.Name == "domain")
                     {
                         context.Add(new OpExecutionMode(function.Id, ((StringLiteral)anyAttribute.Parameters[0]).Value switch
                         {
-                            "triangle_cw" => Specification.ExecutionMode.VertexOrderCw,
-                            "triangle_ccw" => Specification.ExecutionMode.VertexOrderCcw,
+                            "tri" => Specification.ExecutionMode.Triangles,
+                            "quad" => Specification.ExecutionMode.Quads,
+                            "isolined" => Specification.ExecutionMode.Isolines,
                         }, []));
                     }
-                }
-                else
-                {
-                    throw new NotImplementedException($"Can't parse method attribute {anyAttribute} on method {Name}");
+                    else if (anyAttribute.Name == "partitioning")
+                    {
+                        context.Add(new OpExecutionMode(function.Id, ((StringLiteral)anyAttribute.Parameters[0]).Value switch
+                        {
+                            "fractional_odd" => Specification.ExecutionMode.SpacingFractionalOdd,
+                            "fractional_even" => Specification.ExecutionMode.SpacingFractionalEven,
+                            "integer" => Specification.ExecutionMode.SpacingEqual,
+                            "pow2" => throw new NotSupportedException("partitioning pow2 is not supported in SPIR-V"),
+                        }, []));
+                    }
+                    else if (anyAttribute.Name == "outputtopology")
+                    {
+                        var value = ((StringLiteral)anyAttribute.Parameters[0]).Value;
+                        if (value != "line")
+                        {
+                            context.Add(new OpExecutionMode(function.Id, ((StringLiteral)anyAttribute.Parameters[0]).Value switch
+                            {
+                                "triangle_cw" => Specification.ExecutionMode.VertexOrderCw,
+                                "triangle_ccw" => Specification.ExecutionMode.VertexOrderCcw,
+                            }, []));
+                        }
+                    }
+                    else
+                    {
+                        throw new NotImplementedException($"Can't parse method attribute {anyAttribute} on method {Name}");
+                    }
                 }
             }
         }

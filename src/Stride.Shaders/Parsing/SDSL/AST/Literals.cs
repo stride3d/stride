@@ -331,7 +331,9 @@ public partial class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
         => $"{Values.Count}({string.Join(", ", Values.Select(x => x.ToString()))})";
 }
 
-public partial class Identifier(string name, TextLocation info) : Literal(info)
+public abstract partial class IdentifierBase(TextLocation info) : Literal(info);
+
+public partial class Identifier(string name, TextLocation info) : IdentifierBase(info)
 {
     internal bool AllowStreamVariables { get; set; }
     public string Name { get; set; } = name;

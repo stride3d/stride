@@ -36,7 +36,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     public Identifier Name { get; set; } = name;
     public List<ShaderElement> Elements { get; set; } = [];
     public ShaderParameterDeclarations? Generics { get; set; }
-    public List<Mixin> Mixins { get; set; } = [];
+    public List<GenericIdentifier> Mixins { get; set; } = [];
 
     // Note: We should make this method incremental (called many times in ShaderMixer)
     //       And possibly do the type deduplicating at the same time? (TypeDuplicateRemover)
@@ -650,25 +650,68 @@ public partial class ShaderGenerics(Identifier typename, Identifier name, TextLo
     public Identifier TypeName { get; set; } = typename;
 }
 
-public partial class Mixin(Identifier name, TextLocation info) : Node(info)
+/// <summary>
+/// Type of a mixin.
+/// </summary>
+public enum MixinStatementType
 {
-    public List<Identifier> Path { get; set; } = [];
-    public Identifier Name { get; set; } = name;
-    public ShaderExpressionList? Generics { get; set; }
-    public override string ToString()
-        => Generics switch
-        {
-            null => Name.Name,
-            _ => $"{Name}<{Generics}>"
-        };
+    /// <summary>
+    /// The default mixin (standard mixin).
+    /// </summary>
+    Default,
+
+    /// <summary>
+    /// The compose mixin used to set a composition (using =).
+    /// </summary>
+    ComposeSet,
+
+    /// <summary>
+    /// The compose mixin used to add a composition (using +=).
+    /// </summary>
+    ComposeAdd,
+    
+    /// <summary>
+    /// The child mixin used to specify a children shader.
+    /// </summary>
+    Child,
+
+    /// <summary>
+    /// The clone mixin to clone the current mixins where the clone is emitted.
+    /// </summary>
+    Clone,
+    
+    /// <summary>
+    /// The remove mixin to remove a mixin from current mixins.
+    /// </summary>
+    Remove,
+
+    /// <summary>
+    /// The macro mixin to declare a variable to be exposed in the mixin
+    /// </summary>
+    Macro,
+    
+    
 }
 
-public abstract class ShaderMixinValue(TextLocation info) : Node(info);
-public partial class ShaderMixinExpression(Expression expression, TextLocation info) : ShaderMixinValue(info)
+public partial class GenericIdentifier(Identifier name, ShaderExpressionList? generics, TextLocation info) : IdentifierBase(info)
 {
-    public Expression Value { get; set; } = expression;
+    public Identifier Name { get; } = name;
+    public ShaderExpressionList? Generics { get; } = generics;
+    
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string ToString() => Generics != null ? $"{Name}<{string.Join(",", Generics.Values)}>" : Name.ToString();
 }
-public partial class ShaderMixinIdentifier(Identifier identifier, TextLocation info) : ShaderMixinValue(info)
+
+public partial class Mixin(MixinStatementType type, Identifier? target, Expression value, TextLocation info) : Statement(info)
 {
-    public Identifier Value { get; set; } = identifier;
+    public MixinStatementType Type { get; } = type;
+    public Identifier? Target { get; } = target;
+    public Expression Value { get; } = value;
+    public override string ToString() => $"{Type} {Target} {Value}";
+
+    public override void Compile(SymbolTable table, CompilerUnit compiler) => throw new NotImplementedException();
 }

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Stride.Core.Shaders.Ast;
+using Stride.Shaders.Parsing;
 
 namespace Stride.Core.Shaders.Utility
 {
@@ -19,7 +19,7 @@ namespace Stride.Core.Shaders.Utility
         /// <summary>
         /// Span and location attached to this message.
         /// </summary>
-        public SourceSpan Span;
+        public TextLocation Span;
 
         /// <summary>
         /// The error code.
@@ -49,7 +49,7 @@ namespace Stride.Core.Shaders.Utility
         /// <param name="code">The error code.</param>
         /// <param name="text">The text.</param>
         /// <param name="span">The span.</param>
-        public ReportMessage(ReportMessageLevel level, string code, string text, SourceSpan span)
+        public ReportMessage(ReportMessageLevel level, string code, string text, TextLocation span)
         {
             this.Level = level;
             this.Code = code;

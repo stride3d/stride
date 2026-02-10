@@ -21,7 +21,7 @@ public record struct CompositionParser() : IParser<ShaderCompose>
                 Parsers.Spaces0(ref scanner, result, out _);
                 if (!Tokens.Char(';', ref scanner, advance: true))
                     return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0033, scanner[position], scanner.Memory));
-                parsed = new(name, mixin, true, scanner[position..])
+                parsed = new(name, mixin, arraysize.Count > 0, scanner[position..])
                 {
                     Attributes = hasAttributes ? attributes.Attributes : null!,
                     IsStaged = isStaged
