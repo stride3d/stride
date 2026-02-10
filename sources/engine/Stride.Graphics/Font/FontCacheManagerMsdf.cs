@@ -16,9 +16,9 @@ namespace Stride.Graphics.Font
     {
         private readonly FontSystem system;
 
-        private readonly List<Texture> cacheTextures = new List<Texture>();
-        private readonly LinkedList<MsdfCachedGlyph> cachedGlyphs = new LinkedList<MsdfCachedGlyph>();
-        private readonly GuillotinePacker packer = new GuillotinePacker();
+        private readonly List<Texture> cacheTextures = [];
+        private readonly LinkedList<MsdfCachedGlyph> cachedGlyphs = new();
+        private readonly GuillotinePacker packer = new();
 
         public int AtlasPaddingPixels = 2;
 
@@ -49,14 +49,12 @@ namespace Stride.Graphics.Font
             foreach (var glyph in cachedGlyphs)
             {
                 glyph.IsUploaded = false;
-                if (glyph.Owner != null)
-                    glyph.Owner.IsBitmapUploaded = false;
+                glyph.Owner?.IsBitmapUploaded = false;
             }
                       
             cachedGlyphs.Clear();
             packer.Clear(cacheTextures[0].ViewWidth, cacheTextures[0].ViewHeight);
 
-            System.Diagnostics.Debug.WriteLine("MSDF ClearCache()");
         }
 
         /// <summary>
@@ -69,10 +67,8 @@ namespace Stride.Graphics.Font
             ref Rectangle subrect,
             out int bitmapIndex)
         {
-            if (bitmap == null)
-                throw new ArgumentNullException(nameof(bitmap));
-            if (commandList == null)
-                throw new ArgumentNullException(nameof(commandList));
+            ArgumentNullException.ThrowIfNull(bitmap);
+            ArgumentNullException.ThrowIfNull(commandList);
 
             bitmapIndex = 0;
 
@@ -140,8 +136,7 @@ namespace Stride.Graphics.Font
             while (currentNode != null && currentNode.Value.LastUsedFrame < limitFrame)
             {
                 currentNode.Value.IsUploaded = false;
-                if (currentNode.Value.Owner != null)
-                    currentNode.Value.Owner.IsBitmapUploaded = false;
+                currentNode.Value.Owner?.IsBitmapUploaded = false;
                 packer.Free(ref currentNode.Value.OuterSubrect);
 
                 var prev = currentNode.Previous;
