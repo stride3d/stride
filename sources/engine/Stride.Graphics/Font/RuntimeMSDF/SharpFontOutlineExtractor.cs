@@ -76,7 +76,7 @@ namespace Stride.Graphics.Font.RuntimeMsdf
             var funcs = new OutlineFuncs(
                 moveTo: (ref FTVector to, IntPtr user) =>
                 {
-                    currentContour = new GlyphContour { IsClosed = true };
+                    currentContour = new GlyphContour { };
                     result.Contours.Add(currentContour);
                     lastPoint = ConvertVector(to);
                     return 0;
