@@ -35,6 +35,10 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
             var parentNode = node.Parent;
             if (parentNode != null && node is ItemNodePresenter)
             {
+                // Dictionaries are not supported for reordering
+                if (DictionaryDescriptor.IsDictionary(parentNode.Type))
+                    return;
+
                 MemberCollectionAttribute parentCollection;
                 if (parentNode is MemberNodePresenter parentMemberNode && parentMemberNode.IsEnumerable)
                 {
