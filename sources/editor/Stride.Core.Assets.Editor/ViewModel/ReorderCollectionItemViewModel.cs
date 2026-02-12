@@ -23,9 +23,20 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
 
             var node = children.First() as NodeViewModel;
-            if (node?.Parent == null || !(TypeDescriptorFactory.Default.Find(node.Parent.Type) is CollectionDescriptor))
+            if (node?.Parent == null)
             {
                 message = "This item cannot be moved because it is not in a collection";
+                return false;
+            }
+
+            var parentDescriptor = TypeDescriptorFactory.Default.Find(node.Parent.Type);
+            var isArray = parentDescriptor is ArrayDescriptor;
+            var isCollection = parentDescriptor is CollectionDescriptor collectionDescriptor && 
+                               collectionDescriptor.HasRemoveAt && collectionDescriptor.HasInsert;
+
+            if (!isArray && !isCollection)
+            {
+                message = "This collection does not support reordering";
                 return false;
             }
 
@@ -88,15 +99,84 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 --targetIndex;
             }
 
-            var moveCommand = (NodePresenterCommandWrapper)sourceNode.GetCommand(MoveItemCommand.CommandName);
-            if (moveCommand == null)
+            var actionService = sourceNode.ServiceProvider.Get<IUndoRedoService>();
+            var parentDescriptor = TypeDescriptorFactory.Default.Find(sourceNode.Parent.Type);
+
+            if (parentDescriptor is ArrayDescriptor)
             {
+                ReorderArray(sourceNode, targetNode, sourceIndex, targetIndex, actionService);
+            }
+            else
+            {
+                var moveCommand = (NodePresenterCommandWrapper)sourceNode.GetCommand(MoveItemCommand.CommandName);
+                if (moveCommand == null)
+                {
+                    return;
+                }
+
+                using var transaction = actionService.CreateTransaction();
+                moveCommand.Invoke(Tuple.Create(sourceIndex, targetIndex));
+                actionService.SetName(transaction, $"Move item {sourceIndex}");
+            }
+        }
+
+        private void ReorderArray(NodeViewModel sourceNode, NodeViewModel targetNode, int sourceIndex, int targetIndex, IUndoRedoService actionService)
+        {
+            using var transaction = actionService.CreateTransaction();
+
+            var parentNode = sourceNode.Parent;
+            var array = parentNode.NodeValue as Array;
+            if (array == null)
                 return;
+
+            var sourceValue = array.GetValue(sourceIndex);
+
+            if (sourceIndex < targetIndex)
+            {
+                for (int i = sourceIndex; i < targetIndex; i++)
+                {
+                    var currentChild = parentNode.Children.FirstOrDefault(c => 
+                    {
+                        var presenter = c.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+                        return presenter?.Index.Int == i;
+                    });
+                    if (currentChild != null)
+                    {
+                        var presenter = currentChild.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+                        var nextValue = array.GetValue(i + 1);
+                        presenter?.UpdateValue(nextValue);
+                    }
+                }
+            }
+            else
+            {
+                for (int i = sourceIndex; i > targetIndex; i--)
+                {
+                    var currentChild = parentNode.Children.FirstOrDefault(c => 
+                    {
+                        var presenter = c.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+                        return presenter?.Index.Int == i;
+                    });
+                    if (currentChild != null)
+                    {
+                        var presenter = currentChild.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+                        var prevValue = array.GetValue(i - 1);
+                        presenter?.UpdateValue(prevValue);
+                    }
+                }
             }
 
-            var actionService = sourceNode.ServiceProvider.Get<IUndoRedoService>();
-            using var transaction = actionService.CreateTransaction();
-            moveCommand.Invoke(Tuple.Create(sourceIndex, targetIndex));
+            var finalChild = parentNode.Children.FirstOrDefault(c => 
+            {
+                var presenter = c.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+                return presenter?.Index.Int == targetIndex;
+            });
+            if (finalChild != null)
+            {
+                var presenter = finalChild.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+                presenter?.UpdateValue(sourceValue);
+            }
+
             actionService.SetName(transaction, $"Move item {sourceIndex}");
         }
 
