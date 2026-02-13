@@ -9,7 +9,7 @@ namespace Stride.Rendering.Images
     {
         using params ColorTransformKeys;
 
-        mixin ColorTransformKeys.Shader, ColorTransformKeys.GenericArguments;
+        mixin ColorTransformKeys.Shader<ColorTransformKeys.GenericArguments>;
     };
 
     effect ColorTransformGroupEffect
