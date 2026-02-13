@@ -1,0 +1,15 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- 
+  *****************************************************************************************************************************
+  Default items for sdsl/sdfx
+  *****************************************************************************************************************************
+  -->
+  <ItemGroup>
+    <Compile Remove="**\*.sdsl.cs" />
+    <Compile Remove="**\*.sdfx.cs" />
+    <None Remove ="**\*.sdsl" />
+    <None Remove ="**\*.sdfx" />
+    <AdditionalFiles Include="**\*.sdsl" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <AdditionalFiles Include="**\*.sdfx" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+  </ItemGroup>
+</Project>

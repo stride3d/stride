@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 
 namespace Stride.Shaders
@@ -62,6 +63,10 @@ namespace Stride.Shaders
                     var genArg = genericArguments[i];
                     if (genArg is bool)
                         GenericArguments[i] = ((bool)genArg) ? "true" : "false";
+                    else if (genArg is Vector4 v)
+                        GenericArguments[i] = $"float4({v.X}, {v.Y}, {v.Z}, {v.W})";
+                    else if (genArg is Vector3 v2)
+                        GenericArguments[i] = $"float3({v2.X}, {v2.Y}, {v2.Z})";
                     else
                         GenericArguments[i] = genArg == null ? "null" : Convert.ToString(genArg, CultureInfo.InvariantCulture);
                 }

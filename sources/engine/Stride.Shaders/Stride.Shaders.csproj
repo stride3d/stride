@@ -17,6 +17,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
+    <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\..\SDSL\src\Stride.Shaders.Generators\bin\$(Configuration)\net10.0\Stride.Shaders.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <ProjectReference Include="..\Stride\Stride.csproj" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />

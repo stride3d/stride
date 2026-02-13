@@ -72,10 +72,14 @@
 
   <!-- Make sure sdsl/sdfx are properly setup with code generator; also mark generated code file as dependent -->
   <ItemGroup>
-    <Compile Update="**\*.sdsl.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.sdsl" Generator="StrideShaderKeyGenerator" />
-    <Compile Update="**\*.sdfx.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
+    <Analyzer Include="$(MSBuildThisFileDirectory)..\..\..\SDSL\src\Stride.Shaders.Generators\bin\$(Configuration)\net10.0\Stride.Shaders.Generators.dll" />
+
+    <Compile Remove="**\*.sdsl.cs" />
+    <Compile Remove="**\*.sdfx.cs" />
+    <None Remove ="**\*.sdsl" />
+    <None Remove ="**\*.sdfx" />
+    <AdditionalFiles Include="**\*.sdsl" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <AdditionalFiles Include="**\*.sdfx" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
   </ItemGroup>
 
   <ItemGroup>

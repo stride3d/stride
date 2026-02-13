@@ -243,21 +243,4 @@
   <Target Name="StrideAssetUpdateGeneratedFiles" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
     <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --updated-generated-files --package-file=&quot;$(MSBuildProjectFullPath)&quot;"/>
   </Target>
-
-  <!-- 
-  *****************************************************************************************************************************
-  Default items for sdsl/sdfx (mark generated files as dependent)
-  *****************************************************************************************************************************
-  -->
-  <ItemGroup>
-    <Compile Update="**\*.sdsl.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.sdsl" Generator="StrideShaderKeyGenerator" />
-    <Compile Update="**\*.sdfx.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
-    <!-- Those are needed for as long as we support Xenko to Stride project ugprade -->
-    <Compile Update="**\*.xksl.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.xksl" Generator="StrideShaderKeyGenerator" />
-    <Compile Update="**\*.xkfx.cs" DependentUpon="%(Filename)" />
-    <None Update="**\*.xkfx" Generator="StrideEffectCodeGenerator" />
-  </ItemGroup>
 </Project>
