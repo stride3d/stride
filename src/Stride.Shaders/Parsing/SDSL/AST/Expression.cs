@@ -1144,15 +1144,22 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     {
                         if (compiler == null)
                         {
-                            accessor.Type = new PointerType(currentValueType, Specification.StorageClass.Function);
+                            indexer.Index.ProcessSymbol(table);
+                            accessor.Type = new PointerType(currentValueType switch
+                            {
+                                MatrixType m => new VectorType(m.BaseType, m.Rows),
+                                VectorType v => v.BaseType,
+                                ArrayType a => a.BaseType,
+                            }, Specification.StorageClass.Function);
                             break;
                         }
 
                         // We need to load as a variable to use OpAccessChain
-                        var functionVariable = builder.AddFunctionVariable(context.GetOrRegister(accessor.Type), context.Bound++);
+                        var functionVariable = builder.AddFunctionVariable(context.GetOrRegister(new PointerType(currentValueType, Specification.StorageClass.Function)), context.Bound++);
                         builder.Insert(new OpStore(functionVariable, result.Id, null, []));
                         // Process again the same item with new type
-                        --i;
+                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
                 case (PointerType { BaseType: PatchType { BaseType: var t } } p, IndexerExpression indexer):
