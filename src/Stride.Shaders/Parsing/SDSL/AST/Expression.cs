@@ -395,7 +395,7 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
             case Operator.Plus:
             case Operator.Minus:
                 expression.ProcessSymbol(table, expectedType);
-                Type = expression.Type;
+                Type = expression.ValueType;
                 break;
             default:
                 table.AddError(new(info, string.Format(SDSLErrorMessages.SDSL0111, $"Prefix operator {Operator}")));
@@ -475,6 +475,8 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
             throw new NotImplementedException();
         }
     }
+
+    public override string ToString() => $"{Operator.ToSymbol()}{Expression}"; 
 }
 
 public partial class CastExpression(TypeName typeName, Operator op, Expression expression, TextLocation info) : PrefixExpression(op, expression, info)
@@ -499,6 +501,8 @@ public partial class CastExpression(TypeName typeName, Operator op, Expression e
 
         return builder.Convert(context, value, castType);
     }
+
+    public override string ToString() => $"({TypeName}){Expression}";  
 }
 
 
