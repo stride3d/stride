@@ -7,8 +7,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Stride.Core.Assets;
 using Stride.Core;
-using Stride.Shaders.Parser;
-using Stride.Shaders.Parser.Mixins;
 
 namespace Stride.Assets.Effect
 {

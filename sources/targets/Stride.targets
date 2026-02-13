@@ -57,8 +57,6 @@
   <ItemGroup>
     <Analyzer Include="$(MSBuildThisFileDirectory)..\..\..\SDSL\src\Stride.Shaders.Generators\bin\$(Configuration)\net10.0\Stride.Shaders.Generators.dll" />
 
-    <Compile Remove="**\*.sdsl.cs" />
-    <Compile Remove="**\*.sdfx.cs" />
     <None Remove ="**\*.sdsl" />
     <None Remove ="**\*.sdfx" />
     <AdditionalFiles Include="**\*.sdsl" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />

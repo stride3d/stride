@@ -2,8 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Assets;
 using Stride.Core;
-using Stride.Shaders.Parser.Mixins;
-using System.IO;
 
 namespace Stride.Assets.Effect
 {
