@@ -77,6 +77,20 @@ public partial class EmptyExpression(TextLocation info) : Expression(info)
     public override string ToString() => string.Empty;
 }
 
+public partial class ParenthesisExpression(Expression expression, TextLocation info) : Expression(info)
+{
+    public Expression Expression { get; set; } = expression;
+
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        Expression.ProcessSymbol(table, expectedType);
+        Type = Expression.Type;
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler) => Expression.Compile(table, compiler);
+
+    public override string ToString() => $"({Expression})";
+}
+
 public partial class MethodCall(Identifier name, ShaderExpressionList arguments, TextLocation info) : Expression(info)
 {
     public Identifier Name = name;
@@ -362,57 +376,6 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         return $"{Name}({string.Join(", ", Arguments)})";
     }
 }
-
-/// <summary>
-/// Represents an accessed mixin.
-/// </summary>
-public partial class ExternalShaderAccess(GenericIdentifier mixin, TextLocation info) : Expression(info)
-{
-    public GenericIdentifier Mixin { get; set; } = mixin;
-
-    public Symbol ResolvedSymbol { get; set; }
-
-    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
-    {
-        var context = table.Context;
-        
-        // MixinAccess is same as Identifier static variable case, except we have generics (which is why MixinAccess was chosen over Identifier)
-        var generics = SDFX.AST.ShaderEffect.CompileGenerics(table, context, Mixin.Generics);
-        var classSource = new ShaderClassInstantiation(Mixin.Name, generics);
-        if (!table.TryResolveSymbol(classSource.ToClassNameWithGenerics(), out var symbol))
-        {
-            if (!table.ShaderLoader.Exists(classSource.ClassName))
-                throw new InvalidOperationException($"Symbol [{classSource.ClassName}] could not be found.");
-
-            // Shader is inherited (TODO: do we want to do something more "selective", i.e. import only the required variable if it's a cbuffer?)
-            var inheritedShaderCount = table.InheritedShaders.Count;
-            classSource = SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile);
-            for (int i = inheritedShaderCount; i < table.InheritedShaders.Count; ++i)
-            {
-                table.InheritedShaders[i].Symbol = ShaderClass.LoadAndCacheExternalShaderType(table, context, table.InheritedShaders[i]);
-                ShaderClass.Inherit(table, context, table.InheritedShaders[i].Symbol, false);
-            }
-
-            // We add the typename as a symbol (similar to static access in C#)
-            var shaderId = context.GetOrRegister(classSource.Symbol);
-            symbol = new Symbol(new(classSource.Symbol.Name, SymbolKind.Shader), new PointerType(classSource.Symbol, Specification.StorageClass.Private), shaderId);
-            table.CurrentFrame.Add(classSource.ToClassNameWithGenerics(), symbol);
-        }
-
-        ResolvedSymbol = symbol;
-        Type = symbol.Type;
-    }
-
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        
-        return Identifier.EmitSymbol(builder, context, ResolvedSymbol, builder.CurrentFunction == null);
-    }
-
-    public override string ToString() => Mixin.ToString();
-}
-
 
 public abstract class UnaryExpression(Expression expression, Operator op, TextLocation info) : Expression(info)
 {
@@ -936,7 +899,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     EmitOpAccessChain(accessChainIds, i - 1);
                     
                     // TODO: figure out instance (this vs composition)
-                    result = Identifier.EmitSymbol(builder, context, importedVariable, false, result.Id);
+                    result = IdentifierBase.EmitSymbol(builder, context, importedVariable, false, result.Id);
                     break;
                 case (PointerType { BaseType: StreamsType s } p, Identifier streamVar):
                     if (compiler == null)

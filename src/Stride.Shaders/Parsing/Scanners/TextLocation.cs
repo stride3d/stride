@@ -1,4 +1,5 @@
 using CommunityToolkit.HighPerformance.Buffers;
+using Stride.Core.Shaders.Ast;
 
 namespace Stride.Shaders.Parsing;
 
@@ -16,6 +17,12 @@ public record struct TextLocation(ReadOnlyMemory<char> Original, Range Range)
     public readonly override string ToString()
     {
         return $"[l{Line}-c{Column}]\n{Text.Span}";
+    }
+
+    public SourceSpan ToSourceSpan()
+    {
+        // Not exact, but it's temporary anyway
+        return new SourceSpan(new SourceLocation(0, Line, Column), 0);
     }
 }
 

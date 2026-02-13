@@ -1,7 +1,7 @@
 using Stride.Shaders.Parsing.SDFX.AST;
 using Stride.Shaders.Parsing.SDSL;
 
-namespace Stride.Shaders.Parsing.SDFX.Parsers;
+namespace Stride.Shaders.Parsing.SDFX;
 
 // public record struct EffectFileParser : IParser<EffectFile>
 // {

@@ -53,9 +53,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var shaderLoader = new CaptureLoadedShaders(ShaderLoader);
         var table = new SymbolTable(context) { ShaderLoader = shaderLoader };
 
-        var effectEvaluator = new EffectEvaluator(shaderLoader);
+        //var effectEvaluator = new EffectEvaluator(shaderLoader);
         // We basically put the shader we want to merge through the EffectEvaluator to resolve all mixins/compositions first
-        shaderSource = effectEvaluator.EvaluateEffects(shaderSource);
+        //shaderSource = effectEvaluator.EvaluateEffects(shaderSource);
+
+        if (shaderSource is ShaderMixinGeneratorSource mixinGeneratorSource)
+            shaderSource = ShaderMixinManager.Generate(mixinGeneratorSource.Name, new());
 
         var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, shaderSource);
 

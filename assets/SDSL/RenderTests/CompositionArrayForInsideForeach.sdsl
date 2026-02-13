@@ -47,7 +47,7 @@ shader CompositionTest
 	}
 };
 
-effect CompositionArray1
+effect CompositionArrayForInsideForeach
 {
 	mixin CompositionTest;
 	mixin compose Comps += CompositionShaderA;

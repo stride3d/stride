@@ -150,6 +150,7 @@ public partial class DeclaredVariableAssign(Identifier variable, bool isConst, T
 
     internal void ReplaceTypeName(TypeName typeName)
     {
+        TypeName.Name = typeName.Name;
         TypeName.Type = typeName.Type;
         TypeName.Info = typeName.Info;
     }

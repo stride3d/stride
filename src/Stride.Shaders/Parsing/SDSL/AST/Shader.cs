@@ -36,7 +36,8 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     public Identifier Name { get; set; } = name;
     public List<ShaderElement> Elements { get; set; } = [];
     public ShaderParameterDeclarations? Generics { get; set; }
-    public List<GenericIdentifier> Mixins { get; set; } = [];
+    public List<IdentifierBase> Mixins { get; set; } = [];
+    public bool Internal { get; set; }
 
     // Note: We should make this method incremental (called many times in ShaderMixer)
     //       And possibly do the type deduplicating at the same time? (TypeDuplicateRemover)
@@ -419,21 +420,8 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             for (int i = 0; i < Generics.Parameters.Count; i++)
             {
                 var genericParameter = Generics.Parameters[i];
-                genericParameter.TypeName.ProcessSymbol(table);
+                openGenerics[i] = ProcessGenericSymbol(table, context, i, genericParameter);
                 var genericParameterType = genericParameter.TypeName.Type;
-                table.DeclaredTypes.TryAdd(genericParameterType.ToString(), genericParameterType);
-
-                var genericParameterTypeId = context.GetOrRegister(genericParameterType);
-                context.Add(new OpSDSLGenericParameter(genericParameterTypeId, context.Bound, i, Name.Name));
-                context.AddName(context.Bound, genericParameter.Name);
-
-                // Note: we skip MemberName because they should have been replaced with the preprocessor during SpirvBuilder.InstantiateMemberNames() step
-                if (genericParameterType is not GenericParameterType { Kind: GenericParameterKindSDSL.MemberName or GenericParameterKindSDSL.MemberNameResolved })
-                    table.CurrentFrame.Add(genericParameter.Name, new(new(genericParameter.Name, SymbolKind.ConstantGeneric), genericParameterType, context.Bound, OwnerType: table.CurrentShader));
-
-                openGenerics[i] = context.Bound;
-
-                context.Bound++;
 
                 if (genericParameterType is GenericParameterType { Kind: GenericParameterKindSDSL.MemberName })
                     hasUnresolvableGenerics = true;
@@ -443,32 +431,33 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         var inheritanceList = new List<ShaderClassInstantiation>();
         foreach (var mixin in Mixins)
         {
-            var generics = new int[mixin.Generics != null ? mixin.Generics.Values.Count : 0];
-            if (mixin.Generics != null)
+            var mixinGenerics = (mixin as GenericIdentifier)?.Generics;
+            var generics = new int[mixinGenerics != null ? mixinGenerics.Values.Count : 0];
+            if (mixinGenerics != null)
             {
-                for (int i = 0; i < mixin.Generics.Values.Count; i++)
+                for (int i = 0; i < mixinGenerics.Values.Count; i++)
                 {
                     // Special case: if it's an identifier and can't be resolved, we'll consider it's a string instead
-                    if (mixin.Generics.Values[i] is Identifier identifier)
+                    if (mixinGenerics.Values[i] is Identifier identifier)
                     {
                         if (table.TryResolveSymbol(identifier.Name, out var symbol))
                         {
-                            mixin.Generics.Values[i].ProcessSymbol(table);
-                            generics[i] = mixin.Generics.Values[i].CompileConstantValue(table, context).Id;
+                            mixinGenerics.Values[i].ProcessSymbol(table);
+                            generics[i] = mixinGenerics.Values[i].CompileConstantValue(table, context).Id;
                         }
                         else
                         {
                             generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, identifier.Name)).ResultId;
                         }
                     }
-                    else if (mixin.Generics.Values[i] is AccessorChainExpression accessChain)
+                    else if (mixinGenerics.Values[i] is AccessorChainExpression accessChain)
                     {
                         generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, accessChain.ToString())).ResultId;
                     }
                     else
                     {
-                        mixin.Generics.Values[i].ProcessSymbol(table);
-                        generics[i] = mixin.Generics.Values[i].CompileConstantValue(table, context).Id;
+                        mixinGenerics.Values[i].ProcessSymbol(table);
+                        generics[i] = mixinGenerics.Values[i].CompileConstantValue(table, context).Id;
                     }
                 }
             }
@@ -540,6 +529,23 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         table.InheritedShaders = null;
         table.CurrentShader = null;
         table.Pop();
+    }
+
+    public int ProcessGenericSymbol(SymbolTable table, SpirvContext context, int index, ShaderParameter genericParameter)
+    {
+        genericParameter.TypeName.ProcessSymbol(table);
+        var genericParameterType = genericParameter.TypeName.Type;
+        table.DeclaredTypes.TryAdd(genericParameterType.ToString(), genericParameterType);
+        
+        var genericParameterTypeId = context.GetOrRegister(genericParameterType);
+        context.Add(new OpSDSLGenericParameter(genericParameterTypeId, context.Bound, index, Name.Name));
+        context.AddName(context.Bound, genericParameter.Name);
+
+        // Note: we skip MemberName because they should have been replaced with the preprocessor during SpirvBuilder.InstantiateMemberNames() step
+        if (genericParameterType is not GenericParameterType { Kind: GenericParameterKindSDSL.MemberName or GenericParameterKindSDSL.MemberNameResolved })
+            table.CurrentFrame.Add(genericParameter.Name, new(new(genericParameter.Name, SymbolKind.ConstantGeneric), genericParameterType, context.Bound, OwnerType: table.CurrentShader));
+
+        return context.Bound++;
     }
 
     // If multiple cbuffer with same name, they will be merged
@@ -648,70 +654,4 @@ public partial class ShaderGenerics(Identifier typename, Identifier name, TextLo
 {
     public Identifier Name { get; set; } = name;
     public Identifier TypeName { get; set; } = typename;
-}
-
-/// <summary>
-/// Type of a mixin.
-/// </summary>
-public enum MixinStatementType
-{
-    /// <summary>
-    /// The default mixin (standard mixin).
-    /// </summary>
-    Default,
-
-    /// <summary>
-    /// The compose mixin used to set a composition (using =).
-    /// </summary>
-    ComposeSet,
-
-    /// <summary>
-    /// The compose mixin used to add a composition (using +=).
-    /// </summary>
-    ComposeAdd,
-    
-    /// <summary>
-    /// The child mixin used to specify a children shader.
-    /// </summary>
-    Child,
-
-    /// <summary>
-    /// The clone mixin to clone the current mixins where the clone is emitted.
-    /// </summary>
-    Clone,
-    
-    /// <summary>
-    /// The remove mixin to remove a mixin from current mixins.
-    /// </summary>
-    Remove,
-
-    /// <summary>
-    /// The macro mixin to declare a variable to be exposed in the mixin
-    /// </summary>
-    Macro,
-    
-    
-}
-
-public partial class GenericIdentifier(Identifier name, ShaderExpressionList? generics, TextLocation info) : IdentifierBase(info)
-{
-    public Identifier Name { get; } = name;
-    public ShaderExpressionList? Generics { get; } = generics;
-    
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override string ToString() => Generics != null ? $"{Name}<{string.Join(",", Generics.Values)}>" : Name.ToString();
-}
-
-public partial class Mixin(MixinStatementType type, Identifier? target, Expression value, TextLocation info) : Statement(info)
-{
-    public MixinStatementType Type { get; } = type;
-    public Identifier? Target { get; } = target;
-    public Expression Value { get; } = value;
-    public override string ToString() => $"{Type} {Target} {Value}";
-
-    public override void Compile(SymbolTable table, CompilerUnit compiler) => throw new NotImplementedException();
 }

@@ -38,8 +38,8 @@ public partial class SPVGenerator
     public void ExecuteSDSLOpCreation(SourceProductionContext ctx, EquatableList<InstructionData> instructionArray)
     {
 
-        var members = instructionArray.Where(x => !x.OpName.Contains("SDSL")).ToDictionary(x => x.OpName, y => y.OpCode)!;
-        int lastnum = members.Values.Max();
+        var members = instructionArray.ToDictionary(x => x.OpName, y => y.OpCode)!;
+        int lastnum = 0;
 
         var code = new StringBuilder();
         code
@@ -58,14 +58,10 @@ public partial class SPVGenerator
                 continue;
             if (members.TryGetValue(instruction.OpName, out var value))
             {
-                if (instruction.OpName.Contains("SDSL") && value <= 0)
+                if ((instruction.OpName.Contains("SDSL") || instruction.OpName.Contains("SDFX")) && value <= 0)
                     value = ++lastnum;
                 code.AppendLine($"    {instruction.OpName} = {value},");
-            }
-            else
-            {
-                members.Add(instruction.OpName, ++lastnum);
-                code.AppendLine($"    {instruction.OpName} = {lastnum},");
+                lastnum = value;
             }
         }
         code.AppendLine("}");

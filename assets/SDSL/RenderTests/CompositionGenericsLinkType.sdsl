@@ -42,9 +42,9 @@ shader GenericsLinkType
 {
     stream float4 ColorTarget : SV_Target0;
 
-    Compute Comp0;
-	Compute Comp1;
-	Compute Comp2;
+    compose Compute Comp0;
+	compose Compute Comp1;
+	compose Compute Comp2;
 
     cbuffer Test
     {
@@ -57,7 +57,7 @@ shader GenericsLinkType
     }
 }
 
-effect CompositionGenericLinkType
+effect CompositionGenericsLinkType
 {
 	mixin GenericsLinkType;
 	mixin compose Comp0 = ComputeLinkStage<"LinkValue1">;

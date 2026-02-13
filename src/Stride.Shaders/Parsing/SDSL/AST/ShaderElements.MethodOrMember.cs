@@ -146,10 +146,10 @@ public partial class ShaderSamplerComparisonState(Identifier name, TextLocation 
 }
 
 
-public partial class ShaderCompose(Identifier name, IdentifierBase mixin, bool isArray, TextLocation info) : MethodOrMember(info)
+public partial class ShaderCompose(Identifier name, TypeName shader, bool isArray, TextLocation info) : MethodOrMember(info)
 {
     public Identifier Name { get; set; } = name;
-    public IdentifierBase Shader { get; set; } = mixin;
+    public TypeName Shader { get; set; } = shader;
     public bool IsArray { get; set; } = isArray;
     public override string ToString() => $"compose {Shader}{(IsArray ? "[]" : "")} {Name}";
 }

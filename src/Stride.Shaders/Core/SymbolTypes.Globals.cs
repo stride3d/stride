@@ -12,6 +12,7 @@ public partial record ScalarType
         new("uint", UInt),
         new("long", Int64),
         new("ulong", UInt64),
+        new("half", Half),
         new("float", Float),
         new("double", Double),
     ];
@@ -50,6 +51,7 @@ public partial record MatrixType
                 for(int y = 2; y <= 4; y++)
                     // Note: this is HLSL-style so Rows/Columns meaning is swapped
                     arr.Add(new($"{ScalarType.names[i].Key}{y}x{x}", new(ScalarType.names[i].Value,x,y)));
+        arr.Add(new KeyValuePair<string, MatrixType>("matrix", new(ScalarType.Float,4,4)));
         return arr.ToFrozenDictionary(); 
     }
 }

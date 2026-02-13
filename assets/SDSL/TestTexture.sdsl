@@ -1,6 +1,6 @@
 namespace Stride.Shaders.Tests;
 
-shader TestBasic : TestBase
+shader TestTexture : TestBase
 {
     stream float4 InputPosition : POSITION;
     stream float4 Position : SV_POSITION;

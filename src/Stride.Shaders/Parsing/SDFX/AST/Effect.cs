@@ -3,6 +3,7 @@ using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
+using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 
@@ -22,8 +23,7 @@ public partial class ShaderEffect(TypeName name, bool isPartial, TextLocation in
     {
         var (builder, context) = compiler;
 
-        compiler.Builder.Insert(new OpSDSLEffect(Name.Name));
-        Block.ProcessSymbol(table);
+        builder.Insert(new OpEffectSDFX(Name.Name));
         Block.Compile(table, compiler);
     }
 
@@ -69,14 +69,21 @@ public partial class ShaderSourceDeclaration(Identifier name, TextLocation info,
     }
 }
 
-public partial class UsingParams(Identifier name, TextLocation info) : EffectStatement(info)
+public partial class UsingParams(Expression name, TextLocation info) : EffectStatement(info)
 {
-    public Identifier ParamsName { get; set; } = name;
+    public Expression ParamsName { get; set; } = name;
+
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        ParamsName.ProcessSymbol(table);
+    }
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, _) = compiler;
-        builder.Insert(new OpSDSLParamsUse(ParamsName.Name));
+        
+        var paramsName = ParamsName.Compile(table, compiler);
+        builder.Insert(new OpParamsUseSDFX(paramsName.Id));
     }
 
     public override string ToString()
@@ -93,4 +100,65 @@ public partial class EffectDiscardStatement(TextLocation info) : EffectStatement
     }
 }
 
+/// <summary>
+/// Type of a mixin.
+/// </summary>
+public enum MixinStatementType
+{
+    /// <summary>
+    /// The default mixin (standard mixin).
+    /// </summary>
+    Default,
 
+    /// <summary>
+    /// The compose mixin used to set a composition (using =).
+    /// </summary>
+    ComposeSet,
+
+    /// <summary>
+    /// The compose mixin used to add a composition (using +=).
+    /// </summary>
+    ComposeAdd,
+    
+    /// <summary>
+    /// The child mixin used to specify a children shader.
+    /// </summary>
+    Child,
+
+    /// <summary>
+    /// The clone mixin to clone the current mixins where the clone is emitted.
+    /// </summary>
+    Clone,
+    
+    /// <summary>
+    /// The remove mixin to remove a mixin from current mixins.
+    /// </summary>
+    Remove,
+
+    /// <summary>
+    /// The macro mixin to declare a variable to be exposed in the mixin
+    /// </summary>
+    Macro,
+    
+    
+}
+
+public partial class Mixin(Specification.MixinKindSDFX kind, Identifier? target, Expression value, TextLocation info) : Statement(info)
+{
+    public Specification.MixinKindSDFX Kind { get; } = kind;
+    public Identifier? Target { get; } = target;
+    public Expression Value { get; } = value;
+    public override string ToString() => $"{Type} {Target} {Value}";
+
+    public override void ProcessSymbol(SymbolTable table)
+    {
+    }
+
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+
+        throw new NotImplementedException();
+        //builder.Insert(new OpMixinSDFX(Kind, Target?.Name ?? "", Value., Value.Generics));
+    }
+}

@@ -25,7 +25,7 @@ public abstract record SymbolType()
     /// </summary>
     /// <returns></returns>
     public virtual string ToId() => ToString();
-
+    
     public static bool TryGetNumeric(string name, [MaybeNullWhen(false)] out SymbolType result)
     {
         if (ScalarType.Types.TryGetValue(name, out var s))
@@ -164,7 +164,7 @@ public enum Scalar
     UInt,
     Int64,
     UInt64,
-    //Half,
+    Half,
     Float,
     Double
 }
@@ -177,6 +177,7 @@ public sealed partial record ScalarType(Scalar Type) : SymbolType()
     public static ScalarType UInt { get; } = new(Scalar.UInt);
     public static ScalarType Int64 { get; } = new(Scalar.Int64);
     public static ScalarType UInt64 { get; } = new(Scalar.UInt64);
+    public static ScalarType Half { get; } = new(Scalar.Half);
     public static ScalarType Float { get; } = new(Scalar.Float);
     public static ScalarType Double { get; } = new(Scalar.Double);
 
@@ -188,6 +189,7 @@ public sealed partial record ScalarType(Scalar Type) : SymbolType()
         Scalar.UInt => "uint",
         Scalar.Int64 => "long",
         Scalar.UInt64 => "ulong",
+        Scalar.Half => "half",
         Scalar.Float => "float",
         Scalar.Double => "double",
         _ => throw new ArgumentOutOfRangeException()
@@ -226,7 +228,7 @@ public partial record struct StructuredTypeMember(string Name, SymbolType Type, 
 public partial record StructuredType(string Name, List<StructuredTypeMember> Members) : SymbolType()
 {
     public override string ToId() => Name;
-    public override string ToString() => $"{Name}{{{string.Join(", ", Members.Select(x => $"{x.Type} {x.Name}"))}}}";
+    public override string ToString() => Name;
 
     public bool TryGetFieldType(string name, [MaybeNullWhen(false)] out SymbolType type)
     {
@@ -257,13 +259,12 @@ public partial record StructuredType(string Name, List<StructuredTypeMember> Mem
 
 public sealed partial record StructType(string Name, List<StructuredTypeMember> Members) : StructuredType(Name, Members)
 {
-    public override string ToString() => $"struct {base.ToString()}";
+    public override string ToString() => base.ToString();
 }
 
 public sealed partial record StructuredBufferType(SymbolType BaseType, bool WriteAllowed = false) : StructuredType($"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType.ToId()}>", [new(string.Empty, BaseType, TypeModifier.None)])
 {
     public override string ToId() => $"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType.ToId()}>";
-
     public override string ToString() => $"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType}>";
 }
 
@@ -689,4 +690,9 @@ public sealed partial record PatchType(SymbolType BaseType, PatchTypeKindSDSL Ki
 public sealed partial record ShaderMixinType : SymbolType
 {
     public override string ToString() => "mixin";
+}
+
+public sealed partial record ExternalType(string Name, ShaderExpressionList? Generics) : SymbolType
+{
+    public override string ToString() => Generics != null && Generics.Values.Count > 0 ? $"{Name}<{string.Join(",", Generics.Values)}>" : Name;
 }

@@ -9,16 +9,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Stride.Shaders.Core;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Compilers.SDSL
 {
+    // Note: We currently use EffectCodeWriter to generate C# code instead.
+    //       Kept around if we later switch to a full SPIR-V approach.
+    [Obsolete("Use C# EffectCodeWriter (and ShaderMixinManager) for now. Kept for future SPIR-V switch.")]
     internal class EffectEvaluator(IExternalShaderLoader shaderLoader)
     {
         private Stack<ShaderMixinSource> mixinSources = new();
 
         public ShaderSource EvaluateEffects(ShaderSource source, IDictionary<string, ParameterKey>? parameters = null)
         {
+            // Note: we currently use EffectCodeWriter to generate C# code instead
+            throw new NotImplementedException();
             // For our tests the ShaderSource is a ShaderClassSource, just a name of a shader to load
 
             switch (source)
@@ -26,9 +32,10 @@ namespace Stride.Shaders.Compilers.SDSL
                 case ShaderClassSource classSource:
                     var macros = mixinSources.Count > 0 ? mixinSources.Peek().Macros : [];
                     var shaderBuffers = SpirvBuilder.GetOrLoadShader(shaderLoader, classSource.ClassName, classSource.GenericArguments, macros.AsSpan());
+                    throw new NotImplementedException();
                     return shaderBuffers.Buffer[0].Op switch
                     {
-                        Op.OpSDSLEffect => EffectInterpreter(shaderBuffers, parameters),
+                        Op.OpEffectSDFX => EffectInterpreter(shaderBuffers, parameters),
                         _ => classSource
                     };
                 case ShaderMixinSource mixinSource:
@@ -85,68 +92,28 @@ namespace Stride.Shaders.Compilers.SDSL
             {
                 var instruction = shaderBuffers.Buffer[i];
 
-                // If we reach a conditional instruction we need to evaluate the conditions after it.
-                // If it's false we need to check if there's another conditional instruction after it (ParamsTrue / Else)
-                // Once we reach the OpSDSLConditionalEnd 
-                if (instruction.Op is Op.OpSDSLConditionalStart)
+                if (instruction.Op == Op.OpMixinSDFX && (OpMixinSDFX)instruction is { } mixinInstruction)
                 {
-                    i += 1;
-                    bool conditionMet = false;
-                    while(!conditionMet)
-                    {
-                        if (instruction.Op is Op.OpSDSLParamsTrue && (OpSDSLParamsTrue)instruction is { } condition)
-                        {
-                            if (parameters?.TryGetValue(condition.ParamsName, out var bparam) ?? false)
-                            {
-                                // TODO: Where are the values ?
-                                if (bparam is ParameterKey<bool> boolParam)
-                                {
-                                    throw new NotImplementedException();
-                                }
-                                else if (bparam is ParameterKey<ShaderSource> shparam)
-                                {
-                                    throw new NotImplementedException();
-                                }
-                            }
-                        }
-                        else if(instruction.Op is Op.OpSDSLElse)
-                        {
-                            if(!conditionMet)
-                            {
-                                conditionMet = true;
-                                // TODO: Apply else branch
-                            }
-                        }
-                        else if(instruction.Op is Op.OpSDSLConditionalEnd)
-                        {
-                            break;
-                        }
-                    }
-                }
-                else if (instruction.Op == Op.OpSDSLMixin && (OpSDSLMixin)instruction is { } mixinInstruction)
-                {
-                    var instSource = new ShaderClassSource(mixinInstruction.Mixin, GetGenericsArguments(shaderBuffers.Context, mixinInstruction.Values.Elements.Span));
-                    var evaluatedSource = EvaluateEffects(instSource);
-
-                    Merge(mixinTree, evaluatedSource);
-                }
-                else if (instruction.Op == Op.OpSDSLMixinCompose && (OpSDSLMixinCompose)instruction is { } mixinComposeInstruction)
-                {
-                    var instSource = new ShaderClassSource(mixinComposeInstruction.Mixin, GetGenericsArguments(shaderBuffers.Context, mixinComposeInstruction.Values.Elements.Span));
-                    var evaluatedSource = EvaluateEffects(instSource);
-
-                    MergeComposition(mixinTree, mixinComposeInstruction.Identifier, evaluatedSource);
-                }
-                else if (instruction.Op == Op.OpSDSLMixinComposeArray && (OpSDSLMixinComposeArray)instruction is { } mixinComposeArray)
-                {
-                    var instSource = new ShaderClassSource(mixinComposeArray.Mixin, GetGenericsArguments(shaderBuffers.Context, mixinComposeArray.Values.Elements.Span));
-                    var evaluatedSource = EvaluateEffects(instSource);
-
-                    MergeCompositionArrayItem(mixinTree, mixinComposeArray.Identifier, evaluatedSource);
-                }
-                else if (instruction.Op == Op.OpSDSLMixinChild && (OpSDSLMixinChild)instruction is { } mixinChild)
-                {
+                    // Note: we currently use EffectCodeWriter to generate C# code instead
                     throw new NotImplementedException();
+                    string DecodeString(int id) => throw new NotImplementedException();
+                    var instSource = new ShaderClassSource(DecodeString(mixinInstruction.Value), mixinInstruction.Values);
+                    var evaluatedSource = EvaluateEffects(instSource);
+
+                    switch (mixinInstruction.Kind)
+                    {
+                        case MixinKindSDFX.Default:
+                            Merge(mixinTree, evaluatedSource);
+                            break;
+                        case MixinKindSDFX.ComposeSet:
+                            MergeComposition(mixinTree, DecodeString(mixinInstruction.Target), evaluatedSource);
+                            break;
+                        case MixinKindSDFX.ComposeAdd:
+                            MergeCompositionArrayItem(mixinTree, DecodeString(mixinInstruction.Target), evaluatedSource);
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
                 }
 
                 i += 1;
@@ -194,8 +161,8 @@ namespace Stride.Shaders.Compilers.SDSL
         public void MergeComposition(ShaderMixinSource mixinTree, string compositionName, ShaderSource compositionToAdd)
         {
             if (!mixinTree.Compositions.TryGetValue(compositionName, out var composition))
-                mixinTree.Compositions.Add(compositionName, composition = compositionToAdd is ShaderArraySource ? new ShaderArraySource() : new ShaderMixinSource());
-
+                mixinTree.Compositions[compositionName] = composition = compositionToAdd is ShaderArraySource ? new ShaderArraySource() : new ShaderMixinSource();
+            
             if (compositionToAdd is ShaderArraySource compositionArrayToAdd)
             {
                 var compositionArray = (ShaderArraySource)composition;

@@ -16,12 +16,12 @@ public record struct CompositionParser() : IParser<ShaderCompose>
         if (Tokens.Literal("compose", ref scanner, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
         {
             var tmp = scanner.Position;
-            if (Parsers.MixinIdentifierArraySizeValue(ref scanner, result, out var mixin, out var name, out var arraysize, out var value, advance: true))
+            if (Parsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typeName, out var name, out var value, advance: true))
             {
                 Parsers.Spaces0(ref scanner, result, out _);
                 if (!Tokens.Char(';', ref scanner, advance: true))
                     return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0033, scanner[position], scanner.Memory));
-                parsed = new(name, mixin, arraysize.Count > 0, scanner[position..])
+                parsed = new(name, typeName, typeName.ArraySize is { Count: > 0 }, scanner[position..])
                 {
                     Attributes = hasAttributes ? attributes.Attributes : null!,
                     IsStaged = isStaged

@@ -2,7 +2,7 @@ using Stride.Shaders.Parsing.SDFX.AST;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
 
-namespace Stride.Shaders.Parsing.SDFX.Parsers;
+namespace Stride.Shaders.Parsing.SDFX;
 
 
 public record struct EffectParser : IParser<ShaderEffect>
@@ -22,6 +22,8 @@ public record struct EffectParser : IParser<ShaderEffect>
                 parsed = new((TypeName)effectName, isPartial, new());
                 if (EffectStatementParsers.EffectBlock(ref scanner, result, out var s) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
                 {
+                    // Optional semi-colon
+                    SDSL.Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true);
                     parsed.Block = s;
                     return true;
                 }

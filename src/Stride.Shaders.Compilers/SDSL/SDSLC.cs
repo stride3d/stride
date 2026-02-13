@@ -47,7 +47,13 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     lastBuffer = compiler.ToShaderBuffers();
                     ShaderLoader.FileCache.RegisterShader(shader.Name, macros, lastBuffer, hash);
                 }
-                else if (declaration is ShaderEffect effect)
+                else if (declaration is ShaderEffect or EffectParameters)
+                {
+                    // Ignore (using C# codegen for now)
+                    
+                }
+                // Compiling SDFX to SPIR-V is not supported (we might switch to it in the future instead of using C# codegen)
+                /*else if (declaration is ShaderEffect effect)
                 {
                     var compiler = new CompilerUnit();
                     SymbolTable table = new(compiler.Context)
@@ -75,7 +81,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     lastBuffer = compiler.ToShaderBuffers();
 
                     ShaderLoader.FileCache.RegisterShader(parameters.Name, [], lastBuffer, hash);
-                }
+                }*/
                 else
                 {
                     throw new NotImplementedException($"Compiling declaration [{declaration.GetType()}] is not implemented");

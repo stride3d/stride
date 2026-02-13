@@ -17,14 +17,16 @@ public static partial class Examples
 
     public static void CompileBasicEffect()
     {
-        var effect = File.ReadAllText("./assets/SDFX/BasicEffect.sdfx");
+        var filename = @"./assets/SDFX/BasicEffect.sdfx";
+        var effect = File.ReadAllText(filename);
+        effect = MonoGamePreProcessor.Run(effect, filename, []);
         var parsed = SDSLParser.Parse(effect);
         if (parsed.Errors.Count > 0)
         {
             throw new Exception($"Some parse errors:{Environment.NewLine}{string.Join(Environment.NewLine, parsed.Errors)}");
         }
 
-        var effectGenerator = new EffectGenerator();
+        var effectGenerator = new EffectCodeWriter();
         effectGenerator.Run(parsed.AST);
         var code = effectGenerator.Text;
         

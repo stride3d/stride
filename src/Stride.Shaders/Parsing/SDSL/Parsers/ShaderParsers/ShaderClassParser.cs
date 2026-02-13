@@ -20,9 +20,6 @@ public record struct ShaderClassParsers : IParser<ShaderClass>
     public static bool ComplexClass<TScanner>(ref TScanner scanner, ParseResult result, out ShaderClass parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderClassParser().Match(ref scanner, result, out parsed, in orError);
-    public static bool GenericIdentifier<TScanner>(ref TScanner scanner, ParseResult result, out GenericIdentifier parsed, in ParseError? orError = null)
-        where TScanner : struct, IScanner
-        => new GenericIdentifierParser().Match(ref scanner, result, out parsed);
 }
 
 public record struct SimpleShaderClassParser : IParser<ShaderClass>
@@ -67,8 +64,12 @@ public record struct ShaderClassParser : IParser<ShaderClass>
     {
         var position = scanner.Position;
         var tmp = position;
+        var @internal = false;
         if (Tokens.Literal("internal", ref scanner, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
+        {
+            @internal = true;
             tmp = scanner.Position;
+        }
         if(Parsers.FollowedBy(ref scanner, Tokens.Literal("partial"), withSpaces: true, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
             tmp = scanner.Position;
         if (
@@ -84,6 +85,7 @@ public record struct ShaderClassParser : IParser<ShaderClass>
             )
             {
                 parsed = new ShaderClass(identifier, scanner[..]);
+                parsed.Internal = @internal;
                 if (Tokens.Char('<', ref scanner, advance: true))
                 {
                     ParameterParsers.Declarations(ref scanner, result, out var generics);
@@ -96,7 +98,7 @@ public record struct ShaderClassParser : IParser<ShaderClass>
                 if (Tokens.Char(':', ref scanner, advance: true))
                 {
                     Parsers.Spaces0(ref scanner, result, out _);
-                    while (ShaderClassParsers.GenericIdentifier(ref scanner, result, out var mixin))
+                    while (LiteralsParser.IdentifierBase(ref scanner, result, out var mixin))
                     {
                         parsed.Mixins.Add(mixin);
                         Parsers.Spaces0(ref scanner, result, out _);
@@ -134,7 +136,6 @@ public record struct ShaderClassParser : IParser<ShaderClass>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 }
-
 
 public record struct GenericIdentifierParser : IParser<GenericIdentifier>
 {

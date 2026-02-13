@@ -5,6 +5,9 @@ using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Core;
 
+/// <summary>
+/// Writes shader AST to text. Note that implementation is not complete and verified (it was only for SDFX needs), please don't use in production.
+/// </summary>
 public class ShaderWriter : NodeWalker
 {
     /// <summary>
@@ -120,7 +123,6 @@ public class ShaderWriter : NodeWalker
     /// </returns>
     protected ShaderWriter OpenBrace()
     {
-        WriteLine();
         Write("{");
         WriteLine();
         Indent();
@@ -208,7 +210,6 @@ public class ShaderWriter : NodeWalker
         }
         else
         {
-            WriteLine();
             Indent();
             VisitNode(statement);
             Outdent();
@@ -234,11 +235,6 @@ public class ShaderWriter : NodeWalker
             }
             Write(">");
         }
-    }
-
-    public override void VisitExternalShaderAccess(ExternalShaderAccess externalShaderAccess)
-    {
-        VisitNode(externalShaderAccess.Mixin);
     }
 
     public override void VisitTypeName(TypeName typeName)
@@ -354,9 +350,15 @@ public class ShaderWriter : NodeWalker
         }
     }
 
+    public override void VisitParenthesisExpression(ParenthesisExpression parenthesisExpression)
+    {
+        Write("(");
+        VisitNode(parenthesisExpression.Expression);
+        Write(")");
+    }
+
     public override void VisitExpressionStatement(ExpressionStatement expressionStatement)
     {
-        Write(string.Empty); // Ensure indent
         VisitNode(expressionStatement.Expression);
         WriteLine(";");
     }
@@ -374,15 +376,11 @@ public class ShaderWriter : NodeWalker
 
     public override void VisitDeclare(Declare declare)
     {
-        Write(string.Empty); // Ensure indent
-        VisitNode(declare.TypeName);
-        WriteSpace();
         for (var i = 0; i < declare.Variables.Count; i++)
         {
             VisitNode(declare.Variables[i]);
             if (i < declare.Variables.Count - 1) Write(",").WriteSpace();
         }
-        WriteLine(";");
     }
 
     public override void VisitVariableAssign(VariableAssign variableAssign)
@@ -397,9 +395,11 @@ public class ShaderWriter : NodeWalker
 
     public override void VisitDeclaredVariableAssign(DeclaredVariableAssign declaredVariableAssign)
     {
-        Write(string.Empty); // Ensure indent
-        VisitNode(declaredVariableAssign.TypeName);
-        WriteSpace();
+        if (declaredVariableAssign.TypeName.Name != "void")
+        {
+            VisitNode(declaredVariableAssign.TypeName);
+            WriteSpace();
+        }
         VisitNode(declaredVariableAssign.Variable);
         if (declaredVariableAssign.Value != null)
         {
@@ -411,7 +411,6 @@ public class ShaderWriter : NodeWalker
 
     public override void VisitAssign(Assign assign)
     {
-        Write(string.Empty); // Ensure indent
         for (var i = 0; i < assign.Variables.Count; i++)
         {
             VisitNode(assign.Variables[i]);
@@ -471,7 +470,6 @@ public class ShaderWriter : NodeWalker
             WriteLine("]");
         }
 
-        Write(string.Empty); // Indent
         if (shaderMember.IsStaged) Write("stage").WriteSpace();
         if (shaderMember.StreamKind != StreamKind.None) Write(shaderMember.StreamKind.ToString().ToLowerInvariant()).WriteSpace();
         if (shaderMember.StorageClass != StorageClass.None) Write(shaderMember.StorageClass.ToString().ToLowerInvariant()).WriteSpace();
@@ -489,7 +487,6 @@ public class ShaderWriter : NodeWalker
 
     public override void VisitShaderMethod(ShaderMethod shaderMethod)
     {
-        Write(string.Empty); // Indent
         if (shaderMethod.IsStaged) Write("stage").WriteSpace();
         if (shaderMethod.IsOverride) Write("override").WriteSpace();
         if (shaderMethod.IsStatic) Write("static").WriteSpace();
@@ -510,6 +507,7 @@ public class ShaderWriter : NodeWalker
         
         if (shaderMethod.Body != null)
         {
+            WriteLine();
             WriteStatementContent(shaderMethod.Body);
         }
         else
@@ -574,7 +572,7 @@ public class ShaderWriter : NodeWalker
             VisitNode(forStatement.Update[i]);
             if (i < forStatement.Update.Count - 1) Write(",").WriteSpace();
         }
-        Write(")");
+        WriteLine(")");
         WriteStatementContent(forStatement.Body);
     }
 
@@ -582,7 +580,7 @@ public class ShaderWriter : NodeWalker
     {
         Write("while").WriteSpace().Write("(");
         VisitNode(whileStatement.Condition);
-        Write(")");
+        WriteLine(")");
         WriteStatementContent(whileStatement.Body);
     }
 
@@ -595,7 +593,7 @@ public class ShaderWriter : NodeWalker
         VisitNode(forEach.Variable);
         WriteSpace().Write("in").WriteSpace();
         VisitNode(forEach.Collection);
-        Write(")");
+        WriteLine(")");
         WriteStatementContent(forEach.Body);
     }
 
@@ -615,7 +613,7 @@ public class ShaderWriter : NodeWalker
     {
         Write("if").WriteSpace().Write("(");
         VisitNode(@if.Condition);
-        Write(")");
+        WriteLine(")");
         WriteStatementContent(@if.Body);
     }
     
@@ -623,13 +621,13 @@ public class ShaderWriter : NodeWalker
     {
         Write("else if").WriteSpace().Write("(");
         VisitNode(elseIf.Condition);
-        Write(")");
+        WriteLine(")");
         WriteStatementContent(elseIf.Body);
     }
     
     public override void VisitElse(Else @else)
     {
-        Write("else");
+        WriteLine("else");
         WriteStatementContent(@else.Body);
     }
 

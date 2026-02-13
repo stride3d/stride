@@ -52,7 +52,7 @@ shader CompositionTest : CompositionTestArray
 	}
 };
 
-effect CompositionArray1
+effect CompositionArrayForeachNested
 {
 	mixin CompositionTest;
 	mixin compose Comps += CompositionShaderA;

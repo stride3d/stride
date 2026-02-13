@@ -1,5 +1,4 @@
 using Stride.Shaders.Parsing.SDFX.AST;
-using Stride.Shaders.Parsing.SDFX.Parsers;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
 

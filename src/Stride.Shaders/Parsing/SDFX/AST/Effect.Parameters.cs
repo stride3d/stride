@@ -14,7 +14,7 @@ public partial class EffectParameters(TypeName name, TextLocation info) : Shader
 
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        compiler.Builder.Insert(new OpSDSLParams(Name.Name));
+        compiler.Builder.Insert(new OpParamsSDFX(Name.Name));
         foreach(var parameter in Parameters)
             parameter.Compile(table, compiler);
     }
@@ -30,6 +30,6 @@ public partial class EffectParameter(TypeName type, Identifier identifier, TextL
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (_, context) = compiler;
-        context.Add(new OpSDSLParamsField(Identifier, Type));
+        context.Add(new OpParamsFieldSDFX(Identifier, Type));
     }
 }

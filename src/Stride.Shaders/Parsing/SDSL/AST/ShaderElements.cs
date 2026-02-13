@@ -144,19 +144,6 @@ public static class ShaderVariableInformationExtensions
     }
 }
 
-public partial class ShaderVariable(TypeName typeName, Identifier name, Expression? value, TextLocation info) : ShaderElement(info)
-{
-    public Identifier Name { get; set; } = name;
-    public TypeName TypeName { get; set; } = typeName;
-    public Expression? Value { get; set; } = value;
-    public StorageClass StorageClass { get; set; } = StorageClass.None;
-    public TypeModifier TypeModifier { get; set; } = TypeModifier.None;
-    public override string ToString()
-    {
-        return $"{(StorageClass != StorageClass.None ? $"{StorageClass} " : "")}{(TypeModifier != TypeModifier.None ? $"{TypeModifier} " : "")} {TypeName} {Name} = {Value}";
-    }
-}
-
 public partial class TypeDef(TypeName type, Identifier name, TextLocation info) : ShaderElement(info)
 {
     public Identifier Name { get; set; } = name;

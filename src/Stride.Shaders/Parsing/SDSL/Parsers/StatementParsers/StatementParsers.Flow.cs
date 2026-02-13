@@ -118,10 +118,7 @@ public record struct ForParser : IParser<For>
             return true;
         }
         scanner.Position = position;
-        if(
-            ExpressionParser.Expression(ref scanner, result, out var expression) 
-            && Parsers.FollowedBy(ref scanner, Tokens.Char(')'), true) 
-        )
+        if(ExpressionParser.Expression(ref scanner, result, out var expression))
         {
             parsed = new ExpressionStatement(expression, scanner[position..scanner.Position]);
             return true;
