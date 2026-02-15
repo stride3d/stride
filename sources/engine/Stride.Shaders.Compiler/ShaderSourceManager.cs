@@ -12,7 +12,7 @@ using Stride.Core.IO;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
 
-namespace Stride.Shaders.Parser.Mixins
+namespace Stride.Shaders.Compilers
 {
     /// <summary>
     /// Class ShaderSourceManager

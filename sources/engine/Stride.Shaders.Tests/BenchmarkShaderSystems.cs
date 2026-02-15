@@ -114,13 +114,6 @@ namespace Stride.Shaders.Tests
         }
 
         [Benchmark]
-        public void OldSystem()
-        {
-            // Old system
-            var parsingResult = compiler.GetMixinParser().Parse(shaderMixinSource, shaderMixinSource.Macros.ToArray());
-        }
-
-        [Benchmark]
         public void NewSystem()
         {
             // New system

@@ -15,10 +15,6 @@ using Silk.NET.SPIRV.Cross;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
-using Stride.Core.Serialization.Contents;
-using Stride.Core.Shaders.Ast;
-using Stride.Core.Shaders.Ast.Hlsl;
-using Stride.Core.Shaders.Utility;
 using Stride.Core.Storage;
 using Stride.Graphics;
 using Stride.Rendering;
@@ -26,9 +22,6 @@ using Stride.Shaders.Compiler.Direct3D;
 using Stride.Shaders.Compilers;
 using Stride.Shaders.Compilers.Direct3D;
 using Stride.Shaders.Compilers.SDSL;
-using Stride.Shaders.Parser;
-using Stride.Shaders.Parser.Mixins;
-using Stride.Shaders.Parsing;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
@@ -45,7 +38,7 @@ namespace Stride.Shaders.Compiler
         private bool d3dCompilerLoaded = false;
         private static readonly Object WriterLock = new Object();
 
-        private ShaderMixinParser shaderMixinParser;
+        private ShaderLoader shaderLoader;
 
         private readonly object shaderMixinParserLock = new object();
 
@@ -70,7 +63,7 @@ namespace Stride.Shaders.Compiler
 
         public override ObjectId GetShaderSourceHash(string type)
         {
-            return GetMixinParser().SourceManager.GetShaderSourceHash(type);
+            return GetShaderLoader().SourceManager.GetShaderSourceHash(type);
         }
 
         /// <summary>
@@ -79,80 +72,41 @@ namespace Stride.Shaders.Compiler
         /// <param name="modifiedShaders"></param>
         public override void ResetCache(HashSet<string> modifiedShaders)
         {
-            GetMixinParser().DeleteObsoleteCache(modifiedShaders);
+            GetShaderLoader().SourceManager.DeleteObsoleteCache(modifiedShaders);
         }
 
-        public ShaderMixinParser GetMixinParser()
+        public ShaderLoader GetShaderLoader()
         {
             lock (shaderMixinParserLock)
             {
-                // Generate the AST from the mixin description
-                if (shaderMixinParser == null)
+                if (shaderLoader == null)
                 {
-                    shaderMixinParser = new ShaderMixinParser(FileProvider);
-                    shaderMixinParser.SourceManager.LookupDirectoryList.AddRange(SourceDirectories); // TODO: temp
-                    shaderMixinParser.SourceManager.UseFileSystem = UseFileSystem;
-                    shaderMixinParser.SourceManager.UrlToFilePath = UrlToFilePath; // TODO: temp
+                    shaderLoader = new ShaderLoader(FileProvider);
+                    shaderLoader.SourceManager.LookupDirectoryList.AddRange(SourceDirectories); // TODO: temp
+                    shaderLoader.SourceManager.UseFileSystem = UseFileSystem;
+                    shaderLoader.SourceManager.UrlToFilePath = UrlToFilePath; // TODO: temp
                 }
-                return shaderMixinParser;
+
+                return shaderLoader;
             }
         }
 
         public class ShaderLoader(IVirtualFileProvider FileProvider) : ShaderLoaderBase(new ShaderCache())
         {
-            protected override bool ExternalFileExists(string name)
-            {
-                var path = $"shaders/{name}.sdsl";
-                return FileProvider.FileExists(path);
-            }
+            public ShaderSourceManager SourceManager { get; } = new(FileProvider);
+
+            protected override bool ExternalFileExists(string name) => SourceManager.IsClassExists(name);
 
             public override bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash)
             {
-                var path = $"shaders/{name}.sdsl";
-                
-                using var sourceStream = FileProvider.OpenStream(path, VirtualFileMode.Open, VirtualFileAccess.Read);
-                using var reader = new StreamReader(sourceStream);
-                code = reader.ReadToEnd();
+                var result = SourceManager.LoadShaderSource(name);
+                filename = result.Path;
+                code = result.Source;
+                hash = result.Hash;
 
-                var databaseStream = sourceStream as IDatabaseStream;
-                if (databaseStream == null)
-                {
-                    sourceStream.Position = 0;
-                    var data = new byte[sourceStream.Length];
-                    var readBytes = sourceStream.Read(data, 0, (int)sourceStream.Length);
-                    if (readBytes != sourceStream.Length)
-                        throw new InvalidOperationException();
-                    hash = ObjectId.FromBytes(data);
-                }
-                else
-                {
-                    hash = databaseStream.ObjectId;
-                }
-
-                filename = path;
                 return true;
             }
         }
-
-        //Parsing.SDSL.ShaderMixinSource ConvertAndEnsureMixin(ShaderSource shaderSource)
-        //{
-        //    var result = Convert(shaderSource);
-        //    return result switch
-        //    {
-        //        Parsing.SDSL.ShaderMixinSource mixinSource => mixinSource,
-        //        Parsing.SDSL.ShaderClassSource classSource => new Parsing.SDSL.ShaderMixinSource { Mixins = { classSource } },
-        //    };
-        //}
-
-        //Parsing.SDSL.ShaderSource Convert(ShaderSource shaderSource)
-        //{
-        //    return shaderSource switch
-        //    {
-        //        ShaderClassSource classSource => new Parsing.SDSL.ShaderClassSource(classSource.ClassName) { GenericArguments = classSource.GenericArguments },
-        //        ShaderMixinSource mixinSource => new Parsing.SDSL.ShaderMixinSource { Compositions = new Dictionary<string, Parsing.SDSL.ShaderMixinSource>(mixinSource.Compositions.Select(x => KeyValuePair.Create(x.Key, ConvertAndEnsureMixin(x.Value)))) },
-        //    };
-        //}
-
 
         public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters)
         {
@@ -206,7 +160,7 @@ namespace Stride.Shaders.Compiler
             // In .sdsl, class has been renamed to shader to avoid ambiguities with HLSL
             shaderMixinSource.AddMacro("class", "shader");
 
-            var shaderMixer = new ShaderMixer(new ShaderLoader(FileProvider));
+            var shaderMixer = new ShaderMixer(GetShaderLoader());
             shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(effectParameters.Platform is not GraphicsPlatform.Vulkan), out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints);
 
             /*var parsingResult = GetMixinParser().Parse(shaderMixinSource, shaderMixinSource.Macros.ToArray());
@@ -516,29 +470,6 @@ namespace Stride.Shaders.Compiler
 #endif
 
             return new EffectBytecodeCompilerResult(bytecode, log);
-        }
-
-        private static void CopyLogs(Stride.Core.Shaders.Utility.LoggerResult inputLog, LoggerResult outputLog)
-        {
-            foreach (var inputMessage in inputLog.Messages)
-            {
-                var logType = LogMessageType.Info;
-                switch (inputMessage.Level)
-                {
-                    case ReportMessageLevel.Error:
-                        logType = LogMessageType.Error;
-                        break;
-                    case ReportMessageLevel.Info:
-                        logType = LogMessageType.Info;
-                        break;
-                    case ReportMessageLevel.Warning:
-                        logType = LogMessageType.Warning;
-                        break;
-                }
-                var outputMessage = new LogMessage(inputMessage.Span.ToString(), logType, string.Format(" {0}: {1}", inputMessage.Code, inputMessage.Text));
-                outputLog.Log(outputMessage);
-            }
-            outputLog.HasErrors = inputLog.HasErrors;
         }
 
         private static void CleanupReflection(EffectReflection reflection)

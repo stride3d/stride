@@ -22,7 +22,7 @@ namespace Stride.VisualStudio.Commands
 
         public byte[] GenerateShaderKeys(string inputFileName, string inputFileContent)
         {
-            return ShaderKeyFileHelper.GenerateCode(inputFileName, inputFileContent);
+            throw new NotSupportedException("ShaderKeyGenerator is not used in Stride 4.4+");
         }
 
         public RawShaderNavigationResult AnalyzeAndGoToDefinition(string projectPath, string sourceCode, RawSourceSpan span)

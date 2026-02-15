@@ -12,7 +12,6 @@ using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.ProjectTemplating;
 using Stride.Graphics;
-using Stride.Shaders.Parser.Mixins;
 using Stride.Core.Extensions;
 
 namespace Stride.Assets.Templates
@@ -191,15 +190,6 @@ namespace Stride.Assets.Templates
             List<string> generatedFiles;
             var project = GenerateTemplate(parameters, templateRelativePath, projectName, platformType, graphicsPlatform, projectType, out generatedFiles, projectGuid);
 
-            // Special case for sdfx files
-            foreach (var file in generatedFiles)
-            {
-                if (file.EndsWith(".sdfx", StringComparison.OrdinalIgnoreCase))
-                {
-                    ConvertXkfxToCSharp(file);
-                }
-            }
-
             return project;
         }
 
@@ -284,13 +274,6 @@ namespace Stride.Assets.Templates
             if (message == null) throw new ArgumentNullException(nameof(message));
             var progress = log as IProgressStatus;
             progress?.OnProgressChanged(new ProgressStatusEventArgs(message, stepIndex, stepCount));
-        }
-
-        private static void ConvertXkfxToCSharp(string sdfxfile)
-        {
-            var sdfileContent = File.ReadAllText(sdfxfile);
-            var result = ShaderMixinCodeGen.GenerateCsharp(sdfileContent, sdfxfile);
-            File.WriteAllText(Path.ChangeExtension(sdfxfile, ".cs"), result, Encoding.UTF8);
         }
 
         private static void RemoveProject(ProjectReference projectReference, ILogger logger)

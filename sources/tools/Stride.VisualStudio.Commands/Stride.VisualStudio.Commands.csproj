@@ -20,7 +20,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
     <ProjectReference Include="..\..\engine\Stride.Engine\Stride.Engine.csproj" />
-    <ProjectReference Include="..\..\engine\Stride.Shaders.Parser\Stride.Shaders.Parser.csproj" />
     <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj" />
     <!-- Use PrivateReference="All" so that it is not a NuGet dependency, and to make sure we don't have any transitive reference of VS.Package being used (we should have explicit ProjectReference to everything we need) -->
   </ItemGroup>
