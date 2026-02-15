@@ -75,14 +75,11 @@ public partial class ShaderMixer
                     {
                         // Special case: the current stage-only mixin is planned to be added later as a normal mixin at the root level
                         // It's a bit complex: we need to inherit from it right now instead of later
-                        // (if we simply do a result.Mixins.Add as in normal case, the shader would be added twice)
-                        var currentlyMixedList = mixinList[0..shaderIndex];
+                        var currentlyMixedList = result.Mixins[..];
                         SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, shaderName, shaderMixinSource.Macros.AsSpan(), currentlyMixedList, ResolveStep.Mix);
 
-                        var newShadersToMergeNow = currentlyMixedList[shaderIndex..];
-                        mixinList.InsertRange(shaderIndex, newShadersToMergeNow);
-                        
-                        // Note: we're not removing duplicates as we do an extra duplicate check at the beginning of the mixinList loop
+                        var newShadersToMergeNow = currentlyMixedList[result.Mixins.Count..];
+                        result.Mixins.AddRange(newShadersToMergeNow);
                     }
                     else
                     {
@@ -95,10 +92,11 @@ public partial class ShaderMixer
         for (; shaderIndex < mixinList.Count; shaderIndex++)
         {
             var shaderName = mixinList[shaderIndex];
+            
             // Note: this should only happen due to addToRootRecursive readding some mixin earlier
             if (result.Mixins.Contains(shaderName))
                 continue;
-            
+
             var shader = shaderName.Buffer.Value;
             bool hasStage = false;
             foreach (var i in shader.Context)
