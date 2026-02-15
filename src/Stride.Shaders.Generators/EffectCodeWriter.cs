@@ -1,4 +1,3 @@
-using Stride.Core.Shaders.Utility;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDFX.AST;
@@ -12,7 +11,7 @@ public class EffectCodeWriter : ShaderWriter
 {
     private const string DefaultNameSpace = "Stride.Rendering";
     
-    private readonly LoggerResult logging = new();
+    private readonly List<(string Message, TextLocation Location)> logging = new();
     private Stack<ShaderBlockContext> contextStack = new();
     private Dictionary<BlockStatement, ShaderBlockContext> blockContexts = new();
     private BlockStatement currentBlock;
@@ -24,19 +23,16 @@ public class EffectCodeWriter : ShaderWriter
     {
         void LogErrors()
         {
-            foreach (var reportMessage in logging.Messages)
+            foreach (var reportMessage in logging)
             {
-                if (reportMessage.Level == ReportMessageLevel.Error)
-                {
-                    Write("#error ").WriteLine(reportMessage.ToString());
-                }
+                Write("#error ").WriteLine(reportMessage.ToString());
             }
         }
         
-        var blockVisitor = new ShaderBlockVisitor(this, logging);
+        var blockVisitor = new ShaderBlockVisitor(this);
         blockVisitor.VisitNode(node);
 
-        if (logging.HasErrors)
+        if (logging.Count > 0)
         {
             LogErrors();
             return false;
@@ -74,7 +70,7 @@ public class EffectCodeWriter : ShaderWriter
         VisitNode(node);
 
         // If there are any errors log them into the shader
-        if (logging.HasErrors)
+        if (logging.Count > 0)
         {
             LogErrors();
             return false;
@@ -509,7 +505,7 @@ public class EffectCodeWriter : ShaderWriter
                     var variableReference = mixinStatement.Value as AccessorChainExpression;
                     if (variableReference == null || !(variableReference.Source is Identifier id) || !IsParameterDeclaredInContext(id.Name))
                     {
-                        logging.Error("Invalid syntax. Expecting: mixin macro Parameters.NameOfProperty or mixin macro nameOfProperty = value", mixinStatement.Info.ToSourceSpan());
+                        logging.Add(("Invalid syntax. Expecting: mixin macro Parameters.NameOfProperty or mixin macro nameOfProperty = value", mixinStatement.Info));
                         macroName = new StringLiteral("#INVALID_MACRO_NAME", default);
                         macroValue = mixinStatement.Value;
                     }
@@ -532,7 +528,7 @@ public class EffectCodeWriter : ShaderWriter
             {
                 if (mixinStatement.Target == null)
                 {
-                    logging.Error("Expecting assign expression for composition", mixinStatement.Value.Info.ToSourceSpan());
+                    logging.Add(("Expecting assign expression for composition", mixinStatement.Value.Info));
                     return;
                 }
 
@@ -590,7 +586,7 @@ public class EffectCodeWriter : ShaderWriter
     {
         if (contextStack.Count == 0)
         {
-            logging.Error("Unexpected 'using params' outside of shader block declaration", usingParametersStatement.Info.ToSourceSpan());
+            logging.Add(("Unexpected 'using params' outside of shader block declaration", usingParametersStatement.Info));
             return;
         }
 
@@ -603,7 +599,7 @@ public class EffectCodeWriter : ShaderWriter
             var typeName = type.ToString();
             if (usings.Contains(typeName))
             {
-                logging.Error("Unexpected declaration of using params. This variable is already declared in this scope", usingParametersStatement.Info.ToSourceSpan());
+                logging.Add(("Unexpected declaration of using params. This variable is already declared in this scope", usingParametersStatement.Info));
                 return;
             }
 
@@ -708,15 +704,13 @@ public class EffectCodeWriter : ShaderWriter
     /// </summary>
     private sealed class ShaderBlockVisitor : NodeWalker
     {
-        private readonly LoggerResult logging;
         private ShaderBlockContext currentContext;
 
         private readonly EffectCodeWriter parent;
 
-        public ShaderBlockVisitor(EffectCodeWriter parent, LoggerResult logging)
+        public ShaderBlockVisitor(EffectCodeWriter parent)
         {
             this.parent = parent;
-            this.logging = logging;
         }
 
         public bool HasMixin { get; private set; }
