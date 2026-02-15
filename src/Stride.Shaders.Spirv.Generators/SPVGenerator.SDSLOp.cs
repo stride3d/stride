@@ -29,7 +29,7 @@ public partial class SPVGenerator
             .Collect()
             .Select(static (arr, _) => new EquatableList<InstructionData>([.. arr]));
 
-        context.RegisterImplementationSourceOutput(
+        context.RegisterSourceOutput(
             instructionsProvider,
             ExecuteSDSLOpCreation
         );

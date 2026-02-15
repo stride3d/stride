@@ -13,8 +13,8 @@ namespace Stride.Shaders.Spirv.Generators
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            context.RegisterImplementationSourceOutput(context.CompilationProvider, GenerateTypeVisitors);
-            context.RegisterImplementationSourceOutput(context.CompilationProvider, GenerateNodeVisitors);
+            context.RegisterSourceOutput(context.CompilationProvider, GenerateTypeVisitors);
+            context.RegisterSourceOutput(context.CompilationProvider, GenerateNodeVisitors);
         }
 
         private void GenerateTypeVisitors(SourceProductionContext context, Compilation compilation)
