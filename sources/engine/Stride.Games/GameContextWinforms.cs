@@ -41,7 +41,7 @@ namespace Stride.Games
 
         private static Form CreateForm()
         {
-#if !STRIDE_GRAPHICS_API_OPENGL && !STRIDE_GRAPHICS_API_NULL
+#if !STRIDE_GRAPHICS_API_NULL
             return new GameForm();
 #else
             // Not Reachable.
