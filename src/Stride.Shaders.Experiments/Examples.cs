@@ -210,17 +210,17 @@ public static partial class Examples
         return false;
     }
 
-    public class ShaderLoader() : ShaderLoaderBase(new ShaderCache())
+    public class ShaderLoader(string basePath) : ShaderLoaderBase(new ShaderCache())
     {
         protected override bool ExternalFileExists(string name)
         {
-            var filename = $"./assets/SDSL/{name}.sdsl";
+            var filename = $"{basePath}/{name}.sdsl";
             return File.Exists(filename);
         }
 
         public override bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash)
         {
-            filename = $"./assets/SDSL/{name}.sdsl";
+            filename = $"{basePath}/{name}.sdsl";
             
             var fileData = File.ReadAllBytes(filename);
             hash = ObjectId.FromBytes(fileData);
