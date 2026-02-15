@@ -72,7 +72,7 @@
     <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(StridePlatform)' == 'Linux'">
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">OpenGL</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Vulkan</StrideGraphicsApis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(StridePlatform)' == 'macOS'">
     <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Vulkan</StrideGraphicsApis>
