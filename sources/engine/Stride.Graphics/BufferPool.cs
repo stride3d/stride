@@ -164,14 +164,14 @@ namespace Stride.Graphics
     {
         /// <summary>
         /// Notify the allocator that this buffer won't be reused for much more than 1 (or few) draw calls.
-        /// In practice, on older D3D11 (not 11.1) and OpenGL ES 2.0 hardware, we won't use a dedicated cbuffer.
+        /// In practice, on older D3D11 (not 11.1), we won't use a dedicated cbuffer.
         /// This has no effect on new API where we can bind cbuffer offsets.
         /// </summary>
         UsedOnce,
 
         /// <summary>
         /// Notify the allocator that this buffer will be reused for many draw calls.
-        /// In practice, on older D3D11 (not 11.1) and OpenGL ES 2.0 hardware, we will use a dedicated cbuffer.
+        /// In practice, on older D3D11 (not 11.1), we will use a dedicated cbuffer.
         /// This has no effect on new API where we can bind cbuffer offsets.
         /// </summary>
         UsedMultipleTime

@@ -49,9 +49,6 @@
     <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
     <PackageReference Include="Silk.NET.Direct3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
     <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
-    <PackageReference Include="Silk.NET.OpenGL" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
-    <PackageReference Include="Silk.NET.OpenGLES" />
-    <PackageReference Include="Silk.NET.OpenGLES.Extensions.EXT" />
     <PackageReference Include="Silk.NET.Sdl" />
     <PackageReference Include="Silk.NET.Windowing.Sdl" Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkiOS)'" />
     <PackageReference Include="Stride.SharpFont" />

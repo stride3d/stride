@@ -52,9 +52,7 @@ namespace Stride.Graphics.SDL
         public Window(string title, IntPtr parent)
         {
             WindowFlags flags = WindowFlags.AllowHighdpi;
-#if STRIDE_GRAPHICS_API_OPENGL
-            flags |= WindowFlags.Opengl;
-#elif STRIDE_GRAPHICS_API_VULKAN
+#if STRIDE_GRAPHICS_API_VULKAN
             flags |= WindowFlags.Vulkan;
 #endif
 #if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
@@ -68,22 +66,7 @@ namespace Stride.Graphics.SDL
             {
                 void* parentPtr = parent.ToPointer();
 
-                if (flags.HasFlag(WindowFlags.WindowOpengl))
-                {
-                    // SDL doesn't create OpenGL context when using SDL_CreateWindowFrom.
-                    // See https://wiki.libsdl.org/SDL_CreateWindowFrom
-                    // and https://gamedev.stackexchange.com/a/119903.
-                    var dummy = SDL.CreateWindow($"{title} - OpenGL Dummy", 0, 0, 1, 1, (uint)flags);
-                    var addrStr = new IntPtr(dummy).ToString("X");
-                    SDL.SetHint(Sdl.HintVideoWindowSharePixelFormat, addrStr);
-                    sdlHandle = SDL.CreateWindowFrom(parentPtr);
-                    SDL.SetHint(Sdl.HintVideoWindowSharePixelFormat, string.Empty);
-                    SDL.DestroyWindow(dummy);
-                }
-                else
-                {
-                    sdlHandle = SDL.CreateWindowFrom(parentPtr);
-                }
+                sdlHandle = SDL.CreateWindowFrom(parentPtr);
             }
             else // no parent window
             {
@@ -372,7 +355,7 @@ namespace Stride.Graphics.SDL
         {
             get
             {
-#if STRIDE_GRAPHICS_API_OPENGL || STRIDE_GRAPHICS_API_VULKAN
+#if STRIDE_GRAPHICS_API_VULKAN
                 int w, h;
                 SDL.GLGetDrawableSize(sdlHandle, &w, &h);
                 return new Size2(w, h);
@@ -398,7 +381,7 @@ namespace Stride.Graphics.SDL
         {
             get
             {
-#if STRIDE_GRAPHICS_API_OPENGL || STRIDE_GRAPHICS_API_VULKAN
+#if STRIDE_GRAPHICS_API_VULKAN
                 int w, h;
                 SDL.GLGetDrawableSize(sdlHandle, &w, &h);
                 return new Rectangle(0, 0, w, h);

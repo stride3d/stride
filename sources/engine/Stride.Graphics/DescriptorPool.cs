@@ -24,7 +24,7 @@ public partial class DescriptorPool : GraphicsResourceBase
         return new DescriptorPool(graphicsDevice, counts);
     }
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_OPENGL || (STRIDE_GRAPHICS_API_VULKAN && STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES)
+#if STRIDE_GRAPHICS_API_DIRECT3D11 || (STRIDE_GRAPHICS_API_VULKAN && STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES)
 
     /// <summary>
     ///   The Descriptors allocated in this Descriptor Pool, along with their offset and size.

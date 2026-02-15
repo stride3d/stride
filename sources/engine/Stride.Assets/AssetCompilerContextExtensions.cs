@@ -49,9 +49,7 @@ namespace Stride.Assets
                     return GraphicsPlatform.Direct3D11;
                 case PlatformType.Android:
                 case PlatformType.iOS:
-                    return GraphicsPlatform.OpenGLES;
                 case PlatformType.Linux:
-                    return GraphicsPlatform.OpenGL;
                 case PlatformType.macOS:
                     return GraphicsPlatform.Vulkan;
                 default:

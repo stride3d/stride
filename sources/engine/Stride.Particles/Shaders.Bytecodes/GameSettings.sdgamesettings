@@ -9,7 +9,3 @@ TextureQuality: Fast
 Profiles:
     Windows: !WindowsGameSettingsProfile
         GraphicsPlatform: Direct3D11
-    Windows-OpenGL: !WindowsGameSettingsProfile
-        GraphicsPlatform: OpenGL
-    Windows-OpenGLES: !WindowsGameSettingsProfile
-        GraphicsPlatform: OpenGLES
