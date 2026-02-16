@@ -10,7 +10,7 @@ using System.Text;
 using Stride.Shaders.Spirv.Building;
 using static Stride.Shaders.Spirv.Specification;
 
-[assembly: DebuggerDisplay("{Stride.Shaders.Spirv.Tools.SpirvBufferExtensions.GetDebuggerDisplay(this)}", Target = typeof(NewSpirvBuffer))]
+[assembly: DebuggerDisplay("{Stride.Shaders.Spirv.Tools.SpirvBufferExtensions.GetDebuggerDisplay(this)}", Target = typeof(SpirvBuffer))]
 
 namespace Stride.Shaders.Spirv.Tools;
 
@@ -24,7 +24,7 @@ public enum DisassemblerFlags
 
 public static class SpirvBufferExtensions
 {
-    public static string GetDebuggerDisplay(this NewSpirvBuffer buffer)
+    public static string GetDebuggerDisplay(this SpirvBuffer buffer)
     {
         return Spv.Dis(buffer, DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex | DisassemblerFlags.Name);
     }
@@ -38,11 +38,11 @@ public static partial class Spv
 {
     public static string Dis(ShaderBuffers buffers, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = false)
     {
-        var writer = new DisWriter(new(new("undefined", 0, 1), NewSpirvBuffer.Merge(buffers.Context.GetBuffer(), buffers.Buffer)), flags, writeToConsole);
+        var writer = new DisWriter(new(new("undefined", 0, 1), SpirvBuffer.Merge(buffers.Context.GetBuffer(), buffers.Buffer)), flags, writeToConsole);
         writer.Disassemble();
         return writer.ToString();
     }
-    public static string Dis(NewSpirvBuffer bytecode, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = false)
+    public static string Dis(SpirvBuffer bytecode, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = false)
     {
         var writer = new DisWriter(new(new("undefined", 0, 1), bytecode), flags, writeToConsole);
         writer.Disassemble();
@@ -180,7 +180,7 @@ public static partial class Spv
         }
 
 
-        readonly DisWriter AppendContextDependentNumber(SpvOperand operand, OpData data, NewSpirvBuffer buffer)
+        readonly DisWriter AppendContextDependentNumber(SpvOperand operand, OpData data, SpirvBuffer buffer)
         {
             int typeId = data.Op switch
             {
@@ -462,7 +462,7 @@ public static partial class Spv
             }
             IdOffset = Math.Min(IdOffset, MAX_OFFSET);
         }
-        public readonly NewSpirvBuffer.Enumerator GetEnumerator() => Bytecode.Buffer.GetEnumerator();
+        public readonly SpirvBuffer.Enumerator GetEnumerator() => Bytecode.Buffer.GetEnumerator();
 
         public readonly void Dispose()
         {

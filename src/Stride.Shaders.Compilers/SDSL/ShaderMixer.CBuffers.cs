@@ -16,7 +16,7 @@ namespace Stride.Shaders.Compilers.SDSL
 {
     partial class ShaderMixer
     {
-        private void GenerateDefaultCBuffer(MixinNode rootMixin, MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
+        private void GenerateDefaultCBuffer(MixinNode rootMixin, MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp)
         {
             var members = new List<StructuredTypeMember>();
             // Remap from variable ID to member index in our new struct
@@ -141,7 +141,7 @@ namespace Stride.Shaders.Compilers.SDSL
             }
         }
 
-        private void MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
+        private void MergeCBuffers(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer)
         {
             // Collect Decorations
             Dictionary<(int StructType, int Member), (Dictionary<Decoration, string> StringDecorations, Dictionary<Decoration, MemoryOwner<int>> Decorations)> decorations = new();
@@ -384,7 +384,7 @@ namespace Stride.Shaders.Compilers.SDSL
             }
         }
 
-        private void ComputeCBufferReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer)
+        private void ComputeCBufferReflection(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer)
         {
             var cbuffers = buffer
                 .Where(x => x.Op == Op.OpVariableSDSL)

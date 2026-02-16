@@ -12,7 +12,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces.Generation;
 internal static class EntryPointWrapperGenerator
 {
     public static (int ResultId, string Name) GenerateWrapper(SpirvContext context,
-        NewSpirvBuffer buffer,
+        SpirvBuffer buffer,
         Symbol entryPoint,
         ExecutionModel executionModel,
         AnalysisResult analysisResult,

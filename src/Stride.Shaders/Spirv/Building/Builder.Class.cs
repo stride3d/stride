@@ -24,7 +24,7 @@ namespace Stride.Shaders.Spirv.Building;
 
 public record class ShaderMixinInstantiation(List<ShaderClassInstantiation> Mixins, Dictionary<string, ShaderMixinInstantiation[]> Compositions);
 
-public record struct ShaderBuffers(SpirvContext Context, NewSpirvBuffer Buffer);
+public record struct ShaderBuffers(SpirvContext Context, SpirvBuffer Buffer);
 
 public enum ResolveStep
 {
@@ -577,7 +577,7 @@ public partial class SpirvBuilder
         return false;
     }
 
-    public static void RemapIds(NewSpirvBuffer buffer, int shaderStart, int shaderEnd, Dictionary<int, int> idRemapping)
+    public static void RemapIds(SpirvBuffer buffer, int shaderStart, int shaderEnd, Dictionary<int, int> idRemapping)
     {
         for (var index = shaderStart; index < buffer.Count; index++)
         {
@@ -742,9 +742,9 @@ public partial class SpirvBuilder
         return shaderBuffers;
     }
 
-    public static NewSpirvBuffer CopyBuffer(NewSpirvBuffer shader)
+    public static SpirvBuffer CopyBuffer(SpirvBuffer shader)
     {
-        var copiedShader = new NewSpirvBuffer();
+        var copiedShader = new SpirvBuffer();
         foreach (var i in shader)
         {
             var i2 = new OpData(i.Data.Memory.Span);
@@ -754,7 +754,7 @@ public partial class SpirvBuilder
         return shader;
     }
 
-    public static List<int> CollectGenerics(NewSpirvBuffer shader)
+    public static List<int> CollectGenerics(SpirvBuffer shader)
     {
         // Collect OpSDSLGenericParameter
         List<int> generics = new();

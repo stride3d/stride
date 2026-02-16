@@ -6,13 +6,13 @@ namespace Stride.Shaders.Spirv.Building;
 
 public partial class SpirvContext
 {
-    public int InsertWithoutDuplicates(int? desiredResultId, NewSpirvBuffer source)
+    public int InsertWithoutDuplicates(int? desiredResultId, SpirvBuffer source)
     {
         var index = Buffer.Count;
         return InsertWithoutDuplicates(ref index, desiredResultId, source);
     }
 
-    public int InsertWithoutDuplicates(ref int instructionIndex, int? desiredResultId, NewSpirvBuffer source)
+    public int InsertWithoutDuplicates(ref int instructionIndex, int? desiredResultId, SpirvBuffer source)
     {
         // Import in current buffer (without duplicate)
         var typeDuplicateInserter = new TypeDuplicateHelper(this);
@@ -90,14 +90,14 @@ public partial class SpirvContext
         return lastResultId;
     }
 
-    public NewSpirvBuffer ExtractConstantAsSpirvBuffer(int constantId)
+    public SpirvBuffer ExtractConstantAsSpirvBuffer(int constantId)
     {
         // First, run a simplification pass
         // TODO: separate simplification from computing value?
         TryGetConstantValue(constantId, out _, out _, true);
 
         // Go backward and find any reference
-        var newBuffer = new NewSpirvBuffer();
+        var newBuffer = new SpirvBuffer();
         var referenced = new HashSet<int> { constantId };
         var instructions = new List<OpData>();
         for (int index = Buffer.Count - 1; index >= 0; --index)

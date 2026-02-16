@@ -22,7 +22,7 @@ namespace Stride.Shaders.Spirv.Processing;
 /// </summary>
 public class TypeDuplicateHelper
 {
-    public int[] FindItemsWithTypes(NewSpirvBuffer buffer, params Span<Op> ops)
+    public int[] FindItemsWithTypes(SpirvBuffer buffer, params Span<Op> ops)
     {
         var itemCount = 0;
         for (var index = 0; index < buffer.Count; index++)
@@ -344,7 +344,7 @@ public class TypeDuplicateHelper
         ProcessInstructions(buffer, namesByOp, Op.OpName, Op.OpName, true, comparerSort);
     }
 
-    private static void ProcessInstructions(NewSpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, Op startOp, Op endOp, bool sort, OperationComparer comparer)
+    private static void ProcessInstructions(SpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, Op startOp, Op endOp, bool sort, OperationComparer comparer)
     {
         var start = ~instructionsByOp.BinarySearch(new InstructionSortHelper { Op = startOp, Index = -1 }, comparer);
         var end = ~instructionsByOp.BinarySearch(new InstructionSortHelper { Op = endOp, Index = int.MaxValue }, comparer);
@@ -358,7 +358,7 @@ public class TypeDuplicateHelper
         ProcessSortedInstructions(buffer, instructionsByOp, start, end, comparer);
     }
 
-    private static void ProcessSortedInstructions(NewSpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, int start, int end, OperationComparer comparer)
+    private static void ProcessSortedInstructions(SpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, int start, int end, OperationComparer comparer)
     {
         for (var firstIndex = start; firstIndex < end; )
         {
@@ -399,7 +399,7 @@ public class TypeDuplicateHelper
         }
     }
 
-    static void ReplaceRefs(Span<int> from, int to, NewSpirvBuffer buffer)
+    static void ReplaceRefs(Span<int> from, int to, SpirvBuffer buffer)
     {
         foreach (var i in buffer)
         {

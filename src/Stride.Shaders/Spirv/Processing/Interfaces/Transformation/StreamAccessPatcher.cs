@@ -35,7 +35,7 @@ internal static class StreamAccessPatcher
     /// </summary>
     public static void PatchStreamsAccesses(
         SymbolTable table,
-        NewSpirvBuffer buffer,
+        SpirvBuffer buffer,
         SpirvContext context,
         int functionId,
         StructType streamsStructType,

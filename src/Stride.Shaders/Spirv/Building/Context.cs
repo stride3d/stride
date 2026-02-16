@@ -102,7 +102,7 @@ public partial class SpirvContext
 
     public int Count => Buffer.Count;
 
-    NewSpirvBuffer Buffer { get; init; }
+    SpirvBuffer Buffer { get; init; }
 
     public int? GLSLSet { get; private set; }
 
@@ -111,7 +111,7 @@ public partial class SpirvContext
         Buffer = new();
     }
 
-    public SpirvContext(NewSpirvBuffer buffer)
+    public SpirvContext(SpirvBuffer buffer)
     {
         Buffer = buffer;
     }
@@ -247,9 +247,9 @@ public partial class SpirvContext
     public void Sort() => Buffer.Sort();
 
     [Obsolete("Use the insert method instead")]
-    public NewSpirvBuffer GetBuffer() => Buffer;
+    public SpirvBuffer GetBuffer() => Buffer;
 
-    public NewSpirvBuffer.Enumerator GetEnumerator() => Buffer.GetEnumerator();
+    public SpirvBuffer.Enumerator GetEnumerator() => Buffer.GetEnumerator();
 
     public override string ToString()
     {

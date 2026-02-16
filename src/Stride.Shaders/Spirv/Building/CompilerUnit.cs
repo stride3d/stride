@@ -38,10 +38,10 @@ public class CompilerUnit
     }
 
 #pragma warning disable CS0618 // Type or member is obsolete
-    public NewSpirvBuffer ToBuffer()
+    public SpirvBuffer ToBuffer()
     {
         Context.Sort();
-        return NewSpirvBuffer.Merge(Context.GetBuffer(), Builder.GetBuffer());
+        return SpirvBuffer.Merge(Context.GetBuffer(), Builder.GetBuffer());
     }
 
     public ShaderBuffers ToShaderBuffers()

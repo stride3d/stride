@@ -36,7 +36,7 @@ internal static class DeadCodeRemover
     /// Removes unreferenced code including methods, variables, resources, cbuffers, and stream types.
     /// Preserves logical groups and resource groups where at least one member is used.
     /// </summary>
-    public static void RemoveUnreferencedCode(NewSpirvBuffer buffer, SpirvContext context, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
+    public static void RemoveUnreferencedCode(SpirvBuffer buffer, SpirvContext context, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
     {
         // Remove unreferenced code
         var removedIds = new HashSet<int>();

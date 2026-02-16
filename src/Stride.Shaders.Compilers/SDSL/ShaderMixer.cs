@@ -44,7 +44,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     public void MergeSDSL(ShaderSource shaderSource, Options options, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<(string Name, int Id, ShaderStage Stage)> entryPoints)
     {
         // Create new buffer for the merged result
-        var temp = new NewSpirvBuffer();
+        var temp = new SpirvBuffer();
 
         // This is the global context for this merge operation
         var context = new SpirvContext();
@@ -144,7 +144,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         public MixinNode? Result { get; }
     }
 
-    MixinNode MergeMixinNode(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, NewSpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode? stage = null, string? currentCompositionPath = null)
+    MixinNode MergeMixinNode(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, SpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode? stage = null, string? currentCompositionPath = null)
     {
         // We emit OPSDSLEffect for any non-root composition
         if (currentCompositionPath != null)
@@ -200,7 +200,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         return mixinNode;
     }
 
-    private void ProcessMixinClasses(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode mixinNode)
+    private void ProcessMixinClasses(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode mixinNode)
     {
         mixinNode.StartInstruction = buffer.Count;
         var typeDuplicateInserter = new TypeDuplicateHelper(context);
@@ -237,7 +237,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     // Append CompositionPath to "Link" for any non-stage variable
     // Also force-emit the missing "Link" decorations
 
-    private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass, TypeDuplicateHelper typeDuplicateInserter)
+    private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass, TypeDuplicateHelper typeDuplicateInserter)
     {
         var isRootMixin = mixinNode.Stage == null;
         if (shaderClass.ImportStageOnly)
@@ -496,7 +496,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         return shaderInfo;
     }
 
-    private static void BuildTypesAndMethodGroups(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, NewSpirvBuffer temp, MixinNode mixinNode)
+    private static void BuildTypesAndMethodGroups(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, SpirvBuffer temp, MixinNode mixinNode)
     {
         // Build method group info (override, etc.)
         ShaderInfo? currentShader = null;
@@ -577,7 +577,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
-    private static void ExpandForeach(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, MixinNode mixinNode, int index, OpForeachSDSL @foreach)
+    private static void ExpandForeach(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, MixinNode mixinNode, int index, OpForeachSDSL @foreach)
     {
         // Find matching ForeachEnd (taking into account nested foreach)
         var depth = 1;
@@ -694,7 +694,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
-    private static void ProcessMemberAccessAndForeach(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp, MixinNode mixinNode)
+    private static void ProcessMemberAccessAndForeach(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp, MixinNode mixinNode)
     {
         var memberAccesses = new Dictionary<int, int>();
         var thisInstructions = new HashSet<int>();
@@ -894,7 +894,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
     
-    private void SimplifyNotSupportedConstantsInShader(SpirvContext context, NewSpirvBuffer temp)
+    private void SimplifyNotSupportedConstantsInShader(SpirvContext context, SpirvBuffer temp)
     {
         foreach (var i in context)
         {
@@ -909,7 +909,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
-    private static void RemoveInstructionWhere(NewSpirvBuffer buffer, Func<OpDataIndex, bool> match)
+    private static void RemoveInstructionWhere(SpirvBuffer buffer, Func<OpDataIndex, bool> match)
     {
         int insertIndex = 0;
         for (int sourceIndex = 0; sourceIndex < buffer.Count; sourceIndex++)
@@ -933,7 +933,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         buffer.RemoveRange(insertIndex, buffer.Count - insertIndex, false);
     }
 
-    private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
+    private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp)
     {
         // Remove in a single pass (we do in-place without RemoveAt otherwise it would be up to O(n^2) complexity)
         RemoveInstructionWhere(temp, i =>

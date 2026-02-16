@@ -16,7 +16,7 @@ internal static class VariableMerger
     /// <summary>
     /// Merges variables that have the same semantic into a single variable.
     /// </summary>
-    public static void MergeSameSemanticVariables(SymbolTable table, SpirvContext context, NewSpirvBuffer buffer, AnalysisResult analysisResult)
+    public static void MergeSameSemanticVariables(SymbolTable table, SpirvContext context, SpirvBuffer buffer, AnalysisResult analysisResult)
     {
         Dictionary<int, int> remapIds = new();
         foreach (var streamWithSameSemantic in analysisResult.Streams.Where(x => x.Value.Semantic != null).GroupBy(x => x.Value.Semantic))

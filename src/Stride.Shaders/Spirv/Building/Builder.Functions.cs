@@ -50,7 +50,7 @@ public partial class SpirvBuilder
         return value; 
     }
 
-    public static OpFunctionParameter GetFunctionParameter(NewSpirvBuffer buffer, Symbol method, int functionParameterIndex)
+    public static OpFunctionParameter GetFunctionParameter(SpirvBuffer buffer, Symbol method, int functionParameterIndex)
     {
         // Find OpFunctionParameter
         var functionParameterCurrent = 0;
@@ -67,7 +67,7 @@ public partial class SpirvBuilder
         throw new InvalidOperationException();
     }
     
-    public static void FunctionRemoveArgument(SpirvContext context, NewSpirvBuffer buffer, Symbol method, int argIndex)
+    public static void FunctionRemoveArgument(SpirvContext context, SpirvBuffer buffer, Symbol method, int argIndex)
     {
         var methodType = (FunctionType)method.Type;
         method.Type = methodType with { ParameterTypes = methodType.ParameterTypes[0..^1] };
@@ -77,7 +77,7 @@ public partial class SpirvBuilder
         SetOpNop(functionParameter.InstructionMemory.Span);
     }
 
-    public static void FunctionReplaceArgument(SpirvContext context, NewSpirvBuffer buffer, Symbol method, int argIndex, SymbolType newType)
+    public static void FunctionReplaceArgument(SpirvContext context, SpirvBuffer buffer, Symbol method, int argIndex, SymbolType newType)
     {
         var methodType = (FunctionType)method.Type;
         var parameterTypes = new List<FunctionParameter>(methodType.ParameterTypes);
@@ -89,7 +89,7 @@ public partial class SpirvBuilder
         functionParameter.ResultType = context.GetOrRegister(newType);
     }
     
-    public static (int Start, int End) FindMethodBounds(NewSpirvBuffer buffer, int functionId)
+    public static (int Start, int End) FindMethodBounds(SpirvBuffer buffer, int functionId)
     {
         int? start = null;
         for (var index = 0; index < buffer.Count; index++)

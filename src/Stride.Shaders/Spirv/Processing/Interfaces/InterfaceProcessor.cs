@@ -37,7 +37,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             };
         }
         
-        public Result Process(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context)
+        public Result Process(SymbolTable table, SpirvBuffer buffer, SpirvContext context)
         {
             var entryPoints = new List<(string Name, int Id, ShaderStage Stage)>();
 
@@ -205,7 +205,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             throw new InvalidOperationException($"outputcontrolpoints not found on hull shader {entryPoint.Id.Name}");
         }
 
-        private (int Id, string Name) GenerateStreamWrapper(SymbolTable table, NewSpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, Symbol entryPoint, AnalysisResult analysisResult, LiveAnalysis liveAnalysis, bool isFirstActiveShader)
+        private (int Id, string Name) GenerateStreamWrapper(SymbolTable table, SpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, Symbol entryPoint, AnalysisResult analysisResult, LiveAnalysis liveAnalysis, bool isFirstActiveShader)
         {
             var streams = analysisResult.Streams;
 

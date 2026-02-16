@@ -37,7 +37,7 @@ internal static class BuiltinProcessor
     /// Used when builtin types have different sizes than shader types.
     /// </summary>
     public static int ConvertInterfaceVariable(
-        NewSpirvBuffer buffer,
+        SpirvBuffer buffer,
         SpirvContext context,
         SymbolType sourceType,
         SymbolType castType,

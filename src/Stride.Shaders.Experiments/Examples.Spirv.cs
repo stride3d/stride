@@ -63,7 +63,7 @@ public static partial class Examples
         int id = 1;
 
         // var bound = new Bound();
-        var buffer = new NewSpirvBuffer();
+        var buffer = new SpirvBuffer();
         // Capabilities
 
 

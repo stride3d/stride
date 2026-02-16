@@ -58,7 +58,7 @@ public partial class ShaderMixer
         public override string ToString() => $"{ShaderName} ({(CompositionPath != null ? $" {CompositionPath} " : "")}{StartInstruction}..{EndInstruction})";
     }
 
-    private void PopulateShaderInfo(MixinGlobalContext globalContext, SpirvContext context, int contextStart, int contextEnd, NewSpirvBuffer buffer, int shaderStart, int shaderEnd, ShaderInfo shaderInfo, MixinNode mixinNode)
+    private void PopulateShaderInfo(MixinGlobalContext globalContext, SpirvContext context, int contextStart, int contextEnd, SpirvBuffer buffer, int shaderStart, int shaderEnd, ShaderInfo shaderInfo, MixinNode mixinNode)
     {
         var removedIds = new HashSet<int>();
         for (var index = shaderStart; index < shaderEnd; index++)

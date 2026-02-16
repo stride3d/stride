@@ -9,7 +9,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces.Analysis;
 
 internal static class StreamAnalyzer
 {
-    public static AnalysisResult Analyze(NewSpirvBuffer buffer, SpirvContext context)
+    public static AnalysisResult Analyze(SpirvBuffer buffer, SpirvContext context)
     {
         var streams = new Dictionary<int, StreamVariableInfo>();
 

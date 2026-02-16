@@ -9,14 +9,14 @@ namespace Stride.Shaders.Spirv.PostProcessing;
 /// </summary>
 public static class SpirvProcessor
 {
-    public static void Process(NewSpirvBuffer buffer)
+    public static void Process(SpirvBuffer buffer)
     {
         //Apply<TypeDuplicateRemover>(buffer);
         //Apply<BoundReducer>(buffer);
         //Apply<NOPRemover>(buffer);
     }
 
-    static void Apply<T>(NewSpirvBuffer buffer)
+    static void Apply<T>(SpirvBuffer buffer)
         where T : struct, INanoPass
     {
         var p = new T();

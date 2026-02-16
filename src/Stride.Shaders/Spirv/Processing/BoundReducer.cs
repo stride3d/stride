@@ -17,7 +17,7 @@ namespace Stride.Shaders.Spirv.Processing;
 public struct BoundReducer() : INanoPass
 {
 
-    public readonly void Apply(NewSpirvBuffer buffer)
+    public readonly void Apply(SpirvBuffer buffer)
     {
         // First step is to find the next idResult
         // If it's previous + 1 then it's okay, previous is now updated
@@ -65,7 +65,7 @@ public struct BoundReducer() : INanoPass
 
         
     }
-    static void ReplaceRefs(int from, int to, NewSpirvBuffer buffer)
+    static void ReplaceRefs(int from, int to, SpirvBuffer buffer)
     {
         foreach (var i in buffer)
         {

@@ -21,7 +21,7 @@ public partial class ShaderMixer
         => type is TextureType or SamplerType or BufferType or StructuredBufferType or ConstantBufferSymbol;
 
     // Process LinkSDSL, ResourceGroupSDSL and LogicalGroupSDSL; Info will be stored in resourceLinks and cbufferMemberLinks
-    private void ProcessLinks(SpirvContext context, NewSpirvBuffer buffer)
+    private void ProcessLinks(SpirvContext context, SpirvBuffer buffer)
     {
         // Link attribute: postfix with composition path
         string? compositionPath = null;
@@ -146,7 +146,7 @@ public partial class ShaderMixer
         }
     }
 
-    private void RenameVariables(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer temp)
+    private void RenameVariables(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp)
     {
         // Collect variables by names
         string? compositionPath = null;
@@ -206,7 +206,7 @@ public partial class ShaderMixer
     }
 
     // Emit reflection (except ConstantBuffers which was emitted during ComputeCBufferReflection)
-    private unsafe void ProcessReflection(MixinGlobalContext globalContext, SpirvContext context, NewSpirvBuffer buffer, Options options)
+    private unsafe void ProcessReflection(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, Options options)
     {
         Span<int> slotCounts = stackalloc int[options.ResourcesRegisterSeparate ? 4 : 1];
         slotCounts.Clear();

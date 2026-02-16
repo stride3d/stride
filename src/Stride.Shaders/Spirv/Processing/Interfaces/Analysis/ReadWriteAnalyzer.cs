@@ -13,7 +13,7 @@ internal static class ReadWriteAnalyzer
     /// <summary>
     /// Figure out (recursively) which streams are being read from and written to.
     /// </summary>
-    public static bool AnalyzeStreamReadWrites(NewSpirvBuffer buffer, SpirvContext context, int functionId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
+    public static bool AnalyzeStreamReadWrites(SpirvBuffer buffer, SpirvContext context, int functionId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
     {
         // Check if already processed
         var methodInfo = liveAnalysis.GetOrCreateMethodInfo(functionId);

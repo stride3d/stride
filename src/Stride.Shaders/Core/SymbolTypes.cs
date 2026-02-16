@@ -215,10 +215,10 @@ public sealed partial record MatrixType(ScalarType BaseType, int Rows, int Colum
 /// </summary>
 /// <param name="BaseType">The base type for the array.</param>
 /// <param name="Size">The size of the array. If -1, it means size is not defined, such as using [].</param>
-public sealed partial record ArrayType(SymbolType BaseType, int Size, (int Id, NewSpirvBuffer Buffer)? SizeExpression = null) : SymbolType()
+public sealed partial record ArrayType(SymbolType BaseType, int Size, (int Id, SpirvBuffer Buffer)? SizeExpression = null) : SymbolType()
 {
     // We want this mutable for internal use
-    public (int Id, NewSpirvBuffer Buffer)? SizeExpression { get; set; } = SizeExpression;
+    public (int Id, SpirvBuffer Buffer)? SizeExpression { get; set; } = SizeExpression;
     public override string ToId() => $"{BaseType.ToId()}[{(Size != -1 ? Size : string.Empty)}]";
     public override string ToString() => $"{BaseType}[{(Size != -1 ? Size : string.Empty)}]";
 }

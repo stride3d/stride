@@ -15,8 +15,8 @@ public partial class SpirvBuilder()
 {
     private int position;
 
-    NewSpirvBuffer buffer = new();
-    NewSpirvBuffer Buffer { get => buffer; init => buffer = value; }
+    SpirvBuffer buffer = new();
+    SpirvBuffer Buffer { get => buffer; init => buffer = value; }
     public SpirvFunction? CurrentFunction { get; internal set; }
     public SpirvBlock? CurrentBlock { get; internal set; }
     public ref int Position => ref position;
@@ -98,7 +98,7 @@ public partial class SpirvBuilder()
         => Buffer.InsertData(Position++, value);
 
     [Obsolete("Use the insert method instead")]
-    public NewSpirvBuffer GetBuffer() => Buffer;
+    public SpirvBuffer GetBuffer() => Buffer;
 
     public Op GetLastInstructionType()
     {
@@ -110,7 +110,7 @@ public partial class SpirvBuilder()
         return Spv.Dis(Buffer, writeToConsole: false);
     }
 
-    public UseTemporaryBufferHelper UseTemporaryBuffer(NewSpirvBuffer buffer, int? position = null)
+    public UseTemporaryBufferHelper UseTemporaryBuffer(SpirvBuffer buffer, int? position = null)
     {
         var result = new UseTemporaryBufferHelper(this, this.buffer, this.position);
         this.buffer = buffer;
@@ -118,7 +118,7 @@ public partial class SpirvBuilder()
         return result;
     }
 
-    public void Merge(NewSpirvBuffer other)
+    public void Merge(SpirvBuffer other)
     {
         var instructions = new List<OpData>();
         foreach (var instruction in other)
@@ -128,7 +128,7 @@ public partial class SpirvBuilder()
         Position += other.Count;
     }
 
-    public struct UseTemporaryBufferHelper(SpirvBuilder builder, NewSpirvBuffer buffer, int position) : IDisposable
+    public struct UseTemporaryBufferHelper(SpirvBuilder builder, SpirvBuffer buffer, int position) : IDisposable
     {
         public void Dispose()
         {

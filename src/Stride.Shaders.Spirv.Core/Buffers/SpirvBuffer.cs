@@ -1,146 +1,250 @@
-﻿// using CommunityToolkit.HighPerformance;
-// using CommunityToolkit.HighPerformance.Buffers;
-// using Stride.Shaders.Spirv.Core.Parsing;
-// using System;
-// using System.Buffers;
-// using System.Numerics;
+using System.Collections;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using static Stride.Shaders.Spirv.Specification;
 
-// namespace Stride.Shaders.Spirv.Core.Buffers;
+namespace Stride.Shaders.Spirv.Core.Buffers;
 
-// /// <summary>
-// /// A common SPIR-V buffer containing a header.
-// /// </summary>
-// public class SpirvBuffer : IMutSpirvBuffer
-// {
-//     private SpirvHeader header = new("1.3", 0, 0);
-//     private ArrayPool<int> pool = ArrayPool<int>.Shared;
+public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
+{
+    List<OpData> Instructions { get; set; } = [];
+    public int Count => Instructions.Count;
 
-//     public List<Instruction> Instructions { get; } = [];
+    // internal ref OpData this[int index] => ref CollectionsMarshal.AsSpan(Instructions)[index];
+    public OpDataIndex this[int index] => new(index, this);
 
-//     public Span<Instruction> InstructionsSpan => Instructions.AsSpan();
-
-//     public bool HasHeader => true;
-//     public ref SpirvHeader Header => ref header;
-
-//     public Instruction FindInstructionByResultId(int resultId)
-//     {
-//         foreach (var instruction in Instructions)
-//         {
-//             if (instruction.ResultId == resultId)
-//                 return instruction;
-//         }
-
-//         throw new InvalidOperationException();
-//     }
-
-//     public Instruction this[int index] => Instructions[index];
-
-//     public SpirvBuffer(int initialSize = 32)
-//     {
-//     }
-//     public SpirvBuffer(Memory<int> memory)
-//     {
-//         Header = SpirvHeader.Read(memory.Span);
-//         var instructions = memory[5..];
-
-//         int wid = 0;
-//         while (wid < instructions.Length)
-//         {
-//             Instructions.Add(new Instruction(instructions.Slice(wid, instructions.Span[wid] >> 16)));
-//             wid += instructions.Span[wid] >> 16;
-//         }
-//     }
-
-//     public SpirvBuffer(Span<int> span)
-//     {
-//         Header = SpirvHeader.Read(span);
-//         var instructions = span[5..];
-
-//         int wid = 0;
-//         while (wid < instructions.Length)
-//         {
-//             Add(instructions.Slice(wid, instructions[wid] >> 16));
-//             wid += instructions[wid] >> 16;
-//         }
-//     }
-
-//     public int[] ToBuffer()
-//     {
-//         var offset = 5;
-//         foreach (var instruction in Instructions)
-//             offset += instruction.WordCount;
-//         var buffer = new int[offset];
-
-//         Header.WriteTo(buffer);
-//         offset = 5;
-//         foreach (var instruction in Instructions)
-//         {
-//             instruction.Words.CopyTo(buffer.AsSpan()[offset..]);
-//             offset += instruction.WordCount;
-//         }
-
-//         return buffer;
-//     }
+    public List<OpData> Slice(int start, int length) => Instructions.Slice(start, length);
 
 
-//     public void Sort()
-//     {
-//         var sorted = new OrderedEnumerator(this);
-//         var newInstructions = new List<Instruction>();
-//         while (sorted.MoveNext())
-//         {
-//             newInstructions.Add(sorted.Current);
-//         }
+    public ref OpData GetRef(int index) => ref CollectionsMarshal.AsSpan(Instructions)[index];
 
-//         Instructions.Clear();
-//         Instructions.AddRange(newInstructions);
-//     }
+    public SpirvBuffer(Span<int> instructions) : this()
+    {
+        if (instructions.Length > 0 && instructions[0] == MagicNumber)
+            throw new InvalidOperationException();
 
-//     private Instruction CreateInstruction(Span<int> instructionData)
-//     {
-//         var instructionBuffer = pool.Rent(instructionData.Length).AsMemory(0, instructionData.Length);
-//         instructionData.CopyTo(instructionBuffer.Span);
-//         return new Instruction(instructionBuffer);
-//     }
+        int wid = 0;
+        while (wid < instructions.Length)
+        {
+            Add(new(instructions.Slice(wid, instructions[wid] >> 16)));
+            wid += instructions[wid] >> 16;
+        }
+    }
 
-//     public Instruction Add(Span<int> instructionData)
-//     {
-//         var instruction = CreateInstruction(instructionData);
+    public OpDataIndex Add(OpData data)
+    {
+        Instructions.Add(data);
+        return new OpDataIndex(Instructions.Count - 1, this);
+    }
 
-//         Instructions.Add(instruction);
-//         if (instruction.ResultId is int resultId && resultId >= Header.Bound)
-//             Header = Header with { Bound = resultId + 1 };
+    public OpDataIndex Insert(int index, OpData data)
+    {
+        Instructions.Insert(index, data);
+        return new OpDataIndex(index, this);
+    }
 
-//         return instruction;
-//     }
+    public T Add<T>(in T instruction) where T : struct, IMemoryInstruction, allows ref struct
+    {
+        Instructions.Add(new(instruction.InstructionMemory));
+        instruction.Attach(new(Instructions.Count - 1, this));
+        return instruction;
+    }
 
-//     public Instruction Insert(int position, Span<int> instructionData)
-//     {
-//         var instruction = CreateInstruction(instructionData);
+    public OpData AddData<T>(in T instruction) where T : struct, IMemoryInstruction, allows ref struct
+    {
+        Instructions.Add(new(instruction.InstructionMemory));
+        return Instructions[^1];
+    }
 
-//         Instructions.Insert(position, instruction);
-//         if (instruction.ResultId is int resultId && resultId >= Header.Bound)
-//             Header = Header with { Bound = resultId + 1 };
+    public SpirvBuffer FluentAdd<T>(in T instruction) where T : struct, IMemoryInstruction, allows ref struct
+    {
+        Instructions.Add(new(instruction.InstructionMemory));
+        var tmp = instruction;
+        return this;
+    }
+    public SpirvBuffer FluentAdd<T>(in T instruction, out T result) where T : struct, IMemoryInstruction, allows ref struct
+    {
+        result = instruction;
+        Instructions.Add(new(instruction.InstructionMemory));
+        instruction.Attach(new(Instructions.Count - 1, this));
+        return this;
+    }
 
-//         return instruction;
-//     }
+    public T Insert<T>(int index, in T instruction)
+        where T : struct, IMemoryInstruction, allows ref struct
+    {
+        Instructions.Insert(index, new(instruction.InstructionMemory));
+        instruction.Attach(new(index, this));
+        return instruction;
+    }
+    public OpData InsertData<T>(int index, in T instruction)
+        where T : struct, IMemoryInstruction, allows ref struct
+    {
+        var result = new OpData(instruction.InstructionMemory);
+        Instructions.Insert(index, result);
+        instruction.Attach(new(index, this));
+        return result;
+    }
 
-//     internal void Add<TBuff>(TBuff buffer)
-//         where TBuff : ISpirvBuffer
-//     {
-//         Instructions.AddRange(buffer.InstructionsSpan);
-//     }
+    /// <summary>
+    /// Removes an instruction at a certain index. 
+    /// <br/>Be careful when using this method, as it will invalidate any references to the removed instruction.
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns>true if the instruction was successfully removed</returns>
+    public void RemoveAt(int index, bool dispose = true)
+    {
+        if (index < 0 || index >= Instructions.Count)
+            throw new ArgumentOutOfRangeException();
+        if (dispose)
+            Instructions[index].Dispose();
+        Instructions.RemoveAt(index);
+    }
 
-//     public static SpirvBuffer Merge<T1, T2>(T1 left, T2 right)
-//         where T1 : ISpirvBuffer
-//         where T2 : ISpirvBuffer
-//     {
-//         var buff = new SpirvBuffer();
-//         buff.Add(left);
-//         buff.Add(right);
-//         foreach (var e in buff.Instructions)
-//             if (e.ResultId is int r && buff.Header.Bound < r + 1)
-//                 buff.Header = buff.Header with { Bound = r + 1 };
-//         return buff;
-//     }
-// }
+    public void RemoveRange(int index, int count, bool dispose = true)
+    {
+        if (dispose)
+        {
+            for (int i = index; i < index + count; ++i)
+                Instructions[i].Dispose();
+        }
+        Instructions.RemoveRange(index, count);
+    }
+
+    public void InsertRange(int index, params ReadOnlySpan<OpData> source)
+    {
+        Instructions.InsertRange(index, source);
+    }
+
+    public OpData Replace(int index, OpData i, bool dispose = true)
+    {
+        if (index < 0 || index >= Instructions.Count)
+            throw new InvalidOperationException();
+
+        if (dispose)
+            Instructions[index].Dispose();
+        Instructions[index] = i;
+        return Instructions[index];
+    }
+
+    public OpData Replace<T>(int index, in T instruction, bool dispose = true) where T : struct, IMemoryInstruction, allows ref struct
+    {
+        if (index < 0 || index >= Instructions.Count)
+            throw new InvalidOperationException();
+
+        if (dispose)
+            Instructions[index].Dispose();
+        Instructions[index] = new(instruction.InstructionMemory);
+        return Instructions[index];
+    }
+
+    public SpirvBuffer FluentReplace<T>(int index, in T instruction, out T result) where T : struct, IMemoryInstruction, allows ref struct
+    {
+        Replace(index, instruction);
+        instruction.Attach(new(index, this));
+        result = instruction;
+        return this;
+    }
+    
+    public Enumerator GetEnumerator() => new(this);
+
+    public struct Enumerator(SpirvBuffer buffer) : IEnumerator<OpDataIndex>
+    {
+        readonly SpirvBuffer buffer = buffer;
+        private readonly List<OpData> list = buffer.Instructions;
+        private int index = -1;
+
+        public readonly OpDataIndex Current => new(index, buffer);
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+            if (index < list.Count - 1)
+            {
+                index++;
+                return true;
+            }
+            return false;
+        }
+
+        public void Reset()
+        {
+            index = -1;
+        }
+    }
+
+    public void Sort()
+    {
+        // Note: We don't use List.Sort because it's not stable.
+        //       This is especially important for type depending on another type.
+        var sortedInstructions = Instructions.OrderBy(InstructionInfo.GetGroupOrder).ToList();
+        Instructions.Clear();
+        Instructions.AddRange(sortedInstructions);
+    }
+
+    public Span<byte> ToBytecode()
+    {
+        return SpirvBytecode.CreateBytecodeFromBuffers(this);
+    }
+
+    public bool TryGetInstructionById(int typeId, out OpDataIndex instruction)
+    {
+        foreach (var op in this)
+        {
+            var info = InstructionInfo.GetInfo(op.Op);
+            if (info.GetResultIndex(out int index) && index < op.Data.Memory.Length && op.Data.Memory.Span[index + 1] == typeId)
+            {
+                instruction = op;
+                return true;
+            }
+        }
+        instruction = default;
+        return false;
+    }
+
+    public void Dispose()
+    {
+        foreach (var instruction in Instructions)
+            instruction.Dispose();
+        Instructions.Clear();
+    }
+
+    public static SpirvBuffer Merge(SpirvBuffer buffer1, SpirvBuffer buffer2)
+    {
+        var result = new SpirvBuffer();
+        result.Instructions.AddRange(buffer1.Instructions);
+        result.Instructions.AddRange(buffer2.Instructions);
+        return result;
+    }
+
+    IEnumerator<OpDataIndex> IEnumerable<OpDataIndex>.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+}
+
+public static class IMemoryInstructionExtensions
+{
+    /// <summary>
+    /// Gets information for the instruction operation.
+    /// </summary>
+    /// <param name="op"></param>
+    /// <returns></returns>
+    public static LogicalOperandArray GetInfo<T>(this T op)
+        where T : struct, IMemoryInstruction, allows ref struct
+    {
+        if (!Unsafe.IsNullRef(ref op.OpData))
+            return InstructionInfo.GetInfo(op.OpData);
+        return InstructionInfo.GetInfo(op.InstructionMemory.Span);
+    }
+}

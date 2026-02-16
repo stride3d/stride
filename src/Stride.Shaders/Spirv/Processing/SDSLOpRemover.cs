@@ -9,7 +9,7 @@ namespace Stride.Shaders.Spirv.Processing;
 /// </summary>
 public struct NOPRemover : INanoPass
 {
-    public readonly void Apply(NewSpirvBuffer buffer)
+    public readonly void Apply(SpirvBuffer buffer)
     {
         for (int i = 0; i < buffer.Count; i++)
             if (buffer[i].Op == Op.OpNop)

@@ -18,7 +18,7 @@ internal static class MethodDuplicator
     /// On first use, backs up the original method code. On subsequent uses, creates a copy with new IDs.
     /// </summary>
     public static void DuplicateMethodIfNecessary(
-        NewSpirvBuffer buffer,
+        SpirvBuffer buffer,
         SpirvContext context,
         int functionId,
         AnalysisResult analysisResult,
