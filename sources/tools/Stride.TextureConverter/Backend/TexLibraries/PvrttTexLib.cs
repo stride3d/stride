@@ -816,15 +816,18 @@ namespace Stride.TextureConverter.TexLibraries
                 case Stride.Graphics.PixelFormat.EAC_RG11_Signed:
                     return (ulong)EPVRTPixelFormat.EAC_RG11;
                 case Stride.Graphics.PixelFormat.R32G32B32A32_Float:
-                case Stride.Graphics.PixelFormat.R32G32B32_Float:
                 case Stride.Graphics.PixelFormat.R32G32B32A32_UInt:
-                case Stride.Graphics.PixelFormat.R32G32B32_UInt:
                 case Stride.Graphics.PixelFormat.R32G32B32A32_SInt:
+                    return MakePvrPixelFormat('r', 'g', 'b', 'a', 32, 32, 32, 32);
+                case Stride.Graphics.PixelFormat.R32G32B32_Float:
+                case Stride.Graphics.PixelFormat.R32G32B32_UInt:
                 case Stride.Graphics.PixelFormat.R32G32B32_SInt:
+                    return MakePvrPixelFormat('r', 'g', 'b', ' ', 32, 32, 32, 0);
                 case Stride.Graphics.PixelFormat.R16G16B16A16_UNorm:
                 case Stride.Graphics.PixelFormat.R16G16B16A16_UInt:
                 case Stride.Graphics.PixelFormat.R16G16B16A16_SNorm:
                 case Stride.Graphics.PixelFormat.R16G16B16A16_SInt:
+                    return MakePvrPixelFormat('r', 'g', 'b', 'a', 16, 16, 16, 16);
                 case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb:
                 case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm:
                 case Stride.Graphics.PixelFormat.R8G8B8A8_UInt:
