@@ -1,0 +1,145 @@
+using CommunityToolkit.HighPerformance;
+using Stride.Shaders.Core;
+using Stride.Shaders.Spirv.Core;
+using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Tools;
+using System;
+using static Stride.Shaders.Spirv.Specification;
+
+namespace Stride.Shaders.Spirv.Building;
+
+
+
+// Should have utility functions to add instruction to the buffer
+public partial class SpirvBuilder()
+{
+    private int position;
+
+    SpirvBuffer buffer = new();
+    SpirvBuffer Buffer { get => buffer; init => buffer = value; }
+    public SpirvFunction? CurrentFunction { get; internal set; }
+    public SpirvBlock? CurrentBlock { get; internal set; }
+    public ref int Position => ref position;
+
+    public int AddFunctionVariable(int paramType, int paramVariable)
+    {
+        if (CurrentFunction is not SpirvFunction f)
+            throw new InvalidOperationException();
+
+        var currentPosition = Position;
+        var currentBlock = CurrentBlock;
+
+        SetPositionTo(f.BasicBlocks.First().Value, true);
+        // Go after label and the last OpVariable
+        Position++;
+        while (Position + 1 < Buffer.Count && Buffer[Position].Op == Op.OpVariable)
+            Position++;
+        Insert(new OpVariable(paramType, paramVariable, StorageClass.Function, null));
+
+        Position = currentPosition + 1;
+        CurrentBlock = currentBlock;
+
+        return paramVariable;
+    }
+
+
+    public void SetPositionTo<TBlock>(TBlock block, bool beggining = false)
+        where TBlock : IInstructionBlock
+    {
+        if (block is SpirvBlock bb)
+            SetPositionTo(bb.Parent);
+        bool blockFound = false;
+        Span<int> blockTermination = [
+            (int)Op.OpBranch,
+            (int)Op.OpBranchConditional,
+            (int)Op.OpSwitch,
+            (int)Op.OpReturn,
+            (int)Op.OpReturnValue,
+            (int)Op.OpKill,
+            (int)Op.OpUnreachable,
+            (int)Op.OpTerminateInvocation
+        ];
+        var pos = -1;
+        foreach (var e in Buffer)
+        {
+            pos += 1;
+            if (e.Data.IdResult is int id && id == block.Id)
+            {
+                blockFound = true;
+                // In case we want to top at the beginning of the block
+                if (beggining)
+                {
+                    Position = pos;
+                    return;
+                }
+            }
+            if (block is SpirvBlock block2 && blockFound && IsBlockTermination(e.Op))
+            {
+                CurrentBlock = block2;
+                Position = pos;
+                return;
+            }
+            else if (block is SpirvFunction && blockFound && e.Op == Op.OpFunctionEnd)
+            {
+                Position = pos;
+                return;
+            }
+        }
+        Position = Buffer.Count;
+    }
+
+
+    public T Insert<T>(in T value)
+        where T : struct, IMemoryInstruction, allows ref struct
+        => Buffer.Insert(Position++, value);
+
+    public OpData InsertData<T>(in T value)
+        where T : struct, IMemoryInstruction, allows ref struct
+        => Buffer.InsertData(Position++, value);
+
+    [Obsolete("Use the insert method instead")]
+    public SpirvBuffer GetBuffer() => Buffer;
+
+    public Op GetLastInstructionType()
+    {
+        return Buffer[Position - 1].Op;
+    }
+
+    public override string ToString()
+    {
+        return Spv.Dis(Buffer, writeToConsole: false);
+    }
+
+    public UseTemporaryBufferHelper UseTemporaryBuffer(SpirvBuffer buffer, int? position = null)
+    {
+        var result = new UseTemporaryBufferHelper(this, this.buffer, this.position);
+        this.buffer = buffer;
+        this.position = position ?? buffer.Count;
+        return result;
+    }
+
+    public void Merge(SpirvBuffer other)
+    {
+        var instructions = new List<OpData>();
+        foreach (var instruction in other)
+            instructions.Add(instruction.Data);
+        
+        buffer.InsertRange(Position, instructions.AsSpan());
+        Position += other.Count;
+    }
+
+    public struct UseTemporaryBufferHelper(SpirvBuilder builder, SpirvBuffer buffer, int position) : IDisposable
+    {
+        public void Dispose()
+        {
+            builder.buffer = buffer;
+            builder.position = position;
+        }
+    }
+
+    static char[] invalidChars = { '<', '>', '[', ']', '.', ',', '-', '#' };
+    public static string RemoveInvalidCharactersFromSymbol(string name)
+    {
+        return string.Join("_", name.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
+    }
+}

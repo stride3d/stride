@@ -1,0 +1,19 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader VoxelizationMethod : VoxelPositionStream, PositionStream4, ShaderBaseStream
+{
+    void PrepareFragment(){ }
+    void PrepareVertex(){ }
+
+    void InitializeFromTriangle(triangle Input input[3]) { }
+
+    void Append(inout TriangleStream<Output> triangleStream)
+    {
+        streams.ShadingPosition.z = streams.ShadingPosition.z * 0.5 + 0.5;
+        triangleStream.Append(streams);
+    }
+    void RestartStrip(inout TriangleStream<Output> triangleStream)
+    {
+        triangleStream.RestartStrip();
+    }
+};

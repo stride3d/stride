@@ -1,0 +1,11 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+shader CameraOrientationGizmoShader  : ComputeColor, PositionStream4
+{
+    override float4 Compute()
+    {
+        float yPosRemapped = pow((streams.PositionWS.y + 1) / 2, 3.5f); 
+        return float4(0.6f, 0.6f, 0.6f, 1.0f) * yPosRemapped;
+    }
+};

@@ -1,0 +1,62 @@
+// PSMain(ExpectedResult=#18180000)
+
+namespace Stride.Shaders.Tests;
+
+shader CompositionBase
+{
+	float Compute()
+	{
+		return 3.0 / 255.0;
+	}
+};
+ 
+shader CompositionShaderA : CompositionBase
+{
+	override float Compute()
+	{
+		return 5.0 / 255.0;
+	}
+};
+ 
+shader CompositionShaderB : CompositionBase
+{
+	override float Compute()
+	{
+		return base.Compute() + 4.0 / 255.0; // 7.0
+	}
+};
+
+shader CompositionTestArray
+{
+	stage compose CompositionBase CompsInheritedStage[];
+}
+ 
+shader CompositionTest : CompositionTestArray
+{
+    stream float4 ColorTarget : SV_Target0;
+
+	stage compose CompositionBase CompsStage[];
+	stage compose CompositionBase Comps[];
+
+	void PSMain()
+	{
+		streams.ColorTarget = 0.0;
+		foreach(var comp2 in CompsInheritedStage)
+		{
+			foreach(var comp1 in Comps)
+			{
+				streams.ColorTarget.x += comp1.Compute();
+				streams.ColorTarget.y += comp2.Compute();
+			}
+		}
+	}
+};
+
+effect CompositionArrayForeachNested
+{
+	mixin CompositionTest;
+	mixin compose Comps += CompositionShaderA;
+	mixin compose Comps += CompositionShaderB;
+	mixin compose CompsInheritedStage += CompositionShaderA;
+	mixin compose CompsInheritedStage += CompositionShaderB;
+}

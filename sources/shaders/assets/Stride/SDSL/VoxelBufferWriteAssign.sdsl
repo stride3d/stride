@@ -1,0 +1,15 @@
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+    shader VoxelBufferWriteAssign : VoxelBufferWriter
+    {
+        override void Write_Internal(RWBuffer<uint> fragmentsBuffer, inout uint address, uint data)
+        {
+            fragmentsBuffer[address] = data;
+            address++;
+        }
+        
+        override float4 Test()
+        {
+            return float4(0,1,0,1);
+        }
+    };

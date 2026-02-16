@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Direct3D.DXC" Version="1.8.2505.32" />
+    <PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.Direct3D11" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.Direct3D12" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.Shaderc" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.SPIRV.Cross" Version="2.22.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Stride.Core" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\core\Stride.Core\bin\Debug\net10.0\Stride.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Stride.Shaders" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
+    </Reference>
+    <Reference Include="Stride" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.dll</HintPath>
+    </Reference>
+    <Content Include="./native/spirv_to_dxil.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName Condition="'$(StrideDirectory)' != ''">$(MSBuildProjectName)2</AssemblyName>
+  </PropertyGroup>
+
+</Project>

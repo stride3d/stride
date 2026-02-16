@@ -1,0 +1,36 @@
+// PSMain(ExpectedResult=#0103060A)
+
+namespace Stride.Shaders.Tests;
+
+shader OverloadBase
+{
+    float TestMethod(int a, int b)
+    {
+        return a + b;
+    }
+
+    float TestMethod(int a, int b, int c, int d)
+    {
+        return a + b + c + d;
+    }
+}
+
+shader Overloads : OverloadBase
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    float TestMethod(int a)
+    {
+        return a;
+    }
+
+    float TestMethod(int a, int b, int c)
+    {
+        return a + b + c;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(TestMethod(1), TestMethod(1, 2), TestMethod(1, 2, 3), TestMethod(1, 2, 3, 4)) / 255.0;
+    }
+}

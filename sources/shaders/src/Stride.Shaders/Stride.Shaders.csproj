@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Compile Include="..\..\submodules\CppNet8\*.cs" LinkBase="CppNet" />
+    <Compile Include="..\..\submodules\CppNet8\JavaCompat\*.cs" LinkBase="CppNet\JavaCompat" />
+    <Compile Remove="..\..\submodules\CppNet8\CppReader.cs" />
+    <Compile Remove="..\..\submodules\CppNet8\CppTask.cs" />
+    <Compile Remove="..\..\submodules\CppNet8\InputLexerSource.cs" />
+    <Compile Remove="..\..\submodules\CppNet8\TokenSnifferSource.cs" />
+    <Compile Remove="StrideImported\**" Condition="'$(StrideDirectory)' != ''" />
+    <None Remove="StrideImported\**" Condition="'$(StrideDirectory)' != ''" />
+    <None Remove="gen_intrin_main.txt" />
+    <AdditionalFiles Include="gen_intrin_main.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Shaders.Spirv.Core\Stride.Shaders.Spirv.Core.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Generators.Internal\Stride.Shaders.Generators.Internal.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Stride.Core" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\core\Stride.Core\bin\Debug\net10.0\Stride.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Stride.Core.Shaders" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\shaders\Stride.Core.Shaders\bin\Debug\net10.0\Stride.Core.Shaders.dll</HintPath>
+    </Reference>
+    <Reference Include="Stride.Shaders" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <AssemblyName Condition="'$(StrideDirectory)' != ''">$(MSBuildProjectName)2</AssemblyName>
+    <WarningsAsErrors>CS8785;$(WarningsAsErrors)</WarningsAsErrors>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+</Project>

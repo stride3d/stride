@@ -1,0 +1,41 @@
+// PSMain(ExpectedResult=#24242424)
+
+namespace Stride.Shaders.Tests;
+
+shader SphericalHarmonicsUtils<int TOrder>
+{
+    float4 EvaluateSphericalHarmonics(float4 sphericalColors[TOrder * TOrder])
+    {
+        float4 result = 0.0;
+        for (int i = 0; i < TOrder * TOrder; ++i)
+        {
+            sphericalColors[i] = i / 255.0;
+            result += sphericalColors[i];
+        }
+        return result;
+    }
+}
+
+shader SphericalHarmonicsEnvironmentColor<int TOrder> : SphericalHarmonicsUtils<TOrder>
+{
+    cbuffer PerView.Lighting
+    {
+        [Color]
+        float4 SphericalColors[TOrder * TOrder];
+    }
+
+    float4 Compute()
+    {
+        return EvaluateSphericalHarmonics(SphericalColors);
+    }
+};
+ 
+shader ArrayParameter : SphericalHarmonicsEnvironmentColor<3>
+{
+    stream float4 ColorTarget : SV_Target0;
+
+	void PSMain()
+	{
+		streams.ColorTarget = Compute();
+	}
+};

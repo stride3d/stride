@@ -1,0 +1,17 @@
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader VoxelModifierApplierOpacifyAnisotropic : VoxelModifierApplierAnisotropic
+{
+    [Link("VoxelModifierApplierOpacifyIsotropic.Amount")]
+    float Amount;
+
+    override void Apply(inout float4 XP, inout float4 XN, inout float4 YP, inout float4 YN, inout float4 ZP, inout float4 ZN)
+    {
+        XP.a *= Amount;
+        XN.a *= Amount;
+        YP.a *= Amount;
+        YN.a *= Amount;
+        ZP.a *= Amount;
+        ZN.a *= Amount;
+    }
+};

@@ -1,0 +1,71 @@
+using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Spirv.Building;
+using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Xml.Linq;
+
+namespace Stride.Shaders.Core;
+
+public class SymbolFrame
+{
+    readonly Dictionary<string, Symbol> symbols = [];
+
+    public Symbol this[string name]
+    {
+        get => symbols[name];
+        set => symbols[name] = value;
+    }
+
+    public void Add(string name, Symbol symbol)
+    {
+        if (symbol.Type is FunctionType && TryGetValue(name, out var existingSymbol))
+        {
+            // If there is already a function symbol with same name, let's create or add to a group.
+            if (existingSymbol.Type is FunctionType)
+                existingSymbol = new Symbol(new(name, SymbolKind.MethodGroup, IsStage: existingSymbol.Id.IsStage), new FunctionGroupType(), 0, GroupMembers: [existingSymbol]);
+
+            existingSymbol = existingSymbol with { GroupMembers =  existingSymbol.GroupMembers.Add(symbol) };
+            symbols[name] = existingSymbol;
+        }
+        else
+        {
+            symbols.Add(name, symbol);
+        }
+    }
+
+    public void UpdateId(string name, int id)
+    {
+        ref var symbol = ref CollectionsMarshal.GetValueRefOrNullRef(symbols, name);
+        if (Unsafe.IsNullRef(ref symbol))
+            throw new InvalidOperationException();
+
+        symbol.IdRef = id;
+    }
+
+    public void Remove(string name)
+        => symbols.Remove(name);
+    public bool ContainsKey(string name) => symbols.ContainsKey(name);
+    public bool ContainsValue(Symbol symbol) => symbols.ContainsValue(symbol);
+    public bool TryGetValue(string name, out Symbol symbol)
+    {
+        if (symbols.TryGetValue(name, out symbol))
+            return true;
+
+        return false;
+    }
+
+    public bool TryGetValues(string name, List<Symbol> result)
+    {
+        if (symbols.TryGetValue(name, out var symbol))
+            result.Add(symbol);
+
+        return false;
+    }
+
+    public Dictionary<string, Symbol>.Enumerator GetEnumerator() => symbols.GetEnumerator();
+}
+
+public sealed class RootSymbolFrame() : SymbolFrame()
+{
+}

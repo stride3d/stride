@@ -1,0 +1,36 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Voxels
+{
+    shader IVoxelSampler
+    {
+        float4 Sample(float3 position, float3 normal, float diameter)
+        {
+            return 0;
+        }
+        float4 SampleByMipNearestMip(float3 position, float3 normal, float diameter)
+        {
+            return 0;
+        }
+        float4 SampleNearestMip(float3 position, float3 normal, float diameter)
+        {
+            return 0;
+        }
+        float4 SampleRaw(float3 pos, float mipmap, int textureID, int axis)
+        {
+            return float4(1, 0, 0, 0);
+        }
+        float VoxelSize()
+        {
+            return 1.0;
+        }
+        float4 Test()
+        {
+            return float4(1,0,0,1);
+        }
+        float4 ComputeLocal(float3 position)
+        {
+            return 0;
+        }
+    };
+}
