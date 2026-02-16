@@ -124,8 +124,10 @@ namespace Stride.TextureConverter.TexLibraries
             EPVRTVariableType pixelType = RetrieveNativePixelType(image.Format);
             libraryData.Header = new PVRTextureHeader(format, image.Height, image.Width, image.Depth,
                 image.MipmapCount, imageArraySize, imageFaceCount, colorSpace, pixelType);
+            // Initializing a new native texture, allocating memory.
             libraryData.Texture = new PVRTexture(libraryData.Header, IntPtr.Zero);
 
+            // Copying TexImage data into the native texture allocated memory
             int imageCount = 0;
             try
             {
