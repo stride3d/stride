@@ -114,11 +114,11 @@ namespace Stride.TextureConverter.TexLibraries
 
             bool isCube = image.Dimension == TexImage.TextureDimension.TextureCube;
             bool is3D = image.Dimension == TexImage.TextureDimension.Texture3D;
-            // Match EndLibrary logic: PvrTexLib uses face count separately
+
             int imageArraySize = isCube ? image.ArraySize / 6 : image.ArraySize;
             int imageFaceCount = isCube ? 6 : 1;
 
-            // Create native header
+            // Creating native header corresponding to the TexImage instance
             ulong format = RetrieveNativeFormat(image.Format);
             EPVRTColourSpace colorSpace = RetrieveNativeColorSpace(image.Format);
             EPVRTVariableType pixelType = RetrieveNativePixelType(image.Format);
@@ -174,7 +174,9 @@ namespace Stride.TextureConverter.TexLibraries
                 throw new TextureToolsException("Failed to convert texture to PvrTexLib native data, check your texture settings. ", e);
             }
 
+            // Freeing previous image data
             image.DisposingLibrary?.Dispose(image);
+
             image.LibraryData[this] = libraryData;
             image.DisposingLibrary = this;
         }
