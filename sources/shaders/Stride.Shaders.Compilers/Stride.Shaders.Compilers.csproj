@@ -1,40 +1,49 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Stride.props" />
+  <PropertyGroup>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(DisableRegistryUse)' != 'true'">
+    <WindowsSdkDir_10 Condition="'$(WindowsSdkDir_10)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0@InstallationFolder)</WindowsSdkDir_10>
+    <WindowsSdkDir_10 Condition="'$(WindowsSdkDir_10)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v10.0@InstallationFolder)</WindowsSdkDir_10>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Parsers\Stride.Shaders.Parsers.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Silk.NET.Direct3D.Compilers" />
-    <PackageReference Include="Silk.NET.Direct3D11" />
-    <PackageReference Include="Silk.NET.Direct3D12" />
-    <PackageReference Include="Silk.NET.Shaderc" />
+    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
+    <PackageReference Include="CommunityToolkit.HighPerformance" />
     <PackageReference Include="Silk.NET.SPIRV.Cross" />
+    <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="Silk.NET.Shaderc" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Stride.Core">
-      <HintPath>..\..\..\sources\core\Stride.Core\bin\Debug\net10.0\Stride.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Stride.Shaders">
-      <HintPath>..\..\..\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
-    </Reference>
-    <Reference Include="Stride">
-      <HintPath>..\..\..\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.dll</HintPath>
-    </Reference>
-    <Content Include="./native/spirv_to_dxil.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+  <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
+    <StrideNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">
+      <Link>runtimes\win-%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+      <RelativePath>runtimes\win-%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </StrideNativeLib>
+    <StrideNativeLib Include="..\..\..\deps\glslang\**\glslangValidator*.*">
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
+      <RelativePath>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</RelativePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </StrideNativeLib>
+    <StrideNativeLib Include="./native/spirv_to_dxil.dll">
+      <Link>runtimes\win-x64\native\%(Filename)%(Extension)</Link>
+      <RelativePath>runtimes\win-x64\native\%(Filename)%(Extension)</RelativePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </StrideNativeLib>
   </ItemGroup>
-
-
-
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyName>$(MSBuildProjectName)2</AssemblyName>
-  </PropertyGroup>
-
+  <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
+  <Import Project="$(StrideSdkTargets)" />
 </Project>

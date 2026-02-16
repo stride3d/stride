@@ -1,8 +1,8 @@
 # Parser and compiler for SDSL
 
-This repository contains a new implementation of a parser/compiler for SDSL.
+This path contains a new implementation of a parser/compiler for SDSL.
 
-This implementation is described in detail in the [wiki](https://github.com/ykafia/SDSLParser/wiki).
+This implementation is described in detail in the [wiki](https://github.com/stride3d/SDSL/wiki).
 
 ## SDSL
 

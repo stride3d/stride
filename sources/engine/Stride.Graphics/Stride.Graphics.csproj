@@ -41,7 +41,7 @@
       <GlobalPropertiesToRemove>TargetFramework;StrideGraphicsApi</GlobalPropertiesToRemove>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
+    <ProjectReference Include="..\..\shaders\Stride.Shaders\Stride.Shaders.csproj" />
     <ProjectReference Include="..\Stride\Stride.csproj" />
     <PackageReference Include="System.Memory" />
     <PackageReference Include="WinPixEventRuntime" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />

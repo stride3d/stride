@@ -70,9 +70,6 @@
     <ProjectReference Include="..\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj" />
     <ProjectReference Include="..\Stride.Editor\Stride.Editor.csproj" />
     <ProjectReference Include="..\Stride.Samples.Templates\Stride.Samples.Templates.csproj" />
-    <Reference Include="Stride.Shaders.Parsers">
-      <HintPath>..\..\shaders\Stride.Shaders.Parsers\bin\$(Configuration)\net10.0\Stride.Shaders.Parsers.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

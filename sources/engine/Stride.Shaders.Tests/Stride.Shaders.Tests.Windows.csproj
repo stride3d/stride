@@ -28,12 +28,6 @@
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <PackageReference Include="BenchmarkDotNet" />
-    <Reference Include="Stride.Shaders.Parsers">
-      <HintPath>..\..\shaders\Stride.Shaders.Parsers\bin\$(Configuration)\net10.0\Stride.Shaders.Parsers.dll</HintPath>
-    </Reference>
-    <Reference Include="Stride.Shaders.Compilers2">
-      <HintPath>..\..\shaders\Stride.Shaders.Compilers\bin\$(Configuration)\net10.0\Stride.Shaders.Compilers2.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>

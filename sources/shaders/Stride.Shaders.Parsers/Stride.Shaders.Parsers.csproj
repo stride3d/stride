@@ -1,5 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Stride.props" />
   <ItemGroup>
     <Compile Include="..\..\..\build\submodules\CppNet8\*.cs" LinkBase="CppNet" />
     <Compile Include="..\..\..\build\submodules\CppNet8\JavaCompat\*.cs" LinkBase="CppNet\JavaCompat" />
@@ -14,29 +17,17 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Spirv.Core\Stride.Shaders.Spirv.Core.csproj" />
     <ProjectReference Include="..\Stride.Shaders.Generators.Internal\Stride.Shaders.Generators.Internal.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Stride.Core">
-      <HintPath>..\..\..\sources\core\Stride.Core\bin\Debug\net10.0\Stride.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Stride.Core.Shaders">
-      <HintPath>..\..\..\sources\shaders\Stride.Core.Shaders\bin\Debug\net10.0\Stride.Core.Shaders.dll</HintPath>
-    </Reference>
-    <Reference Include="Stride.Shaders">
-      <HintPath>..\..\..\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <WarningsAsErrors>CS8785;$(WarningsAsErrors)</WarningsAsErrors>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <WarningsAsErrors>CS8785</WarningsAsErrors>
     <RootNamespace>Stride.Shaders</RootNamespace>
+    <StrideBuildTags>*</StrideBuildTags>
   </PropertyGroup>
-
+  <Import Project="$(StrideSdkTargets)" />
 </Project>

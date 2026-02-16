@@ -73,13 +73,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.IO", "..\source
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Parser", "..\sources\engine\Stride.Shaders.Parser\Stride.Shaders.Parser.csproj", "{14A47447-2A24-4ECD-B24D-6571499DCD4C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders", "..\sources\engine\Stride.Shaders\Stride.Shaders.csproj", "{273BDD15-7392-4078-91F0-AF23594A3D7B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders", "..\sources\shaders\Stride.Shaders\Stride.Shaders.csproj", "{273BDD15-7392-4078-91F0-AF23594A3D7B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Audio", "..\sources\engine\Stride.Audio\Stride.Audio.csproj", "{DE042125-C270-4D1D-9270-0759C167567A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride", "..\sources\engine\Stride\Stride.csproj", "{72390339-B2A1-4F61-A800-31ED0975B515}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Compiler", "..\sources\engine\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj", "{E8B3553F-A79F-4E50-B75B-ACEE771C320C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Compiler", "..\sources\shaders\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj", "{E8B3553F-A79F-4E50-B75B-ACEE771C320C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Input", "..\sources\engine\Stride.Input\Stride.Input.csproj", "{84DEB606-77ED-49CD-9AED-D2B13C1F5A1E}"
 EndProject

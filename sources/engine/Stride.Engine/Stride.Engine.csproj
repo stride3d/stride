@@ -31,7 +31,7 @@
     <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />
     <ProjectReference Include="..\Stride.Rendering\Stride.Rendering.csproj" />
     <ProjectReference Include="..\Stride.VirtualReality\Stride.VirtualReality.csproj" />
-    <ProjectReference Include="..\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj" />
+    <ProjectReference Include="..\..\shaders\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

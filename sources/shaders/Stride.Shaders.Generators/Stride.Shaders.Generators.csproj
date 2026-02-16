@@ -23,15 +23,6 @@
 	  <ProjectReference Include="..\Stride.Shaders.Parsers\Stride.Shaders.Parsers.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-      <Reference Include="Stride.Shaders">
-        <HintPath>..\..\..\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
-      </Reference>
-      <Reference Include="Stride.Core.Shaders">
-        <HintPath>..\..\..\sources\shaders\Stride.Core.Shaders\bin\Debug\net10.0\Stride.Core.Shaders.dll</HintPath>
-	  </Reference>
-	</ItemGroup>
-
 	<ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>

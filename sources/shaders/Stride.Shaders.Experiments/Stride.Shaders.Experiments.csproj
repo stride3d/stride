@@ -12,15 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
-    <Reference Include="Stride.Core">
-      <HintPath>..\..\..\sources\core\Stride.Core\bin\Debug\net10.0\Stride.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Stride.Shaders">
-      <HintPath>..\..\..\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
-    </Reference>
-    <Reference Include="Stride.Core.Shaders">
-      <HintPath>..\..\..\sources\shaders\Stride.Core.Shaders\bin\Debug\net10.0\Stride.Core.Shaders.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>

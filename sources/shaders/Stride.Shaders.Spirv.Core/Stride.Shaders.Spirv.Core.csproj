@@ -1,12 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-	<PropertyGroup>
-		<TargetFramework>net10.0</TargetFramework>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Stride.props" />
+  <PropertyGroup>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <WarningsAsErrors>CS8785</WarningsAsErrors>
-	</PropertyGroup>
+    <WarningsAsErrors>CS8785;$(WarningsAsErrors)</WarningsAsErrors>
+    <StrideBuildTags>*</StrideBuildTags>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<!-- <Compile Include="../../submodules/SpirvHeaders/include/spirv/unified1/spirv.cs" /> -->
@@ -28,4 +31,5 @@
 		<AdditionalFiles Include="..\..\..\build\submodules\SpirvRegistry\specs\unified1\GLSL.std.450.html" />
 	</ItemGroup>
 
+  <Import Project="$(StrideSdkTargets)" />
 </Project>

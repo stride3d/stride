@@ -36,17 +36,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Stride.Shaders.Compilers2">
-      <HintPath>..\..\shaders\Stride.Shaders.Parsers\bin\$(Configuration)\net10.0\Stride.Shaders.Compilers2.dll</HintPath>
-    </Reference>
-    <Reference Include="Stride.Shaders.Spirv.Core">
-      <HintPath>..\..\shaders\Stride.Shaders.Spirv.Core\bin\$(Configuration)\net10.0\Stride.Shaders.Spirv.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Stride.Shaders.Parsers">
-      <HintPath>..\..\shaders\Stride.Shaders\bin\$(Configuration)\net10.0\Stride.Shaders.Parsers.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
 </Project>
