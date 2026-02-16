@@ -42,6 +42,8 @@ public partial class SPVGenerator : IIncrementalGenerator
                 SourceText.From(
                     SyntaxFactory
                     .ParseCompilationUnit(@$"
+                        #pragma warning disable CS9264 // Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+
                         using static Stride.Shaders.Spirv.Specification;
                         using CommunityToolkit.HighPerformance;
                         using CommunityToolkit.HighPerformance.Buffers;
