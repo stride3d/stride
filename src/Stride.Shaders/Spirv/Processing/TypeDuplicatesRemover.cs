@@ -146,7 +146,7 @@ public class TypeDuplicateHelper
         return (value1Success, value2Success) switch
         {
             // Both succeeds: compare values
-            (true, true) => ((int)value1).CompareTo((int)value2),
+            (true, true) => ((int)value1!).CompareTo((int)value2!),
             // Only one succeeds (use bool order)
             (true, false) or (false, true) => value1Success.CompareTo(value2Success),
             // Both fails: use ID

@@ -184,19 +184,20 @@ namespace Stride.Shaders.Compilers.SDSL
                 // Note: MemberIndexOffset is simply a shift in Members index, not something like a byte offset
                 .Select(x => (
                     Variable: x.Variable,
+                    VariableId: x.Variable.Data.IdResult!.Value,
                     CompositionPath: compositionNodes.LastOrDefault(mixinNode => x.Index >= mixinNode.StartIndex).CompositionPath,
                     ShaderName: shaders.LastOrDefault(shader => x.Index >= shader.StartIndex).ShaderName,
-                    StructTypePtrId: x.Variable.Data.IdResultType.Value,
-                    StructType: context.ReverseTypes[x.Variable.Data.IdResultType.Value] is PointerType p && p.StorageClass == Specification.StorageClass.Uniform && p.BaseType is ConstantBufferSymbol s ? s : null,
+                    StructTypePtrId: x.Variable.Data.IdResultType!.Value,
+                    StructType: context.ReverseTypes[x.Variable.Data.IdResultType.Value] is PointerType { StorageClass: Specification.StorageClass.Uniform, BaseType: ConstantBufferSymbol s } ? s : null,
                     MemberIndexOffset: 0,
                     LogicalGroup: GetCBufferLogicalGroup(x.Variable.Data.IdResult.Value)))
                 // TODO: Check Decoration.Block?
                 .Where(x => x.StructType != null)
-                .GroupBy(x => ShaderClass.GetCBufferRealName(context.Names[x.Variable.Data.IdResult.Value]));
+                .GroupBy(x => ShaderClass.GetCBufferRealName(context.Names[x.VariableId]));
 
             // This helper method will transfer decorations from the old structure to the new merged structure
             // Also, it will add a default "Link" decoration if none was set
-            void ProcessDecorations(Span<(OpDataIndex Variable, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct, bool newStructure)
+            void ProcessDecorations(Span<(OpDataIndex Variable, int VariableId, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string? LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct, bool newStructure)
             {
                 var cbufferStructId = context.Types[cbufferStruct];
                 int mergedMemberIndex = 0;
@@ -220,7 +221,7 @@ namespace Stride.Shaders.Compilers.SDSL
             }
 
             // Transfer cbufferMemberLinks to new structure
-            CBufferMemberMetadata[] GenerateCBufferLinks(int cbufferVariableId, Span<(OpDataIndex Variable, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct)
+            CBufferMemberMetadata[] GenerateCBufferLinks(int cbufferVariableId, Span<(OpDataIndex Variable, int VariableId, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string? LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct)
             {
                 int mergedMemberIndex = 0;
                 var links = new CBufferMemberMetadata[cbufferStruct.Members.Count];
@@ -228,7 +229,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 {
                     for (int memberIndex = 0; memberIndex < cbuffer.StructType.Members.Count; memberIndex++, mergedMemberIndex++)
                     {
-                        links[mergedMemberIndex] = cbufferMemberMetadata[cbuffer.Variable.Data.IdResult.Value][memberIndex];
+                        links[mergedMemberIndex] = cbufferMemberMetadata[cbuffer.VariableId][memberIndex];
                     }
                 }
 
@@ -244,7 +245,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                 // In all cases, we update name to one without .0 .1 suffix
                 // (we do it even for case count == 1 because all buffer except one might have been optimized away)
-                context.Names[cbuffersSpan[0].Variable.Data.IdResult.Value] = cbuffersEntry.Key;
+                context.Names[cbuffersSpan[0].VariableId] = cbuffersEntry.Key;
 
                 if (cbuffersEntry.Count() == 1)
                 {
@@ -260,7 +261,7 @@ namespace Stride.Shaders.Compilers.SDSL
                         cbuffer.MemberIndexOffset = offset;
                         offset += cbuffer.StructType.Members.Count;
                     }
-                    var variables = cbuffers.ToDictionary(x => x.Variable.Data.IdResult.Value, x => x);
+                    var variables = cbuffers.ToDictionary(x => x.VariableId, x => x);
                     var structTypes = cbuffers.Select(x => x.StructType);
 
                     var mergedCbufferStruct = new ConstantBufferSymbol(cbuffersEntry.Key, structTypes.SelectMany(x => x.Members).ToList());
@@ -302,18 +303,18 @@ namespace Stride.Shaders.Compilers.SDSL
 
                     // Update first variable to use new type
                     cbuffersSpan[0].Variable.Data.IdResultType = mergedCbufferPtrStructId;
-                    cbufferMemberMetadata[cbuffersSpan[0].Variable.Data.IdResult.Value] = GenerateCBufferLinks(cbuffersSpan[0].Variable.Data.IdResult.Value, cbuffersSpan, mergedCbufferStruct);
+                    cbufferMemberMetadata[cbuffersSpan[0].VariableId] = GenerateCBufferLinks(cbuffersSpan[0].VariableId, cbuffersSpan, mergedCbufferStruct);
                     foreach (var i in buffer)
                     {
                         if (i.Op == Op.OpName && (OpName)i is { } name)
                         {
                             // Ensure cbuffer variable name is correct (it might still have a pending number such as Test.0 if there was multiple buffers with same name)
-                            if (cbuffersSpan[0].Variable.Data.IdResult == name.Target)
+                            if (cbuffersSpan[0].VariableId == name.Target)
                                 name.Name = cbuffersEntry.Key;
                             // Remove any other OpName (after remapping they would all point to the merged variable)
                             foreach (var cbuffer in cbuffersSpan[1..])
                             {
-                                if (cbuffer.Variable.Data.IdResult == name.Target)
+                                if (cbuffer.VariableId == name.Target)
                                     SetOpNop(i.Data.Memory.Span);
                             }
                         }
@@ -322,8 +323,8 @@ namespace Stride.Shaders.Compilers.SDSL
                     foreach (ref var cbuffer in cbuffersSpan.Slice(1))
                     {
                         // Update all cbuffers access to be replaced with first variable (unified cbuffer)
-                        idRemapping.Add(cbuffer.Variable.Data.IdResult.Value, cbuffersSpan[0].Variable.Data.IdResult.Value);
-                        removedIds.Add(cbuffer.Variable.Data.IdResult.Value);
+                        idRemapping.Add(cbuffer.VariableId, cbuffersSpan[0].VariableId);
+                        removedIds.Add(cbuffer.VariableId);
                         // Remove other cbuffer variables
                         SetOpNop(cbuffer.Variable.Data.Memory.Span);
                         // TODO: Do we want to remove unecessary types?
@@ -353,7 +354,15 @@ namespace Stride.Shaders.Compilers.SDSL
             }
             return new EffectTypeDescription { Class = EffectParameterClass.Struct, RowCount = 1, ColumnCount = 1, Name = s.Name, Members = members, ElementSize = size };
         }
+        
+        EffectTypeDescription ConvertArrayType(SpirvContext context, ArrayType a, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules)
+        {
+            EmitArrayStrideDecorations(context, a, typeModifier, alignmentRules, out var arrayStride);
 
+            var elementType = ConvertType(context, a.BaseType, typeModifier, alignmentRules);
+            return elementType with { Elements = a.Size };
+        }
+        
         EffectTypeDescription ConvertType(SpirvContext context, SymbolType symbolType, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules)
         {
             return symbolType switch
@@ -374,14 +383,6 @@ namespace Stride.Shaders.Compilers.SDSL
                 MatrixType m when typeModifier == TypeModifier.RowMajor
                     => ConvertType(context, m.BaseType, typeModifier, alignmentRules) with { Class = EffectParameterClass.MatrixRows, RowCount = m.Columns, ColumnCount = m.Rows },
             };
-
-            EffectTypeDescription ConvertArrayType(SpirvContext context, ArrayType a, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules)
-            {
-                EmitArrayStrideDecorations(context, a, typeModifier, alignmentRules, out var arrayStride);
-
-                var elementType = ConvertType(context, a.BaseType, typeModifier, alignmentRules);
-                return elementType with { Elements = a.Size };
-            }
         }
 
         private void ComputeCBufferReflection(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer)
@@ -391,7 +392,8 @@ namespace Stride.Shaders.Compilers.SDSL
                 // Note: MemberIndexOffset is simply a shift in Members index, not something like a byte offset
                 .Select(x => (
                     Variable: x,
-                    StructTypePtrId: x.Data.IdResultType.Value,
+                    VariableId: x.Data.IdResult!.Value,
+                    StructTypePtrId: x.Data.IdResultType!.Value,
                     StructType: context.ReverseTypes[x.Data.IdResultType.Value] is PointerType p && p.StorageClass == Specification.StorageClass.Uniform && p.BaseType is StructuredType s ? s : null,
                     MemberIndexOffset: 0))
                 .Where(x => x.StructType != null)
@@ -404,8 +406,8 @@ namespace Stride.Shaders.Compilers.SDSL
                 var structTypeId = context.Types[cb];
 
                 var memberInfos = new EffectValueDescription[cb.Members.Count];
-                if (!cbufferMemberMetadata.TryGetValue(cbuffer.Variable.Data.IdResult.Value, out var cbufferMetadata))
-                    throw new InvalidOperationException($"Could not find cbuffer member link info for {context.Names[cbuffer.Variable.Data.IdResult.Value]}; it should have been generated during {MergeCBuffers}");
+                if (!cbufferMemberMetadata.TryGetValue(cbuffer.VariableId, out var cbufferMetadata))
+                    throw new InvalidOperationException($"Could not find cbuffer member link info for {context.Names[cbuffer.VariableId]}; it should have been generated during {nameof(MergeCBuffers)}");
                 
                 for (var index = 0; index < cb.Members.Count; index++)
                 {
@@ -440,7 +442,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                 globalContext.Reflection.ConstantBuffers.Add(new EffectConstantBufferDescription
                 {
-                    Name = context.Names[cbuffer.Variable.Data.IdResult.Value],
+                    Name = context.Names[cbuffer.VariableId],
                     // Round buffer size to next multiple of 16 bytes
                     Size = (constantBufferOffset + 15) / 16 * 16,
 

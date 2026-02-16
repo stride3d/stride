@@ -61,7 +61,7 @@ public abstract partial class TypeVisitor<TResult>
 
 }
 
-public abstract partial class TypeRewriter : TypeVisitor<SymbolType?>
+public abstract partial class TypeRewriter : TypeVisitor<SymbolType>
 {
     protected TypeRewriter()
     {
@@ -85,10 +85,7 @@ public abstract partial class TypeRewriter : TypeVisitor<SymbolType?>
                 newList = [.. list.Slice(0, i)];
 
             if (newList != null)
-            {
-                if (temp != null)
-                    newList.Add((T)temp);
-            }
+                newList.Add((T)temp);
         }
 
         return newList ?? list;

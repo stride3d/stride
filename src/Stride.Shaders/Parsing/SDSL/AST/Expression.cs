@@ -663,20 +663,18 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
             intermediateValues = new SpirvValue[Accessors.Count + 1];
         }
 
-        var context = compiler?.Context;
-        var builder = compiler?.Builder;
         SpirvValue result = default;
 
-        if (builder != null)
+        if (compiler != null)
         {
-            result = Source.Compile(table, compiler!);
+            result = Source.Compile(table, compiler);
             intermediateValues[0] = result;
         }
         else
         {
             Source.ProcessSymbol(table);
         }
-        var currentValueType = Source.Type;
+        var currentValueType = Source.Type!;
 
         int accessChainIdCount = 0;
         void PushAccessChainId(Span<int> accessChainIds, int accessChainIndex)
@@ -693,8 +691,8 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
             // Do we need to issue an OpAccessChain?
             if (accessChainIdCount > 0)
             {
-                var resultType = context.GetOrRegister(currentValueType);
-                var accessChain = builder.Insert(new OpAccessChain(resultType, context.Bound++, result.Id, [.. accessChainIds.Slice(0, accessChainIdCount)]));
+                var resultType = compiler.Context.GetOrRegister(currentValueType);
+                var accessChain = compiler.Builder.Insert(new OpAccessChain(resultType, compiler.Context.Bound++, result.Id, [.. accessChainIds.Slice(0, accessChainIdCount)]));
                 result = new SpirvValue(accessChain.ResultId, resultType);
                 
                 if (intermediateValueIndex != null)
@@ -770,8 +768,8 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         // Note: Texture.Load expects one more coordinate
                         // i.e. tex[coord.xy] => tex.Load(int3(coord.xy, 0))
                         var indexerType = pointerType.BaseType is TextureType
-                            ? indexer.Index.ValueType.GetElementType().GetVectorOrScalar(indexer.Index.ValueType.GetElementCount() + 1)
-                            : indexer.Index.ValueType;
+                            ? indexer.Index.ValueType!.GetElementType().GetVectorOrScalar(indexer.Index.ValueType!.GetElementCount() + 1)
+                            : indexer.Index.ValueType!;
                         
                         if (!IntrinsicCallHelper.TryResolveIntrinsic(table, pointerType.BaseType, "Load", [indexerType], out var resolvedIntrinsic2))
                             throw new InvalidOperationException($"Unable to resolve intrinsic Load for type {pointerType.BaseType}");
@@ -779,14 +777,16 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         break;
                     }
 
+                    var (builder, context) = compiler;
+
                     // Emit OpAccessChain with everything so far
                     EmitOpAccessChain(accessChainIds, i - 1);
                     
                     // Note: Texture.Load expects one more coordinate
                     // i.e. tex[coord.xy] => tex.Load(int3(coord.xy, 0))
                     var indexerType2 = pointerType.BaseType is TextureType
-                        ? indexer.Index.ValueType.GetElementType().GetVectorOrScalar(indexer.Index.ValueType.GetElementCount() + 1)
-                        : indexer.Index.ValueType;
+                        ? indexer.Index.ValueType!.GetElementType().GetVectorOrScalar(indexer.Index.ValueType!.GetElementCount() + 1)
+                        : indexer.Index.ValueType!;
                     
                     if (!IntrinsicCallHelper.TryResolveIntrinsic(table, pointerType.BaseType, "Load", [indexerType2], out var resolvedIntrinsic))
                         throw new InvalidOperationException($"Unable to resolve intrinsic Load for type {pointerType.BaseType}");
@@ -827,7 +827,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
                     // StructuredBuffer are declared as OpTypeStruct { OpTypeRuntimeArray }
                     // so first, we push a 0 to access the OpTypeRuntimeArray
-                    PushAccessChainId(accessChainIds, context.CompileConstant(0).Id);
+                    PushAccessChainId(accessChainIds, compiler.Context.CompileConstant(0).Id);
                     // Then we push the index inside the array
                     var indexerValue = indexer.Index.CompileAsValue(table, compiler);
                     PushAccessChainId(accessChainIds, indexerValue.Id);
@@ -835,6 +835,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                 }
                 case (PointerType { BaseType: GeometryStreamType geometryStreamOutput },
                     MethodCall { Name.Name: "Append", Arguments.Values.Count: 1 } methodCall):
+                {
                     if (compiler == null)
                     {
                         ((MethodCall)accessor).ProcessParameterSymbols(table, null);
@@ -842,19 +843,22 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         break;
                     }
 
+                    var (builder, context) = compiler;
+
                     // Emit OpAccessChain with everything so far
                     EmitOpAccessChain(accessChainIds, i - 1);
 
                     var output = methodCall.Arguments.Values[0].CompileAsValue(table, compiler);
-                    var streamsType = (StreamsType)methodCall.Arguments.Values[0].ValueType;
+                    var streamsType = (StreamsType)methodCall.Arguments.Values[0].ValueType!;
                     // Note: if it was a Streams, implicit cast it to Output
                     if (streamsType.Kind == StreamsKindSDSL.Streams)
-                        output = new (builder.InsertData(new OpCopyLogical(context.GetOrRegister(new StreamsType(StreamsKindSDSL.Output)), context.Bound++, output.Id)));
+                        output = new(builder.InsertData(new OpCopyLogical(context.GetOrRegister(new StreamsType(StreamsKindSDSL.Output)), context.Bound++, output.Id)));
                     else if (streamsType.Kind == StreamsKindSDSL.Input)
                         throw new InvalidOperationException("StreamOutput.Append() only accepts Streams or Output objects");
                     builder.Insert(new OpEmitVertexSDSL(output.Id));
                     result = default;
                     break;
+                }
                 case (PointerType { BaseType: GeometryStreamType geometryStreamOutput },
                     MethodCall { Name.Name: "RestartStrip", Arguments.Values.Count: 0 }):
                     if (compiler == null)
@@ -867,7 +871,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     // Emit OpAccessChain with everything so far
                     EmitOpAccessChain(accessChainIds, i - 1);
 
-                    builder.Insert(new OpEndPrimitive());
+                    compiler.Builder.Insert(new OpEndPrimitive());
                     result = default;
                     break;
                 case (_, MethodCall methodCall):
@@ -884,6 +888,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     result = methodCall.Compile(table, compiler);
                     break;
                 case (PointerType { BaseType: LoadedShaderSymbol s }, Identifier field):
+                {
                     if (compiler == null)
                     {
                         if (!s.TryResolveSymbol(field.Name, out var matchingComponent))
@@ -897,6 +902,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         break;
                     }
 
+                    var (builder, context) = compiler;
                     var importedVariable = LoadedShaderSymbol.ImportSymbol(table, context, field.ResolvedSymbol);
                     
                     // Emit OpAccessChain with everything so far
@@ -905,6 +911,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     // TODO: figure out instance (this vs composition)
                     result = IdentifierBase.EmitSymbol(builder, context, importedVariable, false, result.Id);
                     break;
+                }
                 case (PointerType { BaseType: StreamsType s } p, Identifier streamVar):
                     if (compiler == null)
                     {
@@ -935,7 +942,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         break;
                     }
                     //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
-                    PushAccessChainId(accessChainIds, context.CompileConstant(index).Id);
+                    PushAccessChainId(accessChainIds, compiler.Context.CompileConstant(index).Id);
                     break;
                 // Swizzles
                 case (PointerType { BaseType: MatrixType m } p, Identifier id) when id.IsMatrixSwizzle(m, out var swizzles):
@@ -954,6 +961,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             break;
                         }
 
+                        var (builder, context) = compiler;
                         EmitOpAccessChain(accessChainIds, i - 1);
                         (result, accessor.Type) = builder.ApplyMatrixSwizzles(context, result, m, swizzles.AsSpan());
                     }
@@ -965,7 +973,8 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             accessor.Type = new PointerType(m.BaseType, p.StorageClass);
                             break;
                         }
-
+                        
+                        var (builder, context) = compiler;
                         PushAccessChainId(accessChainIds, context.CompileConstant(swizzles[0].Column).Id);
                         PushAccessChainId(accessChainIds, context.CompileConstant(swizzles[0].Row).Id);
                     }
@@ -985,6 +994,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         break;
                     }
 
+                    var (builder, context) = compiler;
                     (result, accessor.Type) = builder.ApplyMatrixSwizzles(context, result, m, swizzles.AsSpan());
                     break;
                 }
@@ -998,6 +1008,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         }
 
                         // Load value
+                        var (builder, context) = compiler;
                         EmitOpAccessChain(accessChainIds, i - 1);
                         result = new(builder.InsertData(new OpLoad(context.GetOrRegister(v), context.Bound++, result.Id, null, [])));
 
@@ -1020,6 +1031,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             break;
                         }
 
+                        var (builder, context) = compiler;
                         PushAccessChainId(accessChainIds, context.CompileConstant(ConvertSwizzle(swizzle[0])).Id);
                     }
                     break;
@@ -1039,6 +1051,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                                 throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
                         }
 
+                        var (builder, context) = compiler;
                         (result, _) = builder.ApplyVectorSwizzles(context, result, v, swizzleIndices);
 
                         break;
@@ -1053,6 +1066,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         }
 
                         // Load value
+                        var (builder, context) = compiler;
                         EmitOpAccessChain(accessChainIds, i - 1);
                         result = new(builder.InsertData(new OpLoad(context.GetOrRegister(s), context.Bound++, result.Id, null, [])));
 
@@ -1096,6 +1110,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                                 throw new InvalidOperationException($"Swizzle {accessor} is out of bound for expression {ToString(i)} of type {currentValueType}");
                         }
 
+                        var (builder, context) = compiler;
                         (result, _) = builder.ApplyScalarSwizzles(context, result, s, swizzleIndices);
                     }
                     else
@@ -1159,6 +1174,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         }
 
                         // We need to load as a variable to use OpAccessChain
+                        var (builder, context) = compiler;
                         var functionVariable = builder.AddFunctionVariable(context.GetOrRegister(new PointerType(currentValueType, Specification.StorageClass.Function)), context.Bound++);
                         builder.Insert(new OpStore(functionVariable, result.Id, null, []));
                         // Process again the same item with new type
@@ -1185,6 +1201,8 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             accessor.Type = type;
                             break;
                         }
+                        
+                        var (builder, context) = compiler;
                         
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds, i - 1);

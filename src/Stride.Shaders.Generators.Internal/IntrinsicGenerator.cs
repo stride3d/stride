@@ -35,6 +35,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
         var builder = new StringBuilder();
 
         builder.AppendLine("""
+        #nullable enable
         namespace Stride.Shaders.Core;
 
         using System.Collections.Frozen;
@@ -141,6 +142,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
         var builder = new StringBuilder();
 
         builder.AppendLine("""
+                           #nullable enable
                            namespace Stride.Shaders.Parsing.SDSL;
 
                            using System.Collections.Frozen;
@@ -196,7 +198,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
         {
             bool hasThis = DecodeThisType(ns.Key, out var thisType);
             var thisParam = hasThis ? $", SpirvValue {UncapitalizeFirstLetter(thisType)}" : "";
-            var thisArg = hasThis ? ", thisValue.Value" : "";
+            var thisArg = hasThis ? ", thisValue!.Value" : "";
             
             var intrinsicGroups = new Dictionary<string, IntrinsicOverloadGroup>();
             
@@ -292,6 +294,8 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                     }
                 }
             }
+
+            builder.AppendLine("_ => throw new InvalidOperationException($\"Intrinsic {name} not found\"),");
 
             builder.AppendLine("};");
             builder.AppendLine("}");

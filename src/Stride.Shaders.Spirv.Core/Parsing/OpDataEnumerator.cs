@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata.Ecma335;
 using Stride.Shaders.Spirv.Core.Buffers;
 using static Stride.Shaders.Spirv.Specification;
@@ -44,7 +45,7 @@ public ref struct OpDataEnumerator
 
     public SpvOperand Current => ParseCurrent();
 
-    public bool FindOperandInfo(OperandParameters p, ParameterizedOperandKey key, out ParameterizedOperand[] operands)
+    private bool FindOperandInfo(OperandParameters p, ParameterizedOperandKey key, [MaybeNullWhen(false)] out ParameterizedOperand[] operands)
     {
         if (p.TryGetValue(key, out operands))
             return true;

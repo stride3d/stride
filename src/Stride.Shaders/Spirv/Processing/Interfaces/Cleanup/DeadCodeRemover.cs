@@ -57,7 +57,7 @@ internal static class DeadCodeRemover
                     ref var logicalGroup = ref CollectionsMarshal.GetValueRefOrAddDefault(logicalGroups, $"{resourceGroup.Value.Name}.{resourceGroup.Value.LogicalGroup}", out var exists);
                     if (!exists)
                         logicalGroup = new();
-                    logicalGroup.Resources.Add(resourceGroup.Value);
+                    logicalGroup!.Resources.Add(resourceGroup.Value);
                 }
             }
         }
@@ -69,7 +69,7 @@ internal static class DeadCodeRemover
                 ref var logicalGroup = ref CollectionsMarshal.GetValueRefOrAddDefault(logicalGroups, $"{cbuffer.Value.Name}.{cbuffer.Value.LogicalGroup}", out var exists);
                 if (!exists)
                     logicalGroup = new();
-                logicalGroup.CBuffers.Add(cbuffer.Value);
+                logicalGroup!.CBuffers.Add(cbuffer.Value);
             }
         }
 
@@ -173,7 +173,7 @@ internal static class DeadCodeRemover
         {
             if (i.Op == Op.OpTypeStreamsSDSL || i.Op == Op.OpTypeGeometryStreamOutputSDSL || i.Op == Op.OpTypePatchSDSL || i.Op == Op.OpTypeFunctionSDSL || i.Op == Op.OpTypePointer || i.Op == Op.OpTypeArray)
             {
-                if (context.ReverseTypes.TryGetValue(i.Data.IdResult.Value, out var type))
+                if (context.ReverseTypes.TryGetValue(i.Data.IdResult!.Value, out var type))
                 {
                     var streamsTypeSearch = new ReadWriteAnalyzer.StreamsTypeSearch();
                     streamsTypeSearch.VisitType(type);

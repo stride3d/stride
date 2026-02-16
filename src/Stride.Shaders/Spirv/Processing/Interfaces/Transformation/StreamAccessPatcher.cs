@@ -58,7 +58,7 @@ internal static class StreamAccessPatcher
         var methodType = (FunctionType)context.ReverseTypes[method.FunctionType];
 
         var streamTypeReplacer = new StreamsTypeReplace(streamsStructType, inputStructType, outputStructType, constantsStructType);
-        var newMethodType = (FunctionType)streamTypeReplacer.VisitType(methodType);
+        var newMethodType = (FunctionType)streamTypeReplacer.VisitType(methodType)!;
         if (!ReferenceEquals(newMethodType, methodType))
         {
             methodType = newMethodType;
@@ -149,7 +149,7 @@ internal static class StreamAccessPatcher
                                     new OpCompositeExtract(context.GetOrRegister(stream.Value.Type),
                                         context.Bound++,
                                         copyLogical.Operand,
-                                        [stream.Value.InputStructFieldIndex.Value])).ResultId;
+                                        [stream.Value.InputStructFieldIndex!.Value])).ResultId;
                             }
                             else
                             {
@@ -171,7 +171,7 @@ internal static class StreamAccessPatcher
                         if (!stream.Value.Patch && stream.Value.Output)
                         {
                             // Extract value from streams
-                            tempIdsForStreamCopy[stream.Value.OutputStructFieldIndex.Value] = buffer.Insert(index++,
+                            tempIdsForStreamCopy[stream.Value.OutputStructFieldIndex!.Value] = buffer.Insert(index++,
                                 new OpCompositeExtract(context.GetOrRegister(stream.Value.Type),
                                     context.Bound++,
                                     copyLogical.Operand,
@@ -191,8 +191,8 @@ internal static class StreamAccessPatcher
                 {
                     if (stream.Value.Output)
                     {
-                        var outputValue = buffer.Insert(index++, new OpCompositeExtract(context.GetOrRegister(stream.Value.Type), context.Bound++, output, [stream.Value.OutputStructFieldIndex.Value])).ResultId;
-                        buffer.Insert(index++, new OpStore(stream.Value.OutputId.Value, outputValue, MemoryAccessMask.None, []));
+                        var outputValue = buffer.Insert(index++, new OpCompositeExtract(context.GetOrRegister(stream.Value.Type), context.Bound++, output, [stream.Value.OutputStructFieldIndex!.Value])).ResultId;
+                        buffer.Insert(index++, new OpStore(stream.Value.OutputId!.Value, outputValue, MemoryAccessMask.None, []));
                     }
                 }
 
