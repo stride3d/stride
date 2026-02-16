@@ -3,3 +3,7 @@
 [assembly: CaptureConsole]
 
 //new RenderingTests().RenderTest1("SimpleInheritance");
+
+public struct myStruct
+{
+}

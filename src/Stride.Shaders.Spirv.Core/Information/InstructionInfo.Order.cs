@@ -17,7 +17,7 @@ public partial class InstructionInfo
 {
     Dictionary<(Op, StorageClass?), int> OrderGroup = new();
 
-    public static ImmutableArray<Op> SDSLOperators { get; } = ImmutableArray.Create(Enum.GetValues<Op>().Where(x => x.ToString().Contains("SDSL")).ToArray());
+    public static ImmutableArray<Op> SDSLOperators { get; } = ImmutableArray.Create(Enum.GetValues<Op>().Where(x => x.ToString().Contains("SDSL") || x.ToString().Contains("SDFX")).ToArray());
     public static ImmutableArray<Op> OpTypes { get; } = ImmutableArray.Create(Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpType")).ToArray());
 
     void InitOrder()
@@ -26,7 +26,7 @@ public partial class InstructionInfo
         Span<Op> initSDSL = [
             Op.OpNop,
             Op.OpSDSLShader,
-            Op.OpSDSLEffect,
+            Op.OpEffectSDFX,
             Op.OpCapability,
             Op.OpSDSLCompose
         ];

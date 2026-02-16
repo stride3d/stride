@@ -37,7 +37,7 @@ public record struct PostfixParser : IParser<Expression>
                     }
                     else if (
                         matched == "."
-                        && Parsers.FollowedByDel(ref scanner, result, LiteralsParser.Identifier, out Identifier accessor, withSpaces: true, advance: true)
+                        && Parsers.FollowedByDel(ref scanner, result, LiteralsParser.IdentifierBase, out IdentifierBase accessor, withSpaces: true, advance: true)
                     )
                     {
                         ((AccessorChainExpression)parsed).Accessors.Add(accessor);

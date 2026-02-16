@@ -21,7 +21,7 @@ public record struct PrimaryParsers : IParser<Expression>
             Parenthesis,
             ArrayLiteral,
             Method,
-            MixinAccess,
+            IdentifierBase,
             Literal
         );
     }
@@ -68,11 +68,14 @@ public record struct PrimaryParsers : IParser<Expression>
         if (
             Tokens.Char('(', ref scanner, advance: true)
             && Parsers.Spaces0(ref scanner, result, out _)
-            && ExpressionParser.Expression(ref scanner, result, out parsed, new(SDSLErrorMessages.SDSL0015, scanner[position], scanner.Memory))
+            && ExpressionParser.Expression(ref scanner, result, out var expr, new(SDSLErrorMessages.SDSL0015, scanner[position], scanner.Memory))
             && Parsers.Spaces0(ref scanner, result, out _)
             && Tokens.Char(')', ref scanner, advance: true)
         )
+        {
+            parsed = new ParenthesisExpression(expr, scanner[position..scanner.Position]);
             return true;
+        }
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
@@ -95,16 +98,16 @@ public record struct PrimaryParsers : IParser<Expression>
         else return Parsers.Exit(ref scanner, result, out parsed, position);
     }
     
-    public static bool MixinAccess<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+    public static bool IdentifierBase<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (
-            ShaderClassParsers.Mixin(ref scanner, result, out var mixin)
+            LiteralsParser.IdentifierBase(ref scanner, result, out var identifier)
             && Parsers.FollowedBy(ref scanner, Tokens.Char('.'), withSpaces: true)
         )
         {
-            parsed = new MixinAccess(mixin, scanner[position..scanner.Position]);
+            parsed = identifier;
             return true;
         }
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);

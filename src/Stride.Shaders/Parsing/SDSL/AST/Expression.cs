@@ -70,14 +70,28 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
 /// Used only for <see cref="TypeName.ArraySize"/> when size is not explicitly defined.
 /// </summary>
 /// <param name="info"></param>
-public class EmptyExpression(TextLocation info) : Expression(info)
+public partial class EmptyExpression(TextLocation info) : Expression(info)
 {
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null) => throw new NotImplementedException();
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler) => throw new NotImplementedException();
     public override string ToString() => string.Empty;
 }
 
-public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLocation info) : Expression(info)
+public partial class ParenthesisExpression(Expression expression, TextLocation info) : Expression(info)
+{
+    public Expression Expression { get; set; } = expression;
+
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        Expression.ProcessSymbol(table, expectedType);
+        Type = Expression.Type;
+    }
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler) => Expression.Compile(table, compiler);
+
+    public override string ToString() => $"({Expression})";
+}
+
+public partial class MethodCall(Identifier name, ShaderExpressionList arguments, TextLocation info) : Expression(info)
 {
     public Identifier Name = name;
     public ShaderExpressionList Arguments = arguments;
@@ -363,66 +377,13 @@ public class MethodCall(Identifier name, ShaderExpressionList arguments, TextLoc
     }
 }
 
-/// <summary>
-/// Represents an accessed mixin.
-/// </summary>
-public class MixinAccess(Mixin mixin, TextLocation info) : Expression(info)
-{
-    public Mixin Mixin { get; set; } = mixin;
-
-    public Symbol ResolvedSymbol { get; set; }
-
-    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
-    {
-        var context = table.Context;
-        
-        // MixinAccess is same as Identifier static variable case, except we have generics (which is why MixinAccess was chosen over Identifier)
-        var generics = SDFX.AST.ShaderEffect.CompileGenerics(table, context, Mixin.Generics);
-        var classSource = new ShaderClassInstantiation(Mixin.Name, generics);
-        if (!table.TryResolveSymbol(classSource.ToClassNameWithGenerics(), out var symbol))
-        {
-            if (!table.ShaderLoader.Exists(classSource.ClassName))
-                throw new InvalidOperationException($"Symbol [{classSource.ClassName}] could not be found.");
-
-            // Shader is inherited (TODO: do we want to do something more "selective", i.e. import only the required variable if it's a cbuffer?)
-            var inheritedShaderCount = table.InheritedShaders.Count;
-            classSource = SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile);
-            for (int i = inheritedShaderCount; i < table.InheritedShaders.Count; ++i)
-            {
-                table.InheritedShaders[i].Symbol = ShaderClass.LoadAndCacheExternalShaderType(table, context, table.InheritedShaders[i]);
-                ShaderClass.Inherit(table, context, table.InheritedShaders[i].Symbol, false);
-            }
-
-            // We add the typename as a symbol (similar to static access in C#)
-            var shaderId = context.GetOrRegister(classSource.Symbol);
-            symbol = new Symbol(new(classSource.Symbol.Name, SymbolKind.Shader), new PointerType(classSource.Symbol, Specification.StorageClass.Private), shaderId);
-            table.CurrentFrame.Add(classSource.ToClassNameWithGenerics(), symbol);
-        }
-
-        ResolvedSymbol = symbol;
-        Type = symbol.Type;
-    }
-
-    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        
-        return Identifier.EmitSymbol(builder, context, ResolvedSymbol, builder.CurrentFunction == null);
-    }
-    public override string ToString()
-    {
-        return $"{Mixin}";
-    }
-}
-
-
 public abstract class UnaryExpression(Expression expression, Operator op, TextLocation info) : Expression(info)
 {
     public Expression Expression { get; set; } = expression;
     public Operator Operator { get; set; } = op;
 }
 
-public class PrefixExpression(Operator op, Expression expression, TextLocation info) : UnaryExpression(expression, op, info)
+public partial class PrefixExpression(Operator op, Expression expression, TextLocation info) : UnaryExpression(expression, op, info)
 {
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
@@ -434,7 +395,7 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
             case Operator.Plus:
             case Operator.Minus:
                 expression.ProcessSymbol(table, expectedType);
-                Type = expression.Type;
+                Type = expression.ValueType;
                 break;
             default:
                 table.AddError(new(info, string.Format(SDSLErrorMessages.SDSL0111, $"Prefix operator {Operator}")));
@@ -514,9 +475,11 @@ public class PrefixExpression(Operator op, Expression expression, TextLocation i
             throw new NotImplementedException();
         }
     }
+
+    public override string ToString() => $"{Operator.ToSymbol()}{Expression}"; 
 }
 
-public class CastExpression(TypeName typeName, Operator op, Expression expression, TextLocation info) : PrefixExpression(op, expression, info)
+public partial class CastExpression(TypeName typeName, Operator op, Expression expression, TextLocation info) : PrefixExpression(op, expression, info)
 {
     public TypeName TypeName { get; set; } = typeName;
 
@@ -538,10 +501,12 @@ public class CastExpression(TypeName typeName, Operator op, Expression expressio
 
         return builder.Convert(context, value, castType);
     }
+
+    public override string ToString() => $"({TypeName}){Expression}";  
 }
 
 
-public class IndexerExpression(Expression index, TextLocation info) : Expression(info)
+public partial class IndexerExpression(Expression index, TextLocation info) : Expression(info)
 {
     public Expression Index { get; set; } = index;
 
@@ -554,7 +519,7 @@ public class IndexerExpression(Expression index, TextLocation info) : Expression
     }
 }
 
-public class PostfixIncrement(Operator op, TextLocation info) : Expression(info)
+public partial class PostfixIncrement(Operator op, TextLocation info) : Expression(info)
 {
     public Operator Operator { get; set; } = op;
 
@@ -567,7 +532,7 @@ public class PostfixIncrement(Operator op, TextLocation info) : Expression(info)
     }
 }
 
-public class AccessorChainExpression(Expression source, TextLocation info) : Expression(info)
+public partial class AccessorChainExpression(Expression source, TextLocation info) : Expression(info)
 {
     public Expression Source { get; set; } = source;
     public List<Expression> Accessors { get; set; } = [];
@@ -938,7 +903,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     EmitOpAccessChain(accessChainIds, i - 1);
                     
                     // TODO: figure out instance (this vs composition)
-                    result = Identifier.EmitSymbol(builder, context, importedVariable, false, result.Id);
+                    result = IdentifierBase.EmitSymbol(builder, context, importedVariable, false, result.Id);
                     break;
                 case (PointerType { BaseType: StreamsType s } p, Identifier streamVar):
                     if (compiler == null)
@@ -1183,15 +1148,22 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     {
                         if (compiler == null)
                         {
-                            accessor.Type = new PointerType(currentValueType, Specification.StorageClass.Function);
+                            indexer.Index.ProcessSymbol(table);
+                            accessor.Type = new PointerType(currentValueType switch
+                            {
+                                MatrixType m => new VectorType(m.BaseType, m.Rows),
+                                VectorType v => v.BaseType,
+                                ArrayType a => a.BaseType,
+                            }, Specification.StorageClass.Function);
                             break;
                         }
 
                         // We need to load as a variable to use OpAccessChain
-                        var functionVariable = builder.AddFunctionVariable(context.GetOrRegister(accessor.Type), context.Bound++);
+                        var functionVariable = builder.AddFunctionVariable(context.GetOrRegister(new PointerType(currentValueType, Specification.StorageClass.Function)), context.Bound++);
                         builder.Insert(new OpStore(functionVariable, result.Id, null, []));
                         // Process again the same item with new type
-                        --i;
+                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
                 case (PointerType { BaseType: PatchType { BaseType: var t } } p, IndexerExpression indexer):
@@ -1336,7 +1308,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     }
 }
 
-public class BinaryExpression(Expression left, Operator op, Expression right, TextLocation info) : Expression(info)
+public partial class BinaryExpression(Expression left, Operator op, Expression right, TextLocation info) : Expression(info)
 {
     public Operator Op { get; set; } = op;
     public Expression Left { get; set; } = left;
@@ -1386,7 +1358,7 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
     }
 }
 
-public class TernaryExpression(Expression cond, Expression left, Expression right, TextLocation info) : Expression(info)
+public partial class TernaryExpression(Expression cond, Expression left, Expression right, TextLocation info) : Expression(info)
 {
     public Expression Condition { get; set; } = cond;
     public Expression Left { get; set; } = left;

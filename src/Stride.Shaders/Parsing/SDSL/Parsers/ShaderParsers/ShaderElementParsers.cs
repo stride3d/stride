@@ -93,44 +93,6 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         where TScanner : struct, IScanner
         => new ShaderMethodParsers().Match(ref scanner, result, out parsed, in orError);
 
-    public static bool ShaderVariable<TScanner>(ref TScanner scanner, ParseResult result, out ShaderElement parsed, in ParseError? orError = null)
-        where TScanner : struct, IScanner
-    {
-        var position = scanner.Position;
-
-        var hasStorageClass =
-            Tokens.AnyOf(
-                ["extern", "nointerpolation", "precise", "shared", "groupshared", "static", "uniform", "volatile"],
-                ref scanner,
-                out var storageClass,
-                advance: true)
-            && Parsers.Spaces1(ref scanner, result, out _)
-            ;
-        var hasTypeModifier =
-            Tokens.AnyOf(
-                ["const", "row_major", "column_major"],
-                ref scanner,
-                out var typemodifier,
-                advance: true)
-            && Parsers.Spaces1(ref scanner, result, out _)
-            ;
-
-        if (
-            Parsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typeName, out var identifier, out var value)
-            && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
-        )
-        {
-            parsed = new ShaderVariable(typeName, identifier, value, scanner[position..scanner.Position])
-            {
-                StorageClass = storageClass.ToStorageClass(),
-                TypeModifier = typemodifier.ToTypeModifier()
-            };
-            return true;
-        }
-        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
-
-    }
-
     public static bool TypeDef<TScanner>(ref TScanner scanner, ParseResult result, out ShaderElement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {

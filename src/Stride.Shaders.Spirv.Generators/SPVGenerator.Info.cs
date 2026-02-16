@@ -12,7 +12,7 @@ public partial class SPVGenerator
     public void CreateParameterizedFuncs(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<SpirvGrammar> grammarProvider)
     {
 
-        context.RegisterImplementationSourceOutput(
+        context.RegisterSourceOutput(
             grammarProvider,
             GenerateParameterizedFunctions
         );
@@ -21,7 +21,7 @@ public partial class SPVGenerator
     {
 
         GenerateKinds(context, grammarProvider);
-        context.RegisterImplementationSourceOutput(
+        context.RegisterSourceOutput(
             grammarProvider,
             GenerateInstructionInformation
         );
@@ -116,7 +116,7 @@ public partial class SPVGenerator
         var kindsProvider = grammarProvider
             .Select(static (grammar, _) => grammar.OperandKinds!.Value);
 
-        context.RegisterImplementationSourceOutput(kindsProvider,
+        context.RegisterSourceOutput(kindsProvider,
             static (spc, kinds) =>
             {
                 var builder = new StringBuilder();

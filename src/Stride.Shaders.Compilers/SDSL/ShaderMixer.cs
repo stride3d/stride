@@ -43,16 +43,22 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     
     public void MergeSDSL(ShaderSource shaderSource, Options options, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<(string Name, int Id, ShaderStage Stage)> entryPoints)
     {
+        // Create new buffer for the merged result
         var temp = new NewSpirvBuffer();
 
+        // This is the global context for this merge operation
         var context = new SpirvContext();
         context.Add(new OpCapability(Capability.Shader));
         context.Add(new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
         var shaderLoader = new CaptureLoadedShaders(ShaderLoader);
         var table = new SymbolTable(context) { ShaderLoader = shaderLoader };
 
-        var effectEvaluator = new EffectEvaluator(shaderLoader);
-        shaderSource = effectEvaluator.EvaluateEffects(shaderSource);
+        //var effectEvaluator = new EffectEvaluator(shaderLoader);
+        // We basically put the shader we want to merge through the EffectEvaluator to resolve all mixins/compositions first
+        //shaderSource = effectEvaluator.EvaluateEffects(shaderSource);
+
+        if (shaderSource is ShaderMixinGeneratorSource mixinGeneratorSource)
+            shaderSource = ShaderMixinManager.Generate(mixinGeneratorSource.Name, new());
 
         var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, shaderSource);
 
@@ -369,7 +375,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (i2.Op == Op.OpDecorate && new OpDecorate(ref i2) is { Decoration: Decoration.ResourceGroupIdSDSL, DecorationParameters: { } m } resourceGroupIdDecorate)
                 {
                     // Somehow data doesn't get mutated inside i2 if we update resourceGroupIdDecorate.Decoration, so we reference buffer directly
-                    resourceGroupIdDecorate.DecorationParameters = [m.Span[0] + resourceGroupOffset];
+                    resourceGroupIdDecorate.DecorationParameters = new(m.Span[0] + resourceGroupOffset);
                 }
 
                 if (SpirvBuilder.ContainIds(forbiddenIds, i2))

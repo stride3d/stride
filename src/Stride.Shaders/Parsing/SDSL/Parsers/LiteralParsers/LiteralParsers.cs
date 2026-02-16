@@ -26,6 +26,11 @@ public record struct LiteralsParser : IParser<Literal>
             literal = m;
             return true;
         }
+        else if (GenericIdentifier(ref scanner, result, out var g, orError))
+        {
+            literal = g;
+            return true;
+        }
         else if (Identifier(ref scanner, result, out var i, orError))
         {
             literal = i;
@@ -49,7 +54,27 @@ public record struct LiteralsParser : IParser<Literal>
     public static bool Identifier<TScanner>(ref TScanner scanner, ParseResult result, out Identifier identifier, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new IdentifierParser().Match(ref scanner, result, out identifier, orError);
+    public static bool GenericIdentifier<TScanner>(ref TScanner scanner, ParseResult result, out GenericIdentifier parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+        => new GenericIdentifierParser().Match(ref scanner, result, out parsed, orError);
+    public static bool IdentifierBase<TScanner>(ref TScanner scanner, ParseResult result, out IdentifierBase parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if (GenericIdentifier(ref scanner, result, out var g, orError))
+        {
+            parsed = g;
+            return true;
+        }
+        if (Identifier(ref scanner, result, out var i, orError))
+        {
+            parsed = i;
+            return true;
+        }
 
+        parsed = default;
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);;
+    }    
 
     public static bool TypeNameLiteral<TScanner>(ref TScanner scanner, ParseResult result, out Literal parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
@@ -246,11 +271,20 @@ public record struct Suffix(int Size, bool IsFloatingPoint, bool Signed)
 {
     public readonly override string ToString()
     {
-        return (IsFloatingPoint, Signed) switch
+        return (IsFloatingPoint, Signed, Size) switch
         {
-            (true, _) => $"f{Size}",
-            (false, false) => $"u{Size}",
-            (false, true) => $"i{Size}",
+            // More specific suffixes
+            (true, _, 16) => "h",
+            (true, _, 32) => "f",
+            (true, _, 64) => "l",
+            (false, false, 32) => "u",
+            (false, true, 32) => "",
+            (false, false, 64) => "ul",
+            (false, true, 64) => "l",
+            
+            (true, _, _) => $"f{Size}",
+            (false, false, _) => $"u{Size}",
+            (false, true, _) => $"i{Size}",
         };
     }
 }

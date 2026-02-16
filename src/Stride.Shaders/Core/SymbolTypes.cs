@@ -11,7 +11,7 @@ using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Core;
 
-public interface ISymbolTypeNode
+public interface ISymbolTypeItem
 {
     public void Accept(TypeVisitor visitor);
 
@@ -25,7 +25,7 @@ public abstract record SymbolType()
     /// </summary>
     /// <returns></returns>
     public virtual string ToId() => ToString();
-
+    
     public static bool TryGetNumeric(string name, [MaybeNullWhen(false)] out SymbolType result)
     {
         if (ScalarType.Types.TryGetValue(name, out var s))
@@ -113,6 +113,33 @@ public abstract record SymbolType()
     public abstract void Accept(TypeVisitor visitor);
 
     public abstract TResult Accept<TResult>(TypeVisitor<TResult> visitor);
+
+    internal static SymbolType Of<T>()
+    {
+        return typeof(T) switch
+        {
+            var t when t == typeof(void) => ScalarType.From("void"),
+            var t when t == typeof(bool) => ScalarType.From("bool"),
+            var t when t == typeof(byte) => ScalarType.From("byte"),
+            var t when t == typeof(sbyte) => ScalarType.From("sbyte"),
+            var t when t == typeof(short) => ScalarType.From("short"),
+            var t when t == typeof(ushort) => ScalarType.From("ushort"),
+            var t when t == typeof(Half) => ScalarType.From("half"),
+            var t when t == typeof(int) => ScalarType.From("int"),
+            var t when t == typeof(uint) => ScalarType.From("uint"),
+            var t when t == typeof(float) => ScalarType.From("float"),
+            var t when t == typeof(double) => ScalarType.From("double"),
+
+            var t when t == typeof(System.Numerics.Vector2) => VectorType.From("float2"),
+            var t when t == typeof(System.Numerics.Vector3) => VectorType.From("float3"),
+            var t when t == typeof(System.Numerics.Vector4) => VectorType.From("float4"),
+
+            var t when t == typeof(System.Numerics.Matrix3x2) => MatrixType.From("float3x2"),
+            var t when t == typeof(System.Numerics.Matrix4x4) => MatrixType.From("float4x4"),
+
+            _ => throw new NotSupportedException($"Type '{typeof(T)}' is not supported as a SymbolType."),
+        };  
+    }
 }
 
 public sealed partial record UndefinedType(string TypeName) : SymbolType()
@@ -137,7 +164,7 @@ public enum Scalar
     UInt,
     Int64,
     UInt64,
-    //Half,
+    Half,
     Float,
     Double
 }
@@ -150,6 +177,7 @@ public sealed partial record ScalarType(Scalar Type) : SymbolType()
     public static ScalarType UInt { get; } = new(Scalar.UInt);
     public static ScalarType Int64 { get; } = new(Scalar.Int64);
     public static ScalarType UInt64 { get; } = new(Scalar.UInt64);
+    public static ScalarType Half { get; } = new(Scalar.Half);
     public static ScalarType Float { get; } = new(Scalar.Float);
     public static ScalarType Double { get; } = new(Scalar.Double);
 
@@ -161,6 +189,7 @@ public sealed partial record ScalarType(Scalar Type) : SymbolType()
         Scalar.UInt => "uint",
         Scalar.Int64 => "long",
         Scalar.UInt64 => "ulong",
+        Scalar.Half => "half",
         Scalar.Float => "float",
         Scalar.Double => "double",
         _ => throw new ArgumentOutOfRangeException()
@@ -194,12 +223,12 @@ public sealed partial record ArrayType(SymbolType BaseType, int Size, (int Id, N
     public override string ToString() => $"{BaseType}[{(Size != -1 ? Size : string.Empty)}]";
 }
 
-public partial record struct StructuredTypeMember(string Name, SymbolType Type, TypeModifier TypeModifier) : ISymbolTypeNode;
+public partial record struct StructuredTypeMember(string Name, SymbolType Type, TypeModifier TypeModifier) : ISymbolTypeItem;
 
 public partial record StructuredType(string Name, List<StructuredTypeMember> Members) : SymbolType()
 {
     public override string ToId() => Name;
-    public override string ToString() => $"{Name}{{{string.Join(", ", Members.Select(x => $"{x.Type} {x.Name}"))}}}";
+    public override string ToString() => Name;
 
     public bool TryGetFieldType(string name, [MaybeNullWhen(false)] out SymbolType type)
     {
@@ -230,13 +259,12 @@ public partial record StructuredType(string Name, List<StructuredTypeMember> Mem
 
 public sealed partial record StructType(string Name, List<StructuredTypeMember> Members) : StructuredType(Name, Members)
 {
-    public override string ToString() => $"struct {base.ToString()}";
+    public override string ToString() => base.ToString();
 }
 
 public sealed partial record StructuredBufferType(SymbolType BaseType, bool WriteAllowed = false) : StructuredType($"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType.ToId()}>", [new(string.Empty, BaseType, TypeModifier.None)])
 {
     public override string ToId() => $"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType.ToId()}>";
-
     public override string ToString() => $"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType}>";
 }
 
@@ -282,7 +310,7 @@ public sealed partial record TextureCubeType(ScalarType ReturnType) : TextureTyp
 
 public sealed partial record FunctionGroupType() : SymbolType();
 
-public partial record struct FunctionParameter(SymbolType Type, ParameterModifiers Modifiers) : ISymbolTypeNode;
+public partial record struct FunctionParameter(SymbolType Type, ParameterModifiers Modifiers) : ISymbolTypeItem;
 
 public sealed partial record FunctionType(SymbolType ReturnType, List<FunctionParameter> ParameterTypes) : SymbolType()
 {
@@ -662,4 +690,9 @@ public sealed partial record PatchType(SymbolType BaseType, PatchTypeKindSDSL Ki
 public sealed partial record ShaderMixinType : SymbolType
 {
     public override string ToString() => "mixin";
+}
+
+public sealed partial record ExternalType(string Name, ShaderExpressionList? Generics) : SymbolType
+{
+    public override string ToString() => Generics != null && Generics.Values.Count > 0 ? $"{Name}<{string.Join(",", Generics.Values)}>" : Name;
 }

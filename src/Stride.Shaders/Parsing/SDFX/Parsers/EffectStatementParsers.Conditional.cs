@@ -1,14 +1,14 @@
 using Stride.Shaders.Parsing.SDFX.AST;
-using Stride.Shaders.Parsing.SDFX.Parsers;
 using Stride.Shaders.Parsing.SDSL;
+using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDFX;
 
 
 
-public record struct EffectControlsParser : IParser<EffectControl>
+public record struct EffectControlsParser : IParser<ConditionalFlow>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out EffectControl parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ConditionalFlow parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -27,7 +27,7 @@ public record struct EffectControlsParser : IParser<EffectControl>
         return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool Control<TScanner>(ref TScanner scanner, ParseResult result, out EffectControl parsed, ParseError? orError = null)
+    public static bool Control<TScanner>(ref TScanner scanner, ParseResult result, out ConditionalFlow parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => new EffectControlsParser().Match(ref scanner, result, out parsed, orError);
 

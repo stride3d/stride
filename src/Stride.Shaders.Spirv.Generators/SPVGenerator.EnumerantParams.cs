@@ -12,7 +12,7 @@ public partial class SPVGenerator : IIncrementalGenerator
 
     public void CreateEnumerantParameters(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<SpirvGrammar> grammarProvider)
     {
-        context.RegisterImplementationSourceOutput(
+        context.RegisterSourceOutput(
             grammarProvider,
             GenerateEnumerantParameters
         );

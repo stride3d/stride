@@ -15,6 +15,9 @@ public record struct SemanticError(TextLocation Location, string Message)
 
 public partial class SymbolTable : ISymbolProvider
 {
+    public bool ResolveArraySizes { get; set; } = true;
+    public bool ResolveExternalTypes { get; set; } = true;
+    
     public Dictionary<string, SymbolType> DeclaredTypes { get; } = [];
 
     public SpirvContext Context { get; init; }

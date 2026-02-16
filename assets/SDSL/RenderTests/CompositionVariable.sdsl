@@ -36,9 +36,9 @@ shader CompositionTest
 {
     stream float4 ColorTarget : SV_Target0;
 
-	CompositionBase Comp0;
-	CompositionBase Comp1;
-	CompositionBase Comp2;
+	compose CompositionBase Comp0;
+	compose CompositionBase Comp1;
+	compose CompositionBase Comp2;
  
 	void PSMain()
 	{

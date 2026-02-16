@@ -18,7 +18,7 @@ internal static class StreamAccessPatcher
     /// </summary>
     private class StreamsTypeReplace(SymbolType streamsReplacement, SymbolType inputReplacement, SymbolType outputReplacement, SymbolType? constantsReplacement) : TypeRewriter
     {
-        public override SymbolType Visit(StreamsType streamsType)
+        public override SymbolType VisitStreamsType(StreamsType streamsType)
         {
             return streamsType.Kind switch
             {
@@ -58,7 +58,7 @@ internal static class StreamAccessPatcher
         var methodType = (FunctionType)context.ReverseTypes[method.FunctionType];
 
         var streamTypeReplacer = new StreamsTypeReplace(streamsStructType, inputStructType, outputStructType, constantsStructType);
-        var newMethodType = (FunctionType)streamTypeReplacer.Visit(methodType);
+        var newMethodType = (FunctionType)streamTypeReplacer.VisitType(methodType);
         if (!ReferenceEquals(newMethodType, methodType))
         {
             methodType = newMethodType;

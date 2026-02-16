@@ -11,6 +11,7 @@
 
     <!-- Force msbuild to check to rebuild so that unit tests SDSL files are properly copied -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <RootNamespace>Stride.Shaders.Parsing.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,14 +32,28 @@
     <Reference Include="Stride.Core" Condition="'$(StrideDirectory)' != ''">
       <HintPath>$(StrideDirectory)\sources\core\Stride.Core\bin\Debug\net10.0\Stride.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Stride.Core.Mathematics" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\core\Stride.Core.Mathematics\bin\Debug\net10.0\Stride.Core.Mathematics.dll</HintPath>
+    </Reference>
     <Reference Include="Stride.Shaders" Condition="'$(StrideDirectory)' != ''">
       <HintPath>$(StrideDirectory)\sources\engine\Stride.Shaders\bin\Debug\net10.0\Stride.Shaders.dll</HintPath>
     </Reference>
+    <Reference Include="Stride.Graphics" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\engine\Stride.Graphics\bin\Debug\net10.0\Direct3D11\Stride.Graphics.dll</HintPath>
+    </Reference>
+    <Reference Include="Stride" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\engine\Stride\bin\Debug\net10.0\Stride.dll</HintPath>
+    </Reference>
+    <Reference Include="Stride.Rendering" Condition="'$(StrideDirectory)' != ''">
+      <HintPath>$(StrideDirectory)\sources\engine\Stride.Rendering\bin\Debug\net10.0\Stride.Rendering.dll</HintPath>
+    </Reference>
+    <ProjectReference Include="..\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
-    <None Include="..\..\assets\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\" />
+    <AdditionalFiles Include="..\..\assets\SDSL\RenderTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\RenderTests\" />
+    <None Include="..\..\assets\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\" Exclude="..\..\assets\SDSL\RenderTests\**" />
   </ItemGroup>
 
   <ItemGroup>

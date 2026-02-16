@@ -19,14 +19,14 @@ public abstract class Statement(TextLocation info) : ValueNode(info)
     public abstract void Compile(SymbolTable table, CompilerUnit compiler);
 }
 
-public class EmptyStatement(TextLocation info) : Statement(info)
+public partial class EmptyStatement(TextLocation info) : Statement(info)
 {
     public override SymbolType? Type { get => ScalarType.Void; set { } }
     public override void Compile(SymbolTable table, CompilerUnit compiler) { }
     public override string ToString() => ";";
 }
 
-public class ExpressionStatement(Expression expression, TextLocation info) : Statement(info)
+public partial class ExpressionStatement(Expression expression, TextLocation info) : Statement(info)
 {
     public override SymbolType? Type { get => Expression.Type; set { } }
     public Expression Expression { get; set; } = expression;
@@ -48,7 +48,7 @@ public class ExpressionStatement(Expression expression, TextLocation info) : Sta
     }
 }
 
-public class Return(TextLocation info, Expression? expression = null) : Statement(info)
+public partial class Return(TextLocation info, Expression? expression = null) : Statement(info)
 {
     public Expression? Value { get; set; } = expression;
     
@@ -82,7 +82,7 @@ public abstract class Declaration(TypeName typename, TextLocation info) : Statem
     public TypeName TypeName { get; set; } = typename;
 }
 
-public class VariableAssign(Expression variable, bool isConst, TextLocation info, AssignOperator? op = null, Expression? value = null) : Statement(info)
+public partial class VariableAssign(Expression variable, bool isConst, TextLocation info, AssignOperator? op = null, Expression? value = null) : Statement(info)
 {
     public Expression Variable { get; set; } = variable;
     public AssignOperator? Operator { get; set; } = op;
@@ -100,7 +100,7 @@ public class VariableAssign(Expression variable, bool isConst, TextLocation info
             Expression v => $"{Variable} {Operator?.ToAssignSymbol()} {v}"
         };
 }
-public class DeclaredVariableAssign(Identifier variable, bool isConst, TextLocation info, AssignOperator? op = null, Expression? value = null) : Statement(info)
+public partial class DeclaredVariableAssign(Identifier variable, bool isConst, TextLocation info, AssignOperator? op = null, Expression? value = null) : Statement(info)
 {
     public Identifier Variable { get; set; } = variable;
     public AssignOperator? Operator { get; set; } = op;
@@ -150,6 +150,7 @@ public class DeclaredVariableAssign(Identifier variable, bool isConst, TextLocat
 
     internal void ReplaceTypeName(TypeName typeName)
     {
+        TypeName.Name = typeName.Name;
         TypeName.Type = typeName.Type;
         TypeName.Info = typeName.Info;
     }
@@ -162,7 +163,7 @@ public class DeclaredVariableAssign(Identifier variable, bool isConst, TextLocat
         };
 }
 
-public class Declare(TypeName typename, TextLocation info) : Declaration(typename, info)
+public partial class Declare(TypeName typename, TextLocation info) : Declaration(typename, info)
 {
     public List<DeclaredVariableAssign> Variables { get; set; } = [];
 
@@ -220,7 +221,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
     }
 }
 
-public class Assign(TextLocation info) : Statement(info)
+public partial class Assign(TextLocation info) : Statement(info)
 {
     public List<VariableAssign> Variables { get; set; } = [];
 
@@ -278,7 +279,7 @@ public class Assign(TextLocation info) : Statement(info)
 
 
 
-public class BlockStatement(TextLocation info) : Statement(info)
+public partial class BlockStatement(TextLocation info) : Statement(info)
 {
     public List<Statement> Statements { get; set; } = [];
 

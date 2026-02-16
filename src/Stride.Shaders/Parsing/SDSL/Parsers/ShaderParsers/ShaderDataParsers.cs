@@ -25,33 +25,21 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
 
         if (Parsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typeName, out var identifier, out value))
         {
-            if (
-                Parsers.FollowedBy(ref scanner, Tokens.Char(':'), withSpaces: true, advance: true)
-                && Parsers.FollowedByDel(ref scanner, result, LiteralsParser.Identifier, out Identifier semantic, withSpaces: true, advance: true)
-            )
+            Identifier? semantic = null;
+            if (Parsers.FollowedBy(ref scanner, Tokens.Char(':'), withSpaces: true, advance: true))
             {
-                if (Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true))
-                {
-                    parsed = new(typeName, identifier, value, scanner[position..scanner.Position], semantic: semantic)
-                    {
-                        Attributes = hasAttributes ? attributes.Attributes : null!,
-                        IsStaged = isStaged,
-                        IsCompose = isCompose,
-                        Interpolation = interpolation,
-                        StreamKind = streamKind,
-                        StorageClass = storageClass,
-                        TypeModifier = typeModifier,
-                    };
-                    return true;
-                }
-                else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
+                if (!Parsers.FollowedByDel(ref scanner, result, LiteralsParser.Identifier, out semantic, withSpaces: true, advance: true))
+                    return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
             }
-            else if (Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true))
+            
+            if (Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true))
             {
                 parsed = new(typeName, identifier, value, scanner[position..scanner.Position])
                 {
+                    Semantic = semantic,
                     Attributes = hasAttributes ? attributes.Attributes : null!,
                     IsStaged = isStaged,
+                    IsCompose = isCompose,
                     Interpolation = interpolation,
                     StreamKind = streamKind,
                     StorageClass = storageClass,

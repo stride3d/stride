@@ -2,6 +2,7 @@
   "instructions": [
     {
       "opname": "OpSDSLShader",
+      "opcode" : 8000,
       "class": "Miscellaneous",
       "operands": [
         {
@@ -13,16 +14,6 @@
     {
       "opname": "OpSDSLShaderEnd",
       "class": "Miscellaneous"
-    },
-    {
-      "opname": "OpSDSLEffect",
-      "class": "Miscellaneous",
-      "operands": [
-        {
-          "kind": "LiteralString",
-          "name": "effectName"
-        }
-      ]
     },
     {
       "opname": "OpSDSLComposition",
@@ -241,59 +232,6 @@
       ]
     },
     {
-      "opname": "OpSDSLMixin",
-      "class": "Miscellaneous",
-      "operands": [
-        {
-          "kind": "LiteralString",
-          "name": "mixin"
-        },
-        {
-          "kind": "IdRef",
-          "quantifier": "*",
-          "name": "generics"
-        }
-      ]
-    },
-    {
-      "opname": "OpSDSLMixinCompose",
-      "class": "Miscellaneous",
-      "operands": [
-        {
-          "kind": "LiteralString",
-          "name": "identifier"
-        },
-        {
-            "kind": "LiteralString",
-            "name": "mixin"
-        },
-        {
-          "kind": "IdRef",
-          "quantifier": "*",
-          "name": "generics"
-        }
-      ]
-    },
-    {
-      "opname": "OpSDSLMixinComposeArray",
-      "class": "Miscellaneous",
-      "operands": [
-        {
-          "kind": "LiteralString",
-          "name": "identifier"
-        },
-        {
-          "kind": "LiteralString",
-          "name": "mixin"
-        },
-        {
-          "kind": "IdRef",
-          "quantifier": "*",
-          "name": "generics"
-        }
-      ]
-    },
-    {
       "opname": "OpSDSLGenericParameter",
       "class": "Miscellaneous",
       "operands": [
@@ -423,6 +361,74 @@
         {
           "kind": "IdRef",
           "name": "Output"
+        }
+      ]
+    },
+    {
+      "opname": "OpEffectSDFX",
+      "opcode" : 9000,
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "effectName"
+        }
+      ]
+    },
+    {
+      "opname": "OpParamsUseSDFX",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdRef",
+          "name": "paramsName"
+        }
+      ]
+    },
+    {
+      "opname": "OpParamsSDFX",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "opname": "OpParamsFieldSDFX",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "name"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "cstype"
+        }
+      ]
+    },
+    {
+      "opname": "OpMixinSDFX",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "MixinKindSDFX",
+          "name": "kind"
+        },
+        {
+          "kind": "IdRef",
+          "name": "target"
+        },
+        {
+          "kind": "IdRef",
+          "name": "value"
+        },
+        {
+          "kind": "IdRef",
+          "quantifier": "*",
+          "name": "generics"
         }
       ]
     }
@@ -949,6 +955,50 @@
         {
           "enumerant": "Always",
           "value": 8
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "StorageClass",
+      "enumerants": [
+        {
+          "enumerant": "Params",
+          "value": 8000
+        }
+      ]
+    },
+    {
+      "category": "ValueEnum",
+      "kind": "MixinKindSDFX",
+      "enumerants": [
+        {
+          "enumerant": "Default",
+          "value": 0
+        },
+        {
+          "enumerant": "ComposeSet",
+          "value": 1
+        },
+        {
+          "enumerant": "ComposeAdd",
+          "value": 2
+        },
+        {
+          "enumerant": "Child",
+          "value": 3
+        },
+        {
+          "enumerant": "Clone",
+          "value": 4
+        },
+        {
+          "enumerant": "Remove",
+          "value": 5
+        },
+        {
+          "enumerant": "Macro",
+          "value": 6
         }
       ]
     }

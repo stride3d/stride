@@ -13,7 +13,7 @@ public partial class SPVGenerator
         var sdsloProvider = grammarProvider
             .Select(static (grammar, _) => grammar);
 
-        context.RegisterImplementationSourceOutput(
+        context.RegisterSourceOutput(
             sdsloProvider,
             GenerateSDSLSpecification
         );

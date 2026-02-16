@@ -20,12 +20,6 @@ public record struct ShaderClassParsers : IParser<ShaderClass>
     public static bool ComplexClass<TScanner>(ref TScanner scanner, ParseResult result, out ShaderClass parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderClassParser().Match(ref scanner, result, out parsed, in orError);
-    public static bool GenericsDefinition<TScanner>(ref TScanner scanner, ParseResult result, out ShaderGenerics parsed)
-        where TScanner : struct, IScanner
-        => new ShaderGenericsDefinitionParser().Match(ref scanner, result, out parsed);
-    public static bool Mixin<TScanner>(ref TScanner scanner, ParseResult result, out Mixin parsed, in ParseError? orError = null)
-        where TScanner : struct, IScanner
-        => new ShaderMixinParser().Match(ref scanner, result, out parsed);
 }
 
 public record struct SimpleShaderClassParser : IParser<ShaderClass>
@@ -70,8 +64,12 @@ public record struct ShaderClassParser : IParser<ShaderClass>
     {
         var position = scanner.Position;
         var tmp = position;
+        var @internal = false;
         if (Tokens.Literal("internal", ref scanner, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
+        {
+            @internal = true;
             tmp = scanner.Position;
+        }
         if(Parsers.FollowedBy(ref scanner, Tokens.Literal("partial"), withSpaces: true, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
             tmp = scanner.Position;
         if (
@@ -87,6 +85,7 @@ public record struct ShaderClassParser : IParser<ShaderClass>
             )
             {
                 parsed = new ShaderClass(identifier, scanner[..]);
+                parsed.Internal = @internal;
                 if (Tokens.Char('<', ref scanner, advance: true))
                 {
                     ParameterParsers.Declarations(ref scanner, result, out var generics);
@@ -99,7 +98,7 @@ public record struct ShaderClassParser : IParser<ShaderClass>
                 if (Tokens.Char(':', ref scanner, advance: true))
                 {
                     Parsers.Spaces0(ref scanner, result, out _);
-                    while (ShaderClassParsers.Mixin(ref scanner, result, out var mixin))
+                    while (LiteralsParser.IdentifierBase(ref scanner, result, out var mixin))
                     {
                         parsed.Mixins.Add(mixin);
                         Parsers.Spaces0(ref scanner, result, out _);
@@ -138,24 +137,14 @@ public record struct ShaderClassParser : IParser<ShaderClass>
     }
 }
 
-
-public record struct ShaderMixinParser : IParser<Mixin>
+public record struct GenericIdentifierParser : IParser<GenericIdentifier>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Mixin parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out GenericIdentifier parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        List<Identifier> path = [];
-        do
+        if (LiteralsParser.Identifier(ref scanner, result, out var typename)
+            && Parsers.Spaces0(ref scanner, result, out _))
         {
-            if(LiteralsParser.Identifier(ref scanner, result, out var id))
-                path.Add(id);
-        }
-        while (!scanner.IsEof && Tokens.Char('.', ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _));
-
-        if (path.Count > 0)
-        {
-            var identifier = path[^1];
-            parsed = new Mixin(identifier, scanner[..]);
             var tmpPos = scanner.Position;
             Parsers.Spaces0(ref scanner, result, out _);
             if (
@@ -164,18 +153,13 @@ public record struct ShaderMixinParser : IParser<Mixin>
             )
             {
                 ParameterParsers.GenericsList(ref scanner, result, out var values);
-                parsed.Generics = values;
-                parsed.Path = path[..^1];
                 Parsers.Spaces0(ref scanner, result, out _);
                 if (!Tokens.Char('>', ref scanner, advance: true))
                     return Parsers.Exit(ref scanner, result, out parsed, position);
+                parsed = new GenericIdentifier(typename, values, scanner[position..scanner.Position]);
                 return true;
             }
-            else
-            {
-                scanner.Position = tmpPos;
-                return true;
-            }
+            scanner.Position = tmpPos;
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }

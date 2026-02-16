@@ -22,6 +22,7 @@ public enum SymbolKind
     RGroup,
     SamplerState,
     SamplerComparisonState,
+    ExternalType,
 }
 
 public enum Storage : ushort

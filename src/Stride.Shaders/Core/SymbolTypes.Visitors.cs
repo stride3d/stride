@@ -2,13 +2,13 @@ namespace Stride.Shaders.Core;
 
 public abstract partial class TypeVisitor
 {
-    protected virtual void VisitNodeList<T>(List<T> list) where T : ISymbolTypeNode
+    protected virtual void VisitItemList<T>(List<T> list) where T : ISymbolTypeItem
     {
         foreach (var item in list)
-            VisitNode(item);
+            VisitItem(item);
     }
 
-    protected virtual void VisitTypeList<T>(List<T> list) where T : ShaderSymbol
+    protected virtual void VisitTypeList<T>(List<T> list) where T : SymbolType
     {
         foreach (var item in list)
             VisitType(item);
@@ -18,7 +18,7 @@ public abstract partial class TypeVisitor
     {
     }
 
-    public void DefaultVisit<T>(T node) where T : struct, ISymbolTypeNode
+    public void DefaultVisit<T>(T item) where T : struct, ISymbolTypeItem
     {
     }
 
@@ -27,9 +27,9 @@ public abstract partial class TypeVisitor
         type?.Accept(this);
     }
 
-    public virtual void VisitNode<T>(T node) where T : ISymbolTypeNode
+    public virtual void VisitItem<T>(T item) where T : ISymbolTypeItem
     {
-        node?.Accept(this);
+        item?.Accept(this);
     }
 }
 
@@ -44,7 +44,7 @@ public abstract partial class TypeVisitor<TResult>
         return default;
     }
 
-    public virtual bool DefaultVisit<T>(ref T node) where T : struct, ISymbolTypeNode
+    public virtual bool DefaultVisit<T>(ref T item) where T : struct, ISymbolTypeItem
     {
         return true;
     }
@@ -54,9 +54,9 @@ public abstract partial class TypeVisitor<TResult>
         return type.Accept(this);
     }
 
-    public virtual bool VisitNode<T>(ref T node) where T : struct, ISymbolTypeNode
+    public virtual bool VisitItem<T>(ref T item) where T : struct, ISymbolTypeItem
     {
-        return node.Accept(this);
+        return item.Accept(this);
     }
 
 }
@@ -94,7 +94,7 @@ public abstract partial class TypeRewriter : TypeVisitor<SymbolType?>
         return newList ?? list;
     }
 
-    protected List<T> VisitNodeList<T>(List<T> list) where T : struct, ISymbolTypeNode
+    protected List<T> VisitItemList<T>(List<T> list) where T : struct, ISymbolTypeItem
     {
         var equalityComparer = EqualityComparer<T>.Default;
 
@@ -102,7 +102,7 @@ public abstract partial class TypeRewriter : TypeVisitor<SymbolType?>
         for (int i = 0; i < list.Count; ++i)
         {
             var value = list[i];
-            var keep = VisitNode(ref value);
+            var keep = VisitItem(ref value);
 
             // First time change?
             if ((!keep || !equalityComparer.Equals(value, list[i])) && newList == null)

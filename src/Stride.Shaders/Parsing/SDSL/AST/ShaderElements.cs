@@ -144,20 +144,7 @@ public static class ShaderVariableInformationExtensions
     }
 }
 
-public class ShaderVariable(TypeName typeName, Identifier name, Expression? value, TextLocation info) : ShaderElement(info)
-{
-    public Identifier Name { get; set; } = name;
-    public TypeName TypeName { get; set; } = typeName;
-    public Expression? Value { get; set; } = value;
-    public StorageClass StorageClass { get; set; } = StorageClass.None;
-    public TypeModifier TypeModifier { get; set; } = TypeModifier.None;
-    public override string ToString()
-    {
-        return $"{(StorageClass != StorageClass.None ? $"{StorageClass} " : "")}{(TypeModifier != TypeModifier.None ? $"{TypeModifier} " : "")} {TypeName} {Name} = {Value}";
-    }
-}
-
-public class TypeDef(TypeName type, Identifier name, TextLocation info) : ShaderElement(info)
+public partial class TypeDef(TypeName type, Identifier name, TextLocation info) : ShaderElement(info)
 {
     public Identifier Name { get; set; } = name;
     public TypeName TypeName { get; set; } = type;
@@ -207,7 +194,7 @@ public abstract class ShaderBuffer : ShaderElement
     public abstract void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler);
 }
 
-public class ShaderStructMember(TypeName typename, Identifier identifier, TextLocation info) : Node(info)
+public partial class ShaderStructMember(TypeName typename, Identifier identifier, TextLocation info) : Node(info)
 {
     public TypeName TypeName { get; set; } = typename;
     public SymbolType? Type { get; set; }
@@ -226,7 +213,7 @@ public class ShaderStructMember(TypeName typename, Identifier identifier, TextLo
     }
 }
 
-public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElement(info)
+public partial class ShaderStruct(Identifier typename, TextLocation info) : ShaderElement(info)
 {
     public Identifier TypeName { get; set; } = typename;
     public List<ShaderStructMember> Members { get; set; } = [];
@@ -261,7 +248,7 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
     }
 }
 
-public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name, info)
+public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuffer(name, info)
 {
     public Symbol Symbol { get; private set; }
     private bool? isStaged;
@@ -395,7 +382,7 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
     }
 }
 
-public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, info)
+public sealed partial class RGroup(string name, TextLocation info) : ShaderBuffer(name, info)
 {
     public List<Symbol> Symbols { get; } = new();
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
@@ -462,7 +449,7 @@ public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, 
     }
 }
 
-public sealed class TBuffer(string name, TextLocation info) : ShaderBuffer(name, info)
+public sealed partial class TBuffer(string name, TextLocation info) : ShaderBuffer(name, info)
 {
     public override void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
     {

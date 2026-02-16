@@ -1,5 +1,4 @@
 using CommunityToolkit.HighPerformance.Buffers;
-
 namespace Stride.Shaders.Parsing;
 
 public record struct TextLocation(ReadOnlyMemory<char> Original, Range Range)

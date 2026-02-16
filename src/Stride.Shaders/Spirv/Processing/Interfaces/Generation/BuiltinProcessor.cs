@@ -111,11 +111,11 @@ internal static class BuiltinProcessor
             (not ExecutionModel.Fragment, StreamVariableType.Output, "SV_POSITION") => AddBuiltin(context, variable, BuiltIn.Position),
             (not ExecutionModel.Fragment and not ExecutionModel.Vertex, StreamVariableType.Input, "SV_POSITION") => AddBuiltin(context, variable, BuiltIn.Position),
             (ExecutionModel.Fragment, StreamVariableType.Input, "SV_POSITION") => AddBuiltin(context, variable, BuiltIn.FragCoord),
-            // SV_InstanceID/SV_VertexID
+            // Vertex shaders inputs (SV_InstanceID, SV_VertexID, etc.)
             (ExecutionModel.Vertex, StreamVariableType.Input, "SV_INSTANCEID") => AddBuiltin(context, variable, BuiltIn.InstanceIndex),
             (ExecutionModel.Vertex, StreamVariableType.Input, "SV_VERTEXID") => AddBuiltin(context, variable, BuiltIn.VertexIndex),
-            (not ExecutionModel.Vertex, StreamVariableType.Input, "SV_INSTANCEID" or "SV_VERTEXID") => false,
-            // SV_IsFrontFace
+            (>= ExecutionModel.Vertex, _, "SV_INSTANCEID" or "SV_VERTEXID") => false, // forward from VS to the next stages
+            // Pixel shader inputs (SV_IsFrontFace)
             (ExecutionModel.Fragment, StreamVariableType.Input, "SV_ISFRONTFACE") => AddBuiltin(context, variable, BuiltIn.FrontFacing),
             // SV_PrimitiveID
             (ExecutionModel.Geometry, StreamVariableType.Output, "SV_PRIMITIVEID") => AddBuiltin(context, variable, BuiltIn.PrimitiveId),

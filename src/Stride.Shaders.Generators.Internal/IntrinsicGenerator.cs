@@ -134,11 +134,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
     static string UncapitalizeFirstLetter(string s) => char.ToLower(s[0]) + s[1..];
 
     // Group of intrinsics with same parameter names (parameter types might differ)
-    record IntrinsicOverloadGroup(string Name, List<IntrinsicParameter> MandatoryParameters, List<IntrinsicParameter> OptionalParameters, List<(string DeclaringNamespace, IntrinsicDeclaration Declaration)> Overloads)
-    {
-        public string Name { get; set; } = Name;
-        public TrieNode<IntrinsicOverloadGroup> TrieNode { get; set; }
-    }
+    record IntrinsicOverloadGroup(string Name, List<IntrinsicParameter> MandatoryParameters, List<IntrinsicParameter> OptionalParameters, List<(string DeclaringNamespace, IntrinsicDeclaration Declaration)> Overloads);
     
     static void GenerateIntrinsicsCall(SourceProductionContext spc, EquatableList<NamespaceDeclaration> namespaces)
     {

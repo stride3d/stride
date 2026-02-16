@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Spirv.Core",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders", "src\Stride.Shaders\Stride.Shaders.csproj", "{595979CB-8447-4EA0-9A9F-0CBD8B9442BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Parsing.Tests", "src\Stride.Shaders.Tests\Stride.Shaders.Parsing.Tests.csproj", "{35A9F4C4-F5C8-4D84-9688-6FAB30E49AC7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Tests", "src\Stride.Shaders.Tests\Stride.Shaders.Tests.csproj", "{35A9F4C4-F5C8-4D84-9688-6FAB30E49AC7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.LSP", "src\Stride.Shaders.LSP\Stride.Shaders.LSP.csproj", "{4F8838DA-16F0-4EC0-A0A4-8F89F47E35C5}"
 EndProject
@@ -19,7 +19,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Compilers", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Experiments", "src\Stride.Shaders.Experiments\Stride.Shaders.Experiments.csproj", "{11FFBEAC-C3B8-49FA-9C6A-B0DDDA48EBE6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Generators", "src\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj", "{33AF20B6-38AC-D0DE-2CAA-8B27560F84E6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Generators.Internal", "src\Stride.Shaders.Generators.Internal\Stride.Shaders.Generators.Internal.csproj", "{33AF20B6-38AC-D0DE-2CAA-8B27560F84E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Generators", "src\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj", "{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -127,6 +129,18 @@ Global
 		{33AF20B6-38AC-D0DE-2CAA-8B27560F84E6}.Release|x64.Build.0 = Release|Any CPU
 		{33AF20B6-38AC-D0DE-2CAA-8B27560F84E6}.Release|x86.ActiveCfg = Release|Any CPU
 		{33AF20B6-38AC-D0DE-2CAA-8B27560F84E6}.Release|x86.Build.0 = Release|Any CPU
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}.Debug|x64.Build.0 = Debug|Any CPU
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}.Debug|x86.Build.0 = Debug|Any CPU
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}.Release|x64.ActiveCfg = Release|Any CPU
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}.Release|x64.Build.0 = Release|Any CPU
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}.Release|x86.ActiveCfg = Release|Any CPU
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -140,5 +154,6 @@ Global
 		{32B1203D-8160-455A-9F00-8097119B7EB4} = {9B25B78A-8418-4161-99D6-5E84611BDA59}
 		{11FFBEAC-C3B8-49FA-9C6A-B0DDDA48EBE6} = {9B25B78A-8418-4161-99D6-5E84611BDA59}
 		{33AF20B6-38AC-D0DE-2CAA-8B27560F84E6} = {9B25B78A-8418-4161-99D6-5E84611BDA59}
+		{4EEDDA27-A63C-4D7C-907B-B95ECAED3B11} = {9B25B78A-8418-4161-99D6-5E84611BDA59}
 	EndGlobalSection
 EndGlobal

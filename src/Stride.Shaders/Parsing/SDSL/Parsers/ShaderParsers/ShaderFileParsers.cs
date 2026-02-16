@@ -1,4 +1,4 @@
-using Stride.Shaders.Parsing.SDFX.Parsers;
+using Stride.Shaders.Parsing.SDFX;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDSL;
