@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using Silk.NET.Core.Native;
-using Silk.NET.Direct3D.Compilers;
 using Silk.NET.Shaderc;
 using Silk.NET.SPIRV.Cross;
 using Stride.Shaders.Spirv.Core;

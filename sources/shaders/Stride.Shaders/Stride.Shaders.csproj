@@ -38,6 +38,7 @@
     <AssemblyName Condition="'$(StrideDirectory)' != ''">$(MSBuildProjectName)2</AssemblyName>
     <WarningsAsErrors>CS8785;$(WarningsAsErrors)</WarningsAsErrors>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <WarningsAsErrors>CS8785</WarningsAsErrors>
   </PropertyGroup>
 
 </Project>

@@ -5,11 +5,12 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <WarningsAsErrors>CS8785</WarningsAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<!-- <Compile Include="../../submodules/SpirvHeaders/include/spirv/unified1/spirv.cs" /> -->
-		<PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
+		<PackageReference Include="CommunityToolkit.HighPerformance" />
 		<ProjectReference Include="../Stride.Shaders.Spirv.Generators/Stride.Shaders.Spirv.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
