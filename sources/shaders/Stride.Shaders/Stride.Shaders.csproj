@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <Compile Include="..\..\submodules\CppNet8\*.cs" LinkBase="CppNet" />
-    <Compile Include="..\..\submodules\CppNet8\JavaCompat\*.cs" LinkBase="CppNet\JavaCompat" />
-    <Compile Remove="..\..\submodules\CppNet8\CppReader.cs" />
-    <Compile Remove="..\..\submodules\CppNet8\CppTask.cs" />
-    <Compile Remove="..\..\submodules\CppNet8\InputLexerSource.cs" />
-    <Compile Remove="..\..\submodules\CppNet8\TokenSnifferSource.cs" />
+    <Compile Include="..\..\..\build\submodules\CppNet8\*.cs" LinkBase="CppNet" />
+    <Compile Include="..\..\..\build\submodules\CppNet8\JavaCompat\*.cs" LinkBase="CppNet\JavaCompat" />
+    <Compile Remove="..\..\..\build\submodules\CppNet8\CppReader.cs" />
+    <Compile Remove="..\..\..\build\submodules\CppNet8\CppTask.cs" />
+    <Compile Remove="..\..\..\build\submodules\CppNet8\InputLexerSource.cs" />
+    <Compile Remove="..\..\..\build\submodules\CppNet8\TokenSnifferSource.cs" />
     <Compile Remove="StrideImported\**" Condition="'$(StrideDirectory)' != ''" />
     <None Remove="StrideImported\**" Condition="'$(StrideDirectory)' != ''" />
     <None Remove="gen_intrin_main.txt" />

@@ -1,9 +1,9 @@
 [submodule "submodules/SpirvHeaders"]
-	path = submodules/SpirvHeaders
+	path = build/submodules/SpirvHeaders
 	url = https://github.com/KhronosGroup/SPIRV-Headers
 [submodule "submodules/CppNet8"]
-	path = submodules/CppNet8
+	path = build/submodules/CppNet8
 	url = https://github.com/ykafia/CppNet/
 [submodule "submodules/SpirvRegistry"]
-	path = submodules/SpirvRegistry
+	path = build/submodules/SpirvRegistry
 	url = https://github.com/KhronosGroup/Registry-Root-SPIR-V
