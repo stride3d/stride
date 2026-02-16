@@ -7,7 +7,6 @@
     <Compile Remove="..\..\submodules\CppNet8\CppTask.cs" />
     <Compile Remove="..\..\submodules\CppNet8\InputLexerSource.cs" />
     <Compile Remove="..\..\submodules\CppNet8\TokenSnifferSource.cs" />
-    <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
     <Compile Remove="StrideImported\**" Condition="'$(StrideDirectory)' != ''" />
     <None Remove="StrideImported\**" Condition="'$(StrideDirectory)' != ''" />
     <None Remove="gen_intrin_main.txt" />
@@ -39,7 +38,6 @@
     <AssemblyName Condition="'$(StrideDirectory)' != ''">$(MSBuildProjectName)2</AssemblyName>
     <WarningsAsErrors>CS8785;$(WarningsAsErrors)</WarningsAsErrors>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
 </Project>
