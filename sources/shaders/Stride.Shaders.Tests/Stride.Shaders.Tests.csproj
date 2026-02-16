@@ -11,7 +11,7 @@
 
     <!-- Force msbuild to check to rebuild so that unit tests SDSL files are properly copied -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
-    <RootNamespace>Stride.Shaders.Parsing.Tests</RootNamespace>
+    <RootNamespace>Stride.Shaders.Parsers.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -56,7 +56,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
-    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Parsers\Stride.Shaders.Parsers.csproj" />
   </ItemGroup>
 
 </Project>

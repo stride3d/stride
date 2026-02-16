@@ -35,8 +35,8 @@
     <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.Video\Stride.Video.csproj" />
     <ProjectReference Include="..\Stride\Stride.csproj" />
-    <Reference Include="Stride.Shaders2">
-      <HintPath>..\..\shaders\Stride.Shaders\bin\$(Configuration)\net10.0\Stride.Shaders2.dll</HintPath>
+    <Reference Include="Stride.Shaders.Parsers">
+      <HintPath>..\..\shaders\Stride.Shaders.Parsers\bin\$(Configuration)\net10.0\Stride.Shaders.Parsers.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

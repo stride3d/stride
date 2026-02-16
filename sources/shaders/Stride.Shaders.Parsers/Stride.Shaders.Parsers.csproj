@@ -33,10 +33,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <AssemblyName>$(MSBuildProjectName)2</AssemblyName>
     <WarningsAsErrors>CS8785;$(WarningsAsErrors)</WarningsAsErrors>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <WarningsAsErrors>CS8785</WarningsAsErrors>
+    <RootNamespace>Stride.Shaders</RootNamespace>
   </PropertyGroup>
 
 </Project>
