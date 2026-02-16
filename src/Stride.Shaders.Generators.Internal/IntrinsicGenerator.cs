@@ -257,18 +257,37 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                 foreach (var intrinsicOverloadsByParamCount in intrinsicGroup.Value.Overloads
                              .GroupBy(x => x.Declaration.Parameters.Items.Count))
                 {
-                    var intrinsicOverloadGroupsByParameters = intrinsicOverloadsByParamCount.GroupBy(x => GenerateParameters(x.Declaration.Parameters.Items)).ToList();
-                    foreach (var intrinsicOverloadGroups in intrinsicOverloadGroupsByParameters)
-                    {
-                        var optionalParameters = intrinsicOverloadGroups.First().Declaration.Parameters.Items.GetRange(mandatoryParameters.Count, intrinsicOverloadGroups.First().Declaration.Parameters.Items.Count - mandatoryParameters.Count);
+                    var intrinsics = intrinsicOverloadsByParamCount.Select(x =>
+                    (
+                        x.Declaration,
+                        Namespace: x.DeclaringNamespace,
+                        Signature: GenerateParameters(x.Declaration.Parameters.Items)
+                    )).ToList();
 
-                        // If only one parameter signature for all overloads with same number of parameters, skip namespace
-                        var declaredInNamespaces = intrinsicOverloadGroupsByParameters.Count > 1
-                            ? intrinsicOverloadGroups.Select(x => $"\"{x.DeclaringNamespace}\"").Distinct().ToArray()
-                            : ["_"];
-                        foreach (var @namespace in declaredInNamespaces)
+                    var needNamespace = intrinsics.GroupBy(x => x.Signature).Count() > 1;
+                    if (!needNamespace)
+                        intrinsics = intrinsics.Select(x => x with { Namespace = string.Empty }).ToList();
+
+                    foreach (var intrinsicsByNamespace in intrinsics.GroupBy(x => x.Namespace))
+                    {
+                        var @namespace = intrinsicsByNamespace.Key == string.Empty ? "_" : $"\"{intrinsicsByNamespace.Key}\"";
+
+                        var intrinsicsBySignatures = intrinsicsByNamespace.GroupBy(y => y.Signature);
+                        foreach (var y in intrinsicsBySignatures)
                         {
-                            builder.AppendLine($"({@namespace}, \"{intrinsicGroup.Key}\", {intrinsicOverloadGroups.First().Declaration.Parameters.Items.Count}) => Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(context, builder, functionType{thisArg}{GenerateArguments(mandatoryParameters)}{GenerateArguments(optionalParameters, true, mandatoryParameters.Count)}),");
+                            var optionalParameters = y.First().Declaration.Parameters.Items.GetRange(mandatoryParameters.Count, y.First().Declaration.Parameters.Items.Count - mandatoryParameters.Count);
+                            builder.Append($"({@namespace}, \"{intrinsicGroup.Key}\", {y.First().Declaration.Parameters.Items.Count})");
+                            
+                            // special switch/case (same number of parameters of different type)
+                            if (intrinsicGroup.Key == "Barrier")
+                            {
+                                builder.Append(" when functionType.ParameterTypes[0].Type is");
+                                if (y.First().Declaration.Parameters.Items[0].Name.Name == "o")
+                                    builder.Append(" not");
+                                builder.Append(" ScalarType");
+                            }
+                            
+                            builder.AppendLine($" => Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(context, builder, functionType{thisArg}{GenerateArguments(mandatoryParameters)}{GenerateArguments(optionalParameters, true, mandatoryParameters.Count)}),");
                         }
                     }
                 }
