@@ -11,6 +11,7 @@
 
     <!-- Force msbuild to check to rebuild so that unit tests SDSL files are properly copied -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <RootNamespace>Stride.Shaders.Parsing.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Spirv.Core",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders", "src\Stride.Shaders\Stride.Shaders.csproj", "{595979CB-8447-4EA0-9A9F-0CBD8B9442BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Parsing.Tests", "src\Stride.Shaders.Tests\Stride.Shaders.Parsing.Tests.csproj", "{35A9F4C4-F5C8-4D84-9688-6FAB30E49AC7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Tests", "src\Stride.Shaders.Tests\Stride.Shaders.Tests.csproj", "{35A9F4C4-F5C8-4D84-9688-6FAB30E49AC7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.LSP", "src\Stride.Shaders.LSP\Stride.Shaders.LSP.csproj", "{4F8838DA-16F0-4EC0-A0A4-8F89F47E35C5}"
 EndProject
