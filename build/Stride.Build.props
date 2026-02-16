@@ -8,4 +8,7 @@
   <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
     <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Linux'">
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Vulkan</StrideGraphicsApis>
+  </PropertyGroup>
 </Project>
