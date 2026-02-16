@@ -71,7 +71,7 @@
     <ProjectReference Include="..\Stride.Editor\Stride.Editor.csproj" />
     <ProjectReference Include="..\Stride.Samples.Templates\Stride.Samples.Templates.csproj" />
     <Reference Include="Stride.Shaders2">
-      <HintPath>..\..\..\..\SDSL\src\Stride.Shaders.Compilers\bin\$(Configuration)\net10.0\Stride.Shaders2.dll</HintPath>
+      <HintPath>..\..\shaders\Stride.Shaders.Compilers\bin\$(Configuration)\net10.0\Stride.Shaders2.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

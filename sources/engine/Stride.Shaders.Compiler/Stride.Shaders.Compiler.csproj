@@ -38,13 +38,13 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Stride.Shaders.Compilers2">
-      <HintPath>..\..\..\..\SDSL\src\Stride.Shaders.Compilers\bin\$(Configuration)\net10.0\Stride.Shaders.Compilers2.dll</HintPath>
+      <HintPath>..\..\shaders\Stride.Shaders.Compilers\bin\$(Configuration)\net10.0\Stride.Shaders.Compilers2.dll</HintPath>
     </Reference>
     <Reference Include="Stride.Shaders.Spirv.Core">
-      <HintPath>..\..\..\..\SDSL\src\Stride.Shaders.Compilers\bin\$(Configuration)\net10.0\Stride.Shaders.Spirv.Core.dll</HintPath>
+      <HintPath>..\..\shaders\Stride.Shaders.Spirv.Core\bin\$(Configuration)\net10.0\Stride.Shaders.Spirv.Core.dll</HintPath>
     </Reference>
     <Reference Include="Stride.Shaders2">
-      <HintPath>..\..\..\..\SDSL\src\Stride.Shaders.Compilers\bin\$(Configuration)\net10.0\Stride.Shaders2.dll</HintPath>
+      <HintPath>..\..\shaders\Stride.Shaders\bin\$(Configuration)\net10.0\Stride.Shaders2.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
