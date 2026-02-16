@@ -50,9 +50,12 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
+    <StrideEnableTestLauncher Condition="'$(StrideEnableTestLauncher)' == ''">true</StrideEnableTestLauncher>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(StrideEnableTestLauncher)' == 'true'">
     <StartupObject Condition="'$(StartupObject)' == ''">xunit.runner.stride.Program</StartupObject>
   </PropertyGroup>
-  <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
+  <ItemGroup Condition="'$(StrideEnableTestLauncher)' == 'true'">
     <Compile Condition="'$(StrideGraphicsRegression)' != 'true'" Include="$(MSBuildThisFileDirectory)..\shared\tests\xunit\LauncherSimple.Desktop.cs">
       <Link>LauncherSimple.Desktop.cs</Link>
     </Compile>

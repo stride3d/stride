@@ -1,13 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+  <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <StrideBuildTags>*</StrideBuildTags>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <StrideEnableTestLauncher>false</StrideEnableTestLauncher>
 
     <!-- Force msbuild to check to rebuild so that unit tests SDSL files are properly copied -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
@@ -28,18 +31,17 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="xunit.v3" />
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
-    <ProjectReference Include="..\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
     <AdditionalFiles Include="..\assets\SDSL\RenderTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\RenderTests\" />
-    <None Include="..\assets\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\" Exclude="..\..\assets\SDSL\RenderTests\**" />
+    <None Include="..\assets\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\" Exclude="..\assets\SDSL\RenderTests\**" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
     <ProjectReference Include="..\Stride.Shaders.Parsers\Stride.Shaders.Parsers.csproj" />
   </ItemGroup>
-
+  <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>
