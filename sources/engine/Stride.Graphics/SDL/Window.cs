@@ -74,11 +74,6 @@ namespace Stride.Graphics.SDL
                 sdlHandle = SDL.CreateWindow(title, Sdl.WindowposUndefined, Sdl.WindowposUndefined, 640, 480, (uint)flags);
             }
             
-
-#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
-            GraphicsAdapter.DefaultWindow = sdlHandle;
-#endif
-
             if (sdlHandle == null)
             {
                 throw new Exception("Cannot allocate SDL Window: " + SDL.GetErrorS()); 
