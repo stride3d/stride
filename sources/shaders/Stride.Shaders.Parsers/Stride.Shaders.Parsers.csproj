@@ -21,13 +21,11 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <StrideBuildTags>*</StrideBuildTags>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <WarningsAsErrors>CS8785;$(WarningsAsErrors)</WarningsAsErrors>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <RootNamespace>Stride.Shaders</RootNamespace>
-    <StrideBuildTags>*</StrideBuildTags>
   </PropertyGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

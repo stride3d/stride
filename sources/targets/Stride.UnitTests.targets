@@ -75,14 +75,19 @@
 
   <!-- Make sure sdsl/sdfx are properly setup with code generator; also mark generated code file as dependent -->
   <ItemGroup>
-    <Analyzer Include="$(MSBuildThisFileDirectory)..\..\..\SDSL\src\Stride.Shaders.Generators\bin\$(Configuration)\net10.0\Stride.Shaders.Generators.dll" />
-
     <None Remove ="**\*.sdsl" />
     <None Remove ="**\*.sdfx" />
-    <AdditionalFiles Include="**\*.sdsl" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
-    <AdditionalFiles Include="**\*.sdfx" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
-  </ItemGroup>
+    <StrideShaderFiles Include="**\*.sdsl" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <StrideShaderFiles Include="**\*.sdfx" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <AdditionalFiles Include="@(StrideShaderFiles)" />
 
+    <ProjectReference Condition="'@(StrideShaderFiles)' != ''" Include="$(MSBuildThisFileDirectory)..\shaders\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles Condition="'$(Configuration)' == 'Debug'">true</EmitCompilerGeneratedFiles>
+    <WarningsAsErrors>CS8785;$(WarningsAsErrors)</WarningsAsErrors>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="TeamCity.VSTest.TestAdapter" />

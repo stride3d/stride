@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Parsers\Stride.Shaders.Parsers.csproj" />
     <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" ReferenceOutputAssembly="false" />
     <PackageReference Include="CommunityToolkit.HighPerformance" />
     <PackageReference Include="Silk.NET.SPIRV.Cross" />
     <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
@@ -43,6 +44,11 @@
       <RelativePath>runtimes\win-x64\native\%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
+    <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
+    <None Include="$(MSBuildThisFileDirectory)..\Stride.Shaders.Generators\bin\$(Configuration)\net10.0\Stride.Shaders.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
