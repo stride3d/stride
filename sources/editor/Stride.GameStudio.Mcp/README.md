@@ -110,44 +110,4 @@ Any MCP-compatible client can connect using:
 
 ## Integration Tests
 
-Integration tests verify all MCP tools work correctly against a live Game Studio instance. They are **disabled by default** since they require a desktop environment with Game Studio running.
-
-### Running the Tests
-
-1. **Build Game Studio** with the MCP plugin:
-   ```bash
-   "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" ^
-     sources/editor/Stride.GameStudio/Stride.GameStudio.csproj -verbosity:quiet -m
-   ```
-
-2. **Launch Game Studio** with a sample project:
-   ```bash
-   bin\Windows\Debug\editor\Stride.GameStudio.exe ^
-     samples\Templates\FirstPersonShooter\FirstPersonShooter.sln
-   ```
-
-3. **Wait** for the project to fully load and verify the MCP server log message appears:
-   ```
-   MCP server started successfully on http://localhost:5271/sse
-   ```
-
-4. **Run the tests** with the integration flag enabled:
-   ```bash
-   set STRIDE_MCP_INTEGRATION_TESTS=true
-   dotnet test sources/editor/Stride.GameStudio.Mcp.Tests
-   ```
-
-### Test Configuration
-
-| Environment Variable | Default | Description |
-|---------------------|---------|-------------|
-| `STRIDE_MCP_INTEGRATION_TESTS` | *(unset)* | Set to `true` to enable integration tests |
-| `STRIDE_MCP_PORT` | `5271` | Port to connect to (must match Game Studio) |
-
-### What the Tests Cover
-
-- **Tool discovery**: Verifies all 4 tools are registered and listed
-- **get_editor_status**: Checks project info, asset count, and scene listing
-- **query_assets**: Tests unfiltered and type-filtered asset queries
-- **get_scene_tree**: Validates entity hierarchy structure and error handling
-- **get_entity**: Verifies component serialization (including TransformComponent) and error handling
+See [`Stride.GameStudio.Mcp.Tests/README.md`](../Stride.GameStudio.Mcp.Tests/README.md) for integration test setup and instructions.

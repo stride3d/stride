@@ -10,43 +10,31 @@ namespace Stride.GameStudio.Mcp.Tests;
 
 /// <summary>
 /// Integration tests for the MCP server embedded in Game Studio.
-/// These tests require a running Game Studio instance with a project loaded and MCP enabled.
+/// The <see cref="GameStudioFixture"/> automatically launches Game Studio and waits
+/// for the MCP server to become ready. Tests are skipped unless the environment
+/// variable STRIDE_MCP_INTEGRATION_TESTS is set to "true".
 ///
-/// To run these tests:
-/// 1. Build and launch Game Studio with a sample project (e.g., FirstPersonShooter)
-/// 2. Verify MCP server is running on the expected port (default: 5271)
-/// 3. Set environment variable: STRIDE_MCP_INTEGRATION_TESTS=true
-/// 4. Optionally set STRIDE_MCP_PORT if using a non-default port
-/// 5. Run: dotnet test sources/editor/Stride.GameStudio.Mcp.Tests
+/// See README.md in this project for setup instructions.
 /// </summary>
 [Collection("McpIntegration")]
 public sealed class McpIntegrationTests : IAsyncLifetime
 {
+    private readonly GameStudioFixture _fixture;
     private McpClient? _client;
 
-    private static bool IsEnabled =>
-        string.Equals(
-            Environment.GetEnvironmentVariable("STRIDE_MCP_INTEGRATION_TESTS"),
-            "true",
-            StringComparison.OrdinalIgnoreCase);
-
-    private static int Port
+    public McpIntegrationTests(GameStudioFixture fixture)
     {
-        get
-        {
-            var portStr = Environment.GetEnvironmentVariable("STRIDE_MCP_PORT");
-            return int.TryParse(portStr, out var port) ? port : 5271;
-        }
+        _fixture = fixture;
     }
 
     public async Task InitializeAsync()
     {
-        if (!IsEnabled)
+        if (!_fixture.IsReady)
             return;
 
         var transport = new HttpClientTransport(new HttpClientTransportOptions
         {
-            Endpoint = new Uri($"http://localhost:{Port}/sse"),
+            Endpoint = new Uri($"http://localhost:{_fixture.Port}/sse"),
             Name = "Stride MCP Integration Tests",
         });
 
