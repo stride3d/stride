@@ -22,7 +22,7 @@ public sealed class GetEditorStatusTool
     {
         var status = await dispatcher.InvokeOnUIThread(() =>
         {
-            var projectName = session.CurrentProject?.Name ?? "(no project)";
+            var currentProject = session.CurrentProject?.Name ?? "(no project)";
             var solutionPath = session.SolutionPath?.ToString() ?? "(none)";
 
             var packages = session.LocalPackages
@@ -45,7 +45,7 @@ public sealed class GetEditorStatusTool
             return new
             {
                 status = "connected",
-                projectName,
+                currentProject,
                 solutionPath,
                 packages,
                 assetCount,
