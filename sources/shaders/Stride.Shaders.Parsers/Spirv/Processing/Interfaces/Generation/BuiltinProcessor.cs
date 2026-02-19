@@ -46,33 +46,33 @@ internal static class BuiltinProcessor
         if (sourceType == castType)
             return value;
 
-        if (sourceType is VectorType v1 && castType is VectorType v2 && v1.BaseType == v2.BaseType)
-        {
-            Span<int> components = stackalloc int[v2.Size];
-            for (int i = 0; i < v2.Size; ++i)
-            {
-                components[i] = i < v1.Size
-                    ? buffer.Add(new OpCompositeExtract(context.GetOrRegister(v1.BaseType), context.Bound++, value, [i])).ResultId
-                    : context.CreateDefaultConstantComposite(v1.BaseType).Id;
-            }
+        var (castSize, castBaseType) = ExtractSizeAndBaseType(castType);
+        var (sourceSize, sourceBaseType) = ExtractSizeAndBaseType(sourceType);
 
-            return buffer.Add(new OpCompositeConstruct(context.GetOrRegister(v2), context.Bound++, new(components))).ResultId;
+        if (castBaseType != sourceBaseType)
+            throw new InvalidOperationException($"Can't convert interface variable from {sourceType} to {castType}");
+
+        Span<int> components = stackalloc int[castSize];
+
+        for (int i = 0; i < castSize; ++i)
+        {
+            components[i] = i < sourceSize
+                ? buffer.Add(new OpCompositeExtract(context.GetOrRegister(sourceBaseType), context.Bound++, value, [i])).ResultId
+                : context.CreateDefaultConstantComposite(sourceBaseType).Id;
         }
 
-        if (sourceType is ArrayType a1 && castType is ArrayType a2 && a1.BaseType == a2.BaseType)
+        return buffer.Add(new OpCompositeConstruct(context.GetOrRegister(castType), context.Bound++, new(components))).ResultId;
+
+        (int Size, SymbolType baseType) ExtractSizeAndBaseType(SymbolType castType)
         {
-            Span<int> components = stackalloc int[a2.Size];
-            for (int i = 0; i < a2.Size; ++i)
+            return castType switch
             {
-                components[i] = i < a1.Size
-                    ? buffer.Add(new OpCompositeExtract(context.GetOrRegister(a1.BaseType), context.Bound++, value, [i])).ResultId
-                    : context.CreateDefaultConstantComposite(a1.BaseType).Id;
-            }
-
-            return buffer.Add(new OpCompositeConstruct(context.GetOrRegister(a2), context.Bound++, new(components))).ResultId;
+                ScalarType s => (1, s),
+                VectorType v => (v.Size, v.BaseType),
+                ArrayType a => (a.Size, a.BaseType),
+                _ => throw new InvalidOperationException($"Can't convert interface variable from {sourceType} to {castType}"),
+            };
         }
-
-        throw new InvalidOperationException($"Can't convert interface variable from {sourceType} to {castType}");
     }
 
     /// <summary>
