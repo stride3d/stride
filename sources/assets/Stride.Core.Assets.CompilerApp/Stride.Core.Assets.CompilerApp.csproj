@@ -8,7 +8,7 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <TargetFrameworks>$(StrideXplatEditorTargetFramework);$(StrideEditorTargetFramework)</TargetFrameworks>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideAssemblyProcessorOptions>--serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Mono.Options" />
