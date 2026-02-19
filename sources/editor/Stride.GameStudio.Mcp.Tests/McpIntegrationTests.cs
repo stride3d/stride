@@ -183,15 +183,149 @@ public sealed class McpIntegrationTests : IAsyncLifetime
     }
 
     [McpIntegrationFact]
+    public async Task OpenScene_OpensSceneSuccessfully()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+
+        var root = await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        Assert.Equal("opened", root.GetProperty("status").GetString());
+        Assert.Equal(sceneId, root.GetProperty("sceneId").GetString());
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("sceneName").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task OpenScene_WithInvalidId_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = "00000000-0000-0000-0000-000000000000",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task SelectEntity_SelectsEntityInEditor()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        // Ensure the scene is open first
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        var entityId = await GetFirstEntityIdAsync(sceneId);
+
+        var root = await CallToolAndParseJsonAsync("select_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var selected = root.GetProperty("selected");
+        Assert.Equal(1, selected.GetProperty("count").GetInt32());
+        var entities = selected.GetProperty("entities");
+        Assert.Equal(entityId, entities[0].GetProperty("id").GetString());
+    }
+
+    [McpIntegrationFact]
+    public async Task SelectEntity_WithInvalidEntityId_ReturnsError()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        // Ensure the scene is open first
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        var root = await CallToolAndParseJsonAsync("select_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = "00000000-0000-0000-0000-000000000000",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task SelectEntity_WithSceneNotOpen_ReturnsError()
+    {
+        // Use a scene ID but don't open it — we just call select_entity directly
+        // Note: this test depends on the editor not having the scene open already from a prior test
+        // Since open_scene is called in other tests, this may need a fresh scene ID
+        var root = await CallToolAndParseJsonAsync("select_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = "00000000-0000-0000-0000-000000000001",
+            ["entityId"] = "00000000-0000-0000-0000-000000000002",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task FocusEntity_FocusesOnEntity()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        // Ensure the scene is open first
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        var entityId = await GetFirstEntityIdAsync(sceneId);
+
+        var root = await CallToolAndParseJsonAsync("focus_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var focused = root.GetProperty("focused");
+        Assert.Equal(entityId, focused.GetProperty("id").GetString());
+        Assert.False(string.IsNullOrEmpty(focused.GetProperty("name").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task FocusEntity_WithInvalidEntityId_ReturnsError()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        // Ensure the scene is open first
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        var root = await CallToolAndParseJsonAsync("focus_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = "00000000-0000-0000-0000-000000000000",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
     public async Task ListTools_ReturnsAllExpectedTools()
     {
         var tools = await _client!.ListToolsAsync();
         var toolNames = tools.Select(t => t.Name).ToHashSet();
 
+        // Phase 1 tools
         Assert.Contains("get_editor_status", toolNames);
         Assert.Contains("query_assets", toolNames);
         Assert.Contains("get_scene_tree", toolNames);
         Assert.Contains("get_entity", toolNames);
+
+        // Phase 2 tools (Navigation & Selection)
+        Assert.Contains("open_scene", toolNames);
+        Assert.Contains("select_entity", toolNames);
+        Assert.Contains("focus_entity", toolNames);
     }
 
     private async Task<JsonElement> CallToolAndParseJsonAsync(

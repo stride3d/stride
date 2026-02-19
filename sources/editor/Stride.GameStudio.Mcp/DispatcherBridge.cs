@@ -66,4 +66,15 @@ public sealed class DispatcherBridge
 
         return await _dispatcher.InvokeTask(task, cts.Token);
     }
+
+    /// <summary>
+    /// Executes an async task on the UI thread without a return value.
+    /// </summary>
+    public async Task InvokeTaskOnUIThread(Func<Task> task, CancellationToken cancellationToken = default)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(DefaultTimeout);
+
+        await _dispatcher.InvokeTask(task, cts.Token);
+    }
 }

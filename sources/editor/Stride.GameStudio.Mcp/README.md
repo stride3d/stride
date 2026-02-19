@@ -8,12 +8,20 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 
 ## Available Tools
 
+### State Reading
 | Tool | Description |
 |------|-------------|
 | `get_editor_status` | Returns project name, solution path, asset count, and scene listing |
 | `query_assets` | Search and filter assets by name, type, or folder path |
 | `get_scene_tree` | Returns the full entity hierarchy for a scene |
 | `get_entity` | Returns detailed component and property data for an entity |
+
+### Navigation & Selection
+| Tool | Description |
+|------|-------------|
+| `open_scene` | Opens a scene asset in the editor (or activates if already open) |
+| `select_entity` | Selects entities in the scene editor hierarchy (supports multi-select) |
+| `focus_entity` | Centers the viewport camera on an entity (also selects it) |
 
 ## Configuration
 
