@@ -1,9 +1,5 @@
-﻿using Stride.Shaders.Parsing.Tests;
+using Stride.Shaders.Parsers.Tests;
 
 [assembly: CaptureConsole]
 
-//new RenderingTests().RenderTest1("SimpleInheritance");
-
-public struct myStruct
-{
-}
+//new StrideShaderTests().Tessellation();

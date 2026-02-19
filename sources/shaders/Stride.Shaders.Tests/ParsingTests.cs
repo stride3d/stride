@@ -1,7 +1,7 @@
 
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
-namespace Stride.Shaders.Parsing.Tests;
+namespace Stride.Shaders.Parsers.Tests;
 
 public class ParsingTests1
 {

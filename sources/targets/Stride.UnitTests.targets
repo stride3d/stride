@@ -75,8 +75,6 @@
 
   <!-- Make sure sdsl/sdfx are properly setup with code generator; also mark generated code file as dependent -->
   <ItemGroup>
-    <None Remove ="**\*.sdsl" />
-    <None Remove ="**\*.sdfx" />
     <StrideShaderFiles Include="**\*.sdsl" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
     <StrideShaderFiles Include="**\*.sdfx" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
     <AdditionalFiles Include="@(StrideShaderFiles)" />

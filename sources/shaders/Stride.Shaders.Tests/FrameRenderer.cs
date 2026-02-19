@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Stride.Shaders.Parsing.Tests;
+namespace Stride.Shaders.Parsers.Tests;
 
 public abstract class FrameRenderer(uint width = 800, uint height = 600, byte[]? vertexSpirv = null, byte[]? fragmentSpirv = null)
 {

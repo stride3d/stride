@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Stride.Shaders.Parsing.Tests;
+namespace Stride.Shaders.Parsers.Tests;
 
 // Note: generated with ChatGPT
 public sealed class TestHeader
