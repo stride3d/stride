@@ -106,7 +106,11 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
 
                 VariableMerger.PropagateStreamsFromPreviousStage(streams);
 
-                foreach (var entryPoint in new[] { (ExecutionModel.TessellationControl, entryPointHS), (ExecutionModel.TessellationEvaluation, entryPointDS), (ExecutionModel.Geometry, entryPointGS) })
+                // Remember if a stage output SV_Position already (it should be the first active stage before pixel shader)
+                bool requirePosition = true;
+
+                // Reminder: we process stage in reverse GPU execution order
+                foreach (var entryPoint in new[] { (ExecutionModel.Geometry, entryPointGS), (ExecutionModel.TessellationEvaluation, entryPointDS), (ExecutionModel.TessellationControl, entryPointHS) })
                 {
                     if (entryPoint.Item2 != null)
                     {
@@ -122,8 +126,11 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                         {
                             if (stream.Value.Semantic is { } semantic)
                             {
-                                if (semantic.ToUpperInvariant().StartsWith("SV_POSITION"))
+                                if (semantic.ToUpperInvariant().StartsWith("SV_POSITION") && requirePosition)
+                                {
                                     stream.Value.Output = true;
+                                    requirePosition = false;
+                                }
                                 
                                 if (entryPoint.Item1 == ExecutionModel.TessellationControl
                                     && (semantic.ToUpperInvariant().StartsWith("SV_TESSFACTOR") || semantic.ToUpperInvariant().StartsWith("SV_INSIDETESSFACTOR")))
@@ -157,8 +164,14 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     // If specific semantic are written to (i.e. SV_Position), they are expected at the end of vertex shader
                     foreach (var stream in streams)
                     {
-                        if (stream.Value.Semantic is { } semantic && semantic.ToUpperInvariant().StartsWith("SV_POSITION"))
-                            stream.Value.Output = true;
+                        if (stream.Value.Semantic is { } semantic)
+                        {
+                            if (semantic.ToUpperInvariant().StartsWith("SV_POSITION") && requirePosition)
+                            {
+                                stream.Value.Output = true;
+                                requirePosition = false;
+                            }
+                        }
                     }
 
                     (var vsWrapperId, var vsWrapperName) = GenerateStreamWrapper(table, buffer, context, ExecutionModel.Vertex, entryPointVS, analysisResult, liveAnalysis, true);
