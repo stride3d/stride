@@ -44,7 +44,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         if (shaderSource is ShaderMixinGeneratorSource mixinGeneratorSource)
             shaderSource = ShaderMixinManager.Generate(mixinGeneratorSource.Name, new());
 
-        var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, shaderSource);
+        // Propgate macros to child
+        if (shaderSource is ShaderMixinSource mixinSource)
+            PropagateMacrosRecursively(mixinSource, null);
+
+        var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, null, shaderSource);
 
         // Root shader
         var globalContext = new MixinGlobalContext();

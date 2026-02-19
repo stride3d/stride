@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.HighPerformance;
+using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
@@ -18,9 +18,16 @@ public partial class ShaderMixer
     /// <param name="root"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderSource shaderSource, Action<ShaderClassInstantiation>? addToRoot = null)
+    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderMixinSource? parent, ShaderSource shaderSource, Action<ShaderClassInstantiation>? addToRoot = null)
     {
         var mixinList = new List<ShaderClassInstantiation>();
+
+        Span<ShaderMacro> macros = (shaderSource, parent) switch
+        {
+            (ShaderMixinSource mixinSource, _) => mixinSource.Macros.AsSpan(),
+            (_, not null) => parent.Macros.AsSpan(),
+            _ => Span<ShaderMacro>.Empty,
+        };
 
         var shaderMixinSource = shaderSource switch
         {
@@ -33,7 +40,7 @@ public partial class ShaderMixer
 
         foreach (var mixinToMerge in shaderMixinSource.Mixins)
         {
-            var shaderBuffer = SpirvBuilder.GetOrLoadShader(shaderLoader, mixinToMerge.ClassName, mixinToMerge.GenericArguments, shaderMixinSource.Macros.AsSpan());
+            var shaderBuffer = SpirvBuilder.GetOrLoadShader(shaderLoader, mixinToMerge.ClassName, mixinToMerge.GenericArguments, macros);
 
             var mixinToMerge2 = new ShaderClassInstantiation(mixinToMerge.ClassName, []);
             mixinToMerge2.Buffer = shaderBuffer;
@@ -47,7 +54,7 @@ public partial class ShaderMixer
                 }
             }
 
-            SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, mixinToMerge2, shaderMixinSource.Macros.AsSpan(), mixinList, ResolveStep.Mix);
+            SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, mixinToMerge2, macros, mixinList, ResolveStep.Mix);
         }
         
         ProcessClasses(shaderLoader, context, mixinList, shaderMixinSource, result, compositions, addToRoot);
@@ -133,12 +140,12 @@ public partial class ShaderMixer
                         {
                             var variableCompositions = new List<ShaderMixinInstantiation>();
                             foreach (var value in shaderArraySource.Values)
-                                variableCompositions.Add(EvaluateInheritanceAndCompositions(shaderLoader, context, value, addToRootRecursive));
+                                variableCompositions.Add(EvaluateInheritanceAndCompositions(shaderLoader, context, shaderMixinSource, value, addToRootRecursive));
                             compositions[variableName] = [..variableCompositions];
                         }
                         else
                         {
-                            var variableComposition = EvaluateInheritanceAndCompositions(shaderLoader, context, compositionMixin, addToRootRecursive);
+                            var variableComposition = EvaluateInheritanceAndCompositions(shaderLoader, context, shaderMixinSource, compositionMixin, addToRootRecursive);
                             compositions[variableName] = [variableComposition];
                         }
                     }
@@ -158,6 +165,43 @@ public partial class ShaderMixer
             //       and this should be done before the composition mixin is added.
             //       For example, a composition might import a struct, so if we import and mix the composition mixin before the "stage" one defining the struct, the struct is not defined before the composition using it.
             result.Mixins.Add(shaderName);
+        }
+    }
+
+    private void PropagateMacrosRecursively(ShaderSource child, ShaderMixinSource? parent = null)
+    {
+        var existingMacros = new HashSet<string>();
+        if (child is ShaderMixinSource mixinChild)
+        {
+            foreach (var macro in mixinChild.Macros)
+            {
+                existingMacros.Add(macro.Name);
+            }
+            if (parent != null)
+            {
+                foreach (var macro in parent.Macros)
+                {
+                    if (!existingMacros.Contains(macro.Name))
+                        mixinChild.AddMacro(macro.Name, macro.Definition);
+                }
+            }
+
+            // Recurse
+            foreach (var mixin in mixinChild.Mixins)
+            {
+                PropagateMacrosRecursively(mixin, mixinChild);
+            }
+            foreach (var composition in mixinChild.Compositions)
+            {
+                PropagateMacrosRecursively(composition.Value, mixinChild);
+            }
+        }
+        else if (child is ShaderArraySource arrayChild)
+        {
+            foreach (var mixin in arrayChild)
+            {
+                PropagateMacrosRecursively(mixin, parent);
+            }
         }
     }
 }
