@@ -80,6 +80,18 @@ public partial class SymbolTable : ISymbolProvider
                     symbol = symbol2.Value;
                     return true;
                 }
+                // Check function groups
+                if (symbol2.Value.Type is FunctionGroupType)
+                {
+                    foreach (var symbol3 in symbol2.Value.GroupMembers)
+                    {
+                        if (symbol3.IdRef == id)
+                        {
+                            symbol = symbol3;
+                            return true;
+                        }
+                    }
+                }
             }
         }
 

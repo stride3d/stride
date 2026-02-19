@@ -38,5 +38,11 @@ internal class StreamVariableInfo(string? semantic, string name, PointerType typ
     // Note: if Patch is true, it will be index in CONSTANTS struct, otherwise STREAMS struct
     public int StreamStructFieldIndex { get; internal set; }
 
-    public override string ToString() => $"{Type} {Name} {(Read ? "R" : "")} {(Write ? "W" : "")}";
+    public override string ToString()
+    {
+        var result = $"{Type} {Name} {(Read ? "R" : "")} {(Write ? "W" : "")}";
+        if (Semantic != null)
+            result += $" : {Semantic}";
+        return result;
+    }
 }

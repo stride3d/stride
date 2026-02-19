@@ -1,3 +1,4 @@
+using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Building;
@@ -44,7 +45,8 @@ internal static class StreamAccessPatcher
         StructType? constantsStructType,
         int streamsVariableId,
         AnalysisResult analysisResult,
-        LiveAnalysis liveAnalysis)
+        LiveAnalysis liveAnalysis,
+        Action<int, int>? codeInserted = null)
     {
         var methodInfo = liveAnalysis.GetOrCreateMethodInfo(functionId);
 
@@ -130,6 +132,29 @@ internal static class StreamAccessPatcher
                         // TODO: remove when accessChain.Values update properly the instruction
                         accessChain.BaseId = accessChain.BaseId;
                 }
+            }
+            else if (i.Op == Op.OpBinaryOperationSDSL && (OpBinaryOperationSDSL)i is {} binaryOperation)
+            {
+                var targetType = (StreamsType)context.ReverseTypes[binaryOperation.ResultType];
+
+                if (!buffer.TryGetTypeId(binaryOperation.Operand1, out var leftType)
+                    || !buffer.TryGetTypeId(binaryOperation.Operand2, out var rightType))
+                {
+                    throw new InvalidOperationException("Can't figure out operand types in OpBinaryOperationSDSL");
+                }
+
+                // Emit expanded code in temp buffer
+                var builder = new SpirvBuilder();
+                builder.BinaryOperation(table, context, new(binaryOperation.Operand1, leftType), (Operator)binaryOperation.Operation, new(binaryOperation.Operand2, rightType), default, desiredResultId: binaryOperation.ResultId);
+
+                // Replace OpBinaryOperationSDSL with expanded code
+                buffer.RemoveAt(index);
+                var instructions = new List<OpData>();
+                foreach (var inst in builder.GetBuffer())
+                    instructions.Add(inst.Data);
+                buffer.InsertRange(index, instructions.AsSpan());
+
+                codeInserted?.Invoke(index--, instructions.Count - 1);
             }
             else if (i.Op == Op.OpCopyLogical && (OpCopyLogical)i is { } copyLogical)
             {

@@ -365,6 +365,17 @@
       ]
     },
     {
+      "opname": "OpBinaryOperationSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        { "kind" : "LiteralInteger", "name" : "'Operation'" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ]
+    },
+    {
       "opname": "OpEffectSDFX",
       "opcode" : 9000,
       "class": "Miscellaneous",

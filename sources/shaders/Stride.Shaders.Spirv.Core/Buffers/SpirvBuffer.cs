@@ -192,12 +192,31 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         return SpirvBytecode.CreateBytecodeFromBuffers(this);
     }
 
-    public bool TryGetInstructionById(int typeId, out OpDataIndex instruction)
+    /// <summary>
+    /// Gets type ID from value ID. Only work if the defining type instruction ID has a ResultType operand.
+    /// </summary>
+    public bool TryGetTypeId(int id, out int typeId)
+    {
+        typeId = default;
+        if (TryGetInstructionById(id, out var instruction))
+        {
+            var info = InstructionInfo.GetInfo(instruction.Op);
+            if (info.GetResultTypeIndex(out int typeIndex) && typeIndex < instruction.Data.Memory.Length)
+            {
+                typeId = instruction.Data.Memory.Span[typeIndex + 1];
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryGetInstructionById(int id, out OpDataIndex instruction)
     {
         foreach (var op in this)
         {
             var info = InstructionInfo.GetInfo(op.Op);
-            if (info.GetResultIndex(out int index) && index < op.Data.Memory.Length && op.Data.Memory.Span[index + 1] == typeId)
+            if (info.GetResultIndex(out int index) && index < op.Data.Memory.Length && op.Data.Memory.Span[index + 1] == id)
             {
                 instruction = op;
                 return true;

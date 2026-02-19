@@ -244,7 +244,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 if (method.Value.UsedThisStage && method.Value.HasStreamAccess)
                 {
                     MethodDuplicator.DuplicateMethodIfNecessary(buffer, context, method.Key, analysisResult, liveAnalysis, CodeInserted);
-                    StreamAccessPatcher.PatchStreamsAccesses(table, buffer, context, method.Key, streamsType, inputType, outputType, constantsType, streamsVariable.ResultId, analysisResult, liveAnalysis);
+                    StreamAccessPatcher.PatchStreamsAccesses(table, buffer, context, method.Key, streamsType, inputType, outputType, constantsType, streamsVariable.ResultId, analysisResult, liveAnalysis, CodeInserted);
                 }
             }
 

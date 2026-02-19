@@ -119,6 +119,24 @@ public partial class SpirvBuilder
 
     public static (SymbolType OperandType, SymbolType ResultType)? AnalyzeBinaryOperation(SymbolTable table, SymbolType leftType, Operator op, SymbolType rightType, TextLocation info)
     {
+        static bool IsComplexType(SymbolType type) => type is StreamsType or StructType;
+
+        // struct or streams types
+        var complexType = IsComplexType(leftType) ? leftType : (IsComplexType(rightType) ? rightType : null);
+        if (complexType != null)
+        {
+            // Only simple operations are allowed (they will be applied on each member)
+            var otherType = IsComplexType(leftType) ? rightType : leftType;
+            if (otherType is not ScalarType { Type: Scalar.Float } and not StreamsType
+                || (op != Operator.Plus && op != Operator.Minus && op != Operator.Mul && op != Operator.Div))
+            {
+                table.AddError(new(info, string.Format(SDSLErrorMessages.SDSL0108, leftType, rightType)));
+                return null;
+            }
+
+            return (complexType, complexType);
+        }
+
         var leftElementType = leftType.GetElementType();
         var rightElementType = rightType.GetElementType();
 
@@ -172,10 +190,78 @@ public partial class SpirvBuilder
         return (operandType, resultType);
     }
     
-    public SpirvValue BinaryOperation(SymbolTable table, SpirvContext context, SpirvValue left, Operator op, SpirvValue right, TextLocation info, string? name = null)
+    public SpirvValue BinaryOperation(SymbolTable table, SpirvContext context, SpirvValue left, Operator op, SpirvValue right, TextLocation info, string? name = null, int? desiredResultId = null)
     {
         var leftType = context.ReverseTypes[left.TypeId];
         var rightType = context.ReverseTypes[right.TypeId];
+
+        var resultId = desiredResultId ?? context.Bound++;
+
+        var streamsType = leftType as StreamsType ?? rightType as StreamsType;
+        if (streamsType != null)
+        {
+            // We can't expand yet as we don't know all the members, encode it with a custom SPIR-V opcode
+            // It will be processed later by StreamAccessPatcher
+            return Buffer.Insert(Position++, new OpBinaryOperationSDSL(context.GetOrRegister(streamsType), resultId, (int)op, left.Id, right.Id)).ToValue();
+        }
+
+        var structType = leftType as StructType ?? rightType as StructType;
+        if (structType != null)
+        {
+            // If there is a struct, we simply apply the operation for each member
+            // (this is SDSL-specific)
+            var structValue = leftType is StructType ? left : right;
+            var otherType = leftType is StructType ? rightType : leftType;
+            var otherValue = leftType is StructType ? right : left;
+
+            Span<int> structValues = stackalloc int[structType.Members.Count];
+            for (var i = 0; i < structType.Members.Count; i++)
+            {
+                var member = structType.Members[i];
+                var memberValue = Buffer.Insert(Position++, new OpCompositeExtract(context.GetOrRegister(member.Type), context.Bound++, structValue.Id, [i])).ToValue();
+
+                var otherMemberValue = otherType switch
+                {
+                    // If the other value is also a struct of same type, extract its value
+                    StructType otherStructType when otherStructType == structType
+                        => Buffer.Insert(Position++, new OpCompositeExtract(context.GetOrRegister(member.Type), context.Bound++, otherValue.Id, [i])).ToValue(),
+                    ScalarType => otherValue,
+                };
+                memberValue = leftType is StructType
+                    ? BinaryOperation(table, context, memberValue, op, otherMemberValue, info, name)
+                    : BinaryOperation(table, context, otherMemberValue, op, memberValue, info, name);
+                structValues[i] = memberValue.Id;
+            }
+
+            return Buffer.Insert(Position++, new OpCompositeConstruct(context.GetOrRegister(structType), resultId, [..structValues])).ToValue();
+        }
+
+        // Can indirectly happen inside struct (SDSL specific)
+        var arrayType = leftType as ArrayType ?? rightType as ArrayType;
+        if (arrayType != null)
+        {
+            var arrayValue = leftType is ArrayType ? left : right;
+            var otherType = leftType is ArrayType ? rightType : leftType;
+            var otherValue = leftType is ArrayType ? right : left;
+
+            Span<int> arrayValues = stackalloc int[arrayType.Size];
+            for (int i = 0; i < arrayType.Size; ++i)
+            {
+                var memberValue = Buffer.Insert(Position++, new OpCompositeExtract(context.GetOrRegister(arrayType.BaseType), context.Bound++, arrayValue.Id, [i])).ToValue();
+                var otherMemberValue = otherType switch
+                {
+                    // If the other value is also a struct of same type, extract its value
+                    ArrayType otherArrayType when otherArrayType == arrayType
+                        => Buffer.Insert(Position++, new OpCompositeExtract(context.GetOrRegister(arrayType.BaseType), context.Bound++, otherValue.Id, [i])).ToValue(),
+                    ScalarType => otherValue,
+                };
+                arrayValues[i] = leftType is StructType
+                    ? BinaryOperation(table, context, memberValue, op, otherMemberValue, info, name).Id
+                    : BinaryOperation(table, context, otherMemberValue, op, memberValue, info, name).Id;
+            }
+
+            return Buffer.Insert(Position++, new OpCompositeConstruct(context.GetOrRegister(arrayType), resultId, [.. arrayValues])).ToValue();
+        }
 
         (var operandType, var resultType) = AnalyzeBinaryOperation(table, leftType, op, rightType, info) ?? throw new InvalidOperationException("Type of binary operation could not be determined");
         
@@ -197,132 +283,132 @@ public partial class SpirvBuilder
         {
             (Operator.Plus, SymbolType l, SymbolType r)
                 when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpIAdd(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpIAdd(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Plus, SymbolType l, SymbolType r)
                 when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFAdd(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpFAdd(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Minus, SymbolType l, SymbolType r)
                 when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpISub(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpISub(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Minus, SymbolType l, SymbolType r)
                 when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFSub(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpFSub(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Mul, SymbolType l, SymbolType r)
                 when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpIMul(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpIMul(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Mul, SymbolType l, SymbolType r)
                 when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFMul(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpFMul(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Div, SymbolType l, SymbolType r)
                 when l.IsUnsignedInteger() && r.IsUnsignedInteger()
-                => Buffer.InsertData(Position++, new OpUDiv(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpUDiv(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Div, SymbolType l, SymbolType r)
                 when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpSDiv(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpSDiv(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Div, SymbolType l, SymbolType r)
                 when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFDiv(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpFDiv(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Mod, SymbolType l, SymbolType r)
                 when l.IsUnsignedInteger() && r.IsUnsignedInteger()
-                => Buffer.InsertData(Position++, new OpUMod(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpUMod(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Mod, SymbolType l, SymbolType r)
                 when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpSMod(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpSMod(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Mod, SymbolType l, SymbolType r)
                 when l.IsFloating() && r.IsNumber()
-                => Buffer.InsertData(Position++, new OpFMod(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpFMod(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.RightShift, SymbolType l, SymbolType r)
                 when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpShiftRightLogical(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpShiftRightLogical(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.LeftShift, SymbolType l, SymbolType r)
                 when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpShiftRightLogical(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpShiftRightLogical(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.AND, SymbolType l, SymbolType r)
                 when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpBitwiseAnd(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpBitwiseAnd(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.OR, SymbolType l, SymbolType r)
                 when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpBitwiseOr(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpBitwiseOr(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.XOR, SymbolType l, SymbolType r)
                 when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpBitwiseXor(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpBitwiseXor(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.LogicalAND, ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Boolean })
-                => Buffer.InsertData(Position++, new OpLogicalAnd(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpLogicalAnd(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.LogicalOR, ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Boolean })
-                => Buffer.InsertData(Position++, new OpLogicalOr(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpLogicalOr(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Equals, ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Boolean })
-                => Buffer.InsertData(Position++, new OpLogicalEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpLogicalEqual(resultTypeId, resultId, left.Id, right.Id)),
             (Operator.Equals, ScalarType { Type: Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Int or Scalar.UInt })
-                => Buffer.InsertData(Position++, new OpIEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpIEqual(resultTypeId, resultId, left.Id, right.Id)),
             (Operator.Equals, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpFOrdEqual(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.NotEquals, ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Boolean })
-                => Buffer.InsertData(Position++, new OpLogicalNotEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpLogicalNotEqual(resultTypeId, resultId, left.Id, right.Id)),
             (Operator.NotEquals, ScalarType { Type: Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Int or Scalar.UInt })
-                => Buffer.InsertData(Position++, new OpINotEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpINotEqual(resultTypeId, resultId, left.Id, right.Id)),
             (Operator.NotEquals, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdNotEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpFOrdNotEqual(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Lower, ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Int })
-                => Buffer.InsertData(Position++, new OpSLessThan(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpSLessThan(resultTypeId, resultId, left.Id, right.Id)),
             (Operator.Lower, ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.UInt })
-                => Buffer.InsertData(Position++, new OpULessThan(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpULessThan(resultTypeId, resultId, left.Id, right.Id)),
             (Operator.Lower, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdLessThan(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpFOrdLessThan(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.LowerOrEqual, ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Int })
-                => Buffer.InsertData(Position++, new OpSLessThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpSLessThanEqual(resultTypeId, resultId, left.Id, right.Id)),
             (Operator.LowerOrEqual, ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.UInt })
-                => Buffer.InsertData(Position++, new OpULessThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpULessThanEqual(resultTypeId, resultId, left.Id, right.Id)),
             (Operator.LowerOrEqual, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdLessThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpFOrdLessThanEqual(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.Greater, ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Int })
-                => Buffer.InsertData(Position++, new OpSGreaterThan(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpSGreaterThan(resultTypeId, resultId, left.Id, right.Id)),
             (Operator.Greater, ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.UInt })
-                => Buffer.InsertData(Position++, new OpUGreaterThan(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpUGreaterThan(resultTypeId, resultId, left.Id, right.Id)),
             (Operator.Greater, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdGreaterThan(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpFOrdGreaterThan(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.GreaterOrEqual, ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Int })
-                => Buffer.InsertData(Position++, new OpSGreaterThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpSGreaterThanEqual(resultTypeId, resultId, left.Id, right.Id)),
             (Operator.GreaterOrEqual, ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.UInt })
-                => Buffer.InsertData(Position++, new OpUGreaterThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpUGreaterThanEqual(resultTypeId, resultId, left.Id, right.Id)),
             (Operator.GreaterOrEqual, ScalarType l, ScalarType r)
                 when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdGreaterThanEqual(resultTypeId, context.Bound++, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpFOrdGreaterThanEqual(resultTypeId, resultId, left.Id, right.Id)),
 
             _ => throw new NotImplementedException()
         };
 
         if (name is not null)
-            context.AddName(instruction.IdResult ?? -1, name);
-        return new(instruction, name);
+            context.AddName(resultId, name);
+        return new(resultId, resultTypeId, name);
     }
 
     /// <summary>
@@ -615,6 +701,11 @@ public partial class SpirvBuilder
 
 internal static class SymbolExtensions
 {
+    public static SymbolType GetValueType(this SpirvValue value, SpirvContext context)
+    {
+        return context.ReverseTypes[value.TypeId].GetValueType();
+    }
+
     public static SymbolType GetValueType(this SymbolType type)
     {
         return type switch

@@ -147,6 +147,16 @@ public partial class SPVGenerator : IIncrementalGenerator
                 structBuilder.AppendLine(@$"
                     public static implicit operator int({instruction.OpName}{(instruction.OpName.EndsWith("Constant") ? "<T>" : "")} inst) => inst.ResultId;"
                 );
+
+                if (operands.Any(x => x is { Kind: "IdResultType" }))
+                {
+                    var resultTypeOperand = operands.First(x => x is { Kind: "IdResultType" });
+                    structBuilder.AppendLine(@$"
+                        public static implicit operator SpirvValue({instruction.OpName}{(instruction.OpName.EndsWith("Constant") ? "<T>" : "")} inst) => inst.ToValue();
+                        public SpirvValue ToValue() => new(ResultId, {ToTypeFieldAndOperandName(resultTypeOperand).FieldName});
+                        "
+                    );
+                }
             }
             structBuilder.AppendLine(@$"
                 public {instruction.OpName}({string.Join(", ", operands.Select(ToFunctionParameters))})
