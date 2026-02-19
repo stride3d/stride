@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Stride.Core.Assets.Editor.Components.Properties;
@@ -17,12 +17,17 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
         private readonly Func<bool> isInerited;
         private readonly Func<bool> isOverridden;
 
-        public AssetVirtualNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter parent, string name, Type type, int? order, [NotNull] Func<object> getter, Action<object> setter, Func<bool> hasBase = null, Func<bool> isInerited = null, Func<bool> isOverridden = null)
+        //Custom Delegate for reset override, when AssociatedNode null
+        private readonly Func<object, object> customOverride;
+
+        public AssetVirtualNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter parent, string name, Type type, int? order, [NotNull] Func<object> getter, Action<object> setter, Func<bool> hasBase = null, Func<bool> isInerited = null, Func<bool> isOverridden = null, Func<object, object> customOverride = null)
             : base(factory, propertyProvider, parent, name, type, order, getter, setter)
         {
             this.hasBase = hasBase;
             this.isInerited = isInerited;
             this.isOverridden = isOverridden;
+            //custom override for our grid properties
+            this.customOverride = customOverride;
         }
 
         protected override void Dispose(bool disposing)
@@ -74,6 +79,9 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
 
             var objectNode = AssociatedNode.Node as IAssetObjectNode;
             objectNode?.ResetOverrideRecursively(AssociatedNode.Index);
+
+            //use our custom ResetOverride passed in constructor as a delegate
+            customOverride?.Invoke(this);
         }
 
         private bool IsAssociatedNodeInherited()

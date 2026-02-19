@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -13,6 +14,7 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.UI;
+using Stride.UI.Panels;
 
 namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
@@ -141,11 +143,60 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
             var propertyContainerNode = ((IObjectNode)accessor.Node)[nameof(UIElement.DependencyProperties)].Target;
 
             var undoRedoService = propertyNodeParent.Asset.ServiceProvider.Get<IUndoRedoService>();
+
+            //pass in delegate in the case of VirtualNodePresenters not having proper AssociatedNodes
+            Func<bool> checkHasBase = null;
+            Func<object, object> customOverride = null;
+            UIElement elementNode = SetVirtualNodeDelegates(ref checkHasBase, ref customOverride, property, accessor);
+
+            //create virtual node
             var virtualNode = node.Factory.CreateVirtualNodePresenter(propertyNodeParent, property.Name, propertyType, order,
                 () => Getter(propertyContainerNode, propertyIndex),
-                o => Setter(undoRedoService, propertyContainerNode, propertyIndex, o));
+                o => Setter(undoRedoService, propertyContainerNode, propertyIndex, o),
+                    checkHasBase, null, null, customOverride);
 
             return virtualNode;
+        }
+
+        /// <summary>
+        /// Some virtual nodes don't have a specific AssociatedNode that is applicable. 
+        /// Instead delegates are passed in the constructor to allow for custom reset behaviors.
+        /// 
+        /// </summary>
+        /// <param name="property">Current Property Key Object</param>
+        /// <param name="accessor">Current Node's Accessor Object</param>
+        /// <param name="checkHasBase">Custom Delegate for if there is base value for ResetOverride in the AssetVirtualNodePresenter</param>
+        /// <param name="customOverride">Custom Delegate for ResetOverride behavior in the AssetVirtualNodePresenter</param>
+        /// <returns></returns>
+        public UIElement SetVirtualNodeDelegates(ref Func<bool> checkHasBase, ref Func<object, object> customOverride, PropertyKey property, NodeAccessor accessor)
+        {
+            UIElement elementNode = null;
+            //TODO: Maybe more optimal ways to verify this property is part of the Universal Grid Properties
+            if (property.OwnerType.Name == "GridBase" && accessor.Node.Retrieve() is UIElement element)
+            {
+                elementNode = element;
+                customOverride = (input) => CustomResetOverrideGrid(element, property, input);
+                checkHasBase = () => CustomHasBaseGrid(element, property);
+            }
+            return elementNode;
+        }
+
+        //temp place for custom override delegate used on the grid properties, TODO: Find better place for this
+        public static object CustomResetOverrideGrid(UIElement element, PropertyKey property, object Node)
+        {
+            //new default value to set the Node to
+            int newValue = GridBase.GetBaseValue(property);
+            var assetVirtualNodePresenter = Node as AssetVirtualNodePresenter;
+            assetVirtualNodePresenter.UpdateValue(newValue);
+
+            return element;
+        }
+
+        //temp place for custom hasBase delegate used on the grid properties, TODO: Find better place for this
+        // can only enable override for property if the current value isn't the base value
+        public static bool CustomHasBaseGrid(UIElement element, PropertyKey property)
+        {
+            return (int)element.DependencyProperties.Get(property) != GridBase.GetBaseValue(property);
         }
 
         /// <summary>
