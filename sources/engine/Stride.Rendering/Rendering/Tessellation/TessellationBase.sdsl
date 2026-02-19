@@ -121,7 +121,7 @@ shader TessellationBase : ShaderBase, TransformationBase, MaterialDomainStream, 
     
     stage void TessellateHull(InputPatch<Input, InputControlPointCount> input, uint uCPID, uint NextCPID) {}
     stage void TessellateHullConstant(InputPatch<Input, InputControlPointCount> input, const OutputPatch<Input2, 3> output, inout Constants constants) {}
-    stage float ComputeClipping(InputPatch<Input, InputControlPointCount> input, const OutputPatch<Input2, 3> output, inout Constants constants) {}
+    stage float ComputeClipping(InputPatch<Input, InputControlPointCount> input, const OutputPatch<Input2, 3> output, inout Constants constants) { return 0.0f; }
     stage void InterpolateBarycentric(const OutputPatch<Input, 3> input, in Constants constants, float3 f3BarycentricCoords) {}
     stage void TessellateDomain() {}
 };
