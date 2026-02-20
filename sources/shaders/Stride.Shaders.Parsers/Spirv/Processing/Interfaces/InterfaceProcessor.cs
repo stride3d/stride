@@ -364,6 +364,16 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             var stage = ExecutionModelToStageId(executionModel);
             foreach (var stream in streams)
             {
+                int RequiredLocations(SymbolType type)
+                {
+                    return type switch
+                    {
+                        ScalarType or VectorType => 1,
+                        MatrixType m => m.Columns,
+                        ArrayType a => a.Size,
+                    };
+                }
+
                 if (stream.Value.Input)
                 {
                     var variableId = context.Bound++;
@@ -371,7 +381,10 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     if (!ProcessBuiltinsDecoration(variableId, StreamVariableType.Input, stream.Value.Semantic, ref variableType))
                     {
                         if (stream.Value.InputLayoutLocation == null)
-                            stream.Value.InputLayoutLocation = inputLayoutLocationCount++;
+                        {
+                            stream.Value.InputLayoutLocation = inputLayoutLocationCount;
+                            inputLayoutLocationCount += RequiredLocations(variableType);
+                        }
                         context.Add(new OpDecorate(variableId, Decoration.Location, [stream.Value.InputLayoutLocation.Value]));
                         if (stream.Value.Semantic != null)
                             context.Add(new OpDecorateString(variableId, Decoration.UserSemantic, stream.Value.Semantic));
@@ -388,6 +401,9 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     if (stream.Value.Type is ScalarType or VectorType or MatrixType && !stream.Value.Type.GetElementType().IsFloating())
                         context.Add(new OpDecorate(variable, Decoration.Flat, []));
 
+                    if (stream.Value.Patch)
+                        context.Add(new OpDecorate(variable, Decoration.Patch, []));
+
                     stream.Value.InputId = variable.ResultId;
                     (stream.Value.Patch ? patchInputStreams : inputStreams).Add((stream.Value, variable.ResultId, variableType));
                 }
@@ -400,7 +416,10 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     {
                         // TODO: this shouldn't be necessary if we allocated layout during first forward pass for any SV_ semantic
                         if (stream.Value.OutputLayoutLocation == null)
-                            stream.Value.OutputLayoutLocation = outputLayoutLocationCount++;
+                        {
+                            stream.Value.OutputLayoutLocation = outputLayoutLocationCount;
+                            outputLayoutLocationCount += RequiredLocations(variableType);
+                        }
 
                         context.Add(new OpDecorate(variableId, Decoration.Location, [stream.Value.OutputLayoutLocation.Value]));
                         if (stream.Value.Semantic != null)
@@ -417,6 +436,9 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 
                     if (stream.Value.Type is ScalarType or VectorType or MatrixType && !stream.Value.Type.GetElementType().IsFloating())
                         context.Add(new OpDecorate(variable, Decoration.Flat, []));
+
+                    if (stream.Value.Patch)
+                        context.Add(new OpDecorate(variable, Decoration.Patch, []));
 
                     stream.Value.OutputId = variable.ResultId;
                     (stream.Value.Patch ? patchOutputStreams : outputStreams).Add((stream.Value, variable.ResultId, variableType));
