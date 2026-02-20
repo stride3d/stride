@@ -5,6 +5,7 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Processing.Interfaces.Models;
+using Stride.Shaders.Spirv.Processing.Interfaces.Transformation;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Processing.Interfaces.Generation;
@@ -160,16 +161,19 @@ internal static class EntryPointWrapperGenerator
             var entryPointTypeId = context.GetOrRegister(entryPoint.Type);
             if (executionModel == ExecutionModel.TessellationControl || executionModel == ExecutionModel.TessellationEvaluation)
             {
+                var arraySize = executionModel == ExecutionModel.TessellationControl
+                    ? arrayOutputSize ?? throw new InvalidOperationException("Can't figure array output size for tessellation shader")
+                    : arrayInputSize.Value;
                 bool hullTessellationOutputsGenerated = false;
                 int GenerateHullTessellationOutputs()
                 {
                     if (hullTessellationOutputsGenerated)
                         throw new InvalidOperationException("Hull OutputPatch can only be used in once place (constant patch)");
                     hullTessellationOutputsGenerated = true;
-                    var outputsVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(new ArrayType(outputType, arrayInputSize.Value), Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
+                    var outputsVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(new ArrayType(outputType, arraySize), Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
                     context.AddName(outputsVariable, "outputs");
 
-                    for (int arrayIndex = 0; arrayIndex < arrayInputSize; ++arrayIndex)
+                    for (int arrayIndex = 0; arrayIndex < arraySize; ++arrayIndex)
                     {
                         for (var outputIndex = 0; outputIndex < outputStreams.Count; outputIndex++)
                         {
@@ -204,42 +208,39 @@ internal static class EntryPointWrapperGenerator
                                 (inputPatchType.Kind == PatchTypeKindSDSL.Input && executionModel == ExecutionModel.TessellationControl)
                                 || (inputPatchType.Kind == PatchTypeKindSDSL.Output && executionModel == ExecutionModel.TessellationEvaluation):
                             {
-                                // Change signature of main() to use an array instead of InputPatch
-                                // InputPatch<HS_INPUT, X> becomes HS_INPUT[X]
-                                SpirvBuilder.FunctionReplaceArgument(context, buffer, function, i, new PointerType(new ArrayType(inputPatchType.BaseType, inputPatchType.Size), Specification.StorageClass.Function));
-                                context.ReplaceType(function.Type, functionTypeId);
                                 arguments[i] = inputsVariable;
                                 break;
                             }
                             // Hull outputs
                             case PatchType { Kind: PatchTypeKindSDSL.Output } outputPatchType when executionModel == ExecutionModel.TessellationControl:
                             {
-                                // Change signature of main() to use an array instead of InputPatch
-                                // InputPatch<HS_INPUT, X> becomes HS_INPUT[X]
-                                SpirvBuilder.FunctionReplaceArgument(context, buffer, function, i, new PointerType(new ArrayType(outputPatchType.BaseType, outputPatchType.Size), Specification.StorageClass.Function));
-                                context.ReplaceType(function.Type, functionTypeId);
                                 arguments[i] = GenerateHullTessellationOutputs();
                                 break;
                             }
-                            case StructType t when (t == constantsType) && parameterModifiers is ParameterModifiers.None or ParameterModifiers.In:
+                            case StreamsType t when t.Kind is StreamsKindSDSL.Constants && parameterModifiers is ParameterModifiers.None or ParameterModifiers.In:
                             {
                                 // Parameter is "HS_CONSTANTS constants"
-                                var constantVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(t, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
+                                var constantVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(constantsType, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
                                 arguments[i] = constantVariable;
                                 // Copy back values from semantic/builtin variables to Constants struct
                                 foreach (var stream in patchInputStreams)
                                 {
                                     var inputPtr = buffer.Add(new OpAccessChain(context.GetOrRegister(stream.Info.Type), context.Bound++, constantVariable, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
-                                    var inputResult = buffer.Add(new OpLoad(context.GetOrRegister(stream.Info.Type), stream.Id, constantVariable, null, [])).ResultId;
+                                    var inputResult = buffer.Add(new OpLoad(context.GetOrRegister(stream.Info.Type), context.Bound++, stream.Id, null, [])).ResultId;
                                     inputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.InterfaceType, stream.Info.Type, inputResult);
                                     buffer.Add(new OpStore(inputPtr, inputResult, null, []));
                                 }
                                 break;
                             }
-                            case StructType t when (t == outputType || t == constantsType) && parameterModifiers == ParameterModifiers.Out:
+                            case StreamsType t when t.Kind is StreamsKindSDSL.Output or StreamsKindSDSL.Constants && parameterModifiers == ParameterModifiers.Out:
                             {
                                 // Parameter is "out HS_OUTPUT output" or "out HS_CONSTANTS constants"
-                                var outVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(t, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
+                                var structType = t.Kind switch
+                                {
+                                    StreamsKindSDSL.Output => outputType,
+                                    StreamsKindSDSL.Constants => constantsType,
+                                };
+                                var outVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(structType, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
                                 arguments[i] = outVariable;
                                 break;
                             }
@@ -258,12 +259,12 @@ internal static class EntryPointWrapperGenerator
                         var parameterModifiers = functionType.ParameterTypes[i].Modifiers;
                         switch (parameterType)
                         {
-                            case StructType t when t == outputType && parameterModifiers == ParameterModifiers.Out:
+                            case StreamsType { Kind: StreamsKindSDSL.Output } when parameterModifiers == ParameterModifiers.Out:
                             {
                                 // Parameter is "out HS_OUTPUT output"
                                 var outputVariable = arguments[i];
                                 // Load as value
-                                outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(t), context.Bound++, outputVariable, null, [])).ResultId;
+                                outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(outputType), context.Bound++, outputVariable, null, [])).ResultId;
                                 // Do we need to index into array? if yes, get index (gl_invocationID)
                                 int? invocationIdValue = arrayOutputSize != null ? GetOrDeclareBuiltInValue(ScalarType.UInt, "SV_OutputControlPointID") : null;
                                 // Copy back values from Output struct to semantic/builtin variables
@@ -281,12 +282,12 @@ internal static class EntryPointWrapperGenerator
                                 }
                                 break;
                             }
-                            case StructType t when t == constantsType && parameterModifiers == ParameterModifiers.Out:
+                            case StreamsType { Kind: StreamsKindSDSL.Constants } when parameterModifiers == ParameterModifiers.Out:
                             {
                                 // Parameter is "out HS_OUTPUT output"
                                 var outputVariable = arguments[i];
                                 // Load as value
-                                outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(t), context.Bound++, outputVariable, null, [])).ResultId;
+                                outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(constantsType ?? throw new InvalidOperationException()), context.Bound++, outputVariable, null, [])).ResultId;
                                 // Copy back values from Output struct to semantic/builtin variables
                                 foreach (var stream in patchOutputStreams)
                                 {
@@ -348,15 +349,17 @@ internal static class EntryPointWrapperGenerator
             else if (executionModel == ExecutionModel.Geometry)
             {
                 // Change signature of main() to not use the output Stream anymore
-                SpirvBuilder.FunctionRemoveArgument(context, buffer, entryPoint, 1);
+                // TODO: Check it's really the 2nd parameter
+                SpirvBuilder.FunctionRemoveParameter(context, buffer, entryPoint, 1);
 
                 // Extract and remove execution mode (line, point, triangleadj, etc.)
                 var executionMode = entryPointFunctionType.ParameterTypes[0].Modifiers;
                 if (executionMode == ParameterModifiers.None)
                     throw new InvalidOperationException("Execution mode primitive is missing for first parameter of geometry shader");
                 entryPointFunctionType.ParameterTypes[0] = entryPointFunctionType.ParameterTypes[0] with { Modifiers = ParameterModifiers.None };
+                entryPointFunctionType.ParameterTypes.RemoveAt(1);
 
-                context.ReplaceType(entryPoint.Type, entryPointTypeId);
+                context.ReplaceType(entryPointFunctionType, entryPointTypeId);
                 context.Add(new OpExecutionMode(entryPoint.IdRef, executionMode switch
                 {
                     ParameterModifiers.Point => ExecutionMode.InputPoints,
@@ -368,8 +371,8 @@ internal static class EntryPointWrapperGenerator
 
                 arguments[0] = inputsVariable;
 
-                // Call main(inputs)
-                buffer.Add(new OpFunctionCall(voidType, context.Bound++, entryPoint.IdRef, new(arguments)));
+                // Call main(inputs) without 2nd argument
+                buffer.Add(new OpFunctionCall(voidType, context.Bound++, entryPoint.IdRef, [arguments[0], .. arguments[2..]]));
             }
         }
         else

@@ -67,7 +67,7 @@ public partial class SpirvBuilder
         throw new InvalidOperationException();
     }
     
-    public static void FunctionRemoveArgument(SpirvContext context, SpirvBuffer buffer, Symbol method, int argIndex)
+    public static void FunctionRemoveParameter(SpirvContext context, SpirvBuffer buffer, Symbol method, int argIndex)
     {
         var methodType = (FunctionType)method.Type;
         method.Type = methodType with { ParameterTypes = methodType.ParameterTypes[0..^1] };
@@ -77,7 +77,7 @@ public partial class SpirvBuilder
         SetOpNop(functionParameter.InstructionMemory.Span);
     }
 
-    public static void FunctionReplaceArgument(SpirvContext context, SpirvBuffer buffer, Symbol method, int argIndex, SymbolType newType)
+    public static void FunctionReplaceParameter(SpirvContext context, SpirvBuffer buffer, Symbol method, int argIndex, SymbolType newType)
     {
         var methodType = (FunctionType)method.Type;
         var parameterTypes = new List<FunctionParameter>(methodType.ParameterTypes);

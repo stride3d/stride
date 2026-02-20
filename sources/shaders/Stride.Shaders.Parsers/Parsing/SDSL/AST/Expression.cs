@@ -921,12 +921,21 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         break;
                     }
 
+                    // We emit chain access so far
+                    // It's not necessary for SPIR-V, but StreamAccessPatcher.PatchStreamsAccesses() expect a simple format without
+                    // multiple access chained (which make it harder to compute type)
+                    EmitOpAccessChain(accessChainIds, i - 1);
+
                     // Since we cheated a bit by overwriting the accessor.Type, set it back during Compile()
                     accessor.Type = (PointerType)accessor.Type with { StorageClass = Specification.StorageClass.Private };
                     // Since STREAMS struct is built later for each shader, we simply make a reference to variable for now
                     var streamVariableResult = streamVar.Compile(table, compiler);
                     accessor.Type = (PointerType)accessor.Type with { StorageClass = p.StorageClass };
                     PushAccessChainId(accessChainIds, streamVariableResult.Id);
+
+                    // For same reason as before (we want easy to detect pattern for StreamAccessPatcher), emit again
+                    currentValueType = accessor.Type;
+                    EmitOpAccessChain(accessChainIds, i);
                     break;
                 case (PointerType { BaseType: StructType s } p, Identifier field):
                     var index = s.TryGetFieldIndex(field);

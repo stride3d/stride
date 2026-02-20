@@ -29,6 +29,11 @@ internal static class StreamAccessPatcher
                 StreamsKindSDSL.Constants => constantsReplacement ?? throw new InvalidOperationException(),
             };
         }
+
+        public override SymbolType VisitPatchType(PatchType patchType)
+        {
+            return new ArrayType(VisitType(patchType.BaseType), patchType.Size);
+        }
     }
 
     /// <summary>
@@ -54,12 +59,13 @@ internal static class StreamAccessPatcher
 
         var streams = analysisResult.Streams;
         // true => implicit (streams.), false => specific variable
-        var streamsInstructionIds = new Dictionary<int, bool>();
+        var streamsInstructionIds = new Dictionary<int, (bool IsImplicit, StreamsKindSDSL Kind)>();
 
         var method = (OpFunction)buffer[methodStart];
         var methodType = (FunctionType)context.ReverseTypes[method.FunctionType];
 
         var streamTypeReplacer = new StreamsTypeReplace(streamsStructType, inputStructType, outputStructType, constantsStructType);
+        var oldMethodType = methodType;
         var newMethodType = (FunctionType)streamTypeReplacer.VisitType(methodType)!;
         if (!ReferenceEquals(newMethodType, methodType))
         {
@@ -85,7 +91,7 @@ internal static class StreamAccessPatcher
             }
         }
 
-        // TODO: remap method type!
+        int parameterIndex = 0;
         Span<int> tempIdsForStreamCopy = stackalloc int[streams.Values.Count];
         for (int index = methodStart; ; ++index)
         {
@@ -96,36 +102,48 @@ internal static class StreamAccessPatcher
 
             if (i.Op == Op.OpStreamsSDSL && (OpStreamsSDSL)i is { } streamsInstruction)
             {
-                streamsInstructionIds.Add(streamsInstruction.ResultId, true);
+                streamsInstructionIds.Add(streamsInstruction.ResultId, (true, StreamsKindSDSL.Streams));
                 remapIds.Add(streamsInstruction.ResultId, streamsVariableId);
                 SpirvBuilder.SetOpNop(i.Data.Memory.Span);
             }
             else if (i.Op is Op.OpVariable && (OpVariable)i is { } variable)
             {
                 var type = context.ReverseTypes[variable.ResultType];
-                if (type is PointerType { BaseType: StreamsType })
-                    streamsInstructionIds.Add(variable.ResultId, false);
+                if (type is PointerType { BaseType: StreamsType s })
+                    streamsInstructionIds.Add(variable.ResultId, (false, s.Kind));
             }
             else if (i.Op is Op.OpFunctionParameter && (OpFunctionParameter)i is { } functionParameter)
             {
                 var type = context.ReverseTypes[functionParameter.ResultType];
-                if (type is PointerType { BaseType: StreamsType })
-                    streamsInstructionIds.Add(functionParameter.ResultId, false);
+                if (type is PointerType { BaseType: StreamsType s })
+                    streamsInstructionIds.Add(functionParameter.ResultId, (false, s.Kind));
             }
             else if (i.Op == Op.OpAccessChain && (OpAccessChain)i is { } accessChain)
             {
-                // In case it's a streams access, patch acces to use STREAMS struct with proper index
-                if (streamsInstructionIds.TryGetValue(accessChain.BaseId, out var isImplicit))
+                // It might return a StreamsType too
+                var type = context.ReverseTypes[accessChain.ResultType];
+                if (type is PointerType { BaseType: StreamsType s })
+                    streamsInstructionIds.Add(accessChain.ResultId, (false, s.Kind));
+
+                // In case it's a streams.Variable access, patch acces to use STREAMS struct with proper index to this variable
+                // Note: we made sure in AccessChainExpression to decompose access such as inputs[2].variable into two OpAccessChain
+                //       so that we match this easier to detect format
+                if (accessChain.Values.Elements.Length == 1 && streamsInstructionIds.TryGetValue(accessChain.BaseId, out var streamAccessInfo))
                 {
                     var streamVariableId = accessChain.Values.Elements.Span[0];
                     var streamInfo = streams[streamVariableId];
-                    var streamStructMemberIndex = streamInfo.StreamStructFieldIndex;
+                    var streamStructMemberIndex = streamAccessInfo.Kind switch
+                    {
+                        StreamsKindSDSL.Streams or StreamsKindSDSL.Constants => streamInfo.StreamStructFieldIndex,
+                        StreamsKindSDSL.Input => streamInfo.InputStructFieldIndex.Value,
+                        StreamsKindSDSL.Output => streamInfo.OutputStructFieldIndex.Value,
+                    };
 
                     // TODO: this won't update accessChain.Memory yet but setting accessChain.Base later will fix that
                     //       we'll need a better way to update LiteralArray and propagate changes
                     accessChain.Values.Elements.Span[0] = context.CompileConstant(streamStructMemberIndex).Id;
 
-                    if (isImplicit)
+                    if (streamAccessInfo.IsImplicit)
                         accessChain.BaseId = streamsVariableId;
                     else
                         // Force refresh of InstructionMemory

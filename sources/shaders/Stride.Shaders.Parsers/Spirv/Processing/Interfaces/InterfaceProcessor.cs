@@ -116,11 +116,11 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     {
                         ReadWriteAnalyzer.AnalyzeStreamReadWrites(buffer, context, entryPoint.Item2.IdRef, analysisResult, liveAnalysis);
 
-                        // Find patch constant entry point and process it as well
+                        // Find patch constant entry point and process
                         var patchConstantEntryPoint = entryPoint.Item1 == ExecutionModel.TessellationControl ? ResolveHullPatchConstantEntryPoint(table, context, entryPoint.Item2) : null;
                         if (patchConstantEntryPoint != null)
                             ReadWriteAnalyzer.AnalyzeStreamReadWrites(buffer, context, patchConstantEntryPoint.IdRef, analysisResult, liveAnalysis);
-                    
+
                         // If specific semantic are written to (i.e. SV_Position), they are expected at the end of vertex shader
                         foreach (var stream in streams)
                         {
@@ -251,6 +251,14 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             // Find patch constant entry point
             var patchConstantEntryPoint = executionModel == ExecutionModel.TessellationControl ? ResolveHullPatchConstantEntryPoint(table, context, entryPoint) : null;
 
+            // Generate entry point wrapper
+            var (newEntryPointFunctionResultId, entryPointName) = EntryPointWrapperGenerator.GenerateWrapper(context,
+                buffer, entryPoint, executionModel, analysisResult,
+                liveAnalysis, inputStreams, outputStreams, patchInputStreams,
+                patchOutputStreams, inputType, outputType, streamsType,
+                constantsType, arrayInputSize, arrayOutputSize, streamsVariable.ResultId,
+                patchConstantEntryPoint);
+
             // Patch any OpStreams/OpAccessChain to use the new struct
             foreach (var method in liveAnalysis.ReferencedMethods)
             {
@@ -260,14 +268,6 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     StreamAccessPatcher.PatchStreamsAccesses(table, buffer, context, method.Key, streamsType, inputType, outputType, constantsType, streamsVariable.ResultId, analysisResult, liveAnalysis, CodeInserted);
                 }
             }
-
-            // Generate entry point wrapper
-            var (newEntryPointFunctionResultId, entryPointName) = EntryPointWrapperGenerator.GenerateWrapper(context,
-                buffer, entryPoint, executionModel, analysisResult,
-                liveAnalysis, inputStreams, outputStreams, patchInputStreams,
-                patchOutputStreams, inputType, outputType, streamsType,
-                constantsType, arrayInputSize, arrayOutputSize, streamsVariable.ResultId,
-                patchConstantEntryPoint);
 
             // Move OpExecutionMode on new wrapper
             foreach (var i in context)
@@ -400,12 +400,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     {
                         // TODO: this shouldn't be necessary if we allocated layout during first forward pass for any SV_ semantic
                         if (stream.Value.OutputLayoutLocation == null)
-                        {
-                            if (stream.Value.Semantic?.ToUpperInvariant().StartsWith("SV_") ?? false)
-                                stream.Value.OutputLayoutLocation = outputLayoutLocationCount++;
-                            else
-                                throw new InvalidOperationException($"Can't find output layout location for variable [{stream.Value.Name}]");
-                        }
+                            stream.Value.OutputLayoutLocation = outputLayoutLocationCount++;
 
                         context.Add(new OpDecorate(variableId, Decoration.Location, [stream.Value.OutputLayoutLocation.Value]));
                         if (stream.Value.Semantic != null)

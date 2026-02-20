@@ -142,7 +142,11 @@ public partial class SpirvBuilder
 
         // Check base types
         // TODO: special case for operators expecting different types (i.e. bit shifts)
-        var desiredElementType = FindCommonBaseTypeForBinaryOperation(leftElementType, rightElementType);
+        var desiredElementType = op switch
+        {
+            Operator.LogicalAND or Operator.LogicalOR => ScalarType.Boolean,
+            _ => FindCommonBaseTypeForBinaryOperation(leftElementType, rightElementType),
+        };
         
         // Check size
         SymbolType resultType;
@@ -183,8 +187,8 @@ public partial class SpirvBuilder
         var operandType = resultType;
         
         // Comparisons and logical operators
-        if (op == Operator.Greater || op == Operator.Lower || op == Operator.GreaterOrEqual || op == Operator.LowerOrEqual
-            || op == Operator.NotEquals || op == Operator.Equals || op == Operator.LogicalAND || op == Operator.LogicalOR)
+        if (op is Operator.Greater or Operator.Lower or Operator.GreaterOrEqual or Operator.LowerOrEqual
+            or Operator.NotEquals or Operator.Equals or Operator.LogicalAND or Operator.LogicalOR)
             resultType = resultType.WithElementType(ScalarType.Boolean);
 
         return (operandType, resultType);
@@ -643,8 +647,12 @@ public partial class SpirvBuilder
                     (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Float }) => InsertData(new OpConvertSToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
                     (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Float }) => InsertData(new OpConvertUToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
 
-                    (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Int }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeVectorRepeat(new IntegerLiteral(new(32, false, true), 1, new()), elementSize).Id, context.CompileConstant(0).Id)),
-                    (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Float }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeVectorRepeat(new FloatLiteral(new(32, true, true), 1.0, null, new()), elementSize).Id, context.CompileConstant(0.0).Id)),
+                    (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Int }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue,
+                                                                                                    context.CreateConstantCompositeVectorRepeat(new IntegerLiteral(new(32, false, true), 1, new()), elementSize).Id,
+                                                                                                    context.CreateConstantCompositeVectorRepeat(new IntegerLiteral(new(32, false, true), 0, new()), elementSize).Id)),
+                    (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Float }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue,
+                                                                                                    context.CreateConstantCompositeVectorRepeat(new FloatLiteral(new(32, true, true), 1.0, null, new()), elementSize).Id,
+                                                                                                    context.CreateConstantCompositeVectorRepeat(new FloatLiteral(new(32, true, true), 0.0, null, new()), elementSize).Id)),
 
                     // Bitcast (int=>uint or uint=>int)
                     (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.UInt }) => InsertData(new OpBitcast(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),

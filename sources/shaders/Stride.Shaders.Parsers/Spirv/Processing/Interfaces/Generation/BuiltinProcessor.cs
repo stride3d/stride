@@ -57,11 +57,13 @@ internal static class BuiltinProcessor
         for (int i = 0; i < castSize; ++i)
         {
             components[i] = i < sourceSize
-                ? buffer.Add(new OpCompositeExtract(context.GetOrRegister(sourceBaseType), context.Bound++, value, [i])).ResultId
+                ? (sourceType is ScalarType ? value : buffer.Add(new OpCompositeExtract(context.GetOrRegister(sourceBaseType), context.Bound++, value, [i])).ResultId)
                 : context.CreateDefaultConstantComposite(sourceBaseType).Id;
         }
 
-        return buffer.Add(new OpCompositeConstruct(context.GetOrRegister(castType), context.Bound++, new(components))).ResultId;
+        return castType is ScalarType
+            ? components[0]
+            : buffer.Add(new OpCompositeConstruct(context.GetOrRegister(castType), context.Bound++, new(components))).ResultId;
 
         (int Size, SymbolType baseType) ExtractSizeAndBaseType(SymbolType castType)
         {

@@ -1,7 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using CommunityToolkit.HighPerformance;
+using Silk.NET.SPIRV;
+using Silk.NET.SPIRV.Cross;
+using Stride.Shaders.Compilers;
 using Stride.Shaders.Compilers.SDSL;
+using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Tools;
+using Spv = Stride.Shaders.Spirv.Tools.Spv;
 
 namespace Stride.Shaders.Parsers.Tests;
 
@@ -21,7 +28,8 @@ new ShaderClassSource("TransformationBase"),
 new ShaderClassSource("NormalStream"),
 new ShaderClassSource("TransformationWAndVP"),
 new ShaderClassSource("NormalFromMesh"),
-new ShaderClassSource("TessellationFlat"),
+new ShaderClassSource("TessellationPN"),
+new ShaderClassSource("TessellationAE4","PositionWS"),
 new ShaderClassSource("MaterialSurfacePixelStageCompositor"),
 },
             Compositions =
@@ -33,6 +41,7 @@ new ShaderMixinSource
 Mixins ={new ShaderClassSource("LightSimpleAmbient")},
 Macros =
 {
+new ShaderMacro("InputControlPointCount", "12"),
 new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", "1"),
 new ShaderMacro("STRIDE_MULTISAMPLE_COUNT", "1"),
 new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D", "1"),
@@ -63,6 +72,7 @@ Mixins ={new ShaderClassSource("MaterialSurfaceDiffuse")},
 Compositions ={["diffuseMap"] = new ShaderClassSource("ComputeColorConstantColorLink","Material.DiffuseValue")},
 Macros =
 {
+new ShaderMacro("InputControlPointCount", "12"),
 new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", "1"),
 new ShaderMacro("STRIDE_MULTISAMPLE_COUNT", "1"),
 new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D", "1"),
@@ -91,6 +101,7 @@ new ShaderClassSource("MaterialSurfaceShadingDiffuseLambert","false"),
 },
 Macros =
 {
+new ShaderMacro("InputControlPointCount", "12"),
 new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", "1"),
 new ShaderMacro("STRIDE_MULTISAMPLE_COUNT", "1"),
 new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D", "1"),
@@ -111,6 +122,7 @@ new ShaderMacro("class", "shader"),
 },
 Macros =
 {
+new ShaderMacro("InputControlPointCount", "12"),
 new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", "1"),
 new ShaderMacro("STRIDE_MULTISAMPLE_COUNT", "1"),
 new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D", "1"),
@@ -136,6 +148,7 @@ new ShaderClassSource("MaterialPixelShadingStream"),
 },
 Macros =
 {
+new ShaderMacro("InputControlPointCount", "12"),
 new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", "1"),
 new ShaderMacro("STRIDE_MULTISAMPLE_COUNT", "1"),
 new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D", "1"),
@@ -155,6 +168,7 @@ new ShaderMacro("class", "shader"),
 },
             Macros =
 {
+new ShaderMacro("InputControlPointCount", "12"),
 new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", "1"),
 new ShaderMacro("STRIDE_MULTISAMPLE_COUNT", "1"),
 new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D", "1"),
@@ -174,5 +188,13 @@ new ShaderMacro("class", "shader"),
 
         var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/Stride/SDSL"));
         shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), out var bytecode, out var effectReflection, out _, out _);
+
+        File.WriteAllBytes($"StrideTessellation.spv", bytecode);
+        File.WriteAllText($"StrideTessellation.spvdis", Spv.Dis(SpirvBytecode.CreateBufferFromBytecode(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
+
+        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+        var entryPoints = translator.GetEntryPoints();
+        var codeHS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.TessellationControl));
+        var codeDS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.TessellationEvaluation));
     }
 }
