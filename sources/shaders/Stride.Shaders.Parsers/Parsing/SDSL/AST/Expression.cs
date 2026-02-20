@@ -1386,9 +1386,9 @@ public partial class TernaryExpression(Expression cond, Expression left, Express
     {
         Condition.ProcessSymbol(table);
         
-        if (Condition.ValueType.GetElementType() is not ScalarType { Type: Scalar.Boolean })
+        if (Condition.ValueType.GetElementType() is not ScalarType)
             table.AddError(new(Condition.Info, SDSLErrorMessages.SDSL0106));
-        
+
         Left.ProcessSymbol(table);
         Right.ProcessSymbol(table);
 
@@ -1409,6 +1409,9 @@ public partial class TernaryExpression(Expression cond, Expression left, Express
         var (builder, context) = compiler;
 
         var conditionValue = Condition.CompileAsValue(table, compiler);
+
+        // Might need implicit conversion from float/int to bool
+        conditionValue = builder.Convert(context, conditionValue, ScalarType.Boolean);
 
         // TODO: Review choice between if/else like branch (OpBranchConditional) which evaluate only one side, or select (OpSelect) which evaluate both side but can work per component but is limited to specific types
         //       It seems HLSL 2021 changed the behavior to align it with C-style short-circuiting.
