@@ -201,10 +201,11 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     {
         var instruction = functionType.ReturnType.GetElementType() switch
         {
-            ScalarType { Type: Scalar.Float or Scalar.Double } => builder.InsertData(new GLSLFSign(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id)),
-            ScalarType { Type: Scalar.UInt or Scalar.Int or Scalar.UInt64 or Scalar.Int64 } => builder.InsertData(new GLSLFSign(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id)),
+            ScalarType { Type: Scalar.Float or Scalar.Double } => builder.InsertData(new GLSLFSign(x.TypeId, context.Bound++, context.GetGLSL(), x.Id)),
+            ScalarType { Type: Scalar.UInt or Scalar.Int or Scalar.UInt64 or Scalar.Int64 } => builder.InsertData(new GLSLSSign(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id)),
         };
-        return new(instruction);
+        // FSign return float whereas HLSL sign() expects int
+        return builder.Convert(context, new(instruction), functionType.ReturnType);
     }
 
     public override SpirvValue CompileSmoothstep(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, SpirvValue x)
