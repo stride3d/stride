@@ -211,15 +211,6 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
 
             var stage = ExecutionModelToStageId(executionModel);
 
-
-
-            bool AddBuiltin(int variable, BuiltIn builtin) => BuiltinProcessor.AddBuiltin(context, variable, builtin);
-
-            bool AddLocation(int variable, string location) => BuiltinProcessor.AddLocation(context, variable, location);
-
-            int ConvertInterfaceVariable(SymbolType sourceType, SymbolType castType, int value) =>
-                BuiltinProcessor.ConvertInterfaceVariable(buffer, context, sourceType, castType, value);
-
             var entryPointFunctionType = (FunctionType)entryPoint.Type;
             // TODO: check all parameters instead of hardcoded 0
             int? arrayInputSize = executionModel switch
