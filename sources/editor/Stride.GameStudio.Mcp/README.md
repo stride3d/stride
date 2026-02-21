@@ -30,6 +30,13 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 | `delete_entity` | Deletes an entity and its children from a scene |
 | `reparent_entity` | Moves an entity to a new parent (or to root level) |
 | `set_transform` | Sets position, rotation (Euler degrees), and/or scale of an entity |
+| `modify_component` | Adds, removes, or updates a component on an entity |
+
+### Build
+| Tool | Description |
+|------|-------------|
+| `build_project` | Triggers an async build of the current game project |
+| `get_build_status` | Returns current build status, errors, and warnings |
 
 ## Configuration
 

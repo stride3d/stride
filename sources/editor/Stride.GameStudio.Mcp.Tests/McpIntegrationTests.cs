@@ -632,6 +632,152 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
     }
 
+    // =============================
+    // Phase 3.2: Component Modification
+    // =============================
+
+    [McpIntegrationFact]
+    public async Task ModifyComponent_AddComponent()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        // Create a test entity
+        var createResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpComponentTest",
+        });
+        var entityId = createResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        // Add a ModelComponent
+        var root = await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "add",
+            ["componentType"] = "ModelComponent",
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var component = root.GetProperty("component");
+        Assert.Equal("added", component.GetProperty("action").GetString());
+        Assert.Equal("ModelComponent", component.GetProperty("type").GetString());
+
+        // Clean up
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task ModifyComponent_RemoveComponent()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        // Create a test entity and add a component to remove
+        var createResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpRemoveComponentTest",
+        });
+        var entityId = createResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "add",
+            ["componentType"] = "ModelComponent",
+        });
+
+        // Remove the added component (index 1, since 0 is TransformComponent)
+        var root = await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "remove",
+            ["componentIndex"] = 1,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var component = root.GetProperty("component");
+        Assert.Equal("removed", component.GetProperty("action").GetString());
+        Assert.Equal("ModelComponent", component.GetProperty("type").GetString());
+
+        // Clean up
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task ModifyComponent_RemoveTransform_ReturnsError()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        var entityId = await GetFirstEntityIdAsync(sceneId);
+
+        var root = await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "remove",
+            ["componentIndex"] = 0,
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task ModifyComponent_InvalidAction_ReturnsError()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        var entityId = await GetFirstEntityIdAsync(sceneId);
+
+        var root = await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "invalid",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    // =====================
+    // Phase 4: Build Tools
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task GetBuildStatus_WhenIdle_ReturnsIdle()
+    {
+        var root = await CallToolAndParseJsonAsync("get_build_status");
+        // Status should be idle or reflect a prior build
+        Assert.True(root.TryGetProperty("status", out var status));
+        Assert.False(string.IsNullOrEmpty(status.GetString()));
+    }
+
     [McpIntegrationFact]
     public async Task ListTools_ReturnsAllExpectedTools()
     {
@@ -654,6 +800,11 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         Assert.Contains("delete_entity", toolNames);
         Assert.Contains("reparent_entity", toolNames);
         Assert.Contains("set_transform", toolNames);
+        Assert.Contains("modify_component", toolNames);
+
+        // Phase 4 tools (Build)
+        Assert.Contains("build_project", toolNames);
+        Assert.Contains("get_build_status", toolNames);
     }
 
     private async Task<JsonElement> CallToolAndParseJsonAsync(
