@@ -32,6 +32,11 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 | `set_transform` | Sets position, rotation (Euler degrees), and/or scale of an entity |
 | `modify_component` | Adds, removes, or updates a component on an entity |
 
+### Viewport
+| Tool | Description |
+|------|-------------|
+| `capture_viewport` | Captures a PNG screenshot of the 3D viewport for an open scene |
+
 ### Build
 | Tool | Description |
 |------|-------------|

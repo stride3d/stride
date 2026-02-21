@@ -766,6 +766,23 @@ public sealed class McpIntegrationTests : IAsyncLifetime
     }
 
     // =====================
+    // Viewport
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task CaptureViewport_WithSceneNotOpen_ReturnsError()
+    {
+        var result = await _client!.CallToolAsync("capture_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = "00000000-0000-0000-0000-000000000001",
+        });
+
+        var textBlock = result.Content.OfType<TextContentBlock>().FirstOrDefault();
+        Assert.NotNull(textBlock);
+        Assert.Contains("not found", textBlock.Text!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // =====================
     // Phase 4: Build Tools
     // =====================
 
@@ -801,6 +818,9 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         Assert.Contains("reparent_entity", toolNames);
         Assert.Contains("set_transform", toolNames);
         Assert.Contains("modify_component", toolNames);
+
+        // Viewport tools
+        Assert.Contains("capture_viewport", toolNames);
 
         // Phase 4 tools (Build)
         Assert.Contains("build_project", toolNames);
