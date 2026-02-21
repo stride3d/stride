@@ -310,6 +310,328 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
     }
 
+    // =====================
+    // Phase 3: Modification
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task CreateEntity_CreatesNewEntity()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        var root = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpTestEntity",
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var entity = root.GetProperty("entity");
+        Assert.False(string.IsNullOrEmpty(entity.GetProperty("id").GetString()));
+        Assert.Equal("McpTestEntity", entity.GetProperty("name").GetString());
+
+        // Clean up: delete the created entity
+        var entityId = entity.GetProperty("id").GetString()!;
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task CreateEntity_WithParent_CreatesChildEntity()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        var parentId = await GetFirstEntityIdAsync(sceneId);
+
+        var root = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpChildEntity",
+            ["parentId"] = parentId,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var entity = root.GetProperty("entity");
+        Assert.Equal("McpChildEntity", entity.GetProperty("name").GetString());
+        Assert.Equal(parentId, entity.GetProperty("parentId").GetString());
+
+        // Clean up
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entity.GetProperty("id").GetString()!,
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task CreateEntity_WithSceneNotOpen_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = "00000000-0000-0000-0000-000000000001",
+            ["name"] = "ShouldFail",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task DeleteEntity_DeletesCreatedEntity()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        // Create an entity to delete
+        var createResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpDeleteMe",
+        });
+        var entityId = createResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        // Delete it
+        var root = await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var deleted = root.GetProperty("deleted");
+        Assert.Equal(entityId, deleted.GetProperty("id").GetString());
+        Assert.Equal("McpDeleteMe", deleted.GetProperty("name").GetString());
+    }
+
+    [McpIntegrationFact]
+    public async Task DeleteEntity_WithInvalidEntityId_ReturnsError()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        var root = await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = "00000000-0000-0000-0000-000000000000",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task ReparentEntity_MovesToNewParent()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        // Create two entities: one to reparent, one as target parent
+        var parentResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpNewParent",
+        });
+        var newParentId = parentResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        var childResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpChildToMove",
+        });
+        var childId = childResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        // Reparent
+        var root = await CallToolAndParseJsonAsync("reparent_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = childId,
+            ["newParentId"] = newParentId,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var reparented = root.GetProperty("reparented");
+        Assert.Equal(childId, reparented.GetProperty("id").GetString());
+        Assert.Equal(newParentId, reparented.GetProperty("newParentId").GetString());
+
+        // Clean up (delete parent which also deletes child)
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = newParentId,
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task ReparentEntity_MoveToRoot()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        var parentId = await GetFirstEntityIdAsync(sceneId);
+
+        // Create a child entity under the first entity
+        var childResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpMoveToRoot",
+            ["parentId"] = parentId,
+        });
+        var childId = childResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        // Reparent to root (no newParentId)
+        var root = await CallToolAndParseJsonAsync("reparent_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = childId,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var reparented = root.GetProperty("reparented");
+        Assert.Equal(childId, reparented.GetProperty("id").GetString());
+
+        // Clean up
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = childId,
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task SetTransform_SetsPosition()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        // Create a test entity
+        var createResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpTransformTest",
+        });
+        var entityId = createResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        // Set its position
+        var root = await CallToolAndParseJsonAsync("set_transform", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["positionX"] = 1.0f,
+            ["positionY"] = 2.0f,
+            ["positionZ"] = 3.0f,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var transform = root.GetProperty("transform");
+        Assert.Equal(entityId, transform.GetProperty("id").GetString());
+
+        var position = transform.GetProperty("position");
+        Assert.Equal(1.0f, position.GetProperty("x").GetSingle(), 0.01f);
+        Assert.Equal(2.0f, position.GetProperty("y").GetSingle(), 0.01f);
+        Assert.Equal(3.0f, position.GetProperty("z").GetSingle(), 0.01f);
+
+        // Clean up
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task SetTransform_SetsRotationAndScale()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        // Create a test entity
+        var createResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpRotScaleTest",
+        });
+        var entityId = createResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        // Set rotation and scale
+        var root = await CallToolAndParseJsonAsync("set_transform", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["rotationX"] = 45.0f,
+            ["rotationY"] = 90.0f,
+            ["rotationZ"] = 0.0f,
+            ["scaleX"] = 2.0f,
+            ["scaleY"] = 2.0f,
+            ["scaleZ"] = 2.0f,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var transform = root.GetProperty("transform");
+
+        var rotation = transform.GetProperty("rotation");
+        Assert.Equal(45.0f, rotation.GetProperty("x").GetSingle(), 0.5f);
+        Assert.Equal(90.0f, rotation.GetProperty("y").GetSingle(), 0.5f);
+        Assert.Equal(0.0f, rotation.GetProperty("z").GetSingle(), 0.5f);
+
+        var scale = transform.GetProperty("scale");
+        Assert.Equal(2.0f, scale.GetProperty("x").GetSingle(), 0.01f);
+        Assert.Equal(2.0f, scale.GetProperty("y").GetSingle(), 0.01f);
+        Assert.Equal(2.0f, scale.GetProperty("z").GetSingle(), 0.01f);
+
+        // Clean up
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task SetTransform_WithInvalidEntityId_ReturnsError()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        var root = await CallToolAndParseJsonAsync("set_transform", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = "00000000-0000-0000-0000-000000000000",
+            ["positionX"] = 1.0f,
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
     [McpIntegrationFact]
     public async Task ListTools_ReturnsAllExpectedTools()
     {
@@ -326,6 +648,12 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         Assert.Contains("open_scene", toolNames);
         Assert.Contains("select_entity", toolNames);
         Assert.Contains("focus_entity", toolNames);
+
+        // Phase 3 tools (Modification)
+        Assert.Contains("create_entity", toolNames);
+        Assert.Contains("delete_entity", toolNames);
+        Assert.Contains("reparent_entity", toolNames);
+        Assert.Contains("set_transform", toolNames);
     }
 
     private async Task<JsonElement> CallToolAndParseJsonAsync(

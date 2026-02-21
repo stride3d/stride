@@ -23,6 +23,14 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 | `select_entity` | Selects entities in the scene editor hierarchy (supports multi-select) |
 | `focus_entity` | Centers the viewport camera on an entity (also selects it) |
 
+### Modification
+| Tool | Description |
+|------|-------------|
+| `create_entity` | Creates a new entity in a scene (with optional parent) |
+| `delete_entity` | Deletes an entity and its children from a scene |
+| `reparent_entity` | Moves an entity to a new parent (or to root level) |
+| `set_transform` | Sets position, rotation (Euler degrees), and/or scale of an entity |
+
 ## Configuration
 
 | Environment Variable | Default | Description |
