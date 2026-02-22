@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Reflection;
 using System.Text;
+using System.Globalization;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -69,7 +70,7 @@ public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info
 
     public override string ToString()
     {
-        return $"{Value}{Suffix}";
+        return string.Create(CultureInfo.InvariantCulture, $"{Value}{Suffix}");
     }
 
 }
