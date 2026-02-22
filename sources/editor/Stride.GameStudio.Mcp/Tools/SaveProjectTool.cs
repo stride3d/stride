@@ -13,7 +13,7 @@ namespace Stride.GameStudio.Mcp.Tools;
 [McpServerToolType]
 public sealed class SaveProjectTool
 {
-    [McpServerTool(Name = "save_project"), Description("Saves the current project/session to disk. Call this after making modifications (create_asset, manage_asset, set_asset_property, modify_component, etc.) to persist changes. Returns whether the save was successful.")]
+    [McpServerTool(Name = "save_project"), Description("Saves the current project/session to disk. Call this after making any modifications (scenes, entities, components, assets, properties, etc.) to persist changes. Always save before building the project. Returns whether the save was successful.")]
     public static async Task<string> SaveProject(
         SessionViewModel session,
         DispatcherBridge dispatcher,

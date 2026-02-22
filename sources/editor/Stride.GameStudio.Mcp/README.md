@@ -40,7 +40,11 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 | `create_asset` | Creates a new asset (material, prefab, scene, etc.) with defaults |
 | `manage_asset` | Renames, moves, or deletes an asset (with reference safety checks) |
 | `set_asset_property` | Sets a property on an asset via dot-notation path through the property graph |
-| `save_project` | Saves all changes to disk |
+
+### Project
+| Tool | Description |
+|------|-------------|
+| `save_project` | Saves all changes (scenes, entities, assets, etc.) to disk |
 
 ### Viewport
 | Tool | Description |
