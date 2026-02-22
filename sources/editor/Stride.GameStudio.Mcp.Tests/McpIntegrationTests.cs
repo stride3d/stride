@@ -783,6 +783,200 @@ public sealed class McpIntegrationTests : IAsyncLifetime
     }
 
     // =====================
+    // Phase 5: Asset Management
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task GetAssetDetails_ReturnsAssetProperties()
+    {
+        // Get a known asset ID from query_assets
+        var queryRoot = await CallToolAndParseJsonAsync("query_assets", new Dictionary<string, object?>
+        {
+            ["maxResults"] = 1,
+        });
+        var firstAsset = queryRoot.GetProperty("assets")[0];
+        var assetId = firstAsset.GetProperty("id").GetString()!;
+
+        var root = await CallToolAndParseJsonAsync("get_asset_details", new Dictionary<string, object?>
+        {
+            ["assetId"] = assetId,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+
+        var asset = root.GetProperty("asset");
+        Assert.Equal(assetId, asset.GetProperty("id").GetString());
+        Assert.False(string.IsNullOrEmpty(asset.GetProperty("name").GetString()));
+        Assert.False(string.IsNullOrEmpty(asset.GetProperty("type").GetString()));
+        Assert.True(asset.TryGetProperty("properties", out _));
+    }
+
+    [McpIntegrationFact]
+    public async Task GetAssetDetails_WithInvalidId_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("get_asset_details", new Dictionary<string, object?>
+        {
+            ["assetId"] = "00000000-0000-0000-0000-000000000000",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task GetAssetDependencies_ReturnsDependencyInfo()
+    {
+        // Get a known asset ID
+        var queryRoot = await CallToolAndParseJsonAsync("query_assets", new Dictionary<string, object?>
+        {
+            ["maxResults"] = 1,
+        });
+        var assetId = queryRoot.GetProperty("assets")[0].GetProperty("id").GetString()!;
+
+        var root = await CallToolAndParseJsonAsync("get_asset_dependencies", new Dictionary<string, object?>
+        {
+            ["assetId"] = assetId,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+
+        var deps = root.GetProperty("dependencies");
+        Assert.Equal(assetId, deps.GetProperty("assetId").GetString());
+        Assert.True(deps.TryGetProperty("referencedBy", out _));
+        Assert.True(deps.TryGetProperty("references", out _));
+        Assert.True(deps.TryGetProperty("brokenReferences", out _));
+    }
+
+    [McpIntegrationFact]
+    public async Task GetAssetDependencies_WithInvalidId_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("get_asset_dependencies", new Dictionary<string, object?>
+        {
+            ["assetId"] = "00000000-0000-0000-0000-000000000000",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task CreateAsset_CreatesAndDeletesMaterial()
+    {
+        var root = await CallToolAndParseJsonAsync("create_asset", new Dictionary<string, object?>
+        {
+            ["assetType"] = "MaterialAsset",
+            ["name"] = "McpTestMaterial",
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var asset = root.GetProperty("asset");
+        Assert.False(string.IsNullOrEmpty(asset.GetProperty("id").GetString()));
+        Assert.Equal("McpTestMaterial", asset.GetProperty("name").GetString());
+        Assert.Equal("MaterialAsset", asset.GetProperty("type").GetString());
+
+        // Clean up: delete the asset
+        var assetId = asset.GetProperty("id").GetString()!;
+        await CallToolAndParseJsonAsync("manage_asset", new Dictionary<string, object?>
+        {
+            ["assetId"] = assetId,
+            ["action"] = "delete",
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task CreateAsset_WithInvalidType_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("create_asset", new Dictionary<string, object?>
+        {
+            ["assetType"] = "NonExistentAssetType",
+            ["name"] = "ShouldFail",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task ManageAsset_RenameAsset()
+    {
+        // Create an asset to rename
+        var createRoot = await CallToolAndParseJsonAsync("create_asset", new Dictionary<string, object?>
+        {
+            ["assetType"] = "MaterialAsset",
+            ["name"] = "McpRenameMe",
+        });
+        var assetId = createRoot.GetProperty("asset").GetProperty("id").GetString()!;
+
+        // Rename it
+        var root = await CallToolAndParseJsonAsync("manage_asset", new Dictionary<string, object?>
+        {
+            ["assetId"] = assetId,
+            ["action"] = "rename",
+            ["newName"] = "McpRenamed",
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var result = root.GetProperty("result");
+        Assert.Equal("renamed", result.GetProperty("action").GetString());
+        Assert.Equal("McpRenameMe", result.GetProperty("oldName").GetString());
+        Assert.Equal("McpRenamed", result.GetProperty("newName").GetString());
+
+        // Clean up
+        await CallToolAndParseJsonAsync("manage_asset", new Dictionary<string, object?>
+        {
+            ["assetId"] = assetId,
+            ["action"] = "delete",
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task ManageAsset_InvalidAction_ReturnsError()
+    {
+        var queryRoot = await CallToolAndParseJsonAsync("query_assets", new Dictionary<string, object?>
+        {
+            ["maxResults"] = 1,
+        });
+        var assetId = queryRoot.GetProperty("assets")[0].GetProperty("id").GetString()!;
+
+        var root = await CallToolAndParseJsonAsync("manage_asset", new Dictionary<string, object?>
+        {
+            ["assetId"] = assetId,
+            ["action"] = "invalid_action",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task SetAssetProperty_WithInvalidPath_ReturnsError()
+    {
+        var queryRoot = await CallToolAndParseJsonAsync("query_assets", new Dictionary<string, object?>
+        {
+            ["maxResults"] = 1,
+        });
+        var assetId = queryRoot.GetProperty("assets")[0].GetProperty("id").GetString()!;
+
+        var root = await CallToolAndParseJsonAsync("set_asset_property", new Dictionary<string, object?>
+        {
+            ["assetId"] = assetId,
+            ["propertyPath"] = "NonExistentProperty",
+            ["value"] = "42",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+        // The error should include available property names
+        Assert.Contains("Available properties", root.GetProperty("error").GetString()!);
+    }
+
+    [McpIntegrationFact]
+    public async Task SaveProject_ReturnsSaveResult()
+    {
+        var root = await CallToolAndParseJsonAsync("save_project");
+
+        // save_project should either succeed or return a meaningful error
+        var result = root.GetProperty("result");
+        Assert.True(result.TryGetProperty("status", out var status));
+        Assert.False(string.IsNullOrEmpty(status.GetString()));
+    }
+
+    // =====================
     // Phase 4: Build Tools
     // =====================
 
@@ -825,6 +1019,14 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         // Phase 4 tools (Build)
         Assert.Contains("build_project", toolNames);
         Assert.Contains("get_build_status", toolNames);
+
+        // Phase 5 tools (Asset Management)
+        Assert.Contains("get_asset_details", toolNames);
+        Assert.Contains("get_asset_dependencies", toolNames);
+        Assert.Contains("create_asset", toolNames);
+        Assert.Contains("manage_asset", toolNames);
+        Assert.Contains("set_asset_property", toolNames);
+        Assert.Contains("save_project", toolNames);
     }
 
     private async Task<JsonElement> CallToolAndParseJsonAsync(

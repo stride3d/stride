@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -249,7 +248,7 @@ public sealed class ModifyComponentTool
                 try
                 {
                     var targetType = memberNode.Type;
-                    var convertedValue = ConvertJsonToType(jsonValue, targetType);
+                    var convertedValue = JsonTypeConverter.ConvertJsonToType(jsonValue, targetType);
                     memberNode.Update(convertedValue);
                     updatedProperties.Add(propName);
                 }
@@ -275,7 +274,7 @@ public sealed class ModifyComponentTool
         };
     }
 
-    private static Type? ResolveComponentType(string typeName)
+    internal static Type? ResolveComponentType(string typeName)
     {
         // Try exact match with assembly
         var type = Type.GetType(typeName, throwOnError: false);
@@ -319,85 +318,4 @@ public sealed class ModifyComponentTool
         return null;
     }
 
-    private static object? ConvertJsonToType(JsonElement json, Type targetType)
-    {
-        // Handle nullable types
-        var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
-
-        if (json.ValueKind == JsonValueKind.Null)
-            return null;
-
-        // Primitive types
-        if (underlyingType == typeof(bool))
-            return json.GetBoolean();
-        if (underlyingType == typeof(int))
-            return json.GetInt32();
-        if (underlyingType == typeof(float))
-            return json.GetSingle();
-        if (underlyingType == typeof(double))
-            return json.GetDouble();
-        if (underlyingType == typeof(string))
-            return json.GetString();
-        if (underlyingType == typeof(long))
-            return json.GetInt64();
-
-        // Enums
-        if (underlyingType.IsEnum)
-        {
-            var enumString = json.GetString();
-            if (enumString != null && Enum.TryParse(underlyingType, enumString, ignoreCase: true, out var enumValue))
-                return enumValue;
-            if (json.ValueKind == JsonValueKind.Number)
-                return Enum.ToObject(underlyingType, json.GetInt32());
-            throw new InvalidOperationException($"Cannot convert '{json}' to enum {underlyingType.Name}");
-        }
-
-        // Stride Vector3
-        if (underlyingType == typeof(Stride.Core.Mathematics.Vector3) && json.ValueKind == JsonValueKind.Object)
-        {
-            return new Stride.Core.Mathematics.Vector3(
-                json.TryGetProperty("x", out var x) || json.TryGetProperty("X", out x) ? x.GetSingle() : 0f,
-                json.TryGetProperty("y", out var y) || json.TryGetProperty("Y", out y) ? y.GetSingle() : 0f,
-                json.TryGetProperty("z", out var z) || json.TryGetProperty("Z", out z) ? z.GetSingle() : 0f);
-        }
-
-        // Stride Vector2
-        if (underlyingType == typeof(Stride.Core.Mathematics.Vector2) && json.ValueKind == JsonValueKind.Object)
-        {
-            return new Stride.Core.Mathematics.Vector2(
-                json.TryGetProperty("x", out var x) || json.TryGetProperty("X", out x) ? x.GetSingle() : 0f,
-                json.TryGetProperty("y", out var y) || json.TryGetProperty("Y", out y) ? y.GetSingle() : 0f);
-        }
-
-        // Stride Quaternion
-        if (underlyingType == typeof(Stride.Core.Mathematics.Quaternion) && json.ValueKind == JsonValueKind.Object)
-        {
-            return new Stride.Core.Mathematics.Quaternion(
-                json.TryGetProperty("x", out var x) || json.TryGetProperty("X", out x) ? x.GetSingle() : 0f,
-                json.TryGetProperty("y", out var y) || json.TryGetProperty("Y", out y) ? y.GetSingle() : 0f,
-                json.TryGetProperty("z", out var z) || json.TryGetProperty("Z", out z) ? z.GetSingle() : 0f,
-                json.TryGetProperty("w", out var w) || json.TryGetProperty("W", out w) ? w.GetSingle() : 1f);
-        }
-
-        // Stride Color4
-        if (underlyingType == typeof(Stride.Core.Mathematics.Color4) && json.ValueKind == JsonValueKind.Object)
-        {
-            return new Stride.Core.Mathematics.Color4(
-                json.TryGetProperty("r", out var r) || json.TryGetProperty("R", out r) ? r.GetSingle() : 0f,
-                json.TryGetProperty("g", out var g) || json.TryGetProperty("G", out g) ? g.GetSingle() : 0f,
-                json.TryGetProperty("b", out var b) || json.TryGetProperty("B", out b) ? b.GetSingle() : 0f,
-                json.TryGetProperty("a", out var a) || json.TryGetProperty("A", out a) ? a.GetSingle() : 1f);
-        }
-
-        // Stride Color3
-        if (underlyingType == typeof(Stride.Core.Mathematics.Color3) && json.ValueKind == JsonValueKind.Object)
-        {
-            return new Stride.Core.Mathematics.Color3(
-                json.TryGetProperty("r", out var r) || json.TryGetProperty("R", out r) ? r.GetSingle() : 0f,
-                json.TryGetProperty("g", out var g) || json.TryGetProperty("G", out g) ? g.GetSingle() : 0f,
-                json.TryGetProperty("b", out var b) || json.TryGetProperty("B", out b) ? b.GetSingle() : 0f);
-        }
-
-        throw new InvalidOperationException($"Cannot convert JSON value to type {targetType.Name}. Supported types: bool, int, float, double, string, long, enum, Vector2, Vector3, Quaternion, Color3, Color4.");
-    }
 }

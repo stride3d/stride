@@ -32,6 +32,16 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 | `set_transform` | Sets position, rotation (Euler degrees), and/or scale of an entity |
 | `modify_component` | Adds, removes, or updates a component on an entity |
 
+### Asset Management
+| Tool | Description |
+|------|-------------|
+| `get_asset_details` | Returns detailed properties, source file, archetype, and tags for an asset |
+| `get_asset_dependencies` | Shows what references an asset (inbound) and what it references (outbound) |
+| `create_asset` | Creates a new asset (material, prefab, scene, etc.) with defaults |
+| `manage_asset` | Renames, moves, or deletes an asset (with reference safety checks) |
+| `set_asset_property` | Sets a property on an asset via dot-notation path through the property graph |
+| `save_project` | Saves all changes to disk |
+
 ### Viewport
 | Tool | Description |
 |------|-------------|
