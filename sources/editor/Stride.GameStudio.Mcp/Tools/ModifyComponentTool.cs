@@ -24,7 +24,7 @@ namespace Stride.GameStudio.Mcp.Tools;
 [McpServerToolType]
 public sealed class ModifyComponentTool
 {
-    [McpServerTool(Name = "modify_component"), Description("Adds, removes, or updates a component on an entity. The scene must be open in the editor (use open_scene first). Actions: 'add' creates a new component, 'remove' deletes a component by index, 'update' sets properties on a component by index. The TransformComponent (index 0) cannot be removed. This operation supports undo/redo in the editor.")]
+    [McpServerTool(Name = "modify_component"), Description("Adds, removes, or updates a component on an entity. The scene must be open in the editor (use open_scene first). Actions: 'add' creates a new component, 'remove' deletes a component by index, 'update' sets properties on a component by index. The TransformComponent (index 0) cannot be removed. This operation supports undo/redo in the editor. For 'update', asset reference properties (e.g. ModelComponent.Model, BackgroundComponent.Texture) can be set using {\"PropertyName\":{\"assetId\":\"GUID\"}} — use query_assets to find the asset ID. NOTE: User game script types require the project to be built first (use build_project).")]
     public static async Task<string> ModifyComponent(
         SessionViewModel session,
         DispatcherBridge dispatcher,
@@ -33,7 +33,7 @@ public sealed class ModifyComponentTool
         [Description("The action to perform: 'add', 'remove', or 'update'")] string action,
         [Description("For 'add': the component type name (e.g. 'ModelComponent', 'Stride.Engine.LightComponent'). For 'remove'/'update': not required.")] string? componentType = null,
         [Description("For 'remove'/'update': the zero-based index of the component in the entity's component list. Use get_entity to see component indices.")] int? componentIndex = null,
-        [Description("For 'update': JSON object of property names and values to set (e.g. '{\"Intensity\":2.0,\"Enabled\":false}')")] string? properties = null,
+        [Description("For 'update': JSON object of property names and values to set. Scalar: '{\"Intensity\":2.0,\"Enabled\":false}'. Asset references: '{\"Model\":{\"assetId\":\"GUID\"}}' or '{\"Model\":\"GUID\"}'. Use null to clear: '{\"Model\":null}'.")] string? properties = null,
         CancellationToken cancellationToken = default)
     {
         var result = await dispatcher.InvokeOnUIThread(() =>
@@ -95,7 +95,14 @@ public sealed class ModifyComponentTool
         var resolvedType = ResolveComponentType(componentTypeName);
         if (resolvedType == null)
         {
-            return new { error = $"Component type not found: '{componentTypeName}'. Use a fully qualified name like 'Stride.Engine.ModelComponent'.", component = (object?)null };
+            return new
+            {
+                error = $"Component type not found: '{componentTypeName}'. "
+                    + "Built-in examples: ModelComponent, LightComponent, CameraComponent, BackgroundComponent, SpriteComponent, AudioEmitterComponent, RigidbodyComponent, CharacterComponent. "
+                    + "User game script types (e.g. PlayerController) require the project to be built first — use `build_project`, then `get_build_status` to wait for completion, then try again. "
+                    + "Also try the fully qualified type name (e.g. 'MyGame.PlayerController').",
+                component = (object?)null,
+            };
         }
 
         // Validate singleton constraint
@@ -248,7 +255,7 @@ public sealed class ModifyComponentTool
                 try
                 {
                     var targetType = memberNode.Type;
-                    var convertedValue = JsonTypeConverter.ConvertJsonToType(jsonValue, targetType);
+                    var convertedValue = JsonTypeConverter.ConvertJsonToType(jsonValue, targetType, session);
                     memberNode.Update(convertedValue);
                     updatedProperties.Add(propName);
                 }

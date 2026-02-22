@@ -45,6 +45,8 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 | Tool | Description |
 |------|-------------|
 | `save_project` | Saves all changes (scenes, entities, assets, etc.) to disk |
+| `reload_scene` | Closes and reopens a scene editor tab to refresh its state |
+| `reload_project` | Triggers a full GameStudio restart to reload the project from disk |
 
 ### Viewport
 | Tool | Description |
@@ -149,6 +151,48 @@ Add to your project's `.cursor/mcp.json`:
 Any MCP-compatible client can connect using:
 - **Transport**: SSE (Server-Sent Events)
 - **Endpoint**: `http://localhost:5271/sse`
+
+## Working with Asset References
+
+Many component properties (e.g. `ModelComponent.Model`, `BackgroundComponent.Texture`, `UIComponent.Page`) are asset references that point to other assets in the project. These can be set using `modify_component update` or `set_asset_property`.
+
+### JSON Format
+
+Asset reference values accept the following JSON formats:
+
+```json
+// Object with assetId (preferred)
+{"Model": {"assetId": "12345678-1234-1234-1234-123456789abc"}}
+
+// Object with assetRef (matches serialization output, for round-tripping)
+{"Model": {"assetRef": "12345678-1234-1234-1234-123456789abc"}}
+
+// String shorthand
+{"Model": "12345678-1234-1234-1234-123456789abc"}
+
+// Clear the reference
+{"Model": null}
+```
+
+Use `query_assets` to find the asset ID for the asset you want to reference.
+
+### Example: Setting a Model on an Entity
+
+1. Find a model asset: `query_assets` with `type: "ModelAsset"`
+2. Add a ModelComponent: `modify_component` with `action: "add"`, `componentType: "ModelComponent"`
+3. Set the model: `modify_component` with `action: "update"`, `properties: '{"Model":{"assetId":"<model-asset-id>"}}'`
+4. Verify: `capture_viewport` to see the model rendered in the scene
+
+## Project Reload Behavior
+
+### save_project
+Writes the editor's in-memory state to disk. This **overwrites** any external changes made to scene/asset YAML files. If you have modified project files externally, use `reload_project` first to load those changes into the editor.
+
+### reload_scene
+Closes and reopens a single scene editor tab. Useful after `build_project` completes (to pick up new script component types) or when the scene editor appears stale. Unsaved changes to that scene are discarded.
+
+### reload_project
+Triggers a full GameStudio restart (equivalent to File > Reload project). The MCP connection will be lost — the client must wait for the new GameStudio instance to start and reconnect to the new MCP server. If there are unsaved changes, the user will see a Save/Don't Save/Cancel dialog.
 
 ## Integration Tests
 

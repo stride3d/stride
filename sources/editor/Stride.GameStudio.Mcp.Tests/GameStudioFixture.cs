@@ -26,6 +26,7 @@ public sealed class GameStudioFixture : IAsyncLifetime
 
     private Process? _process;
     private HttpClient? _httpClient;
+    private string? _tempProjectDir;
     private readonly StringBuilder _stdout = new();
     private readonly StringBuilder _stderr = new();
 
@@ -57,7 +58,7 @@ public sealed class GameStudioFixture : IAsyncLifetime
 
         // Resolve paths
         var exePath = ResolveGameStudioExePath();
-        var projectPath = ResolveTestProjectPath();
+        var sourceProjectPath = ResolveTestProjectPath();
 
         // Validate
         if (!File.Exists(exePath))
@@ -69,14 +70,21 @@ public sealed class GameStudioFixture : IAsyncLifetime
                 "Or set STRIDE_GAMESTUDIO_EXE to the path of a pre-built executable.");
         }
 
-        if (!File.Exists(projectPath))
+        if (!File.Exists(sourceProjectPath))
         {
             throw new InvalidOperationException(
-                $"Test project not found at: {projectPath}\n\n" +
+                $"Test project not found at: {sourceProjectPath}\n\n" +
                 "The FirstPersonShooter sample is expected at:\n" +
-                $"  {projectPath}\n\n" +
+                $"  {sourceProjectPath}\n\n" +
                 "Or set STRIDE_TEST_PROJECT to the path of a .sln to open.");
         }
+
+        // Copy the project to a temporary directory so tests don't pollute the source tree.
+        // GameStudio modifies project files (scene saves, .sln changes, etc.) during normal operation.
+        var sourceProjectDir = Path.GetDirectoryName(sourceProjectPath)!;
+        _tempProjectDir = Path.Combine(Path.GetTempPath(), "StrideMcpTests_" + Path.GetRandomFileName());
+        CopyDirectory(sourceProjectDir, _tempProjectDir);
+        var projectPath = Path.Combine(_tempProjectDir, Path.GetFileName(sourceProjectPath));
 
         // Launch GameStudio
         var startInfo = new ProcessStartInfo
@@ -159,6 +167,19 @@ public sealed class GameStudioFixture : IAsyncLifetime
     {
         await KillProcessAsync();
         _httpClient?.Dispose();
+
+        // Clean up the temporary project copy
+        if (_tempProjectDir != null && Directory.Exists(_tempProjectDir))
+        {
+            try
+            {
+                Directory.Delete(_tempProjectDir, recursive: true);
+            }
+            catch
+            {
+                // Best effort — files may still be locked briefly after process exit
+            }
+        }
     }
 
     private async Task KillProcessAsync()
@@ -243,5 +264,20 @@ public sealed class GameStudioFixture : IAsyncLifetime
             }
         }
         return sb.Length > 0 ? sb.ToString() : "(no output captured)";
+    }
+
+    private static void CopyDirectory(string sourceDir, string destDir)
+    {
+        Directory.CreateDirectory(destDir);
+
+        foreach (var file in Directory.GetFiles(sourceDir))
+        {
+            File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)));
+        }
+
+        foreach (var dir in Directory.GetDirectories(sourceDir))
+        {
+            CopyDirectory(dir, Path.Combine(destDir, Path.GetFileName(dir)));
+        }
     }
 }

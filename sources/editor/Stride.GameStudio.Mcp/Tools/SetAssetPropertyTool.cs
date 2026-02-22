@@ -18,13 +18,13 @@ namespace Stride.GameStudio.Mcp.Tools;
 [McpServerToolType]
 public sealed class SetAssetPropertyTool
 {
-    [McpServerTool(Name = "set_asset_property"), Description("Sets a property on an asset using a dot-notation path through the property graph. Use get_asset_details to discover available property names. Supports nested paths (e.g. 'Attributes.CullMode'). When a path segment is invalid, the error lists available property names at that level. Supports undo/redo.")]
+    [McpServerTool(Name = "set_asset_property"), Description("Sets a property on an asset using a dot-notation path through the property graph. Use get_asset_details to discover available property names. Supports nested paths (e.g. 'Attributes.CullMode'). When a path segment is invalid, the error lists available property names at that level. Supports undo/redo. Asset reference properties can be set using {\"assetId\":\"GUID\"} or just \"GUID\" — use query_assets to find valid asset IDs.")]
     public static async Task<string> SetAssetProperty(
         SessionViewModel session,
         DispatcherBridge dispatcher,
         [Description("The asset ID (GUID from query_assets)")] string assetId,
         [Description("Dot-notation property path (e.g. 'Width', 'Attributes.CullMode', 'Layers[0].DiffuseModel')")] string propertyPath,
-        [Description("JSON value to set (e.g. '2048', 'true', '\"Back\"', '{\"r\":1,\"g\":0,\"b\":0,\"a\":1}')")] string value,
+        [Description("JSON value to set. Scalar: '2048', 'true', '\"Back\"'. Color: '{\"r\":1,\"g\":0,\"b\":0,\"a\":1}'. Asset reference: '{\"assetId\":\"GUID\"}' or '\"GUID\"'. Clear reference: 'null'.")] string value,
         CancellationToken cancellationToken = default)
     {
         var result = await dispatcher.InvokeOnUIThread(() =>
@@ -152,7 +152,7 @@ public sealed class SetAssetPropertyTool
             object? convertedValue;
             try
             {
-                convertedValue = JsonTypeConverter.ConvertJsonToType(jsonValue, leafMember.Type);
+                convertedValue = JsonTypeConverter.ConvertJsonToType(jsonValue, leafMember.Type, session);
             }
             catch (Exception ex)
             {

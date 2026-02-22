@@ -947,8 +947,10 @@ public sealed class McpIntegrationTests : IAsyncLifetime
     [McpIntegrationFact]
     public async Task SetAssetProperty_WithInvalidPath_ReturnsError()
     {
+        // Use a MaterialAsset — it always has a property graph, unlike some source-file assets
         var queryRoot = await CallToolAndParseJsonAsync("query_assets", new Dictionary<string, object?>
         {
+            ["type"] = "MaterialAsset",
             ["maxResults"] = 1,
         });
         var assetId = queryRoot.GetProperty("assets")[0].GetProperty("id").GetString()!;
@@ -1027,6 +1029,109 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         Assert.Contains("manage_asset", toolNames);
         Assert.Contains("set_asset_property", toolNames);
         Assert.Contains("save_project", toolNames);
+
+        // Reload tools
+        Assert.Contains("reload_scene", toolNames);
+        Assert.Contains("reload_project", toolNames);
+    }
+
+    // =====================
+    // Reload Tools
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task ReloadScene_ReloadsOpenScene()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        var root = await CallToolAndParseJsonAsync("reload_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var result = root.GetProperty("result");
+        Assert.Equal("reloaded", result.GetProperty("status").GetString());
+        Assert.Equal(sceneId, result.GetProperty("sceneId").GetString());
+    }
+
+    [McpIntegrationFact]
+    public async Task ReloadScene_WithInvalidId_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("reload_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = "00000000-0000-0000-0000-000000000000",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    // =====================
+    // Asset Reference Update
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task ModifyComponent_UpdateWithAssetReference()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        // Create a test entity with a ModelComponent
+        var createResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpAssetRefTest",
+        });
+        var entityId = createResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "add",
+            ["componentType"] = "ModelComponent",
+        });
+
+        // Find a model asset to reference
+        var queryRoot = await CallToolAndParseJsonAsync("query_assets", new Dictionary<string, object?>
+        {
+            ["type"] = "ModelAsset",
+            ["maxResults"] = 1,
+        });
+
+        var assets = queryRoot.GetProperty("assets");
+        if (assets.GetArrayLength() > 0)
+        {
+            var modelAssetId = assets[0].GetProperty("id").GetString()!;
+
+            // Update ModelComponent.Model with asset reference
+            var updateRoot = await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+            {
+                ["sceneId"] = sceneId,
+                ["entityId"] = entityId,
+                ["action"] = "update",
+                ["componentIndex"] = 1,
+                ["properties"] = JsonSerializer.Serialize(new { Model = new { assetId = modelAssetId } }),
+            });
+
+            Assert.Null(updateRoot.GetProperty("error").GetString());
+            var component = updateRoot.GetProperty("component");
+            Assert.Contains("Model", component.GetProperty("updatedProperties").EnumerateArray().Select(e => e.GetString()!));
+        }
+
+        // Clean up
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
     }
 
     private async Task<JsonElement> CallToolAndParseJsonAsync(

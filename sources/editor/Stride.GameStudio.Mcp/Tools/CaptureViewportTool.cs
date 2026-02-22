@@ -21,7 +21,7 @@ namespace Stride.GameStudio.Mcp.Tools;
 [McpServerToolType]
 public sealed class CaptureViewportTool
 {
-    [McpServerTool(Name = "capture_viewport"), Description("Captures a PNG screenshot of the 3D viewport for a scene that is open in the editor. The scene must already be open (use open_scene first). Returns the image as a base64-encoded PNG. Use this to visually verify entity placement, lighting, UI layout, and other visual aspects of the scene.")]
+    [McpServerTool(Name = "capture_viewport"), Description("IMPORTANT: This is the primary way to verify your changes and the only way to see the actual rendered result. Captures a PNG screenshot of the 3D viewport for a scene that is open in the editor. The scene must already be open (use open_scene first). Returns the image as a base64-encoded PNG. Use this to visually verify entity placement, lighting, UI layout, model references, and other visual aspects of the scene after making modifications.")]
     public static async Task<IEnumerable<ContentBlock>> CaptureViewport(
         SessionViewModel session,
         DispatcherBridge dispatcher,

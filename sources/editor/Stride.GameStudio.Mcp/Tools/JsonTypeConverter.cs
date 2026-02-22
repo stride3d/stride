@@ -7,7 +7,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.Json;
 using Stride.Core;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Engine;
 
@@ -144,6 +148,33 @@ internal static class JsonTypeConverter
 
     /// <summary>
     /// Converts a JSON element to the specified target type.
+    /// Supports primitives, enums, Stride math types, and asset references (when session is provided).
+    /// </summary>
+    public static object? ConvertJsonToType(JsonElement json, Type targetType, SessionViewModel? session)
+    {
+        var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+        // Asset reference types — requires session to resolve asset IDs
+        if (session != null && json.ValueKind != JsonValueKind.Null &&
+            (AssetRegistry.CanBeAssignedToContentTypes(underlyingType, checkIsUrlType: true)
+             || typeof(AssetReference).IsAssignableFrom(underlyingType)))
+        {
+            return ConvertAssetReference(json, underlyingType, session);
+        }
+
+        // Null clears asset reference properties even without session
+        if (json.ValueKind == JsonValueKind.Null &&
+            (AssetRegistry.CanBeAssignedToContentTypes(underlyingType, checkIsUrlType: true)
+             || typeof(AssetReference).IsAssignableFrom(underlyingType)))
+        {
+            return null;
+        }
+
+        return ConvertJsonToType(json, targetType);
+    }
+
+    /// <summary>
+    /// Converts a JSON element to the specified target type.
     /// Supports primitives, enums, and Stride math types.
     /// </summary>
     public static object? ConvertJsonToType(JsonElement json, Type targetType)
@@ -225,6 +256,52 @@ internal static class JsonTypeConverter
                 json.TryGetProperty("b", out var b) || json.TryGetProperty("B", out b) ? b.GetSingle() : 0f);
         }
 
-        throw new InvalidOperationException($"Cannot convert JSON value to type {targetType.Name}. Supported types: bool, int, float, double, string, long, enum, Vector2, Vector3, Quaternion, Color3, Color4.");
+        throw new InvalidOperationException($"Cannot convert JSON value to type {targetType.Name}. Supported types: bool, int, float, double, string, long, enum, Vector2, Vector3, Quaternion, Color3, Color4, and asset references (use session overload).");
+    }
+
+    /// <summary>
+    /// Parses an asset ID from JSON and creates a proper asset reference via ContentReferenceHelper.
+    /// Accepted formats: {"assetId":"GUID"}, {"assetRef":"GUID"}, "GUID", or null.
+    /// </summary>
+    private static object? ConvertAssetReference(JsonElement json, Type targetType, SessionViewModel session)
+    {
+        // Parse asset ID from various JSON formats
+        string? assetIdStr = null;
+
+        if (json.ValueKind == JsonValueKind.Object)
+        {
+            if (json.TryGetProperty("assetId", out var idProp))
+                assetIdStr = idProp.GetString();
+            else if (json.TryGetProperty("assetRef", out var refProp))
+                assetIdStr = refProp.GetString();
+        }
+        else if (json.ValueKind == JsonValueKind.String)
+        {
+            assetIdStr = json.GetString();
+        }
+
+        if (string.IsNullOrEmpty(assetIdStr))
+        {
+            throw new InvalidOperationException("Asset reference JSON must contain an asset ID. Use {\"assetId\":\"GUID\"}, {\"assetRef\":\"GUID\"}, or \"GUID\".");
+        }
+
+        if (!AssetId.TryParse(assetIdStr, out var assetId))
+        {
+            throw new InvalidOperationException($"Invalid asset ID format: '{assetIdStr}'. Expected a GUID.");
+        }
+
+        var assetVm = session.GetAssetById(assetId);
+        if (assetVm == null)
+        {
+            throw new InvalidOperationException($"Asset not found: '{assetIdStr}'. Use query_assets to find valid asset IDs.");
+        }
+
+        var reference = ContentReferenceHelper.CreateReference(assetVm, targetType);
+        if (reference == null)
+        {
+            throw new InvalidOperationException($"Cannot create a reference of type {targetType.Name} to asset '{assetVm.Name}' ({assetVm.AssetItem.Asset.GetType().Name}). The asset type may not be compatible with this property.");
+        }
+
+        return reference;
     }
 }
