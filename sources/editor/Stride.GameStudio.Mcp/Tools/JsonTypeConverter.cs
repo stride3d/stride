@@ -37,6 +37,10 @@ internal static class JsonTypeConverter
         var type = value.GetType();
 
         // Primitives and strings
+        if (value is float f && (float.IsNaN(f) || float.IsInfinity(f)))
+            return f.ToString();
+        if (value is double d && (double.IsNaN(d) || double.IsInfinity(d)))
+            return d.ToString();
         if (type.IsPrimitive || value is string || value is decimal)
             return value;
 

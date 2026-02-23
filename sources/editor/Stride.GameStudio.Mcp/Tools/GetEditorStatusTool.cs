@@ -29,6 +29,17 @@ public sealed class GetEditorStatusTool
                 .Select(p => p.Name)
                 .ToList();
 
+            var projects = session.LocalPackages
+                .OfType<ProjectViewModel>()
+                .Select(p => new
+                {
+                    name = p.Name,
+                    type = p.Type.ToString(),
+                    platform = p.Platform.ToString(),
+                    isCurrentProject = p.IsCurrentProject,
+                })
+                .ToList();
+
             var allAssets = session.AllAssets.ToList();
             var scenes = allAssets
                 .Where(a => a.AssetType.Name == "SceneAsset")
@@ -48,6 +59,7 @@ public sealed class GetEditorStatusTool
                 currentProject,
                 solutionPath,
                 packages,
+                projects,
                 assetCount,
                 scenes,
             };

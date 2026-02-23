@@ -1033,6 +1033,20 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         // Reload tools
         Assert.Contains("reload_scene", toolNames);
         Assert.Contains("reload_project", toolNames);
+
+        // UI Page tools
+        Assert.Contains("get_ui_tree", toolNames);
+        Assert.Contains("get_ui_element", toolNames);
+        Assert.Contains("add_ui_element", toolNames);
+        Assert.Contains("remove_ui_element", toolNames);
+        Assert.Contains("set_ui_element_property", toolNames);
+
+        // Sprite tools
+        Assert.Contains("add_sprite_frame", toolNames);
+        Assert.Contains("remove_sprite_frame", toolNames);
+
+        // Project tools
+        Assert.Contains("set_active_project", toolNames);
     }
 
     // =====================
@@ -1134,14 +1148,329 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         });
     }
 
+    // =====================
+    // UI Page Tools
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task GetUITree_WithInvalidId_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("get_ui_tree", new Dictionary<string, object?>
+        {
+            ["assetId"] = "00000000-0000-0000-0000-000000000000",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task AddUIElement_CreatesAndRemovesElement()
+    {
+        // Create a UIPageAsset
+        var createAssetRoot = await CallToolAndParseJsonAsync("create_asset", new Dictionary<string, object?>
+        {
+            ["assetType"] = "UIPageAsset",
+            ["name"] = "McpTestUIPage",
+        });
+
+        Assert.Null(createAssetRoot.GetProperty("error").GetString());
+        var uiPageId = createAssetRoot.GetProperty("asset").GetProperty("id").GetString()!;
+
+        // Verify tree is accessible (new UIPageAsset may have a default root element)
+        var treeRoot = await CallToolAndParseJsonAsync("get_ui_tree", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+        });
+
+        Assert.Null(treeRoot.GetProperty("error").GetString());
+        var uiPage = treeRoot.GetProperty("uiPage");
+        var initialCount = uiPage.GetProperty("elementCount").GetInt32();
+
+        // Add a StackPanel as root
+        var addPanelRoot = await CallToolAndParseJsonAsync("add_ui_element", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+            ["elementType"] = "StackPanel",
+            ["name"] = "MainPanel",
+        });
+
+        Assert.Null(addPanelRoot.GetProperty("error").GetString());
+        var panelElement = addPanelRoot.GetProperty("element");
+        Assert.Equal("StackPanel", panelElement.GetProperty("type").GetString());
+        Assert.Equal("MainPanel", panelElement.GetProperty("name").GetString());
+        var panelId = panelElement.GetProperty("id").GetString()!;
+
+        // Add a TextBlock under the StackPanel
+        var addTextRoot = await CallToolAndParseJsonAsync("add_ui_element", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+            ["elementType"] = "TextBlock",
+            ["name"] = "MyText",
+            ["parentId"] = panelId,
+        });
+
+        Assert.Null(addTextRoot.GetProperty("error").GetString());
+        var textElement = addTextRoot.GetProperty("element");
+        Assert.Equal("TextBlock", textElement.GetProperty("type").GetString());
+        Assert.Equal(panelId, textElement.GetProperty("parentId").GetString());
+        var textId = textElement.GetProperty("id").GetString()!;
+
+        // Verify hierarchy via get_ui_tree
+        var treeAfterAdd = await CallToolAndParseJsonAsync("get_ui_tree", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+        });
+
+        Assert.Null(treeAfterAdd.GetProperty("error").GetString());
+        var pageAfterAdd = treeAfterAdd.GetProperty("uiPage");
+        Assert.Equal(initialCount + 2, pageAfterAdd.GetProperty("elementCount").GetInt32());
+
+        // Find our StackPanel in the root elements and verify it has the TextBlock as a child
+        var rootElements = pageAfterAdd.GetProperty("elements");
+        var panelNode = rootElements.EnumerateArray()
+            .FirstOrDefault(e => e.GetProperty("id").GetString() == panelId);
+        Assert.NotEqual(default, panelNode);
+        Assert.True(panelNode.GetProperty("children").GetArrayLength() > 0);
+
+        // Inspect element via get_ui_element
+        var getElementRoot = await CallToolAndParseJsonAsync("get_ui_element", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+            ["elementId"] = textId,
+        });
+
+        Assert.Null(getElementRoot.GetProperty("error").GetString());
+        var detail = getElementRoot.GetProperty("element");
+        Assert.Equal("TextBlock", detail.GetProperty("type").GetString());
+        Assert.Equal(panelId, detail.GetProperty("parentId").GetString());
+        Assert.True(detail.TryGetProperty("properties", out _));
+
+        // Remove the TextBlock
+        var removeRoot = await CallToolAndParseJsonAsync("remove_ui_element", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+            ["elementId"] = textId,
+        });
+
+        Assert.Null(removeRoot.GetProperty("error").GetString());
+        var removed = removeRoot.GetProperty("removed");
+        Assert.Equal(textId, removed.GetProperty("id").GetString());
+
+        // Clean up: delete the UI page asset
+        await CallToolAndParseJsonAsync("manage_asset", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+            ["action"] = "delete",
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task SetUIElementProperty_SetsPropertyOnElement()
+    {
+        // Create a UIPageAsset
+        var createAssetRoot = await CallToolAndParseJsonAsync("create_asset", new Dictionary<string, object?>
+        {
+            ["assetType"] = "UIPageAsset",
+            ["name"] = "McpTestUIPageProp",
+        });
+        var uiPageId = createAssetRoot.GetProperty("asset").GetProperty("id").GetString()!;
+
+        // Add a TextBlock
+        var addTextRoot = await CallToolAndParseJsonAsync("add_ui_element", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+            ["elementType"] = "TextBlock",
+            ["name"] = "PropTest",
+        });
+        var textId = addTextRoot.GetProperty("element").GetProperty("id").GetString()!;
+
+        // Set width property
+        var setRoot = await CallToolAndParseJsonAsync("set_ui_element_property", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+            ["elementId"] = textId,
+            ["propertyPath"] = "Width",
+            ["value"] = "200",
+        });
+
+        Assert.Null(setRoot.GetProperty("error").GetString());
+        var setResult = setRoot.GetProperty("result");
+        Assert.Equal("Width", setResult.GetProperty("propertyPath").GetString());
+
+        // Clean up
+        await CallToolAndParseJsonAsync("manage_asset", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+            ["action"] = "delete",
+        });
+    }
+
+    // =====================
+    // Sprite Frame Tools
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task AddSpriteFrame_AddsAndRemovesFrame()
+    {
+        // Create a SpriteSheetAsset
+        var createAssetRoot = await CallToolAndParseJsonAsync("create_asset", new Dictionary<string, object?>
+        {
+            ["assetType"] = "SpriteSheetAsset",
+            ["name"] = "McpTestSpriteSheet",
+        });
+
+        Assert.Null(createAssetRoot.GetProperty("error").GetString());
+        var spriteSheetId = createAssetRoot.GetProperty("asset").GetProperty("id").GetString()!;
+
+        // Add a sprite frame
+        var addRoot = await CallToolAndParseJsonAsync("add_sprite_frame", new Dictionary<string, object?>
+        {
+            ["assetId"] = spriteSheetId,
+            ["name"] = "Frame1",
+        });
+
+        Assert.Null(addRoot.GetProperty("error").GetString());
+        var frame = addRoot.GetProperty("frame");
+        Assert.Equal("Frame1", frame.GetProperty("name").GetString());
+        Assert.Equal(0, frame.GetProperty("index").GetInt32());
+        Assert.Equal(1, frame.GetProperty("totalFrames").GetInt32());
+
+        // Add another frame
+        var addRoot2 = await CallToolAndParseJsonAsync("add_sprite_frame", new Dictionary<string, object?>
+        {
+            ["assetId"] = spriteSheetId,
+            ["name"] = "Frame2",
+            ["textureRegionX"] = 0,
+            ["textureRegionY"] = 0,
+            ["textureRegionWidth"] = 64,
+            ["textureRegionHeight"] = 64,
+        });
+
+        Assert.Null(addRoot2.GetProperty("error").GetString());
+        Assert.Equal(1, addRoot2.GetProperty("frame").GetProperty("index").GetInt32());
+        Assert.Equal(2, addRoot2.GetProperty("frame").GetProperty("totalFrames").GetInt32());
+
+        // Remove the first frame
+        var removeRoot = await CallToolAndParseJsonAsync("remove_sprite_frame", new Dictionary<string, object?>
+        {
+            ["assetId"] = spriteSheetId,
+            ["index"] = 0,
+        });
+
+        Assert.Null(removeRoot.GetProperty("error").GetString());
+        var removed = removeRoot.GetProperty("removed");
+        Assert.Equal("Frame1", removed.GetProperty("name").GetString());
+        Assert.Equal(1, removed.GetProperty("remainingCount").GetInt32());
+
+        // Clean up
+        await CallToolAndParseJsonAsync("manage_asset", new Dictionary<string, object?>
+        {
+            ["assetId"] = spriteSheetId,
+            ["action"] = "delete",
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task RemoveSpriteFrame_WithInvalidIndex_ReturnsError()
+    {
+        // Create a SpriteSheetAsset
+        var createAssetRoot = await CallToolAndParseJsonAsync("create_asset", new Dictionary<string, object?>
+        {
+            ["assetType"] = "SpriteSheetAsset",
+            ["name"] = "McpTestSpriteSheetErr",
+        });
+        var spriteSheetId = createAssetRoot.GetProperty("asset").GetProperty("id").GetString()!;
+
+        // Try to remove from empty sprite sheet
+        var root = await CallToolAndParseJsonAsync("remove_sprite_frame", new Dictionary<string, object?>
+        {
+            ["assetId"] = spriteSheetId,
+            ["index"] = 0,
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+
+        // Clean up
+        await CallToolAndParseJsonAsync("manage_asset", new Dictionary<string, object?>
+        {
+            ["assetId"] = spriteSheetId,
+            ["action"] = "delete",
+        });
+    }
+
+    // =====================
+    // Project Tools
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task GetEditorStatus_IncludesProjects()
+    {
+        var root = await CallToolAndParseJsonAsync("get_editor_status");
+
+        Assert.True(root.TryGetProperty("projects", out var projects));
+        Assert.True(projects.GetArrayLength() > 0, "Should have at least one project");
+
+        var firstProject = projects[0];
+        Assert.False(string.IsNullOrEmpty(firstProject.GetProperty("name").GetString()));
+        Assert.False(string.IsNullOrEmpty(firstProject.GetProperty("type").GetString()));
+        Assert.False(string.IsNullOrEmpty(firstProject.GetProperty("platform").GetString()));
+        Assert.True(firstProject.TryGetProperty("isCurrentProject", out _));
+    }
+
+    [McpIntegrationFact]
+    public async Task SetActiveProject_WithInvalidName_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("set_active_project", new Dictionary<string, object?>
+        {
+            ["projectName"] = "NonExistentProject_99999",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+        Assert.Contains("Available projects", root.GetProperty("error").GetString()!);
+    }
+
+    [McpIntegrationFact]
+    public async Task SetActiveProject_ChangesActiveProject()
+    {
+        // Get current projects
+        var statusRoot = await CallToolAndParseJsonAsync("get_editor_status");
+        var projects = statusRoot.GetProperty("projects");
+
+        if (projects.GetArrayLength() < 1)
+        {
+            // Skip if no projects available
+            return;
+        }
+
+        // Set the first project as active (may already be active, but validates the command works)
+        var projectName = projects[0].GetProperty("name").GetString()!;
+        var root = await CallToolAndParseJsonAsync("set_active_project", new Dictionary<string, object?>
+        {
+            ["projectName"] = projectName,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var project = root.GetProperty("project");
+        Assert.Equal(projectName, project.GetProperty("name").GetString());
+        Assert.True(project.GetProperty("isCurrentProject").GetBoolean());
+    }
+
     private async Task<JsonElement> CallToolAndParseJsonAsync(
         string toolName,
         Dictionary<string, object?>? arguments = null)
     {
         var result = await _client!.CallToolAsync(toolName, arguments);
         var textBlock = result.Content.OfType<TextContentBlock>().First();
-        var doc = JsonDocument.Parse(textBlock.Text!);
-        return doc.RootElement;
+        var text = textBlock.Text!;
+        try
+        {
+            var doc = JsonDocument.Parse(text);
+            return doc.RootElement;
+        }
+        catch (JsonException ex)
+        {
+            throw new JsonException($"Failed to parse response from '{toolName}' as JSON: {text}", ex);
+        }
     }
 
     private async Task<string> GetFirstSceneIdAsync()

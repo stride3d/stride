@@ -11,7 +11,7 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 ### State Reading
 | Tool | Description |
 |------|-------------|
-| `get_editor_status` | Returns project name, solution path, asset count, and scene listing |
+| `get_editor_status` | Returns project name, solution path, packages, projects (with type/platform/active status), asset count, and scene listing |
 | `query_assets` | Search and filter assets by name, type, or folder path |
 | `get_scene_tree` | Returns the full entity hierarchy for a scene |
 | `get_entity` | Returns detailed component and property data for an entity |
@@ -40,6 +40,17 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 | `create_asset` | Creates a new asset (material, prefab, scene, etc.) with defaults |
 | `manage_asset` | Renames, moves, or deletes an asset (with reference safety checks) |
 | `set_asset_property` | Sets a property on an asset via dot-notation path through the property graph |
+| `add_sprite_frame` | Adds a new sprite frame to a SpriteSheetAsset |
+| `remove_sprite_frame` | Removes a sprite frame from a SpriteSheetAsset by index |
+
+### UI Pages
+| Tool | Description |
+|------|-------------|
+| `get_ui_tree` | Returns the full UI element hierarchy for a UIPageAsset |
+| `get_ui_element` | Returns detailed properties for a specific UI element |
+| `add_ui_element` | Creates a new UI element (Button, TextBlock, StackPanel, etc.) in a page |
+| `remove_ui_element` | Removes a UI element and its descendants from a page |
+| `set_ui_element_property` | Sets a property on a UI element via dot-notation path |
 
 ### Project
 | Tool | Description |
@@ -47,6 +58,7 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 | `save_project` | Saves all changes (scenes, entities, assets, etc.) to disk |
 | `reload_scene` | Closes and reopens a scene editor tab to refresh its state |
 | `reload_project` | Triggers a full GameStudio restart to reload the project from disk |
+| `set_active_project` | Changes which project is active (determines build target and asset root) |
 
 ### Viewport
 | Tool | Description |
