@@ -20,6 +20,7 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 | Tool | Description |
 |------|-------------|
 | `open_scene` | Opens a scene asset in the editor (or activates if already open) |
+| `open_ui_page` | Opens a UI page asset in the editor (or activates if already open) |
 | `select_entity` | Selects entities in the scene editor hierarchy (supports multi-select) |
 | `focus_entity` | Centers the viewport camera on an entity (also selects it) |
 
@@ -63,7 +64,7 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 ### Viewport
 | Tool | Description |
 |------|-------------|
-| `capture_viewport` | Captures a PNG screenshot of the 3D viewport for an open scene |
+| `capture_viewport` | Captures a PNG screenshot of the viewport for an open scene or UI page |
 
 ### Build
 | Tool | Description |

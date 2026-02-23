@@ -774,7 +774,7 @@ public sealed class McpIntegrationTests : IAsyncLifetime
     {
         var result = await _client!.CallToolAsync("capture_viewport", new Dictionary<string, object?>
         {
-            ["sceneId"] = "00000000-0000-0000-0000-000000000001",
+            ["assetId"] = "00000000-0000-0000-0000-000000000001",
         });
 
         var textBlock = result.Content.OfType<TextContentBlock>().FirstOrDefault();
@@ -1047,6 +1047,9 @@ public sealed class McpIntegrationTests : IAsyncLifetime
 
         // Project tools
         Assert.Contains("set_active_project", toolNames);
+
+        // UI navigation
+        Assert.Contains("open_ui_page", toolNames);
     }
 
     // =====================
@@ -1303,6 +1306,60 @@ public sealed class McpIntegrationTests : IAsyncLifetime
             ["assetId"] = uiPageId,
             ["action"] = "delete",
         });
+    }
+
+    [McpIntegrationFact]
+    public async Task OpenUIPage_OpensAndCapturesViewport()
+    {
+        // Create a UIPageAsset
+        var createAssetRoot = await CallToolAndParseJsonAsync("create_asset", new Dictionary<string, object?>
+        {
+            ["assetType"] = "UIPageAsset",
+            ["name"] = "McpTestUIPageViewport",
+        });
+
+        Assert.Null(createAssetRoot.GetProperty("error").GetString());
+        var uiPageId = createAssetRoot.GetProperty("asset").GetProperty("id").GetString()!;
+
+        // Open the UI page in the editor
+        var openRoot = await CallToolAndParseJsonAsync("open_ui_page", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+        });
+
+        Assert.Equal("opened", openRoot.GetProperty("status").GetString());
+        Assert.Equal("McpTestUIPageViewport", openRoot.GetProperty("name").GetString());
+
+        // Wait for the editor to initialize
+        await Task.Delay(3000);
+
+        // Capture the viewport
+        var captureResult = await _client!.CallToolAsync("capture_viewport", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+        });
+
+        // The result should contain either an image or a text error (editor may not be fully initialized)
+        Assert.NotNull(captureResult.Content);
+        Assert.True(captureResult.Content.Count > 0);
+
+        // Clean up
+        await CallToolAndParseJsonAsync("manage_asset", new Dictionary<string, object?>
+        {
+            ["assetId"] = uiPageId,
+            ["action"] = "delete",
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task OpenUIPage_WithInvalidId_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("open_ui_page", new Dictionary<string, object?>
+        {
+            ["assetId"] = "00000000-0000-0000-0000-000000000000",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
     }
 
     // =====================

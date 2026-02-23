@@ -5,8 +5,8 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Editor.EditorGame.Game;
 using Stride.Graphics;
 
@@ -14,11 +14,11 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
     public class EditorGameScreenshotService : EditorGameServiceBase, IEditorGameScreenshotService
     {
-        private readonly EntityHierarchyEditorViewModel editor;
+        private readonly GameEditorViewModel editor;
 
         private EntityHierarchyEditorGame game;
 
-        public EditorGameScreenshotService(EntityHierarchyEditorViewModel editor)
+        public EditorGameScreenshotService(GameEditorViewModel editor)
         {
             this.editor = editor;
         }
