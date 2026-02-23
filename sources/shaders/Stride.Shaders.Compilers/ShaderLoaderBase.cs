@@ -12,12 +12,11 @@ namespace Stride.Shaders.Compilers;
 
 public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShaderLoader
 {
-    public IShaderCache FileCache => fileCache;
-    public IShaderCache GenericCache { get; } = new ShaderCache();
+    public IShaderCache Cache => fileCache;
 
     public bool Exists(string name)
     {
-        if (fileCache.Exists(name))
+        if (Cache.Exists(name))
             return true;
 
         return ExternalFileExists(name);
@@ -28,7 +27,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash, out bool isFromCache)
     {
-        isFromCache = fileCache.TryLoadFromCache(name, defines, out buffer, out hash);
+        isFromCache = Cache.TryLoadFromCache(name, defines, out buffer, out hash);
         if (isFromCache)
             return true;
 
@@ -52,7 +51,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
     public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash, out bool isFromCache)
     {
-        isFromCache = fileCache.TryLoadFromCache(name, defines, out buffer, out hash);
+        isFromCache = Cache.TryLoadFromCache(name, defines, out buffer, out hash);
         if (isFromCache)
             return true;
 

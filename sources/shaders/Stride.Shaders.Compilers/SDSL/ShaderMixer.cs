@@ -1029,12 +1029,7 @@ public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShader
     /// Cache per file.
     /// </summary>
     /// <remarks>Expects hash to be stored.</remarks>
-    public IShaderCache FileCache => inner.FileCache;
-    /// <summary>
-    /// Cache per generic instantiation.
-    /// </summary>
-    /// <remarks>Hashes are not needed.</remarks>
-    public IShaderCache GenericCache => inner.GenericCache;
+    public IShaderCache Cache => inner.Cache;
 
     public HashSourceCollection Sources { get; } = new();
     

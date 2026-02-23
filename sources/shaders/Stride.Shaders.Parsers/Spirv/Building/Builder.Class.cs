@@ -706,13 +706,12 @@ public partial class SpirvBuilder
 
         // Split context and buffer
 
-        // TODO: generics cache?
         if (genericResolver.GenericArgumentCount > 0)
         {
             // First, try to build name for cache lookup
             var classNameWithGenerics = BuildGenericClassName(className, genericResolver);
-            var cache = genericResolver.Cache ?? shaderLoader.GenericCache;
-            if (shaderLoader.GenericCache.TryLoadFromCache(classNameWithGenerics, macros, out var cachedShaderBuffers, out var cachedHash))
+            var cache = genericResolver.Cache ?? shaderLoader.Cache;
+            if (cache.TryLoadFromCache(classNameWithGenerics, macros, out var cachedShaderBuffers, out var cachedHash))
             {
                 shaderBuffers = cachedShaderBuffers;
                 hash = cachedHash;
@@ -732,7 +731,7 @@ public partial class SpirvBuilder
                 shaderBuffers.Buffer = CopyBuffer(shaderBuffers.Buffer);
 
                 InstantiateGenericShader(ref shaderBuffers, classNameWithGenerics, genericResolver, shaderLoader, macros);
-                shaderLoader.GenericCache.RegisterShader(classNameWithGenerics, macros, shaderBuffers, hash);
+                cache.RegisterShader(classNameWithGenerics, macros, shaderBuffers, hash);
             }
             
             // Run in all cases (even if cached)

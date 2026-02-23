@@ -45,7 +45,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                         throw new Exception($"Some parse errors:{Environment.NewLine}{string.Join(Environment.NewLine, table.Errors)}");
 
                     lastBuffer = compiler.ToShaderBuffers();
-                    ShaderLoader.FileCache.RegisterShader(shader.Name, macros, lastBuffer, hash);
+                    ShaderLoader.Cache.RegisterShader(shader.Name, macros, lastBuffer, hash);
                 }
                 else if (declaration is ShaderEffect or EffectParameters)
                 {

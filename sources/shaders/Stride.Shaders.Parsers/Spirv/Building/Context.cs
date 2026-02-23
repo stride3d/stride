@@ -74,8 +74,7 @@ public class ShaderCache : IShaderCache
 
 public interface IExternalShaderLoader
 {
-    public IShaderCache FileCache { get; }
-    public IShaderCache GenericCache { get; }
+    public IShaderCache Cache { get; }
     
     public bool Exists(string name);
     public bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash);
