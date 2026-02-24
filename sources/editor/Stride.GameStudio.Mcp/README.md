@@ -196,6 +196,46 @@ Use `query_assets` to find the asset ID for the asset you want to reference.
 3. Set the model: `modify_component` with `action: "update"`, `properties: '{"Model":{"assetId":"<model-asset-id>"}}'`
 4. Verify: `capture_viewport` to see the model rendered in the scene
 
+## Working with Polymorphic Properties
+
+Some component and asset properties are typed as interfaces or abstract classes (e.g. `LightComponent.Type` is `ILight`, `MaterialAttributes.Diffuse` is `IMaterialDiffuseFeature`). These properties accept a concrete type name to create the appropriate instance.
+
+### JSON Format
+
+Polymorphic values accept two formats:
+
+```json
+// Format 1: String — creates a default instance of the named type
+{"Type": "LightPoint"}
+
+// Format 2: Object with $type — creates instance with inline property values
+{"Type": {"$type": "LightPoint", "Radius": 5.0, "Color": {"r": 1.0, "g": 0.5, "b": 0.0}}}
+
+// Clear the value
+{"Type": null}
+```
+
+Type names are resolved in order: `[DataContract]` alias, short class name, fully qualified name. Resolution is case-insensitive.
+
+If an invalid type name is provided, the error message lists all available concrete types for that property.
+
+### Common Polymorphic Properties
+
+| Property Path | Interface Type | Available Concrete Types |
+|--------------|---------------|-------------------------|
+| `LightComponent.Type` | `ILight` | `LightDirectional`, `LightPoint`, `LightSpot`, `LightAmbient`, `LightSkybox` |
+| `MaterialAttributes.Diffuse` | `IMaterialDiffuseFeature` | `MaterialDiffuseMapFeature`, `MaterialDiffuseLambertModelFeature`, `MaterialDiffuseCelShadingModelFeature` |
+| `MaterialAttributes.Specular` | `IMaterialSpecularFeature` | `MaterialMetalnessMapFeature`, `MaterialSpecularMapFeature` |
+| `MaterialAttributes.Transparency` | `IMaterialTransparencyFeature` | `MaterialTransparencyAdditiveFeature`, `MaterialTransparencyBlendFeature`, `MaterialTransparencyCutoffFeature` |
+| `MaterialAttributes.Emissive` | `IMaterialEmissiveFeature` | `MaterialEmissiveMapFeature` |
+
+### Example: Changing a Light Type
+
+1. Add a LightComponent: `modify_component` with `action: "add"`, `componentType: "LightComponent"`
+2. Change to point light: `modify_component` with `action: "update"`, `properties: '{"Type": "LightPoint"}'`
+3. Set with properties: `modify_component` with `action: "update"`, `properties: '{"Type": {"$type": "LightPoint", "Radius": 10.0}}'`
+4. Verify: `get_entity` to see the updated component
+
 ## Project Reload Behavior
 
 ### save_project

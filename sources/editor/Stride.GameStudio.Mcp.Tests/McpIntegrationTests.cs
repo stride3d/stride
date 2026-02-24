@@ -1152,6 +1152,217 @@ public sealed class McpIntegrationTests : IAsyncLifetime
     }
 
     // =====================
+    // Polymorphic Properties
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task ModifyComponent_SetPolymorphicLightType()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        // Create a test entity with a LightComponent
+        var createResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpPolymorphicLightTest",
+        });
+        var entityId = createResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "add",
+            ["componentType"] = "LightComponent",
+        });
+
+        // Change the light type to LightPoint using polymorphic property
+        var updateRoot = await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "update",
+            ["componentIndex"] = 1,
+            ["properties"] = JsonSerializer.Serialize(new { Type = "LightPoint" }),
+        });
+
+        Assert.Null(updateRoot.GetProperty("error").GetString());
+        var component = updateRoot.GetProperty("component");
+        Assert.Contains("Type", component.GetProperty("updatedProperties").EnumerateArray().Select(e => e.GetString()!));
+
+        // Verify via get_entity that the light type changed
+        var entityRoot = await CallToolAndParseJsonAsync("get_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+        var entity = entityRoot.GetProperty("entity");
+        var components = entity.GetProperty("components");
+        var lightComp = components.EnumerateArray()
+            .FirstOrDefault(c => c.GetProperty("type").GetString() == "LightComponent");
+        Assert.NotEqual(default, lightComp);
+        var typeProperty = lightComp.GetProperty("properties").GetProperty("Type");
+        Assert.Contains("LightPoint", typeProperty.ToString());
+
+        // Clean up
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task SetAssetProperty_SetPolymorphicMaterialFeature()
+    {
+        // Create a MaterialAsset
+        var createRoot = await CallToolAndParseJsonAsync("create_asset", new Dictionary<string, object?>
+        {
+            ["assetType"] = "MaterialAsset",
+            ["name"] = "McpPolyMaterialTest",
+        });
+        Assert.Null(createRoot.GetProperty("error").GetString());
+        var assetId = createRoot.GetProperty("asset").GetProperty("id").GetString()!;
+
+        // Set Attributes.Diffuse to MaterialDiffuseMapFeature
+        var setRoot = await CallToolAndParseJsonAsync("set_asset_property", new Dictionary<string, object?>
+        {
+            ["assetId"] = assetId,
+            ["propertyPath"] = "Attributes.Diffuse",
+            ["value"] = "\"MaterialDiffuseMapFeature\"",
+        });
+
+        Assert.Null(setRoot.GetProperty("error").GetString());
+
+        // Verify via get_asset_details
+        var detailsRoot = await CallToolAndParseJsonAsync("get_asset_details", new Dictionary<string, object?>
+        {
+            ["assetId"] = assetId,
+        });
+        Assert.Null(detailsRoot.GetProperty("error").GetString());
+        var properties = detailsRoot.GetProperty("asset").GetProperty("properties");
+        Assert.Contains("MaterialDiffuseMapFeature", properties.ToString());
+
+        // Clean up
+        await CallToolAndParseJsonAsync("manage_asset", new Dictionary<string, object?>
+        {
+            ["assetId"] = assetId,
+            ["action"] = "delete",
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task SetAssetProperty_PolymorphicWithInlineProperties()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        // Create a test entity with a LightComponent
+        var createResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpPolyInlineTest",
+        });
+        var entityId = createResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "add",
+            ["componentType"] = "LightComponent",
+        });
+
+        // Set the light type to LightPoint with inline properties using $type format
+        var updateRoot = await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "update",
+            ["componentIndex"] = 1,
+            ["properties"] = "{\"Type\":{\"$type\":\"LightPoint\",\"Radius\":5.0}}",
+        });
+
+        Assert.Null(updateRoot.GetProperty("error").GetString());
+
+        // Verify via get_entity
+        var entityRoot = await CallToolAndParseJsonAsync("get_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+        var entity = entityRoot.GetProperty("entity");
+        var components = entity.GetProperty("components");
+        var lightComp = components.EnumerateArray()
+            .FirstOrDefault(c => c.GetProperty("type").GetString() == "LightComponent");
+        Assert.NotEqual(default, lightComp);
+        Assert.Contains("LightPoint", lightComp.GetProperty("properties").GetProperty("Type").ToString());
+
+        // Clean up
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task SetAssetProperty_InvalidPolymorphicType_ListsAvailable()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        // Create a test entity with a LightComponent
+        var createResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpPolyInvalidTest",
+        });
+        var entityId = createResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "add",
+            ["componentType"] = "LightComponent",
+        });
+
+        // Try to set an invalid polymorphic type name
+        var updateRoot = await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "update",
+            ["componentIndex"] = 1,
+            ["properties"] = JsonSerializer.Serialize(new { Type = "LightCone" }),
+        });
+
+        // The error should mention the invalid type and list available types
+        Assert.False(string.IsNullOrEmpty(updateRoot.GetProperty("error").GetString()));
+        var error = updateRoot.GetProperty("error").GetString()!;
+        Assert.Contains("LightCone", error);
+        Assert.Contains("Available types", error);
+
+        // Clean up
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+    }
+
+    // =====================
     // UI Page Tools
     // =====================
 
