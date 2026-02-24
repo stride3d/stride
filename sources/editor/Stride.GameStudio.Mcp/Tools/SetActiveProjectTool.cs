@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ModelContextProtocol.Server;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
 
 namespace Stride.GameStudio.Mcp.Tools;
@@ -15,7 +16,7 @@ namespace Stride.GameStudio.Mcp.Tools;
 [McpServerToolType]
 public sealed class SetActiveProjectTool
 {
-    [McpServerTool(Name = "set_active_project"), Description("Changes which project is active in the editor. The active project determines which project is built and which assets are shown as root. Use get_editor_status to see available projects.")]
+    [McpServerTool(Name = "set_active_project"), Description("Changes which project is active in the editor. The active project determines which project is built and run. IMPORTANT: You should almost always select an Executable project (not a Library). Library projects contain shared assets but cannot be launched. Use get_editor_status to see available projects — look for ones with isExecutable=true.")]
     public static async Task<string> SetActiveProject(
         SessionViewModel session,
         DispatcherBridge dispatcher,
@@ -37,6 +38,7 @@ public sealed class SetActiveProjectTool
                 return new
                 {
                     error = $"Project not found: '{projectName}'. Available projects: {string.Join(", ", availableNames)}",
+                    warning = (string?)null,
                     project = (object?)null,
                 };
             }
@@ -44,9 +46,14 @@ public sealed class SetActiveProjectTool
             // Execute the set current project command
             session.SetCurrentProjectCommand.Execute(projectVm);
 
+            var warning = projectVm.Type != ProjectType.Executable
+                ? "Warning: You selected a Library project. Library projects cannot be built into a runnable game. Consider selecting an Executable project instead."
+                : null;
+
             return new
             {
                 error = (string?)null,
+                warning,
                 project = (object)new
                 {
                     name = projectVm.Name,

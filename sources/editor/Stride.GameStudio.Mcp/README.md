@@ -43,6 +43,7 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 | `set_asset_property` | Sets a property on an asset via dot-notation path through the property graph |
 | `add_sprite_frame` | Adds a new sprite frame to a SpriteSheetAsset |
 | `remove_sprite_frame` | Removes a sprite frame from a SpriteSheetAsset by index |
+| `manage_root_assets` | Manages which assets are included in the game build (list/add/remove root assets) |
 
 ### UI Pages
 | Tool | Description |
@@ -59,7 +60,7 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 | `save_project` | Saves all changes (scenes, entities, assets, etc.) to disk |
 | `reload_scene` | Closes and reopens a scene editor tab to refresh its state |
 | `reload_project` | Triggers a full GameStudio restart to reload the project from disk |
-| `set_active_project` | Changes which project is active (determines build target and asset root) |
+| `set_active_project` | Changes which project is active — select an Executable project for builds (warns if Library is selected) |
 
 ### Viewport
 | Tool | Description |
@@ -235,6 +236,24 @@ If an invalid type name is provided, the error message lists all available concr
 2. Change to point light: `modify_component` with `action: "update"`, `properties: '{"Type": "LightPoint"}'`
 3. Set with properties: `modify_component` with `action: "update"`, `properties: '{"Type": {"$type": "LightPoint", "Radius": 10.0}}'`
 4. Verify: `get_entity` to see the updated component
+
+## Root Assets & Build Inclusion
+
+Stride uses **root assets** to determine which assets get compiled into the game. Only root assets and their dependencies are included in the build output. If an asset (such as a scene) is not marked as root, it will not be available at runtime.
+
+### Typical Workflow
+
+1. **Create or find your asset**: Use `create_asset` or `query_assets` to get the asset ID
+2. **Mark it as root**: `manage_root_assets` with `action: "add"` and the asset ID
+3. **Build**: `build_project` to compile — root assets and their dependencies are included
+4. **Verify**: `manage_root_assets` with `action: "list"` to see all current root assets
+
+### Important Notes
+
+- **Scenes** must typically be added as root assets to be playable in the built game
+- An asset's dependencies are automatically included when the asset is root — you don't need to mark each dependency individually
+- Use `get_editor_status` to see `rootAssetCount` for the current project
+- Root asset changes support undo/redo like all other editor operations
 
 ## Project Reload Behavior
 

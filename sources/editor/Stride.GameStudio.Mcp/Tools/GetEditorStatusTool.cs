@@ -7,6 +7,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ModelContextProtocol.Server;
+using Stride.Core;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
 
 namespace Stride.GameStudio.Mcp.Tools;
@@ -37,6 +39,9 @@ public sealed class GetEditorStatusTool
                     type = p.Type.ToString(),
                     platform = p.Platform.ToString(),
                     isCurrentProject = p.IsCurrentProject,
+                    isExecutable = p.Type == ProjectType.Executable,
+                    recommended = p.Type == ProjectType.Executable
+                                  && p.Platform == PlatformType.Windows,
                 })
                 .ToList();
 
@@ -52,6 +57,7 @@ public sealed class GetEditorStatusTool
                 .ToList();
 
             var assetCount = allAssets.Count;
+            var rootAssetCount = session.CurrentProject?.RootAssets.Count ?? 0;
 
             return new
             {
@@ -61,6 +67,7 @@ public sealed class GetEditorStatusTool
                 packages,
                 projects,
                 assetCount,
+                rootAssetCount,
                 scenes,
             };
         }, cancellationToken);

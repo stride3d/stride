@@ -1047,6 +1047,7 @@ public sealed class McpIntegrationTests : IAsyncLifetime
 
         // Project tools
         Assert.Contains("set_active_project", toolNames);
+        Assert.Contains("manage_root_assets", toolNames);
 
         // UI navigation
         Assert.Contains("open_ui_page", toolNames);
@@ -1721,6 +1722,188 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         var project = root.GetProperty("project");
         Assert.Equal(projectName, project.GetProperty("name").GetString());
         Assert.True(project.GetProperty("isCurrentProject").GetBoolean());
+    }
+
+    // =====================
+    // Root Assets
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task ManageRootAssets_ListRootAssets()
+    {
+        var root = await CallToolAndParseJsonAsync("manage_root_assets", new Dictionary<string, object?>
+        {
+            ["action"] = "list",
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        Assert.True(root.TryGetProperty("assets", out var assets));
+        // assets may be empty or non-empty depending on project state, but should be an array
+        Assert.Equal(JsonValueKind.Array, assets.ValueKind);
+    }
+
+    [McpIntegrationFact]
+    public async Task ManageRootAssets_AddAndRemoveRootAsset()
+    {
+        // Use an existing scene from the project as the root asset candidate
+        var sceneId = await GetFirstSceneIdAsync();
+
+        // Check if it's already a root asset and remove it first if so
+        var initialList = await CallToolAndParseJsonAsync("manage_root_assets", new Dictionary<string, object?>
+        {
+            ["action"] = "list",
+        });
+        Assert.Null(initialList.GetProperty("error").GetString());
+        var wasAlreadyRoot = initialList.GetProperty("assets").EnumerateArray()
+            .Any(a => a.GetProperty("id").GetString() == sceneId);
+
+        if (wasAlreadyRoot)
+        {
+            await CallToolAndParseJsonAsync("manage_root_assets", new Dictionary<string, object?>
+            {
+                ["action"] = "remove",
+                ["assetId"] = sceneId,
+            });
+        }
+
+        try
+        {
+            // Add as root
+            var addRoot = await CallToolAndParseJsonAsync("manage_root_assets", new Dictionary<string, object?>
+            {
+                ["action"] = "add",
+                ["assetId"] = sceneId,
+            });
+            Assert.Null(addRoot.GetProperty("error").GetString());
+            Assert.Equal("added", addRoot.GetProperty("result").GetProperty("action").GetString());
+
+            // Verify it's in the list
+            var listRoot = await CallToolAndParseJsonAsync("manage_root_assets", new Dictionary<string, object?>
+            {
+                ["action"] = "list",
+            });
+            Assert.Null(listRoot.GetProperty("error").GetString());
+            var assets = listRoot.GetProperty("assets");
+            Assert.True(assets.EnumerateArray().Any(a => a.GetProperty("id").GetString() == sceneId),
+                "Newly added root asset should appear in list");
+
+            // Remove from root
+            var removeRoot = await CallToolAndParseJsonAsync("manage_root_assets", new Dictionary<string, object?>
+            {
+                ["action"] = "remove",
+                ["assetId"] = sceneId,
+            });
+            Assert.Null(removeRoot.GetProperty("error").GetString());
+            Assert.Equal("removed", removeRoot.GetProperty("result").GetProperty("action").GetString());
+
+            // Verify it's gone from the list
+            var listAfterRemove = await CallToolAndParseJsonAsync("manage_root_assets", new Dictionary<string, object?>
+            {
+                ["action"] = "list",
+            });
+            Assert.Null(listAfterRemove.GetProperty("error").GetString());
+            var assetsAfter = listAfterRemove.GetProperty("assets");
+            Assert.False(assetsAfter.EnumerateArray().Any(a => a.GetProperty("id").GetString() == sceneId),
+                "Removed root asset should not appear in list");
+        }
+        finally
+        {
+            // Restore original state if the asset was originally root
+            if (wasAlreadyRoot)
+            {
+                await CallToolAndParseJsonAsync("manage_root_assets", new Dictionary<string, object?>
+                {
+                    ["action"] = "add",
+                    ["assetId"] = sceneId,
+                });
+            }
+        }
+    }
+
+    [McpIntegrationFact]
+    public async Task ManageRootAssets_AddNonExistentAsset_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("manage_root_assets", new Dictionary<string, object?>
+        {
+            ["action"] = "add",
+            ["assetId"] = "00000000-0000-0000-0000-000000000000",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+        Assert.Contains("not found", root.GetProperty("error").GetString()!);
+    }
+
+    [McpIntegrationFact]
+    public async Task GetEditorStatus_ProjectsIncludeTypeInfo()
+    {
+        var root = await CallToolAndParseJsonAsync("get_editor_status");
+
+        var projects = root.GetProperty("projects");
+        Assert.True(projects.GetArrayLength() > 0, "Should have at least one project");
+
+        // Verify at least one project has isExecutable field
+        var hasIsExecutable = false;
+        foreach (var project in projects.EnumerateArray())
+        {
+            if (project.TryGetProperty("isExecutable", out _))
+            {
+                hasIsExecutable = true;
+                break;
+            }
+        }
+        Assert.True(hasIsExecutable, "At least one project should have isExecutable field");
+
+        // Verify rootAssetCount is present
+        Assert.True(root.TryGetProperty("rootAssetCount", out var rootAssetCount));
+        Assert.True(rootAssetCount.GetInt32() >= 0);
+    }
+
+    [McpIntegrationFact]
+    public async Task SetActiveProject_LibraryProjectWarning()
+    {
+        // Get projects and find a Library project
+        var statusRoot = await CallToolAndParseJsonAsync("get_editor_status");
+        var projects = statusRoot.GetProperty("projects");
+
+        string? libraryProjectName = null;
+        string? originalProjectName = null;
+        foreach (var project in projects.EnumerateArray())
+        {
+            if (project.GetProperty("isCurrentProject").GetBoolean())
+            {
+                originalProjectName = project.GetProperty("name").GetString();
+            }
+            if (project.GetProperty("type").GetString() == "Library")
+            {
+                libraryProjectName = project.GetProperty("name").GetString();
+            }
+        }
+
+        if (libraryProjectName == null)
+        {
+            // No Library project available to test — skip gracefully
+            return;
+        }
+
+        // Set to Library project and verify warning
+        var root = await CallToolAndParseJsonAsync("set_active_project", new Dictionary<string, object?>
+        {
+            ["projectName"] = libraryProjectName,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        Assert.True(root.TryGetProperty("warning", out var warning));
+        Assert.False(string.IsNullOrEmpty(warning.GetString()));
+        Assert.Contains("Library", warning.GetString()!);
+
+        // Restore original project if we changed it
+        if (originalProjectName != null && originalProjectName != libraryProjectName)
+        {
+            await CallToolAndParseJsonAsync("set_active_project", new Dictionary<string, object?>
+            {
+                ["projectName"] = originalProjectName,
+            });
+        }
     }
 
     private async Task<JsonElement> CallToolAndParseJsonAsync(
