@@ -35,7 +35,7 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
-    <AdditionalFiles Include="..\assets\SDSL\RenderTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\RenderTests\" />
+    <StrideShaderFiles Include="..\assets\SDSL\RenderTests\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\SDSL\RenderTests\" />
     <None Include="..\..\engine\Stride.Graphics\**\*.sdsl" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />
     <None Include="..\..\engine\Stride.Graphics\**\*.sdfx" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDFX\%(Filename)%(Extension)" />
     <None Include="..\..\engine\Stride.Rendering\**\*.sdsl" CopyToOutputDirectory="PreserveNewest" Link="assets\Stride\SDSL\%(Filename)%(Extension)" />
