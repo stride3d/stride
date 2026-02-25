@@ -5,4 +5,4 @@ set StrideAssetCompiler=%StrideSdkDir%sources\assets\Stride.Core.Assets.Compiler
 rmdir /s %~dp0obj\
 %StrideAssetCompiler% --platform=Windows --property:StrideGraphicsApi=Direct3D11 --output-path=%~dp0obj\app_data --build-path=%~dp0obj\build_app_data --package-file=Graphics.sdpkg
 %StrideAssetCompiler% --platform=Windows --property:StrideGraphicsApi=Direct3D12 --output-path=%~dp0obj\app_data --build-path=%~dp0obj\build_app_data --package-file=Graphics.sdpkg
-%StrideAssetCompiler% --platform=Windows --property:RuntimeIdentifier=Vulkan --output-path=%~dp0obj\app_data --build-path=%~dp0obj\build_app_data --package-file=Graphics.sdpkg
+%StrideAssetCompiler% --platform=Windows --property:StrideGraphicsApi=Vulkan --output-path=%~dp0obj\app_data --build-path=%~dp0obj\build_app_data --package-file=Graphics.sdpkg
