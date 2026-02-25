@@ -579,6 +579,8 @@ public partial class SpirvBuilder
 
     public static void RemapIds(SpirvBuffer buffer, int shaderStart, int shaderEnd, Dictionary<int, int> idRemapping)
     {
+        if (idRemapping.Count == 0)
+            return;
         for (var index = shaderStart; index < buffer.Count; index++)
         {
             var i = buffer[index];
@@ -588,6 +590,8 @@ public partial class SpirvBuilder
 
     public static void RemapIds(Dictionary<int, int> idRemapping, ref OpData i)
     {
+        if (idRemapping.Count == 0)
+            return;
         // Special case: remove OpName and such
         if (i.Op == Op.OpName || i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString
             || i.Op == Op.OpMemberName || i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString)

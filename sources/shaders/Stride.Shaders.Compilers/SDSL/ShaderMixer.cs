@@ -12,6 +12,7 @@ using Stride.Core.Storage;
 using Stride.Shaders.Spirv.Processing.Interfaces;
 using static Stride.Shaders.Spirv.Specification;
 using EntryPoint = Stride.Shaders.Core.EntryPoint;
+using Stride.Core.UnsafeExtensions;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
@@ -923,6 +924,35 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp)
     {
+        // Process OpTypeFunctionSDSL
+        var functionTypes = new Dictionary<FunctionTypeWithIds, int>();
+        var remapIds = new Dictionary<int, int>();
+        foreach (var i in temp)
+        {
+            // Transform OpTypeFunctionSDSL into OpTypeFunction (we don't need extra info anymore)
+            if (i.Op == Op.OpTypeFunctionSDSL && (OpTypeFunctionSDSL)i is { } functionType)
+            {
+                Span<int> parameterTypes = stackalloc int[functionType.Values.Elements.Span.Length];
+                for (int j = 0; j < functionType.Values.Elements.Span.Length; ++j)
+                    parameterTypes[j] = functionType.Values.Elements.Span[j].Item1;
+
+                // Make sure to unify same types: they might have different OpTypeFunctionSDSL due to modifiers but end up having the same OpTypeFunction once modifiers info is removed
+                // If two duplicate OpTypeFunction exists, this causes SPIR-V validation errors
+                var functionTypeWithIds = new FunctionTypeWithIds(functionType.ReturnType, parameterTypes.ToArray());
+                if (functionTypes.TryGetValue(functionTypeWithIds, out var functionTypeId))
+                {
+                    remapIds.Add(functionType.ResultId, functionTypeId);
+                    SetOpNop(i.Data.Memory.Span);
+                }
+                else
+                {
+                    temp.Replace(i.Index, new OpTypeFunction(functionType.ResultId, functionType.ReturnType, [.. parameterTypes]));
+                    functionTypes.Add(functionTypeWithIds, functionType.ResultId);
+                }
+            }
+        }
+        SpirvBuilder.RemapIds(temp, 0, temp.Count, remapIds);
+
         // Remove in a single pass (we do in-place without RemoveAt otherwise it would be up to O(n^2) complexity)
         RemoveInstructionWhere(temp, i =>
         {
@@ -975,7 +1005,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
             return false;
         });
-        
+
         var ids = new HashSet<int>();
         foreach (var i in temp)
         {
@@ -984,15 +1014,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
                 temp.Replace(i.Index, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
 
-            // Transform OpTypeFunctionSDSL into OpTypeFunction (we don't need extra info anymore)
-            if (i.Op == Op.OpTypeFunctionSDSL && (OpTypeFunctionSDSL)i is { } functionType)
-            {
-                Span<int> parameterTypes = stackalloc int[functionType.Values.Elements.Span.Length];
-                for (int j = 0; j < functionType.Values.Elements.Span.Length; ++j)
-                    parameterTypes[j] = functionType.Values.Elements.Span[j].Item1;
-                temp.Replace(i.Index, new OpTypeFunction(functionType.ResultId, functionType.ReturnType, [..parameterTypes]));
-            }
-            
             // Collect IDs (except for OpName/OpDecorate/OpDecorateString metadata)
             if (i.Op != Op.OpName && i.Op != Op.OpDecorate && i.Op != Op.OpDecorateString)
                 SpirvBuilder.CollectIds(i.Data, id => ids.Add(id));
@@ -1020,6 +1041,27 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             return false;
         });
+    }
+}
+
+public sealed partial record FunctionTypeWithIds(int ReturnType, int[] ParameterTypes)
+{
+    public bool Equals(FunctionTypeWithIds? other)
+    {
+        if (other is null)
+            return false;
+        return ReturnType == other.ReturnType && ParameterTypes.SequenceEqual(other.ParameterTypes);
+    }
+
+    public override int GetHashCode()
+    {
+        int hash = 17;
+        hash = hash * 31 + ReturnType.GetHashCode();
+        foreach (var item in ParameterTypes)
+        {
+            hash = hash * 31 + item.GetHashCode();
+        }
+        return hash;
     }
 }
 
