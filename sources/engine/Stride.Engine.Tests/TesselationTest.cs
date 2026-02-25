@@ -201,8 +201,6 @@ namespace Stride.Engine.Tests
         [SkippableFact]
         public void RunTestGame()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.Vulkan);
-
             RunGameTest(new TesselationTest());
         }
 

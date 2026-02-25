@@ -63,6 +63,8 @@ namespace Stride.Graphics
                     return VkPrimitiveTopology.TriangleListWithAdjacency;
                 case PrimitiveType.TriangleStripWithAdjacency:
                     return VkPrimitiveTopology.TriangleStripWithAdjacency;
+                case >= PrimitiveType.PatchList and < PrimitiveType.PatchList + 32:
+                    return VkPrimitiveTopology.PatchList;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(primitiveType));
             }
@@ -77,7 +79,7 @@ namespace Stride.Graphics
                 case PrimitiveType.TriangleList:
                 case PrimitiveType.LineListWithAdjacency:
                 case PrimitiveType.TriangleListWithAdjacency:
-                case PrimitiveType.PatchList:
+                case >= PrimitiveType.PatchList and < PrimitiveType.PatchList + 32:
                     return false;
                 default:
                     return true;

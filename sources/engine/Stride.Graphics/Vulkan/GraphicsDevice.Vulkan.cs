@@ -376,6 +376,7 @@ namespace Stride.Graphics
                 shaderCullDistance = true,
                 samplerAnisotropy = true,
                 depthClamp = true,
+                tessellationShader = RequestedProfile >= GraphicsProfile.Level_11_0,
             };
 
             NativeInstanceApi.vkGetPhysicalDeviceFeatures(NativePhysicalDevice, out var deviceFeatures);

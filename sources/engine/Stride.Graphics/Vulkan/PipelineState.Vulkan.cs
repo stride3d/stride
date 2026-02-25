@@ -128,7 +128,7 @@ namespace Stride.Graphics
                     primitiveRestartEnable = VulkanConvertExtensions.ConvertPrimitiveRestart(Description.PrimitiveType)
                 };
 
-                // TODO VULKAN: Tessellation and multisampling
+                // TODO VULKAN: Multisampling
                 var multisampleState = new VkPipelineMultisampleStateCreateInfo
                 {
                     sType = VkStructureType.PipelineMultisampleStateCreateInfo,
@@ -137,7 +137,8 @@ namespace Stride.Graphics
 
                 var tessellationState = new VkPipelineTessellationStateCreateInfo
                 {
-                    sType = VkStructureType.PipelineTessellationStateCreateInfo
+                    sType = VkStructureType.PipelineTessellationStateCreateInfo,
+                    patchControlPoints = (uint)(Description.PrimitiveType >= PrimitiveType.PatchList && Description.PrimitiveType < PrimitiveType.PatchList + 32 ? Description.PrimitiveType - PrimitiveType.PatchList + 1 : 0),
                 };
 
                 var rasterizationState = CreateRasterizationState(Description.RasterizerState);
@@ -212,7 +213,6 @@ namespace Stride.Graphics
                         layout = NativeLayout,
                         stageCount = (uint)stages.Length,
                         pStages = stages.Length > 0 ? fStages : null,
-                        //tessellationState = &tessellationState,
                         pVertexInputState = &vertexInputState,
                         pInputAssemblyState = &inputAssemblyState,
                         pRasterizationState = &rasterizationState,
@@ -221,8 +221,9 @@ namespace Stride.Graphics
                         pColorBlendState = &colorBlendState,
                         pDynamicState = &dynamicState,
                         pViewportState = &viewportState,
+                        pTessellationState = &tessellationState,
                         renderPass = NativeRenderPass,
-                        subpass = 0
+                        subpass = 0,
                     };
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
                         GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr));
@@ -436,7 +437,7 @@ namespace Stride.Graphics
             for (int i = 0; i < stages.Length; i++)
             {
                 var stage = stages[i];
-                if (stage.Data != shaderBytecode)
+                if (!stage.Data.SequenceEqual(shaderBytecode))
                     throw new InvalidOperationException("Vulkan: bytecode is expected to be the same for all stages");
 
                 if (stage.Stage == ShaderStage.Compute)
