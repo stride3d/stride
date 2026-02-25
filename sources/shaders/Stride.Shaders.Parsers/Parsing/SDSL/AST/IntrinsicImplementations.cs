@@ -199,7 +199,8 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     }
     public override SpirvValue CompileSign(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x)
     {
-        var instruction = functionType.ReturnType.GetElementType() switch
+        var sourceType = context.ReverseTypes[x.TypeId];
+        var instruction = sourceType.GetElementType() switch
         {
             ScalarType { Type: Scalar.Float or Scalar.Double } => builder.InsertData(new GLSLFSign(x.TypeId, context.Bound++, context.GetGLSL(), x.Id)),
             ScalarType { Type: Scalar.UInt or Scalar.Int or Scalar.UInt64 or Scalar.Int64 } => builder.InsertData(new GLSLSSign(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id)),
