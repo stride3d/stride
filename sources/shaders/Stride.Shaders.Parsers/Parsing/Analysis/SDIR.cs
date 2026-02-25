@@ -13,10 +13,10 @@ public enum IROp
     LeftShift, RightShift,
     Greater, GreaterThan, Lower, LowerThan,
     Equals, NotEquals,
-    BitwiseAND, BitwiseXOR, BitwiseOR,    
+    BitwiseAND, BitwiseXOR, BitwiseOR,
     LogicalAND, LogicalOR,
-    
-} 
+
+}
 
 public record struct QuadrupleArg(
     string Name,

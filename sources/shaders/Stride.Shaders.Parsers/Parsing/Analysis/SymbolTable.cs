@@ -17,7 +17,7 @@ public partial class SymbolTable : ISymbolProvider
 {
     public bool ResolveArraySizes { get; set; } = true;
     public bool ResolveExternalTypes { get; set; } = true;
-    
+
     public Dictionary<string, SymbolType> DeclaredTypes { get; } = [];
 
     public SpirvContext Context { get; init; }
@@ -101,7 +101,7 @@ public partial class SymbolTable : ISymbolProvider
         symbol = null;
         return false;
     }
-    
+
     public Symbol ResolveSymbol(int id)
     {
         if (!TryResolveSymbol(id, out var symbol))

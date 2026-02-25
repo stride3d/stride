@@ -18,7 +18,7 @@ public partial class SpirvContext
         var typeDuplicateInserter = new TypeDuplicateHelper(this);
         var remapIds = new Dictionary<int, int>();
         int lastResultId = -1;
-        
+
         var lastResultIndex = -1;
         if (desiredResultId != null)
         {
@@ -84,8 +84,8 @@ public partial class SpirvContext
         // Note: we made sure to not copy last instruction which should have the constant we want, so this case shouldn't happen anymore
         if (desiredResultId != null && lastResultId != desiredResultId)
             throw new InvalidOperationException();
-            // Note: if we were to readd this, we would also need to process the main buffer 
-            //SpirvBuilder.RemapIds(Buffer, 0, Buffer.Count, new Dictionary<int, int> { { lastResultId, desiredResultId.Value } });
+        // Note: if we were to readd this, we would also need to process the main buffer 
+        //SpirvBuilder.RemapIds(Buffer, 0, Buffer.Count, new Dictionary<int, int> { { lastResultId, desiredResultId.Value } });
 
         return lastResultId;
     }

@@ -17,7 +17,7 @@ public struct NumberParser : IParser<Literal>
             Hex,
             Float,
             Integer
-            
+
         );
     }
 

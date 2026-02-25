@@ -23,9 +23,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     /// </summary>
     /// <param name="ResourcesRegisterSeparate">For D3D11/12: t, b and s registers are separate (and should be kept as low as possible so we number them from 0 in each category).</param>
     public record struct Options(bool ResourcesRegisterSeparate);
-    
+
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
-    
+
     public void MergeSDSL(ShaderSource shaderSource, Options options, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<(string Name, int Id, ShaderStage Stage)> entryPoints)
     {
         // Create new buffer for the merged result
@@ -58,7 +58,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         ShaderClass.ProcessNameAndTypes(context);
 
         var rootMixin = MergeMixinNode(globalContext, context, table, temp, shaderSource2);
-        
+
         // Add optional capabilities
         foreach (var i in context)
         {
@@ -83,7 +83,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             CodeInserted = (int index, int count) => AdjustIndicesAfterAppendInstructions(rootMixin, index, count)
         };
         (entryPoints, globalContext.Reflection.InputAttributes) = interfaceProcessor.Process(table, temp, context);
-        
+
         // Process Link (add CompositionPath, generate missing ones, etc.)
         ProcessLinks(context, temp);
 
@@ -92,7 +92,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         //       force cbuffer to be epxlicit? (and not need "static" anymore for mixin nodes member, which is weird)
         //       It's a breaking change and will require some changes to Stride shaders (esp. in post effects) 
         GenerateDefaultCBuffer(rootMixin, globalContext, context, temp);
-        
+
         // Merge cbuffers and rgroups
         MergeCBuffers(globalContext, context, temp);
         ComputeCBufferReflection(globalContext, context, temp);
@@ -105,7 +105,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         ProcessReflection(globalContext, context, temp, options);
 
         SimplifyNotSupportedConstantsInShader(context, temp);
-        
+
         foreach (var inst in context)
             temp.Add(inst.Data);
 
@@ -144,7 +144,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         // Merge all classes from mixinSource.Mixins in main buffer
         ProcessMixinClasses(globalContext, context, buffer, mixinSource, mixinNode);
-        
+
         BuildTypesAndMethodGroups(globalContext, context, table, buffer, mixinNode);
 
         // Compositions (recursive)
@@ -222,7 +222,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             linkName += $".{compositionPath}";
         return linkName;
     }
-    
+
     // Append CompositionPath to "Link" for any non-stage variable
     // Also force-emit the missing "Link" decorations
 
@@ -505,11 +505,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
                 if (temp[index + 1].Op == Op.OpSDSLFunctionInfo &&
-                    (OpSDSLFunctionInfo)temp[index + 1] is { } functionInfo) 
+                    (OpSDSLFunctionInfo)temp[index + 1] is { } functionInfo)
                 {
                     var functionName = context.Names[function.ResultId];
                     var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
-                    
+
                     // Add symbol for each method in current type (equivalent to implicit this pointer)
                     var symbol = new Symbol(new(functionName, SymbolKind.Method), context.ReverseTypes[function.FunctionType], function.ResultId, OwnerType: currentShader.Symbol);
                     table.CurrentFrame.Add(functionName, symbol);
@@ -548,7 +548,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         var removedIds = new HashSet<int>();
                         while (temp[index].Op != Op.OpFunctionEnd)
                         {
-                            if (temp[index].Data.IdResult is {} idResult)
+                            if (temp[index].Data.IdResult is { } idResult)
                                 removedIds.Add(idResult);
                             SetOpNop(temp[index++].Data.Memory.Span);
                         }
@@ -626,17 +626,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 foreachBufferCopy.Add(i2);
             }
         }
-        
+
         // Clean OpName used by removed instructions (only for IdResult)
         var removedIds = new HashSet<int>();
         foreach (var i in foreachBuffer)
             if (i.IdResult is { } idResult)
                 removedIds.Add(idResult);
         context.RemoveNameAndDecorations(removedIds);
-        
+
         // Insert new code
         buffer.InsertRange(index, foreachBufferCopy.AsSpan());
-        
+
         // Note: mixinNode is not added to rootMixin hierarchy yet
         //       Moreover, we are the last mixin (or one of our child is)
         //       So we need (and it's safe) to call this on mixinNode rather than root node
@@ -654,13 +654,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Check bounds: we can't add before or at start of first mixin
         if (insertIndex <= rootMixin.StartInstruction)
             throw new ArgumentOutOfRangeException(nameof(insertIndex));
-        
+
         // Nothing to shift
         if (insertCount == 0)
             return;
 
         AdjustIndicesAfterAppendInstructionsInner(rootMixin, insertIndex, insertCount);
-        
+
         static void AdjustIndicesAfterAppendInstructionsInner(MixinNode mixinNode, int insertIndex, int insertCount)
         {
             if (mixinNode.StartInstruction > insertIndex)
@@ -882,7 +882,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
     }
-    
+
     private void SimplifyNotSupportedConstantsInShader(SpirvContext context, SpirvBuffer temp)
     {
         foreach (var i in context)
@@ -917,7 +917,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 buffer[sourceIndex].Data.Dispose();
             }
         }
-        
+
         // Remove leftover instructions (they have been either disposed or moved so no need to dispose them)
         buffer.RemoveRange(insertIndex, buffer.Count - insertIndex, false);
     }
@@ -1023,17 +1023,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Note: we should issue a warning and make sure those are deleted as we process stuff?
         RemoveInstructionWhere(temp, i =>
         {
-            if (i.Op == Op.OpName && (OpName)i is {} nameInstruction)
+            if (i.Op == Op.OpName && (OpName)i is { } nameInstruction)
             {
                 if (!ids.Contains(nameInstruction.Target))
                     return true;
             }
-            if (i.Op == Op.OpDecorate && (OpDecorate)i is {} decorate)
+            if (i.Op == Op.OpDecorate && (OpDecorate)i is { } decorate)
             {
                 if (!ids.Contains(decorate.Target))
                     return true;
             }
-            if (i.Op == Op.OpDecorate && (OpDecorateString)i is {} decorateString)
+            if (i.Op == Op.OpDecorate && (OpDecorateString)i is { } decorateString)
             {
                 if (!ids.Contains(decorateString.Target))
                     return true;
@@ -1074,11 +1074,11 @@ public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShader
     public IShaderCache Cache => inner.Cache;
 
     public HashSourceCollection Sources { get; } = new();
-    
+
     public bool Exists(string name) => inner.Exists(name);
-    
+
     public bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash)
-        =>  inner.LoadExternalFileContent(name, out filename, out code, out hash);
+        => inner.LoadExternalFileContent(name, out filename, out code, out hash);
 
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
     {

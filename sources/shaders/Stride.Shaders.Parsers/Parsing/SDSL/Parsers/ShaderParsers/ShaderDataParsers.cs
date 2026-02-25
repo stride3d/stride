@@ -31,7 +31,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
                 if (!Parsers.FollowedByDel(ref scanner, result, LiteralsParser.Identifier, out semantic, withSpaces: true, advance: true))
                     return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
             }
-            
+
             if (Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true))
             {
                 parsed = new(typeName, identifier, value, scanner[position..scanner.Position])

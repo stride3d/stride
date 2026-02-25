@@ -28,7 +28,7 @@ public partial class SpirvContext
         RemoveType(typeId);
         return typeId;
     }
-    
+
     public void RemoveType(int typeId)
     {
         foreach (var i in Buffer)
@@ -102,11 +102,11 @@ public partial class SpirvContext
     private int RegisterStructuredBufferType(StructuredBufferType structuredBufferType)
     {
         var runtimeArrayType = Buffer.Add(new OpTypeRuntimeArray(Bound++, GetOrRegister(structuredBufferType.BaseType))).ResultId;
-        
+
         var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).ResultId;
         AddName(bufferType, $"type.{(structuredBufferType.WriteAllowed ? "RW" : "")}StructuredBuffer.{structuredBufferType.BaseType.ToId()}");
         Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.Offset, [0]));
-        
+
         // TODO: Add array stride and offsets
         Buffer.Add(new OpDecorate(bufferType, Specification.Decoration.Block, []));
 

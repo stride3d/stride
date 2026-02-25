@@ -322,7 +322,7 @@ public class TypeDuplicateHelper
     public void RemoveDuplicates()
     {
         var buffer = context.GetBuffer();
-        
+
         // Note: We process instruction by types depending on their dependencies
         // i.e. a OpTypeFloat being unified means a OpTypeVector depending on it might too
 
@@ -360,7 +360,7 @@ public class TypeDuplicateHelper
 
     private static void ProcessSortedInstructions(SpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, int start, int end, OperationComparer comparer)
     {
-        for (var firstIndex = start; firstIndex < end; )
+        for (var firstIndex = start; firstIndex < end;)
         {
             var i = buffer[instructionsByOp[firstIndex].Index];
 

@@ -54,7 +54,7 @@ public partial class ShaderMixer
             SpirvBuilder.AlignmentRules.StructuredBuffer => elementSize,
         };
         context.Add(new OpDecorate(typeId, Specification.Decoration.ArrayStride, [arrayStride]));
-        
+
         decoratedArrays[typeId] = (alignmentRules, arrayStride);
     }
 

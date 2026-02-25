@@ -25,7 +25,7 @@ public class ShaderWriter : NodeWalker
     ///   The indent level.
     /// </value>
     private int IndentLevel { get; set; }
-    
+
     /// <summary>
     ///   Gets or sets a value indicating whether [new line].
     /// </summary>
@@ -41,18 +41,18 @@ public class ShaderWriter : NodeWalker
     ///   The string builder.
     /// </value>
     private StringBuilder StringBuilder { get; set; } = new();
-    
+
     private void PrefixIndent()
     {
         if (NewLine)
         {
-            for (int i = 0; i < IndentLevel; ++i) 
+            for (int i = 0; i < IndentLevel; ++i)
                 Append("    ");
 
             NewLine = false;
         }
     }
-    
+
     /// <summary>
     ///   Gets the text.
     /// </summary>
@@ -81,7 +81,7 @@ public class ShaderWriter : NodeWalker
         IndentLevel--;
         return this;
     }
-    
+
     /// <summary>
     /// Appends the specified text.
     /// </summary>
@@ -96,7 +96,7 @@ public class ShaderWriter : NodeWalker
         StringBuilder.Append(text);
         return this;
     }
-    
+
     /// <summary>
     /// Closes the brace.
     /// </summary>
@@ -128,7 +128,7 @@ public class ShaderWriter : NodeWalker
         Indent();
         return this;
     }
-    
+
     /// <summary>
     /// Writes the line.
     /// </summary>
@@ -167,7 +167,7 @@ public class ShaderWriter : NodeWalker
 
         return this;
     }
-    
+
     /// <summary>
     /// Writes the space.
     /// </summary>
@@ -179,7 +179,7 @@ public class ShaderWriter : NodeWalker
         Append(" ");
         return this;
     }
-    
+
     /// <summary>
     /// Writes the specified text.
     /// </summary>
@@ -195,7 +195,7 @@ public class ShaderWriter : NodeWalker
         Append(text);
         return this;
     }
-    
+
     /// <summary>
     /// Writes the content of the statement.
     /// </summary>
@@ -215,7 +215,7 @@ public class ShaderWriter : NodeWalker
             Outdent();
         }
     }
-    
+
     public override void VisitIdentifier(Identifier identifier)
     {
         Write(identifier.Name);
@@ -447,7 +447,7 @@ public class ShaderWriter : NodeWalker
                 if (i < shaderClass.Mixins.Count - 1) Write(",").WriteSpace();
             }
         }
-        
+
         WriteLine();
         OpenBrace();
         foreach (var element in shaderClass.Elements)
@@ -473,7 +473,7 @@ public class ShaderWriter : NodeWalker
         if (shaderMember.IsStaged) Write("stage").WriteSpace();
         if (shaderMember.StreamKind != StreamKind.None) Write(shaderMember.StreamKind.ToString().ToLowerInvariant()).WriteSpace();
         if (shaderMember.StorageClass != StorageClass.None) Write(shaderMember.StorageClass.ToString().ToLowerInvariant()).WriteSpace();
-        
+
         VisitNode(shaderMember.TypeName);
         WriteSpace();
         VisitNode(shaderMember.Name);
@@ -504,7 +504,7 @@ public class ShaderWriter : NodeWalker
             if (i < shaderMethod.Parameters.Count - 1) Write(",").WriteSpace();
         }
         Write(")");
-        
+
         if (shaderMethod.Body != null)
         {
             WriteLine();
@@ -616,7 +616,7 @@ public class ShaderWriter : NodeWalker
         WriteLine(")");
         WriteStatementContent(@if.Body);
     }
-    
+
     public override void VisitElseIf(ElseIf elseIf)
     {
         Write("else if").WriteSpace().Write("(");
@@ -624,7 +624,7 @@ public class ShaderWriter : NodeWalker
         WriteLine(")");
         WriteStatementContent(elseIf.Body);
     }
-    
+
     public override void VisitElse(Else @else)
     {
         WriteLine("else");
@@ -635,7 +635,7 @@ public class ShaderWriter : NodeWalker
     {
         //throw new NotImplementedException($"No shader text writer for {node.GetType().Name}");
     }
-    
+
     protected ShaderWriter WriteLinkLine(Node node)
     {
         return this;

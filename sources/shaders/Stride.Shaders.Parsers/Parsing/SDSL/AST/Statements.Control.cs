@@ -17,7 +17,7 @@ public partial class ConditionalFlow(If first, TextLocation info) : Flow(info)
     public List<ElseIf> ElseIfs { get; set; } = [];
     public Else? Else { get; set; }
     public ShaderAttributeList? Attributes { get; set; }
-    
+
     public override void ProcessSymbol(SymbolTable table)
     {
         If.ProcessSymbol(table);

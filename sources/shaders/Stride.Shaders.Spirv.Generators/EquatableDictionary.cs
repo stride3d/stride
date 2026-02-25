@@ -16,13 +16,13 @@ public class EquatableDictionaryJsonConverter<TKey, TValue> : JsonConverter<Equa
     where TKey : IEquatable<TKey>
     where TValue : IEquatable<TValue>
 {
-    public override EquatableDictionary<TKey,TValue> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override EquatableDictionary<TKey, TValue> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var dict = JsonSerializer.Deserialize<Dictionary<TKey,TValue>>(ref reader, options) ?? [];
+        var dict = JsonSerializer.Deserialize<Dictionary<TKey, TValue>>(ref reader, options) ?? [];
         return new EquatableDictionary<TKey, TValue>(dict);
     }
 
-    public override void Write(Utf8JsonWriter writer, EquatableDictionary<TKey,TValue> value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, EquatableDictionary<TKey, TValue> value, JsonSerializerOptions options)
     {
         JsonSerializer.Serialize(value.AsDictionary(), options);
     }
@@ -43,7 +43,7 @@ public readonly struct EquatableDictionary<TKey, TValue>(Dictionary<TKey, TValue
     /// <summary>
     /// The underlying <typeparamref name="T"/> array.
     /// </summary>
-    private readonly Dictionary<TKey,TValue>? _dict = dict;
+    private readonly Dictionary<TKey, TValue>? _dict = dict;
 
     /// <summary>
     /// Gets the length of the array, or 0 if the array is null
@@ -88,7 +88,7 @@ public readonly struct EquatableDictionary<TKey, TValue>(Dictionary<TKey, TValue
     /// <inheritdoc/>
     public override int GetHashCode()
     {
-        if (_dict is not Dictionary<TKey,TValue> dict)
+        if (_dict is not Dictionary<TKey, TValue> dict)
         {
             return 0;
         }
@@ -122,5 +122,5 @@ public readonly struct EquatableDictionary<TKey, TValue>(Dictionary<TKey, TValue
         return GetEnumerator();
     }
 
-    public static implicit operator EquatableDictionary<TKey,TValue>(Dictionary<TKey,TValue> dict) => new(dict);
+    public static implicit operator EquatableDictionary<TKey, TValue>(Dictionary<TKey, TValue> dict) => new(dict);
 }

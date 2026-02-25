@@ -91,7 +91,7 @@ public partial class IntegerLiteral(Suffix suffix, long value, TextLocation info
         {
             return compiler.Context.CompileConstantLiteral(new FloatLiteral(new(32, true, true), value, null, info));
         }
- 
+
         return compiler.Context.CompileConstantLiteral(this);
     }
 }
@@ -100,7 +100,7 @@ public sealed partial class FloatLiteral(Suffix suffix, double value, int? expon
 {
     public int? Exponent { get; set; } = exponent;
     public static implicit operator FloatLiteral(double v) => new(new(), v, null, new());
-    
+
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         Type = SpirvContext.ComputeLiteralType(this);
@@ -122,7 +122,7 @@ public partial class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(
 {
     public bool Value { get; set; } = value;
     public override SymbolType? Type => ScalarType.Boolean;
-    
+
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         Type = ScalarType.Boolean;
@@ -140,7 +140,7 @@ public partial class ExpressionLiteral(Expression value, TypeName typeName, Text
 {
     public Expression Value { get; set; } = value;
     public TypeName TypeName { get; set; } = typeName;
-    
+
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         TypeName.ProcessSymbol(table);
@@ -192,7 +192,7 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
             // i.e. float3(float, float, float) is OK but float3(float, float2) is not as we don't know which element will be which before compiling them (we would need 2-pass compilation for that)
             var value = Values[i].CompileAsValue(table, compiler, expectedElementType);
             var valueType = Values[i].ValueType;
-            
+
             // We expand elements, because float4 can be created from (float, float2, float), or (float2x2)
             if (Type is ScalarType or VectorType or MatrixType)
             {
@@ -303,10 +303,10 @@ public partial class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
     {
         Type = expectedType;
         var expectedElementType = (expectedType as ArrayType)?.BaseType;
-        
+
         foreach (var value in Values)
             value.ProcessSymbol(table, expectedElementType);
-        
+
         if (Type == null && Values.Count > 0)
             Type = new ArrayType(Values[0].ValueType, Values.Count);
 
@@ -343,7 +343,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
     {
         if (symbol.IdRef == 0)
             throw new InvalidOperationException($"Symbol {symbol} has not been imported or created properly");
-        
+
         var resultType = context.GetOrRegister(symbol.Type);
         var result = new SpirvValue(symbol.IdRef, resultType, symbol.Id.Name);
 
@@ -358,7 +358,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
             result.Id = instance.Value;
             return result;
         }
-        
+
         if (symbol.ExternalConstant is { } externalConstant)
         {
             if (externalConstant.SourceContext != context)
@@ -423,7 +423,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
 public partial class Identifier(string name, TextLocation info) : IdentifierBase(name, info)
 {
     internal bool AllowStreamVariables { get; set; }
-    
+
     public static implicit operator string(Identifier identifier) => identifier.Name;
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
@@ -468,7 +468,7 @@ public partial class Identifier(string name, TextLocation info) : IdentifierBase
             var result = builder.Insert(new OpStreamsSDSL(context.Bound++));
             return new(result.ResultId, context.GetOrRegister(new PointerType(new StreamsType(Specification.StreamsKindSDSL.Streams), Specification.StorageClass.Private)));
         }
-        
+
         return base.CompileSymbol(table, builder, context, constantOnly);
     }
 
@@ -565,7 +565,7 @@ public partial class GenericIdentifier(Identifier name, ShaderExpressionList? ge
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         var context = table.Context;
-        
+
         var symbol = ResolveExternalShader(table, context, info, Name, Generics);
 
         if (symbol != null)
@@ -582,7 +582,7 @@ public partial class GenericIdentifier(Identifier name, ShaderExpressionList? ge
             var type = new ExternalType(name, generics);
             return new Symbol(new(name, SymbolKind.ExternalType), type, 0);
         }
-        
+
         // GenericIdentifier is same as Identifier static variable case, except we have generics (which is why GenericIdentifier was chosen over Identifier)
         var compiledGenerics = SDFX.AST.ShaderEffect.CompileGenerics(table, context, generics);
         var classSource = new ShaderClassInstantiation(name, compiledGenerics);
@@ -593,7 +593,7 @@ public partial class GenericIdentifier(Identifier name, ShaderExpressionList? ge
                 table.AddError(new(info, string.Format(SDSLErrorMessages.SDSL0110, name)));
                 return null;
             }
-            
+
             if (!table.ShaderLoader.Exists(classSource.ClassName))
                 throw new InvalidOperationException($"Symbol [{classSource.ClassName}] could not be found.");
 
@@ -624,7 +624,7 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
     public bool IsArray => ArraySize != null && ArraySize.Count > 0;
     public List<Expression>? ArraySize { get; set; }
     public List<Literal> Generics { get; set; } = [];
-    
+
     public bool TryResolveType(SymbolTable table, SpirvContext context, [MaybeNullWhen(false)] out SymbolType symbolType)
     {
         if (Name == "LinkType")
@@ -769,7 +769,7 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
 
         Type = ResolveType(table, table.Context);
     }
-    
+
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler) => throw new NotImplementedException();
 
     public override string ToString() => GenerateTypeName(includeGenerics: true, includeArray: true);

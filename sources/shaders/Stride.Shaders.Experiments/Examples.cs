@@ -221,10 +221,10 @@ public static partial class Examples
         public override bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash)
         {
             filename = $"{basePath}/{name}.sdsl";
-            
+
             var fileData = File.ReadAllBytes(filename);
             hash = ObjectId.FromBytes(fileData);
-            
+
             // Note: we can't use Encoding.UTF8.GetString directly because there might be the UTF8 BOM at the beginning of the file
             using var reader = new StreamReader(new MemoryStream(fileData), Encoding.UTF8);
             code = reader.ReadToEnd();

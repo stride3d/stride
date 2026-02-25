@@ -57,7 +57,7 @@ namespace Stride.Shaders
 
             return result.ToString();
         }
-        
+
         public override string ToString()
         {
             return ToClassName();

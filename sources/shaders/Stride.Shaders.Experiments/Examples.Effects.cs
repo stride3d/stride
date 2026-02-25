@@ -29,7 +29,7 @@ public static partial class Examples
         var effectGenerator = new EffectCodeWriter();
         effectGenerator.Run(parsed.AST);
         var code = effectGenerator.Text;
-        
+
         Console.WriteLine(code);
     }
 
@@ -47,10 +47,10 @@ public static partial class Examples
 
             var fileData = File.ReadAllBytes(filename);
             hash = ObjectId.FromBytes(fileData);
-    
+
             using var reader = new StreamReader(new MemoryStream(fileData), Encoding.UTF8);
             code = reader.ReadToEnd();
-            
+
             return true;
         }
     }

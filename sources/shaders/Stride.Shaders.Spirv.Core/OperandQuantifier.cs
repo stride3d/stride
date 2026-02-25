@@ -1,6 +1,6 @@
 namespace Stride.Shaders.Spirv.Core;
 
-public enum OperandQuantifier 
+public enum OperandQuantifier
 {
     One,
     ZeroOrOne,

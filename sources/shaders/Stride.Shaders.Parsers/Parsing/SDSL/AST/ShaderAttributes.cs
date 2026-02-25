@@ -19,7 +19,7 @@ public partial class AnyShaderAttribute(Identifier name, TextLocation info, List
         return Parameters switch
         {
             null => Name.Name,
-            _ => $"{Name}({string.Join(", ",Parameters.Select(x => x.ToString()))})"
+            _ => $"{Name}({string.Join(", ", Parameters.Select(x => x.ToString()))})"
         };
     }
 }

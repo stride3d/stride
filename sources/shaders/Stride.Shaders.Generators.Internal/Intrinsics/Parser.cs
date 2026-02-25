@@ -262,7 +262,7 @@ internal static class ParsersExtensions
         if (scanner.Match("<", true))
         {
             scanner.MatchWhiteSpace(advance: true);
-            if(scanner.Match(">", true))
+            if (scanner.Match(">", true))
             {
                 layout = new Layout("any", "any", new TextLocation(scanner.Code, position..scanner.Position));
                 return true;
@@ -351,7 +351,7 @@ internal static class ParsersExtensions
     {
         var position = scanner.Position;
         parameter = new(null, null!, null!, new());
-        if(scanner.Match("...", true))
+        if (scanner.Match("...", true))
         {
             parameter = parameter with { Name = new Identifier("...", new TextLocation(scanner.Code, position..scanner.Position)), Location = new TextLocation(scanner.Code, position..scanner.Position) };
             return scanner.Success();
@@ -469,20 +469,20 @@ internal static class IntrinParser
 
     internal static bool ProcessAndParse(string code, out EquatableList<NamespaceDeclaration> result)
         => Parse(PreProcess(code), out result);
-    
+
     internal static string PreProcess(string code)
         => string.Join("\n", code.Split('\n').Where(line => !line.TrimStart().StartsWith("//")));
     internal static bool Parse(string code, out EquatableList<NamespaceDeclaration> result)
     {
         var scanner = new Scanner(code);
-        if(scanner.IntrinsicFile(out var ns))
+        if (scanner.IntrinsicFile(out var ns))
         {
-            foreach(var n in ns)
+            foreach (var n in ns)
             {
-                for(int i = 0; i < n.Intrinsics.Items.Count; i++)
+                for (int i = 0; i < n.Intrinsics.Items.Count; i++)
                 {
                     var intrinsic = n.Intrinsics.Items[i];
-                    if(intrinsic.ReturnType is { Typename.Name: "$to_resolve" })
+                    if (intrinsic.ReturnType is { Typename.Name: "$to_resolve" })
                     {
                         var name = intrinsic.Parameters.Items[intrinsic.ReturnType.Match is TypeMatch tm ? tm.Index - 1 : throw new InvalidOperationException()].TypeInfo.Typename.Name;
                         intrinsic = intrinsic with
@@ -493,10 +493,10 @@ internal static class IntrinParser
                             }
                         };
                     }
-                    for(int j = 0; j < intrinsic.Parameters.Items.Count; j++)
+                    for (int j = 0; j < intrinsic.Parameters.Items.Count; j++)
                     {
                         var parameter = intrinsic.Parameters.Items[j];
-                        if(parameter is not null && parameter.TypeInfo is { Typename.Name: "$to_resolve", Match: TypeMatch {Index : >= 0} tm})
+                        if (parameter is not null && parameter.TypeInfo is { Typename.Name: "$to_resolve", Match: TypeMatch { Index: >= 0 } tm })
                         {
                             var name = tm switch
                             {
@@ -510,13 +510,13 @@ internal static class IntrinParser
                             };
                         }
                     }
-                    
+
                     n.Intrinsics.Items[i] = intrinsic;
-                    
+
                 }
             }
         }
-        
+
         if (!scanner.EOF)
         {
             result = [];

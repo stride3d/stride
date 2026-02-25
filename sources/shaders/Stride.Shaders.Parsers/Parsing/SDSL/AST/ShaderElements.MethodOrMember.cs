@@ -36,7 +36,7 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
 {
     public Identifier Name { get; set; } = name;
     public List<SamplerStateParameter> Parameters { get; set; } = [];
-    
+
     public Symbol Symbol { get; private set; }
 
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
@@ -44,7 +44,7 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
         base.ProcessSymbol(table, context);
         Type = new PointerType(new SamplerType(), Specification.StorageClass.UniformConstant);
         table.DeclaredTypes.TryAdd(Type.ToString(), Type);
-        
+
         var sid = new SymbolID(Name, SymbolKind.SamplerState);
         Symbol = new Symbol(sid, Type, 0, OwnerType: table.CurrentShader);
         table.CurrentShader.Variables.Add((Symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
@@ -56,7 +56,7 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
         var registeredType = context.GetOrRegister(Type);
         if (table.RootSymbols.TryGetValue(Name, out _))
             throw new Exception($"SamplerState {Name} already defined");
-        
+
         var variableId = context.Bound++;
 
         // We store SamplerState as decoration for later processing during ShaderMixer.ProcessReflection()
@@ -128,7 +128,7 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
         var variable = builder.Insert(new OpVariableSDSL(registeredType, variableId, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
         context.AddName(variable.ResultId, Name);
         Symbol.IdRef = variableId;
-        
+
         RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
     }
 
@@ -206,14 +206,14 @@ public sealed partial class ShaderMember(
             (_, StorageClass.GroupShared, _) => Specification.StorageClass.Workgroup,
             (_, StorageClass.Static, _) => Specification.StorageClass.Private,
             (_, _, StreamKind.Stream or StreamKind.PatchStream) => Specification.StorageClass.Private,
-            _ => Specification.StorageClass.Uniform, 
+            _ => Specification.StorageClass.Uniform,
         };
-        
+
         if (TypeModifier == TypeModifier.Const)
         {
             if (Value == null)
                 throw new InvalidOperationException($"Constant {Name} doesn't have a value");
-            
+
             // Constant: compile right away
             var constantValue = Value.CompileConstantValue(table, context, memberType);
             context.SetName(constantValue.Id, Name);
@@ -229,7 +229,7 @@ public sealed partial class ShaderMember(
             Type = new PointerType(memberType, storageClass);
             table.DeclaredTypes.TryAdd(Type.ToString(), Type);
         }
-        
+
         var sid =
             new SymbolID
             (
@@ -285,12 +285,12 @@ public sealed partial class ShaderMember(
         if (Semantic != null)
             context.Add(new OpDecorateString(variable, Specification.Decoration.UserSemantic, Semantic.Name));
         context.AddName(variable, Name);
-        
+
         Symbol.IdRef = variable;
 
         if (StreamKind == StreamKind.PatchStream)
             context.Add(new OpDecorate(variable, Specification.Decoration.Patch, []));
-        
+
         if (pointerType.BaseType is StructuredBufferType)
             context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, $"structuredbuffer:<{pointerType.BaseType.ToId().ToLowerInvariant()}>"));
 
@@ -362,10 +362,10 @@ public partial class ShaderMethod(
     public List<MethodParameter> Parameters { get; set; } = [];
 
     public BlockStatement? Body { get; set; }
-    
+
     public SymbolFrame SymbolFrame { get; private set; }
     public List<Symbol> ParameterSymbols { get; private set; } = new();
-    
+
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         ReturnTypeName.ProcessSymbol(table);
@@ -381,7 +381,7 @@ public partial class ShaderMethod(
             functionFlags |= Specification.FunctionFlagsMask.Virtual;
         if (IsStaged)
             functionFlags |= Specification.FunctionFlagsMask.Stage;
-        
+
         table.Push();
         ParameterSymbols.Clear();
         foreach (var p in Parameters)
@@ -396,7 +396,7 @@ public partial class ShaderMethod(
             table.CurrentFrame.Add(p.Name, parameterSymbol);
             ParameterSymbols.Add(parameterSymbol);
         }
-        
+
         Span<int> defaultParameters = stackalloc int[Parameters.Count];
         var firstDefaultParameter = -1;
         for (var index = 0; index < Parameters.Count; index++)
@@ -410,7 +410,7 @@ public partial class ShaderMethod(
                     firstDefaultParameter = index;
                 defaultParameters[index] = arg.DefaultValue.CompileConstantValue(table, context, arg.Type).Id;
             }
-            
+
             if (arg.Semantic != null)
             {
                 // We use OpMemberDecorateString on the function ID
@@ -430,10 +430,10 @@ public partial class ShaderMethod(
                 MethodDefaultParameters = new(context, defaultParameters.Slice(firstDefaultParameter).ToArray()),
             };
         }
-        
+
         Type = ftype;
         table.DeclaredTypes.TryAdd(Type.ToString(), Type);
-        
+
         SymbolFrame = table.Pop();
         table.CurrentShader.Methods.Add((symbol, functionFlags));
     }
@@ -444,7 +444,7 @@ public partial class ShaderMethod(
         Body?.ProcessSymbol(table);
         table.Pop();
     }
-    
+
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler, bool hasUnresolvableGenerics)
     {
         var (builder, context) = compiler;

@@ -30,7 +30,7 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         {
 
 
-            if(AnySamplers(ref scanner, result, out var sampler))
+            if (AnySamplers(ref scanner, result, out var sampler))
             {
                 parsed = sampler;
                 return true;
@@ -77,7 +77,7 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
             parsed = samplerCompState;
             return true;
         }
-        else return Parsers.Exit(ref scanner,  result, out parsed, position);
+        else return Parsers.Exit(ref scanner, result, out parsed, position);
     }
     public static bool SamplerState<TScanner>(ref TScanner scanner, ParseResult result, out ShaderSamplerState parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner

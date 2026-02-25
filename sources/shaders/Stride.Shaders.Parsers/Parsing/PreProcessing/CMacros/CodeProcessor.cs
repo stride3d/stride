@@ -9,7 +9,7 @@ public class SDSLPreProcessor() : IDisposable
     public void Run() =>
         Apply<CommentPhase>();
 
-    public SDSLPreProcessor Apply<TPhase>() 
+    public SDSLPreProcessor Apply<TPhase>()
         where TPhase : struct, IPreProcessorPhase
         => new TPhase().Apply(this);
 

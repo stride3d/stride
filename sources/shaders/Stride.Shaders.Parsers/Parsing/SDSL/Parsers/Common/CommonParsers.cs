@@ -35,24 +35,24 @@ public static class Parsers
 
 
 
-    public static bool Alternatives<TScanner,TResult>(ref TScanner scanner, ParseResult result, out TResult parsed, in ParseError? orError = null, params ReadOnlySpan<ParserDelegate<TScanner,TResult>> parsers)
+    public static bool Alternatives<TScanner, TResult>(ref TScanner scanner, ParseResult result, out TResult parsed, in ParseError? orError = null, params ReadOnlySpan<ParserDelegate<TScanner, TResult>> parsers)
         where TScanner : struct, IScanner
         where TResult : Node
     {
         var position = scanner.Position;
-        foreach(var p in parsers)
-            if(p.Invoke(ref scanner, result, out parsed))
+        foreach (var p in parsers)
+            if (p.Invoke(ref scanner, result, out parsed))
                 return true;
         return Exit(ref scanner, result, out parsed, position, orError);
     }
-    public static bool Sequences<TScanner,TResult>(ref TScanner scanner, ParseResult result, out List<TResult> parsed, in ParseError? orError = null, bool withSPaces = false, string? separator = null, params ReadOnlySpan<ParserDelegate<TScanner,TResult>> parsers)
+    public static bool Sequences<TScanner, TResult>(ref TScanner scanner, ParseResult result, out List<TResult> parsed, in ParseError? orError = null, bool withSPaces = false, string? separator = null, params ReadOnlySpan<ParserDelegate<TScanner, TResult>> parsers)
         where TScanner : struct, IScanner
         where TResult : Node
     {
         parsed = [];
         var position = scanner.Position;
-        foreach(var p in parsers)
-            if(p.Invoke(ref scanner, result, out var r))
+        foreach (var p in parsers)
+            if (p.Invoke(ref scanner, result, out var r))
                 parsed.Add(r);
             else
                 return Exit(ref scanner, result, out parsed, position, orError);
@@ -90,31 +90,31 @@ public static class Parsers
         while (
             Tokens.AnyOf(
                 [
-                    "stage", 
+                    "stage",
                     "override",
                     "clone",
                     "abstract",
                     "static"
-                ], 
-                ref scanner, 
+                ],
+                ref scanner,
                 out string match,
-                advance: true) 
+                advance: true)
             && Spaces1(ref scanner, result, out _))
         {
             matched = true;
-            if(match == "stage")
-                isStaged = true; 
-            else if(match == "override")
+            if (match == "stage")
+                isStaged = true;
+            else if (match == "override")
                 isOverride = true;
-            else if(match == "clone")
+            else if (match == "clone")
                 isClone = true;
-            else if(match == "abstract")
+            else if (match == "abstract")
                 isAbstract = true;
-            else if(match == "static")
+            else if (match == "static")
                 isStatic = true;
             else break;
         }
-        if(!advance)
+        if (!advance)
             scanner.Position = position;
         return matched;
     }
@@ -136,28 +136,28 @@ public static class Parsers
                 [
                     "stage",
                     "compose",
-                    "stream", 
-                    "patchstream", 
-                    "linear", 
-                    "centroid", 
-                    "nointerpolation", 
-                    "noperspective", 
+                    "stream",
+                    "patchstream",
+                    "linear",
+                    "centroid",
+                    "nointerpolation",
+                    "noperspective",
                     "sample",
-                    "extern", 
-                    "nointerpolation", 
-                    "precise", 
-                    "shared", 
-                    "groupshared", 
-                    "static", 
-                    "uniform", 
+                    "extern",
+                    "nointerpolation",
+                    "precise",
+                    "shared",
+                    "groupshared",
+                    "static",
+                    "uniform",
                     "volatile",
                     "const",
                     "rowmajor",
                     "columnmajor"
-                ], 
-                ref scanner, 
+                ],
+                ref scanner,
                 out string match,
-                advance: true) 
+                advance: true)
             && Spaces1(ref scanner, result, out _))
         {
             matched = true;
@@ -203,7 +203,7 @@ public static class Parsers
                 typeModifier = TypeModifier.ColumnMajor;
             else break;
         }
-        if(!advance)
+        if (!advance)
             scanner.Position = position;
         return matched;
     }

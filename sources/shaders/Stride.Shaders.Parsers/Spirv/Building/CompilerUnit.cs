@@ -47,7 +47,7 @@ public class CompilerUnit
     public ShaderBuffers ToShaderBuffers()
     {
         Context.Sort();
-        return new(Context,  Builder.GetBuffer());
+        return new(Context, Builder.GetBuffer());
     }
     // public override string ToString()
     // {

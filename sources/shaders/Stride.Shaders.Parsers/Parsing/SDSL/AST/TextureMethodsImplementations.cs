@@ -39,7 +39,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
     {
         if (clamp != null || status != null)
             throw new NotImplementedException();
-        
+
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
 
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
@@ -76,8 +76,8 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
 
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
-                    
-        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams); 
+
+        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams);
         var sample = builder.Insert(new OpImageSampleDrefImplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
@@ -92,13 +92,13 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
 
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
-                    
-        TextureGenerateImageOperands(context.CompileConstant(0.0f), o, null, out var imask, out var imParams); 
+
+        TextureGenerateImageOperands(context.CompileConstant(0.0f), o, null, out var imask, out var imParams);
         var sample = builder.Insert(new OpImageSampleDrefExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
     }
-    
+
     private void TextureGenerateImageOperands(SpirvValue? lod, SpirvValue? offset, SpirvValue? sampleIndex, out ImageOperandsMask imask, out EnumerantParameters imParams)
     {
         imask = ImageOperandsMask.None;

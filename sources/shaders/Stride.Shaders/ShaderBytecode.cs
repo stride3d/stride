@@ -61,7 +61,7 @@ public partial class ShaderBytecode
     /// <returns>A shallow copy of the current instance.</returns>
     public ShaderBytecode Clone()
     {
-        return (ShaderBytecode) MemberwiseClone();
+        return (ShaderBytecode)MemberwiseClone();
     }
 
     /// <summary>

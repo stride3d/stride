@@ -15,7 +15,7 @@ public partial class EffectParameters(TypeName name, TextLocation info) : Shader
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         compiler.Builder.Insert(new OpParamsSDFX(Name.Name));
-        foreach(var parameter in Parameters)
+        foreach (var parameter in Parameters)
             parameter.Compile(table, compiler);
     }
 }
@@ -24,7 +24,7 @@ public partial class EffectParameters(TypeName name, TextLocation info) : Shader
 public partial class EffectParameter(TypeName type, Identifier identifier, TextLocation info, Expression? value = null) : Node(info)
 {
     public TypeName Type { get; set; } = type;
-    public Identifier Identifier { get; set;} = identifier;
+    public Identifier Identifier { get; set; } = identifier;
     public Expression? DefaultValue { get; set; } = value;
 
     public void Compile(SymbolTable table, CompilerUnit compiler)

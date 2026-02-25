@@ -15,14 +15,14 @@ public record struct EffectControlsParser : IParser<ConditionalFlow>
         if (If(ref scanner, result, out var ifstatement, orError) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
         {
             parsed = new(ifstatement, scanner[..]);
-            while(ElseIf(ref scanner, result, out var elseif, orError) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
+            while (ElseIf(ref scanner, result, out var elseif, orError) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
                 parsed.ElseIfs.Add(elseif);
             if (Else(ref scanner, result, out var elseStatement, orError))
                 parsed.Else = elseStatement;
             parsed.Info = scanner[position..scanner.Position];
             return true;
         }
-        else if(Tokens.Literal("else ", ref scanner))
+        else if (Tokens.Literal("else ", ref scanner))
             return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, new("Else block should be preceeded by If statement", scanner[scanner.Position], scanner.Memory));
         return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }

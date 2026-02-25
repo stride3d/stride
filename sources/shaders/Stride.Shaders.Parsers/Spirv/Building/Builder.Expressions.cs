@@ -82,7 +82,7 @@ public partial class SpirvBuilder
         else
             throw new InvalidOperationException();
     }
-    
+
     public (SpirvValue, SymbolType) ApplyMatrixSwizzles(SpirvContext context, SpirvValue value, MatrixType m, Span<(int Column, int Row)> swizzles)
     {
         Span<int> elements = stackalloc int[swizzles.Length];
@@ -94,7 +94,7 @@ public partial class SpirvBuilder
 
         var resultType = m.BaseType.GetVectorOrScalar(swizzles.Length);
         value = swizzles.Length > 1
-            ? new(InsertData(new OpCompositeConstruct(context.GetOrRegister(resultType), context.Bound++, [..elements])))
+            ? new(InsertData(new OpCompositeConstruct(context.GetOrRegister(resultType), context.Bound++, [.. elements])))
             : new(elements[0], context.GetOrRegister(resultType));
 
         return (value, resultType);
@@ -147,7 +147,7 @@ public partial class SpirvBuilder
             Operator.LogicalAND or Operator.LogicalOR => ScalarType.Boolean,
             _ => FindCommonBaseTypeForBinaryOperation(leftElementType, rightElementType),
         };
-        
+
         // Check size
         SymbolType resultType;
         switch (leftType, rightType)
@@ -174,18 +174,18 @@ public partial class SpirvBuilder
                 break;
             case (MatrixType, VectorType):
             case (VectorType, MatrixType):
-                table.AddError(new (info, SDSLErrorMessages.SDSL0107));
+                table.AddError(new(info, SDSLErrorMessages.SDSL0107));
                 return null;
             case (MatrixType l, MatrixType r):
                 resultType = new MatrixType(desiredElementType, Math.Min(l.Rows, r.Rows), Math.Min(l.Columns, r.Columns));
                 break;
             default:
-                table.AddError(new (info, string.Format(SDSLErrorMessages.SDSL0108, leftType, rightType)));
+                table.AddError(new(info, string.Format(SDSLErrorMessages.SDSL0108, leftType, rightType)));
                 return null;
         }
 
         var operandType = resultType;
-        
+
         // Comparisons and logical operators
         if (op is Operator.Greater or Operator.Lower or Operator.GreaterOrEqual or Operator.LowerOrEqual
             or Operator.NotEquals or Operator.Equals or Operator.LogicalAND or Operator.LogicalOR)
@@ -193,7 +193,7 @@ public partial class SpirvBuilder
 
         return (operandType, resultType);
     }
-    
+
     public SpirvValue BinaryOperation(SymbolTable table, SpirvContext context, SpirvValue left, Operator op, SpirvValue right, TextLocation info, string? name = null, int? desiredResultId = null)
     {
         var leftType = context.ReverseTypes[left.TypeId];
@@ -237,7 +237,7 @@ public partial class SpirvBuilder
                 structValues[i] = memberValue.Id;
             }
 
-            return Buffer.Insert(Position++, new OpCompositeConstruct(context.GetOrRegister(structType), resultId, [..structValues])).ToValue();
+            return Buffer.Insert(Position++, new OpCompositeConstruct(context.GetOrRegister(structType), resultId, [.. structValues])).ToValue();
         }
 
         // Can indirectly happen inside struct (SDSL specific)
@@ -268,7 +268,7 @@ public partial class SpirvBuilder
         }
 
         (var operandType, var resultType) = AnalyzeBinaryOperation(table, leftType, op, rightType, info) ?? throw new InvalidOperationException("Type of binary operation could not be determined");
-        
+
         // TODO: Some specific cases where one of the operands doesn't need to have exact same type as resultType (such as shift in OpShiftRightLogical, or signedness for some other operations)
         //       We'll need to review those cases
         left = Convert(context, left, operandType);
@@ -428,7 +428,7 @@ public partial class SpirvBuilder
 
         if (castType is StructType || valueType is StructType)
             throw new NotImplementedException($"Can't cast between structures (cast from {valueType} to {castType})");
-        
+
         if (castType is ArrayType a1 && valueType is ArrayType a2)
         {
             if (a1.BaseType == a2.BaseType)
@@ -450,7 +450,7 @@ public partial class SpirvBuilder
             // Note: order is Input, Streams, Output
             && targetKind > sourceKind)
             return 1;
-        
+
         // We don't support cast with object yet, filter for numeral types
         if ((castType is not ScalarType && castType is not VectorType && castType is not MatrixType)
             || (valueType is not ScalarType && valueType is not VectorType && valueType is not MatrixType))
@@ -465,36 +465,36 @@ public partial class SpirvBuilder
 
             // Promotion scalar to scalar, vector or matrix (replicate value)
             (ScalarType, VectorType or MatrixType) => 1,
-            
+
             // Truncation
             // Emit warning? (warning: implicit truncation of vector type)
             (VectorType or MatrixType, ScalarType) => 13,
             (VectorType v1, VectorType v2) when v1.Size > v2.Size => 13,
             (MatrixType m1, MatrixType m2) when m1.Rows > m2.Rows && m1.Columns > m2.Columns => 13,
-            
+
             // Note: conversions such as float2x2<=>float4 are allowed but not implemented in Convert()
             (MatrixType m1, VectorType v2) when v2.Size == m1.Rows * m1.Columns => 1,
             (VectorType v1, MatrixType m2) when v1.Size == m2.Rows * m2.Columns => 1,
-            
+
             // vector<=>matrix but size doesn't match (impossible)
             (VectorType v1, MatrixType m2) when v1.Size != m2.Rows * m2.Columns => int.MaxValue,
             (MatrixType m1, VectorType v2) when v2.Size != m1.Rows * m1.Columns => int.MaxValue,
-            
+
             // Expansion not from scalar (impossible)
             (VectorType v1, VectorType v2) when v1.Size < v2.Size => int.MaxValue,
             (MatrixType m1, MatrixType m2) when m1.Rows < m2.Rows || m1.Columns < m2.Columns => int.MaxValue,
-            
+
             _ => int.MaxValue
         };
 
         if (conversionScore == int.MaxValue)
             return int.MaxValue;
-        
+
         // Check element types now
         var scalarScore = (valueType.GetElementType(), castType.GetElementType()) switch
         {
             (ScalarType s1, ScalarType s2) when s1 == s2 => 0,
-            
+
             // https://learn.microsoft.com/en-us/windows/win32/direct3d9/casting-and-conversion
             (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Int or Scalar.UInt }) => 7,
             (ScalarType { Type: Scalar.Float or Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Boolean }) => 7,
@@ -503,7 +503,7 @@ public partial class SpirvBuilder
             // Bitcast (int=>uint or uint=>int)
             (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.UInt }) => 2,
             (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Int }) => 2,
-            
+
             _ => int.MaxValue,
         };
         if (scalarScore == int.MaxValue)
@@ -725,19 +725,19 @@ internal static class SymbolExtensions
 
     public static SymbolType GetVectorOrScalar(this ScalarType scalar, int size)
         => size == 1 ? scalar : new VectorType(scalar, size);
-    
+
     public static int GetElementCount(this SymbolType symbol) => symbol switch
-        {
-            ScalarType s => 1,
-            VectorType v => v.Size,
-            MatrixType m => m.Rows * m.Columns,
-        };
+    {
+        ScalarType s => 1,
+        VectorType v => v.Size,
+        MatrixType m => m.Rows * m.Columns,
+    };
     public static ScalarType GetElementType(this SymbolType symbol) => symbol switch
-        {
-            ScalarType s => s,
-            VectorType v => v.BaseType,
-            MatrixType m => m.BaseType,
-        };
+    {
+        ScalarType s => s,
+        VectorType v => v.BaseType,
+        MatrixType m => m.BaseType,
+    };
     public static SymbolType WithElementType(this SymbolType symbol, ScalarType elementType) => symbol switch
     {
         ScalarType s => elementType,

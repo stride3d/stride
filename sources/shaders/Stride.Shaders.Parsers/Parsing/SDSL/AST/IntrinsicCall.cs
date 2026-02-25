@@ -13,7 +13,7 @@ public class IntrinsicCallHelper
 {
     private static IntrinsicTemplateExpander? TemplateExpander { get; set; }
     private static Dictionary<SymbolType, IntrinsicTemplateExpander> ClassTemplateExpanders = new();
-    
+
     public static bool TryResolveIntrinsic(SymbolTable table, SymbolType? thisType, string name, SymbolType[] argumentValueTypes, out (IIntrinsicCompiler Compiler, string Namespace, IntrinsicTemplateExpander.IntrinsicOverload Overload) resolvedIntrinsic)
     {
         resolvedIntrinsic = default;
@@ -50,11 +50,11 @@ public class IntrinsicCallHelper
 
             BufferType { WriteAllowed: false } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.BufferMethods), IntrinsicsDefinitions.BufferMethods), BufferMethodsImplementations.Instance),
             BufferType { WriteAllowed: true } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.RWBufferMethods), IntrinsicsDefinitions.RWBufferMethods), BufferMethodsImplementations.Instance),
-            
+
             StructuredBufferType { WriteAllowed: false } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.StructuredBufferMethods), IntrinsicsDefinitions.StructuredBufferMethods), null),
             StructuredBufferType { WriteAllowed: true } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.RWStructuredBufferMethods), IntrinsicsDefinitions.RWStructuredBufferMethods), null),
         };
-        
+
         if (!templateExpander.TryGetOrGenerateIntrinsicsDefinition(name, out var overloads))
         {
             return false;
@@ -87,7 +87,7 @@ public class IntrinsicCallHelper
     public static SpirvValue CompileIntrinsic(SymbolTable table, CompilerUnit compiler, IIntrinsicCompiler intrinsicCompiler, string @namespace, string name, IntrinsicTemplateExpander.IntrinsicOverload bestOverload, SpirvValue? thisValue, Span<int> compiledParams)
     {
         var functionType = bestOverload.Type;
-        
+
         // Check if we can automatically handle matrix (SPIR-V doesn't but HLSL does allow matrix on most types)
         SpirvValue result;
         if (bestOverload.AutoMatrixLoopLocations != null)
@@ -95,7 +95,7 @@ public class IntrinsicCallHelper
             var (builder, context) = compiler;
 
             var innerFunctionType = new FunctionType(functionType.ReturnType, functionType.ParameterTypes.ToList());
-            
+
             // Extract rows
             bool isReturnUsingLoop = false;
             Span<int> vectorValues = stackalloc int[bestOverload.AutoMatrixLoopLocations.Count * bestOverload.AutoMatrixLoopSize];
@@ -105,7 +105,7 @@ public class IntrinsicCallHelper
 
                 if (location.TemplateIndex != 0)
                     throw new InvalidOperationException("Matrix loop should only be generated for HLSL row parameter");
-                
+
                 // Skip return type for now
                 if (location.SourceArgument == 0)
                 {
@@ -124,10 +124,10 @@ public class IntrinsicCallHelper
                 {
                     vectorValues[index * bestOverload.AutoMatrixLoopSize + col] = builder.Insert(new OpCompositeExtract(context.GetOrRegister(vectorType), context.Bound++, compiledParams[location.SourceArgument - 1], [col])).ResultId;
                 }
-                
-                innerFunctionType.ParameterTypes[location.SourceArgument - 1] = innerFunctionType.ParameterTypes[location.SourceArgument - 1] with { Type = vectorType }; 
+
+                innerFunctionType.ParameterTypes[location.SourceArgument - 1] = innerFunctionType.ParameterTypes[location.SourceArgument - 1] with { Type = vectorType };
             }
-            
+
             // Call core function
             Span<int> results = stackalloc int[bestOverload.AutoMatrixLoopSize];
             for (int col = 0; col < bestOverload.AutoMatrixLoopSize; col++)
@@ -139,17 +139,17 @@ public class IntrinsicCallHelper
                         continue;
                     compiledParams[location.SourceArgument - 1] = vectorValues[index * bestOverload.AutoMatrixLoopSize + col];
                 }
-                
+
                 results[col] = intrinsicCompiler.CompileIntrinsic(table, compiler, @namespace, name, innerFunctionType, thisValue, compiledParams).Id;
             }
-            
+
             // Rebuild return value
             if (isReturnUsingLoop)
             {
                 if (functionType.ReturnType is not MatrixType)
                     throw new InvalidOperationException("Return type should be a matrix");
-                
-                result = new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(functionType.ReturnType), context.Bound++, [..results])));
+
+                result = new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(functionType.ReturnType), context.Bound++, [.. results])));
             }
             else
             {

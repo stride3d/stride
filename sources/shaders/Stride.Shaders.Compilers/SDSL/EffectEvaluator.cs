@@ -162,7 +162,7 @@ namespace Stride.Shaders.Compilers.SDSL
         {
             if (!mixinTree.Compositions.TryGetValue(compositionName, out var composition))
                 mixinTree.Compositions[compositionName] = composition = compositionToAdd is ShaderArraySource ? new ShaderArraySource() : new ShaderMixinSource();
-            
+
             if (compositionToAdd is ShaderArraySource compositionArrayToAdd)
             {
                 var compositionArray = (ShaderArraySource)composition;

@@ -16,7 +16,7 @@ public interface INodeItem
 public abstract partial class Node(TextLocation info)
 {
     public TextLocation Info { get; set; } = info;
-    
+
     public abstract void Accept(NodeVisitor visitor);
 }
 

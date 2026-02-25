@@ -38,5 +38,5 @@
 //         words[0] = words.Length << 16;
 //         words[1..].Clear();
 //     }
-    
+
 // }

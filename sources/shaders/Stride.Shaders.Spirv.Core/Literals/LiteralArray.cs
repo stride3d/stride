@@ -49,7 +49,7 @@ public struct LiteralArray<T> : ISpirvElement, IFromSpirv<LiteralArray<T>>, IDis
     {
         Elements = MemoryOwner<T>.Empty;
     }
-    
+
     public LiteralArray(MemoryOwner<T> elements)
     {
         Elements = elements;

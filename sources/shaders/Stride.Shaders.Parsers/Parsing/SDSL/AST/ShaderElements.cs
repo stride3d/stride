@@ -69,7 +69,7 @@ public enum ParameterModifiers : int
     InOut = In | Out,
 
     Const = 0x10,
-    
+
     Point = 0x20,
     Line = 0x40,
     LineAdjacency = 0x80,
@@ -267,37 +267,37 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
                     switch (anyAttribute.Name)
                     {
                         case "Link":
-                        {
-                            if (anyAttribute.Parameters[0] is StringLiteral linkLiteral)
                             {
-                                // Try to resolve generic parameter when encoded as string (deprecated)
-                                if (table.TryResolveSymbol(linkLiteral.Value, out var linkLiteralSymbol))
+                                if (anyAttribute.Parameters[0] is StringLiteral linkLiteral)
                                 {
-                                    linkLiteralSymbol = LoadedShaderSymbol.ImportSymbol(table, context, linkLiteralSymbol);
-                                    // TODO: make it a warning only?
-                                    //table.AddError(new(info, "LinkType generics should be passed without quotes"));
-                                    result.LinkId = linkLiteralSymbol.IdRef;
+                                    // Try to resolve generic parameter when encoded as string (deprecated)
+                                    if (table.TryResolveSymbol(linkLiteral.Value, out var linkLiteralSymbol))
+                                    {
+                                        linkLiteralSymbol = LoadedShaderSymbol.ImportSymbol(table, context, linkLiteralSymbol);
+                                        // TODO: make it a warning only?
+                                        //table.AddError(new(info, "LinkType generics should be passed without quotes"));
+                                        result.LinkId = linkLiteralSymbol.IdRef;
+                                    }
+                                    else
+                                    {
+                                        result.LinkName = linkLiteral.Value;
+                                    }
+                                }
+                                else if (anyAttribute.Parameters[0] is Identifier identifier)
+                                {
+                                    if (!table.TryResolveSymbol(identifier.Name, out var linkSymbol))
+                                    {
+                                        throw new InvalidOperationException();
+                                    }
+                                    linkSymbol = LoadedShaderSymbol.ImportSymbol(table, context, linkSymbol);
+                                    result.LinkId = linkSymbol.IdRef;
                                 }
                                 else
                                 {
-                                    result.LinkName = linkLiteral.Value;
+                                    throw new NotImplementedException($"Attribute {attribute} is not supported");
                                 }
+                                break;
                             }
-                            else if (anyAttribute.Parameters[0] is Identifier identifier)
-                            {
-                                if (!table.TryResolveSymbol(identifier.Name, out var linkSymbol))
-                                {
-                                    throw new InvalidOperationException();
-                                }
-                                linkSymbol = LoadedShaderSymbol.ImportSymbol(table, context, linkSymbol);
-                                result.LinkId = linkSymbol.IdRef;
-                            }
-                            else
-                            {
-                                throw new NotImplementedException($"Attribute {attribute} is not supported");
-                            }
-                            break;
-                        }
                         case "Color":
                             result.Color = true;
                             break;
@@ -332,7 +332,7 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
             if (isStaged != member.IsStaged)
                 throw new InvalidOperationException($"cbuffer {Name} have a mix of stage and non-stage members");
         }
-        
+
         var constantBufferType = (ConstantBufferSymbol)Type;
 
         // We try to avoid clash in case multiple cbuffer TYPE with same name
@@ -400,7 +400,7 @@ public sealed partial class RGroup(string name, TextLocation info) : ShaderBuffe
                 BufferType => (Specification.StorageClass.UniformConstant, SymbolKind.TBuffer),
                 _ => throw new NotImplementedException(),
             };
-            
+
             var type = new PointerType(member.Type, storageClass);
             var sid = new SymbolID(member.Name, kind, Storage.Uniform);
             var symbol = new Symbol(sid, type, 0, OwnerType: table.CurrentShader);

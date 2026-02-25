@@ -59,10 +59,10 @@ namespace Stride.Shaders.Compilers.SDSL
             // Note: we make sure to add at a previous variable index, otherwise the OpVariableSDSL won't be inside the root MixinNode.StartInstruction/EndInstruction
             temp.FluentReplace(firstVariableIndex, new OpVariableSDSL(context.GetOrRegister(new PointerType(globalCBufferType, Specification.StorageClass.Uniform)), context.Bound++, Specification.StorageClass.Uniform, VariableFlagsMask.Stage, null), out var cbufferVariable);
             context.AddName(cbufferVariable.ResultId, "Globals");
-            
+
             // Update cbuffer links
             cbufferMemberMetadata[cbufferVariable.ResultId] = memberMetadata;
-            
+
             // Replace all accesses
             int instructionsAddedInThisMethod = 0;
             for (var index = 0; index < temp.Count; index++)
@@ -105,7 +105,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 {
                     if (variableToMemberIndices.TryGetValue(accessChain.BaseId, out var memberIndex))
                     {
-                        accessChain.Values = new([context.CompileConstant(memberIndex).Id, ..accessChain.Values.Elements.Span]);
+                        accessChain.Values = new([context.CompileConstant(memberIndex).Id, .. accessChain.Values.Elements.Span]);
                         accessChain.BaseId = cbufferVariable.ResultId;
                     }
                 }
@@ -114,21 +114,21 @@ namespace Stride.Shaders.Compilers.SDSL
             // Update entry points to include this cbuffer
             foreach (var i in context)
             {
-                if (i.Op == Op.OpEntryPoint && (OpEntryPoint)i is {} entryPoint)
+                if (i.Op == Op.OpEntryPoint && (OpEntryPoint)i is { } entryPoint)
                 {
-                    entryPoint.Values = new([..entryPoint.Values, cbufferVariable.ResultId]);
+                    entryPoint.Values = new([.. entryPoint.Values, cbufferVariable.ResultId]);
                 }
             }
-            
+
             // Remap decorations and remove OpName
             foreach (var i in context)
             {
-                if (i.Op == Op.OpDecorate && (OpDecorate)i is {} decorate)
+                if (i.Op == Op.OpDecorate && (OpDecorate)i is { } decorate)
                 {
                     if (variableToMemberIndices.TryGetValue(decorate.Target, out var memberIndex))
                         i.Buffer.Replace(i.Index, new OpMemberDecorate(globalCBufferTypeId, memberIndex, decorate.Decoration, decorate.DecorationParameters));
                 }
-                else if (i.Op == Op.OpDecorateString && (OpDecorateString)i is {} decorateString)
+                else if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { } decorateString)
                 {
                     if (variableToMemberIndices.TryGetValue(decorateString.Target, out var memberIndex))
                         i.Buffer.Replace(i.Index, new OpMemberDecorateString(globalCBufferTypeId, memberIndex, decorateString.Decoration, decorateString.Value));
@@ -214,7 +214,7 @@ namespace Stride.Shaders.Compilers.SDSL
                             foreach (var stringDecoration in decorationsForThisMember.StringDecorations)
                                 context.Add(new OpMemberDecorateString(cbufferStructId, mergedMemberIndex, stringDecoration.Key, stringDecoration.Value));
                             foreach (var decoration in decorationsForThisMember.Decorations)
-                                context.Add(new OpMemberDecorate(cbufferStructId, mergedMemberIndex, decoration.Key, [..decoration.Value.Span]));
+                                context.Add(new OpMemberDecorate(cbufferStructId, mergedMemberIndex, decoration.Key, [.. decoration.Value.Span]));
                         }
                     }
                 }
@@ -235,7 +235,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                 return links;
             }
-            
+
             var idRemapping = new Dictionary<int, int>();
             var removedIds = new HashSet<int>();
             foreach (var cbuffersEntry in cbuffersByNames)
@@ -270,7 +270,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     var mergedCbufferPtrStructId = context.GetOrRegister(mergedCbufferPtrStruct);
 
                     ProcessDecorations(cbuffersSpan, mergedCbufferStruct, true);
-                    
+
                     // Remap member ids
                     foreach (var i in buffer)
                     {
@@ -341,7 +341,7 @@ namespace Stride.Shaders.Compilers.SDSL
         EffectTypeDescription ConvertStructType(SpirvContext context, StructType s, SpirvBuilder.AlignmentRules alignmentRules)
         {
             EmitStructDecorations(context, s, alignmentRules, out int size, out var offsets);
-            
+
             var members = new EffectTypeMemberDescription[s.Members.Count];
             for (int i = 0; i < s.Members.Count; ++i)
             {
@@ -354,7 +354,7 @@ namespace Stride.Shaders.Compilers.SDSL
             }
             return new EffectTypeDescription { Class = EffectParameterClass.Struct, RowCount = 1, ColumnCount = 1, Name = s.Name, Members = members, ElementSize = size };
         }
-        
+
         EffectTypeDescription ConvertArrayType(SpirvContext context, ArrayType a, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules)
         {
             EmitArrayStrideDecorations(context, a, typeModifier, alignmentRules, out var arrayStride);
@@ -362,7 +362,7 @@ namespace Stride.Shaders.Compilers.SDSL
             var elementType = ConvertType(context, a.BaseType, typeModifier, alignmentRules);
             return elementType with { Elements = a.Size };
         }
-        
+
         EffectTypeDescription ConvertType(SpirvContext context, SymbolType symbolType, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules)
         {
             return symbolType switch
@@ -408,7 +408,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 var memberInfos = new EffectValueDescription[cb.Members.Count];
                 if (!cbufferMemberMetadata.TryGetValue(cbuffer.VariableId, out var cbufferMetadata))
                     throw new InvalidOperationException($"Could not find cbuffer member link info for {context.Names[cbuffer.VariableId]}; it should have been generated during {nameof(MergeCBuffers)}");
-                
+
                 for (var index = 0; index < cb.Members.Count; index++)
                 {
                     // Properly compute size and offset according to DirectX rules

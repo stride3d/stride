@@ -10,7 +10,7 @@ public record struct ControlsParser : IParser<ConditionalFlow>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if(ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributeList))
+        if (ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributeList))
             Parsers.Spaces0(ref scanner, result, out _);
         if (If(ref scanner, result, out var ifstatement, orError) && Parsers.Spaces0(ref scanner, result, out _))
         {
@@ -18,14 +18,14 @@ public record struct ControlsParser : IParser<ConditionalFlow>
             {
                 Attributes = attributeList
             };
-            while(ElseIf(ref scanner, result, out var elseif, orError) && Parsers.Spaces0(ref scanner, result, out _))
+            while (ElseIf(ref scanner, result, out var elseif, orError) && Parsers.Spaces0(ref scanner, result, out _))
                 parsed.ElseIfs.Add(elseif);
             if (Else(ref scanner, result, out var elseStatement, orError))
                 parsed.Else = elseStatement;
             parsed.Info = scanner[position..scanner.Position];
             return true;
         }
-        else if(Tokens.Literal("else ", ref scanner))
+        else if (Tokens.Literal("else ", ref scanner))
             return Parsers.Exit(ref scanner, result, out parsed, position, new("Else block should be preceeded by If statement", scanner[scanner.Position], scanner.Memory));
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }

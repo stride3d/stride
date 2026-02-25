@@ -230,7 +230,7 @@ namespace Stride.Shaders.Compilers
         {
             return FindFilePath(typeName) != null;
         }
-        
+
         public string FindFilePath(string type)
         {
             lock (locker)

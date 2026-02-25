@@ -7,7 +7,7 @@ namespace Stride.Shaders.Generators.Intrinsics;
 
 //   <type> \[\[[attr]\]\] <name>([<qual> <type> <name> [, ... ]]) [ : <op>]
 
-internal abstract record Node([property:JsonIgnore]TextLocation Location);
+internal abstract record Node([property: JsonIgnore] TextLocation Location);
 
 internal record Identifier(string Name, TextLocation Location) : Node(Location)
 {
@@ -31,7 +31,7 @@ internal record Typename(string Name, Layout? Size, TextLocation Location) : Nod
 // internal record NumericType(Layout Size, TextLocation Location) : Typename("numeric", Size, Location);
 
 internal record Matching(int LayoutIndex, int BaseTypeIndex, TextLocation Location) : Node(Location);
-internal record ClassTMatch(TextLocation Location) : Matching(-1, 0,Location);
+internal record ClassTMatch(TextLocation Location) : Matching(-1, 0, Location);
 internal record FuncMatch(TextLocation Location) : Matching(-3, 0, Location);
 internal record Func2Match(TextLocation Location) : Matching(-3, 0, Location);
 internal record TypeMatch(int Index, TextLocation Location) : Matching(Index, Index, Location);
@@ -50,7 +50,7 @@ internal record NamespaceDeclaration(Identifier Name, EquatableList<IntrinsicDec
 
 static class EquatableListBuilder
 {
-    public static EquatableList<T> Create<T>(ReadOnlySpan<T> items) => new([..items]);
+    public static EquatableList<T> Create<T>(ReadOnlySpan<T> items) => new([.. items]);
 }
 
 [CollectionBuilder(typeof(EquatableListBuilder), "Create")]

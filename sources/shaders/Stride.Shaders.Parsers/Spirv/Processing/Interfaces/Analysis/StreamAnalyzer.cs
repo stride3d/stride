@@ -64,7 +64,7 @@ internal static class StreamAnalyzer
                     semanticTable[t] = m;
                 }
             }
-            
+
             // Patch
             if (i.Op == Op.OpDecorate && (OpDecorate)i is { Target: int t3, Decoration: Decoration.Patch })
             {
@@ -153,7 +153,7 @@ internal static class StreamAnalyzer
         // Process ResourceGroup and LogicalGroup decorations
         foreach (var i in context)
         {
-            if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: Decoration.ResourceGroupSDSL, Value: string m2  } resourceGroupDecorate)
+            if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { Decoration: Decoration.ResourceGroupSDSL, Value: string m2 } resourceGroupDecorate)
             {
                 if (resources.TryGetValue(resourceGroupDecorate.Target, out var resourceInfo)
                     // Note: ResourceGroup should not be null if set

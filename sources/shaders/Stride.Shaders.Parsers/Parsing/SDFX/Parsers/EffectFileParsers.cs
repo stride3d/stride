@@ -26,7 +26,7 @@ namespace Stride.Shaders.Parsing.SDFX;
 //         {
 //             do
 //             {
-                
+
 //             }
 //             while (!scanner.IsEof && !Terminals.Char(';', ref scanner) && Terminals.Char('.', ref scanner, advance: true));
 //         }

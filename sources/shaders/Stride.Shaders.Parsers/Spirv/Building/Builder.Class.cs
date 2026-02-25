@@ -284,7 +284,7 @@ public partial class SpirvBuilder
                 textValue = declaringContext.TryGetConstantValue(constantId, out var constantValue, out _, false)
                     ? constantValue.ToString()
                     : GetIdRefAsString(genericIndex);
-                
+
                 declaringContext.GenericValueCache.Add(constantId, textValue);
             }
 
@@ -367,7 +367,7 @@ public partial class SpirvBuilder
     {
         var resolvedLinks = new Dictionary<int, string>();
         var semantics = new Dictionary<string, string>();
-        
+
         var genericParameters = new List<GenericParameter>();
         for (int index = 0; index < shaderBuffers.Context.Count; ++index)
         {
@@ -447,7 +447,7 @@ public partial class SpirvBuilder
                 if (semantics.TryGetValue(m, out var newSemantic))
                     decorate.Value = newSemantic;
             }
-            else if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: Decoration.UserSemantic, Value : string m2 } decorate2)
+            else if (i.Op == Op.OpMemberDecorateString && (OpMemberDecorateString)i is { Decoration: Decoration.UserSemantic, Value: string m2 } decorate2)
             {
                 if (semantics.TryGetValue(m2, out var newSemantic))
                     decorate2.Value = newSemantic;
@@ -657,7 +657,7 @@ public partial class SpirvBuilder
             }
         }
     }
-    
+
     public static void CollectIds(OpData i, Action<int> ids)
     {
         foreach (var op in i)
@@ -737,7 +737,7 @@ public partial class SpirvBuilder
                 InstantiateGenericShader(ref shaderBuffers, classNameWithGenerics, genericResolver, shaderLoader, macros);
                 cache.RegisterShader(classNameWithGenerics, macros, shaderBuffers, hash);
             }
-            
+
             // Run in all cases (even if cached)
             genericResolver.PostProcess(classNameWithGenerics);
         }

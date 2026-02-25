@@ -109,7 +109,7 @@ namespace Stride.Shaders
         {
             return new ShaderClassSource(ClassName, GenericArguments = GenericArguments != null ? GenericArguments.ToArray() : null);
         }
-        
+
         public override string ToString()
         {
             return ToClassName();

@@ -71,7 +71,7 @@ namespace Stride.Shaders.Compiler
 
             var bytecode = new KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>(null, EffectBytecodeCacheLoadSource.JustCompiled);
             lock (bytecodes)
-            {                
+            {
                 // ------------------------------------------------------------------------------------------------------------
                 // 1) Try to load latest bytecode
                 // ------------------------------------------------------------------------------------------------------------
@@ -157,7 +157,7 @@ namespace Stride.Shaders.Compiler
             // Note: this compiler is expected to not be async and directly write stuff in localLogger
             var compiledShader = base.Compile(mixinTree, effectParameters, compilerParameters).WaitForResult();
             compiledShader.CompilationLog.CopyTo(log);
-            
+
             // If there are any errors, return immediately
             if (log.HasErrors)
             {
@@ -180,7 +180,7 @@ namespace Stride.Shaders.Compiler
                 // TODO: Check if we really need to write the bytecode everytime even if id is not changed
                 var memoryStream = new MemoryStream();
                 compiledShader.Bytecode.WriteTo(memoryStream);
-                
+
                 // Write current cache at the end (not part of the pure bytecode, but we use this as meta info)
                 var writer = new BinarySerializationWriter(memoryStream);
                 writer.Write(CurrentCache);
@@ -290,5 +290,5 @@ namespace Stride.Shaders.Compiler
             }
             return false;
         }
-   }
+    }
 }

@@ -15,7 +15,7 @@ public static class SpirvGeneratorExtensions
             SyntaxFactory
             .ParseCompilationUnit(builder.ToString())
             .NormalizeWhitespace()
-            .ToFullString(), 
+            .ToFullString(),
             Encoding.UTF8
         );
 

@@ -76,7 +76,7 @@ public partial class SPVGenerator
                 code.AppendLine($"    {instruction.OpName} = {value},");
         }
         code.AppendLine("}}");
-        
+
         ctx.AddSource("SpecificationOp.gen.cs",
             SourceText.From(
                 SyntaxFactory

@@ -52,9 +52,9 @@ public sealed class EffectBytecode
         // We should most of the time have stages, unless someone is calling this method on a new EffectBytecode
         if (effectBytecode.Stages is not null)
         {
-            effectBytecode = (EffectBytecode) MemberwiseClone();
+            effectBytecode = (EffectBytecode)MemberwiseClone();
 
-            effectBytecode.Stages = (ShaderBytecode[]) effectBytecode.Stages.Clone();
+            effectBytecode.Stages = (ShaderBytecode[])effectBytecode.Stages.Clone();
 
             // Because ShaderBytecode.Data can vary, we are calculating the bytecodeId only with the ShaderBytecode.Id
             for (int i = 0; i < effectBytecode.Stages.Length; i++)

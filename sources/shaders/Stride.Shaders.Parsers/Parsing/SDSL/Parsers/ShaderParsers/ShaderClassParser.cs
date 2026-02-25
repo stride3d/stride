@@ -70,14 +70,14 @@ public record struct ShaderClassParser : IParser<ShaderClass>
             @internal = true;
             tmp = scanner.Position;
         }
-        if(Parsers.FollowedBy(ref scanner, Tokens.Literal("partial"), withSpaces: true, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
+        if (Parsers.FollowedBy(ref scanner, Tokens.Literal("partial"), withSpaces: true, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
             tmp = scanner.Position;
         if (
             (
-                Tokens.Literal("shader", ref scanner, advance: true) 
-                || Tokens.Literal("class", ref scanner, advance: true) 
+                Tokens.Literal("shader", ref scanner, advance: true)
+                || Tokens.Literal("class", ref scanner, advance: true)
             )
-            && Parsers.Spaces1(ref scanner, result,out _))
+            && Parsers.Spaces1(ref scanner, result, out _))
         {
             if (
                 LiteralsParser.Identifier(ref scanner, result, out var identifier, new(SDSLErrorMessages.SDSL0017, scanner[scanner.Position], scanner.Memory))

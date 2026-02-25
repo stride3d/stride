@@ -24,12 +24,12 @@ public static class SpanCharExtensions
 
     public static int EndsAt(this Range range, int originalLength)
     {
-        var (o, l) =range.GetOffsetAndLength(originalLength);
+        var (o, l) = range.GetOffsetAndLength(originalLength);
         return o + l;
     }
     public static int StartsAt(this Range range, int originalLength)
     {
-        var (o, _) =range.GetOffsetAndLength(originalLength);
+        var (o, _) = range.GetOffsetAndLength(originalLength);
         return o;
     }
 }

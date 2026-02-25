@@ -36,7 +36,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 _ => entryPoint
             };
         }
-        
+
         public Result Process(SymbolTable table, SpirvBuffer buffer, SpirvContext context)
         {
             var entryPoints = new List<(string Name, int Id, ShaderStage Stage)>();
@@ -64,14 +64,14 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 (var csWrapperId, var csWrapperName) = GenerateStreamWrapper(table, buffer, context, ExecutionModel.GLCompute, entryPointCS, analysisResult, liveAnalysis, false);
                 entryPoints.Add((csWrapperName, csWrapperId, ShaderStage.Compute));
             }
-            
+
             if (entryPointHS != null || entryPointDS != null)
                 context.Add(new OpCapability(Capability.Tessellation));
             else if (entryPointGS != null)
                 context.Add(new OpCapability(Capability.Geometry));
 
             var inputAttributes = new List<ShaderInputAttributeDescription>();
-            
+
             if (entryPointPS != null)
             {
                 // If written to, they are expected at the end of pixel shader
@@ -131,13 +131,13 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                                     stream.Value.Output = true;
                                     requirePosition = false;
                                 }
-                                
+
                                 if (entryPoint.Item1 == ExecutionModel.TessellationControl
                                     && (semantic.ToUpperInvariant().StartsWith("SV_TESSFACTOR") || semantic.ToUpperInvariant().StartsWith("SV_INSIDETESSFACTOR")))
                                     stream.Value.Output = true;
                             }
                         }
-                    
+
                         (var wrapperId, var wrapperName) = GenerateStreamWrapper(table, buffer, context, entryPoint.Item1, entryPoint.Item2, analysisResult, liveAnalysis, false);
                         var stage = entryPoint.Item1 switch
                         {
@@ -146,17 +146,17 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                             ExecutionModel.Geometry => ShaderStage.Geometry,
                         };
                         entryPoints.Add((wrapperName, wrapperId, stage));
-                    
+
                         // Reset cbuffer/resource/methods used for next stage
                         DeadCodeRemover.ResetUsedThisStage(analysisResult, liveAnalysis);
-                    
+
                         VariableMerger.PropagateStreamsFromPreviousStage(streams);
-                    
+
                         if (entryPointVS == null)
                             throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: If a {stage} shader is specified, a vertex shader is needed too");
                     }
                 }
-                
+
                 if (entryPointVS != null)
                 {
                     ReadWriteAnalyzer.AnalyzeStreamReadWrites(buffer, context, entryPointVS.IdRef, analysisResult, liveAnalysis);
@@ -176,12 +176,12 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
 
                     (var vsWrapperId, var vsWrapperName) = GenerateStreamWrapper(table, buffer, context, ExecutionModel.Vertex, entryPointVS, analysisResult, liveAnalysis, true);
                     entryPoints.Add((vsWrapperName, vsWrapperId, ShaderStage.Vertex));
-                    
+
                     // Process shader input attributes
                     foreach (var stream in streams)
                     {
                         // Note: built-ins won't have a inputLayoutLocation so they will be skipped
-                        if (stream.Value.Input && stream.Value.InputLayoutLocation is {} inputLayoutLocation)
+                        if (stream.Value.Input && stream.Value.InputLayoutLocation is { } inputLayoutLocation)
                         {
                             if (stream.Value.Semantic == null)
                                 throw new InvalidOperationException($"Vertex shader input {stream.Value.Name} doesn't have semantic");
@@ -199,7 +199,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             return new(entryPoints, inputAttributes);
         }
 
-        
+
         static int FindOutputPatchSize(SpirvContext context, Symbol entryPoint)
         {
             foreach (var i in context)
@@ -237,7 +237,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 ExecutionModel.TessellationControl => FindOutputPatchSize(context, entryPoint),
                 _ => null,
             };
-            
+
             // Generate stream variables
             GenerateStreamVariables(context, executionModel, streams, arrayInputSize, arrayOutputSize, out var inputStreams, out var outputStreams, out var patchInputStreams, out var patchOutputStreams);
 
@@ -247,7 +247,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             // Create a static global streams variable
             var streamsVariable = context.Add(new OpVariable(context.GetOrRegister(new PointerType(streamsType, Specification.StorageClass.Private)), context.Bound++, Specification.StorageClass.Private, null));
             context.AddName(streamsVariable.ResultId, $"streams{stage}");
-            
+
             // Find patch constant entry point
             var patchConstantEntryPoint = executionModel == ExecutionModel.TessellationControl ? ResolveHullPatchConstantEntryPoint(table, context, entryPoint) : null;
 
@@ -397,7 +397,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                         Specification.StorageClass.Input);
                     var variable = context.Add(new OpVariable(context.GetOrRegister(streamInputType), variableId, Specification.StorageClass.Input, null));
                     context.AddName(variable, $"in_{stage}_{stream.Value.Name}");
-                
+
                     if (stream.Value.Type is ScalarType or VectorType or MatrixType && !stream.Value.Type.GetElementType().IsFloating())
                         context.Add(new OpDecorate(variable, Decoration.Flat, []));
 
@@ -433,7 +433,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                         Specification.StorageClass.Output);
                     var variable = context.Add(new OpVariable(context.GetOrRegister(streamOutputType), variableId, Specification.StorageClass.Output, null));
                     context.AddName(variable, $"out_{stage}_{stream.Value.Name}");
-                
+
                     if (stream.Value.Type is ScalarType or VectorType or MatrixType && !stream.Value.Type.GetElementType().IsFloating())
                         context.Add(new OpDecorate(variable, Decoration.Flat, []));
 

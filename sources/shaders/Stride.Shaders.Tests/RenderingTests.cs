@@ -36,11 +36,11 @@ public partial class RenderingTests
         var shaderSource = ShaderMixinManager.Contains(shaderName)
             ? new ShaderMixinGeneratorSource(shaderName)
             : (ShaderSource)new ShaderClassSource(shaderName);
-        
+
         // Force file to be parsed and all its shaders registered
         // (since there are multiple shader/effects in a simple file, simply using the effect would not go through normal load and it wouldn't know about the shaders in the file)
         shaderMixer.ShaderLoader.LoadExternalBuffer(shaderName, [], out _, out _, out _);
-            
+
         shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), out var bytecode, out var effectReflection, out _, out _);
 
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
@@ -50,21 +50,21 @@ public partial class RenderingTests
         var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
         var entryPoints = translator.GetEntryPoints();
         var codeCS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.GLCompute));
-        
+
         Console.WriteLine(codeCS);
-        
+
         // Execute test
         var renderer = new D3D11FrameRenderer((uint)width, (uint)height);
-        
+
         renderer.ComputeShaderSource = codeCS;
         renderer.EffectReflection = effectReflection;
-        
+
         var code = File.ReadAllLines($"./assets/SDSL/ComputeTests/{shaderName}.sdsl");
         foreach (var test in TestHeaderParser.ParseHeaders(code))
         {
             var parameters = TestHeaderParser.ParseParameters(test.Parameters);
             SetupTestParameters(renderer, parameters);
-            
+
             renderer.SetupTest();
             renderer.Compute();
             // Present is useful for RenderDoc and other graphics capture programs
@@ -120,7 +120,7 @@ public partial class RenderingTests
             renderer.GeometryShaderSource = codeGS;
         renderer.PixelShaderSource = codePS;
         renderer.EffectReflection = effectReflection;
-        
+
         var code = File.ReadAllLines($"./assets/SDSL/RenderTests/{shaderName}.sdsl");
         foreach (var test in TestHeaderParser.ParseHeaders(code))
         {

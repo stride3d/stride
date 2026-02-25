@@ -24,7 +24,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
         {
             throw new Exception($"Some parse errors:{Environment.NewLine}{string.Join(Environment.NewLine, parsed.Errors)}");
         }
-        if(parsed.AST is ShaderFile sf)
+        if (parsed.AST is ShaderFile sf)
         {
             // TODO: support namespace
             var declarations = sf.Namespaces.SelectMany(x => x.Declarations).Concat(sf.RootDeclarations);
@@ -36,7 +36,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     SymbolTable table = new(compiler.Context)
                     {
                         ShaderLoader = ShaderLoader,
-                        CurrentMacros = [..macros],
+                        CurrentMacros = [.. macros],
                     };
                     compiler.Macros.AddRange(macros);
                     shader.Compile(table, compiler);
@@ -50,7 +50,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 else if (declaration is ShaderEffect or EffectParameters)
                 {
                     // Ignore (using C# codegen for now)
-                    
+
                 }
                 // Compiling SDFX to SPIR-V is not supported (we might switch to it in the future instead of using C# codegen)
                 /*else if (declaration is ShaderEffect effect)

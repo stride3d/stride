@@ -30,7 +30,7 @@ public partial class ExpressionStatement(Expression expression, TextLocation inf
 {
     public override SymbolType? Type { get => Expression.Type; set { } }
     public Expression Expression { get; set; } = expression;
-    
+
     public override void ProcessSymbol(SymbolTable table)
     {
         Expression.ProcessSymbol(table);
@@ -51,7 +51,7 @@ public partial class ExpressionStatement(Expression expression, TextLocation inf
 public partial class Return(TextLocation info, Expression? expression = null) : Statement(info)
 {
     public Expression? Value { get; set; } = expression;
-    
+
     public override void ProcessSymbol(SymbolTable table)
     {
         Value?.ProcessSymbol(table);
@@ -112,7 +112,7 @@ public partial class DeclaredVariableAssign(Identifier variable, bool isConst, T
         get => TypeName.ArraySize;
         set => TypeName.ArraySize = value;
     }
-    
+
     public override void ProcessSymbol(SymbolTable table)
     {
         Value?.ProcessSymbol(table, TypeName.Type);
@@ -177,12 +177,12 @@ public partial class Declare(TypeName typename, TextLocation info) : Declaration
             var declaration = Variables[index];
             declaration.TypeName = new TypeName(TypeName.Name, info) { ArraySize = declaration.ArraySizes };
             declaration.ProcessSymbol(table);
-            
+
             var variableSymbol = new Symbol(new(declaration.Variable, SymbolKind.Variable), declaration.Type, 0, OwnerType: table.CurrentShader);
             table.CurrentFrame.Add(declaration.Variable, variableSymbol);
             VariableSymbols.Add(variableSymbol);
         }
-        
+
         Type = Variables[0].Type;
     }
 

@@ -43,7 +43,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
         public static partial class IntrinsicsDefinitions
         {
         """);
-        
+
         if (namespaces.Items.Count == 0)
             builder.AppendLine("// No intrinsics parsed");
 
@@ -74,7 +74,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                     builder.AppendLine("), ");
                     // Parameters
                     builder.AppendLine("[");
-                    
+
                     foreach (var param in overload.Parameters.Items.Where(p => p.Name.Name != "..."))
                     {
                         builder.Append("new(");
@@ -85,12 +85,12 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                             { Qualifier: string q } => builder.Append($"FromString(\"{q}\"), null, "),
                             _ => builder.Append("null, null, ")
                         };
-                        
+
                         // Type
                         builder.Append($"new(\"{param.TypeInfo.Typename.Name}\"");
                         _ = param.TypeInfo.Typename switch
                         {
-                            {Size : {Size1 : string, Size2 : string}} => builder.Append($", new(\"{param.TypeInfo.Typename.Size.Size1}\", \"{param.TypeInfo.Typename.Size.Size2}\")"),
+                            { Size: { Size1: string, Size2: string } } => builder.Append($", new(\"{param.TypeInfo.Typename.Size.Size1}\", \"{param.TypeInfo.Typename.Size.Size2}\")"),
                             { Size.Size1: string } => builder.Append($", new(\"{param.TypeInfo.Typename.Size.Size1}\")"),
                             _ => builder.Append(", null")
                         };
@@ -130,13 +130,13 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
     {
         return string.Concat(parameters.Where(p => p.Name.Name != "...").Select((p, i) => $", {(optional ? $"{p.Name.Name}:" : "")}new SpirvValue(compiledParams[{startIndex + i}], context.GetOrRegister(functionType.ParameterTypes[{startIndex + i}].Type))"));
     }
-    
+
     static string CapitalizeFirstLetter(string s) => char.ToUpper(s[0]) + s[1..];
     static string UncapitalizeFirstLetter(string s) => char.ToLower(s[0]) + s[1..];
 
     // Group of intrinsics with same parameter names (parameter types might differ)
     record IntrinsicOverloadGroup(string Name, List<IntrinsicParameter> MandatoryParameters, List<IntrinsicParameter> OptionalParameters, List<(string DeclaringNamespace, IntrinsicDeclaration Declaration)> Overloads);
-    
+
     static void GenerateIntrinsicsCall(SourceProductionContext spc, EquatableList<NamespaceDeclaration> namespaces)
     {
         var builder = new StringBuilder();
@@ -161,16 +161,16 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
         static string IntrinsicDeclarationKey(NamespaceDeclaration arg)
         {
             var key = arg.Name.Name;
-            
+
             // Merge RW and non-RW methods in same type
             if (key.StartsWith("RW"))
                 key = key.Substring("RW".Length);
-                
-            
+
+
             // Merge all texture methods in same type
             if (key.StartsWith("Texture"))
                 return "TextureMethods";
-            
+
             return key;
         }
 
@@ -194,15 +194,15 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                 _ => parameterName,
             };
         }
-        
+
         foreach (var ns in namespaces.Items.GroupBy(IntrinsicDeclarationKey))
         {
             bool hasThis = DecodeThisType(ns.Key, out var thisType);
             var thisParam = hasThis ? $", SpirvValue {UncapitalizeFirstLetter(thisType)}" : "";
             var thisArg = hasThis ? ", thisValue!.Value" : "";
-            
+
             var intrinsicGroups = new Dictionary<string, IntrinsicOverloadGroup>();
-            
+
             foreach (var intrinsicGroup in ns.SelectMany(x => x.Intrinsics.Items.Select(y => (DeclaringNamespace: x.Name.Name, Declaration: y)))
                          .Where(x => x.Declaration.Parameters.Items.All(p => p.Name.Name != "..."))
                          .GroupBy(i => i.Declaration.Name.Name))
@@ -214,7 +214,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                     x.Declaration.Parameters.Items.Clear();
                     x.Declaration.Parameters.Items.AddRange(parameters);
                 }
-                
+
                 // Find common parameters
                 var maxParameterCount = intrinsicGroup.Min(x => x.Declaration.Parameters.Items.Count);
                 var mandatoryParameters = intrinsicGroup.First().Declaration.Parameters.Items.GetRange(0, maxParameterCount);
@@ -226,7 +226,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                         break;
                     }
                 }
-                
+
                 var optionalParameters = intrinsicGroup
                     .SelectMany(x => x.Declaration.Parameters.Items.Skip(mandatoryParameters.Count))
                     .GroupBy(x => x.Name.Name)
@@ -235,10 +235,10 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
 
                 intrinsicGroups[intrinsicGroup.Key] = new IntrinsicOverloadGroup(intrinsicGroup.Key, mandatoryParameters, optionalParameters, intrinsicGroup.ToList());
             }
-            
+
             builder.AppendLine($"public abstract class {ns.Key}Declarations : IIntrinsicCompiler");
             builder.AppendLine("{");
-            
+
             foreach (var intrinsicGroup in intrinsicGroups)
             {
                 // Get parameters of first and last overload (the ones with the less and most parameters)
@@ -247,7 +247,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                 var optionalParameters = intrinsicGroup.Value.OptionalParameters;
                 builder.AppendLine($"public virtual SpirvValue Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(SpirvContext context, SpirvBuilder builder, FunctionType functionType{thisParam}{GenerateParameters(mandatoryParameters)}{GenerateParameters(optionalParameters, true)}) => throw new NotImplementedException();");
             }
-            
+
             builder.AppendLine("public SpirvValue CompileIntrinsic(SymbolTable table, CompilerUnit compiler, string? @namespace, string name, FunctionType functionType, SpirvValue? thisValue, Span<int> compiledParams) {");
             builder.AppendLine("var (builder, context) = compiler;");
             builder.AppendLine("return (@namespace, name, compiledParams.Length) switch {");
@@ -280,7 +280,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                         {
                             var optionalParameters = y.First().Declaration.Parameters.Items.GetRange(mandatoryParameters.Count, y.First().Declaration.Parameters.Items.Count - mandatoryParameters.Count);
                             builder.Append($"({@namespace}, \"{intrinsicGroup.Key}\", {y.First().Declaration.Parameters.Items.Count})");
-                            
+
                             // special switch/case (same number of parameters of different type)
                             if (intrinsicGroup.Key == "Barrier")
                             {
@@ -289,7 +289,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                                     builder.Append(" not");
                                 builder.Append(" ScalarType");
                             }
-                            
+
                             builder.AppendLine($" => Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(context, builder, functionType{thisArg}{GenerateArguments(mandatoryParameters)}{GenerateArguments(optionalParameters, true, mandatoryParameters.Count)}),");
                         }
                     }

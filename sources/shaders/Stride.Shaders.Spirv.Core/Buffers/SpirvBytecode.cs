@@ -39,7 +39,7 @@ public record SpirvBytecode(SpirvHeader Header, SpirvBuffer Buffer) : IDisposabl
     {
         if (span[0] != Specification.MagicNumber)
             throw new InvalidOperationException("SPIRV Magic number not found");
-        
+
         var header = SpirvHeader.Read(span);
 
         return new(header, new SpirvBuffer(span[SpirvHeader.IntSpanSize..]));

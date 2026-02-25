@@ -20,7 +20,7 @@ public struct OpData : IDisposable, IComparable<OpData>
     }
     public readonly int? IdResultType
     {
-        get  => InstructionInfo.GetInfo(this).GetResultTypeIndex(out var index) ? Memory.Span[index + 1] : null;
+        get => InstructionInfo.GetInfo(this).GetResultTypeIndex(out var index) ? Memory.Span[index + 1] : null;
         set
         {
             if (InstructionInfo.GetInfo(this).GetResultTypeIndex(out var index) && value is not null)

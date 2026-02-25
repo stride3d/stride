@@ -42,7 +42,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     static Guid compilerArgsGuid = Guid.Parse("3e56ae82-224d-470f-a1a1-fe3016ee9f9d");
     static Guid resultGuid = Guid.Parse("58346CDA-DDE7-4497-9461-6F87AF5E0659");
     static readonly DXC dxc = DXC.GetApi();
-    
+
     public bool Compile(string code, out byte[] compiled)
     {
         throw new NotImplementedException();
@@ -52,10 +52,10 @@ float4 PSMain(PSInput input) : SV_TARGET
         //     var compiler = dxc.CreateInstance<IDxcCompiler3>(ref compilerGuid);
         //     var utils = dxc.CreateInstance<IDxcUtils>(ref utilsGuid);
         //     var args = dxc.CreateInstance<IDxcCompilerArgs>(ref compilerArgsGuid);
-            
+
         //     // Console.WriteLine($"{(nint)compiler.GetAddressOf()} - {(nint)library.GetAddressOf()}");
         //     IDxcBlobEncoding* sourceBlob = null;
-            
+
         //     SilkMarshal.ThrowHResult(
         //         utils.Get().CreateBlobFromPinned((void*)SilkMarshal.StringToPtr(Code), (uint)Code.Length, 1200, ref sourceBlob)
         //     );
@@ -66,7 +66,7 @@ float4 PSMain(PSInput input) : SV_TARGET
         //     SilkMarshal.ThrowHResult(
         //         compiler.Get().Compile(&buff, parms, (uint)parms.Length, null, ref resultGuid,(void**)result)
         //     );
-            
+
         //     // Console.WriteLine((nint)result);
         // }
         // compiled = Memory<byte>.Empty;

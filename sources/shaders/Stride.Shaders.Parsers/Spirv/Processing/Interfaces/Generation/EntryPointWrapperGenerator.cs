@@ -147,10 +147,10 @@ internal static class EntryPointWrapperGenerator
                         inputFieldValues[inputIndex] = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.InterfaceType, stream.Info.Type, inputFieldValues[inputIndex]);
                     }
 
-                    inputValues[arrayIndex] = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(inputType), context.Bound++, [..inputFieldValues])).ResultId;
+                    inputValues[arrayIndex] = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(inputType), context.Bound++, [.. inputFieldValues])).ResultId;
                 }
 
-                var inputsData1 = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(new ArrayType(inputType, arrayInputSize.Value)), context.Bound++, [..inputValues])).ResultId;
+                var inputsData1 = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(new ArrayType(inputType, arrayInputSize.Value)), context.Bound++, [.. inputValues])).ResultId;
                 return inputsData1;
             }
 
@@ -207,43 +207,43 @@ internal static class EntryPointWrapperGenerator
                             case PatchType inputPatchType when
                                 (inputPatchType.Kind == PatchTypeKindSDSL.Input && executionModel == ExecutionModel.TessellationControl)
                                 || (inputPatchType.Kind == PatchTypeKindSDSL.Output && executionModel == ExecutionModel.TessellationEvaluation):
-                            {
-                                arguments[i] = inputsVariable;
-                                break;
-                            }
+                                {
+                                    arguments[i] = inputsVariable;
+                                    break;
+                                }
                             // Hull outputs
                             case PatchType { Kind: PatchTypeKindSDSL.Output } outputPatchType when executionModel == ExecutionModel.TessellationControl:
-                            {
-                                arguments[i] = GenerateHullTessellationOutputs();
-                                break;
-                            }
-                            case StreamsType t when t.Kind is StreamsKindSDSL.Constants && parameterModifiers is ParameterModifiers.None or ParameterModifiers.In:
-                            {
-                                // Parameter is "HS_CONSTANTS constants"
-                                var constantVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(constantsType, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
-                                arguments[i] = constantVariable;
-                                // Copy back values from semantic/builtin variables to Constants struct
-                                foreach (var stream in patchInputStreams)
                                 {
-                                    var inputPtr = buffer.Add(new OpAccessChain(context.GetOrRegister(stream.Info.Type), context.Bound++, constantVariable, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
-                                    var inputResult = buffer.Add(new OpLoad(context.GetOrRegister(stream.Info.Type), context.Bound++, stream.Id, null, [])).ResultId;
-                                    inputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.InterfaceType, stream.Info.Type, inputResult);
-                                    buffer.Add(new OpStore(inputPtr, inputResult, null, []));
+                                    arguments[i] = GenerateHullTessellationOutputs();
+                                    break;
                                 }
-                                break;
-                            }
-                            case StreamsType t when t.Kind is StreamsKindSDSL.Output or StreamsKindSDSL.Constants && parameterModifiers == ParameterModifiers.Out:
-                            {
-                                // Parameter is "out HS_OUTPUT output" or "out HS_CONSTANTS constants"
-                                var structType = t.Kind switch
+                            case StreamsType t when t.Kind is StreamsKindSDSL.Constants && parameterModifiers is ParameterModifiers.None or ParameterModifiers.In:
                                 {
-                                    StreamsKindSDSL.Output => outputType,
-                                    StreamsKindSDSL.Constants => constantsType,
-                                };
-                                var outVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(structType, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
-                                arguments[i] = outVariable;
-                                break;
-                            }
+                                    // Parameter is "HS_CONSTANTS constants"
+                                    var constantVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(constantsType, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
+                                    arguments[i] = constantVariable;
+                                    // Copy back values from semantic/builtin variables to Constants struct
+                                    foreach (var stream in patchInputStreams)
+                                    {
+                                        var inputPtr = buffer.Add(new OpAccessChain(context.GetOrRegister(stream.Info.Type), context.Bound++, constantVariable, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
+                                        var inputResult = buffer.Add(new OpLoad(context.GetOrRegister(stream.Info.Type), context.Bound++, stream.Id, null, [])).ResultId;
+                                        inputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.InterfaceType, stream.Info.Type, inputResult);
+                                        buffer.Add(new OpStore(inputPtr, inputResult, null, []));
+                                    }
+                                    break;
+                                }
+                            case StreamsType t when t.Kind is StreamsKindSDSL.Output or StreamsKindSDSL.Constants && parameterModifiers == ParameterModifiers.Out:
+                                {
+                                    // Parameter is "out HS_OUTPUT output" or "out HS_CONSTANTS constants"
+                                    var structType = t.Kind switch
+                                    {
+                                        StreamsKindSDSL.Output => outputType,
+                                        StreamsKindSDSL.Constants => constantsType,
+                                    };
+                                    var outVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(structType, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
+                                    arguments[i] = outVariable;
+                                    break;
+                                }
                             case var t when arguments[i] == 0:
                                 throw new NotImplementedException($"Can't process argument {i + 1} of type {parameterType} in method {entryPoint.Id.Name}");
                         }
@@ -260,43 +260,43 @@ internal static class EntryPointWrapperGenerator
                         switch (parameterType)
                         {
                             case StreamsType { Kind: StreamsKindSDSL.Output } when parameterModifiers == ParameterModifiers.Out:
-                            {
-                                // Parameter is "out HS_OUTPUT output"
-                                var outputVariable = arguments[i];
-                                // Load as value
-                                outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(outputType), context.Bound++, outputVariable, null, [])).ResultId;
-                                // Do we need to index into array? if yes, get index (gl_invocationID)
-                                int? invocationIdValue = arrayOutputSize != null ? GetOrDeclareBuiltInValue(ScalarType.UInt, "SV_OutputControlPointID") : null;
-                                // Copy back values from Output struct to semantic/builtin variables
-                                for (var outputIndex = 0; outputIndex < outputStreams.Count; outputIndex++)
                                 {
-                                    var stream = outputStreams[outputIndex];
-                                    var outputResult = buffer.Add(new OpCompositeExtract(context.GetOrRegister(stream.Info.Type), context.Bound++, outputVariable, [outputIndex])).ResultId;
-                                    outputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.Info.Type, stream.InterfaceType, outputResult);
-                                    var outputTargetPtr = arrayOutputSize != null
-                                        ? buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Output)),
-                                            context.Bound++, stream.Id,
-                                            [invocationIdValue.Value])).ResultId
-                                        : stream.Id;
-                                    buffer.Add(new OpStore(outputTargetPtr, outputResult, null, []));
+                                    // Parameter is "out HS_OUTPUT output"
+                                    var outputVariable = arguments[i];
+                                    // Load as value
+                                    outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(outputType), context.Bound++, outputVariable, null, [])).ResultId;
+                                    // Do we need to index into array? if yes, get index (gl_invocationID)
+                                    int? invocationIdValue = arrayOutputSize != null ? GetOrDeclareBuiltInValue(ScalarType.UInt, "SV_OutputControlPointID") : null;
+                                    // Copy back values from Output struct to semantic/builtin variables
+                                    for (var outputIndex = 0; outputIndex < outputStreams.Count; outputIndex++)
+                                    {
+                                        var stream = outputStreams[outputIndex];
+                                        var outputResult = buffer.Add(new OpCompositeExtract(context.GetOrRegister(stream.Info.Type), context.Bound++, outputVariable, [outputIndex])).ResultId;
+                                        outputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.Info.Type, stream.InterfaceType, outputResult);
+                                        var outputTargetPtr = arrayOutputSize != null
+                                            ? buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Output)),
+                                                context.Bound++, stream.Id,
+                                                [invocationIdValue.Value])).ResultId
+                                            : stream.Id;
+                                        buffer.Add(new OpStore(outputTargetPtr, outputResult, null, []));
+                                    }
+                                    break;
                                 }
-                                break;
-                            }
                             case StreamsType { Kind: StreamsKindSDSL.Constants } when parameterModifiers == ParameterModifiers.Out:
-                            {
-                                // Parameter is "out HS_OUTPUT output"
-                                var outputVariable = arguments[i];
-                                // Load as value
-                                outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(constantsType ?? throw new InvalidOperationException()), context.Bound++, outputVariable, null, [])).ResultId;
-                                // Copy back values from Output struct to semantic/builtin variables
-                                foreach (var stream in patchOutputStreams)
                                 {
-                                    var outputResult = buffer.Add(new OpCompositeExtract(context.GetOrRegister(stream.Info.Type), context.Bound++, outputVariable, [stream.Info.StreamStructFieldIndex])).ResultId;
-                                    outputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.Info.Type, stream.InterfaceType, outputResult);
-                                    buffer.Add(new OpStore(stream.Id, outputResult, null, []));
+                                    // Parameter is "out HS_OUTPUT output"
+                                    var outputVariable = arguments[i];
+                                    // Load as value
+                                    outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(constantsType ?? throw new InvalidOperationException()), context.Bound++, outputVariable, null, [])).ResultId;
+                                    // Copy back values from Output struct to semantic/builtin variables
+                                    foreach (var stream in patchOutputStreams)
+                                    {
+                                        var outputResult = buffer.Add(new OpCompositeExtract(context.GetOrRegister(stream.Info.Type), context.Bound++, outputVariable, [stream.Info.StreamStructFieldIndex])).ResultId;
+                                        outputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.Info.Type, stream.InterfaceType, outputResult);
+                                        buffer.Add(new OpStore(stream.Id, outputResult, null, []));
+                                    }
+                                    break;
                                 }
-                                break;
-                            }
                         }
                     }
                 }

@@ -73,14 +73,14 @@ public record struct LiteralsParser : IParser<Literal>
         }
 
         parsed = default;
-        return Parsers.Exit(ref scanner, result, out parsed, position, orError);;
-    }    
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError); ;
+    }
 
     public static bool TypeNameLiteral<TScanner>(ref TScanner scanner, ParseResult result, out Literal parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         parsed = null!;
-        if(TypeNameLiteral(ref scanner, result, out var tn, orError))
+        if (TypeNameLiteral(ref scanner, result, out var tn, orError))
         {
             parsed = tn;
             return true;
@@ -281,7 +281,7 @@ public record struct Suffix(int Size, bool IsFloatingPoint, bool Signed)
             (false, true, 32) => "",
             (false, false, 64) => "ul",
             (false, true, 64) => "l",
-            
+
             (true, _, _) => $"f{Size}",
             (false, false, _) => $"u{Size}",
             (false, true, _) => $"i{Size}",

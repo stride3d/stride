@@ -34,7 +34,7 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
             throw new Exception($"{cross.ContextCreateCompiler(context, backend, ir, CaptureMode.Copy, &compiler)} : could not create compiler");
 
         var result = new List<(string RealName, string TranslatedName, ExecutionModel ExecutionModel)>();
-        EntryPoint * entry_points = null;
+        EntryPoint* entry_points = null;
         nuint num_entry_points = 0;
         bool entryPointFound = false;
         cross.CompilerGetEntryPoints(compiler, &entry_points, &num_entry_points);
@@ -95,7 +95,7 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         // HLSL: remove type_ prefix from cbuffer (they get names from struct instead of cbuffer variable itself)
         if (backend == Backend.Hlsl)
         {
-            
+
             ReflectedResource* resourcesList;
             nuint resourcesCount;
             cross.ResourcesGetResourceListForType(resources, ResourceType.UniformBuffer, &resourcesList, &resourcesCount);

@@ -146,7 +146,7 @@ namespace Stride.Shaders
                 selectedKey = key;
                 return compilerParameters;
             }
-            
+
             return null;
         }
 
@@ -225,7 +225,7 @@ namespace Stride.Shaders
             {
                 // Else simply add the name of the shader
                 mixinTree.Mixins.Add(new ShaderClassSource(name, genericParameters));
-            } 
+            }
             else if (builder != null)
             {
                 if (genericParameters != null && genericParameters.Length != 0)

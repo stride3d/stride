@@ -27,7 +27,7 @@
 //         //foreach (var e in ordered)
 //         //    if(e.OpCode != Op.OpNop)
 //         //        temp.Add(e.Words.Span);
-        
+
 //         //buffer.Replace(temp, out var dispose);
 //         //if(dispose)
 //         //    temp.Dispose();

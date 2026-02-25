@@ -12,7 +12,7 @@ public partial class ShaderMixer
 {
     private record struct VariableMetadata(string? Link = null, string? ResourceGroup = null, string? LogicalGroup = null, bool Color = false);
     private record struct CBufferMemberMetadata(string? Link = null, string? LogicalGroup = null, bool Color = false);
-    
+
     private Dictionary<int, VariableMetadata> variableMetadata = new();
     // Note: cbuffer might share same struct, which is why we store this info per variable instead of per struct (as per OpMemberDecorate was doing)
     private Dictionary<int, CBufferMemberMetadata[]> cbufferMemberMetadata = new();
@@ -46,7 +46,7 @@ public partial class ShaderMixer
                 }
             }
             else if (i.Op == Specification.Op.OpDecorateString && (OpDecorateString)i is
-                { Decoration: Specification.Decoration.LinkSDSL or Specification.Decoration.ResourceGroupSDSL or Specification.Decoration.LogicalGroupSDSL } decorateString)
+            { Decoration: Specification.Decoration.LinkSDSL or Specification.Decoration.ResourceGroupSDSL or Specification.Decoration.LogicalGroupSDSL } decorateString)
             {
                 ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(variableDecorationMetadata, decorateString.Target, out _);
                 switch (decorateString.Decoration)
@@ -65,7 +65,7 @@ public partial class ShaderMixer
                 }
             }
             else if (i.Op == Specification.Op.OpMemberDecorate && (OpMemberDecorate)i is
-                     { Decoration: Specification.Decoration.ColorSDSL } memberDecorate)
+            { Decoration: Specification.Decoration.ColorSDSL } memberDecorate)
             {
                 ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(structDecorationMetadata, (memberDecorate.StructureType, memberDecorate.Member), out _);
                 switch (memberDecorate.Decoration)
@@ -78,7 +78,7 @@ public partial class ShaderMixer
                 }
             }
             else if (i.Op == Specification.Op.OpMemberDecorateString && (OpMemberDecorateString)i is
-                     { Decoration: Specification.Decoration.LinkSDSL } memberDecorateString)
+            { Decoration: Specification.Decoration.LinkSDSL } memberDecorateString)
             {
                 ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(structDecorationMetadata, (memberDecorateString.StructType, memberDecorateString.Member), out _);
                 switch (memberDecorateString.Decoration)
@@ -122,7 +122,7 @@ public partial class ShaderMixer
                     metadata.Link = ComposeLinkName(metadata.Link, compositionPath);
 
                 variableMetadata[variableInstruction.ResultId] = metadata;
-                
+
                 if (variableType is ConstantBufferSymbol cb)
                 {
                     var constantBufferStructId = context.Types[cb];
@@ -169,7 +169,7 @@ public partial class ShaderMixer
                     : shader.ShaderName;
             }
             else if (i.Op == Specification.Op.OpVariableSDSL && (OpVariableSDSL)i is
-                     { Storageclass: Specification.StorageClass.UniformConstant or Specification.StorageClass.StorageBuffer } variable)
+            { Storageclass: Specification.StorageClass.UniformConstant or Specification.StorageClass.StorageBuffer } variable)
             {
                 // Note: we don't rename cbuffer as they have been merged and don't belong to a specific shader/composition anymore
                 var type = context.ReverseTypes[variable.ResultType];
@@ -210,7 +210,7 @@ public partial class ShaderMixer
     {
         Span<int> slotCounts = stackalloc int[options.ResourcesRegisterSeparate ? 4 : 1];
         slotCounts.Clear();
-        
+
         // If areResourcesSharingSlots is true, every slot type will point to same value
         ref var srvSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 0 : 0];
         ref var samplerSlot = ref slotCounts[options.ResourcesRegisterSeparate ? 1 : 0];
@@ -224,7 +224,7 @@ public partial class ShaderMixer
             if ((i.Op == Specification.Op.OpDecorate || i.Op == Specification.Op.OpDecorateString) &&
                      (OpDecorate)i is
                      {
-                         Decoration : 
+                         Decoration:
                             Specification.Decoration.SamplerStateFilter
                              or Specification.Decoration.SamplerStateAddressU
                              or Specification.Decoration.SamplerStateAddressV
@@ -235,7 +235,7 @@ public partial class ShaderMixer
                              or Specification.Decoration.SamplerStateMinLOD
                              or Specification.Decoration.SamplerStateMaxLOD,
                          DecorationParameters: { } p
-                         
+
                      } decorate)
             {
                 ref var samplerState =
@@ -257,11 +257,11 @@ public partial class ShaderMixer
                         samplerState.AddressW = (Graphics.TextureAddressMode)p.Span[0];
                         break;
                     case Specification.Decoration.SamplerStateMipLODBias:
-                    {
-                        using var n = new LiteralValue<string>(p.Span);
-                        samplerState.MipMapLevelOfDetailBias = float.Parse(n.Value);
-                        break;
-                    }
+                        {
+                            using var n = new LiteralValue<string>(p.Span);
+                            samplerState.MipMapLevelOfDetailBias = float.Parse(n.Value);
+                            break;
+                        }
                     case Specification.Decoration.SamplerStateMaxAnisotropy:
                         samplerState.MaxAnisotropy = p.Span[0];
                         break;
@@ -269,17 +269,17 @@ public partial class ShaderMixer
                         samplerState.CompareFunction = (Graphics.CompareFunction)p.Span[0];
                         break;
                     case Specification.Decoration.SamplerStateMinLOD:
-                    {
-                        using var n = new LiteralValue<string>(p.Span);
-                        samplerState.MinMipLevel = float.Parse(n.Value);
-                        break;
-                    }
+                        {
+                            using var n = new LiteralValue<string>(p.Span);
+                            samplerState.MinMipLevel = float.Parse(n.Value);
+                            break;
+                        }
                     case Specification.Decoration.SamplerStateMaxLOD:
-                    {
-                        using var n = new LiteralValue<string>(p.Span);
-                        samplerState.MaxMipLevel = float.Parse(n.Value);
-                        break;
-                    }
+                        {
+                            using var n = new LiteralValue<string>(p.Span);
+                            samplerState.MaxMipLevel = float.Parse(n.Value);
+                            break;
+                        }
                 }
             }
         }
@@ -299,16 +299,16 @@ public partial class ShaderMixer
                 if (IsResourceType(variableType))
                 {
                     var name = context.Names[variable.ResultId];
-                    
+
                     variableMetadata.TryGetValue(variable.ResultId, out var linkInfo);
                     var linkName = variableType switch
                     {
                         // TODO: Special case, Stride EffectCompiler.CleanupReflection() expect a different format here (let's fix that later in Stride)
                         //       Anyway, since buffer is merged, KeyName with form ShaderName.VariableName doesn't make sense as it doesn't belong to a specific shader anymore
-                        ConstantBufferSymbol cb => name, 
+                        ConstantBufferSymbol cb => name,
                         _ => linkInfo.Link ?? throw new InvalidOperationException($"Missing Link info for variable {name}"),
                     };
-                    
+
                     var effectResourceBinding = new EffectResourceBindingDescription
                     {
                         KeyInfo = new EffectParameterKeyInfo { KeyName = linkName },

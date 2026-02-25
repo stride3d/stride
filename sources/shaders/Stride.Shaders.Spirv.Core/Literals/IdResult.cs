@@ -12,7 +12,7 @@ public record struct IdResult : ISpirvElement, IFromSpirv<IdResult>
     public readonly int Value => Word.Span[0];
     public MemoryOwner<int> Word { get; set; }
     public readonly ReadOnlySpan<int> Words => Word.Span;
-    
+
     public IdResult(int value)
     {
         Word = MemoryOwner<int>.Allocate(1);

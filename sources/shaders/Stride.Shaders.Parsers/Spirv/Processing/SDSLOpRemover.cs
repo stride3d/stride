@@ -14,5 +14,5 @@ public struct NOPRemover : INanoPass
         for (int i = 0; i < buffer.Count; i++)
             if (buffer[i].Op == Op.OpNop)
                 buffer.RemoveAt(i--);
-    }    
+    }
 }

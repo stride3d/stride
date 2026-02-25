@@ -151,7 +151,7 @@ internal static class StreamAccessPatcher
                         accessChain.BaseId = accessChain.BaseId;
                 }
             }
-            else if (i.Op == Op.OpBinaryOperationSDSL && (OpBinaryOperationSDSL)i is {} binaryOperation)
+            else if (i.Op == Op.OpBinaryOperationSDSL && (OpBinaryOperationSDSL)i is { } binaryOperation)
             {
                 var targetType = (StreamsType)context.ReverseTypes[binaryOperation.ResultType];
 

@@ -123,7 +123,7 @@ public partial class SpirvBuilder()
         var instructions = new List<OpData>();
         foreach (var instruction in other)
             instructions.Add(instruction.Data);
-        
+
         buffer.InsertRange(Position, instructions.AsSpan());
         Position += other.Count;
     }

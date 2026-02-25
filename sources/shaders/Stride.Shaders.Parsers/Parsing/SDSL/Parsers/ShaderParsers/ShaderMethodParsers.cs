@@ -48,12 +48,12 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
         }
         else
 
-        if (Parsers.Repeat(ref scanner, result, MethodParameter, out List<MethodParameter> parameters, 0, withSpaces: true, separator: ","))
-        {
-            parsed = parameters;
-            return true;
-        }
-        else return Parsers.Exit(ref scanner, result, out parsed, position);
+            if (Parsers.Repeat(ref scanner, result, MethodParameter, out List<MethodParameter> parameters, 0, withSpaces: true, separator: ","))
+            {
+                parsed = parameters;
+                return true;
+            }
+            else return Parsers.Exit(ref scanner, result, out parsed, position);
 
     }
     public static bool MethodParameter<TScanner>(ref TScanner scanner, ParseResult result, out MethodParameter parsed, in ParseError? orError = null)

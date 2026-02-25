@@ -8,11 +8,11 @@ namespace Stride.Shaders.Parsing.SDSL;
 internal class IntrinsicImplementations : IntrinsicsDeclarations
 {
     public static IntrinsicImplementations Instance { get; } = new();
-    
+
     // Bool
     public override SpirvValue CompileAll(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileBoolToScalarBoolCall(context, builder, functionType, x, Specification.Op.OpAll);
     public override SpirvValue CompileAny(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileBoolToScalarBoolCall(context, builder, functionType, x, Specification.Op.OpAny);
-    
+
     // Cast
     public override SpirvValue CompileAsfloat(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileBitcastCall(context, builder, functionType, x);
     public override SpirvValue CompileAsint(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileBitcastCall(context, builder, functionType, x);
@@ -29,18 +29,18 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileAsuint16(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
 
     // Trigo
-    public override SpirvValue CompileSin(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLSin, x); 
-    public override SpirvValue CompileSinh(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLSinh, x); 
-    public override SpirvValue CompileAsin(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLAsin, x); 
-    public override SpirvValue CompileCos(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLCos, x); 
-    public override SpirvValue CompileCosh(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLCosh, x); 
-    public override SpirvValue CompileAcos(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLAcos, x); 
-    public override SpirvValue CompileTan(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLTan, x); 
+    public override SpirvValue CompileSin(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLSin, x);
+    public override SpirvValue CompileSinh(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLSinh, x);
+    public override SpirvValue CompileAsin(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLAsin, x);
+    public override SpirvValue CompileCos(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLCos, x);
+    public override SpirvValue CompileCosh(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLCosh, x);
+    public override SpirvValue CompileAcos(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLAcos, x);
+    public override SpirvValue CompileTan(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLTan, x);
     public override SpirvValue CompileTanh(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLTanh, x);
     public override SpirvValue CompileAtan(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLAtan, x);
     public override SpirvValue CompileAtan2(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue y) => CompileGLSLFloatBinaryCall(context, builder, functionType, Specification.GLSLOp.GLSLAtan2, x, y);
     public override SpirvValue CompileSincos(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue s, SpirvValue c) => throw new NotImplementedException();
-    
+
     // Derivatives
     public override SpirvValue CompileDdx(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileFloatUnaryCall(context, builder, functionType, Specification.Op.OpDPdx, x);
     public override SpirvValue CompileDdx_coarse(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileFloatUnaryCall(context, builder, functionType, Specification.Op.OpDPdxCoarse, x);
@@ -98,7 +98,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
 
     public override SpirvValue CompileRadians(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLRadians, x);
     public override SpirvValue CompileDegrees(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLDegrees, x);
-    
+
     public override SpirvValue CompileExp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLExp, x);
     public override SpirvValue CompileExp2(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLExp2, x);
     public override SpirvValue CompileLog(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLLog, x);
@@ -178,7 +178,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         var instruction = builder.Insert(new GLSLFaceForward(N.TypeId, context.Bound++, context.GetGLSL(), N.Id, I.Id, Ng.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
-    
+
     public override SpirvValue CompileRound(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLRound, x);
     public override SpirvValue CompileRsqrt(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLInverseSqrt, x);
     public override SpirvValue CompileSqrt(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLSqrt, x);
@@ -227,7 +227,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         return new(instruction.ResultId, instruction.ResultType);
     }
     public override SpirvValue CompileFrac(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLFract, x);
-    
+
     // Compute Barriers
     const Specification.MemorySemanticsMask AllMemoryBarrierMemorySemanticsMask = Specification.MemorySemanticsMask.ImageMemory | Specification.MemorySemanticsMask.WorkgroupMemory | Specification.MemorySemanticsMask.UniformMemory | Specification.MemorySemanticsMask.AcquireRelease;
     const Specification.MemorySemanticsMask DeviceMemoryBarrierMemorySemanticsMask = Specification.MemorySemanticsMask.ImageMemory | Specification.MemorySemanticsMask.UniformMemory | Specification.MemorySemanticsMask.AcquireRelease;
@@ -238,7 +238,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileDeviceMemoryBarrierWithGroupSync(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => CompileControlBarrierCall(context, builder, functionType, DeviceMemoryBarrierMemorySemanticsMask);
     public override SpirvValue CompileGroupMemoryBarrier(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => CompileMemoryBarrierCall(context, builder, functionType, GroupMemoryBarrierMemorySemanticsMask);
     public override SpirvValue CompileGroupMemoryBarrierWithGroupSync(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => CompileControlBarrierCall(context, builder, functionType, GroupMemoryBarrierMemorySemanticsMask);
-    
+
     // Compute interlocked
     public override SpirvValue CompileInterlockedAdd(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original) => CompileInterlockedCall(context, builder, functionType, InterlockedOp.Add, result, value, original);
     public override SpirvValue CompileInterlockedMin(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue value, SpirvValue? original) => CompileInterlockedCall(context, builder, functionType, InterlockedOp.Min, result, value, original);
@@ -257,7 +257,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         builder.Insert(new OpTerminateInvocation());
         return new();
     }
-    
+
     public override SpirvValue CompileD3DCOLORtoUBYTE4(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileGetRenderTargetSampleCount(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => throw new NotImplementedException();
     public override SpirvValue CompileGetRenderTargetSamplePosition(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue s) => throw new NotImplementedException();
@@ -332,7 +332,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileWorldToObject3x4(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => throw new NotImplementedException();
     public override SpirvValue CompileObjectToWorld4x3(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => throw new NotImplementedException();
     public override SpirvValue CompileWorldToObject4x3(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => throw new NotImplementedException();
-    
+
     // Wave
     public override SpirvValue CompileWaveIsFirstLane(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => throw new NotImplementedException();
     public override SpirvValue CompileWaveGetLaneIndex(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => throw new NotImplementedException();
@@ -361,7 +361,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileWaveMultiPrefixCountBits(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value, SpirvValue mask) => throw new NotImplementedException();
     public override SpirvValue CompileWaveMultiPrefixProduct(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value, SpirvValue mask) => throw new NotImplementedException();
     public override SpirvValue CompileWaveMultiPrefixSum(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value, SpirvValue mask) => throw new NotImplementedException();
-    
+
     // Obsolete
     public override SpirvValue CompileDst(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b) => throw new NotImplementedException();
     public override SpirvValue CompileTex1D(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue s, SpirvValue x, SpirvValue? ddx, SpirvValue? ddy) => throw new NotImplementedException();
@@ -392,7 +392,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)op;
         return new(instruction.ResultId, instruction.ResultType);
     }
-    
+
     public static SpirvValue CompileGLSLFloatUnaryCall(SpirvContext context, SpirvBuilder builder, FunctionType functionType, Specification.GLSLOp op, SpirvValue x)
     {
         var instruction = builder.Insert(new GLSLExp(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id));
@@ -408,7 +408,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         var instruction2 = builder.Insert(new OpFMul(context.GetOrRegister(functionType.ReturnType), context.Bound++, value.Id, constant.Id));
         return new SpirvValue(instruction2.ResultId, instruction2.ResultType);
     }
-    
+
     public static SpirvValue CompileGLSLFloatBinaryCall(SpirvContext context, SpirvBuilder builder, FunctionType functionType, Specification.GLSLOp op, SpirvValue x, SpirvValue y)
     {
         var instruction = builder.Insert(new GLSLPow(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id, y.Id));
@@ -422,7 +422,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         var instruction = builder.Insert(new OpBitcast(context.GetOrRegister(functionType.ReturnType), context.Bound++, x.Id));
         return new(instruction.ResultId, instruction.ResultType);
     }
-    
+
     public static SpirvValue CompileInterlockedCall(SpirvContext context, SpirvBuilder builder, FunctionType functionType, InterlockedOp op, SpirvValue dest, SpirvValue value, SpirvValue? originalLocation = null, SpirvValue? compare = null)
     {
         var destType = context.ReverseTypes[dest.TypeId];
@@ -445,8 +445,8 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         }
         else
         {
-            var instruction = builder.Insert(new OpAtomicIAdd(context.GetOrRegister(resultType), context.Bound++, dest.Id, 
-                context.CompileConstant((int)Specification.Scope.Device).Id, 
+            var instruction = builder.Insert(new OpAtomicIAdd(context.GetOrRegister(resultType), context.Bound++, dest.Id,
+                context.CompileConstant((int)Specification.Scope.Device).Id,
                 context.CompileConstant((int)Specification.MemorySemanticsMask.Relaxed).Id,
                 value.Id));
             // Update instruction type (they all share same memory layout)
@@ -464,19 +464,19 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         }
 
         // Out parameter?
-        if (originalLocation is {} originalLocationValue)
+        if (originalLocation is { } originalLocationValue)
         {
             var originalLocationType = context.ReverseTypes[originalLocationValue.TypeId];
             if (originalLocationType is not PointerType originalLocationPointerType)
                 throw new InvalidOperationException($"out parameter is not a l-value, got {originalLocationType} instead");
-            
+
             originalValue = builder.Convert(context, originalValue, originalLocationPointerType.BaseType);
             builder.Insert(new OpStore(originalLocationValue.Id, originalValue.Id, null, []));
         }
 
         return new();
     }
-    
+
     public static SpirvValue CompileMemoryBarrierCall(SpirvContext context, SpirvBuilder builder, FunctionType functionType, Specification.MemorySemanticsMask memorySemanticsMask)
     {
         builder.Insert(new OpMemoryBarrier(context.CompileConstant((int)Specification.Scope.Device).Id, context.CompileConstant((int)memorySemanticsMask).Id));
@@ -487,7 +487,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         builder.Insert(new OpControlBarrier((int)Specification.Scope.Workgroup, context.CompileConstant((int)Specification.Scope.Device).Id, context.CompileConstant((int)memorySemanticsMask).Id));
         return new();
     }
-    
+
     public static SpirvValue CompileBoolToScalarBoolCall(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, Specification.Op op)
     {
         // We handle matrix specifically in this case (auto loop doesn't work since it's not per item)
@@ -506,9 +506,9 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
                 vectorBools[i] = instruction2.ResultId;
             }
 
-            x = new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(new VectorType(ScalarType.Boolean, m.Columns)), context.Bound++, [..vectorBools])));
+            x = new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(new VectorType(ScalarType.Boolean, m.Columns)), context.Bound++, [.. vectorBools])));
         }
-        
+
         var parameterType = context.ReverseTypes[x.TypeId].WithElementType(ScalarType.Boolean);
         x = builder.Convert(context, x, parameterType);
 

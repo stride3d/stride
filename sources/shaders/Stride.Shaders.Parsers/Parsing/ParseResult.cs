@@ -14,25 +14,25 @@ public record struct ParseError(string Message, ErrorLocation Location, ReadOnly
         var pos = Location.Position;
         if (pos >= Code.Span.Length)
             return [];
-        if(operators.Contains(Code.Span[pos]))
+        if (operators.Contains(Code.Span[pos]))
         {
-            while(operators.Contains(Code.Span[pos]))
+            while (operators.Contains(Code.Span[pos]))
                 pos++;
             return Code.Span[Location.Position..pos];
         }
-        else if(char.IsDigit(Code.Span[pos]))
+        else if (char.IsDigit(Code.Span[pos]))
         {
-            while(char.IsDigit(Code.Span[pos]))
+            while (char.IsDigit(Code.Span[pos]))
                 pos++;
             return Code.Span[Location.Position..pos];
         }
-        else if(char.IsLetter(Code.Span[pos]) || Code.Span[pos] == '_' )
+        else if (char.IsLetter(Code.Span[pos]) || Code.Span[pos] == '_')
         {
-            while(char.IsLetterOrDigit(Code.Span[pos]) || Code.Span[pos] == '_')
+            while (char.IsLetterOrDigit(Code.Span[pos]) || Code.Span[pos] == '_')
                 pos++;
             return Code.Span[Location.Position..pos];
         }
-        else return Code.Span[Location.Position..(Location.Position+1)];
+        else return Code.Span[Location.Position..(Location.Position + 1)];
     }
     public override readonly string ToString()
     {

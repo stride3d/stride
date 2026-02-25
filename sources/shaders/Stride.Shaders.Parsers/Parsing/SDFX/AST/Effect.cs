@@ -81,7 +81,7 @@ public partial class UsingParams(Expression name, TextLocation info) : EffectSta
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, _) = compiler;
-        
+
         var paramsName = ParamsName.Compile(table, compiler);
         builder.Insert(new OpParamsUseSDFX(paramsName.Id));
     }
@@ -119,7 +119,7 @@ public enum MixinStatementType
     /// The compose mixin used to add a composition (using +=).
     /// </summary>
     ComposeAdd,
-    
+
     /// <summary>
     /// The child mixin used to specify a children shader.
     /// </summary>
@@ -129,7 +129,7 @@ public enum MixinStatementType
     /// The clone mixin to clone the current mixins where the clone is emitted.
     /// </summary>
     Clone,
-    
+
     /// <summary>
     /// The remove mixin to remove a mixin from current mixins.
     /// </summary>
@@ -139,8 +139,8 @@ public enum MixinStatementType
     /// The macro mixin to declare a variable to be exposed in the mixin
     /// </summary>
     Macro,
-    
-    
+
+
 }
 
 public partial class Mixin(Specification.MixinKindSDFX kind, Identifier? target, Expression value, TextLocation info) : Statement(info)

@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 [assembly: DisableRuntimeMarshalling]
 
 namespace Stride.Shaders.Compilers.Direct3D;
+
 public enum ShaderStage
 {
     DXIL_SPIRV_SHADER_NONE = -1,
@@ -109,7 +110,8 @@ public unsafe struct DXILSpirvLogger
     public nint log;
 }
 
-public unsafe struct DXILSpirvObject {
+public unsafe struct DXILSpirvObject
+{
     // Some sysval or other type of data is accessed which needs to be piped
     // from the app/API implementation into the shader via a buffer
     public bool metadata_requires_runtime_data;
@@ -120,7 +122,7 @@ public unsafe struct DXILSpirvObject {
     // complex.
     public bool metadata_needs_draw_sysvals;
 
-    public void *buffer;
+    public void* buffer;
     public nint size;
 }
 public unsafe struct Specialization
@@ -130,17 +132,18 @@ public unsafe struct Specialization
     bool defined_on_module;
 }
 
-public enum ValidatorVersion {
-   NO_DXIL_VALIDATION,
-   DXIL_VALIDATOR_1_0 = 0x10000,
-   DXIL_VALIDATOR_1_1,
-   DXIL_VALIDATOR_1_2,
-   DXIL_VALIDATOR_1_3,
-   DXIL_VALIDATOR_1_4,
-   DXIL_VALIDATOR_1_5,
-   DXIL_VALIDATOR_1_6,
-   DXIL_VALIDATOR_1_7,
-   DXIL_VALIDATOR_1_8,
+public enum ValidatorVersion
+{
+    NO_DXIL_VALIDATION,
+    DXIL_VALIDATOR_1_0 = 0x10000,
+    DXIL_VALIDATOR_1_1,
+    DXIL_VALIDATOR_1_2,
+    DXIL_VALIDATOR_1_3,
+    DXIL_VALIDATOR_1_4,
+    DXIL_VALIDATOR_1_5,
+    DXIL_VALIDATOR_1_6,
+    DXIL_VALIDATOR_1_7,
+    DXIL_VALIDATOR_1_8,
 };
 
 public static partial class Spv2DXIL

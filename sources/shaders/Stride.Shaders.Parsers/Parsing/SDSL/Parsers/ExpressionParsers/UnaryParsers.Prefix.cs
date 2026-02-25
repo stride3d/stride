@@ -15,9 +15,9 @@ public record struct PrefixParser : IParser<Expression>
         where TScanner : struct, IScanner
     {
         return Parsers.Alternatives(
-            ref scanner, 
-            result, 
-            out parsed, 
+            ref scanner,
+            result,
+            out parsed,
             orError,
             PrefixIncrement,
             Signed,
@@ -65,7 +65,7 @@ public record struct PrefixParser : IParser<Expression>
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
-    
+
     public static bool PrefixIncrement<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {

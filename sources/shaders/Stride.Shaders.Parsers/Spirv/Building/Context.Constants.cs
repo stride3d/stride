@@ -146,7 +146,7 @@ public partial class SpirvContext
                 default:
                     throw new NotImplementedException();
             }
-            
+
             if (simplifyInBuffer)
             {
                 if (value is int valueI)
@@ -259,7 +259,7 @@ public partial class SpirvContext
         var value = CompileConstantLiteral(literal);
         if (size == 1)
             return value;
-        
+
         var type = new VectorType((ScalarType)ReverseTypes[value.TypeId], size);
         return CreateConstantCompositeRepeat(type, value, size);
     }
@@ -269,7 +269,7 @@ public partial class SpirvContext
         Span<int> values = stackalloc int[size];
         for (int i = 0; i < size; ++i)
             values[i] = value.Id;
-        
+
         return new(Buffer.AddData(new OpConstantComposite(GetOrRegister(type), Bound++, new(values))));
     }
 

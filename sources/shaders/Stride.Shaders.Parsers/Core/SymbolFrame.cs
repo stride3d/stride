@@ -25,7 +25,7 @@ public class SymbolFrame
             if (existingSymbol.Type is FunctionType)
                 existingSymbol = new Symbol(new(name, SymbolKind.MethodGroup, IsStage: existingSymbol.Id.IsStage), new FunctionGroupType(), 0, GroupMembers: [existingSymbol]);
 
-            existingSymbol = existingSymbol with { GroupMembers =  existingSymbol.GroupMembers.Add(symbol) };
+            existingSymbol = existingSymbol with { GroupMembers = existingSymbol.GroupMembers.Add(symbol) };
             symbols[name] = existingSymbol;
         }
         else

@@ -29,7 +29,7 @@
 //         }
 //         while(enumerator.Current.OpCode != Op.OpLabel)
 //             enumerator.MoveNext();
-        
+
 //         tmp.Insert(tmp.Length, enumerator.Current.Words);
 
 //         foreach (var i in function)

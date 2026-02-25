@@ -5,8 +5,8 @@ namespace Stride.Shaders.Spirv.Core;
 
 public struct PairLiteralIntegerIdRef : ISpirvElement, IFromSpirv<PairLiteralIntegerIdRef>
 {
-    public readonly int Item1{ get => Memory.Span[0]; set => Memory.Span[0] = value; }
-    public readonly int Item2{ get => Memory.Span[1]; set => Memory.Span[1] = value; }   
+    public readonly int Item1 { get => Memory.Span[0]; set => Memory.Span[0] = value; }
+    public readonly int Item2 { get => Memory.Span[1]; set => Memory.Span[1] = value; }
     public readonly int WordCount => 2;
     MemoryOwner<int> Memory { get; set; }
     public readonly ReadOnlySpan<int> Words => Memory.Span;

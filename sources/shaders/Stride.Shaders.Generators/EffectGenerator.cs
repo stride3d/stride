@@ -14,14 +14,14 @@ public class EffectGenerator : IIncrementalGenerator
             context
                 .AdditionalTextsProvider
                 .Where(x => Path.GetExtension(x.Path).ToLowerInvariant() is ".sdfx" or ".sdsl");
-        
+
         context.RegisterSourceOutput(shaderFiles, GenerateShaderKeysAndEffects);
     }
 
     private void GenerateShaderKeysAndEffects(SourceProductionContext arg1, AdditionalText arg2)
     {
         var filename = GetSafeHintName(arg2.Path);
-        
+
         try
         {
             var preprocessedText = MonoGamePreProcessor.Run(arg2.GetText().ToString(), arg2.Path);
@@ -46,7 +46,7 @@ public class EffectGenerator : IIncrementalGenerator
             arg1.AddSource(filename, sb.ToString());
         }
     }
-    
+
     public static string GetSafeHintName(string absolutePath)
     {
         // 1. Get the file name without extension (e.g., "MyConfig")

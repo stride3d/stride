@@ -18,7 +18,7 @@ public class EquatableArrayJsonConverter<T> : JsonConverter<EquatableArray<T>>
     public override EquatableArray<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         var array = JsonSerializer.Deserialize<T[]>(ref reader, options) ?? [];
-        return new EquatableArray<T>([..array]);
+        return new EquatableArray<T>([.. array]);
     }
 
     public override void Write(Utf8JsonWriter writer, EquatableArray<T> value, JsonSerializerOptions options)

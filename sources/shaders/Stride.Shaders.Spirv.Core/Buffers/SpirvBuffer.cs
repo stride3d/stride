@@ -145,7 +145,7 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         result = instruction;
         return this;
     }
-    
+
     public Enumerator GetEnumerator() => new(this);
 
     public struct Enumerator(SpirvBuffer buffer) : IEnumerator<OpDataIndex>

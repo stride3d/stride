@@ -30,15 +30,15 @@ public record struct PrimaryParsers : IParser<Expression>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if(LiteralsParser.Literal(ref scanner, result, out var lit))
+        if (LiteralsParser.Literal(ref scanner, result, out var lit))
         {
             parsed = lit;
             return true;
         }
         else return Parsers.Exit(ref scanner, result, out parsed, position);
     }
-    
-    
+
+
     public static bool Method<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
@@ -97,7 +97,7 @@ public record struct PrimaryParsers : IParser<Expression>
         }
         else return Parsers.Exit(ref scanner, result, out parsed, position);
     }
-    
+
     public static bool IdentifierBase<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {

@@ -86,7 +86,7 @@ public record struct DirectiveMethodCallParser : IParser<Expression>
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0018, scanner[scanner.Position], scanner.Memory));
         }
-        
+
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 }

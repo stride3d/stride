@@ -33,7 +33,7 @@ public record struct DirectiveStatementParsers : IParser<DirectiveStatement>
             parsed = conditional;
             return true;
         }
-        else if(Define(ref scanner, result, out var obj))
+        else if (Define(ref scanner, result, out var obj))
         {
             parsed = obj;
             return true;
@@ -375,7 +375,7 @@ public record struct ObjectDefineDirectiveParser : IParser<ObjectDefineDirective
                 parsed = new(identifier, expression, scanner[position..scanner.Position]);
                 return true;
             }
-            else if(Tokens.EOL(ref scanner, advance: true))
+            else if (Tokens.EOL(ref scanner, advance: true))
             {
                 parsed = new(identifier, null, scanner[position..scanner.Position]);
                 return true;
@@ -415,13 +415,13 @@ public record struct FunctionDefineDirectiveParser : IParser<FunctionDefineDirec
         {
             Parsers.Spaces0(ref scanner, result, out _, onlyWhiteSpace: true);
             var func = new FunctionDefineDirective(identifier, "", new());
-            
+
             if (
-                LiteralsParser.Identifier(ref scanner, result, out var param) 
+                LiteralsParser.Identifier(ref scanner, result, out var param)
                 && Parsers.Spaces0(ref scanner, result, out _, onlyWhiteSpace: true)
             )
                 func.Parameters.Add(param);
-            while(
+            while (
                 Tokens.Char(',', ref scanner, advance: true)
                 && Parsers.Spaces0(ref scanner, result, out _, onlyWhiteSpace: true)
                 && LiteralsParser.Identifier(ref scanner, result, out param)
@@ -429,7 +429,7 @@ public record struct FunctionDefineDirectiveParser : IParser<FunctionDefineDirec
 
             )
                 func.Parameters.Add(param);
-            if(!Tokens.Char(')', ref scanner, advance: true))
+            if (!Tokens.Char(')', ref scanner, advance: true))
             {
                 result.Errors.Add(new(SDSLErrorMessages.SDSL0018, scanner[scanner.Position], scanner.Memory));
                 scanner.Position = position;
@@ -439,10 +439,10 @@ public record struct FunctionDefineDirectiveParser : IParser<FunctionDefineDirec
             else
             {
                 var startPattern = scanner.Position;
-                while(!(scanner.IsEof || Tokens.Char('\n', ref scanner) || Tokens.Literal("\r\n", ref scanner)))
+                while (!(scanner.IsEof || Tokens.Char('\n', ref scanner) || Tokens.Literal("\r\n", ref scanner)))
                     scanner.Advance(1);
                 func.Pattern = scanner.Memory[startPattern..scanner.Position].TrimEnd().TrimStart().ToString();
-                if(!Tokens.Char('\n', ref scanner, advance: true))
+                if (!Tokens.Char('\n', ref scanner, advance: true))
                     Tokens.Literal("\r\n", ref scanner, advance: true);
                 parsed = func;
                 return true;

@@ -9,7 +9,7 @@ public static partial class TypeNameExtensions
 {
     public static SymbolType ToSymbol(this TypeName typeName)
     {
-        if(!typeName.IsArray && typeName.Generics.Count == 0 && SymbolType.TryGetNumeric(typeName.Name, out var result))
+        if (!typeName.IsArray && typeName.Generics.Count == 0 && SymbolType.TryGetNumeric(typeName.Name, out var result))
             return result!;
         else return new UndefinedType(typeName);
     }

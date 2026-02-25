@@ -6,7 +6,7 @@ namespace Stride.Shaders.Spirv.Core;
 /// A SPIR-V value representing the result of an instruction
 /// </summary>
 public struct SpirvValue
-{ 
+{
     /// <param name="id">IdResult of the instruction</param>
     /// <param name="typeId">IdResultType of the instruction</param>
     /// <param name="name">Optional name attached to the value</param>

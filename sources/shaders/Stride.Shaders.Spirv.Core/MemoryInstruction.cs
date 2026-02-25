@@ -84,7 +84,7 @@ public record struct Instruction(Memory<int> Memory)
         return (ResultId == null ? "" : $"%{ResultId} = ") + $"{OpCode} {string.Join(" ", Operands.ToArray().Select(x => x.ToString()))}";
     }
 
-        public int? GetResultId()
+    public int? GetResultId()
     {
         TryGetOperand<IdResult>("resultId", out var resultId);
         return resultId;

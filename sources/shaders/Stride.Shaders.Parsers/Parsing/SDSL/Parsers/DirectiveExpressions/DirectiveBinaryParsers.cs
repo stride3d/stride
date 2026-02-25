@@ -199,7 +199,7 @@ public record struct DirectiveBitwiseOrParser() : IParser<Expression>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        
+
         parsed = null!;
         Parsers.Spaces0(ref scanner, result, out _, onlyWhiteSpace: true);
         if (DirectiveExpressionParser.XOr(ref scanner, result, out var left))
@@ -248,7 +248,7 @@ public record struct DirectiveBitwiseXOrParser() : IParser<Expression>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        
+
         parsed = null!;
         Parsers.Spaces0(ref scanner, result, out _, onlyWhiteSpace: true);
         if (DirectiveExpressionParser.BAnd(ref scanner, result, out var left))
@@ -297,7 +297,7 @@ public record struct DirectiveBitwiseAndParser() : IParser<Expression>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        
+
         parsed = null!;
         Parsers.Spaces0(ref scanner, result, out _, onlyWhiteSpace: true);
         if (DirectiveExpressionParser.Equality(ref scanner, result, out var left))
@@ -349,7 +349,7 @@ public record struct DirectiveEqualityParser() : IParser<Expression>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        
+
         parsed = null!;
         Parsers.Spaces0(ref scanner, result, out _, onlyWhiteSpace: true);
         if (DirectiveExpressionParser.Relation(ref scanner, result, out var left))
@@ -399,7 +399,7 @@ public record struct DirectiveRelationalParser() : IParser<Expression>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        
+
         parsed = null!;
         Parsers.Spaces0(ref scanner, result, out _, onlyWhiteSpace: true);
         if (DirectiveExpressionParser.Shift(ref scanner, result, out var left))
@@ -473,7 +473,7 @@ public record struct DirectiveBitwiseShiftParser() : IParser<Expression>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        
+
         parsed = null!;
         Parsers.Spaces0(ref scanner, result, out _, onlyWhiteSpace: true);
         if (DirectiveExpressionParser.Add(ref scanner, result, out var left))
@@ -523,7 +523,7 @@ public record struct DirectiveAdditionParser() : IParser<Expression>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        
+
         parsed = null!;
         Parsers.Spaces0(ref scanner, result, out _, onlyWhiteSpace: true);
         if (DirectiveExpressionParser.Mul(ref scanner, result, out var left))

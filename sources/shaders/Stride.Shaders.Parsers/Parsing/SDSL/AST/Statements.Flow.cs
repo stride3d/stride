@@ -74,11 +74,11 @@ public partial class ForEach(TypeName typename, Identifier variable, Expression 
             TypeName.ProcessSymbol(table, variableType);
         else
             TypeName.Type = arrayType.BaseType;
-        
+
         // TODO: check conversions
         if (variableType.BaseType != TypeName.Type)
             throw new InvalidOperationException("foreach: collection and variable type not matching");
-        
+
         table.Push();
         var variableSymbol = new Symbol(new(Variable.Name, SymbolKind.Variable), Variable.Type, 0, OwnerType: table.CurrentShader);
         table.CurrentFrame.Add(Variable.Name, variableSymbol);

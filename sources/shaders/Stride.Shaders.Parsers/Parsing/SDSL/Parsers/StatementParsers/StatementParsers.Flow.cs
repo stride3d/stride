@@ -16,7 +16,7 @@ public record struct FlowParsers : IParser<Flow>
             scanner.Position = position;
         if (While(ref scanner, result, out var w, orError))
         {
-            if(hasAttributes)
+            if (hasAttributes)
                 w.Attribute = attribute;
             parsed = w;
             return true;
@@ -28,7 +28,7 @@ public record struct FlowParsers : IParser<Flow>
         }
         else if (For(ref scanner, result, out var f, orError))
         {
-            if(hasAttributes)
+            if (hasAttributes)
                 f.Attribute = attribute;
             parsed = f;
             return true;
@@ -55,7 +55,7 @@ public record struct ForParser : IParser<For>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if(
+        if (
             Tokens.Literal("for", ref scanner, advance: true)
             && Parsers.FollowedBy(ref scanner, Tokens.Char('('), withSpaces: true, advance: true)
         )
@@ -66,32 +66,32 @@ public record struct ForParser : IParser<For>
             Parsers.Spaces0(ref scanner, result, out _);
 
             // Parsing the initialization
-            if(StatementParsers.Expression(ref scanner, result, out init)){}
-            else if(StatementParsers.DeclareOrAssign(ref scanner, result, out init)){}
-            else if(StatementParsers.Empty(ref scanner, result, out init)){}
+            if (StatementParsers.Expression(ref scanner, result, out init)) { }
+            else if (StatementParsers.DeclareOrAssign(ref scanner, result, out init)) { }
+            else if (StatementParsers.Empty(ref scanner, result, out init)) { }
             else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0036, scanner[scanner.Position], scanner.Memory));
 
             Parsers.Spaces0(ref scanner, result, out _);
             // Parsing the condition
 
             if (ExpressionParser.Expression(ref scanner, result, out condition)
-                && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), advance: true)) {}
+                && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), advance: true)) { }
             else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0037, scanner[scanner.Position], scanner.Memory));
-            
+
             Parsers.Spaces0(ref scanner, result, out _);
             // parsing the final expression
-            
+
             var tmpPos = scanner.Position;
 
             if (!Parsers.Repeat(ref scanner, result, AssignOrExpression, out expressions, 0, withSpaces: true, separator: ","))
                 expressions = [new EmptyStatement(scanner[tmpPos..scanner.Position])];
-            if(!Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true))
-                return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0018, scanner[scanner.Position], scanner.Memory));            
+            if (!Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true))
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0018, scanner[scanner.Position], scanner.Memory));
             Parsers.Spaces0(ref scanner, result, out _);
 
             // parsing the block or statement
 
-            if(StatementParsers.Statement(ref scanner, result, out var body))
+            if (StatementParsers.Statement(ref scanner, result, out var body))
             {
                 parsed = new For(init, condition, expressions!, body, scanner[position..scanner.Position]);
                 return true;
@@ -105,7 +105,7 @@ public record struct ForParser : IParser<For>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if(
+        if (
             PostfixParser.Postfix(ref scanner, result, out var variable)
             && Parsers.FollowedByDel(ref scanner, result, LiteralsParser.AssignOperators, out AssignOperator op, withSpaces: true, advance: true)
             && Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression value, withSpaces: true, advance: true)
@@ -118,7 +118,7 @@ public record struct ForParser : IParser<For>
             return true;
         }
         scanner.Position = position;
-        if(ExpressionParser.Expression(ref scanner, result, out var expression))
+        if (ExpressionParser.Expression(ref scanner, result, out var expression))
         {
             parsed = new ExpressionStatement(expression, scanner[position..scanner.Position]);
             return true;

@@ -20,13 +20,13 @@ public static class Tokens
     public static bool Set<TScanner>(string set, ref TScanner scanner, bool advance = false)
         where TScanner : struct, IScanner
         => new SetTokenParser(set).Match(ref scanner, advance);
-    
+
     public static bool Set<TScanner>(string set, ref TScanner scanner, out char chosen, bool advance = false)
         where TScanner : struct, IScanner
     {
         chosen = '\0';
-        foreach(var c in set)
-            if(Char(c, ref scanner, advance: advance))
+        foreach (var c in set)
+            if (Char(c, ref scanner, advance: advance))
             {
                 chosen = c;
                 return true;
@@ -41,8 +41,8 @@ public static class Tokens
         where TScanner : struct, IScanner
     {
         matched = null!;
-        foreach(var l in literals)
-            if(new LiteralTokenParser(l).Match(ref scanner, advance))
+        foreach (var l in literals)
+            if (new LiteralTokenParser(l).Match(ref scanner, advance))
             {
                 matched = l;
                 return true;
@@ -72,7 +72,7 @@ public static class Tokens
         => new EOFTokenParser().Match(ref scanner, false);
 
 
-    
+
     public static bool FloatSuffix<TScanner>(ref TScanner scanner, out Suffix? suffix, bool advance = false)
         where TScanner : struct, IScanner
     {
@@ -122,7 +122,7 @@ public record struct CharTokenParser(char Character) : IToken
     {
         if (scanner.Peek() == Character)
         {
-            if(advance)
+            if (advance)
                 scanner.Advance(1);
             return true;
         }
@@ -141,7 +141,7 @@ public struct DigitRange
     public DigitRange(Range range)
     {
         var (o, l) = range.GetOffsetAndLength(allChars.Length);
-        Chars = allChars[o..Math.Min(allChars.Length,o+l+1)];
+        Chars = allChars[o..Math.Min(allChars.Length, o + l + 1)];
     }
     public DigitRange(int digit)
     {
@@ -149,8 +149,8 @@ public struct DigitRange
     }
     public DigitRange(string chars)
     {
-        foreach(var e in chars)
-            if(!char.IsDigit(e))
+        foreach (var e in chars)
+            if (!char.IsDigit(e))
                 throw new ArgumentException($"Cannot use {chars} as a list of digit");
         Chars = chars;
     }

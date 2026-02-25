@@ -47,7 +47,7 @@ public partial class SpirvBuilder
         context.AddName(p, name);
         var value = new SpirvValue(p.ResultId, p.ResultType, name);
         CurrentFunction!.Value.Parameters.Add(name, value);
-        return value; 
+        return value;
     }
 
     public static OpFunctionParameter GetFunctionParameter(SpirvBuffer buffer, Symbol method, int functionParameterIndex)
@@ -58,7 +58,7 @@ public partial class SpirvBuilder
         for (int index = start; index < end; ++index)
         {
             var i = buffer[index];
-            if (i.Op == Op.OpFunctionParameter && functionParameterCurrent++ == functionParameterIndex && (OpFunctionParameter)i is {} functionParameter)
+            if (i.Op == Op.OpFunctionParameter && functionParameterCurrent++ == functionParameterIndex && (OpFunctionParameter)i is { } functionParameter)
             {
                 return functionParameter;
             }
@@ -66,12 +66,12 @@ public partial class SpirvBuilder
 
         throw new InvalidOperationException();
     }
-    
+
     public static void FunctionRemoveParameter(SpirvContext context, SpirvBuffer buffer, Symbol method, int argIndex)
     {
         var methodType = (FunctionType)method.Type;
         method.Type = methodType with { ParameterTypes = methodType.ParameterTypes[0..^1] };
-        
+
         // Find OpFunctionParameter and remove it
         var functionParameter = GetFunctionParameter(buffer, method, argIndex);
         SetOpNop(functionParameter.InstructionMemory.Span);
@@ -83,12 +83,12 @@ public partial class SpirvBuilder
         var parameterTypes = new List<FunctionParameter>(methodType.ParameterTypes);
         parameterTypes[argIndex] = parameterTypes[argIndex] with { Type = newType };
         method.Type = methodType with { ParameterTypes = parameterTypes };
-        
+
         // Find OpFunctionParameter and remove it
         var functionParameter = GetFunctionParameter(buffer, method, argIndex);
         functionParameter.ResultType = context.GetOrRegister(newType);
     }
-    
+
     public static (int Start, int End) FindMethodBounds(SpirvBuffer buffer, int functionId)
     {
         int? start = null;

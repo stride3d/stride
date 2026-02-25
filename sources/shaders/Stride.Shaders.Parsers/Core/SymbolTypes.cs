@@ -25,7 +25,7 @@ public abstract record SymbolType()
     /// </summary>
     /// <returns></returns>
     public virtual string ToId() => ToString();
-    
+
     public static bool TryGetNumeric(string name, [MaybeNullWhen(false)] out SymbolType result)
     {
         if (ScalarType.Types.TryGetValue(name, out var s))
@@ -83,7 +83,7 @@ public abstract record SymbolType()
             "Texture2DMS" => new Texture2DType(ResolveScalarType(templateTypeName)) { Multisampled = true },
             "Texture3D" => new Texture3DType(ResolveScalarType(templateTypeName)),
             "TextureCube" => new TextureCubeType(ResolveScalarType(templateTypeName)),
-            
+
             "Texture1DArray" => new Texture1DType(ResolveScalarType(templateTypeName)) { Arrayed = true },
             "Texture2DArray" => new Texture2DType(ResolveScalarType(templateTypeName)) { Arrayed = true },
             "Texture2DMSArray" => new Texture2DType(ResolveScalarType(templateTypeName)) { Multisampled = true, Arrayed = true },
@@ -96,7 +96,7 @@ public abstract record SymbolType()
 
             "RWTexture1DArray" => new Texture1DType(ResolveScalarType(templateTypeName)) { Sampled = 2, Arrayed = true },
             "RWTexture2DArray" => new Texture2DType(ResolveScalarType(templateTypeName)) { Sampled = 2, Arrayed = true },
-            
+
             _ => null,
         };
 
@@ -138,7 +138,7 @@ public abstract record SymbolType()
             var t when t == typeof(System.Numerics.Matrix4x4) => MatrixType.From("float4x4"),
 
             _ => throw new NotSupportedException($"Type '{typeof(T)}' is not supported as a SymbolType."),
-        };  
+        };
     }
 }
 
@@ -447,7 +447,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
 
         if (symbol.Type is FunctionGroupType)
             throw new InvalidOperationException($"Can't import symbol for {nameof(FunctionGroupType)}");
-        
+
         if (symbol.Type is FunctionType)
         {
             var methods = CollectionsMarshal.AsSpan(symbol.OwnerType.Methods);
@@ -490,7 +490,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
                         symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
                     return symbol;
                 }
-                
+
                 if (c.Symbol.Type is PointerType { StorageClass: Specification.StorageClass.Uniform } p && p.BaseType is ConstantBufferSymbol cb)
                 {
                     for (int index = 0; index < cb.Members.Count; index++)
@@ -507,7 +507,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
                                 var shaderId = context.GetOrRegister(symbol.OwnerType);
                                 context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
                             }
-                            
+
                             symbol.IdRef = c.Symbol.IdRef;
                             if (!isCurrentShader)
                                 symbol = symbol with { MemberAccessWithImplicitThis = c.Symbol.Type };
@@ -518,10 +518,10 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
                 }
             }
         }
-        
+
         throw new InvalidOperationException($"Symbol {symbol} could not be imported because it was not found in its owner type {symbol.OwnerType}");
     }
-    
+
     /// <summary>
     /// Try to resolve a symbol in shader or inherited shader. If <see cref="importContext"/> is null, you can use this method without importing type or symbol in a context (useful for type evaluation).
     /// </summary>
@@ -577,7 +577,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
                 return true;
             }
         }
-        
+
         var variables = CollectionsMarshal.AsSpan(Variables);
         foreach (ref var c in variables)
         {

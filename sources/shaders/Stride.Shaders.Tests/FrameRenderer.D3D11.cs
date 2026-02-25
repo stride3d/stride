@@ -98,7 +98,7 @@ float4 main(vs_out input) : SV_TARGET {
     ];
 
     public EffectReflection EffectReflection { get; set; }
-    
+
     public unsafe ComPtr<ID3D10Blob> CompileShader(string shaderModel, string source)
     {
         ComPtr<ID3D10Blob> code = default;
@@ -256,7 +256,7 @@ float4 main(vs_out input) : SV_TARGET {
     public unsafe void Compute()
     {
         ComPtr<ID3D10Blob> computeCode = CompileShader("cs_5_0", ComputeShaderSource);
-            
+
         // Create vertex shader.
         SilkMarshal.ThrowHResult
         (
@@ -270,7 +270,7 @@ float4 main(vs_out input) : SV_TARGET {
         );
 
         deviceContext.CSSetShader(computeShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
-            
+
         ApplyParameters();
 
         deviceContext.Dispatch(32, 32, 1);
@@ -297,7 +297,7 @@ float4 main(vs_out input) : SV_TARGET {
                 ref vertexShader
             )
         );
-        
+
         // Create geometry shader.
         if (geometryCode.Handle != null)
         {
@@ -324,7 +324,7 @@ float4 main(vs_out input) : SV_TARGET {
                 ref pixelShader
             )
         );
-            
+
         // Describe the layout of the input data for the shader.
         fixed (byte* pos = SilkMarshal.StringToMemory("POSITION"))
         fixed (byte* texcoord = SilkMarshal.StringToMemory("TEXCOORD"))
@@ -416,7 +416,7 @@ float4 main(vs_out input) : SV_TARGET {
                     )
                 );
         }
-            
+
         ComPtr<ID3D11Texture2D> renderTexture = default;
         ComPtr<ID3D11Texture2D> renderTextureStaging = default;
 
@@ -484,10 +484,10 @@ float4 main(vs_out input) : SV_TARGET {
         deviceContext.PSSetShader(pixelShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
 
         ApplyParameters();
-            
+
         // Draw the quad.
         deviceContext.DrawIndexed(6, 0, 0);
-        
+
         deviceContext.CopyResource(renderTextureStaging, renderTexture);
 
         MappedSubresource mappedResource = default;
@@ -507,7 +507,7 @@ float4 main(vs_out input) : SV_TARGET {
         renderTargetView.Dispose();
 
         framebuffer.Dispose();
-            
+
         vertexCode.Dispose();
         pixelCode.Dispose();
     }

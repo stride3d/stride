@@ -7,8 +7,8 @@ public struct ErrorLocation
     public int Position { get; private set; }
     private int leftOffset;
     private int rightOffset;
-    public int Line { get; private set;}
-    public int Column { get; private set;}
+    public int Line { get; private set; }
+    public int Column { get; private set; }
     public ErrorLocation(Scanner scanner, int position)
     {
         // Getting the line and column at the position given.

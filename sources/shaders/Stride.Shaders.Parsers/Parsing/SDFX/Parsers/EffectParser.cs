@@ -12,7 +12,7 @@ public record struct EffectParser : IParser<ShaderEffect>
         var position = scanner.Position;
 
         var isPartial = Tokens.Literal("partial", ref scanner, advance: true) && SDSL.Parsers.Spaces1(ref scanner, result, out _);
-        if(!isPartial)
+        if (!isPartial)
             scanner.Position = position;
 
         if (Tokens.Literal("effect", ref scanner, advance: true) && SDSL.Parsers.Spaces1(ref scanner, result, out _))

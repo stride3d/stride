@@ -56,7 +56,7 @@ public class ShaderCache : IShaderCache
         if (hash != null)
             loadedShadersByName.Hash = hash.Value;
     }
-    
+
     public bool TryLoadFromCache(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash)
     {
         if (loadedShaders.TryGetValue(name, out var loadedShadersByName)
@@ -75,7 +75,7 @@ public class ShaderCache : IShaderCache
 public interface IExternalShaderLoader
 {
     public IShaderCache Cache { get; }
-    
+
     public bool Exists(string name);
     public bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash);
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache);
@@ -89,14 +89,14 @@ public partial class SpirvContext
     // Used internally by GenericResolverFromInstantiatingBuffer (cache from constant ID to string representation)
     internal IShaderCache GenericCache { get; } = new ShaderCache();
     internal Dictionary<int, string> GenericValueCache { get; } = new();
-    
+
     private int bound = 1;
     public int ResourceGroupBound { get; set; } = 1;
     public ref int Bound => ref bound;
     public Dictionary<SymbolType, int> Types { get; init; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; init; } = [];
     public Dictionary<int, string> Names { get; init; } = [];
-    
+
     public OpDataIndex this[int index] => new(index, Buffer);
 
     public int Count => Buffer.Count;
@@ -117,9 +117,9 @@ public partial class SpirvContext
 
     public void ImportGLSL()
     {
-        foreach(var i in Buffer)
+        foreach (var i in Buffer)
         {
-            if(i.Op == Op.OpExtInstImport && (OpExtInstImport)i is { Name: "GLSL.std.450" })
+            if (i.Op == Op.OpExtInstImport && (OpExtInstImport)i is { Name: "GLSL.std.450" })
             {
                 GLSLSet ??= ((OpExtInstImport)i).ResultId;
                 return;
@@ -165,11 +165,11 @@ public partial class SpirvContext
                 return;
             }
         }
-        
+
         // Not found, create new one
         Buffer.Add(new OpName(target, name));
     }
-    
+
     public void AddMemberName(int target, int accessor, string name)
         => Buffer.AddData(new OpMemberName(target, accessor, name.Replace('.', '_')));
 
@@ -197,7 +197,7 @@ public partial class SpirvContext
     public T Add<T>(in T value)
         where T : struct, IMemoryInstruction, allows ref struct
         => Buffer.Add(value);
-    
+
     public OpData AddData<T>(in T value)
         where T : struct, IMemoryInstruction, allows ref struct
         => Buffer.AddData(value);
@@ -220,7 +220,7 @@ public partial class SpirvContext
 
     public void RemoveNameAndDecorations(HashSet<int> ids)
     {
-        foreach (var i in  Buffer)
+        foreach (var i in Buffer)
         {
             if (i.Op == Op.OpDecorate && ((OpDecorate)i) is { } decorate)
             {
@@ -232,7 +232,7 @@ public partial class SpirvContext
                 if (ids.Contains(decorateString.Target))
                     SpirvBuilder.SetOpNop(i.Data.Memory.Span);
             }
-            else if (i.Op == Op.OpName && (OpName)i is {} nameInstruction)
+            else if (i.Op == Op.OpName && (OpName)i is { } nameInstruction)
             {
                 if (ids.Contains(nameInstruction.Target))
                 {

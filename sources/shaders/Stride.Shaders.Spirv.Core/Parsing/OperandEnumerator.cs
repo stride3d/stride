@@ -25,7 +25,7 @@ public ref struct OperandEnumerator(Instruction instruction)
                 return false;
             return true;
         }
-        else if(oid >= logicalOperands.Count - 1)
+        else if (oid >= logicalOperands.Count - 1)
             return false;
         else
         {

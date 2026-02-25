@@ -30,9 +30,9 @@ public static class Reserved
             "min16uint"
         ];
 
-        foreach(var t in types)
+        foreach (var t in types)
         {
-            for(int i = 1; i < 5; i ++)
+            for (int i = 1; i < 5; i++)
             {
                 TypeNames.Add($"{t}{i}");
                 for (int j = 1; j < 5; j++)

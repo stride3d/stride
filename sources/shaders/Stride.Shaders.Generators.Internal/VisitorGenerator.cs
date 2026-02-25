@@ -40,7 +40,7 @@ namespace Stride.Shaders.Spirv.Generators
         {
             return type.Name;
         }
-        
+
         private void GenerateVisitorsBase(SourceProductionContext context, Compilation compilation, bool generateRewriter, string visitorName, Func<ITypeSymbol, bool> isNodeType)
         {
             var classVisitor = new NodeTypeClassFinder(isNodeType);
@@ -90,7 +90,7 @@ namespace Stride.Shaders.Spirv.Generators
                     var memberTypeName = memberType.ToDisplayString();
                     var nodeListElementType = memberType.AllInterfaces.FirstOrDefault(x => x.IsGenericType && x.ConstructUnboundGenericType().ToDisplayString() == ilistName && isNodeType(x.TypeArguments[0]))?.TypeArguments[0];
                     var isNode = isNodeType(memberType);
-                    var hasNullableAnnoation = memberType.NullableAnnotation; 
+                    var hasNullableAnnoation = memberType.NullableAnnotation;
                     if (isNode)
                     {
                         if (memberType.NullableAnnotation == NullableAnnotation.Annotated)
@@ -109,7 +109,7 @@ namespace Stride.Shaders.Spirv.Generators
             }
 
             sb.AppendLine("    }");
-            
+
             if (generateRewriter)
             {
                 sb.AppendLine($"    public partial class {visitorName}Visitor<TResult>");
@@ -119,7 +119,7 @@ namespace Stride.Shaders.Spirv.Generators
                     var typeName = type.ToDisplayString();
                     var variableName = GenerateVariableName(type.Name);
                     var genericParameters = type.IsGenericType ? $"<{string.Join(",", type.TypeArguments)}>" : string.Empty;
-                
+
                     if (variableName is "if" or "else" or "continue" or "while" or "return" or "break" or "for")
                     {
                         variableName = "@" + variableName;
@@ -136,7 +136,7 @@ namespace Stride.Shaders.Spirv.Generators
                 }
 
                 sb.AppendLine("    }");
-                
+
                 sb.AppendLine($"    public partial class {visitorName}Rewriter");
                 sb.AppendLine("    {");
                 foreach (var type in symbolTypes)
@@ -191,7 +191,7 @@ namespace Stride.Shaders.Spirv.Generators
 
                 sb.AppendLine("    }");
             }
-            
+
             sb.AppendLine("}");
 
             foreach (var type in symbolTypes)
@@ -320,7 +320,7 @@ namespace Stride.Shaders.Spirv.Generators
 
             return false;
         }
-        
+
         private static IEnumerable<ITypeSymbol> GetBaseTypesAndThis(ITypeSymbol type)
         {
             var current = type;

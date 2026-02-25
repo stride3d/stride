@@ -22,7 +22,7 @@ public static class IntExtensions
     public static int GetWordCount(this string s)
     {
         var length = s.Length + 1; // +1 for the null terminator
-        if(length % 4 == 0)
+        if (length % 4 == 0)
             return length / 4;
         return (length / 4) + 1;
     }

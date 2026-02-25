@@ -63,7 +63,7 @@ public record struct ParameterListParser : IParser<ShaderExpressionList>
                 values.Add(expr);
             else if (LiteralsParser.StringLiteral(ref scanner, result, out var str))
                 values.Add(str);
-            else 
+            else
                 break;
             // else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
         }

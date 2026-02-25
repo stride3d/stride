@@ -17,7 +17,7 @@ public static class Grammar
         var result = new ParseResult();
         if (p.Match(ref scanner, result, out var fnum))
             result.AST = fnum;
-        if(!Tokens.EOF(ref scanner))
+        if (!Tokens.EOF(ref scanner))
             result.Errors.Add(new(SDSLErrorMessages.SDSL0009, scanner[scanner.Position], scanner.Memory));
         return result;
     }
@@ -33,7 +33,7 @@ public static class Grammar
         var result = new ParseResult();
         if (p.Match(ref scanner, result, out var fnum))
             result.AST = fnum;
-        if(!Tokens.EOF(ref scanner))
+        if (!Tokens.EOF(ref scanner))
             result.Errors.Add(new(SDSLErrorMessages.SDSL0009, scanner[scanner.Position], scanner.Memory));
         return result;
     }

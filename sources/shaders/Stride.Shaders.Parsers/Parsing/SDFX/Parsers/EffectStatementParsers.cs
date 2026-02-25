@@ -67,7 +67,7 @@ public record struct EffectStatementParsers : IParser<Statement>
         => new MixinParser().Match(ref scanner, result, out parsed, orError);
     public static bool Flow<TScanner>(ref TScanner scanner, ParseResult result, out Flow parsed, in ParseError? orError = null) where TScanner : struct, IScanner
         => new FlowParsers().Match(ref scanner, result, out parsed, orError);
-    
+
     public static bool EffectBlock<TScanner>(ref TScanner scanner, ParseResult result, out BlockStatement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -91,7 +91,7 @@ public record struct EffectStatementParsers : IParser<Statement>
         var position = scanner.Position;
         if (
             Tokens.AnyOf(["ShaderSourceCollection ", "ShaderSource ", "var "], ref scanner, out _)
-            && SDSL.Parsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typename, out var name,out var value)
+            && SDSL.Parsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typename, out var name, out var value)
             && SDSL.Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
         )
         {
@@ -147,7 +147,7 @@ public record struct MixinParser : IParser<Mixin>
                 && SDSL.Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true))
             {
                 if (mixinType is Specification.MixinKindSDFX.ComposeSet or Specification.MixinKindSDFX.Child or Specification.MixinKindSDFX.Macro
-                    && statement is Assign { Variables: [{ Value: {} value, Variable: Identifier variable }] } assign)
+                    && statement is Assign { Variables: [{ Value: { } value, Variable: Identifier variable }] } assign)
                 {
                     if (assign.Variables[0].Operator == AssignOperator.Plus && mixinType == Specification.MixinKindSDFX.ComposeSet)
                         mixinType = Specification.MixinKindSDFX.ComposeAdd;
@@ -166,12 +166,12 @@ public record struct MixinParser : IParser<Mixin>
         }
         return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
-    
+
     internal static bool AssignOrExpression<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if(
+        if (
             PostfixParser.Postfix(ref scanner, result, out var variable)
             && SDSL.Parsers.FollowedByDel(ref scanner, result, LiteralsParser.AssignOperators, out AssignOperator op, withSpaces: true, advance: true)
             && SDSL.Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression value, withSpaces: true, advance: true)
@@ -184,7 +184,7 @@ public record struct MixinParser : IParser<Mixin>
             return true;
         }
         scanner.Position = position;
-        if(ExpressionParser.Expression(ref scanner, result, out var expression))
+        if (ExpressionParser.Expression(ref scanner, result, out var expression))
         {
             parsed = new ExpressionStatement(expression, scanner[position..scanner.Position]);
             return true;

@@ -42,7 +42,7 @@ public partial class ShaderMixer
         public Dictionary<string, ShaderInfo> ShadersByName { get; } = new();
         public Dictionary<(string MethodName, FunctionType FunctionType), int> MethodGroupsByName { get; } = new();
         public Dictionary<int, MethodGroup> MethodGroups { get; } = new();
-        
+
         public Dictionary<int, MixinNode> Compositions { get; } = new();
         public Dictionary<int, MixinNode[]> CompositionArrays { get; } = new();
 

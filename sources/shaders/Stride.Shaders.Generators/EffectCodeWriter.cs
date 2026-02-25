@@ -10,7 +10,7 @@ namespace Stride.Shaders.Parsing.SDFX;
 public class EffectCodeWriter : ShaderWriter
 {
     private const string DefaultNameSpace = "Stride.Rendering";
-    
+
     private readonly List<(string Message, TextLocation Location)> logging = new();
     private Stack<ShaderBlockContext> contextStack = new();
     private Dictionary<BlockStatement, ShaderBlockContext> blockContexts = new();
@@ -18,7 +18,7 @@ public class EffectCodeWriter : ShaderWriter
     private SymbolTable table = new(new()) { ResolveArraySizes = false, ResolveExternalTypes = false };
 
     private bool isProcessingColor = false;
-    
+
     public bool Run(Node node)
     {
         void LogErrors()
@@ -28,7 +28,7 @@ public class EffectCodeWriter : ShaderWriter
                 Write("#error ").WriteLine(reportMessage.ToString());
             }
         }
-        
+
         var blockVisitor = new ShaderBlockVisitor(this);
         blockVisitor.VisitNode(node);
 
@@ -84,7 +84,7 @@ public class EffectCodeWriter : ShaderWriter
         // Register struct in table
         shaderStruct.ProcessSymbol(table, table.Context);
     }
-    
+
     protected void WriteVariableAsParameterKey(bool isSdfx, TypeName typeName, Identifier name, Expression? initialValue, List<ShaderAttribute> attributes)
     {
         isProcessingColor = attributes.OfType<AnyShaderAttribute>().Any(x => x.Name == "Color");
@@ -95,7 +95,7 @@ public class EffectCodeWriter : ShaderWriter
 
         typeName.ProcessSymbol(table);
         var type = typeName.Type;
-        
+
         // ParameterKey shouldn't contain only the underlying type in case of arrays (we use slots)
         var parameterType = type;
 
@@ -106,7 +106,7 @@ public class EffectCodeWriter : ShaderWriter
         }
         else
         {
-            
+
             while (parameterType is ArrayType a)
             {
                 parameterType = a.BaseType;
@@ -242,7 +242,7 @@ public class EffectCodeWriter : ShaderWriter
         if (IsParameterKey(shaderSamplerState))
             WriteVariableAsParameterKey(false, new TypeName("SamplerState", default), shaderSamplerState.Name, null, shaderSamplerState.Attributes ?? []);
     }
-    
+
     public override void VisitBlockStatement(BlockStatement blockStatement)
     {
         contextStack.Push(new ShaderBlockContext());
@@ -261,7 +261,7 @@ public class EffectCodeWriter : ShaderWriter
         if (rootClasses.Count > 0)
         {
             shaderFile.RootDeclarations.RemoveAll(x => x is ShaderClass);
-            
+
             // Make sure all top-level objects without namespace are wrapped inside a namespace
             shaderFile.Namespaces.Add(new ShaderNamespace(default)
             {
@@ -285,7 +285,7 @@ public class EffectCodeWriter : ShaderWriter
         // (otherwise our unit tests are generating too many collisions -- we could revisit that decision later if we allow more than one shader per file in production)
         var lastShaderClass = declarations.OfType<ShaderClass>().LastOrDefault();
         declarations = declarations.Where(x => x is not ShaderClass || x == lastShaderClass).ToList();
-        
+
         foreach (var node in declarations)
         {
             VisitNode(node);
@@ -311,7 +311,7 @@ public class EffectCodeWriter : ShaderWriter
             base.VisitAssign(assign);
         }
     }
-    
+
     public override void VisitAccessorChainExpression(AccessorChainExpression accessorChainExpression)
     {
         if (TryParameters(accessorChainExpression, out var typeTarget, out var typeMember, out var extraPath))
@@ -357,7 +357,7 @@ public class EffectCodeWriter : ShaderWriter
         if (mixinStatementValue is AccessorChainExpression accessorChainExpression && accessorChainExpression.Accessors.Count > 0 && accessorChainExpression.Accessors[^1] is GenericIdentifier genericIdentifier1)
         {
             // Recreate an access chain expression without the generics at the end
-            mixinName = new AccessorChainExpression(accessorChainExpression.Source, accessorChainExpression.Info) { Accessors = [..accessorChainExpression.Accessors[..^1], genericIdentifier1.Name] };
+            mixinName = new AccessorChainExpression(accessorChainExpression.Source, accessorChainExpression.Info) { Accessors = [.. accessorChainExpression.Accessors[..^1], genericIdentifier1.Name] };
             genericParameters = genericIdentifier1.Generics;
         }
         // Pattern like A<Param1, Param2>
@@ -440,130 +440,130 @@ public class EffectCodeWriter : ShaderWriter
         switch (mixinStatement.Kind)
         {
             case Specification.MixinKindSDFX.Default:
-            {
-                ExtractGenericParameters(mixinStatement.Value, out var mixinName, out var genericParameters);
-
-                WriteLinkLine(mixinStatement);
-                Write("context.Mixin(mixin, ");
-                WriteMixinName(mixinName);
-                WriteGenericParameters(genericParameters);
-                WriteLine(");");
-                break;
-            }
-            case Specification.MixinKindSDFX.Child:
-            {
-                // mixin child can come in 2 flavour:
-                // 1) mixin child MyEffect
-                //    => equivalent to 2) with "mixin child MyEffect = MyEffect"
-                // 2) mixin child MyGenericEffectName = MyEffect
-                ExtractGenericParameters(mixinStatement.Value, out var mixinName, out var genericParameters);
-                var childName = mixinStatement.Target ?? (Identifier)mixinStatement.Value;
                 {
-                    WriteLinkLine(mixinStatement);
-                    Write("if (context.ChildEffectName == ");
-                    WriteMixinName(childName);
-                    WriteLine(")");
-                    OpenBrace();
+                    ExtractGenericParameters(mixinStatement.Value, out var mixinName, out var genericParameters);
 
                     WriteLinkLine(mixinStatement);
                     Write("context.Mixin(mixin, ");
                     WriteMixinName(mixinName);
                     WriteGenericParameters(genericParameters);
                     WriteLine(");");
-                    WriteLine("return;");
-
-                    CloseBrace();
+                    break;
                 }
-                break;
-            }
-            case Specification.MixinKindSDFX.Remove:
-            {
-                ExtractGenericParameters(mixinStatement.Value, out var mixinName, out var genericParameters);
-
-                WriteLinkLine(mixinStatement);
-                Write("context.RemoveMixin(mixin, ");
-                WriteMixinName(mixinName);
-                WriteGenericParameters(genericParameters);
-                WriteLine(");");
-                break;
-            }
-            case Specification.MixinKindSDFX.Macro:
-            {
-                WriteLinkLine(mixinStatement);
-                Expression macroName;
-                Expression macroValue;
-
-                if (mixinStatement.Target != null)
+            case Specification.MixinKindSDFX.Child:
                 {
-                    macroName = mixinStatement.Target;
-                    if (macroName is Identifier id)
-                        macroName = new StringLiteral(id.Name, id.Info);
-                    macroValue = mixinStatement.Value;
-                }
-                else
-                {
-                    var variableReference = mixinStatement.Value as AccessorChainExpression;
-                    if (variableReference == null || !(variableReference.Source is Identifier id) || !IsParameterDeclaredInContext(id.Name))
+                    // mixin child can come in 2 flavour:
+                    // 1) mixin child MyEffect
+                    //    => equivalent to 2) with "mixin child MyEffect = MyEffect"
+                    // 2) mixin child MyGenericEffectName = MyEffect
+                    ExtractGenericParameters(mixinStatement.Value, out var mixinName, out var genericParameters);
+                    var childName = mixinStatement.Target ?? (Identifier)mixinStatement.Value;
                     {
-                        logging.Add(("Invalid syntax. Expecting: mixin macro Parameters.NameOfProperty or mixin macro nameOfProperty = value", mixinStatement.Info));
-                        macroName = new StringLiteral("#INVALID_MACRO_NAME", default);
+                        WriteLinkLine(mixinStatement);
+                        Write("if (context.ChildEffectName == ");
+                        WriteMixinName(childName);
+                        WriteLine(")");
+                        OpenBrace();
+
+                        WriteLinkLine(mixinStatement);
+                        Write("context.Mixin(mixin, ");
+                        WriteMixinName(mixinName);
+                        WriteGenericParameters(genericParameters);
+                        WriteLine(");");
+                        WriteLine("return;");
+
+                        CloseBrace();
+                    }
+                    break;
+                }
+            case Specification.MixinKindSDFX.Remove:
+                {
+                    ExtractGenericParameters(mixinStatement.Value, out var mixinName, out var genericParameters);
+
+                    WriteLinkLine(mixinStatement);
+                    Write("context.RemoveMixin(mixin, ");
+                    WriteMixinName(mixinName);
+                    WriteGenericParameters(genericParameters);
+                    WriteLine(");");
+                    break;
+                }
+            case Specification.MixinKindSDFX.Macro:
+                {
+                    WriteLinkLine(mixinStatement);
+                    Expression macroName;
+                    Expression macroValue;
+
+                    if (mixinStatement.Target != null)
+                    {
+                        macroName = mixinStatement.Target;
+                        if (macroName is Identifier id)
+                            macroName = new StringLiteral(id.Name, id.Info);
                         macroValue = mixinStatement.Value;
                     }
                     else
                     {
-                        macroName = new StringLiteral(((Identifier)variableReference.Accessors[0]).Name, variableReference.Accessors[0].Info);
-                        macroValue = mixinStatement.Value;
+                        var variableReference = mixinStatement.Value as AccessorChainExpression;
+                        if (variableReference == null || !(variableReference.Source is Identifier id) || !IsParameterDeclaredInContext(id.Name))
+                        {
+                            logging.Add(("Invalid syntax. Expecting: mixin macro Parameters.NameOfProperty or mixin macro nameOfProperty = value", mixinStatement.Info));
+                            macroName = new StringLiteral("#INVALID_MACRO_NAME", default);
+                            macroValue = mixinStatement.Value;
+                        }
+                        else
+                        {
+                            macroName = new StringLiteral(((Identifier)variableReference.Accessors[0]).Name, variableReference.Accessors[0].Info);
+                            macroValue = mixinStatement.Value;
+                        }
                     }
-                }
 
-                Write("mixin.AddMacro(");
-                VisitNode(macroName);
-                Write(", ");
-                VisitNode(macroValue);
-                WriteLine(");");
-                break;
-            }
+                    Write("mixin.AddMacro(");
+                    VisitNode(macroName);
+                    Write(", ");
+                    VisitNode(macroValue);
+                    WriteLine(");");
+                    break;
+                }
             case Specification.MixinKindSDFX.ComposeSet:
             case Specification.MixinKindSDFX.ComposeAdd:
-            {
-                if (mixinStatement.Target == null)
                 {
-                    logging.Add(("Expecting assign expression for composition", mixinStatement.Value.Info));
-                    return;
+                    if (mixinStatement.Target == null)
+                    {
+                        logging.Add(("Expecting assign expression for composition", mixinStatement.Value.Info));
+                        return;
+                    }
+
+                    var addCompositionFunction = "PushComposition";
+
+                    // If it's a +=, let's create or complete a ShaderArraySource
+                    if (mixinStatement.Kind == Specification.MixinKindSDFX.ComposeAdd)
+                    {
+                        addCompositionFunction = "PushCompositionArray";
+                    }
+
+                    ExtractGenericParameters(mixinStatement.Value, out var mixinName, out var genericParameters);
+
+                    OpenBrace();
+                    WriteLinkLine(mixinStatement);
+                    Write("var __mixinToCompose__ = ");
+                    WriteMixinName(mixinName);
+                    WriteLine(";");
+                    WriteLine("var __subMixin = new ShaderMixinSource();");
+
+                    WriteLinkLine(mixinStatement);
+                    Write("context.").Write(addCompositionFunction).Write("(mixin, ");
+                    WriteStringOrExpression(mixinStatement.Target);
+                    WriteLine(", __subMixin);");
+
+                    WriteLinkLine(mixinStatement);
+                    Write("context.Mixin(__subMixin, __mixinToCompose__");
+                    WriteGenericParameters(genericParameters);
+                    WriteLine(");");
+
+                    WriteLinkLine(mixinStatement);
+                    WriteLine("context.PopComposition();");
+                    CloseBrace();
+                    break;
                 }
-
-                var addCompositionFunction = "PushComposition";
-
-                // If it's a +=, let's create or complete a ShaderArraySource
-                if (mixinStatement.Kind == Specification.MixinKindSDFX.ComposeAdd)
-                {
-                    addCompositionFunction = "PushCompositionArray";
-                }
-
-                ExtractGenericParameters(mixinStatement.Value, out var mixinName, out var genericParameters);
-
-                OpenBrace();
-                WriteLinkLine(mixinStatement);
-                Write("var __mixinToCompose__ = ");
-                WriteMixinName(mixinName);
-                WriteLine(";");
-                WriteLine("var __subMixin = new ShaderMixinSource();");
-
-                WriteLinkLine(mixinStatement);
-                Write("context.").Write(addCompositionFunction).Write("(mixin, ");
-                WriteStringOrExpression(mixinStatement.Target);
-                WriteLine(", __subMixin);");
-
-                WriteLinkLine(mixinStatement);
-                Write("context.Mixin(__subMixin, __mixinToCompose__");
-                WriteGenericParameters(genericParameters);
-                WriteLine(");");
-
-                WriteLinkLine(mixinStatement);
-                WriteLine("context.PopComposition();");
-                CloseBrace();
-                break;
-            }
         }
     }
 
@@ -610,7 +610,7 @@ public class EffectCodeWriter : ShaderWriter
     public override void VisitShaderClass(ShaderClass shaderClass)
     {
         table.Push();
-        
+
         // Process generic symbols (might be used in type arrays)
         if (shaderClass.Generics != null)
         {
@@ -667,7 +667,7 @@ public class EffectCodeWriter : ShaderWriter
             CloseBrace(false).WriteLine();
         }
     }
-    
+
     internal bool IsParameterKey(ShaderElement element)
     {
         if (element is ShaderMember member)
@@ -726,7 +726,7 @@ public class EffectCodeWriter : ShaderWriter
         {
             HasMixin = true;
         }
-        
+
         public override void VisitShaderClass(ShaderClass shaderClassType)
         {
             // Check if there are any parameter keys in ShaderClassType and ConstantBuffer

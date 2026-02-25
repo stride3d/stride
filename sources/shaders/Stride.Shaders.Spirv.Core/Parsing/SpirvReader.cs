@@ -23,7 +23,7 @@ public readonly ref struct SpirvReader(Span<int> words)
 
         public bool MoveNext()
         {
-            if(wid == 0 && words[0] == Specification.MagicNumber)
+            if (wid == 0 && words[0] == Specification.MagicNumber)
             {
                 wid = 5;
                 return true;

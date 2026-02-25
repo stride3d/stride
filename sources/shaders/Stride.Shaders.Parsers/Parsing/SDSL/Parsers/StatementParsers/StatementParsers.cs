@@ -156,7 +156,7 @@ public record struct ReturnStatementParser : IParser<Statement>
                 return true;
             }
             else if (
-                Parsers.FollowedByDel(ref scanner, result, PrimaryParsers.Parenthesis, out Expression p, advance : true)
+                Parsers.FollowedByDel(ref scanner, result, PrimaryParsers.Parenthesis, out Expression p, advance: true)
                 && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)
             )
             {

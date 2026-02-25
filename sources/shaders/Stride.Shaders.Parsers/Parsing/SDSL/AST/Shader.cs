@@ -158,7 +158,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                     fields.Add(new(name, type, TypeModifier.None));
                 }
                 StructuredType structType = (blocks.Contains(typeStructInstruction.ResultId))
-                    ? structName switch 
+                    ? structName switch
                     {
                         var s when s.StartsWith("type.StructuredBuffer.") => new StructuredBufferType(fields[0].Type),
                         var s when s.StartsWith("type.RWStructuredBuffer.") => new StructuredBufferType(fields[0].Type, true),
@@ -313,7 +313,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         var methods = new List<(Symbol Symbol, FunctionFlagsMask Flags)>();
         var methodsDefaultParameters = new Dictionary<int, MethodSymbolDefaultParameters>();
         var structTypes = new List<(StructuredType Type, int ImportedId)>();
-        
+
         // Build full inheritance list
         List<ShaderClassInstantiation> inheritanceList = new();
         SpirvBuilder.BuildInheritanceListWithoutSelf(table.ShaderLoader, context, classSource, table.CurrentMacros.AsSpan(), shaderBuffers.Context, inheritanceList, ResolveStep.Compile);
@@ -338,18 +338,18 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 structTypes.Add(((StructuredType)shaderBuffers.Context.ReverseTypes[typeStructInstruction.ResultId], -1));
             }
             else if (i.Op == Op.OpDecorate && (OpDecorate)i is
-                {
-                    Decoration: Decoration.FunctionParameterDefaultValueSDSL,
-                    Target: var target,
-                } decorateFunctionParameters)
+            {
+                Decoration: Decoration.FunctionParameterDefaultValueSDSL,
+                Target: var target,
+            } decorateFunctionParameters)
             {
                 methodsDefaultParameters.Add(target, new(shaderBuffers.Context, decorateFunctionParameters.DecorationParameters.Span.ToArray()));
             }
             else if (i.Op == Op.OpDecorate && (OpDecorate)i is
-                 {
-                     Decoration: Decoration.ShaderConstantSDSL,
-                     Target: var target2,
-                 } decorateShaderConstant)
+            {
+                Decoration: Decoration.ShaderConstantSDSL,
+                Target: var target2,
+            } decorateShaderConstant)
             {
                 if (!shaderBuffers.Context.GetBuffer().TryGetInstructionById(target2, out var typeInstruction))
                     throw new InvalidOperationException();
@@ -358,7 +358,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 variables.Add((symbol, VariableFlagsMask.None));
             }
         }
-        
+
         for (var index = 0; index < shaderBuffers.Buffer.Count; index++)
         {
             var instruction = shaderBuffers.Buffer[index];
@@ -403,7 +403,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     {
         table.DeclaredTypes.Add(shaderType.ToClassName(), shaderType);
     }
-    
+
     public void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
@@ -413,7 +413,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         var currentShader = new LoadedShaderSymbol(Name, openGenerics);
         table.Push();
         table.CurrentShader = currentShader;
-        
+
         var hasUnresolvableGenerics = false;
         if (Generics != null)
         {
@@ -536,7 +536,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         genericParameter.TypeName.ProcessSymbol(table);
         var genericParameterType = genericParameter.TypeName.Type;
         table.DeclaredTypes.TryAdd(genericParameterType.ToString(), genericParameterType);
-        
+
         var genericParameterTypeId = context.GetOrRegister(genericParameterType);
         context.Add(new OpSDSLGenericParameter(genericParameterTypeId, context.Bound, index, Name.Name));
         context.AddName(context.Bound, genericParameter.Name);

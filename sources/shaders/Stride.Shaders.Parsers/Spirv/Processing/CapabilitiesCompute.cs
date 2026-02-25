@@ -50,7 +50,7 @@
 //         {
 //             // Add capability Float64
 //         }
-        
+
 //         // TODO : Check if any atomic instructions operates on integers
 //         // else if (instruction.OpCode == Op.OpAtomic && instruction.Words.Span[2] == 64)
 //         // {

@@ -77,7 +77,7 @@ public record struct DirectivePrefixIncrementParser : IParser<Expression>
         }
         else
         {
-            if(orError is not null)
+            if (orError is not null)
                 result.Errors.Add(orError.Value);
             scanner.Position = position;
             parsed = null!;
@@ -111,7 +111,7 @@ public record struct DirectiveNotExpressionParser : IParser<Expression>
                 return false;
             }
         }
-        else 
+        else
         {
             if (orError is not null)
                 result.Errors.Add(orError.Value with { Location = scanner[position] });
@@ -147,7 +147,7 @@ public record struct DirectiveSignExpressionParser : IParser<Expression>
                 return false;
             }
         }
-        else 
+        else
         {
             if (orError is not null)
                 result.Errors.Add(orError.Value with { Location = scanner[position] });

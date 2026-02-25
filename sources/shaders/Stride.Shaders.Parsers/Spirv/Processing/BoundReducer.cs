@@ -27,15 +27,15 @@ public struct BoundReducer() : INanoPass
         var previousId = 0;
         OpData? next = null!;
         var countIds = 0;
-        
+
         foreach (var i in buffer)
             countIds += i.Data.IdResult != null ? 1 : 0;
         while (!finished && previousId < countIds)
         {
             var countAbove = 0;
-            foreach(var i in buffer)
+            foreach (var i in buffer)
             {
-                if(i.Data.IdResult == previousId + 1)
+                if (i.Data.IdResult == previousId + 1)
                 {
                     countAbove += 1;
                     previousId += 1;
@@ -47,7 +47,7 @@ public struct BoundReducer() : INanoPass
                     countAbove += 1;
                     next = i.Data;
                 }
-                else if(next is not null && i.Data.IdResult > previousId + 1 &&  i.Data.IdResult < (next?.IdResult ?? 0))
+                else if (next is not null && i.Data.IdResult > previousId + 1 && i.Data.IdResult < (next?.IdResult ?? 0))
                 {
                     countAbove += 1;
                     next = i.Data;
@@ -55,7 +55,7 @@ public struct BoundReducer() : INanoPass
             }
             if (countAbove == 0)
                 finished = true;
-            else if(next is OpData && (next?.IdResult ?? 0) > previousId + 1)
+            else if (next is OpData && (next?.IdResult ?? 0) > previousId + 1)
             {
                 next?.IdResult = previousId + 1;
                 ReplaceRefs(next?.IdResult ?? -1, previousId + 1, buffer);
@@ -63,7 +63,7 @@ public struct BoundReducer() : INanoPass
         }
 
 
-        
+
     }
     static void ReplaceRefs(int from, int to, SpirvBuffer buffer)
     {

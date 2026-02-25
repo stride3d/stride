@@ -51,7 +51,7 @@ public static class ExpressionExtensions
         Op.OpUGreaterThanEqual,
         Op.OpSGreaterThanEqual,
     };
-    
+
     public static HashSet<Op> KernelSpecConstantOpSupportedOps = new()
     {
         // Note: those are not supported in shaders
@@ -105,7 +105,7 @@ public static class ExpressionExtensions
                 result = new(instruction.Data);
             }
             // Rewrite using OpSpecConstantOp when possible
-            else if(ShaderSpecConstantOpSupportedOps.Contains(i.Op) || KernelSpecConstantOpSupportedOps.Contains(i.Op))
+            else if (ShaderSpecConstantOpSupportedOps.Contains(i.Op) || KernelSpecConstantOpSupportedOps.Contains(i.Op))
             {
                 var resultType = i.Data.Memory.Span[1];
                 var resultId = i.Data.Memory.Span[2];

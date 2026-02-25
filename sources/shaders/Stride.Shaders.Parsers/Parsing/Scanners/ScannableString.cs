@@ -8,7 +8,7 @@ public readonly struct ScannableString(string code) : IScannableCode
     public readonly ReadOnlySpan<char> Span => Code.AsSpan();
     public readonly ReadOnlyMemory<char> Memory => Code.AsMemory();
 
-    public static implicit operator ScannableString(string s) => new (s);
+    public static implicit operator ScannableString(string s) => new(s);
     public static implicit operator string(ScannableString s) => s.Code;
 }
 

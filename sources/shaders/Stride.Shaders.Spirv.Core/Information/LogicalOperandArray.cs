@@ -14,7 +14,7 @@ public readonly struct LogicalOperandArray(string? className, List<LogicalOperan
     List<LogicalOperand> LogicalOperands { get; } = operands ?? [];
 
     public int Count => LogicalOperands.Count;
-    
+
     public LogicalOperand this[int index]
     {
         get => LogicalOperands[index];
@@ -23,7 +23,7 @@ public readonly struct LogicalOperandArray(string? className, List<LogicalOperan
 
     public bool GetResultIndex(out int index)
     {
-        for(int i = 0; i < LogicalOperands.Count; i++)
+        for (int i = 0; i < LogicalOperands.Count; i++)
         {
             var o = LogicalOperands[i];
             if (o.Kind == OperandKind.IdResult)
