@@ -3,6 +3,7 @@
   <PropertyGroup>
     <StrideCommonPreSettingsName>Stride</StrideCommonPreSettingsName>
     <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(Windows))'">Windows</StridePlatforms>
+    <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(OSX))'">macOS</StridePlatforms>
     <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(Linux))'">Linux</StridePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
