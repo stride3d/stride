@@ -293,7 +293,7 @@ namespace Stride.BepuPhysics.Tests
                 while (contactE.Exit == false)
                     await simulation.AfterUpdate();
 
-                Assert.NotEmpty(contactE.ImpactForces.Where(x => x.Length() > 100));
+                Assert.Contains(contactE.ImpactForces, x => x.Length() > 100);
 
                 game.Exit();
             });

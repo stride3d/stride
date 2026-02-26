@@ -38,12 +38,7 @@ public struct Rectangle : IEquatable<Rectangle>, ISpanFormattable
     /// <summary>
     /// An empty rectangle.
     /// </summary>
-    public static readonly Rectangle Empty;
-
-    static Rectangle()
-    {
-        Empty = new Rectangle();
-    }
+    public static readonly Rectangle Empty = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Rectangle"/> struct.

@@ -226,10 +226,6 @@ internal class ShapeCacheSystem : IDisposable, IService
         static void Orthogonalize(ReadOnlySpan<Vector3> source, Span<Vector3> destination)
         {
             // Dump of strides' method to strip the memory alloc, refer to Vector3.Orthogonalize
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
-            if (destination == null)
-                throw new ArgumentNullException(nameof(destination));
             if (destination.Length < source.Length)
                 throw new ArgumentOutOfRangeException(nameof(destination), "The destination array must be of same length or larger length than the source array.");
 

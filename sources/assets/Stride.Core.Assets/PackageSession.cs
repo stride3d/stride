@@ -1601,6 +1601,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             return Equals(obj as PendingPackageUpgrade);
         }
 
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(PackageUpgrader, Dependency, DependencyPackage, DependencyVersionBeforeUpgrade);
+        }
+
         public PendingPackageUpgrade Clone()
         {
             return new PendingPackageUpgrade(PackageUpgrader, Dependency.Clone(), DependencyPackage);

@@ -26,7 +26,6 @@ namespace Stride.Rendering.Compositing
         [DefaultValue(false)]
         public bool IgnoreDevicePosition { get; set; } = false;
 
-        private bool _copyMirror = true;
         /// <summary>
         /// Specifies if VR rendering should be copied to the current render target.
         /// </summary>

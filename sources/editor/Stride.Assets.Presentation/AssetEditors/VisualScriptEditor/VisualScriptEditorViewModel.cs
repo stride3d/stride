@@ -455,7 +455,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
                     foreach (var assembly in GetAssemblies(latestCompilation, cancellationToken)
                         .OrderBy(assembly =>
                         {
-                            if (assembly == latestCompilation.Assembly)
+                            if (SymbolEqualityComparer.Default.Equals(assembly, latestCompilation.Assembly))
                                 return 0;
 
                             if (assembly.Name.Contains("Stride"))
@@ -471,11 +471,11 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 
                         // List types that are either public or part of current assembly
                         foreach (var type in GetAllTypes(assembly, cancellationToken)
-                            .Where(type => type.DeclaredAccessibility != RoslynAccessibility.Private || type.ContainingAssembly == latestCompilation.Assembly))
+                            .Where(type => type.DeclaredAccessibility != RoslynAccessibility.Private || SymbolEqualityComparer.Default.Equals(type.ContainingAssembly, latestCompilation.Assembly)))
                         {
                             // List methods
                             foreach (var method in type.GetMembers().OfType<IMethodSymbol>()
-                                .Where(member => member.DeclaredAccessibility != RoslynAccessibility.Private || type.ContainingAssembly == latestCompilation.Assembly))
+                                .Where(member => member.DeclaredAccessibility != RoslynAccessibility.Private || SymbolEqualityComparer.Default.Equals(type.ContainingAssembly, latestCompilation.Assembly)))
                             {
                                 // Ignore .ctor, property getter/setter, events, etc...
                                 if (method.MethodKind != MethodKind.Ordinary
@@ -522,7 +522,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
                 CancellationToken cancellationToken)
             {
                 var stack = new Stack<IAssemblySymbol>();
-                var processedAssemblies = new HashSet<IAssemblySymbol>();
+                var processedAssemblies = new HashSet<IAssemblySymbol>(SymbolEqualityComparer.Default);
 
                 processedAssemblies.Add(compilation.Assembly);
                 stack.Push(compilation.Assembly);
