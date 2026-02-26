@@ -225,7 +225,7 @@ internal static class EntryPointWrapperGenerator
                                     // Copy back values from semantic/builtin variables to Constants struct
                                     foreach (var stream in patchInputStreams)
                                     {
-                                        var inputPtr = buffer.Add(new OpAccessChain(context.GetOrRegister(stream.Info.Type), context.Bound++, constantVariable, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
+                                        var inputPtr = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Function)), context.Bound++, constantVariable, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
                                         var inputResult = buffer.Add(new OpLoad(context.GetOrRegister(stream.Info.Type), context.Bound++, stream.Id, null, [])).ResultId;
                                         inputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.InterfaceType, stream.Info.Type, inputResult);
                                         buffer.Add(new OpStore(inputPtr, inputResult, null, []));
