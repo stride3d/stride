@@ -31,7 +31,7 @@ public static class ClassFieldExtensions
         var valueParam = Expression.Parameter(typeof(TValue), "value");
         var member = Expression.Field(instanceParam, fieldName);
         var assign = Expression.Assign(member, valueParam);
-        var lambda = Expression.Lambda<Action<TInstance, TValue>>(assign);
+        var lambda = Expression.Lambda<Action<TInstance, TValue>>(assign, instanceParam, valueParam);
 
         return (Action<TInstance, TValue>)lambda.Compile();
     }
@@ -42,7 +42,7 @@ public static class ClassFieldExtensions
         var valueParam = Expression.Parameter(valueType, "value");
         var member = Expression.Field(instanceParam, fieldName);
         var assign = Expression.Assign(member, valueParam);
-        var lambda = Expression.Lambda<Action<object, object>>(assign);
+        var lambda = Expression.Lambda<Action<object, object>>(assign, instanceParam, valueParam);
 
         return (Action<object, object>)lambda.Compile();
     }
