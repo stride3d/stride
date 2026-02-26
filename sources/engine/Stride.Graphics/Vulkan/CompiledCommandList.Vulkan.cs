@@ -11,7 +11,7 @@ namespace Stride.Graphics
         internal CommandList Builder;
         internal VkCommandBuffer NativeCommandBuffer;
         internal List<VkDescriptorPool> DescriptorPools;
-        internal List<Texture> StagingResources;
+        internal List<GraphicsResource> StagingResources;
     }
 }
 #endif
