@@ -186,7 +186,7 @@ namespace Stride.Core.Presentation.Tests
             }
             if (modalWindow != null)
             {
-                Assert.Equal(1, WindowManager.ModalWindows.Count);
+                Assert.Single(WindowManager.ModalWindows);
                 var winInfo = WindowManager.ModalWindows[0];
                 Assert.Equal(modalWindow, winInfo.Window);
                 Assert.True(winInfo.IsModal);
@@ -194,11 +194,11 @@ namespace Stride.Core.Presentation.Tests
             }
             else
             {
-                Assert.Equal(0, WindowManager.ModalWindows.Count);
+                Assert.Empty(WindowManager.ModalWindows);
             }
             if (blockingWindow != null)
             {
-                Assert.Equal(1, WindowManager.BlockingWindows.Count);
+                Assert.Single(WindowManager.BlockingWindows);
                 var winInfo = WindowManager.BlockingWindows[0];
                 Assert.Equal(blockingWindow, winInfo.Window);
                 Assert.False(winInfo.IsModal);
@@ -207,7 +207,7 @@ namespace Stride.Core.Presentation.Tests
             }
             else
             {
-                Assert.Equal(0, WindowManager.BlockingWindows.Count);
+                Assert.Empty(WindowManager.BlockingWindows);
             }
         }
     }

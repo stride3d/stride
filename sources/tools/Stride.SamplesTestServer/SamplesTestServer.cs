@@ -424,12 +424,12 @@ namespace Stride.SamplesTestServer
                 var imageData = new TestResultImage();
                 var stream = new MemoryStream(request.Data);
                 imageData.Read(new BinaryReader(stream));
-                stream.Dispose();
+                await stream.DisposeAsync();
                 // Ensure directory exists
                 Directory.CreateDirectory(Path.GetDirectoryName(request.FileName));
                 var resultFileStream = File.OpenWrite(request.FileName);
                 imageData.Image.Save(resultFileStream, ImageFileType.Png);
-                resultFileStream.Dispose();
+                await resultFileStream.DisposeAsync();
 
                 await tester.TesterSocket.Send(new ScreenshotStored());
             });

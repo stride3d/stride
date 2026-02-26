@@ -32,7 +32,7 @@ namespace Stride.Rendering.Materials
             ShadingModels = new MaterialShadingModelCollection();
 
             ContextPerStage = new Dictionary<MaterialShaderStage, MaterialBlendLayerPerStageContext>();
-            foreach (MaterialShaderStage stage in Enum.GetValues(typeof(MaterialShaderStage)))
+            foreach (MaterialShaderStage stage in Enum.GetValues<MaterialShaderStage>())
             {
                 ContextPerStage[stage] = new MaterialBlendLayerPerStageContext();
             }

@@ -131,7 +131,7 @@ namespace Stride.Core.Presentation.Behaviors
                     if (monitorInfo == null)
                         break;
 
-                    var mmi = (NativeHelper.MINMAXINFO)Marshal.PtrToStructure(lparam, typeof(NativeHelper.MINMAXINFO));
+                    var mmi = Marshal.PtrToStructure<NativeHelper.MINMAXINFO>(lparam);
                     var rcWorkArea = monitorInfo.rcWork;
                     var rcMonitorArea = monitorInfo.rcMonitor;
 

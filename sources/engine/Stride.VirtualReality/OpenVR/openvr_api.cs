@@ -2018,7 +2018,7 @@ public class CVRSystem
 	IVRSystem FnTable;
 	internal CVRSystem(IntPtr pInterface)
 	{
-		FnTable = (IVRSystem)Marshal.PtrToStructure(pInterface, typeof(IVRSystem));
+		FnTable = Marshal.PtrToStructure<IVRSystem>(pInterface);
 	}
 	public void GetRecommendedRenderTargetSize(ref uint pnWidth,ref uint pnHeight)
 	{
@@ -2191,7 +2191,7 @@ public class CVRSystem
 			VREvent_t_Packed event_packed = new VREvent_t_Packed();
 			u.pPollNextEventPacked = null;
 			u.pPollNextEvent = FnTable.PollNextEvent;
-			bool packed_result = u.pPollNextEventPacked(ref event_packed,(uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VREvent_t_Packed)));
+			bool packed_result = u.pPollNextEventPacked(ref event_packed,(uint)Marshal.SizeOf<VREvent_t_Packed>());
 
 			event_packed.Unpack(ref pEvent);
 			return packed_result;
@@ -2237,7 +2237,7 @@ public class CVRSystem
 			VRControllerState_t_Packed state_packed = new VRControllerState_t_Packed(pControllerState);
 			u.pGetControllerStatePacked = null;
 			u.pGetControllerState = FnTable.GetControllerState;
-			bool packed_result = u.pGetControllerStatePacked(unControllerDeviceIndex,ref state_packed,(uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VRControllerState_t_Packed)));
+			bool packed_result = u.pGetControllerStatePacked(unControllerDeviceIndex,ref state_packed,(uint)Marshal.SizeOf<VRControllerState_t_Packed>());
 
 			state_packed.Unpack(ref pControllerState);
 			return packed_result;
@@ -2268,7 +2268,7 @@ public class CVRSystem
 			VRControllerState_t_Packed state_packed = new VRControllerState_t_Packed(pControllerState);
 			u.pGetControllerStateWithPosePacked = null;
 			u.pGetControllerStateWithPose = FnTable.GetControllerStateWithPose;
-			bool packed_result = u.pGetControllerStateWithPosePacked(eOrigin,unControllerDeviceIndex,ref state_packed,(uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VRControllerState_t_Packed)),ref pTrackedDevicePose);
+			bool packed_result = u.pGetControllerStateWithPosePacked(eOrigin,unControllerDeviceIndex,ref state_packed,(uint)Marshal.SizeOf<VRControllerState_t_Packed>(), ref pTrackedDevicePose);
 
 			state_packed.Unpack(ref pControllerState);
 			return packed_result;
@@ -2338,7 +2338,7 @@ public class CVRExtendedDisplay
 	IVRExtendedDisplay FnTable;
 	internal CVRExtendedDisplay(IntPtr pInterface)
 	{
-		FnTable = (IVRExtendedDisplay)Marshal.PtrToStructure(pInterface, typeof(IVRExtendedDisplay));
+		FnTable = Marshal.PtrToStructure<IVRExtendedDisplay>(pInterface);
 	}
 	public void GetWindowBounds(ref int pnX,ref int pnY,ref uint pnWidth,ref uint pnHeight)
 	{
@@ -2370,7 +2370,7 @@ public class CVRTrackedCamera
 	IVRTrackedCamera FnTable;
 	internal CVRTrackedCamera(IntPtr pInterface)
 	{
-		FnTable = (IVRTrackedCamera)Marshal.PtrToStructure(pInterface, typeof(IVRTrackedCamera));
+		FnTable = Marshal.PtrToStructure<IVRTrackedCamera>(pInterface);
 	}
 	public string GetCameraErrorNameFromEnum(EVRTrackedCameraError eCameraError)
 	{
@@ -2457,7 +2457,7 @@ public class CVRApplications
 	IVRApplications FnTable;
 	internal CVRApplications(IntPtr pInterface)
 	{
-		FnTable = (IVRApplications)Marshal.PtrToStructure(pInterface, typeof(IVRApplications));
+		FnTable = Marshal.PtrToStructure<IVRApplications>(pInterface);
 	}
 	public EVRApplicationError AddApplicationManifest(string pchApplicationManifestFullPath,bool bTemporary)
 	{
@@ -2669,7 +2669,7 @@ public class CVRChaperone
 	IVRChaperone FnTable;
 	internal CVRChaperone(IntPtr pInterface)
 	{
-		FnTable = (IVRChaperone)Marshal.PtrToStructure(pInterface, typeof(IVRChaperone));
+		FnTable = Marshal.PtrToStructure<IVRChaperone>(pInterface);
 	}
 	public ChaperoneCalibrationState GetCalibrationState()
 	{
@@ -2721,7 +2721,7 @@ public class CVRChaperoneSetup
 	IVRChaperoneSetup FnTable;
 	internal CVRChaperoneSetup(IntPtr pInterface)
 	{
-		FnTable = (IVRChaperoneSetup)Marshal.PtrToStructure(pInterface, typeof(IVRChaperoneSetup));
+		FnTable = Marshal.PtrToStructure<IVRChaperoneSetup>(pInterface);
 	}
 	public bool CommitWorkingCopy(EChaperoneConfigFile configFile)
 	{
@@ -2832,7 +2832,7 @@ public class CVRCompositor
 	IVRCompositor FnTable;
 	internal CVRCompositor(IntPtr pInterface)
 	{
-		FnTable = (IVRCompositor)Marshal.PtrToStructure(pInterface, typeof(IVRCompositor));
+		FnTable = Marshal.PtrToStructure<IVRCompositor>(pInterface);
 	}
 	public void SetTrackingSpace(ETrackingUniverseOrigin eOrigin)
 	{
@@ -3081,7 +3081,7 @@ public class CVROverlay
 	IVROverlay FnTable;
 	internal CVROverlay(IntPtr pInterface)
 	{
-		FnTable = (IVROverlay)Marshal.PtrToStructure(pInterface, typeof(IVROverlay));
+		FnTable = Marshal.PtrToStructure<IVROverlay>(pInterface);
 	}
 	public EVROverlayError FindOverlay(string pchOverlayKey,ref ulong pOverlayHandle)
 	{
@@ -3352,7 +3352,7 @@ public class CVROverlay
 			VREvent_t_Packed event_packed = new VREvent_t_Packed();
 			u.pPollNextOverlayEventPacked = null;
 			u.pPollNextOverlayEvent = FnTable.PollNextOverlayEvent;
-			bool packed_result = u.pPollNextOverlayEventPacked(ulOverlayHandle,ref event_packed,(uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VREvent_t_Packed)));
+			bool packed_result = u.pPollNextOverlayEventPacked(ulOverlayHandle,ref event_packed,(uint)Marshal.SizeOf<VREvent_t_Packed>());
 
 			event_packed.Unpack(ref pEvent);
 			return packed_result;
@@ -3565,7 +3565,7 @@ public class CVROverlayView
 	IVROverlayView FnTable;
 	internal CVROverlayView(IntPtr pInterface)
 	{
-		FnTable = (IVROverlayView)Marshal.PtrToStructure(pInterface, typeof(IVROverlayView));
+		FnTable = Marshal.PtrToStructure<IVROverlayView>(pInterface);
 	}
 	public EVROverlayError AcquireOverlayView(ulong ulOverlayHandle,ref VRNativeDevice_t pNativeDevice,ref VROverlayView_t pOverlayView,uint unOverlayViewSize)
 	{
@@ -3594,7 +3594,7 @@ public class CVRHeadsetView
 	IVRHeadsetView FnTable;
 	internal CVRHeadsetView(IntPtr pInterface)
 	{
-		FnTable = (IVRHeadsetView)Marshal.PtrToStructure(pInterface, typeof(IVRHeadsetView));
+		FnTable = Marshal.PtrToStructure<IVRHeadsetView>(pInterface);
 	}
 	public void SetHeadsetViewSize(uint nWidth,uint nHeight)
 	{
@@ -3647,7 +3647,7 @@ public class CVRRenderModels
 	IVRRenderModels FnTable;
 	internal CVRRenderModels(IntPtr pInterface)
 	{
-		FnTable = (IVRRenderModels)Marshal.PtrToStructure(pInterface, typeof(IVRRenderModels));
+		FnTable = Marshal.PtrToStructure<IVRRenderModels>(pInterface);
 	}
 	public EVRRenderModelError LoadRenderModel_Async(string pchRenderModelName,ref IntPtr ppRenderModel)
 	{
@@ -3805,7 +3805,7 @@ public class CVRNotifications
 	IVRNotifications FnTable;
 	internal CVRNotifications(IntPtr pInterface)
 	{
-		FnTable = (IVRNotifications)Marshal.PtrToStructure(pInterface, typeof(IVRNotifications));
+		FnTable = Marshal.PtrToStructure<IVRNotifications>(pInterface);
 	}
 	public EVRNotificationError CreateNotification(ulong ulOverlayHandle,ulong ulUserValue,EVRNotificationType type,string pchText,EVRNotificationStyle style,ref NotificationBitmap_t pImage,ref uint pNotificationId)
 	{
@@ -3828,7 +3828,7 @@ public class CVRSettings
 	IVRSettings FnTable;
 	internal CVRSettings(IntPtr pInterface)
 	{
-		FnTable = (IVRSettings)Marshal.PtrToStructure(pInterface, typeof(IVRSettings));
+		FnTable = Marshal.PtrToStructure<IVRSettings>(pInterface);
 	}
 	public string GetSettingsErrorNameFromEnum(EVRSettingsError eError)
 	{
@@ -3926,7 +3926,7 @@ public class CVRScreenshots
 	IVRScreenshots FnTable;
 	internal CVRScreenshots(IntPtr pInterface)
 	{
-		FnTable = (IVRScreenshots)Marshal.PtrToStructure(pInterface, typeof(IVRScreenshots));
+		FnTable = Marshal.PtrToStructure<IVRScreenshots>(pInterface);
 	}
 	public EVRScreenshotError RequestScreenshot(ref uint pOutScreenshotHandle,EVRScreenshotType type,string pchPreviewFilename,string pchVRFilename)
 	{
@@ -3985,7 +3985,7 @@ public class CVRResources
 	IVRResources FnTable;
 	internal CVRResources(IntPtr pInterface)
 	{
-		FnTable = (IVRResources)Marshal.PtrToStructure(pInterface, typeof(IVRResources));
+		FnTable = Marshal.PtrToStructure<IVRResources>(pInterface);
 	}
 	public uint LoadSharedResource(string pchResourceName,string pchBuffer,uint unBufferLen)
 	{
@@ -4011,7 +4011,7 @@ public class CVRDriverManager
 	IVRDriverManager FnTable;
 	internal CVRDriverManager(IntPtr pInterface)
 	{
-		FnTable = (IVRDriverManager)Marshal.PtrToStructure(pInterface, typeof(IVRDriverManager));
+		FnTable = Marshal.PtrToStructure<IVRDriverManager>(pInterface);
 	}
 	public uint GetDriverCount()
 	{
@@ -4043,7 +4043,7 @@ public class CVRInput
 	IVRInput FnTable;
 	internal CVRInput(IntPtr pInterface)
 	{
-		FnTable = (IVRInput)Marshal.PtrToStructure(pInterface, typeof(IVRInput));
+		FnTable = Marshal.PtrToStructure<IVRInput>(pInterface);
 	}
 	public EVRInputError SetActionManifestPath(string pchActionManifestPath)
 	{
@@ -4233,7 +4233,7 @@ public class CVRIOBuffer
 	IVRIOBuffer FnTable;
 	internal CVRIOBuffer(IntPtr pInterface)
 	{
-		FnTable = (IVRIOBuffer)Marshal.PtrToStructure(pInterface, typeof(IVRIOBuffer));
+		FnTable = Marshal.PtrToStructure<IVRIOBuffer>(pInterface);
 	}
 	public EIOBufferError Open(string pchPath,EIOBufferMode mode,uint unElementSize,uint unElements,ref ulong pulBuffer)
 	{
@@ -4277,7 +4277,7 @@ public class CVRSpatialAnchors
 	IVRSpatialAnchors FnTable;
 	internal CVRSpatialAnchors(IntPtr pInterface)
 	{
-		FnTable = (IVRSpatialAnchors)Marshal.PtrToStructure(pInterface, typeof(IVRSpatialAnchors));
+		FnTable = Marshal.PtrToStructure<IVRSpatialAnchors>(pInterface);
 	}
 	public EVRSpatialAnchorError CreateSpatialAnchorFromDescriptor(string pchDescriptor,ref uint pHandleOut)
 	{
@@ -4312,7 +4312,7 @@ public class CVRDebug
 	IVRDebug FnTable;
 	internal CVRDebug(IntPtr pInterface)
 	{
-		FnTable = (IVRDebug)Marshal.PtrToStructure(pInterface, typeof(IVRDebug));
+		FnTable = Marshal.PtrToStructure<IVRDebug>(pInterface);
 	}
 	public EVRDebugError EmitVrProfilerEvent(string pchMessage)
 	{
@@ -4349,7 +4349,7 @@ public class CVRProperties
 	IVRProperties FnTable;
 	internal CVRProperties(IntPtr pInterface)
 	{
-		FnTable = (IVRProperties)Marshal.PtrToStructure(pInterface, typeof(IVRProperties));
+		FnTable = Marshal.PtrToStructure<IVRProperties>(pInterface);
 	}
 	public ETrackedPropertyError ReadPropertyBatch(ulong ulContainerHandle,ref PropertyRead_t pBatch,uint unBatchEntryCount)
 	{
@@ -4379,7 +4379,7 @@ public class CVRPaths
 	IVRPaths FnTable;
 	internal CVRPaths(IntPtr pInterface)
 	{
-		FnTable = (IVRPaths)Marshal.PtrToStructure(pInterface, typeof(IVRPaths));
+		FnTable = Marshal.PtrToStructure<IVRPaths>(pInterface);
 	}
 	public ETrackedPropertyError ReadPathBatch(ulong ulRootHandle,ref PathRead_t pBatch,uint unBatchEntryCount)
 	{
@@ -4413,7 +4413,7 @@ public class CVRBlockQueue
 	IVRBlockQueue FnTable;
 	internal CVRBlockQueue(IntPtr pInterface)
 	{
-		FnTable = (IVRBlockQueue)Marshal.PtrToStructure(pInterface, typeof(IVRBlockQueue));
+		FnTable = Marshal.PtrToStructure<IVRBlockQueue>(pInterface);
 	}
 	public EBlockQueueError Create(ref ulong pulQueueHandle,string pchPath,uint unBlockDataSize,uint unBlockHeaderSize,uint unBlockCount)
 	{

@@ -22,7 +22,7 @@ namespace Stride.Core.Presentation.ValueConverters
             if (memberInfo == null)
                 return stringValue;
 
-            var attribute = memberInfo.GetCustomAttribute(typeof(DisplayAttribute), false) as DisplayAttribute;
+            var attribute = memberInfo.GetCustomAttribute<DisplayAttribute>(false) as DisplayAttribute;
             if (attribute == null)
                 return stringValue;
 

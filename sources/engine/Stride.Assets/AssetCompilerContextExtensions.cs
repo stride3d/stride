@@ -34,7 +34,7 @@ namespace Stride.Assets
             // If we have a command line override, use it first
             string graphicsApi;
             if (context.OptionProperties.TryGetValue("StrideGraphicsApi", out graphicsApi))
-                return (GraphicsPlatform)Enum.Parse(typeof(GraphicsPlatform), graphicsApi);
+                return Enum.Parse<GraphicsPlatform>(graphicsApi);
 
             // Ohterwise, use default as fallback
             return context.Platform.GetDefaultGraphicsPlatform();

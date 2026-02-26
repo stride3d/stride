@@ -55,7 +55,7 @@ public sealed class DatabaseFileProvider : VirtualFileProviderBase
             if (streamFlags == StreamFlags.Seekable && !result.CanSeek)
             {
                 var buffer = new byte[result.Length - result.Position];
-                result.Read(buffer, 0, buffer.Length);
+                result.ReadExactly(buffer, 0, buffer.Length);
                 return new DatabaseReadFileStream(objectId, new MemoryStream(buffer), 0);
             }
 
