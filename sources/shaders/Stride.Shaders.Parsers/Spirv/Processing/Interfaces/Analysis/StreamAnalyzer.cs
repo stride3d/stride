@@ -87,9 +87,10 @@ internal static class StreamAnalyzer
 
             if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                 {
-                    Storageclass: StorageClass.Private or StorageClass.Workgroup,
+                    Storageclass: StorageClass.Private or StorageClass.Workgroup or StorageClass.Uniform,
                     ResultId: int
-                } variable)
+                } variable
+                && context.ReverseTypes[variable.ResultType] is PointerType { BaseType: not ConstantBufferSymbol })
             {
                 var name = nameTable.TryGetValue(variable.ResultId, out var nameId)
                     ? nameId

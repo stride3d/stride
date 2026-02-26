@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -146,9 +147,10 @@ internal static class DeadCodeRemover
 
             if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                 {
-                    Storageclass: StorageClass.Private or StorageClass.Workgroup,
+                    Storageclass: StorageClass.Private or StorageClass.Workgroup or StorageClass.Uniform,
                     ResultId: int
-                } variable2)
+                } variable2
+                && context.ReverseTypes[variable2.ResultType] is PointerType { BaseType: not ConstantBufferSymbol })
             {
                 if (variable2.Flags.HasFlag(VariableFlagsMask.Stream))
                 {
