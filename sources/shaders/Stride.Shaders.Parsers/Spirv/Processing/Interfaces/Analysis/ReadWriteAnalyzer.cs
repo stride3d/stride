@@ -91,7 +91,11 @@ internal static class ReadWriteAnalyzer
 
                     // If read on input/output stream, we force it to be emitted in the input/output struct
                     if (streamKind == StreamsKindSDSL.Output)
+                    {
+                        if (!streamInfo.Output)
+                            streamInfo.InternalPatchConstantOutput = true;
                         streamInfo.Output = true;
+                    }
                     else if (streamKind == StreamsKindSDSL.Input)
                         streamInfo.Read = true;
                     else

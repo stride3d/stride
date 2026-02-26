@@ -25,7 +25,35 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
     {
         public Action<int, int>? CodeInserted { get; set; }
 
-        public record Result(List<(string Name, int Id, ShaderStage Stage)> EntryPoints, List<ShaderInputAttributeDescription> InputAttributes);
+        public class EntryPointInfo
+        {
+            internal EntryPointInfo(string name, int id, ExecutionModel model, List<int> interfaceVariables)
+            {
+                Name = name;
+                Id = id;
+                Model = model;
+                InterfaceVariables = interfaceVariables;
+                Stage = model switch
+                {
+                    ExecutionModel.Vertex => ShaderStage.Vertex,
+                    ExecutionModel.TessellationControl => ShaderStage.Hull,
+                    ExecutionModel.TessellationEvaluation => ShaderStage.Domain,
+                    ExecutionModel.Geometry => ShaderStage.Geometry,
+                    ExecutionModel.Fragment => ShaderStage.Pixel,
+                    ExecutionModel.GLCompute => ShaderStage.Compute,
+                    _ => throw new NotImplementedException()
+                };
+            }
+
+            public string Name { get; }
+            public int Id { get; }
+            public ShaderStage Stage { get; }
+            internal ExecutionModel Model { get; }
+            internal List<int> InterfaceVariables { get; }
+            internal int? ArrayInputSize { get; init; }
+        }
+
+        public record Result(List<EntryPointInfo> EntryPoints, List<ShaderInputAttributeDescription> InputAttributes);
 
         Symbol? ResolveEntryPoint(SymbolTable table, string name)
         {
@@ -39,7 +67,8 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
 
         public Result Process(SymbolTable table, SpirvBuffer buffer, SpirvContext context)
         {
-            var entryPoints = new List<(string Name, int Id, ShaderStage Stage)>();
+            // OpEntryPoint emission is deferred to allow fixups (e.g. adding dummy DS inputs for HS-internal outputs)
+            var entryPoints = new List<EntryPointInfo>();
 
             var entryPointVS = ResolveEntryPoint(table, "VSMain");
             var entryPointHS = ResolveEntryPoint(table, "HSMain");
@@ -61,8 +90,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
 
             if (entryPointCS != null)
             {
-                (var csWrapperId, var csWrapperName) = GenerateStreamWrapper(table, buffer, context, ExecutionModel.GLCompute, entryPointCS, analysisResult, liveAnalysis, false);
-                entryPoints.Add((csWrapperName, csWrapperId, ShaderStage.Compute));
+                entryPoints.Add(GenerateStreamWrapper(table, buffer, context, ExecutionModel.GLCompute, entryPointCS, analysisResult, liveAnalysis, false));
             }
 
             if (entryPointHS != null || entryPointDS != null)
@@ -88,10 +116,10 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 // (if PSMain has been overriden with an empty method, it means we don't want to output anything and remove the pixel shader, i.e. for shadow caster)
                 if (streams.Any(x => x.Value.Output))
                 {
-                    (var psWrapperId, var psWrapperName) = GenerateStreamWrapper(table, buffer, context, ExecutionModel.Fragment, entryPointPS, analysisResult, liveAnalysis, false);
-                    entryPoints.Add((psWrapperName, psWrapperId, ShaderStage.Pixel));
+                    var psEntry = GenerateStreamWrapper(table, buffer, context, ExecutionModel.Fragment, entryPointPS, analysisResult, liveAnalysis, false);
+                    entryPoints.Add(psEntry);
 
-                    buffer.Add(new OpExecutionMode(psWrapperId, ExecutionMode.OriginUpperLeft, []));
+                    buffer.Add(new OpExecutionMode(psEntry.Id, ExecutionMode.OriginUpperLeft, []));
                 }
 
                 // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
@@ -138,14 +166,34 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                             }
                         }
 
-                        (var wrapperId, var wrapperName) = GenerateStreamWrapper(table, buffer, context, entryPoint.Item1, entryPoint.Item2, analysisResult, liveAnalysis, false);
-                        var stage = entryPoint.Item1 switch
+                        var entry = GenerateStreamWrapper(table, buffer, context, entryPoint.Item1, entryPoint.Item2, analysisResult, liveAnalysis, false);
+                        entryPoints.Add(entry);
+
+                        // After HS processing, add dummy DS inputs for HS-internal outputs to avoid Vulkan interface mismatch warning
+                        if (entryPoint.Item1 == ExecutionModel.TessellationControl)
                         {
-                            ExecutionModel.TessellationControl => ShaderStage.Hull,
-                            ExecutionModel.TessellationEvaluation => ShaderStage.Domain,
-                            ExecutionModel.Geometry => ShaderStage.Geometry,
-                        };
-                        entryPoints.Add((wrapperName, wrapperId, stage));
+                            var dsEntryPoint = entryPoints.FirstOrDefault(ep => ep.Model == ExecutionModel.TessellationEvaluation);
+                            if (dsEntryPoint.InterfaceVariables != null)
+                            {
+                                foreach (var stream in streams)
+                                {
+                                    if (stream.Value.InternalPatchConstantOutput && stream.Value.OutputLayoutLocation is { } location)
+                                    {
+                                        // Create a dummy Input variable in DS with the same Location to match the HS output
+                                        var dummyInputId = context.Bound++;
+                                        var variableType = stream.Value.Type;
+                                        var inputPointerType = new PointerType(
+                                            !stream.Value.Patch && dsEntryPoint.ArrayInputSize is { } arrayInputSize ? new ArrayType(variableType, arrayInputSize) : variableType,
+                                            Specification.StorageClass.Input);
+                                        context.Add(new OpVariable(context.GetOrRegister(inputPointerType), dummyInputId, Specification.StorageClass.Input, null));
+                                        context.Add(new OpDecorate(dummyInputId, Decoration.Location, [location]));
+                                        if (variableType is ScalarType or VectorType or MatrixType && !variableType.GetElementType().IsFloating())
+                                            context.Add(new OpDecorate(dummyInputId, Decoration.Flat, []));
+                                        dsEntryPoint.InterfaceVariables.Add(dummyInputId);
+                                    }
+                                }
+                            }
+                        }
 
                         // Reset cbuffer/resource/methods used for next stage
                         DeadCodeRemover.ResetUsedThisStage(analysisResult, liveAnalysis);
@@ -153,7 +201,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                         VariableMerger.PropagateStreamsFromPreviousStage(streams);
 
                         if (entryPointVS == null)
-                            throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: If a {stage} shader is specified, a vertex shader is needed too");
+                            throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: If a {entry.Stage} shader is specified, a vertex shader is needed too");
                     }
                 }
 
@@ -174,8 +222,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                         }
                     }
 
-                    (var vsWrapperId, var vsWrapperName) = GenerateStreamWrapper(table, buffer, context, ExecutionModel.Vertex, entryPointVS, analysisResult, liveAnalysis, true);
-                    entryPoints.Add((vsWrapperName, vsWrapperId, ShaderStage.Vertex));
+                    entryPoints.Add(GenerateStreamWrapper(table, buffer, context, ExecutionModel.Vertex, entryPointVS, analysisResult, liveAnalysis, true));
 
                     // Process shader input attributes
                     foreach (var stream in streams)
@@ -191,6 +238,10 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     }
                 }
             }
+
+            // Emit all OpEntryPoints (deferred to allow fixups like adding dummy DS inputs for HS-internal outputs)
+            foreach (var ep in entryPoints)
+                context.Add(new OpEntryPoint(ep.Model, ep.Id, ep.Name, [.. ep.InterfaceVariables]));
 
             // This will remove a lot of unused methods, resources and variables
             // (while following proper rules to preserve rgroup, cbuffer, logical groups, etc.)
@@ -218,7 +269,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             throw new InvalidOperationException($"outputcontrolpoints not found on hull shader {entryPoint.Id.Name}");
         }
 
-        private (int Id, string Name) GenerateStreamWrapper(SymbolTable table, SpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, Symbol entryPoint, AnalysisResult analysisResult, LiveAnalysis liveAnalysis, bool isFirstActiveShader)
+        private EntryPointInfo GenerateStreamWrapper(SymbolTable table, SpirvBuffer buffer, SpirvContext context, ExecutionModel executionModel, Symbol entryPoint, AnalysisResult analysisResult, LiveAnalysis liveAnalysis, bool isFirstActiveShader)
         {
             var streams = analysisResult.Streams;
 
@@ -252,7 +303,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             var patchConstantEntryPoint = executionModel == ExecutionModel.TessellationControl ? ResolveHullPatchConstantEntryPoint(table, context, entryPoint) : null;
 
             // Generate entry point wrapper
-            var (newEntryPointFunctionResultId, entryPointName) = EntryPointWrapperGenerator.GenerateWrapper(context,
+            var entryPointInfo = EntryPointWrapperGenerator.GenerateWrapper(context,
                 buffer, entryPoint, executionModel, analysisResult,
                 liveAnalysis, inputStreams, outputStreams, patchInputStreams,
                 patchOutputStreams, inputType, outputType, streamsType,
@@ -275,11 +326,11 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is { } executionMode)
                 {
                     if (executionMode.EntryPoint == entryPoint.IdRef)
-                        executionMode.EntryPoint = newEntryPointFunctionResultId;
+                        executionMode.EntryPoint = entryPointInfo.Id;
                 }
             }
 
-            return (newEntryPointFunctionResultId, entryPointName);
+            return entryPointInfo;
         }
 
         private static string ExecutionModelToStageId(ExecutionModel executionModel)

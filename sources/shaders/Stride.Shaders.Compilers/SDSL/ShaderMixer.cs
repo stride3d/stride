@@ -26,7 +26,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
 
-    public void MergeSDSL(ShaderSource shaderSource, Options options, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<(string Name, int Id, ShaderStage Stage)> entryPoints)
+    public void MergeSDSL(ShaderSource shaderSource, Options options, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<InterfaceProcessor.EntryPointInfo> entryPoints)
     {
         // Create new buffer for the merged result
         var temp = new SpirvBuffer();

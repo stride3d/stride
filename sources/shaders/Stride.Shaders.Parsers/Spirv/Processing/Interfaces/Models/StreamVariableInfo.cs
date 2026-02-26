@@ -27,8 +27,16 @@ internal class StreamVariableInfo(string? semantic, string name, PointerType typ
     /// </summary>
     public bool Input => Read || (Output && !Write);
     public bool Output { get => field; set { field = value; UsedAnyStage = true; } }
-    public bool UsedThisStage => Input || Output || Read || Write;
+    public bool UsedThisStage => Input || Output || InternalPatchConstantOutput || Read || Write;
 
+    /// <summary>
+    /// When true, this variable is only used to transfer data from the hull shader main function
+    /// to the patch constant function (via inter-invocation Output read after barrier).
+    /// It still needs a StorageClass.Output variable with a Location, but the next stage (DS)
+    /// doesn't consume it, so a dummy matching Input variable is added to DS to satisfy
+    /// Vulkan interface matching requirements.
+    /// </summary>
+    public bool InternalPatchConstantOutput { get => field; set { field = value; UsedAnyStage = true; } }
     public bool Read { get => field; set { field = value; UsedAnyStage = true; } }
     public bool Write { get => field; set { field = value; UsedAnyStage = true; } }
     public bool UsedAnyStage { get; private set; }

@@ -12,7 +12,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces.Generation;
 
 internal static class EntryPointWrapperGenerator
 {
-    public static (int ResultId, string Name) GenerateWrapper(SpirvContext context,
+    public static InterfaceProcessor.EntryPointInfo GenerateWrapper(SpirvContext context,
         SpirvBuffer buffer,
         Symbol entryPoint,
         ExecutionModel executionModel,
@@ -440,8 +440,7 @@ internal static class EntryPointWrapperGenerator
         }
 
         liveAnalysis.ExtraReferencedMethods.Add(newEntryPointFunction);
-        context.Add(new OpEntryPoint(executionModel, newEntryPointFunction, entryPointName, [.. entryPointInterfaceVariables.Slice(0, pvariableIndex)]));
 
-        return (newEntryPointFunction.ResultId, entryPointName);
+        return new InterfaceProcessor.EntryPointInfo(entryPointName, newEntryPointFunction.ResultId, executionModel, [.. entryPointInterfaceVariables.Slice(0, pvariableIndex)]) { ArrayInputSize = streamLayout.ArrayInputSize };
     }
 }

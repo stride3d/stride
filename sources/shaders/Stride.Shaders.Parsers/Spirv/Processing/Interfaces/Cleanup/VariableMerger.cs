@@ -63,6 +63,7 @@ internal static class VariableMerger
             stream.Value.OutputLayoutLocation = stream.Value.InputLayoutLocation;
             stream.Value.InputLayoutLocation = null;
             stream.Value.Output = stream.Value.Input;
+            stream.Value.InternalPatchConstantOutput = false;
             stream.Value.Read = false;
             stream.Value.Write = false;
         }
