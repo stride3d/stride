@@ -160,7 +160,10 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         SpirvValue result;
         if (resolvedIntrinsicOverload != null)
         {
-            SpirvValue? @this = MemberCall != null ? builder.AsValue(context, MemberCall.Value) : null;
+            // ByteAddressBuffer needs the pointer for OpAccessChain, not the loaded struct value
+            SpirvValue? @this = MemberCall != null
+                ? (MemberCallBaseType is ByteAddressBufferType ? MemberCall.Value : builder.AsValue(context, MemberCall.Value))
+                : null;
             result = IntrinsicCallHelper.CompileIntrinsic(table, compiler, resolvedIntrinsicCompiler, resolvedIntrinsicNamespace, name.Name, resolvedIntrinsicOverload.Value, @this, compiledParams);
         }
         else

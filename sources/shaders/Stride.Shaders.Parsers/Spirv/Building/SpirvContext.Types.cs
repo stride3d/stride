@@ -86,6 +86,7 @@ public partial class SpirvContext
             BufferType b => Buffer.AddData(new OpTypeImage(id, GetOrRegister(b.BaseType), Specification.Dim.Buffer,
                 2, 0, 0, b.WriteAllowed ? 2 : 1, Specification.ImageFormat.Unknown, null)).IdResult,
             StructuredBufferType b => RegisterStructuredBufferType(b),
+            ByteAddressBufferType b => RegisterByteAddressBufferType(b),
             SampledImage si => Buffer.AddData(new OpTypeSampledImage(id, GetOrRegister(si.ImageType))).IdResult,
             GenericParameterType g => Buffer.AddData(new OpTypeGenericSDSL(id, g.Kind)).IdResult,
             StreamsType s => Buffer.AddData(new OpTypeStreamsSDSL(id, s.Kind)).IdResult,
@@ -108,6 +109,20 @@ public partial class SpirvContext
         Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.Offset, [0]));
 
         // TODO: Add array stride and offsets
+        Buffer.Add(new OpDecorate(bufferType, Specification.Decoration.Block, []));
+
+        return bufferType;
+    }
+
+    private int RegisterByteAddressBufferType(ByteAddressBufferType byteAddressBufferType)
+    {
+        var uintTypeId = GetOrRegister(ScalarType.UInt);
+        var runtimeArrayType = Buffer.Add(new OpTypeRuntimeArray(Bound++, uintTypeId)).ResultId;
+        Buffer.Add(new OpDecorate(runtimeArrayType, Specification.Decoration.ArrayStride, [4]));
+
+        var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).ResultId;
+        AddName(bufferType, $"type.{(byteAddressBufferType.WriteAllowed ? "RW" : "")}ByteAddressBuffer");
+        Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.Offset, [0]));
         Buffer.Add(new OpDecorate(bufferType, Specification.Decoration.Block, []));
 
         return bufferType;

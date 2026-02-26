@@ -202,7 +202,7 @@ public sealed partial class ShaderMember(
         var storageClass = (memberType, StorageClass, StreamKind) switch
         {
             (TextureType or BufferType, _, _) => Specification.StorageClass.UniformConstant,
-            (StructuredBufferType, _, _) => Specification.StorageClass.StorageBuffer,
+            (StructuredBufferType or ByteAddressBufferType, _, _) => Specification.StorageClass.StorageBuffer,
             (_, StorageClass.GroupShared, _) => Specification.StorageClass.Workgroup,
             (_, StorageClass.Static, _) => Specification.StorageClass.Private,
             (_, _, StreamKind.Stream or StreamKind.PatchStream) => Specification.StorageClass.Private,
@@ -293,6 +293,8 @@ public sealed partial class ShaderMember(
 
         if (pointerType.BaseType is StructuredBufferType)
             context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, $"structuredbuffer:<{pointerType.BaseType.ToId().ToLowerInvariant()}>"));
+        else if (pointerType.BaseType is ByteAddressBufferType)
+            context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, "byteaddressbuffer"));
 
         RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
     }

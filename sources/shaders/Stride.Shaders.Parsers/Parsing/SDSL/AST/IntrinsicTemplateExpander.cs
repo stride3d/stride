@@ -163,8 +163,8 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                             BaseType.Numeric32Only => [ScalarType.Float, ScalarType.Double, ScalarType.Int, ScalarType.UInt],
                             BaseType.Any => [ScalarType.Float, ScalarType.Double, ScalarType.Int, ScalarType.UInt, ScalarType.Int64, ScalarType.UInt64, ScalarType.Boolean],
                             BaseType.Match => throw new InvalidOperationException(),
-                            BaseType.ByteAddressBuffer => throw new NotImplementedException(),
-                            BaseType.RWByteAddressBuffer => throw new NotImplementedException(),
+                            BaseType.ByteAddressBuffer => [new ByteAddressBufferType(false)],
+                            BaseType.RWByteAddressBuffer => [new ByteAddressBufferType(true)],
                             BaseType.VkBufferPointer => throw new NotImplementedException(),
                             BaseType.Other => throw new NotImplementedException(),
                             BaseType.Texture2DArray => throw new NotImplementedException(),
@@ -185,6 +185,10 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                 foreach (var sizePermutationGenerator in sizePermutationGenerators)
                     sizeSequences.Add(new(sizePermutationGenerator.Generate()));
                 var sizePermutations = CartesianProduct.Generate(sizeSequences);
+
+                // If there are no size permutations, we still need one iteration to generate the signature
+                if (sizePermutations.Count == 0)
+                    sizePermutations.Add([]);
 
                 // Step 4: generate signature using permutations
                 ParameterTypeInfo[] parameterTypeHelper = new ParameterTypeInfo[intrinsicDefinition.Parameters.Length + 1];
@@ -248,6 +252,15 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                                     null => throw new ArgumentNullException(nameof(thisType)),
                                     TextureType t => new(t.ReturnType, new(4, null), default),
                                     BufferType b => new(b.BaseType, new(4, null), default),
+                                };
+                            }
+                            if (index == -3)
+                            {
+                                return thisType switch
+                                {
+                                    null => throw new ArgumentNullException(nameof(thisType)),
+                                    ByteAddressBufferType => new(ScalarType.UInt, new(1, null), default),
+                                    _ => throw new NotImplementedException($"$funcT not supported for {thisType}"),
                                 };
                             }
                             return parameterTypeHelper[index];

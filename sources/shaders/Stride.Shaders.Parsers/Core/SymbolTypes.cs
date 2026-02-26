@@ -78,6 +78,9 @@ public abstract record SymbolType()
             "Buffer" => new BufferType(ResolveScalarType(templateTypeName)),
             "RWBuffer" => new BufferType(ResolveScalarType(templateTypeName), true),
 
+            "ByteAddressBuffer" => new ByteAddressBufferType(false),
+            "RWByteAddressBuffer" => new ByteAddressBufferType(true),
+
             "Texture1D" => new Texture1DType(ResolveScalarType(templateTypeName)),
             "Texture2D" => new Texture2DType(ResolveScalarType(templateTypeName)),
             "Texture2DMS" => new Texture2DType(ResolveScalarType(templateTypeName)) { Multisampled = true },
@@ -271,6 +274,12 @@ public sealed partial record StructuredBufferType(SymbolType BaseType, bool Writ
 public sealed partial record BufferType(ScalarType BaseType, bool WriteAllowed = false) : SymbolType()
 {
     public override string ToString() => $"{(WriteAllowed ? "RW" : "")}Buffer<{BaseType}>";
+}
+
+public sealed partial record ByteAddressBufferType(bool WriteAllowed = false) : SymbolType()
+{
+    public override string ToId() => $"{(WriteAllowed ? "RW" : "")}ByteAddressBuffer";
+    public override string ToString() => $"{(WriteAllowed ? "RW" : "")}ByteAddressBuffer";
 }
 
 // TODO: Add sampler parameters

@@ -18,7 +18,7 @@ public partial class ShaderMixer
     private Dictionary<int, CBufferMemberMetadata[]> cbufferMemberMetadata = new();
 
     private static bool IsResourceType(SymbolType type)
-        => type is TextureType or SamplerType or BufferType or StructuredBufferType or ConstantBufferSymbol;
+        => type is TextureType or SamplerType or BufferType or StructuredBufferType or ByteAddressBufferType or ConstantBufferSymbol;
 
     // Process LinkSDSL, ResourceGroupSDSL and LogicalGroupSDSL; Info will be stored in resourceLinks and cbufferMemberLinks
     private void ProcessLinks(SpirvContext context, SpirvBuffer buffer)
@@ -319,13 +319,14 @@ public partial class ShaderMixer
                         LogicalGroup = linkInfo.LogicalGroup,
                     };
 
-                    if (variableType is TextureType or BufferType or StructuredBufferType)
+                    if (variableType is TextureType or BufferType or StructuredBufferType or ByteAddressBufferType)
                     {
                         bool isUAV = variableType switch
                         {
                             TextureType t1 => t1.Sampled == 2,
                             BufferType b1 => b1.WriteAllowed,
                             StructuredBufferType sb1 => sb1.WriteAllowed,
+                            ByteAddressBufferType bab1 => bab1.WriteAllowed,
                         };
                         ref var slot = ref (isUAV ? ref uavSlot : ref srvSlot);
                         effectResourceBinding.Class = isUAV ? EffectParameterClass.UnorderedAccessView : EffectParameterClass.ShaderResourceView;
@@ -371,6 +372,13 @@ public partial class ShaderMixer
                             var baseType = structuredBufferType.BaseType;
                             // This will add array stride and offsets decorations
                             EmitTypeDecorationsRecursively(context, baseType, SpirvBuilder.AlignmentRules.StructuredBuffer);
+                        }
+                        else if (variableType is ByteAddressBufferType byteAddressBufferType)
+                        {
+                            globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                            {
+                                Type = byteAddressBufferType.WriteAllowed ? EffectParameterType.RWByteAddressBuffer : EffectParameterType.ByteAddressBuffer,
+                            });
                         }
                     }
                     else if (variableType is SamplerType)

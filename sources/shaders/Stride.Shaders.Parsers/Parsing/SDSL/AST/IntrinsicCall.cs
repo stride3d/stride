@@ -53,6 +53,9 @@ public class IntrinsicCallHelper
 
             StructuredBufferType { WriteAllowed: false } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.StructuredBufferMethods), IntrinsicsDefinitions.StructuredBufferMethods), null),
             StructuredBufferType { WriteAllowed: true } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.RWStructuredBufferMethods), IntrinsicsDefinitions.RWStructuredBufferMethods), null),
+
+            ByteAddressBufferType { WriteAllowed: false } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.ByteAddressBufferMethods), IntrinsicsDefinitions.ByteAddressBufferMethods), ByteAddressBufferMethodsImplementations.Instance),
+            ByteAddressBufferType { WriteAllowed: true } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.RWByteAddressBufferMethods), IntrinsicsDefinitions.RWByteAddressBufferMethods), ByteAddressBufferMethodsImplementations.Instance),
         };
 
         if (!templateExpander.TryGetOrGenerateIntrinsicsDefinition(name, out var overloads))
