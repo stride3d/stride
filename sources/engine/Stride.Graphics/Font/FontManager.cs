@@ -314,7 +314,7 @@ namespace Stride.Graphics.Font
             {
                 // create the font data from the stream
                 var newFontData = new byte[fontStream.Length];
-                fontStream.Read(newFontData, 0, newFontData.Length);
+                fontStream.ReadExactly(newFontData);
 
                 lock (freetypeLibrary)
                     cachedFontFaces[fontPath] = freetypeLibrary.NewMemoryFace(newFontData, 0);

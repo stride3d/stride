@@ -79,7 +79,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
                     SemanticModel = compilation.GetSemanticModel(syntaxTree);
 
                     // Compute list of overridable methods
-                    var type = SemanticModel.GetDeclaredSymbol(syntaxTree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault());
+                    var type = SemanticModel.GetDeclaredSymbol((await syntaxTree.GetRootAsync()).DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault());
 
                     // Note: Logic taken from Roslyn AbstractOverrideCompletionProvider
                     var overridableMethodsCurrentType = new List<ISymbol>();
@@ -123,7 +123,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 
                     // Find the syntax node that generated this diagnostic
                     var sourceSpan = diagnostic.Location.SourceSpan;
-                    var node = compileResult.SyntaxTree.GetRoot().FindNode(sourceSpan);
+                    var node = (await compileResult.SyntaxTree.GetRootAsync()).FindNode(sourceSpan);
 
                     // Find which block or link generated it
                     // Go through parent recursively until we find one

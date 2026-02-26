@@ -148,7 +148,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 document = workspace.GetDocument(DocumentId.Result);
 
                 // Set new text
-                TextDocument.Text = document.GetTextAsync().Result.ToString();
+                TextDocument.Text = (await document.GetTextAsync()).ToString();
 
                 // Update dirty state
                 hasExternalChanges = false;

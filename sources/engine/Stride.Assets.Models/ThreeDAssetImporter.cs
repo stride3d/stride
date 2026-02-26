@@ -33,7 +33,7 @@ namespace Stride.Assets.Models
             if (!importParameters.InputParameters.TryGet(DeduplicateMaterialsKey, out var deduplicateMaterials))
                 deduplicateMaterials = true;    // Dedupe is the default value
 
-            var entityInfo = meshConverter.ExtractEntity(localPath.FullPath, null, importParameters.IsTypeSelectedForOutput(typeof(TextureAsset)), deduplicateMaterials);
+            var entityInfo = meshConverter.ExtractEntity(localPath.FullPath, null, importParameters.IsTypeSelectedForOutput<TextureAsset>(), deduplicateMaterials);
             return entityInfo;
         }
 

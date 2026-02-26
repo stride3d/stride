@@ -133,7 +133,7 @@ namespace Stride.Input.Tests
 
         private void ChangeScene(int i)
         {
-            var sceneCount = Enum.GetNames(typeof(DebugScenes)).Length;
+            var sceneCount = Enum.GetNames<DebugScenes>().Length;
             currentScene = (DebugScenes)((i + (int)currentScene + sceneCount) % sceneCount);
 
             currentText.Text = currentScene.ToString();

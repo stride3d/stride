@@ -290,7 +290,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                     {
                         using (var streamReader = new StreamReader(File.Open(changedFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Encoding.UTF8, true))
                         {
-                            source = streamReader.ReadToEnd();
+                            source = await streamReader.ReadToEndAsync();
                         }
                         break;
                     }
