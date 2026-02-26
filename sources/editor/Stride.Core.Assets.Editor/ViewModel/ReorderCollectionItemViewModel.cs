@@ -1,84 +1,188 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Collections.Generic;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.View.Behaviors;
+using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Reflection;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
     public class ReorderCollectionItemViewModel : IReorderItemViewModel
     {
-       
+        private NodeViewModel targetNode;
+
         public bool CanInsertChildren(IReadOnlyCollection<object> children, InsertPosition position, AddChildModifiers modifiers, out string message)
         {
-            // FIXME: This feature is disabled for now.
-            message = "";
-            return false;
+            if (children.Count != 1)
+            {
+                message = "Only a single item can be moved at a time";
+                return false;
+            }
 
-            //if (children.Count != 1)
-            //{
-            //    message = "Only a single item can be moved at a time";
-            //    return false;
-            //}
+            var node = children.First() as NodeViewModel;
+            if (node?.Parent == null)
+            {
+                message = "This item cannot be moved because it is not in a collection";
+                return false;
+            }
 
-            //var node = children.First() as NodeViewModel;
-            //if (node?.Parent == null || !(TypeDescriptorFactory.Default.Find(node.Parent.Type) is CollectionDescriptor))
-            //{
-            //    message = "This item cannot be moved because it is not in a collection";
-            //    return false;
-            //}
+            var parentDescriptor = TypeDescriptorFactory.Default.Find(node.Parent.Type);
+            var isArray = parentDescriptor is ArrayDescriptor;
+            var isCollection = parentDescriptor is CollectionDescriptor collectionDescriptor && 
+                               collectionDescriptor.HasRemoveAt && collectionDescriptor.HasInsert;
 
-            //if (node.Parent.Type != targetNode.Parent.Type)
-            //{
-            //    message = "Invalid target location";
-            //    return false;
-            //}
+            if (!isArray && !isCollection)
+            {
+                message = "This collection does not support reordering";
+                return false;
+            }
 
-            //object data;
-            //if (!node.AssociatedData.TryGetValue("ReorderCollectionItem", out data))
-            //    return false;
+            if (node.Parent != targetNode.Parent)
+            {
+                message = "Invalid target location";
+                return false;
+            }
 
-            //var sourceNode = (NodeViewModel)children.First();
-            //var sourceIndex = sourceNode.Index.Int;
-            //var targetIndex = targetNode.Index.Int;
-            //if (sourceIndex == targetIndex)
-            //{
-            //    message = "The target position is the same that the current position";
-            //    return false;
-            //}
+            object data;
+            if (!node.AssociatedData.TryGetValue(CollectionData.ReorderCollectionItem, out data))
+            {
+                message = "This item cannot be reordered";
+                return false;
+            }
 
-            //message = string.Format(position == InsertPosition.Before ? "Insert before {0}" : "Insert after {0}", targetNode.DisplayName);
-            //return node.Index.IsInt && data is IReorderItemViewModel;
+            var sourcePresenter = node.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+            var targetPresenter = targetNode.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+
+            if (sourcePresenter == null || targetPresenter == null ||
+                !sourcePresenter.Index.IsInt || !targetPresenter.Index.IsInt)
+            {
+                message = "Items with non-integer indices cannot be reordered";
+                return false;
+            }
+
+            var sourceIndex = sourcePresenter.Index.Int;
+            var targetIndex = targetPresenter.Index.Int;
+            if (sourceIndex == targetIndex)
+            {
+                message = "The target position is the same as the current position";
+                return false;
+            }
+
+            message = string.Format(position == InsertPosition.Before ? "Insert before {0}" : "Insert after {0}", targetNode.DisplayName);
+            return data is IReorderItemViewModel;
         }
 
         public void InsertChildren(IReadOnlyCollection<object> children, InsertPosition position, AddChildModifiers modifiers)
         {
-            // FIXME: This feature is disabled for now.
-            //var sourceNode = (NodeViewModel)children.First();
-            //var sourceIndex = sourceNode.Index.Int;
-            //var targetIndex = targetNode.Index.Int;
-            //if (position == InsertPosition.After)
-            //    ++targetIndex;
+            var sourceNode = (NodeViewModel)children.First();
+            var sourcePresenter = sourceNode.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+            var targetPresenter = targetNode.NodePresenters.FirstOrDefault() as ItemNodePresenter;
 
-            //if (sourceNode.Parent.NodeValue == targetNode.Parent.NodeValue && sourceIndex < targetIndex)
-            //    --targetIndex;
+            if (sourcePresenter == null || targetPresenter == null)
+            {
+                return;
+            }
 
-            //var moveCommand = (NodeCommandWrapperBase)sourceNode.Parent.GetCommand(MoveItemCommand.CommandName);
-            //if (moveCommand == null)
-            //    return;
+            var sourceIndex = sourcePresenter.Index.Int;
+            var targetIndex = targetPresenter.Index.Int;
 
-            //var actionService = sourceNode.ServiceProvider.Get<IUndoRedoService>();
-            //using (var transaction = actionService.CreateTransaction())
-            //{
-            //    moveCommand.Invoke(Tuple.Create(sourceIndex, targetIndex));
-            //    actionService.SetName(transaction, $"Move item {sourceIndex}");
-            //}
+            if (position == InsertPosition.After)
+            {
+                ++targetIndex;
+            }
+
+            if (sourceNode.Parent.NodeValue == targetNode.Parent.NodeValue && sourceIndex < targetIndex)
+            {
+                --targetIndex;
+            }
+
+            var actionService = sourceNode.ServiceProvider.Get<IUndoRedoService>();
+            var parentDescriptor = TypeDescriptorFactory.Default.Find(sourceNode.Parent.Type);
+
+            if (parentDescriptor is ArrayDescriptor)
+            {
+                ReorderArray(sourceNode, targetNode, sourceIndex, targetIndex, actionService);
+            }
+            else
+            {
+                var moveCommand = (NodePresenterCommandWrapper)sourceNode.GetCommand(MoveItemCommand.CommandName);
+                if (moveCommand == null)
+                {
+                    return;
+                }
+
+                using var transaction = actionService.CreateTransaction();
+                moveCommand.Invoke(Tuple.Create(sourceIndex, targetIndex));
+                actionService.SetName(transaction, $"Move item {sourceIndex}");
+            }
+        }
+
+        private void ReorderArray(NodeViewModel sourceNode, NodeViewModel targetNode, int sourceIndex, int targetIndex, IUndoRedoService actionService)
+        {
+            using var transaction = actionService.CreateTransaction();
+
+            var parentNode = sourceNode.Parent;
+            var array = parentNode.NodeValue as Array;
+            if (array == null)
+                return;
+
+            var sourceValue = array.GetValue(sourceIndex);
+
+            if (sourceIndex < targetIndex)
+            {
+                for (int i = sourceIndex; i < targetIndex; i++)
+                {
+                    var currentChild = parentNode.Children.FirstOrDefault(c => 
+                    {
+                        var presenter = c.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+                        return presenter?.Index.Int == i;
+                    });
+                    if (currentChild != null)
+                    {
+                        var presenter = currentChild.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+                        var nextValue = array.GetValue(i + 1);
+                        presenter?.UpdateValue(nextValue);
+                    }
+                }
+            }
+            else
+            {
+                for (int i = sourceIndex; i > targetIndex; i--)
+                {
+                    var currentChild = parentNode.Children.FirstOrDefault(c => 
+                    {
+                        var presenter = c.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+                        return presenter?.Index.Int == i;
+                    });
+                    if (currentChild != null)
+                    {
+                        var presenter = currentChild.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+                        var prevValue = array.GetValue(i - 1);
+                        presenter?.UpdateValue(prevValue);
+                    }
+                }
+            }
+
+            var finalChild = parentNode.Children.FirstOrDefault(c => 
+            {
+                var presenter = c.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+                return presenter?.Index.Int == targetIndex;
+            });
+            if (finalChild != null)
+            {
+                var presenter = finalChild.NodePresenters.FirstOrDefault() as ItemNodePresenter;
+                presenter?.UpdateValue(sourceValue);
+            }
+
+            actionService.SetName(transaction, $"Move item {sourceIndex}");
         }
 
         public void SetTargetNode(NodeViewModel node)
         {
-            // FIXME: This feature is disabled for now.
-            //targetNode = node;
+            targetNode = node;
         }
     }
 }
