@@ -547,7 +547,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private async Task<string> GetAssetCopyDirectory(DirectoryBaseViewModel directory, UFile file)
         {
             var path = directory.Path;
-            var message = Tr._p("Message", "Do you want to place the resource in the default location ?");
+            var message = Tr._p("Message", "Do you want to place the resource in the default location?");
             var finalPath = Path.GetFullPath(Path.Combine(directory.Package.Package.ResourceFolders[0], path, file.GetFileName()));
             var pathResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (pathResult == MessageBoxResult.No)
@@ -589,26 +589,22 @@ namespace Stride.Core.Assets.Editor.ViewModel
             const int DialogNoToAll = 4;
 
             var newAssets = new List<AssetViewModel>();
-            IReadOnlyList<DialogButtonInfo> copyPromptButtons = DialogHelper.CreateButtons(files is not null && files.Count > 1 ?
+            IReadOnlyList<DialogButtonInfo> copyPromptWithToAllButtons = DialogHelper.CreateButtons(
             [
                 Tr._p("Button", "Yes"),
                 Tr._p("Button", "No"),
                 Tr._p("Button", "Yes to all"),
                 Tr._p("Button", "No to all")
-            ]
-            :
-            [
-                Tr._p("Button", "Yes"),
-                Tr._p("Button", "No")
             ], 1, 2);
 
-            IReadOnlyList<DialogButtonInfo> overwritePromptButtons = DialogHelper.CreateButtons(files is not null && files.Count > 1 ?
+            IReadOnlyList<DialogButtonInfo> overwritePromptWithToAllButtons = DialogHelper.CreateButtons(
             [
                 Tr._p("Button", "Yes"),
                 Tr._p("Button", "No"),
                 Tr._p("Button", "Yes to all")
-            ]
-            :
+            ], 1, 2);
+
+            IReadOnlyList<DialogButtonInfo> dialogDefaultButtons = DialogHelper.CreateButtons(
             [
                 Tr._p("Button", "Yes"),
                 Tr._p("Button", "No")
@@ -634,7 +630,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     {
                         var message = Tr._p("Message", "Source file '{0}' is not inside of your project's resource folders, do you want to copy it?").ToFormat(file.FullPath);
 
-                        var copyResult = await Dialogs.MessageBoxAsync(message, copyPromptButtons, MessageBoxImage.Warning);
+                        var copyResult = await Dialogs.MessageBoxAsync(message, files.Count > 1 && i != files.Count - 1 ? copyPromptWithToAllButtons : dialogDefaultButtons, MessageBoxImage.Warning);
 
                         if (copyResult is DialogClosed or DialogNo)
                         {
@@ -671,7 +667,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                             {
                                 var message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(finalPath);
 
-                                var copyResult = await Dialogs.MessageBoxAsync(message, overwritePromptButtons, MessageBoxImage.Warning);
+                                var copyResult = await Dialogs.MessageBoxAsync(message, files.Count > 1 && i != files.Count - 1 ? overwritePromptWithToAllButtons : dialogDefaultButtons, MessageBoxImage.Warning);
 
                                 overwriteAll = copyResult is DialogYesToAll;
 
@@ -691,7 +687,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     }
                     catch (Exception ex)
                     {
-                        var message = Tr._p("Message", $"An error occurred while copying the asset to the resources folder : {ex.Message}");
+                        var message = Tr._p("Message", "An error occurred while copying the asset to the resources folder: {0}").ToFormat(ex.Message);
                         await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
                         return newAssets;
                     }
