@@ -18,17 +18,7 @@ internal static class EntryPointWrapperGenerator
         ExecutionModel executionModel,
         AnalysisResult analysisResult,
         LiveAnalysis liveAnalysis,
-        List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> inputStreams,
-        List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> outputStreams,
-        List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> patchInputStreams,
-        List<(StreamVariableInfo Info, int Id, SymbolType InterfaceType)> patchOutputStreams,
-        StructType inputType,
-        StructType outputType,
-        StructType streamsType,
-        StructType? constantsType,
-        int? arrayInputSize,
-        int? arrayOutputSize,
-        int streamsVariableId,
+        StageStreamLayout streamLayout,
         Symbol? patchConstantEntryPoint)
     {
         var entryPointFunctionType = (FunctionType)entryPoint.Type;
@@ -117,40 +107,40 @@ internal static class EntryPointWrapperGenerator
         FillSemanticArguments(entryPointFunctionType, arguments);
 
         // Setup input and call original main()
-        if (arrayInputSize != null)
+        if (streamLayout.ArrayInputSize != null)
         {
             // Copy variables to Input[X] which is first method parameter of main()
             // Pattern is a loop over index i looking like:
             //  inputs[i].Position = gl_Position[i];
             //  inputs[i].Normal = in_GS_normals[i];
-            var inputsVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(new ArrayType(inputType, arrayInputSize.Value), Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
+            var inputsVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(new ArrayType(streamLayout.InputType, streamLayout.ArrayInputSize.Value), Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
             context.AddName(inputsVariable, "inputs");
 
             int ConvertInputsArray()
             {
-                Span<int> inputLoadValues = stackalloc int[inputType.Members.Count];
-                for (var inputIndex = 0; inputIndex < inputStreams.Count; inputIndex++)
+                Span<int> inputLoadValues = stackalloc int[streamLayout.InputType.Members.Count];
+                for (var inputIndex = 0; inputIndex < streamLayout.InputStreams.Count; inputIndex++)
                 {
-                    var stream = inputStreams[inputIndex];
-                    var loadedValue = buffer.Add(new OpLoad(context.GetOrRegister(new ArrayType(stream.Info.Type, arrayInputSize.Value)), context.Bound++, stream.Id, null, []));
+                    var stream = streamLayout.InputStreams[inputIndex];
+                    var loadedValue = buffer.Add(new OpLoad(context.GetOrRegister(new ArrayType(stream.Info.Type, streamLayout.ArrayInputSize.Value)), context.Bound++, stream.Id, null, []));
                     inputLoadValues[inputIndex] = loadedValue.ResultId;
                 }
 
-                Span<int> inputFieldValues = stackalloc int[inputType.Members.Count];
-                Span<int> inputValues = stackalloc int[arrayInputSize.Value];
-                for (int arrayIndex = 0; arrayIndex < arrayInputSize; ++arrayIndex)
+                Span<int> inputFieldValues = stackalloc int[streamLayout.InputType.Members.Count];
+                Span<int> inputValues = stackalloc int[streamLayout.ArrayInputSize.Value];
+                for (int arrayIndex = 0; arrayIndex < streamLayout.ArrayInputSize; ++arrayIndex)
                 {
-                    for (var inputIndex = 0; inputIndex < inputStreams.Count; inputIndex++)
+                    for (var inputIndex = 0; inputIndex < streamLayout.InputStreams.Count; inputIndex++)
                     {
-                        var stream = inputStreams[inputIndex];
+                        var stream = streamLayout.InputStreams[inputIndex];
                         inputFieldValues[inputIndex] = buffer.Add(new OpCompositeExtract(context.Types[stream.Info.Type], context.Bound++, inputLoadValues[inputIndex], [arrayIndex])).ResultId;
                         inputFieldValues[inputIndex] = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.InterfaceType, stream.Info.Type, inputFieldValues[inputIndex]);
                     }
 
-                    inputValues[arrayIndex] = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(inputType), context.Bound++, [.. inputFieldValues])).ResultId;
+                    inputValues[arrayIndex] = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(streamLayout.InputType), context.Bound++, [.. inputFieldValues])).ResultId;
                 }
 
-                var inputsData1 = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(new ArrayType(inputType, arrayInputSize.Value)), context.Bound++, [.. inputValues])).ResultId;
+                var inputsData1 = buffer.Add(new OpCompositeConstruct(context.GetOrRegister(new ArrayType(streamLayout.InputType, streamLayout.ArrayInputSize.Value)), context.Bound++, [.. inputValues])).ResultId;
                 return inputsData1;
             }
 
@@ -162,22 +152,22 @@ internal static class EntryPointWrapperGenerator
             if (executionModel == ExecutionModel.TessellationControl || executionModel == ExecutionModel.TessellationEvaluation)
             {
                 var arraySize = executionModel == ExecutionModel.TessellationControl
-                    ? arrayOutputSize ?? throw new InvalidOperationException("Can't figure array output size for tessellation shader")
-                    : arrayInputSize.Value;
+                    ? streamLayout.ArrayOutputSize ?? throw new InvalidOperationException("Can't figure array output size for tessellation shader")
+                    : streamLayout.ArrayInputSize.Value;
                 bool hullTessellationOutputsGenerated = false;
                 int GenerateHullTessellationOutputs()
                 {
                     if (hullTessellationOutputsGenerated)
                         throw new InvalidOperationException("Hull OutputPatch can only be used in once place (constant patch)");
                     hullTessellationOutputsGenerated = true;
-                    var outputsVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(new ArrayType(outputType, arraySize), Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
+                    var outputsVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(new ArrayType(streamLayout.OutputType, arraySize), Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
                     context.AddName(outputsVariable, "outputs");
 
                     for (int arrayIndex = 0; arrayIndex < arraySize; ++arrayIndex)
                     {
-                        for (var outputIndex = 0; outputIndex < outputStreams.Count; outputIndex++)
+                        for (var outputIndex = 0; outputIndex < streamLayout.OutputStreams.Count; outputIndex++)
                         {
-                            var stream = outputStreams[outputIndex];
+                            var stream = streamLayout.OutputStreams[outputIndex];
                             var outputsVariablePtr = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Function)),
                                 context.Bound++, outputsVariable,
                                 [context.CompileConstant(arrayIndex).Id, context.CompileConstant(outputIndex).Id])).ResultId;
@@ -220,10 +210,10 @@ internal static class EntryPointWrapperGenerator
                             case StreamsType t when t.Kind is StreamsKindSDSL.Constants && parameterModifiers is ParameterModifiers.None or ParameterModifiers.In:
                                 {
                                     // Parameter is "HS_CONSTANTS constants"
-                                    var constantVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(constantsType, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
+                                    var constantVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(streamLayout.ConstantsType, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
                                     arguments[i] = constantVariable;
                                     // Copy back values from semantic/builtin variables to Constants struct
-                                    foreach (var stream in patchInputStreams)
+                                    foreach (var stream in streamLayout.PatchInputStreams)
                                     {
                                         var inputPtr = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Function)), context.Bound++, constantVariable, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
                                         var inputResult = buffer.Add(new OpLoad(context.GetOrRegister(stream.Info.Type), context.Bound++, stream.Id, null, [])).ResultId;
@@ -237,8 +227,8 @@ internal static class EntryPointWrapperGenerator
                                     // Parameter is "out HS_OUTPUT output" or "out HS_CONSTANTS constants"
                                     var structType = t.Kind switch
                                     {
-                                        StreamsKindSDSL.Output => outputType,
-                                        StreamsKindSDSL.Constants => constantsType,
+                                        StreamsKindSDSL.Output => streamLayout.OutputType,
+                                        StreamsKindSDSL.Constants => streamLayout.ConstantsType,
                                     };
                                     var outVariable = buffer.Insert(variableInsertIndex++, new OpVariable(context.GetOrRegister(new PointerType(structType, Specification.StorageClass.Function)), context.Bound++, Specification.StorageClass.Function, null)).ResultId;
                                     arguments[i] = outVariable;
@@ -264,16 +254,16 @@ internal static class EntryPointWrapperGenerator
                                     // Parameter is "out HS_OUTPUT output"
                                     var outputVariable = arguments[i];
                                     // Load as value
-                                    outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(outputType), context.Bound++, outputVariable, null, [])).ResultId;
+                                    outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(streamLayout.OutputType), context.Bound++, outputVariable, null, [])).ResultId;
                                     // Do we need to index into array? if yes, get index (gl_invocationID)
-                                    int? invocationIdValue = arrayOutputSize != null ? GetOrDeclareBuiltInValue(ScalarType.UInt, "SV_OutputControlPointID") : null;
+                                    int? invocationIdValue = streamLayout.ArrayOutputSize != null ? GetOrDeclareBuiltInValue(ScalarType.UInt, "SV_OutputControlPointID") : null;
                                     // Copy back values from Output struct to semantic/builtin variables
-                                    for (var outputIndex = 0; outputIndex < outputStreams.Count; outputIndex++)
+                                    for (var outputIndex = 0; outputIndex < streamLayout.OutputStreams.Count; outputIndex++)
                                     {
-                                        var stream = outputStreams[outputIndex];
+                                        var stream = streamLayout.OutputStreams[outputIndex];
                                         var outputResult = buffer.Add(new OpCompositeExtract(context.GetOrRegister(stream.Info.Type), context.Bound++, outputVariable, [outputIndex])).ResultId;
                                         outputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.Info.Type, stream.InterfaceType, outputResult);
-                                        var outputTargetPtr = arrayOutputSize != null
+                                        var outputTargetPtr = streamLayout.ArrayOutputSize != null
                                             ? buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Output)),
                                                 context.Bound++, stream.Id,
                                                 [invocationIdValue.Value])).ResultId
@@ -287,9 +277,9 @@ internal static class EntryPointWrapperGenerator
                                     // Parameter is "out HS_OUTPUT output"
                                     var outputVariable = arguments[i];
                                     // Load as value
-                                    outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(constantsType ?? throw new InvalidOperationException()), context.Bound++, outputVariable, null, [])).ResultId;
+                                    outputVariable = buffer.Add(new OpLoad(context.GetOrRegister(streamLayout.ConstantsType ?? throw new InvalidOperationException()), context.Bound++, outputVariable, null, [])).ResultId;
                                     // Copy back values from Output struct to semantic/builtin variables
-                                    foreach (var stream in patchOutputStreams)
+                                    foreach (var stream in streamLayout.PatchOutputStreams)
                                     {
                                         var outputResult = buffer.Add(new OpCompositeExtract(context.GetOrRegister(stream.Info.Type), context.Bound++, outputVariable, [stream.Info.StreamStructFieldIndex])).ResultId;
                                         outputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.Info.Type, stream.InterfaceType, outputResult);
@@ -381,9 +371,9 @@ internal static class EntryPointWrapperGenerator
             // Note: we could in the future support having Input/Output in the function signature, just like we do for HS/DS/GS
 
             // Copy variables from input to streams struct
-            foreach (var stream in inputStreams)
+            foreach (var stream in streamLayout.InputStreams)
             {
-                var streamPointer = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Private)), context.Bound++, streamsVariableId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
+                var streamPointer = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Private)), context.Bound++, streamLayout.StreamsVariableId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
                 var inputResult = buffer.Add(new OpLoad(context.Types[stream.Info.Type], context.Bound++, stream.Id, null, [])).ResultId;
                 inputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.InterfaceType, stream.Info.Type, inputResult);
                 buffer.Add(new OpStore(streamPointer, inputResult, null, []));
@@ -393,10 +383,10 @@ internal static class EntryPointWrapperGenerator
             buffer.Add(new OpFunctionCall(voidType, context.Bound++, entryPoint.IdRef, new(arguments)));
 
             // Copy variables from streams struct to output
-            foreach (var stream in outputStreams)
+            foreach (var stream in streamLayout.OutputStreams)
             {
                 var baseType = stream.Info.Type;
-                var streamPointer = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Private)), context.Bound++, streamsVariableId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
+                var streamPointer = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Private)), context.Bound++, streamLayout.StreamsVariableId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
                 var outputResult = buffer.Add(new OpLoad(context.Types[baseType], context.Bound++, streamPointer, null, [])).ResultId;
                 outputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.Info.Type, stream.InterfaceType, outputResult);
                 buffer.Add(new OpStore(stream.Id, outputResult, null, []));
@@ -407,17 +397,17 @@ internal static class EntryPointWrapperGenerator
         buffer.Add(new OpFunctionEnd());
 
         // Note: we overallocate and filter with UsedThisStage after
-        Span<int> entryPointInterfaceVariables = stackalloc int[inputStreams.Count + outputStreams.Count + patchInputStreams.Count + patchOutputStreams.Count + 1 + analysisResult.Variables.Count + analysisResult.CBuffers.Count + analysisResult.Resources.Count + entryPointExtraVariables.Count];
+        Span<int> entryPointInterfaceVariables = stackalloc int[streamLayout.InputStreams.Count + streamLayout.OutputStreams.Count + streamLayout.PatchInputStreams.Count + streamLayout.PatchOutputStreams.Count + 1 + analysisResult.Variables.Count + analysisResult.CBuffers.Count + analysisResult.Resources.Count + entryPointExtraVariables.Count];
         int pvariableIndex = 0;
-        foreach (var inputStream in inputStreams)
+        foreach (var inputStream in streamLayout.InputStreams)
             entryPointInterfaceVariables[pvariableIndex++] = inputStream.Id;
-        foreach (var outputStream in outputStreams)
+        foreach (var outputStream in streamLayout.OutputStreams)
             entryPointInterfaceVariables[pvariableIndex++] = outputStream.Id;
-        foreach (var inputStream in patchInputStreams)
+        foreach (var inputStream in streamLayout.PatchInputStreams)
             entryPointInterfaceVariables[pvariableIndex++] = inputStream.Id;
-        foreach (var outputStream in patchOutputStreams)
+        foreach (var outputStream in streamLayout.PatchOutputStreams)
             entryPointInterfaceVariables[pvariableIndex++] = outputStream.Id;
-        entryPointInterfaceVariables[pvariableIndex++] = streamsVariableId;
+        entryPointInterfaceVariables[pvariableIndex++] = streamLayout.StreamsVariableId;
         foreach (var variable in analysisResult.Variables)
         {
             if (variable.Value.UsedThisStage)

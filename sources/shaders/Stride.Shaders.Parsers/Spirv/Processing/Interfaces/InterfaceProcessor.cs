@@ -1,4 +1,4 @@
-﻿using Stride.Shaders.Core;
+using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -299,16 +299,15 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             var streamsVariable = context.Add(new OpVariable(context.GetOrRegister(new PointerType(streamsType, Specification.StorageClass.Private)), context.Bound++, Specification.StorageClass.Private, null));
             context.AddName(streamsVariable.ResultId, $"streams{stage}");
 
+            var streamLayout = new StageStreamLayout(inputStreams, outputStreams, patchInputStreams, patchOutputStreams, inputType, outputType, streamsType, constantsType, arrayInputSize, arrayOutputSize, streamsVariable.ResultId);
+
             // Find patch constant entry point
             var patchConstantEntryPoint = executionModel == ExecutionModel.TessellationControl ? ResolveHullPatchConstantEntryPoint(table, context, entryPoint) : null;
 
             // Generate entry point wrapper
             var entryPointInfo = EntryPointWrapperGenerator.GenerateWrapper(context,
                 buffer, entryPoint, executionModel, analysisResult,
-                liveAnalysis, inputStreams, outputStreams, patchInputStreams,
-                patchOutputStreams, inputType, outputType, streamsType,
-                constantsType, arrayInputSize, arrayOutputSize, streamsVariable.ResultId,
-                patchConstantEntryPoint);
+                liveAnalysis, streamLayout, patchConstantEntryPoint);
 
             // Patch any OpStreams/OpAccessChain to use the new struct
             foreach (var method in liveAnalysis.ReferencedMethods)
