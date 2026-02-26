@@ -228,6 +228,13 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     }
     public override SpirvValue CompileFrac(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLFract, x);
 
+    public override SpirvValue CompileRcp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x)
+    {
+        var constant1 = builder.Convert(context, context.CompileConstant(1.0f), functionType.ReturnType);
+        var instruction = builder.Insert(new OpFDiv(context.GetOrRegister(functionType.ReturnType), context.Bound++, constant1.Id, x.Id));
+        return new(instruction.ResultId, instruction.ResultType);
+    }
+
     // Compute Barriers
     const Specification.MemorySemanticsMask AllMemoryBarrierMemorySemanticsMask = Specification.MemorySemanticsMask.ImageMemory | Specification.MemorySemanticsMask.WorkgroupMemory | Specification.MemorySemanticsMask.UniformMemory | Specification.MemorySemanticsMask.AcquireRelease;
     const Specification.MemorySemanticsMask DeviceMemoryBarrierMemorySemanticsMask = Specification.MemorySemanticsMask.ImageMemory | Specification.MemorySemanticsMask.UniformMemory | Specification.MemorySemanticsMask.AcquireRelease;
@@ -292,7 +299,6 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileProcessTriTessFactorsAvg(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue RawEdgeFactors, SpirvValue InsideScale, SpirvValue RoundedEdgeFactors, SpirvValue RoundedInsideFactor, SpirvValue UnroundedInsideFactor) => throw new NotImplementedException();
     public override SpirvValue CompileProcessTriTessFactorsMax(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue RawEdgeFactors, SpirvValue InsideScale, SpirvValue RoundedEdgeFactors, SpirvValue RoundedInsideFactor, SpirvValue UnroundedInsideFactor) => throw new NotImplementedException();
     public override SpirvValue CompileProcessTriTessFactorsMin(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue RawEdgeFactors, SpirvValue InsideScale, SpirvValue RoundedEdgeFactors, SpirvValue RoundedInsideFactor, SpirvValue UnroundedInsideFactor) => throw new NotImplementedException();
-    public override SpirvValue CompileRcp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileReversebits(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileSource_mark(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => throw new NotImplementedException();
     public override SpirvValue CompileTranspose(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
