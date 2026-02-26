@@ -1,0 +1,64 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+        xmlns:cvt="using:Stride.Core.Presentation.Avalonia.Converters"
+        xmlns:local="using:Stride.Core.Presentation.Windows"
+        xmlns:windows="using:Stride.Core.Presentation.Avalonia.Windows"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        MinHeight="120" MinWidth="320" MaxHeight="768"
+        SizeToContent="WidthAndHeight" CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Padding="8,0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"
+        x:Class="Stride.Core.Presentation.Avalonia.Windows.MessageBox">
+  <Window.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/GeometryResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Window.Resources>
+  <Window.ContentTemplate>
+    <DataTemplate>
+      <DockPanel LastChildFill="True" Margin="8">
+        <!--  buttons -->
+        <ItemsControl DockPanel.Dock="Bottom"
+                      HorizontalAlignment="Right"
+                      ItemsSource="{Binding $parent[windows:MessageBox].ButtonsSource}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Rows="1" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type local:DialogButtonInfo}">
+              <Button Margin="4,0" Padding="16,4" MinWidth="80"
+                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                      Command="{Binding $parent[windows:MessageBox].ButtonCommand}"
+                      CommandParameter="{Binding Result}"
+                      Content="{Binding Content}"
+                      IsCancel="{Binding IsCancel}" IsDefault="{Binding IsDefault}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <!-- content -->
+        <ContentPresenter Content="{Binding $parent[ContentControl].Content}">
+          <ContentPresenter.ContentTemplate>
+            <DataTemplate>
+              <DockPanel LastChildFill="True">
+                <Path DockPanel.Dock="Left"
+                      HorizontalAlignment="Left" VerticalAlignment="Top"
+                      Height="32" Width="32" Margin="4"
+                      Stretch="Uniform" Fill="{DynamicResource SystemAccentColor}"
+                      Data="{Binding $parent[windows:MessageBox].Geometry}"
+                      IsVisible="{Binding $parent[windows:MessageBox].Geometry, Converter={cvt:ObjectToBool}}" />
+                <md:MarkdownScrollViewer Markdown="{ReflectionBinding}" VerticalAlignment="Center" />
+              </DockPanel>
+            </DataTemplate>
+          </ContentPresenter.ContentTemplate>
+        </ContentPresenter>
+      </DockPanel>
+    </DataTemplate>
+  </Window.ContentTemplate>
+</Window>
