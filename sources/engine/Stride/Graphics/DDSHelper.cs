@@ -988,11 +988,6 @@ namespace Stride.Graphics
         {
             var flags = makeACopy ? DDSFlags.CopyMemory : DDSFlags.None;
 
-#if STRIDE_PLATFORM_ANDROID
-            // Directly load image as RGBA instead of BGRA, because OpenGL ES devices don't support it out of the box (extension).
-            flags |= DDSFlags.ForceRgb;
-#endif
-
             ConversionFlags convFlags;
             ImageDescription mdata;
             // If the memory pointed is not a DDS memory, return null.

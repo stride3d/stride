@@ -22,7 +22,7 @@ public readonly partial struct DescriptorSet
         return new DescriptorSet(graphicsDevice, pool, layout);
     }
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_OPENGL || (STRIDE_GRAPHICS_API_VULKAN && STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES)
+#if STRIDE_GRAPHICS_API_DIRECT3D11 || (STRIDE_GRAPHICS_API_VULKAN && STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES)
 
     /// <summary>
     ///   An array of Descriptors in the Descriptor Set used for managing the Graphics Resources,

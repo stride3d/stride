@@ -97,7 +97,7 @@ namespace Stride.Graphics
         internal VkInstanceApi NativeInstanceApi;
         internal bool HasXlibSurfaceSupport;
 
-        // We use GraphicsDevice (similar to OpenGL)
+        // We use GraphicsDevice name as logger
         private static readonly Logger Log = GlobalLogger.GetLogger("GraphicsDevice");
 
         public unsafe GraphicsAdapterFactoryInstance(bool enableValidation)

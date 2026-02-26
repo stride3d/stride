@@ -164,13 +164,6 @@ public partial struct GraphicsDeviceFeatures
     /// </returns>
     public readonly FeaturesPerFormat this[PixelFormat pixelFormat] => mapFeaturesPerFormat[(int) pixelFormat];
 
-#if STRIDE_GRAPHICS_API_OPENGL
-    // Defined here to avoid CS0282 warning if defined in GraphicsDeviceFeatures.OpenGL.cs
-    internal string Vendor;
-    internal string Renderer;
-    internal System.Collections.Generic.IList<string> SupportedExtensions;
-#endif
-
     /// <summary>
     ///   Contains information about the features a <see cref="GraphicsDevice"/> supports for a particular <see cref="PixelFormat"/>.
     /// </summary>

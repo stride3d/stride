@@ -38,37 +38,15 @@
       <Link>NUnitLiteLauncher.iPhone.cs</Link>
     </Compile>
     <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="XunitAttributes.cs" />
-    <Compile Include="NonParallelCollectionDefinition.cs" />
-    <Compile Include="TestObjectIdBuilder.cs" />
-    <Compile Include="TestPriorityLinkedQueue.cs" />
-    <Compile Include="MemoryFileProvider.cs" />
-    <Compile Include="TestPriorityQueue.cs" />
-    <Compile Include="TestProfiler.cs" />
-    <Compile Include="TestSerialization.StructLayout.cs" />
-    <Compile Include="TestContentManager.cs" />
-    <Compile Include="TestLogger.cs" />
-    <Compile Include="TestMicroThread.cs" />
-    <Compile Include="TestStore.cs" />
-    <Compile Include="TestSerialization.cs" />
-    <Compile Include="TestUnmanagedArray.cs" />
-    <Compile Include="TestUtilities.cs" />
-    <Compile Include="TestWatcher.cs" />
-    <ProjectReference Include="..\Stride.Core.Serialization\Stride.Core.Serialization.csproj">
-      <Project>{5210FB81-B807-49BB-AF0D-31FB6A83A572}</Project>
-      <Name>Stride.Core.Serialization</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Stride.Core\Stride.Core.csproj">
-      <Project>{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}</Project>
-      <Name>Stride.Core</Name>
-    </ProjectReference>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
   </ItemGroup>
   <Import Project="..\..\targets\Stride.UnitTests.targets" Condition="Exists('..\..\targets\Stride.UnitTests.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

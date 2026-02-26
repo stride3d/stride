@@ -4,9 +4,9 @@
     <!-- Defaults for CPU and GraphicsApi based on platform-->
     <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'Windows'">Direct3D11</StrideDefaultGraphicsApi>
     <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'UWP'">Direct3D11</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'Android'">OpenGLES</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'iOS'">OpenGLES</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'Linux'">OpenGL</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'Android'">Vulkan</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'iOS'">Vulkan</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'Linux'">Vulkan</StrideDefaultGraphicsApi>
     <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'macOS'">Vulkan</StrideDefaultGraphicsApi>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' and '$(StrideDefaultGraphicsApi)' != ''">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
   </PropertyGroup>

@@ -17,12 +17,12 @@
          the active one that Visual Studio and IntelliSense takes into account -->
     <!--<StrideDefaultGraphicsApiDesignTime>Direct3D11</StrideDefaultGraphicsApiDesignTime>-->
 
-    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And ('$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)')">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And ('$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)')">Direct3D11;Direct3D12;Vulkan</StrideGraphicsApis>
 
     <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
     <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">Direct3D11</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">OpenGLES</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">OpenGLES</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">Vulkan</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">Vulkan</StrideDefaultGraphicsApi>
   </PropertyGroup>
   <!-- Some platforms only have a single graphics API.
       If yes, set it right away and disable StrideGraphicsApiDependent (only for inner builds, check using TargetFrameworks) -->
@@ -51,14 +51,6 @@
 
   <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Null' ">
     <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_NULL</StrideGraphicsApiDefines>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'OpenGL' ">
-    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLCORE</StrideGraphicsApiDefines>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'OpenGLES' ">
-    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLES</StrideGraphicsApiDefines>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
