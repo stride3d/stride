@@ -630,7 +630,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     {
                         var message = Tr._p("Message", "Source file '{0}' is not inside of your project's resource folders, do you want to copy it?").ToFormat(file.FullPath);
 
-                        var copyResult = await Dialogs.MessageBoxAsync(message, files.Count > 1 && i != files.Count - 1 ? copyPromptWithToAllButtons : dialogDefaultButtons, MessageBoxImage.Warning);
+                        var copyResult = await Dialogs.MessageBoxAsync(message, i != files.Count - 1 ? copyPromptWithToAllButtons : dialogDefaultButtons, MessageBoxImage.Warning);
 
                         if (copyResult is DialogClosed or DialogNo)
                         {
@@ -667,7 +667,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                             {
                                 var message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(finalPath);
 
-                                var copyResult = await Dialogs.MessageBoxAsync(message, files.Count > 1 && i != files.Count - 1 ? overwritePromptWithToAllButtons : dialogDefaultButtons, MessageBoxImage.Warning);
+                                var copyResult = await Dialogs.MessageBoxAsync(message, i != files.Count - 1 ? overwritePromptWithToAllButtons : dialogDefaultButtons, MessageBoxImage.Warning);
 
                                 overwriteAll = copyResult is DialogYesToAll;
 
