@@ -8,6 +8,7 @@ using Windows.UI.Xaml.Media;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Games;
+using Stride.Input;
 
 namespace Stride.UI.Controls
 {
@@ -42,7 +43,7 @@ namespace Stride.UI.Controls
         {
         }
 
-        private void ActivateEditTextImpl()
+        private void ActivateEditTextImpl(InputManager inputManager)
         {
             // try to show the virtual keyboard if no hardward keyboard available
             Windows.UI.ViewManagement.InputPane.GetForCurrentView().TryShow();
@@ -103,7 +104,7 @@ namespace Stride.UI.Controls
             UpdateSelectionFromEditImpl();
         }
 
-        private void DeactivateEditTextImpl()
+        private void DeactivateEditTextImpl(InputManager inputManager)
         {
             if (editText != null)
             {
@@ -119,7 +120,6 @@ namespace Stride.UI.Controls
                 editText = null;
                 activeEditText = null;
             }
-            FocusedElement = null;
         }
 
         private void UpdateTextToEditImpl()

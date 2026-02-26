@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
 using Stride.Graphics;
+using Stride.Input;
 using Stride.UI.Events;
 
 namespace Stride.UI.Controls
@@ -148,20 +149,25 @@ namespace Stride.UI.Controls
                 if (IsReadOnly && value) // prevent selection when the Edit is read only
                     return;
 
-                isSelectionActive = value;
+                var uiSystem = UIElementServices.Services?.GetService<UISystem>();
+                var inputManager = UIElementServices.Services?.GetService<InputManager>();
+                if (inputManager is null || uiSystem is null)
+                    return;
 
-                if (IsSelectionActive)
+                isSelectionActive = value;
+                if (isSelectionActive)
                 {
-                    var previousEditText = FocusedElement as EditText;
-                    if (previousEditText != null)
+                    if (uiSystem.FocusedElement is EditText previousEditText)
                         previousEditText.IsSelectionActive = false;
 
-                    FocusedElement = this;
-                    ActivateEditTextImpl();
+                    uiSystem.FocusedElement = this;
+                    ActivateEditTextImpl(inputManager);
                 }
                 else
                 {
-                    DeactivateEditTextImpl();
+                    uiSystem.FocusedElement = null;
+                    DeactivateEditTextImpl(inputManager);
+                    Composition = "";
                 }
             }
         }

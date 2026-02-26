@@ -90,18 +90,14 @@ namespace Stride.UI.Controls
             }
         }
 
-        private void ActivateEditTextImpl()
+        private void ActivateEditTextImpl(InputManager inputManager)
         {
-            var input = UIElementServices.Services.GetSafeServiceAs<InputManager>();
-            input.TextInput?.EnabledTextInput();
+            inputManager.TextInput?.EnabledTextInput();
         }
-        private void DeactivateEditTextImpl()
-        {
-            var input = UIElementServices.Services.GetSafeServiceAs<InputManager>();
-            input.TextInput?.DisableTextInput();
-            Composition = "";
 
-            FocusedElement = null;
+        private void DeactivateEditTextImpl(InputManager inputManager)
+        {
+            inputManager.TextInput?.DisableTextInput();
         }
 
         private void InterpretKey(Keys key, InputManager input)
