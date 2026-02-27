@@ -360,12 +360,25 @@ public class TypeDuplicateHelper
                 }
             }
             if (!found)
-                (mismatches ??= []).Add((new OpData(rInst.Data.Memory.Span), false));
+            {
+                if (rInst.Op is Op.OpName)
+                {
+                    // OpName mismatches are harmless — just adopt the remove-side name onto keepId
+                    var clone = new OpData(rInst.Data.Memory.Span);
+                    clone.Memory.Span[1] = keepId;
+                    namesByOp.Add(new InstructionSortHelper { Op = clone.Op, Index = -1, Data = clone });
+                    span = CollectionsMarshal.AsSpan(namesByOp); // re-acquire after mutation
+                }
+                else
+                    (mismatches ??= []).Add((new OpData(rInst.Data.Memory.Span), false));
+            }
         }
         // Check reverse: every keepId decoration has a match in removeId
         for (int k = keepStart; k < keepEnd; k++)
         {
             ref var kInst = ref span[k];
+            if (kInst.Op is Op.OpName)
+                continue; // OpName on keep-side is always fine
             bool found = false;
             for (int r = removeStart; r < removeEnd; r++)
             {
