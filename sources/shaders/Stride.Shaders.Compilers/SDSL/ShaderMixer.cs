@@ -107,6 +107,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         MergeCBuffers(globalContext, context, temp);
         ComputeCBufferReflection(globalContext, context, temp);
 
+        // From this point, assume ShaderInfo.StartInstruction/EndInstruction are not valid anymore, as we add instructions without updating them
+
+        // SPIR-V doesn't allow OpTypeBool in uniform blocks; convert bool cbuffer members to uint
+        // (must run after ComputeCBufferReflection so reflection still reports the original bool type)
+        ConvertBoolCBufferMembers(context, temp);
+
         // Try to give variables more sensible names
         // Note: since we mutate OpName and globalContext.Names, try to do that as late as possible because some code earlier use names to match variables/types
         RenameVariables(globalContext, context, temp);

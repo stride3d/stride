@@ -467,5 +467,112 @@ namespace Stride.Shaders.Compilers.SDSL
                 context.Add(new OpMemberDecorate(structTypeId, index, Decoration.MatrixStride, [16]));
             }
         }
+
+        /// <summary>
+        /// SPIR-V does not allow OpTypeBool in uniform blocks (Block-decorated structs).
+        /// This pass converts bool cbuffer members to uint and inserts bool↔uint conversions at load/store sites.
+        /// Must run after ComputeCBufferReflection so that reflection still reports the original bool type.
+        /// </summary>
+        private static void ConvertBoolCBufferMembers(SpirvContext context, SpirvBuffer buffer)
+        {
+            // Check if PointerType(Boolean, Uniform) is registered — if not, no bool cbuffer members exist
+            var boolPtrUniform = new PointerType(ScalarType.Boolean, Specification.StorageClass.Uniform);
+            if (!context.Types.TryGetValue(boolPtrUniform, out var boolPtrUniformId))
+                return;
+
+            var boolTypeId = context.GetOrRegister(ScalarType.Boolean);
+            var uintTypeId = context.GetOrRegister(ScalarType.UInt);
+            var uintPtrUniformId = context.GetOrRegister(new PointerType(ScalarType.UInt, Specification.StorageClass.Uniform));
+
+            // 1. Find all Block-decorated struct type IDs (cbuffers)
+            var blockStructIds = new HashSet<int>();
+            foreach (var i in context)
+            {
+                if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: Decoration.Block } decorate)
+                    blockStructIds.Add(decorate.Target);
+            }
+
+            // 2. Patch OpTypeStruct instructions: replace bool member type IDs with uint
+            bool anyPatched = false;
+            foreach (var i in context)
+            {
+                if (i.Op == Op.OpTypeStruct && i.Data.IdResult is int structId && blockStructIds.Contains(structId))
+                {
+                    var span = i.Data.Memory.Span;
+                    // OpTypeStruct layout: [wordcount|op] [resultId] [member0Type] [member1Type] ...
+                    for (int j = 2; j < span.Length; j++)
+                    {
+                        if (span[j] == boolTypeId)
+                        {
+                            span[j] = uintTypeId;
+                            anyPatched = true;
+                        }
+                    }
+                }
+            }
+
+            if (!anyPatched)
+                return;
+
+            // Also update ConstantBufferSymbol member types (for consistency after reflection is computed)
+            foreach (var (type, typeId) in context.Types)
+            {
+                if (type is ConstantBufferSymbol cbs && blockStructIds.Contains(typeId))
+                {
+                    for (int i = 0; i < cbs.Members.Count; i++)
+                    {
+                        if (cbs.Members[i].Type is ScalarType { Type: Scalar.Boolean })
+                            cbs.Members[i] = cbs.Members[i] with { Type = ScalarType.UInt };
+                    }
+                }
+            }
+
+            // 3. Find all OpAccessChain with boolPtrUniform result type, patch to uintPtrUniform, and collect result IDs
+            var boolPtrResultIds = new HashSet<int>();
+            for (var index = 0; index < buffer.Count; index++)
+            {
+                var i = buffer[index];
+                if (i.Op == Op.OpAccessChain && i.Data.Memory.Span[1] == boolPtrUniformId)
+                {
+                    i.Data.Memory.Span[1] = uintPtrUniformId;
+                    boolPtrResultIds.Add(i.Data.Memory.Span[2]);
+                }
+            }
+
+            if (boolPtrResultIds.Count == 0)
+                return;
+
+            // 4. Fix loads and stores that use the patched access chains
+            var uint0 = context.CompileConstant(0u).Id;
+            var uint1 = context.CompileConstant(1u).Id;
+            for (var index = 0; index < buffer.Count; index++)
+            {
+                var i = buffer[index];
+                if (i.Op == Op.OpLoad && (OpLoad)i is { } load)
+                {
+                    if (boolPtrResultIds.Contains(load.Pointer))
+                    {
+                        // Load now produces uint; convert to bool with OpINotEqual
+                        var originalResultId = load.ResultId;
+                        var tempUintId = context.Bound++;
+                        load.ResultType = uintTypeId;
+                        load.ResultId = tempUintId;
+                        buffer.Insert(++index, new OpINotEqual(boolTypeId, originalResultId, tempUintId, uint0));
+                    }
+                }
+                else if (i.Op == Op.OpStore && (OpStore)i is { } store)
+                {
+                    if (boolPtrResultIds.Contains(store.Pointer))
+                    {
+                        // Store expects uint; convert bool to uint with OpSelect
+                        var boolVal = store.ObjectId;
+                        var uintVal = context.Bound++;
+                        // Patch store before insert: insert shifts instructions, invalidating the store reference
+                        store.ObjectId = uintVal;
+                        buffer.Insert(index++, new OpSelect(uintTypeId, uintVal, boolVal, uint1, uint0));
+                    }
+                }
+            }
+        }
     }
 }
