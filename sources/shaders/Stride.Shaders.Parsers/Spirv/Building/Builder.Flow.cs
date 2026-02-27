@@ -13,6 +13,8 @@ public partial class SpirvBuilder
 
     public int ForBlockCount { get; internal set; } = 0;
 
+    public int WhileBlockCount { get; internal set; } = 0;
+
     public EscapeBlocks? CurrentEscapeBlocks { get; internal set; }
 
     public static bool IsFunctionTermination(Op op)

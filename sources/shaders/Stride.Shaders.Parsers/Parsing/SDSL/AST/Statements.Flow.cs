@@ -128,6 +128,18 @@ public partial class While(Expression condition, Statement body, TextLocation in
     {
         var (builder, context) = compiler;
 
+        // Prepare blocks ids
+        var whileCheckBlock = context.Bound++;
+        var whileBodyBlock = context.Bound++;
+        var previousEscapeBlocks = builder.CurrentEscapeBlocks;
+        var currentEscapeBlocks = new SpirvBuilder.EscapeBlocks(context.Bound++, context.Bound++);
+        builder.CurrentEscapeBlocks = currentEscapeBlocks;
+
+        builder.Insert(new OpBranch(whileCheckBlock));
+
+        // Check block
+        builder.CreateBlock(context, whileCheckBlock, $"while_check_{builder.WhileBlockCount}");
+
         var conditionValue = Condition.CompileAsValue(table, compiler);
         if (Condition.ValueType is not ScalarType)
             table.AddError(new(Condition.Info, "while statement condition expression must evaluate to a scalar"));
@@ -135,8 +147,25 @@ public partial class While(Expression condition, Statement body, TextLocation in
         // Might need implicit conversion from float/int to bool
         conditionValue = builder.Convert(context, conditionValue, ScalarType.Boolean);
 
+        builder.Insert(new OpLoopMerge(currentEscapeBlocks.MergeBlock, currentEscapeBlocks.ContinueBlock, Specification.LoopControlMask.None, []));
+        builder.Insert(new OpBranchConditional(conditionValue.Id, whileBodyBlock, currentEscapeBlocks.MergeBlock, []));
+
+        // Body block
+        builder.CreateBlock(context, whileBodyBlock, $"while_body_{builder.WhileBlockCount}");
         Body.Compile(table, compiler);
-        throw new NotImplementedException();
+        if (!SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+            builder.Insert(new OpBranch(currentEscapeBlocks.ContinueBlock));
+
+        // Continue block
+        builder.CreateBlock(context, currentEscapeBlocks.ContinueBlock, $"while_continue_{builder.WhileBlockCount}");
+        if (!SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+            builder.Insert(new OpBranch(whileCheckBlock));
+
+        // Merge block
+        builder.CreateBlock(context, currentEscapeBlocks.MergeBlock, $"while_merge_{builder.WhileBlockCount}");
+
+        builder.WhileBlockCount++;
+        builder.CurrentEscapeBlocks = previousEscapeBlocks;
     }
 
     public override string ToString()
