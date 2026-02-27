@@ -59,18 +59,23 @@ namespace Stride.Shaders
             {
                 GenericArguments = new string[genericArguments.Length];
                 for (int i = 0; i < genericArguments.Length; ++i)
-                {
-                    var genArg = genericArguments[i];
-                    if (genArg is bool)
-                        GenericArguments[i] = ((bool)genArg) ? "true" : "false";
-                    else if (genArg is Vector4 v)
-                        GenericArguments[i] = $"float4({v.X}, {v.Y}, {v.Z}, {v.W})";
-                    else if (genArg is Vector3 v2)
-                        GenericArguments[i] = $"float3({v2.X}, {v2.Y}, {v2.Z})";
-                    else
-                        GenericArguments[i] = genArg == null ? "null" : Convert.ToString(genArg, CultureInfo.InvariantCulture);
-                }
+                    GenericArguments[i] = ConvertGenericArgToString(genericArguments[i]);
             }
+        }
+
+        /// <summary>
+        /// Converts a generic argument value to its SDSL-parseable string representation.
+        /// </summary>
+        public static string ConvertGenericArgToString(object value)
+        {
+            return value switch
+            {
+                bool b => b ? "true" : "false",
+                Vector4 v => $"float4({v.X}, {v.Y}, {v.Z}, {v.W})",
+                Vector3 v => $"float3({v.X}, {v.Y}, {v.Z})",
+                null => "null",
+                _ => Convert.ToString(value, CultureInfo.InvariantCulture),
+            };
         }
 
         public bool Equals(ShaderClassSource shaderClassSource)

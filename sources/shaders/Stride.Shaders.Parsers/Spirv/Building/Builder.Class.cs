@@ -696,6 +696,30 @@ public partial class SpirvBuilder
     /// <param name="parentBuffer"></param>
     public static ShaderBuffers GetOrLoadShader(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, ResolveStep resolveStep, SpirvContext context)
     {
+        if (resolveStep == ResolveStep.Mix && classSource.GenericArguments.Length > 0)
+        {
+            // At mix time, generics are fully resolved — resolve to string values
+            // and use the value-based path which caches to shaderLoader.Cache (persistent)
+            var genericValues = new string[classSource.GenericArguments.Length];
+            for (int i = 0; i < genericValues.Length; i++)
+            {
+                var constantId = classSource.GenericArguments[i];
+                if (context.TryGetConstantValue(constantId, out var constantValue, out _, false))
+                    genericValues[i] = ShaderClassSource.ConvertGenericArgToString(constantValue);
+                else
+                    throw new InvalidOperationException($"Generic argument {i} (ID %{constantId}) for {classSource.ClassName} could not be resolved during mix phase");
+            }
+
+            var result = GetOrLoadShader(shaderLoader, classSource.ClassName, genericValues, macros);
+
+            // PostProcess: update classSource (same as GenericResolverFromInstantiatingBuffer.PostProcess)
+            var classNameWithGenerics = $"{classSource.ClassName}<{string.Join(",", genericValues)}>";
+            classSource.ClassName = classNameWithGenerics;
+            classSource.GenericArguments = [];
+
+            return result;
+        }
+
         return GetOrLoadShader(shaderLoader, classSource.ClassName, new GenericResolverFromInstantiatingBuffer(classSource, resolveStep, context), macros);
     }
 
