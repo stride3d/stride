@@ -235,6 +235,22 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         return new(instruction.ResultId, instruction.ResultType);
     }
 
+    // Float checks
+    public override SpirvValue CompileIsnan(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileFloatUnaryCall(context, builder, functionType, Specification.Op.OpIsNan, x);
+    public override SpirvValue CompileIsinf(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileFloatUnaryCall(context, builder, functionType, Specification.Op.OpIsInf, x);
+
+    // Bit operations
+    public override SpirvValue CompileCountbits(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileFloatUnaryCall(context, builder, functionType, Specification.Op.OpBitCount, x);
+    public override SpirvValue CompileFirstbithigh(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x)
+    {
+        var op = context.ReverseTypes[x.TypeId].GetElementType() switch
+        {
+            ScalarType { Type: Scalar.UInt } => Specification.GLSLOp.GLSLFindUMsb,
+            _ => Specification.GLSLOp.GLSLFindSMsb,
+        };
+        return CompileGLSLFloatUnaryCall(context, builder, functionType, op, x);
+    }
+
     // Compute Barriers
     const Specification.MemorySemanticsMask AllMemoryBarrierMemorySemanticsMask = Specification.MemorySemanticsMask.ImageMemory | Specification.MemorySemanticsMask.WorkgroupMemory | Specification.MemorySemanticsMask.UniformMemory | Specification.MemorySemanticsMask.AcquireRelease;
     const Specification.MemorySemanticsMask DeviceMemoryBarrierMemorySemanticsMask = Specification.MemorySemanticsMask.ImageMemory | Specification.MemorySemanticsMask.UniformMemory | Specification.MemorySemanticsMask.AcquireRelease;
@@ -269,20 +285,16 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileGetRenderTargetSampleCount(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => throw new NotImplementedException();
     public override SpirvValue CompileGetRenderTargetSamplePosition(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue s) => throw new NotImplementedException();
     public override SpirvValue CompileClip(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
-    public override SpirvValue CompileCountbits(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileEvaluateAttributeAtSample(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value, SpirvValue index) => throw new NotImplementedException();
     public override SpirvValue CompileEvaluateAttributeCentroid(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value) => throw new NotImplementedException();
     public override SpirvValue CompileEvaluateAttributeSnapped(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value, SpirvValue offset) => throw new NotImplementedException();
     public override SpirvValue CompileGetAttributeAtVertex(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value, SpirvValue VertexID) => throw new NotImplementedException();
     public override SpirvValue CompileF16tof32(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileF32tof16(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
-    public override SpirvValue CompileFirstbithigh(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileFirstbitlow(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileFma(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, SpirvValue c) => throw new NotImplementedException();
     public override SpirvValue CompileFrexp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue exp) => throw new NotImplementedException();
     public override SpirvValue CompileIsfinite(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
-    public override SpirvValue CompileIsinf(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
-    public override SpirvValue CompileIsnan(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileIsnormal(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileLdexp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue exp) => throw new NotImplementedException();
     public override SpirvValue CompileLit(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue l, SpirvValue h, SpirvValue m) => throw new NotImplementedException();
