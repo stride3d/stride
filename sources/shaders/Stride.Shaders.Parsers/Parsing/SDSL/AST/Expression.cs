@@ -1432,8 +1432,11 @@ public partial class TernaryExpression(Expression cond, Expression left, Express
 
         var conditionValue = Condition.CompileAsValue(table, compiler);
 
-        // Might need implicit conversion from float/int to bool
-        conditionValue = builder.Convert(context, conditionValue, ScalarType.Boolean);
+        // Might need implicit conversion from float/int to bool, preserving vector shape
+        if (Condition.ValueType is VectorType condVec)
+            conditionValue = builder.Convert(context, conditionValue, new VectorType(ScalarType.Boolean, condVec.Size));
+        else
+            conditionValue = builder.Convert(context, conditionValue, ScalarType.Boolean);
 
         // TODO: Review choice between if/else like branch (OpBranchConditional) which evaluate only one side, or select (OpSelect) which evaluate both side but can work per component but is limited to specific types
         //       It seems HLSL 2021 changed the behavior to align it with C-style short-circuiting.
@@ -1476,6 +1479,11 @@ public partial class TernaryExpression(Expression cond, Expression left, Express
             if (Type is VectorType v && Condition.ValueType is ScalarType conditionScalar)
             {
                 conditionValue = builder.Convert(context, conditionValue, new VectorType(conditionScalar, v.Size));
+            }
+            else if (Condition.ValueType is VectorType condVec2 && (Type is not VectorType resultVec || resultVec.Size != condVec2.Size))
+            {
+                table.AddError(new(info, $"Ternary condition is {Condition.ValueType} but result type is {Type}; vector sizes must match"));
+                return default;
             }
 
             var leftResult = Left.CompileAsValue(table, compiler);
