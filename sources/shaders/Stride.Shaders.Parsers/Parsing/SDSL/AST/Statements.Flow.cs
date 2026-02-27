@@ -118,6 +118,12 @@ public partial class While(Expression condition, Statement body, TextLocation in
     public Statement Body { get; set; } = body;
     public ShaderAttribute? Attribute { get; internal set; } = attribute;
 
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        Condition.ProcessSymbol(table);
+        Body.ProcessSymbol(table);
+    }
+
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
