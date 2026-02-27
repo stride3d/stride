@@ -118,9 +118,9 @@ public sealed class MeshCollider : ICollider
         cacheOut = cache;
     }
 
-    void ICollider.RayTest<TRayHitHandler>(Shapes shapes, TypedIndex shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler)
+    void ICollider.RayTest<TRayHitHandler>(Shapes shapes, TypedIndex shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler, BufferPool pool)
     {
         Debug.Assert(shapeIndex.Type == Mesh.TypeId);
-        shapes.GetShape<Mesh>(shapeIndex.Index).RayTest(pose, in ray, ref maximumT, ref hitHandler);
+        shapes.GetShape<Mesh>(shapeIndex.Index).RayTest(pose, in ray, ref maximumT, pool, ref hitHandler);
     }
 }
