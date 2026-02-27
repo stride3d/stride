@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing;
@@ -301,9 +301,11 @@ public partial class SpirvContext
         object literalValue = literal switch
         {
             BoolLiteral lit => lit.Value,
-            IntegerLiteral lit => lit.Suffix.Size switch
+            IntegerLiteral lit => lit.Suffix switch
             {
-                > 32 => lit.LongValue,
+                { Size: > 32, Signed: false } => lit.ULongValue,
+                { Size: > 32, Signed: true } => lit.LongValue,
+                { Signed: false } => lit.UIntValue,
                 _ => lit.IntValue,
             },
             FloatLiteral lit => lit.Suffix.Size switch
@@ -311,6 +313,7 @@ public partial class SpirvContext
                 > 32 => lit.DoubleValue,
                 _ => (float)lit.DoubleValue,
             },
+            _ => throw new NotImplementedException()
         };
 
         literal.Type ??= ComputeLiteralType(literal);
@@ -328,9 +331,9 @@ public partial class SpirvContext
                 { Size: <= 8, Signed: true } => Buffer.AddData(new OpConstant<sbyte>(GetOrRegister(lit.Type), Bound++, (sbyte)lit.IntValue)),
                 { Size: <= 16, Signed: false } => Buffer.AddData(new OpConstant<ushort>(GetOrRegister(lit.Type), Bound++, (ushort)lit.IntValue)),
                 { Size: <= 16, Signed: true } => Buffer.AddData(new OpConstant<short>(GetOrRegister(lit.Type), Bound++, (short)lit.IntValue)),
-                { Size: <= 32, Signed: false } => Buffer.AddData(new OpConstant<uint>(GetOrRegister(lit.Type), Bound++, unchecked((uint)lit.IntValue))),
+                { Size: <= 32, Signed: false } => Buffer.AddData(new OpConstant<uint>(GetOrRegister(lit.Type), Bound++, lit.UIntValue)),
                 { Size: <= 32, Signed: true } => Buffer.AddData(new OpConstant<int>(GetOrRegister(lit.Type), Bound++, lit.IntValue)),
-                { Size: <= 64, Signed: false } => Buffer.AddData(new OpConstant<ulong>(GetOrRegister(lit.Type), Bound++, unchecked((uint)lit.LongValue))),
+                { Size: <= 64, Signed: false } => Buffer.AddData(new OpConstant<ulong>(GetOrRegister(lit.Type), Bound++, lit.ULongValue)),
                 { Size: <= 64, Signed: true } => Buffer.AddData(new OpConstant<long>(GetOrRegister(lit.Type), Bound++, lit.LongValue)),
                 _ => throw new NotImplementedException()
             },

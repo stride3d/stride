@@ -55,7 +55,9 @@ public partial class StringLiteral(string value, TextLocation info) : Literal(in
 public abstract class NumberLiteral(TextLocation info) : ScalarLiteral(info)
 {
     public abstract double DoubleValue { get; }
+    public abstract uint UIntValue { get; }
     public abstract int IntValue { get; }
+    public abstract ulong ULongValue { get; }
     public abstract long LongValue { get; }
 
 }
@@ -65,7 +67,9 @@ public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info
     public Suffix Suffix { get; set; } = suffix;
     public T Value { get; set; } = value;
     public override double DoubleValue => Convert.ToDouble(Value);
+    public override ulong ULongValue => Convert.ToUInt64(Value);
     public override long LongValue => Convert.ToInt64(Value);
+    public override uint UIntValue => Convert.ToUInt32(Value);
     public override int IntValue => Convert.ToInt32(Value);
 
     public override string ToString()
