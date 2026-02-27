@@ -519,6 +519,14 @@ public partial class CastExpression(TypeName typeName, Operator op, Expression e
 
         Type = castType;
 
+        // HLSL zero-initialization idiom: (StructType)0
+        if (castType is StructType)
+        {
+            if (Expression is IntegerLiteral { Value: 0 })
+                return context.CreateDefaultConstantComposite(castType);
+            throw new NotImplementedException($"Can't cast from {Expression.ValueType} to {castType} (only (StructType)0 zero-initialization is supported)");
+        }
+
         return builder.Convert(context, value, castType);
     }
 
