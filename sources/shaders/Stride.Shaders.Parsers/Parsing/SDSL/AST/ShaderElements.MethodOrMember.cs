@@ -296,6 +296,9 @@ public sealed partial class ShaderMember(
         else if (pointerType.BaseType is ByteAddressBufferType)
             context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, "byteaddressbuffer"));
 
+        if (pointerType.BaseType is ByteAddressBufferType { WriteAllowed: false } or StructuredBufferType { WriteAllowed: false })
+            context.Add(new OpDecorate(variable, Specification.Decoration.NonWritable, []));
+
         RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
     }
 

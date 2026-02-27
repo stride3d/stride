@@ -12,6 +12,7 @@ using Stride.Core.Storage;
 using Stride.Shaders.Spirv.Processing.Interfaces;
 using static Stride.Shaders.Spirv.Specification;
 using EntryPoint = Stride.Shaders.Core.EntryPoint;
+using Stride.Core.Diagnostics;
 using Stride.Core.UnsafeExtensions;
 
 namespace Stride.Shaders.Compilers.SDSL;
@@ -34,6 +35,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // This is the global context for this merge operation
         var context = new SpirvContext();
         context.Add(new OpCapability(Capability.Shader));
+        context.Add(new OpExtension("SPV_GOOGLE_user_type"));
         context.Add(new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
         var shaderLoader = new CaptureLoadedShaders(ShaderLoader);
         var table = new SymbolTable(context) { ShaderLoader = shaderLoader };
@@ -52,12 +54,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, null, shaderSource);
 
         // Root shader
-        var globalContext = new MixinGlobalContext();
+        var log = new LoggerResult();
+        var globalContext = new MixinGlobalContext(table, log);
 
         // Process name and types imported by constants due to generics instantiation
         ShaderClass.ProcessNameAndTypes(context);
 
-        var rootMixin = MergeMixinNode(globalContext, context, table, temp, shaderSource2);
+        var rootMixin = MergeMixinNode(globalContext, context, temp, shaderSource2);
 
         // Add optional capabilities
         foreach (var i in context)
@@ -119,8 +122,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         usedHashSources = shaderLoader.Sources;
     }
 
-    class MixinGlobalContext
+    class MixinGlobalContext(SymbolTable table, LoggerResult log)
     {
+        public SymbolTable Table { get; } = table;
+        public LoggerResult Log { get; } = log;
         public EffectReflection Reflection { get; } = new();
 
         public Dictionary<int, string> ExternalShaders { get; } = new();
@@ -133,7 +138,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         public MixinNode? Result { get; }
     }
 
-    MixinNode MergeMixinNode(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, SpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode? stage = null, string? currentCompositionPath = null)
+    MixinNode MergeMixinNode(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode? stage = null, string? currentCompositionPath = null)
     {
         // We emit OPSDSLEffect for any non-root composition
         if (currentCompositionPath != null)
@@ -145,7 +150,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Merge all classes from mixinSource.Mixins in main buffer
         ProcessMixinClasses(globalContext, context, buffer, mixinSource, mixinNode);
 
-        BuildTypesAndMethodGroups(globalContext, context, table, buffer, mixinNode);
+        BuildTypesAndMethodGroups(globalContext, context, buffer, mixinNode);
 
         // Compositions (recursive)
         foreach (var shader in mixinNode.Shaders)
@@ -169,7 +174,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         // TODO: Review: it seems like Stride compose variable the opposite way that we expect
                         //       Let's change it so that it becomes {currentCompositionPath}.{localKey}!
                         var compositionPath = currentCompositionPath != null ? $"{localKey}.{currentCompositionPath}" : localKey;
-                        compositionResults[i] = MergeMixinNode(globalContext, context, table, buffer, compositionMixins[i], mixinNode.IsRoot ? mixinNode : mixinNode.Stage, compositionPath);
+                        compositionResults[i] = MergeMixinNode(globalContext, context, buffer, compositionMixins[i], mixinNode.IsRoot ? mixinNode : mixinNode.Stage, compositionPath);
                     }
 
                     if (isCompositionArray)
@@ -401,7 +406,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                             if (i2.IdResult is int id)
                             {
                                 remapIds.Add(id, existingInstruction.Data.IdResult.Value);
-                                removedIds.Add(existingInstruction.Data.IdResult.Value);
+                                var mismatches = typeDuplicateInserter.MergeTypeDecorations(existingInstruction.Data.IdResult.Value, id);
+                                if (mismatches != null)
+                                {
+                                    var details = string.Join("; ", mismatches.Select(m =>
+                                        $"{m.Data} (only on {(m.OnKeepOnly ? "kept" : "removed")} type)"));
+                                    globalContext.Log.Warning($"Mismatched decorations when merging type {id} into {existingInstruction.Data.IdResult.Value}: {details}");
+                                    foreach (var entry in mismatches)
+                                        if (!entry.OnKeepOnly) entry.Data.Dispose();
+                                }
                             }
                         }
                         else
@@ -485,7 +498,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         return shaderInfo;
     }
 
-    private static void BuildTypesAndMethodGroups(MixinGlobalContext globalContext, SpirvContext context, SymbolTable table, SpirvBuffer temp, MixinNode mixinNode)
+    private static void BuildTypesAndMethodGroups(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp, MixinNode mixinNode)
     {
         // Build method group info (override, etc.)
         ShaderInfo? currentShader = null;
@@ -512,7 +525,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                     // Add symbol for each method in current type (equivalent to implicit this pointer)
                     var symbol = new Symbol(new(functionName, SymbolKind.Method), context.ReverseTypes[function.FunctionType], function.ResultId, OwnerType: currentShader.Symbol);
-                    table.CurrentFrame.Add(functionName, symbol);
+                    globalContext.Table.CurrentFrame.Add(functionName, symbol);
 
                     var methodMixinGroup = mixinNode;
                     if (!mixinNode.IsRoot && (functionInfo.Flags & FunctionFlagsMask.Stage) != 0)

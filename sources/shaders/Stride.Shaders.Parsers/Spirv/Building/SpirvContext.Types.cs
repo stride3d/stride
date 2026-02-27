@@ -6,6 +6,21 @@ namespace Stride.Shaders.Spirv.Building;
 
 public partial class SpirvContext
 {
+    // Cache for RuntimeArray types keyed by element type ID, to avoid creating duplicates
+    // that would lose their ArrayStride decoration during type deduplication in the mixer.
+    private Dictionary<int, int> runtimeArrayCache = [];
+
+    private int GetOrCreateRuntimeArray(int elementTypeId, int arrayStride)
+    {
+        if (runtimeArrayCache.TryGetValue(elementTypeId, out var id))
+            return id;
+
+        id = Buffer.Add(new OpTypeRuntimeArray(Bound++, elementTypeId)).ResultId;
+        Buffer.Add(new OpDecorate(id, Specification.Decoration.ArrayStride, [arrayStride]));
+        runtimeArrayCache[elementTypeId] = id;
+        return id;
+    }
+
     public int GetOrRegister(SymbolType? type)
     {
         if (type is null)

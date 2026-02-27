@@ -57,7 +57,8 @@ public class TypeDuplicateHelper
             // Make sure all OpName and OpMember are contiguous
             return op switch
             {
-                Op.OpName or Op.OpMemberName or Op.OpMemberDecorate or Op.OpMemberDecorateString => -1,
+                Op.OpName or Op.OpMemberName or Op.OpMemberDecorate or Op.OpMemberDecorateString
+                    or Op.OpDecorate or Op.OpDecorateString => -1,
                 _ => (int)op,
             };
         }
@@ -244,7 +245,8 @@ public class TypeDuplicateHelper
     {
         switch (data.Op)
         {
-            case Op.OpName or Op.OpMemberName or Op.OpMemberDecorate or Op.OpMemberDecorateString:
+            case Op.OpName or Op.OpMemberName or Op.OpMemberDecorate or Op.OpMemberDecorateString
+                or Op.OpDecorate or Op.OpDecorateString:
                 // Target is always in operand 1 for all those instructions
                 return namesByOp;
             default:
@@ -303,6 +305,90 @@ public class TypeDuplicateHelper
             || op == Op.OpSpecConstantTrue
             || op == Op.OpSpecConstantFalse
             || op == Op.OpSpecConstantOp;
+    }
+
+    public (int Start, int End) FindDecorationRange(int targetId)
+    {
+        var span = CollectionsMarshal.AsSpan(namesByOp);
+        int lo = 0, hi = namesByOp.Count - 1, start = namesByOp.Count;
+        while (lo <= hi)
+        {
+            int mid = lo + (hi - lo) / 2;
+            if (span[mid].Data.Memory.Span[1] < targetId)
+                lo = mid + 1;
+            else if (span[mid].Data.Memory.Span[1] > targetId)
+                hi = mid - 1;
+            else { start = mid; hi = mid - 1; }
+        }
+        int end = start;
+        while (end < namesByOp.Count && span[end].Data.Memory.Span[1] == targetId)
+            end++;
+        return (start, end);
+    }
+
+    /// <summary>
+    /// Compares decorations for two type IDs and removes the duplicate side.
+    /// Returns true if all decorations matched, false if there was a mismatch.
+    /// </summary>
+    /// <summary>
+    /// Merges decorations when deduplicating types. Removes the removeId's decorations
+    /// and returns a list of decorations that only exist on one side (mismatches).
+    /// Each entry is (Data, OnKeepOnly: true if only on keepId, false if only on removeId).
+    /// Remove-side OpData are clones that the caller should dispose.
+    /// </summary>
+    public List<(OpData Data, bool OnKeepOnly)>? MergeTypeDecorations(int keepId, int removeId)
+    {
+        var (keepStart, keepEnd) = FindDecorationRange(keepId);
+        var (removeStart, removeEnd) = FindDecorationRange(removeId);
+
+        List<(OpData Data, bool OnKeepOnly)>? mismatches = null;
+        var span = CollectionsMarshal.AsSpan(namesByOp);
+
+        // Check: every removeId decoration has a match in keepId
+        for (int r = removeStart; r < removeEnd; r++)
+        {
+            ref var rInst = ref span[r];
+            bool found = false;
+            for (int k = keepStart; k < keepEnd; k++)
+            {
+                ref var kInst = ref span[k];
+                if (kInst.Op == rInst.Op
+                    && MemoryExtensions.SequenceEqual(kInst.Data.Memory.Span[2..], rInst.Data.Memory.Span[2..]))
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                (mismatches ??= []).Add((new OpData(rInst.Data.Memory.Span), false));
+        }
+        // Check reverse: every keepId decoration has a match in removeId
+        for (int k = keepStart; k < keepEnd; k++)
+        {
+            ref var kInst = ref span[k];
+            bool found = false;
+            for (int r = removeStart; r < removeEnd; r++)
+            {
+                ref var rInst = ref span[r];
+                if (rInst.Op == kInst.Op
+                    && MemoryExtensions.SequenceEqual(rInst.Data.Memory.Span[2..], kInst.Data.Memory.Span[2..]))
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                (mismatches ??= []).Add((kInst.Data, true));
+        }
+
+        // Nop and remove the removeId's decorations
+        for (int r = removeEnd - 1; r >= removeStart; r--)
+        {
+            SetOpNop(namesByOp[r].Data.Memory.Span);
+            namesByOp.RemoveAt(r);
+        }
+
+        return mismatches;
     }
 
     public bool CheckForDuplicates(OpData data, out OpDataIndex foundData)
@@ -369,15 +455,20 @@ public class TypeDuplicateHelper
             for (lastIndex = firstIndex + 1; lastIndex < end; ++lastIndex)
             {
                 var j = instructionsByOp[lastIndex];
-                var firstMemoryIndex = i.Op == Op.OpName ? 1 : 2;
-                if (!(i.Op == j.Op && MemoryExtensions.SequenceEqual(i.Data.Memory.Span[firstMemoryIndex..], j.Data.Memory.Span[firstMemoryIndex..])))
+                var isTargetBased = i.Op == Op.OpName || i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString
+                    || i.Op == Op.OpMemberName || i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString;
+                var firstMemoryIndex = isTargetBased ? 1 : 2;
+                var same = i.Op == j.Op && MemoryExtensions.SequenceEqual(i.Data.Memory.Span[firstMemoryIndex..], j.Data.Memory.Span[firstMemoryIndex..]);
+                if (!same)
                     break;
             }
 
             // At least 2 similar items?
             if (lastIndex - firstIndex > 1)
             {
-                bool isOpWithResultId = i.Op == Op.OpName || i.Op == Op.OpMemberName || i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString;
+                bool isOpWithResultId = i.Op == Op.OpName || i.Op == Op.OpMemberName
+                    || i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString
+                    || i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString;
 
                 // Build list of IdResult matching first instruction
                 Span<int> matchingRefs = new int[lastIndex - (firstIndex + 1)];
