@@ -339,7 +339,7 @@ public partial class SpirvBuilder
 
             (Operator.LeftShift, SymbolType l, SymbolType r)
                 when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpShiftRightLogical(resultTypeId, resultId, left.Id, right.Id)),
+                => Buffer.InsertData(Position++, new OpShiftLeftLogical(resultTypeId, resultId, left.Id, right.Id)),
 
             (Operator.AND, SymbolType l, SymbolType r)
                 when l.IsInteger() && r.IsInteger()

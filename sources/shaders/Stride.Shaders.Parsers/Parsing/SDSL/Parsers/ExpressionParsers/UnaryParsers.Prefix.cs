@@ -86,7 +86,7 @@ public record struct PrefixParser : IParser<Expression>
             Parsers.Spaces0(ref scanner, result, out _);
             if (PostfixParser.Postfix(ref scanner, result, out var lit))
             {
-                parsed = new PrefixExpression(Operator.Inc, lit, scanner[position..scanner.Position]);
+                parsed = new PrefixExpression(Operator.Dec, lit, scanner[position..scanner.Position]);
                 return true;
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0020, scanner[position], scanner.Memory));
