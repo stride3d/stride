@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
+using Stride.Shaders.Spirv;
 using SymbolType = Stride.Shaders.Core.SymbolType;
 
 namespace Stride.Shaders.Parsing.SDSL;
@@ -338,13 +339,20 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                         var functionParameters = new List<FunctionParameter>();
                         for (int i = 0; i < intrinsicDefinition.Parameters.Length; ++i)
                         {
-                            functionParameters.Add(new(parameterTypes[i + 1], intrinsicDefinition.Parameters[i].Qualifier switch
+                            var paramType = (SymbolType)parameterTypes[i + 1];
+                            var modifier = intrinsicDefinition.Parameters[i].Qualifier switch
                             {
                                 Qualifier.In => ParameterModifiers.In,
                                 Qualifier.Out => ParameterModifiers.Out,
                                 Qualifier.InOut or Qualifier.Ref => ParameterModifiers.InOut,
                                 null => ParameterModifiers.None,
-                            }));
+                            };
+
+                            // Wrap out/inout parameters in PointerType, matching user-defined function convention
+                            if ((modifier & ParameterModifiers.Out) != 0)
+                                paramType = new PointerType(paramType, Specification.StorageClass.Function);
+
+                            functionParameters.Add(new(paramType, modifier));
                         }
                         var functionType = new FunctionType(parameterTypes[0], functionParameters);
 

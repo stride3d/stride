@@ -109,18 +109,18 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
     {
         ProcessParameterSymbols(table);
 
-        var argumentValueTypes = new SymbolType[arguments.Values.Count];
+        var argumentTypes = new SymbolType[arguments.Values.Count];
         for (int i = 0; i < arguments.Values.Count; ++i)
-            argumentValueTypes[i] = arguments.Values[i].ValueType;
+            argumentTypes[i] = arguments.Values[i].Type;
 
-        if (TryResolveFunctionSymbol(table, argumentValueTypes, out var functionSymbol))
+        if (TryResolveFunctionSymbol(table, argumentTypes, out var functionSymbol))
         {
             var functionType = (FunctionType)functionSymbol.Type;
             Type = functionType.ReturnType;
         }
         else
         {
-            if (IntrinsicCallHelper.TryResolveIntrinsic(table, MemberCallBaseType, name, argumentValueTypes, out var resolvedIntrinsic))
+            if (IntrinsicCallHelper.TryResolveIntrinsic(table, MemberCallBaseType, name, argumentTypes, out var resolvedIntrinsic))
             {
                 resolvedIntrinsicCompiler = resolvedIntrinsic.Compiler;
                 resolvedIntrinsicNamespace = resolvedIntrinsic.Namespace;
@@ -295,19 +295,27 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
     }
 
     // Note: int.MaxValue means incompatible
-    public static int OverloadScore(FunctionType functionType, int defaultParameters, SymbolType[] argumentValueTypes)
+    public static int OverloadScore(FunctionType functionType, int defaultParameters, SymbolType[] argumentTypes)
     {
         // Check argument count
-        if (argumentValueTypes.Length > functionType.ParameterTypes.Count || argumentValueTypes.Length < functionType.ParameterTypes.Count + defaultParameters)
+        if (argumentTypes.Length > functionType.ParameterTypes.Count || argumentTypes.Length < functionType.ParameterTypes.Count + defaultParameters)
             return int.MaxValue;
 
         // Check if argument can be converted
         var score = 0;
-        for (var index = 0; index < argumentValueTypes.Length; index++)
+        for (var index = 0; index < argumentTypes.Length; index++)
         {
-            var argumentValueType = argumentValueTypes[index];
+            var argumentType = argumentTypes[index];
             var parameter = functionType.ParameterTypes[index];
-            var argScore = SpirvBuilder.CanConvertScore(argumentValueType, parameter.Type.GetValueType());
+
+            // out/inout parameters require a writable reference (PointerType)
+            if ((parameter.Modifiers & ParameterModifiers.Out) != 0)
+            {
+                if (argumentType is not PointerType)
+                    return int.MaxValue;
+            }
+
+            var argScore = SpirvBuilder.CanConvertScore(argumentType.GetValueType(), parameter.Type.GetValueType());
             if (argScore == int.MaxValue)
                 return int.MaxValue;
 
@@ -315,12 +323,12 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         }
 
         // method with fewer optional parameters that need to be filled in by default values is generally preferred
-        score += functionType.ParameterTypes.Count - argumentValueTypes.Length;
+        score += functionType.ParameterTypes.Count - argumentTypes.Length;
 
         return score;
     }
 
-    private bool TryResolveFunctionSymbol(SymbolTable table, SymbolType[] argumentValueTypes, out Symbol functionSymbol)
+    private bool TryResolveFunctionSymbol(SymbolTable table, SymbolType[] argumentTypes, out Symbol functionSymbol)
     {
         // Note: for now, TypeId 0 is used for this/base; let's improve that later
         if (MemberCallBaseType is LoadedShaderSymbol loadedShaderSymbol)
@@ -344,7 +352,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         {
             var accessibleMethods = functionSymbol.GroupMembers
                 // Check overload score
-                .Select(x => (Score: OverloadScore((FunctionType)x.Type, x.MethodDefaultParameters?.DefaultValues.Length ?? 0, argumentValueTypes), Symbol: x))
+                .Select(x => (Score: OverloadScore((FunctionType)x.Type, x.MethodDefaultParameters?.DefaultValues.Length ?? 0, argumentTypes), Symbol: x))
                 // Remove non-applicable methods
                 .Where(x => x.Score != int.MaxValue)
                 // Group by signature/score (we assume method with exact same signature means they are overriding each other, but we might need to do a better check using override info)

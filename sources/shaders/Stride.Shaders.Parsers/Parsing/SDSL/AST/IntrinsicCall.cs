@@ -14,7 +14,7 @@ public class IntrinsicCallHelper
     private static IntrinsicTemplateExpander? TemplateExpander { get; set; }
     private static Dictionary<SymbolType, IntrinsicTemplateExpander> ClassTemplateExpanders = new();
 
-    public static bool TryResolveIntrinsic(SymbolTable table, SymbolType? thisType, string name, SymbolType[] argumentValueTypes, out (IIntrinsicCompiler Compiler, string Namespace, IntrinsicTemplateExpander.IntrinsicOverload Overload) resolvedIntrinsic)
+    public static bool TryResolveIntrinsic(SymbolTable table, SymbolType? thisType, string name, SymbolType[] argumentTypes, out (IIntrinsicCompiler Compiler, string Namespace, IntrinsicTemplateExpander.IntrinsicOverload Overload) resolvedIntrinsic)
     {
         resolvedIntrinsic = default;
 
@@ -68,7 +68,7 @@ public class IntrinsicCallHelper
         var bestOverloadScore = int.MaxValue;
         foreach (var overload in overloads)
         {
-            var overloadScore = MethodCall.OverloadScore(overload.Type, 0, argumentValueTypes);
+            var overloadScore = MethodCall.OverloadScore(overload.Type, 0, argumentTypes);
             if (overloadScore < bestOverloadScore)
             {
                 // Better overload
