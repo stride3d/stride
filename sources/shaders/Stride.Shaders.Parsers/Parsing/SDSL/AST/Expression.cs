@@ -799,22 +799,32 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         var texcoordType = resolvedIntrinsic.Overload.Type.ParameterTypes[0].Type;
                         if (pointerType.BaseType is TextureType)
                         {
-                            // Find expected type for array (same as Load() but with 1 less component)
                             var texcoordSize = texcoordType.GetElementCount();
-                            indexValue = builder.Convert(context, indexValue, texcoordType.GetElementType().GetVectorOrScalar(texcoordSize - 1));
+                            var inputSize = context.ReverseTypes[indexValue.TypeId].GetElementCount();
 
-                            Span<int> values = stackalloc int[texcoordSize];
-                            for (int j = 0; j < texcoordSize - 1; ++j)
-                                values[j] = builder.Insert(new OpCompositeExtract(context.GetOrRegister(context.ReverseTypes[indexValue.TypeId].GetElementType()), context.Bound++, indexValue.Id, [j])).ResultId;
-                            values[^1] = context.CompileConstant((int)0).Id;
-                            indexValue = new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(texcoordType), context.Bound++, [.. values])));
+                            if (texcoordSize > inputSize)
+                            {
+                                // Intrinsic expects more components than input (e.g. Texture2D.Load takes int3 = coord + LOD)
+                                // Decompose input coord, append LOD=0, recompose
+                                Span<int> values = stackalloc int[texcoordSize];
+                                for (int j = 0; j < inputSize; ++j)
+                                    values[j] = builder.Insert(new OpCompositeExtract(context.GetOrRegister(context.ReverseTypes[indexValue.TypeId].GetElementType()), context.Bound++, indexValue.Id, [j])).ResultId;
+                                for (int j = inputSize; j < texcoordSize; ++j)
+                                    values[j] = context.CompileConstant((int)0).Id;
+                                indexValue = new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(texcoordType), context.Bound++, [.. values])));
+                            }
+                            else
+                            {
+                                // No extra components needed (e.g. RWTexture2D.Load takes int2 directly)
+                                indexValue = builder.Convert(context, indexValue, texcoordType);
+                            }
                         }
                         else
                         {
                             indexValue = builder.Convert(context, indexValue, texcoordType);
                         }
 
-                        result = resolvedIntrinsic.Compiler.CompileIntrinsic(table, compiler, resolvedIntrinsic.Namespace, "Load", resolvedIntrinsic.Overload.Type, result, [indexValue.Id]);
+                        result = resolvedIntrinsic.Compiler.CompileIntrinsic(table, compiler, resolvedIntrinsic.Namespace, "Load", resolvedIntrinsic.Overload.Type, builder.AsValue(context, result), [indexValue.Id]);
                         accessor.Type = resolvedIntrinsic.Overload.Type.ReturnType;
 
                         break;

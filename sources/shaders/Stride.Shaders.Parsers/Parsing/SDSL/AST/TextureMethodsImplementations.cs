@@ -15,24 +15,43 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         if (status != null)
             throw new NotImplementedException();
 
+        var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
         var imageCoordType = context.ReverseTypes[x.TypeId];
-
-        // We get all components except last one (LOD)
         var imageCoordSize = imageCoordType.GetElementCount();
-        imageCoordType = imageCoordType.GetElementType().GetVectorOrScalar(imageCoordSize - 1);
-        Span<int> shuffleIndices = stackalloc int[imageCoordSize - 1];
-        for (int i = 0; i < shuffleIndices.Length; ++i)
-            shuffleIndices[i] = i;
 
-        // Note: assign LOD first because we truncate imageCoordValue right after
-        // Extract LOD (last coordinate) as a separate value
-        var lod = new SpirvValue(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(ScalarType.Int), context.Bound++, x.Id, [imageCoordSize - 1])));
-        // Remove last component (LOD) from texcoord 
-        x = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(imageCoordType), context.Bound++, x.Id, x.Id, new(shuffleIndices))));
+        // Determine the texture's natural coordinate dimension
+        var textureDim = textureType switch
+        {
+            Texture1DType => 1,
+            Texture2DType => 2,
+            Texture3DType or TextureCubeType => 3,
+            _ => throw new NotImplementedException($"Unsupported texture type {textureType}")
+        };
+        if (textureType.Arrayed)
+            textureDim++;
 
-        TextureGenerateImageOperands(lod, o, s, out var imask, out var imParams);
-        var loadResult = builder.Insert(new OpImageFetch(context.GetOrRegister(functionType.ReturnType), context.Bound++, texture.Id, x.Id, imask, imParams));
-        return new(loadResult.ResultId, loadResult.ResultType);
+        if (imageCoordSize > textureDim)
+        {
+            // Coord has extra component (LOD): extract it and strip from coord
+            var coordType = imageCoordType.GetElementType().GetVectorOrScalar(imageCoordSize - 1);
+            Span<int> shuffleIndices = stackalloc int[imageCoordSize - 1];
+            for (int i = 0; i < shuffleIndices.Length; ++i)
+                shuffleIndices[i] = i;
+
+            var lod = new SpirvValue(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(ScalarType.Int), context.Bound++, x.Id, [imageCoordSize - 1])));
+            x = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(coordType), context.Bound++, x.Id, x.Id, new(shuffleIndices))));
+
+            TextureGenerateImageOperands(lod, o, s, out var imask, out var imParams);
+            var loadResult = builder.Insert(new OpImageFetch(context.GetOrRegister(functionType.ReturnType), context.Bound++, texture.Id, x.Id, imask, imParams));
+            return new(loadResult.ResultId, loadResult.ResultType);
+        }
+        else
+        {
+            // No LOD component (e.g. RWTexture): use coord directly
+            TextureGenerateImageOperands(null, o, s, out var imask, out var imParams);
+            var loadResult = builder.Insert(new OpImageFetch(context.GetOrRegister(functionType.ReturnType), context.Bound++, texture.Id, x.Id, imask, imParams));
+            return new(loadResult.ResultId, loadResult.ResultType);
+        }
     }
 
     public override SpirvValue CompileSample(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
