@@ -502,7 +502,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     }
     public static SpirvValue CompileControlBarrierCall(SpirvContext context, SpirvBuilder builder, FunctionType functionType, Specification.MemorySemanticsMask memorySemanticsMask)
     {
-        builder.Insert(new OpControlBarrier((int)Specification.Scope.Workgroup, context.CompileConstant((int)Specification.Scope.Device).Id, context.CompileConstant((int)memorySemanticsMask).Id));
+        builder.Insert(new OpControlBarrier(context.CompileConstant((int)Specification.Scope.Workgroup).Id, context.CompileConstant((int)Specification.Scope.Device).Id, context.CompileConstant((int)memorySemanticsMask).Id));
         return new();
     }
 
