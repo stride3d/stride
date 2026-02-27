@@ -7,26 +7,40 @@ using Spv = Stride.Shaders.Spirv.Tools.Spv;
 
 namespace Stride.Shaders.Parsers.Tests;
 
-class ShaderLoader(string basePath) : ShaderLoaderBase(new TestShaderCache())
+class ShaderLoader(params string[] searchPaths) : ShaderLoaderBase(new TestShaderCache())
 {
     protected override bool ExternalFileExists(string name)
     {
-        var filename = $"{basePath}/{name}.sdsl";
-        return File.Exists(filename);
+        foreach (var basePath in searchPaths)
+        {
+            if (File.Exists($"{basePath}/{name}.sdsl"))
+                return true;
+        }
+        return false;
     }
 
     public override bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash)
     {
-        filename = $"{basePath}/{name}.sdsl";
+        foreach (var basePath in searchPaths)
+        {
+            filename = $"{basePath}/{name}.sdsl";
+            if (!File.Exists(filename))
+                continue;
 
-        var fileData = File.ReadAllBytes(filename);
-        hash = ObjectId.FromBytes(fileData);
+            var fileData = File.ReadAllBytes(filename);
+            hash = ObjectId.FromBytes(fileData);
 
-        // Note: we can't use Encoding.UTF8.GetString directly because there might be the UTF8 BOM at the beginning of the file
-        using var reader = new StreamReader(new MemoryStream(fileData), Encoding.UTF8);
-        code = reader.ReadToEnd();
+            // Note: we can't use Encoding.UTF8.GetString directly because there might be the UTF8 BOM at the beginning of the file
+            using var reader = new StreamReader(new MemoryStream(fileData), Encoding.UTF8);
+            code = reader.ReadToEnd();
 
-        return true;
+            return true;
+        }
+
+        filename = "";
+        code = "";
+        hash = default;
+        return false;
     }
 
     protected override bool LoadFromCode(string filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, out ShaderBuffers buffer)
