@@ -1,4 +1,6 @@
-// PSMain(ExpectedResult=#7F7F7F7F, stream.EXTRA_COLOR=(0.498 0.498 0.498 0.498))
+// DSMain(ExpectedPrimitiveCount=1, stream.EXTRA_COLOR=(0.498 0.498 0.498 0.498), cbuffer.Test=(TessFactors=(1,1,1,1)))
+// DSMain(ExpectedPrimitiveCount=7, stream.EXTRA_COLOR=(0.498 0.498 0.498 0.498), cbuffer.Test=(TessFactors=(1,1,1,2)))
+// DSMain(ExpectedPrimitiveCount=13, stream.EXTRA_COLOR=(0.498 0.498 0.498 0.498), cbuffer.Test=(TessFactors=(2,2,2,1)))
 
 namespace Stride.Shaders.Tests;
 
@@ -11,7 +13,12 @@ shader StreamTessellation
     stream float4 ExtraColor2;
     
     patchstream float Edges[3] : SV_TessFactor;
-    patchstream float Inside[2] : SV_InsideTessFactor;
+    patchstream float Inside : SV_InsideTessFactor;
+
+    cbuffer Test
+    {
+        float4 TessFactors;
+    }
 
     void VSMain()
     {
@@ -21,14 +28,15 @@ shader StreamTessellation
     
     void HSConstantMain(InputPatch<Input, 3> input, const OutputPatch<Input2, 3> output, out Constants constants)
     {
-        constants.Edges[0] = 1.0;
-        constants.Edges[1] = 1.0;
-        constants.Edges[2] = 1.0;
-        constants.Edges[3] = 1.0;
-        constants.Inside[0] = 1.0 * 3.12;
-        constants.Inside[1] = 1.0 * 3.12;
+        constants.Edges[0] = TessFactors.x;
+        constants.Edges[1] = TessFactors.y;
+        constants.Edges[2] = TessFactors.z;
+        constants.Inside = TessFactors.w;
     }
     
+    [domain("tri")]
+    [partitioning("fractional_odd")]
+    [outputtopology("triangle_cw")]
     [outputcontrolpoints(3)]
     [patchconstantfunc("HSConstantMain")]
     void HSMain(InputPatch<Input, 3> input, out Output output, uint uCPID : SV_OutputControlPointID) 
@@ -41,7 +49,11 @@ shader StreamTessellation
     [domain("tri")]
     void DSMain(const OutputPatch<Input, 3> input, out Output output, in Constants constants, float3 f3BarycentricCoords : SV_DomainLocation)
     {
-        streams = input[0];
+        float fU = f3BarycentricCoords.x;
+        float fV = f3BarycentricCoords.y;
+        float fW = f3BarycentricCoords.z;
+
+        streams = input[0] * fU + input[1] * fV + input[2] * fW;
         output = streams;
     } 
 

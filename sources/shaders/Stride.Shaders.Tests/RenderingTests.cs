@@ -91,34 +91,28 @@ public partial class RenderingTests
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
         File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateBufferFromBytecode(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
-        // Convert to GLSL
+        // Convert to HLSL
         var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
         var entryPoints = translator.GetEntryPoints();
-        var codePS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Fragment));
-        var codeHS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.TessellationControl))
-            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.TessellationControl))
+        var codePS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Fragment)
+            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Fragment))
             : null;
-        var codeGS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Geometry))
-            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Geometry))
-            : null;
-        var codeVS = (entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex))
+        var codeVS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex)
             ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
             : null;
 
         if (codeVS != null)
             Console.WriteLine(codeVS);
-        if (codeGS != null)
-            Console.WriteLine(codeGS);
-        Console.WriteLine(codePS);
+        if (codePS != null)
+            Console.WriteLine(codePS);
 
         // Execute test
         var renderer = new D3D11FrameRenderer((uint)width, (uint)height);
 
         if (codeVS != null)
             renderer.VertexShaderSource = codeVS;
-        if (codeGS != null)
-            renderer.GeometryShaderSource = codeGS;
-        renderer.PixelShaderSource = codePS;
+        if (codePS != null)
+            renderer.PixelShaderSource = codePS;
         renderer.EffectReflection = effectReflection;
 
         var code = File.ReadAllLines($"./assets/SDSL/RenderTests/{shaderName}.sdsl");
@@ -149,6 +143,92 @@ public partial class RenderingTests
         }
     }
 
+    [Theory]
+    [MemberData(nameof(GetStreamOutTestFiles))]
+    public void StreamOutTest1(string shaderName)
+    {
+        // Compile shader
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/StreamOutTests"));
+        var shaderSource = ShaderMixinManager.Contains(shaderName)
+            ? new ShaderMixinGeneratorSource(shaderName)
+            : (ShaderSource)new ShaderClassSource(shaderName);
+
+        shaderMixer.ShaderLoader.LoadExternalBuffer(shaderName, [], out _, out _, out _);
+
+        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), new Stride.Core.Diagnostics.LoggerResult(), out var bytecode, out var effectReflection, out _, out _);
+
+        File.WriteAllBytes($"{shaderName}.spv", bytecode);
+        File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateBufferFromBytecode(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
+
+        // Convert to HLSL
+        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+        var entryPoints = translator.GetEntryPoints();
+        var codeVS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex)
+            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
+            : null;
+        var codeHS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.TessellationControl)
+            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.TessellationControl))
+            : null;
+        var codeDS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.TessellationEvaluation)
+            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.TessellationEvaluation))
+            : null;
+        var codeGS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Geometry)
+            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Geometry))
+            : null;
+        var codePS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Fragment)
+            ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Fragment))
+            : null;
+
+        if (codeVS != null)
+            Console.WriteLine(codeVS);
+        if (codeHS != null)
+            Console.WriteLine(codeHS);
+        if (codeDS != null)
+            Console.WriteLine(codeDS);
+        if (codeGS != null)
+            Console.WriteLine(codeGS);
+        if (codePS != null)
+            Console.WriteLine(codePS);
+
+        // Execute test
+        var renderer = new D3D11FrameRenderer((uint)width, (uint)height);
+
+        if (codeVS != null)
+            renderer.VertexShaderSource = codeVS;
+        if (codeHS != null)
+            renderer.HullShaderSource = codeHS;
+        if (codeDS != null)
+            renderer.DomainShaderSource = codeDS;
+        if (codeGS != null)
+            renderer.GeometryShaderSource = codeGS;
+        if (codePS != null)
+            renderer.PixelShaderSource = codePS;
+        renderer.EffectReflection = effectReflection;
+
+        var code = File.ReadAllLines($"./assets/SDSL/StreamOutTests/{shaderName}.sdsl");
+        foreach (var test in TestHeaderParser.ParseHeaders(code))
+        {
+            var parameters = TestHeaderParser.ParseParameters(test.Parameters);
+            SetupTestParameters(renderer, parameters);
+
+            renderer.SetupTest();
+            renderer.RenderFrameWithStreamOutput(out var soData, out var soVertexCount);
+            renderer.PresentAndFinish();
+
+            Console.WriteLine($"SO: {soVertexCount} primitives, {soData.Length} bytes");
+
+            if (parameters.TryGetValue("ExpectedPrimitiveCount", out var expectedPrimCountStr))
+            {
+                var expectedPrimCount = int.Parse(expectedPrimCountStr);
+                Assert.Equal(expectedPrimCount, soVertexCount);
+            }
+            else
+            {
+                Assert.True(soVertexCount > 0, "Stream output produced no primitives");
+            }
+        }
+    }
+
     private static void SetupTestParameters(D3D11FrameRenderer renderer, Dictionary<string, string> parameters)
     {
         // Setup parameters
@@ -162,6 +242,15 @@ public partial class RenderingTests
         foreach (var filename in Directory.EnumerateFiles("./assets/SDSL/RenderTests"))
         {
             // Parse header
+            var shadername = Path.GetFileNameWithoutExtension(filename);
+            yield return [shadername];
+        }
+    }
+
+    public static IEnumerable<object[]> GetStreamOutTestFiles()
+    {
+        foreach (var filename in Directory.EnumerateFiles("./assets/SDSL/StreamOutTests"))
+        {
             var shadername = Path.GetFileNameWithoutExtension(filename);
             yield return [shadername];
         }
