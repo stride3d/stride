@@ -78,6 +78,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 break;
             }
         }
+        foreach (var i in temp)
+        {
+            if (i.Op is Op.OpImageQuerySizeLod or Op.OpImageQuerySize or Op.OpImageQueryLevels or Op.OpImageQuerySamples)
+            {
+                context.Add(new OpCapability(Capability.ImageQuery));
+                break;
+            }
+        }
 
         // Process streams and remove unused code/cbuffer/variable/resources
         var interfaceProcessor = new InterfaceProcessor

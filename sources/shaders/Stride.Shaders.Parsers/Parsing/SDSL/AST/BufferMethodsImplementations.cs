@@ -13,4 +13,12 @@ public class BufferMethodsImplementations : BufferMethodsDeclarations
         var loadResult = builder.Insert(new OpImageRead(context.GetOrRegister(functionType.ReturnType), context.Bound++, buffer.Id, x.Id, null, []));
         return new(loadResult.ResultId, loadResult.ResultType);
     }
+
+    public override SpirvValue CompileGetDimensions(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue buffer, SpirvValue width)
+    {
+        var uintType = context.GetOrRegister(ScalarType.UInt);
+        var sizeResult = builder.Insert(new OpImageQuerySize(uintType, context.Bound++, buffer.Id));
+        builder.Insert(new OpStore(width.Id, sizeResult.ResultId, null, []));
+        return default;
+    }
 }
