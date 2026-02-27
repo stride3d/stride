@@ -27,7 +27,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
 
-    public void MergeSDSL(ShaderSource shaderSource, Options options, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<InterfaceProcessor.EntryPointInfo> entryPoints)
+    public void MergeSDSL(ShaderSource shaderSource, Options options, ILogger log, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<InterfaceProcessor.EntryPointInfo> entryPoints)
     {
         // Create new buffer for the merged result
         var temp = new SpirvBuffer();
@@ -54,7 +54,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, null, shaderSource);
 
         // Root shader
-        var log = new LoggerResult();
         var globalContext = new MixinGlobalContext(table, log);
 
         // Process name and types imported by constants due to generics instantiation
@@ -122,10 +121,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         usedHashSources = shaderLoader.Sources;
     }
 
-    class MixinGlobalContext(SymbolTable table, LoggerResult log)
+    class MixinGlobalContext(SymbolTable table, ILogger log)
     {
         public SymbolTable Table { get; } = table;
-        public LoggerResult Log { get; } = log;
+        public ILogger Log { get; } = log;
         public EffectReflection Reflection { get; } = new();
 
         public Dictionary<int, string> ExternalShaders { get; } = new();

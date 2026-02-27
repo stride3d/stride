@@ -187,7 +187,7 @@ new ShaderMacro("class", "shader"),
         };
 
         var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/Stride/SDSL"));
-        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), out var bytecode, out var effectReflection, out _, out _);
+        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), new Stride.Core.Diagnostics.LoggerResult(), out var bytecode, out var effectReflection, out _, out _);
 
         File.WriteAllBytes($"StrideTessellation.spv", bytecode);
         File.WriteAllText($"StrideTessellation.spvdis", Spv.Dis(SpirvBytecode.CreateBufferFromBytecode(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));

@@ -161,7 +161,7 @@ namespace Stride.Shaders.Compiler
             shaderMixinSource.AddMacro("class", "shader");
 
             var shaderMixer = new ShaderMixer(GetShaderLoader());
-            shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(effectParameters.Platform is not GraphicsPlatform.Vulkan), out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints);
+            shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(effectParameters.Platform is not GraphicsPlatform.Vulkan), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints);
 
             /*var parsingResult = GetMixinParser().Parse(shaderMixinSource, shaderMixinSource.Macros.ToArray());
 
