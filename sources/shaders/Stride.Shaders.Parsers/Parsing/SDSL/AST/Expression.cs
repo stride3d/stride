@@ -403,6 +403,7 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
             case Operator.Inc:
             case Operator.Dec:
             case Operator.Not:
+            case Operator.BitwiseNot:
             case Operator.Plus:
             case Operator.Minus:
                 expression.ProcessSymbol(table, expectedType);
@@ -474,6 +475,14 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
                             var elementType when elementType.IsFloating() => builder.InsertData(new OpFNegate(valueExpression.TypeId, context.Bound++, valueExpression.Id)),
                             var elementType when elementType.IsInteger() => builder.InsertData(new OpSNegate(valueExpression.TypeId, context.Bound++, valueExpression.Id)),
                         };
+                        Type = valueType;
+                        return new(result);
+                    }
+                case Operator.BitwiseNot:
+                    {
+                        if (!valueType.GetElementType().IsInteger())
+                            throw new InvalidOperationException($"Bitwise not operator requires an integer type, got {valueType}");
+                        var result = builder.InsertData(new OpNot(valueExpression.TypeId, context.Bound++, valueExpression.Id));
                         Type = valueType;
                         return new(result);
                     }
