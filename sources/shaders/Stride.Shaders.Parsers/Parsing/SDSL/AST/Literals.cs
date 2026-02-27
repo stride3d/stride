@@ -307,10 +307,20 @@ public partial class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         Type = expectedType;
-        var expectedElementType = (expectedType as ArrayType)?.BaseType;
+
+        var expectedElementType = expectedType switch
+        {
+            MatrixType m => m.BaseType,
+            ArrayType a => a.BaseType,
+            _ => null,
+        };
 
         foreach (var value in Values)
             value.ProcessSymbol(table, expectedElementType);
+
+        // Matrix brace initialization is fully handled by CompositeLiteral.CompileImpl
+        if (expectedType is MatrixType)
+            return;
 
         if (Type == null && Values.Count > 0)
             Type = new ArrayType(Values[0].ValueType, Values.Count);

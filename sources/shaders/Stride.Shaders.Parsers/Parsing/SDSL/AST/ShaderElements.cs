@@ -398,6 +398,7 @@ public sealed partial class RGroup(string name, TextLocation info) : ShaderBuffe
                 TextureType => (Specification.StorageClass.UniformConstant, SymbolKind.Variable),
                 SamplerType => (Specification.StorageClass.UniformConstant, SymbolKind.SamplerState),
                 BufferType => (Specification.StorageClass.UniformConstant, SymbolKind.TBuffer),
+                StructuredBufferType or ByteAddressBufferType => (Specification.StorageClass.StorageBuffer, SymbolKind.Variable),
                 _ => throw new NotImplementedException(),
             };
 
