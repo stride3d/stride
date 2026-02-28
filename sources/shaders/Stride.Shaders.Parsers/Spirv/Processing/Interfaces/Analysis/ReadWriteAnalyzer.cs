@@ -135,6 +135,34 @@ internal static class ReadWriteAnalyzer
                 if (analysisResult.CBuffers.TryGetValue(accessChain.Base, out var cbufferInfo))
                     cbufferInfo.UsedThisStage = true;
             }
+            else if (i.Op is Op.OpAtomicIAdd or Op.OpAtomicISub or Op.OpAtomicUMin or Op.OpAtomicUMax
+                or Op.OpAtomicSMin or Op.OpAtomicSMax or Op.OpAtomicAnd or Op.OpAtomicOr or Op.OpAtomicXor
+                or Op.OpAtomicExchange or Op.OpAtomicCompareExchange or Op.OpAtomicLoad or Op.OpAtomicStore
+                or Op.OpAtomicIIncrement or Op.OpAtomicIDecrement)
+            {
+                // Atomic operations reference a pointer (word 3 after opcode, i.e. first operand after ResultType+ResultId or just after opcode for OpAtomicStore)
+                // Extract the pointer and mark the underlying resource as used
+                var pointer = i.Op == Op.OpAtomicStore
+                    ? i.Memory.Span[1] // OpAtomicStore has no ResultType/ResultId, pointer is word 1
+                    : i.Memory.Span[3]; // All other atomics: word 3 (after ResultType, ResultId)
+                if (!accessChainBases.TryGetValue(pointer, out var atomicAccessChain))
+                    atomicAccessChain.Base = pointer;
+                if (variables.TryGetValue(atomicAccessChain.Base, out var variableInfo2))
+                    variableInfo2.UsedThisStage = true;
+                if (analysisResult.Resources.TryGetValue(atomicAccessChain.Base, out var resourceInfo2))
+                    resourceInfo2.UsedThisStage = true;
+                if (analysisResult.CBuffers.TryGetValue(atomicAccessChain.Base, out var cbufferInfo2))
+                    cbufferInfo2.UsedThisStage = true;
+            }
+            else if (i.Op is Op.OpArrayLength)
+            {
+                // OpArrayLength directly references the struct variable pointer (word 3)
+                var structureId = i.Memory.Span[3];
+                if (variables.TryGetValue(structureId, out var variableInfo3))
+                    variableInfo3.UsedThisStage = true;
+                if (analysisResult.Resources.TryGetValue(structureId, out var resourceInfo3))
+                    resourceInfo3.UsedThisStage = true;
+            }
             else if (i.Op == Op.OpStreamsSDSL && new OpStreamsSDSL(ref i) is { } streamsInstruction)
             {
                 streamsInstructionIds.Add(streamsInstruction.ResultId, StreamsKindSDSL.Streams);

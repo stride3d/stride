@@ -291,10 +291,10 @@ public sealed partial class ShaderMember(
         if (StreamKind == StreamKind.PatchStream)
             context.Add(new OpDecorate(variable, Specification.Decoration.Patch, []));
 
-        if (pointerType.BaseType is StructuredBufferType)
-            context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, $"structuredbuffer:<{pointerType.BaseType.ToId().ToLowerInvariant()}>"));
-        else if (pointerType.BaseType is ByteAddressBufferType)
-            context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, "byteaddressbuffer"));
+        if (pointerType.BaseType is StructuredBufferType sb)
+            context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, $"{(sb.WriteAllowed ? "rw" : "")}structuredbuffer:<{sb.BaseType.ToId().ToLowerInvariant()}>"));
+        else if (pointerType.BaseType is ByteAddressBufferType bab)
+            context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, bab.WriteAllowed ? "rwbyteaddressbuffer" : "byteaddressbuffer"));
 
         if (pointerType.BaseType is ByteAddressBufferType { WriteAllowed: false } or StructuredBufferType { WriteAllowed: false })
             context.Add(new OpDecorate(variable, Specification.Decoration.NonWritable, []));

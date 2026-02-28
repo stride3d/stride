@@ -131,7 +131,7 @@ internal static class DeadCodeRemover
 
             if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                 {
-                    Storageclass: StorageClass.UniformConstant,
+                    Storageclass: StorageClass.UniformConstant or StorageClass.StorageBuffer,
                     ResultId: int
                 } resource)
             {
