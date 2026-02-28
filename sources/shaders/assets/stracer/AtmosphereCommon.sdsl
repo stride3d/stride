@@ -1,0 +1,51 @@
+﻿// From: https://github.com/andr3wmac/unity-tinybvh/blob/main/Assets/Resources/RayIntersection.compute
+
+namespace Stracer.Rendering
+{
+	shader AtmosphereCommon<MemberName AtmosphereGroup> : AtmosphereParametersBase<AtmosphereGroup>
+	{
+		cbuffer AtmosphereGroup
+		{
+			// Other globals
+			stage float3 SunDirection;
+			stage float3 SunIlluminance;
+			stage float SunLuminanceFactor;
+			stage float SunSize;
+
+			stage float4x4 InvViewProjectionMatrix;
+			stage float3 CameraPositionWS;
+			stage float2 Resolution;
+			stage float2 RayMarchMinMaxSPP;
+
+			stage int RenderStage = 0; // 1 ==  Render cube map
+		};
+
+		float RaySphereIntersectNearest(float3 r0, float3 rd, float3 s0, float sR)
+		{
+			float a = dot(rd, rd);
+			float3 s0_r0 = r0 - s0;
+			float b = 2.0 * dot(rd, s0_r0);
+			float c = dot(s0_r0, s0_r0) - (sR * sR);
+			float delta = b * b - 4.0*a*c;
+			if (delta < 0.0 || a == 0.0)
+			{
+				return -1.0;
+			}
+			float sol0 = (-b - sqrt(delta)) / (2.0*a);
+			float sol1 = (-b + sqrt(delta)) / (2.0*a);
+			if (sol0 < 0.0 && sol1 < 0.0)
+			{
+				return -1.0;
+			}
+			if (sol0 < 0.0)
+			{
+				return max(0.0, sol1);
+			}
+			else if (sol1 < 0.0)
+			{
+				return max(0.0, sol0);
+			}
+			return max(0.0, min(sol0, sol1));
+		}
+	};
+}

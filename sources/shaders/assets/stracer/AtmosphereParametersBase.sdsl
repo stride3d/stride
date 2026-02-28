@@ -1,0 +1,165 @@
+﻿// From: https://github.com/andr3wmac/unity-tinybvh/blob/main/Assets/Resources/RayIntersection.compute
+
+namespace Stracer.Rendering
+{
+	shader AtmosphereParametersBase<MemberName AtmosphereGroup>
+	{
+		cbuffer AtmosphereGroup
+		{
+			stage float ScaleToSkyUnit = 1.0f;
+
+			// Radius of the planet (center to ground)
+			stage float BottomRadius;
+			// Maximum considered atmosphere height (center to atmosphere top)
+			stage float TopRadius;
+
+			// Rayleigh scattering exponential distribution scale in the atmosphere
+			stage float RayleighDensityExpScale;
+			// Rayleigh scattering coefficients
+			stage float3 RayleighScattering;
+
+			// Mie scattering exponential distribution scale in the atmosphere
+			stage float MieDensityExpScale;
+			// Mie scattering coefficients
+			stage float3 MieScattering;
+			// Mie extinction coefficients
+			stage float3 MieExtinction;
+			// Mie absorption coefficients
+			stage float3 MieAbsorption;
+			// Mie phase function excentricity
+			stage float MiePhaseG;
+
+			// Another medium type in the atmosphere
+			stage float AbsorptionDensity0LayerWidth;
+			stage float AbsorptionDensity0ConstantTerm;
+			stage float AbsorptionDensity0LinearTerm;
+			stage float AbsorptionDensity1ConstantTerm;
+			stage float AbsorptionDensity1LinearTerm;
+			// This other medium only absorb light, e.g. useful to represent ozone in the earth atmosphere
+			stage float3 AbsorptionExtinction;
+
+			// The albedo of the ground.
+			stage float3 GroundAlbedo;
+
+			// Artist controlled distance scale of aerial perspective
+			stage float AerialPespectiveViewDistanceScale;
+
+			// Lut settings
+			stage float4 TransmittanceLutResolution;
+			stage float4 SkyViewLutResolution;
+
+			stage float4 MultiScatteringLutResolution;
+			stage float4 AerialPerspectiveSlicesAndDistancePerSlice;
+
+			stage float MultipleScatteringFactor;
+		};
+
+		rgroup AtmosphereGroup
+		{
+			stage Texture2D TransmittanceLutTexture;
+			stage Texture2D SkyViewLutTexture;
+			stage Texture2D<float4> MultiScatTexture;
+			stage Texture3D<float4> AtmosphereCameraScatteringVolume;
+			stage Texture2D CloudsTexture;
+		}
+
+		stage SamplerState samplerLinearClamp
+		{
+			Filter = MIN_MAG_MIP_LINEAR;
+			AddressU = Clamp;
+			AddressV = Clamp;
+			AddressW = Clamp;
+		};
+
+		struct AtmosphereParameters
+		{
+			// Radius of the planet (center to ground)
+			float BottomRadius;
+			// Maximum considered atmosphere height (center to atmosphere top)
+			float TopRadius;
+
+			// Rayleigh scattering exponential distribution scale in the atmosphere
+			float RayleighDensityExpScale;
+			// Rayleigh scattering coefficients
+			float3 RayleighScattering;
+
+			// Mie scattering exponential distribution scale in the atmosphere
+			float MieDensityExpScale;
+			// Mie scattering coefficients
+			float3 MieScattering;
+			// Mie extinction coefficients
+			float3 MieExtinction;
+			// Mie absorption coefficients
+			float3 MieAbsorption;
+			// Mie phase function excentricity
+			float MiePhaseG;
+
+			// Another medium type in the atmosphere
+			float AbsorptionDensity0LayerWidth;
+			float AbsorptionDensity0ConstantTerm;
+			float AbsorptionDensity0LinearTerm;
+			float AbsorptionDensity1ConstantTerm;
+			float AbsorptionDensity1LinearTerm;
+			// This other medium only absorb light, e.g. useful to represent ozone in the earth atmosphere
+			float3 AbsorptionExtinction;
+
+			// The albedo of the ground.
+			float3 GroundAlbedo;
+
+			// Artist controlled distance scale of aerial perspective
+			float AerialPespectiveViewDistanceScale;
+		};
+
+		AtmosphereParameters GetAtmosphereParameters()
+		{
+			AtmosphereParameters Parameters;
+			Parameters.AbsorptionExtinction = AbsorptionExtinction;
+
+			Parameters.RayleighDensityExpScale = RayleighDensityExpScale;
+			Parameters.MieDensityExpScale = MieDensityExpScale;
+			Parameters.AbsorptionDensity0LayerWidth = AbsorptionDensity0LayerWidth;
+			Parameters.AbsorptionDensity0ConstantTerm = AbsorptionDensity0ConstantTerm;
+			Parameters.AbsorptionDensity0LinearTerm = AbsorptionDensity0LinearTerm;
+			Parameters.AbsorptionDensity1ConstantTerm = AbsorptionDensity1ConstantTerm;
+			Parameters.AbsorptionDensity1LinearTerm = AbsorptionDensity1LinearTerm;
+
+			Parameters.MiePhaseG = MiePhaseG;
+			Parameters.RayleighScattering = RayleighScattering;
+			Parameters.MieScattering = MieScattering;
+			Parameters.MieAbsorption = MieAbsorption;
+			Parameters.MieExtinction = MieExtinction;
+			Parameters.GroundAlbedo = GroundAlbedo;
+			Parameters.BottomRadius = BottomRadius;
+			Parameters.TopRadius = TopRadius;
+			Parameters.AerialPespectiveViewDistanceScale = AerialPespectiveViewDistanceScale;
+
+			return Parameters;
+		}
+
+		void LutTransmittanceParamsToUv(AtmosphereParameters Atmosphere, in float viewHeight, in float viewZenithCosAngle, out float2 uv)
+		{
+			float H = sqrt(max(0.0f, Atmosphere.TopRadius * Atmosphere.TopRadius - Atmosphere.BottomRadius * Atmosphere.BottomRadius));
+			float rho = sqrt(max(0.0f, viewHeight * viewHeight - Atmosphere.BottomRadius * Atmosphere.BottomRadius));
+
+			float discriminant = viewHeight * viewHeight * (viewZenithCosAngle * viewZenithCosAngle - 1.0) + Atmosphere.TopRadius * Atmosphere.TopRadius;
+			float d = max(0.0, (-viewHeight * viewZenithCosAngle + sqrt(discriminant))); // Distance to atmosphere boundary
+
+			float d_min = Atmosphere.TopRadius - viewHeight;
+			float d_max = rho + H;
+			float x_mu = (d - d_min) / (d_max - d_min);
+			float x_r = rho / H;
+
+			uv = float2(x_mu, x_r);
+		}
+
+		float AerialPerspectiveDepthToSlice(float depth)
+		{
+			return depth * AerialPerspectiveSlicesAndDistancePerSlice.w;
+		}
+
+		float AerialPerspectiveSliceToDepth(float slice)
+		{
+			return slice * AerialPerspectiveSlicesAndDistancePerSlice.y;
+		}
+	};
+}

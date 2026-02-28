@@ -1,0 +1,34 @@
+﻿namespace Strace.Rendering
+{
+	shader AtmosphereRenderTransmittanceLut<MemberName AtmosphereGroup> 
+		: ShaderBase, ImageEffectShader, Math, AtmosphereRenderSkyCommon<AtmosphereGroup>
+	{
+		stage override float4 Shading()
+		{
+			float2 pixPos = streams.ShadingPosition.xy;
+			AtmosphereParameters Atmosphere = GetAtmosphereParameters();
+
+			// Compute camera position from LUT coords
+			float2 uv = (pixPos) / float2(TransmittanceLutResolution.x, TransmittanceLutResolution.y);
+			float viewHeight;
+			float viewZenithCosAngle;
+			UvToLutTransmittanceParams(Atmosphere, viewHeight, viewZenithCosAngle, uv);
+
+			//  A few extra needed constants
+			float3 WorldPos = float3(0.0f, 0.0f, viewHeight);
+			float3 WorldDir = float3(0.0f, sqrt(1.0 - viewZenithCosAngle * viewZenithCosAngle), viewZenithCosAngle);
+
+			const bool ground = false;
+			const float SampleCountIni = 40.0f;	// Can go a low as 10 sample but energy lost starts to be visible.
+			const float DepthBufferValue = -1.0;
+			const bool VariableSampleCount = false;
+			const bool MieRayPhase = false;
+			const float AerialPespectiveViewDistanceScale = 1.0f;
+
+			float3 transmittance = exp(-IntegrateScatteredLuminance(pixPos, WorldPos, WorldDir, SunDirection, Atmosphere, ground, SampleCountIni, DepthBufferValue, VariableSampleCount, MieRayPhase, AerialPespectiveViewDistanceScale).OpticalDepth);
+
+			// Optical depth to transmittance
+			return float4(transmittance, 1.0f);
+		}
+	};
+}

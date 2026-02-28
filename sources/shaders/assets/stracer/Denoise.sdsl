@@ -1,0 +1,114 @@
+﻿// From: https://github.com/andr3wmac/unity-tinybvh/blob/main/Assets/Resources/RayIntersection.compute
+
+namespace Stracer.Rendering
+{
+    shader Denoise : ComputeShaderBase, Texturing
+    {
+        stage uint FrameCount;
+        stage Texture2D<float4> NoisyColor;
+        stage Texture2D<float4> NormalDepth;
+        stage RWTexture2D<float4> DenoisedColor;
+    
+        override void Compute()
+        {
+            int2 pixelPos = streams.DispatchThreadId.xy;
+
+            float3 centerColor = NoisyColor[pixelPos].rgb;
+            float4 centerNormalDepth = NormalDepth[pixelPos];
+            float3 centerNormal = centerNormalDepth.rgb;
+            float centerDepth = centerNormalDepth.a;
+
+            if (centerDepth < 0.0001)
+            {
+                DenoisedColor[pixelPos] = float4(centerColor, 1.0);
+                return;
+            }
+
+            // FIX 1: Adaptive kernel based on convergence
+            // More samples = sharper/smaller kernel
+            int kernelRadius;
+            if (FrameCount > 128)
+                kernelRadius = 2; // Nearly converged, preserve detail
+            else if (FrameCount > 64)
+                kernelRadius = 3;
+            else if (FrameCount > 32)
+                kernelRadius = 5;
+            else if (FrameCount > 16)
+                kernelRadius = 6;
+            else
+                kernelRadius = 8; // Very noisy, denoise more
+
+            float3 sumColor = 0.0;
+            float sumWeight = 0.0;
+
+            // FIX 2: Calculate variance for adaptive filtering
+            float3 mean = 0.0;
+            float3 variance = 0.0;
+            int varSamples = 0;
+        
+            for (int vy = -1; vy <= 1; vy++)
+            {
+                for (int vx = -1; vx <= 1; vx++)
+                {
+                    float3 s = NoisyColor[pixelPos + int2(vx, vy)].rgb;
+                    mean += s;
+                    variance += s * s;
+                    varSamples++;
+                }
+            }
+            mean /= varSamples;
+            variance = variance / varSamples - mean * mean;
+            float localVariance = dot(variance, float3(0.333, 0.333, 0.333));
+
+            for (int y = -kernelRadius; y <= kernelRadius; y++)
+            {
+                for (int x = -kernelRadius; x <= kernelRadius; x++)
+                {
+                    int2 samplePos = pixelPos + int2(x, y);
+        
+                    float3 sampleColor = NoisyColor[samplePos].rgb;
+                    float4 sampleNormalDepth = NormalDepth[samplePos];
+                    float3 sampleNormal = sampleNormalDepth.rgb;
+                    float sampleDepth = sampleNormalDepth.a;
+        
+                    if (sampleDepth < 0.0001)
+                        continue;
+        
+                    // Spatial weight
+                    float spatialDist = length(float2(x, y));
+                    float spatialWeight = exp(-spatialDist * spatialDist / (kernelRadius * kernelRadius * 0.5));
+        
+                    // FIX 3: Much stronger edge preservation (higher = sharper edges)
+                    float normalSimilarity = pow(saturate(dot(centerNormal, sampleNormal)), 64.0); // Was 8
+                
+                    // FIX 4: Tighter depth threshold
+                    float depthDiff = abs(centerDepth - sampleDepth) / (centerDepth + 0.001);
+                    float depthSimilarity = exp(-depthDiff * 10.0); // Was 2.0, now much stricter
+        
+                    // FIX 5: Color-based edge detection (preserves texture detail)
+                    float3 colorDiff = centerColor - sampleColor;
+                    float colorDist = dot(colorDiff, colorDiff);
+                    float colorSimilarity = exp(-colorDist / (localVariance + 0.01));
+        
+                    // FIX 6: Reduce filter strength on high-frequency areas
+                    float detailPreservation = 1.0 / (1.0 + localVariance * 10.0);
+                
+                    float weight = spatialWeight * normalSimilarity * depthSimilarity * 
+                                  lerp(1.0, colorSimilarity, detailPreservation);
+        
+                    sumColor += sampleColor * weight;
+                    sumWeight += weight;
+                }
+            }
+
+            // FIX 7: Blend with original based on confidence
+            float3 denoisedColor = sumWeight > 0.0001 ? sumColor / sumWeight : centerColor;
+        
+            // Preserve more detail when well-converged
+            float blendFactor = saturate(FrameCount / 64.0); // 0 to 1 over 64 frames
+            denoisedColor = lerp(denoisedColor, centerColor, blendFactor * 0.3); // Keep 30% original when converged
+        
+            DenoisedColor[pixelPos] = float4(denoisedColor, 1.0);
+        }
+    };
+}

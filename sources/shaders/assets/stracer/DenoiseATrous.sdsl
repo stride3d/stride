@@ -1,0 +1,80 @@
+﻿// From: https://github.com/andr3wmac/unity-tinybvh/blob/main/Assets/Resources/RayIntersection.compute
+
+namespace Stracer.Rendering
+{
+    shader DenoiseATrous : ComputeShaderBase, Texturing
+    {
+        stage int StepSize; // Pass 1=1, Pass 2=2, Pass 3=4, Pass 4=8
+        stage Texture2D<float4> InputColor;
+        stage Texture2D<float4> NormalDepth;
+        stage RWTexture2D<float4> OutputColor;
+    
+        override void Compute()
+        {
+            int2 pixelPos = streams.DispatchThreadId.xy;
+
+            float3 centerColor = InputColor[pixelPos].rgb;
+            float4 centerNormalDepth = NormalDepth[pixelPos];
+            float3 centerNormal = centerNormalDepth.rgb;
+            float centerDepth = centerNormalDepth.a;
+
+            if (centerDepth < 0.0001)
+            {
+                OutputColor[pixelPos] = float4(centerColor, 1.0);
+                return;
+            }
+
+            // 5x5 Gaussian kernel
+            static const float kernel[5][5] = {
+                { 1.0/256.0,  4.0/256.0,  6.0/256.0,  4.0/256.0, 1.0/256.0 },
+                { 4.0/256.0, 16.0/256.0, 24.0/256.0, 16.0/256.0, 4.0/256.0 },
+                { 6.0/256.0, 24.0/256.0, 36.0/256.0, 24.0/256.0, 6.0/256.0 },
+                { 4.0/256.0, 16.0/256.0, 24.0/256.0, 16.0/256.0, 4.0/256.0 },
+                { 1.0/256.0,  4.0/256.0,  6.0/256.0,  4.0/256.0, 1.0/256.0 }
+            };
+
+            float3 sumColor = 0.0;
+            float sumWeight = 0.0;
+
+            for (int y = -2; y <= 2; y++)
+            {
+                for (int x = -2; x <= 2; x++)
+                {
+                    int2 samplePos = pixelPos + int2(x, y) * StepSize;
+        
+                    float3 sampleColor = InputColor[samplePos].rgb;
+                    float4 sampleNormalDepth = NormalDepth[samplePos];
+                    float3 sampleNormal = sampleNormalDepth.rgb;
+                    float sampleDepth = sampleNormalDepth.a;
+        
+                    if (sampleDepth < 0.0001)
+                        continue;
+        
+                    float spatialWeight = kernel[y + 2][x + 2];
+        
+                    // Moderate edge-stopping
+                    float normalDot = saturate(dot(centerNormal, sampleNormal));
+                    float normalSimilarity = pow(normalDot, 16.0);
+                
+                    float depthDiff = abs(centerDepth - sampleDepth) / max(centerDepth, 0.001);
+                    float depthSimilarity = exp(-depthDiff * 4.0);
+                
+                    // Color similarity for texture preservation
+                    float lumaDiff = abs(
+                        dot(centerColor, float3(0.299, 0.587, 0.114)) - 
+                        dot(sampleColor, float3(0.299, 0.587, 0.114))
+                    );
+                    float colorSimilarity = exp(-lumaDiff * 1.0);
+        
+                    float weight = spatialWeight * normalSimilarity * depthSimilarity * colorSimilarity;
+        
+                    sumColor += sampleColor * weight;
+                    sumWeight += weight;
+                }
+            }
+
+            float3 denoisedColor = sumWeight > 0.0001 ? sumColor / sumWeight : centerColor;
+            OutputColor[pixelPos] = float4(denoisedColor, 1.0);
+        }
+    };
+}

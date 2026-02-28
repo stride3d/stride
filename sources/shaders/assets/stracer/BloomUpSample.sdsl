@@ -1,0 +1,25 @@
+﻿namespace Stracer.Rendering
+{
+    shader BloomUpSample : ImageEffectShader, PostEffectCommon
+    {
+        stage float Radius;
+        stage float Strength;
+
+        stage override float4 Shading()
+        {
+            float2 offset = Texture0TexelSize * Radius;
+
+            float4 c0 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(-1, -1) * offset);
+            float4 c1 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(0, -1) * offset);
+            float4 c2 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(1, -1) * offset);
+            float4 c3 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(-1, 0) * offset);
+            float4 c4 = Texture0.Sample(LinearSampler, streams.TexCoord);
+            float4 c5 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(1, 0) * offset);
+            float4 c6 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(-1,1) * offset);
+            float4 c7 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(0, 1) * offset);
+            float4 c8 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(1, 1) * offset);
+
+            return 0.0625f * (c0 + 2 * c1 + c2 + 2 * c3 + 4 * c4 + 2 * c5 + c6 + 2 * c7 + c8) * Strength;
+        }
+    };
+}

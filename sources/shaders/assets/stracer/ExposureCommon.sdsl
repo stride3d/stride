@@ -1,0 +1,10 @@
+﻿namespace Stracer.Rendering
+{
+    shader ExposureCommon : Texturing
+    {
+        float GetExposure()
+	    {
+            return 0;
+	    }
+    };
+}

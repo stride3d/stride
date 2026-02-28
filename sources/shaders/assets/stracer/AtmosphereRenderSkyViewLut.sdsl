@@ -1,0 +1,59 @@
+﻿namespace Strace.Rendering
+{
+	shader AtmosphereRenderSkyViewLut<MemberName AtmosphereGroup> 
+		: ShaderBase, ImageEffectShader, Math, AtmosphereRenderSkyCommon<AtmosphereGroup>
+	{
+		stage override float4 Shading()
+		{
+			float2 pixPos = streams.ShadingPosition.xy;
+			AtmosphereParameters Atmosphere = GetAtmosphereParameters();
+
+			float3 ClipSpace = float3((pixPos / float2(Resolution.xy)) * float2(2.0, -2.0) - float2(1.0, -1.0), 1.0);
+			float4 HPos = mul(float4(ClipSpace, 1.0), InvViewProjectionMatrix);
+
+			float3 WorldDir = normalize(HPos.xyz / HPos.w - CameraPositionWS);
+			float3 WorldPos = CameraPositionWS * ScaleToSkyUnit + float3(0, Atmosphere.BottomRadius, 0);
+
+			float2 uv = pixPos / float2(Resolution.xy);
+
+			float viewHeight = length(WorldPos);
+
+			float viewZenithCosAngle;
+			float lightViewCosAngle;
+			UvToSkyViewLutParams(Atmosphere, viewZenithCosAngle, lightViewCosAngle, viewHeight, uv);
+
+			float3 SunDir;
+			{
+				float3 UpVector = WorldPos / viewHeight;
+				float sunZenithCosAngle = dot(UpVector, SunDirection);
+				SunDir = normalize(float3(sqrt(1.0 - sunZenithCosAngle * sunZenithCosAngle), 0.0, sunZenithCosAngle));
+			}
+
+			WorldPos = float3(0.0f, 0.0f, viewHeight);
+
+			float viewZenithSinAngle = sqrt(1 - viewZenithCosAngle * viewZenithCosAngle);
+			WorldDir = float3(
+				viewZenithSinAngle * lightViewCosAngle,
+				viewZenithSinAngle * sqrt(1.0 - lightViewCosAngle * lightViewCosAngle),
+				viewZenithCosAngle);
+
+			// Move to top atmospehre
+			if (!MoveToTopAtmosphere(WorldPos, WorldDir, Atmosphere.TopRadius))
+			{
+				// Ray is not intersecting the atmosphere
+				return float4(0, 0, 0, 1);
+			}
+
+			const bool ground = false;
+			const float SampleCountIni = 30;
+			const float DepthBufferValue = -1.0;
+			const bool VariableSampleCount = true;
+			const bool MieRayPhase = true;
+			const float AerialPespectiveViewDistanceScale = 1.0f;
+
+			SingleScatteringResult ss = IntegrateScatteredLuminance(pixPos, WorldPos, WorldDir, SunDir, Atmosphere, ground, SampleCountIni, DepthBufferValue, VariableSampleCount, MieRayPhase, AerialPespectiveViewDistanceScale);
+
+			return float4(ss.L, 1.0f);
+		}
+	};
+}

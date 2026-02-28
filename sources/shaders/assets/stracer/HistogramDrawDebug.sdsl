@@ -1,0 +1,59 @@
+﻿namespace Stracer.Rendering
+{
+    shader HistogramDrawDebug : ComputeShaderBase, PostEffectCommon
+    {
+        ByteAddressBuffer Histogram;
+        StructuredBuffer<float> Exposure;
+        RWTexture2D<float4> ColorBuffer;
+
+        groupshared uint HistogramShared[256];
+
+        override void Compute()
+        {
+            uint histValue = Histogram.Load(streams.GroupIndex * 4);
+
+            HistogramShared[streams.GroupIndex] = streams.GroupIndex == 0 ? 0 : histValue;
+            GroupMemoryBarrierWithGroupSync();
+            HistogramShared[streams.GroupIndex] = max(HistogramShared[streams.GroupIndex], HistogramShared[(streams.GroupIndex + 128) % 256]);
+            GroupMemoryBarrierWithGroupSync();
+            HistogramShared[streams.GroupIndex] = max(HistogramShared[streams.GroupIndex], HistogramShared[(streams.GroupIndex + 64) % 256]);
+            GroupMemoryBarrierWithGroupSync();
+            HistogramShared[streams.GroupIndex] = max(HistogramShared[streams.GroupIndex], HistogramShared[(streams.GroupIndex + 32) % 256]);
+            GroupMemoryBarrierWithGroupSync();
+            HistogramShared[streams.GroupIndex] = max(HistogramShared[streams.GroupIndex], HistogramShared[(streams.GroupIndex + 16) % 256]);
+            GroupMemoryBarrierWithGroupSync();
+            HistogramShared[streams.GroupIndex] = max(HistogramShared[streams.GroupIndex], HistogramShared[(streams.GroupIndex + 8) % 256]);
+            GroupMemoryBarrierWithGroupSync();
+            HistogramShared[streams.GroupIndex] = max(HistogramShared[streams.GroupIndex], HistogramShared[(streams.GroupIndex + 4) % 256]);
+            GroupMemoryBarrierWithGroupSync();
+            HistogramShared[streams.GroupIndex] = max(HistogramShared[streams.GroupIndex], HistogramShared[(streams.GroupIndex + 2) % 256]);
+            GroupMemoryBarrierWithGroupSync();
+            HistogramShared[streams.GroupIndex] = max(HistogramShared[streams.GroupIndex], HistogramShared[(streams.GroupIndex + 1) % 256]);
+            GroupMemoryBarrierWithGroupSync();
+
+            uint maxHistValue = HistogramShared[streams.GroupIndex];
+
+            uint2 BufferDim;
+            ColorBuffer.GetDimensions(BufferDim.x, BufferDim.y);
+
+            const uint2 RectCorner = uint2(BufferDim.x / 2 - 512, BufferDim.y - 256);
+            const uint2 GroupCorner = RectCorner + streams.DispatchThreadId.xy * 4;
+
+            uint height = 127 - streams.DispatchThreadId.y * 4;
+            uint threshold = histValue * 128 / max(1, maxHistValue);
+
+            float3 OutColor = (streams.GroupIndex == (uint)Exposure[3]) ? float3(1.0, 1.0, 0.0) : float3(0.5, 0.5, 0.5);
+
+            for (uint i = 0; i < 4; ++i)
+            {
+                float4 MaskedColor = float4((height - i) < threshold ? OutColor : float3(0, 0, 0), 1);
+
+                // 4-wide column with 2 pixels for the histogram bar and 2 for black spacing
+                ColorBuffer[GroupCorner + uint2(0, i)] = MaskedColor;
+                ColorBuffer[GroupCorner + uint2(1, i)] = MaskedColor;
+                ColorBuffer[GroupCorner + uint2(2, i)] = float4(0, 0, 0, 1);
+                ColorBuffer[GroupCorner + uint2(3, i)] = float4(0, 0, 0, 1);
+            }
+        }
+    };
+}

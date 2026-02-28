@@ -1,0 +1,88 @@
+﻿// From: https://github.com/andr3wmac/unity-tinybvh/blob/main/Assets/Resources/RayIntersection.compute
+
+namespace Stracer.Rendering
+{
+    shader ToneMap : ImageEffectShader, ExposureCommon, PostEffectCommon
+    {
+        stage uint FrameCount;
+
+        stage override float4 Shading()
+        {
+            float3 c = Texture0.Sample(PointSampler, streams.TexCoord).xyz;
+			c *= GetExposure();
+
+			float3 bloom = InvSimpleToneMap(Texture1.Sample(PointSampler, streams.TexCoord).xyz);
+			c += bloom;
+
+			const float3x3 sRGB_2_AP1 = mul(XYZ_2_AP1, mul(D65_2_D60, sRGB_2_XYZ));
+			const float3x3 AP1_2_sRGB = mul(XYZ_2_sRGB, mul(D60_2_D65, AP1_2_XYZ));
+
+			// linear sRGB -> AP1
+			c = mul(sRGB_2_AP1, c);
+			c = Aces(c);
+
+			// AP1 -> linear sRGB
+			c = mul(AP1_2_sRGB, c);
+
+			return float4(c, 1);
+        }
+
+		// ACES filmic tonemapper with highlight desaturation ("crosstalk").
+		// Based on the curve fit by Krzysztof Narkowicz.
+		// https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
+		float3 Aces(float3 x)
+		{
+			float a = 2.51f;
+			float b = 0.03f;
+			float c = 2.43f;
+			float d = 0.59f;
+			float e = 0.14f;
+
+			return saturate((x*(a*x+b))/(x*(c*x+d)+e));
+		}
+
+        // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+		// https://github.com/ampas/aces-dev/blob/master/transforms/ctl/README-MATRIX.md
+		static const float3x3 XYZ_2_sRGB = 
+		{
+				3.2409699419, -1.5373831776, -0.4986107603,
+			   -0.9692436363,  1.8759675015,  0.0415550574,
+				0.0556300797, -0.2039769589,  1.0569715142,
+		};
+
+		static const float3x3 sRGB_2_XYZ = 
+		{
+			0.4124564, 0.3575761, 0.1804375,
+			0.2126729, 0.7151522, 0.0721750,
+			0.0193339, 0.1191920, 0.9503041,
+		};
+
+		static const float3x3 XYZ_2_AP1 = 
+		{
+				1.6410233797, -0.3248032942, -0.2364246952,
+		       -0.6636628587,  1.6153315917,  0.0167563477,
+				0.0117218943, -0.0082844420,  0.9883948585,
+		};
+
+		static const float3x3 AP1_2_XYZ = 
+		{
+				0.6624541811, 0.1340042065, 0.1561876870,
+				0.2722287168, 0.6740817658, 0.0536895174,
+			   -0.0055746495, 0.0040607335, 1.0103391003,
+		};
+
+		static const float3x3 D65_2_D60 = 
+		{
+				1.01303,    0.00610531, -0.014971,
+				0.00769823, 0.998165,   -0.00503203,
+			   -0.00284131, 0.00468516,  0.924507,
+		};
+
+		static const float3x3 D60_2_D65 = 
+		{
+				0.987224,   -0.00611327, 0.0159533,
+			   -0.00759836,  1.00186,    0.00533002,
+				0.00307257, -0.00509595, 1.08168,
+		};
+    };
+}

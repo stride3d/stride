@@ -1,0 +1,20 @@
+﻿namespace StrideTerrain.Rendering.Effects
+{
+    shader PostEffectCommon
+    {
+        float CalculateLuminance(float3 c)
+        {
+            return dot(c, float3(0.2127f, 0.7152f, 0.0721f));
+        }
+
+        float3 SimpleToneMap(float3 c)
+        {
+            return c * 1.0f / (1.0f + CalculateLuminance(c));
+        }
+
+        float3 InvSimpleToneMap(float3 c)
+        {
+            return c * 1.0f / (max(1.0f - CalculateLuminance(c), 0.0000061f));
+        }
+    };
+}

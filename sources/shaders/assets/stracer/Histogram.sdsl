@@ -1,0 +1,55 @@
+﻿namespace Stracer.Rendering
+{
+    shader Histogram : ComputeShaderBase, PostEffectCommon
+    {
+        #define GROUP_SIZE 256
+        #define EPSILON 0.005
+
+        stage Texture2D<float4> ColorInput;
+        stage RWByteAddressBuffer HistogramBuffer;
+        stage StructuredBuffer<float> Exposure;
+
+        groupshared uint HistogramShared[GROUP_SIZE];
+
+        uint ColorToBin(float3 color, float minLogLuminance, float inverseLogLuminanceRange)
+        {
+            float luminance = CalculateLuminance(color); 
+
+            if (luminance < EPSILON)
+                return 0;
+
+            // Calculate the log_2 luminance and express it as a value in [0.0, 1.0]
+            // where 0.0 represents the minimum luminance, and 1.0 represents the max.
+            float logLuminance = saturate((log2(luminance) - minLogLuminance) * inverseLogLuminanceRange);
+
+            // Map [0, 1] to [1, 255]. The zeroth bin is handled by the epsilon check above.
+            return uint(logLuminance * 254.0 + 1.0);
+        }
+
+        override void Compute()
+        {
+            float MinLog = Exposure[4];
+            float RcpLogRange = Exposure[7];
+
+            // Initialize the bin for this thread to 0
+            HistogramShared[streams.GroupIndex + 0] = 0; // + 0 is needed or stride wont detect the input stream properly ... todo: reproduce and file bug
+            GroupMemoryBarrierWithGroupSync();
+
+            uint2 dimensions;
+            ColorInput.GetDimensions(dimensions.x, dimensions.y);
+        
+            // Ignore threads that map to areas beyond the bounds of our HDR image
+            if (streams.DispatchThreadId.x < dimensions.x && streams.DispatchThreadId.y < dimensions.y)
+            {
+                float3 color = ColorInput.Load(int3(streams.DispatchThreadId.xy, 0)).xyz;
+                uint binIndex = ColorToBin(color, MinLog, RcpLogRange);
+
+                InterlockedAdd(HistogramShared[binIndex], 1);
+            }
+
+            GroupMemoryBarrierWithGroupSync();
+            uint org;
+            HistogramBuffer.InterlockedAdd(streams.GroupIndex * 4, HistogramShared[streams.GroupIndex], org);
+        } 
+    };
+}

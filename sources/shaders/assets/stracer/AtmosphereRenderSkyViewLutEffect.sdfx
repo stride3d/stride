@@ -1,0 +1,11 @@
+﻿// From: https://github.com/andr3wmac/unity-tinybvh/blob/main/Assets/Resources/RayIntersection.compute
+
+namespace Stracer.Rendering
+{
+    effect AtmosphereRenderSkyViewLutEffect
+    {
+        using params AtmosphereParameters;
+
+        mixin AtmosphereRenderSkyViewLut<PerDraw.Atmosphere>;
+    }
+}

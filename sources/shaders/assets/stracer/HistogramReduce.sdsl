@@ -1,0 +1,81 @@
+﻿namespace Stracer.Rendering
+{
+    shader HistogramReduce : ComputeShaderBase, PostEffectCommon
+    {
+        stage ByteAddressBuffer Histogram;
+        stage RWStructuredBuffer<float> Exposure;
+
+        stage float TimeDelta;
+        stage float Tau = 1.1f;
+
+        stage uint PixelCount;
+
+        stage bool AutoKey = true;
+        stage float TargetLuminance = 0.08f;
+        stage float MinExposure = 1.0f / 64.0f;
+        stage float MaxExposure = 64.0f;
+        stage float AutoKeyBiasPower = 1.0f;
+
+        groupshared float HistogramShared[256];
+
+        override void Compute()
+        {
+            float weightedSum = (float)Histogram.Load(streams.GroupIndex * 4) * float(streams.GroupIndex);
+        
+            GroupMemoryBarrierWithGroupSync();
+
+            for (uint i = 1; i < 256; i *= 2)
+            {
+                HistogramShared[streams.GroupIndex] = weightedSum;
+                GroupMemoryBarrierWithGroupSync();
+
+                weightedSum += HistogramShared[(streams.GroupIndex + i) % 256];
+                GroupMemoryBarrierWithGroupSync();
+            }
+
+            if (weightedSum == 0.0f)
+                return;
+
+            if (streams.GroupIndex == 0)
+            {
+                float MinLog = Exposure[4];
+                float MaxLog = Exposure[5];
+                float LogRange = Exposure[6];
+                float RcpLogRange = Exposure[7];
+
+                float weightedLogAverage = weightedSum / (max(1, PixelCount - Histogram.Load(0))) - 1.0;
+                float weightedAverageLuminance = exp2(((weightedLogAverage / 254.0) * LogRange) + MinLog);
+
+                float targetLuminance = TargetLuminance;
+                if (AutoKey)
+                {
+                    targetLuminance = 1.03f - (2.0f / (2.0f + (log(weightedAverageLuminance + 1) / log(exp(1)))));
+                    targetLuminance = pow(targetLuminance, AutoKeyBiasPower);
+                }
+
+                float targetExposure = targetLuminance / weightedAverageLuminance;
+
+                float exposure = Exposure[0];
+                exposure = exposure + (targetExposure - exposure) * (1 - exp(-TimeDelta * Tau));
+                exposure = clamp(exposure, MinExposure, MaxExposure);
+
+                Exposure[0] = exposure;
+                Exposure[1] = 1.0 / exposure;
+                Exposure[2] = exposure;
+                Exposure[3] = weightedLogAverage;
+
+                float biasToCenter = (floor(weightedLogAverage) - 128.0) / 255.0;
+                if (abs(biasToCenter) > 0.1)
+                {
+                    MinLog += biasToCenter * RcpLogRange;
+                    MaxLog += biasToCenter * RcpLogRange;
+                }
+
+                Exposure[4] = MinLog;
+                Exposure[5] = MaxLog;
+                Exposure[6] = LogRange;
+                Exposure[7] = 1.0 / LogRange;
+            }
+        }
+    };
+}

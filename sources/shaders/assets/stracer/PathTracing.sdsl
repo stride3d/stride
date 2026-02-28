@@ -1,0 +1,767 @@
+﻿// From: https://github.com/andr3wmac/unity-tinybvh/blob/main/Assets/Resources/RayIntersection.compute
+
+namespace Stracer.Rendering
+{
+    shader PathTracing : ComputeShaderBase, Texturing, Math
+    {
+        struct BVHNode
+        {
+            float4 n0;
+            float4 n1;
+            float4 n2;
+            float4 n3;
+            float4 n4;
+        };
+
+        struct Ray
+        {
+            float3 origin;
+            float3 direction;
+        };
+
+        struct RayHit
+        {
+            float t;
+            float2 barycentric;
+            uint triIndex;
+            uint steps;
+        };
+
+        struct TriangleAttributesPacked
+        {
+            float3 Normal;
+            float UvX;
+            float3 Tangent;
+            float UvY;
+        };
+
+        struct TriangleAttributes
+        {
+            float3 Normal;
+            float3 Tangent;
+            float2 UV;
+        };
+
+        struct MaterialSample
+        {
+            float3 Albedo;
+            float3 F0;
+            float3 Emissive;
+            float3 Normal;
+            float Roughness;
+            float Metallic;
+            float Specularity;
+        };
+
+        stage StructuredBuffer<BVHNode> BVHNodes;
+        stage StructuredBuffer<float4> BVHTriangles;
+        stage StructuredBuffer<TriangleAttributesPacked> BVHTriangleAttributes;
+        stage StructuredBuffer<int> BVHMaterial;
+        stage float TMax;
+        stage float4x4 View;
+        stage float4x4 InvView;
+        stage float4x4 Projection;
+        stage float4x4 InvProjection;
+        stage float4x4 InvViewProjection;
+        stage float2 Resolution;
+        stage float3 CameraPositionWS;
+        stage uint FrameId;
+        stage uint FrameCount;
+        stage TextureCube SkyBox;
+        stage Texture2DArray AlbedoArray;
+        stage Texture2DArray SpecularArray;
+        stage Texture2DArray NormalsArray;
+        stage Texture2DArray EmissiveArray;
+        stage Texture2D SkyViewLUT;
+        stage Texture2D TransmittanceLUT;
+        stage float2 SkyViewLutResolution;
+
+        stage float AtmosphereBottomRadius;
+        stage float AtmosphereTopRadius;
+        stage float SunElevation = 10;
+        stage float SunAzimuth = 270;
+        stage float3 SunColour = float3(1.0f, 0.9f, 0.85f);
+        static const float SunRadius = 0.53;
+        stage float SunIntensity = 5.0f;
+
+        stage RWTexture2D<float4> OutputColor;
+        stage RWTexture2D<float4> OutputNormalDepth;
+
+        override void Compute()
+        {
+            int2 pixPos = streams.DispatchThreadId.xy;
+            int frameIndex = FrameCount % 16;
+
+            int tileX = frameIndex % 4;
+            int tileY = frameIndex / 4;
+
+            pixPos = pixPos * 4 + int2(tileX, tileY);
+
+            uint seed = HashSeed(pixPos.x, pixPos.y, FrameId);
+
+            float2 jitter = float2(
+                RandomFloat(seed),
+                RandomFloat(seed)
+            ) / Resolution;
+
+            float3 clipSpace = float3(
+                ((pixPos + jitter) / Resolution) * float2(2.0, -2.0) - float2(1.0, -1.0),
+                1.0
+            );
+
+            float4 hPos = mul(float4(clipSpace, 1.0), InvViewProjection);
+
+            Ray ray;
+            ray.origin = CameraPositionWS;
+            ray.direction = normalize((hPos.xyz / hPos.w) - CameraPositionWS);
+
+            float3 transmittance = float3(1, 1, 1);
+            float3 totalLight = float3(0, 0, 0);
+
+            float4 normalDepth = float4(0, 1, 0, 1e10);
+            float3 debugOut = float3(0, 0, 0);
+
+            const uint MaxBounces = 10;
+            for (uint bounce = 0; bounce < MaxBounces; bounce++)
+            {
+                RayHit hit = Trace(ray);
+
+                if (hit.t >= TMax) 
+                {
+                    if (bounce == 0)
+                        totalLight += transmittance * GetEnvironmentLightWithSun(ray.direction);
+                    else
+                        totalLight += transmittance * GetEnvironmentLight(ray.direction);
+
+                    break;
+                }
+
+                uint triIndex = hit.triIndex * 3;
+                float3 hitPosition = ray.origin + ray.direction * hit.t;
+
+                TriangleAttributes attribs = LoadTriangleAttributes(triIndex, hit.barycentric); 
+                MaterialSample material = SampleMaterial(BVHMaterial[triIndex], attribs.UV);
+
+                float3 sunDir = SampleSunDirection(seed);
+
+                Ray shadowRay;
+                shadowRay.origin = hitPosition + attribs.Normal * 0.001;
+                shadowRay.direction = sunDir;
+
+                RayHit shadowHit = Trace(shadowRay);
+
+                if (shadowHit.t >= TMax)
+                {
+                    float NdotL = max(0.001, dot(attribs.Normal, sunDir));
+                    float3 V = -ray.direction;
+                    float3 H = normalize(sunDir + V);
+                    float NdotH = max(0.001, dot(attribs.Normal, H));
+                    float NdotV = max(0.001, dot(attribs.Normal, V));
+                    float VdotH = max(0.001, dot(V, H));
+
+                    float3 sunTransmittance = SampleAtmosphereTransmittance(hitPosition, sunDir);
+    
+                    // Fresnel
+                    float3 F = FresnelSchlick(VdotH, material.F0);
+    
+                    // Diffuse component (energy conserving)
+                    float3 kD = (1.0 - F) * (1.0 - material.Metallic);
+                    float3 diffuse = kD * material.Albedo / 3.14159265;
+    
+                    // Specular component - Cook-Torrance BRDF
+                    float alpha = material.Roughness * material.Roughness;
+                    float alpha2 = alpha * alpha;
+    
+                    // GGX Distribution
+                    float denom = NdotH * NdotH * (alpha2 - 1.0) + 1.0;
+                    float D = alpha2 / (3.14159265 * denom * denom);
+    
+                    // Geometry term (Smith GGX)
+                    float k = alpha / 2.0;
+                    float GL = NdotL / (NdotL * (1.0 - k) + k);
+                    float GV = NdotV / (NdotV * (1.0 - k) + k);
+                    float G = GL * GV;
+    
+                    // Cook-Torrance specular BRDF
+                    float3 specular = F * D * G / max(0.001, 4.0 * NdotL * NdotV);
+    
+                    float3 sunLight = GetSunLight(sunDir);
+                    totalLight += transmittance * (diffuse + specular) * sunLight * sunTransmittance * NdotL;
+                }
+
+                float specularChance = material.Specularity;
+                bool isSpecularBounce = RandomFloat(seed) < specularChance;
+
+                float3 newDirection;
+                float pdf;
+    
+                if (isSpecularBounce)
+                {
+                    float3 V = -ray.direction;
+                    float3 H = SampleGGX(attribs.Normal, material.Roughness, seed);
+                    newDirection = reflect(-V, H);
+    
+                    // Make sure we're in the right hemisphere
+                    if (dot(newDirection, attribs.Normal) <= 0)
+                    {
+                        break; // Terminate path if bounce goes below surface
+                    }
+    
+                    float NdotL = max(0.001, dot(attribs.Normal, newDirection));
+                    float NdotV = max(0.001, dot(attribs.Normal, V));
+                    float NdotH = max(0.001, dot(attribs.Normal, H));
+                    float VdotH = max(0.001, dot(V, H));
+    
+                    // Fresnel
+                    float3 F = FresnelSchlick(VdotH, material.F0);
+    
+                    // GGX Distribution term (for proper energy)
+                    float alpha = material.Roughness * material.Roughness;
+                    float alpha2 = alpha * alpha;
+                    float denom = NdotH * NdotH * (alpha2 - 1.0) + 1.0;
+                    float D = alpha2 / (3.14159265 * denom * denom);
+    
+                    // Geometry term (simplified)
+                    float G = NdotL * NdotV;
+    
+                    // Specular BRDF = F * D * G / (4 * NdotL * NdotV)
+                    // PDF for GGX sampling = D * NdotH / (4 * VdotH)
+                    // BRDF / PDF * NdotL = F * G * VdotH / (NdotV * NdotH)
+                    // Simplified further:
+                    transmittance *= F / specularChance;
+                }
+                else
+                {
+                    // === DIFFUSE BOUNCE ===
+                    newDirection = normalize(attribs.Normal + RandomUnitVector(seed));
+        
+                    float NdotL = max(0, dot(attribs.Normal, newDirection));
+        
+                    // Diffuse BRDF
+                    float3 diffuse = material.Albedo * (1.0 - material.Metallic);
+        
+                    // Update throughput (diffuse BRDF * NdotL * 2*pi / pdf)
+                    // For cosine-weighted hemisphere sampling: pdf = NdotL/pi
+                    // So: (diffuse/pi) * NdotL / (NdotL/pi) = diffuse
+                    transmittance *= diffuse / (1.0 - specularChance);
+                }
+
+                totalLight += transmittance * material.Emissive;
+    
+                // === CONTINUE PATH ===
+                ray.origin = hitPosition + attribs.Normal * 0.001;
+                ray.direction = newDirection;
+    
+                // === RUSSIAN ROULETTE ===
+                if (bounce > 3)
+                {
+                    float p = max(transmittance.r, max(transmittance.g, transmittance.b));
+                    if (RandomFloat(seed) > p)
+                        break;
+                    transmittance /= p;
+                }
+
+                if (bounce == 0)
+                {
+                    float depth = length(hitPosition - CameraPositionWS);
+                    normalDepth = float4(attribs.Normal, depth);
+                    debugOut = material.Emissive;
+                }
+            }
+
+            OutputNormalDepth[pixPos] = normalDepth;
+            OutputColor[pixPos] = float4(totalLight, 1);
+            //OutputColor[pixPos] = debugOut;
+        }
+
+        float3 SampleGGX(float3 normal, float roughness, inout uint seed)
+        {
+            float alpha = roughness * roughness;
+    
+            float r1 = RandomFloat(seed);
+            float r2 = RandomFloat(seed);
+    
+            float theta = atan(alpha * sqrt(r1) / sqrt(1.0 - r1));
+            float phi = 2.0 * 3.14159265 * r2;
+    
+            // Spherical to Cartesian (in tangent space)
+            float sinTheta = sin(theta);
+            float3 H = float3(
+                sinTheta * cos(phi),
+                sinTheta * sin(phi),
+                cos(theta)
+            );
+    
+            // Transform to world space
+            float3 up = abs(normal.y) > 0.999 ? float3(1, 0, 0) : float3(0, 1, 0);
+            float3 tangent = normalize(cross(up, normal));
+            float3 bitangent = cross(normal, tangent);
+    
+            return normalize(tangent * H.x + bitangent * H.y + normal * H.z);
+        }
+
+        float3 FresnelSchlick(float cosTheta, float3 F0)
+        {
+            return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+        }
+
+        float3 GetSunDirection()
+        {
+            float elevation = radians(SunElevation);
+            float azimuth = radians(SunAzimuth);
+            return float3(
+                cos(elevation) * sin(azimuth),
+                sin(elevation),
+                cos(elevation) * cos(azimuth)
+            );
+        }
+
+        float3 SampleSunDirection(inout uint seed)
+        {
+            float3 dirToSun = GetSunDirection();
+    
+            // Add random offset within sun's angular radius
+            float sunAngularRadius = radians(SunRadius);
+            float2 diskSample = RandomInUnitDisk(seed) * sin(sunAngularRadius);
+    
+            // Create tangent space around sun direction
+            float3 up = abs(dirToSun.y) > 0.999 ? float3(1, 0, 0) : float3(0, 1, 0);
+            float3 tangent = normalize(cross(dirToSun, up));
+            float3 bitangent = cross(dirToSun, tangent);
+    
+            return normalize(dirToSun + diskSample.x * tangent + diskSample.y * bitangent);
+        }
+
+        float3 GetSunLight(float3 dir)
+        {
+            float3 dirToSun = GetSunDirection();
+    
+            // Angular falloff - using same radius
+            float sunAngularRadius = radians(SunRadius);
+            float s = 1.0 / (sunAngularRadius * sunAngularRadius);
+            float sun = pow(max(0, dot(dir, dirToSun)), s) * SunIntensity;
+    
+            return sun * SunColour;
+        }
+
+        float3 GetEnvironmentLight(float3 dir)
+        {
+            // Convert your scene units to kilometers
+            // If your scene is in meters, divide by 1000
+            // If already in km, use as-is
+            float sceneToKm = 0.001; // meters to km
+    
+            // Camera height above ground in your scene units
+            float cameraHeightAboveGround = CameraPositionWS.y; // or however you get camera Y
+    
+            // Camera position from planet center in KM
+            float3 cameraPos = float3(
+                0, 
+                AtmosphereBottomRadius + cameraHeightAboveGround * sceneToKm, 
+                0
+            );
+    
+            float2 uv = DirectionToSkyViewLUT(dir, cameraPos, GetSunDirection());
+    
+            return SkyViewLUT.SampleLevel(LinearSampler, uv, 0).rgb;
+        }
+
+        float3 SampleAtmosphereTransmittance(float3 worldPos, float3 sunDir)
+        {
+            // Convert world position to atmosphere space (in km)
+            float sceneToKm = 0.001;
+            float3 posFromPlanetCenter = float3(0, AtmosphereBottomRadius + worldPos.y * sceneToKm, 0);
+    
+            float viewHeight = length(posFromPlanetCenter);
+            float3 up = posFromPlanetCenter / viewHeight;
+            float viewZenithCosAngle = dot(sunDir, up);
+    
+            float2 uv;
+            LutTransmittanceParamsToUv(viewHeight, viewZenithCosAngle, uv);
+    
+            return TransmittanceLUT.SampleLevel(LinearSampler, uv, 0).rgb;
+        }
+
+        float2 DirectionToSkyViewLUT(float3 worldDir, float3 cameraPos, float3 sunDir)
+        {
+            // View height from planet center
+            float viewHeight = length(cameraPos);
+    
+            // Check if ray intersects ground
+            float3 upVector = cameraPos / viewHeight;
+            float viewZenithCosAngle = dot(worldDir, upVector);
+    
+            float2 uv;
+            bool intersectGround = RayIntersectsGround(cameraPos, worldDir, AtmosphereBottomRadius);
+    
+            // Cosine of angle between view direction and sun direction
+            float lightViewCosAngle = dot(worldDir, sunDir);
+    
+            SkyViewLutParamsToUv(
+                intersectGround,
+                viewZenithCosAngle,
+                lightViewCosAngle,
+                viewHeight,
+                uv
+            );
+    
+            return uv;
+        }
+
+        // Helper: Check if ray hits the ground
+        bool RayIntersectsGround(float3 origin, float3 direction, float groundRadius)
+        {
+            float height = length(origin);
+            float3 up = origin / height;
+            float viewZenithCosAngle = dot(direction, up);
+    
+            // Discriminant of ray-sphere intersection
+            float discriminant = viewZenithCosAngle * viewZenithCosAngle - 1.0 + (groundRadius / height) * (groundRadius / height);
+    
+            return discriminant >= 0.0 && viewZenithCosAngle < 0.0;
+        }
+
+        void LutTransmittanceParamsToUv(in float viewHeight, in float viewZenithCosAngle, out float2 uv)
+		{
+			float H = sqrt(max(0.0f, AtmosphereTopRadius * AtmosphereTopRadius - AtmosphereBottomRadius * AtmosphereBottomRadius));
+			float rho = sqrt(max(0.0f, viewHeight * viewHeight - AtmosphereBottomRadius * AtmosphereBottomRadius));
+
+			float discriminant = viewHeight * viewHeight * (viewZenithCosAngle * viewZenithCosAngle - 1.0) + AtmosphereTopRadius * AtmosphereTopRadius;
+			float d = max(0.0, (-viewHeight * viewZenithCosAngle + sqrt(discriminant))); // Distance to atmosphere boundary
+
+			float d_min = AtmosphereTopRadius - viewHeight;
+			float d_max = rho + H;
+			float x_mu = (d - d_min) / (d_max - d_min);
+			float x_r = rho / H;
+
+			uv = float2(x_mu, x_r);
+		}
+
+        void SkyViewLutParamsToUv(in bool IntersectGround, in float viewZenithCosAngle, in float lightViewCosAngle, in float viewHeight, out float2 uv)
+		{
+			float Vhorizon = sqrt(viewHeight * viewHeight - AtmosphereBottomRadius * AtmosphereBottomRadius);
+			float CosBeta = Vhorizon / viewHeight;				// GroundToHorizonCos
+			float Beta = acos(CosBeta);
+			float ZenithHorizonAngle = PI - Beta;
+
+			if (!IntersectGround)
+			{
+				float coord = acos(viewZenithCosAngle) / ZenithHorizonAngle;
+				coord = 1.0 - coord;
+				coord = sqrt(coord);
+				coord = 1.0 - coord;
+
+				uv.y = coord * 0.5f;
+			}
+			else
+			{
+				float coord = (acos(viewZenithCosAngle) - ZenithHorizonAngle) / Beta;
+				coord = sqrt(coord);
+
+				uv.y = coord * 0.5f + 0.5f;
+			}
+
+			{
+				float coord = -lightViewCosAngle * 0.5f + 0.5f;
+				coord = sqrt(coord);
+				uv.x = coord;
+			}
+
+			// Constrain uvs to valid sub texel range (avoid zenith derivative issue making LUT usage visible)
+			uv = float2(fromUnitToSubUvs(uv.x, SkyViewLutResolution.x), fromUnitToSubUvs(uv.y, SkyViewLutResolution.y));
+		}
+
+        float fromUnitToSubUvs(float u, float resolution) { return (u + 0.5f / resolution) * (resolution / (resolution + 1.0f)); }
+
+        float3 GetEnvironmentLightWithSun(float3 dir)
+        {
+            return GetEnvironmentLight(dir) + GetSunLight(dir) * SunColour;
+        }
+
+        float2 RandomInUnitDisk(inout uint seed)
+        {
+            float angle = RandomFloat(seed) * 2 * 3.14159265;
+            float radius = sqrt(RandomFloat(seed));
+            return float2(cos(angle), sin(angle)) * radius;
+        }
+
+        RayHit Trace(const Ray ray)
+        {
+            return CastRayCWBVH(ray, 0, 0);
+        }
+
+        MaterialSample SampleMaterial(int materialIndex, float2 uv)
+        {
+            MaterialSample result;
+
+            result.Albedo = float3(1,1,1);
+            result.Roughness = 1;
+            result.Metallic = 0;
+            result.Emissive = float3(0, 0, 0);
+
+            result.Albedo = AlbedoArray.SampleLevel(LinearSampler, float3(uv, materialIndex), 0).xyz;
+
+            float3 occlusionRoughnessMetallic = SpecularArray.SampleLevel(LinearSampler, float3(uv, materialIndex), 0).xyz;
+            result.Roughness = occlusionRoughnessMetallic.y;
+            result.Metallic = occlusionRoughnessMetallic.z;
+
+            //result.Normal = float3(0, 0, 0); // TODO
+
+            result.F0 = lerp(0.04.xxx, result.Albedo, result.Metallic);
+
+            float dielectricSpecProb = lerp(0.5, 0.08, 1.0f - result.Roughness);
+            result.Specularity = lerp(dielectricSpecProb, 1.0, result.Metallic);
+
+            result.Emissive = EmissiveArray.SampleLevel(LinearSampler, float3(uv, materialIndex), 0).xyz * 5;
+
+            return result;
+        }
+
+        TriangleAttributes LoadTriangleAttributes(int index, float2 barycentric)
+        {
+            TriangleAttributesPacked attrib1 = BVHTriangleAttributes[index + 0];
+            TriangleAttributesPacked attrib2 = BVHTriangleAttributes[index + 1];
+            TriangleAttributesPacked attrib3 = BVHTriangleAttributes[index + 2];
+
+            TriangleAttributes result;
+            result.Normal = normalize(Interpolate3(barycentric, attrib1.Normal, attrib2.Normal, attrib3.Normal));
+            result.Tangent = normalize(Interpolate3(barycentric, attrib1.Tangent, attrib2.Tangent, attrib3.Tangent));
+            result.UV = frac(Interpolate2(barycentric, float2(attrib1.UvX, attrib1.UvY), float2(attrib2.UvX, attrib2.UvY), float2(attrib3.UvX, attrib3.UvY)));
+
+            return result;
+        }
+
+        float2 Interpolate2(float2 barycentric, float2 attr0, float2 attr1, float2 attr2)
+        {
+            return attr0 * (1.0f - barycentric.x - barycentric.y) + attr1 * barycentric.x + attr2 * barycentric.y;
+        }
+
+        float3 Interpolate3(float2 barycentric, float3 attr0, float3 attr1, float3 attr2)
+        {
+            return attr0 * (1.0f - barycentric.x - barycentric.y) + attr1 * barycentric.x + attr2 * barycentric.y;
+        }
+
+        uint HashSeed(uint x, uint y, uint frame)
+        {
+            uint seed = x * 73856093 ^ y * 19349663 ^ frame * 83492791;
+            return seed;
+        }
+
+        float RandomFloat(inout uint seed)
+        {
+            seed = seed * (uint)1664525 + (uint)1013904223;
+            return float(seed & (uint)0x00FFFFFF) / float((uint)0x01000000);
+        }
+
+        float3 RandomUnitVector(inout uint seed)
+        {
+            float u1 = RandomFloat(seed);
+            float u2 = RandomFloat(seed);
+
+            float phi = u1 * 2.0 * 3.14159265;
+            float cosTheta = u2;
+            float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+
+            return float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+        }
+
+        #define STACK_SIZE 32
+        #define SWAP(type, a, b) { type temp = a; a = b; b = temp; }
+
+        uint ExtractByte(uint value, uint byteIndex)
+        {
+            return (value >> (byteIndex * 8)) & 0xFF;
+        }
+
+        float4 ExtractBytes(float value)
+        {
+            uint packed = asuint(value);
+
+            float4 channels = float4(
+                ExtractByte(packed, 0),
+                ExtractByte(packed, 1),
+                ExtractByte(packed, 2),
+                ExtractByte(packed, 3)
+            );
+
+            return channels;
+        }
+
+        float3 GetNodeInvDir(float n0w, float3 invDir)
+        {
+            uint packed = asuint(n0w);
+
+            // Extract each byte and sign extend
+            uint e_x = (ExtractByte(packed, 0) ^ 0x80) - 0x80;
+            uint e_y = (ExtractByte(packed, 1) ^ 0x80) - 0x80;
+            uint e_z = (ExtractByte(packed, 2) ^ 0x80) - 0x80;
+
+            return float3(
+                asfloat((e_x + 127) << 23) * invDir.x,
+                asfloat((e_y + 127) << 23) * invDir.y,
+                asfloat((e_z + 127) << 23) * invDir.z
+            );
+        }
+
+        uint IntersectCWBVHNode(float3 origin, float3 invDir, uint octinv4, float tmax, const BVHNode node)
+        {
+            uint hitmask = 0;
+            float3 nodeInvDir = GetNodeInvDir(node.n0.w, invDir);
+            float3 nodePos = (node.n0.xyz - origin) * invDir;
+    
+            // i = 0 checks the first 4 children, i = 1 checks the second 4 children.
+            [unroll]
+            for (int i = 0; i < 2; ++i)
+            {
+                uint meta = asuint(i == 0 ? node.n1.z : node.n1.w);
+        
+                float4 lox = ExtractBytes(invDir.x < 0.0f ? (i == 0 ? node.n3.z : node.n3.w) : (i == 0 ? node.n2.x : node.n2.y));
+                float4 loy = ExtractBytes(invDir.y < 0.0f ? (i == 0 ? node.n4.x : node.n4.y) : (i == 0 ? node.n2.z : node.n2.w));
+                float4 loz = ExtractBytes(invDir.z < 0.0f ? (i == 0 ? node.n4.z : node.n4.w) : (i == 0 ? node.n3.x : node.n3.y));
+                float4 hix = ExtractBytes(invDir.x < 0.0f ? (i == 0 ? node.n2.x : node.n2.y) : (i == 0 ? node.n3.z : node.n3.w));
+                float4 hiy = ExtractBytes(invDir.y < 0.0f ? (i == 0 ? node.n2.z : node.n2.w) : (i == 0 ? node.n4.x : node.n4.y));
+                float4 hiz = ExtractBytes(invDir.z < 0.0f ? (i == 0 ? node.n3.x : node.n3.y) : (i == 0 ? node.n4.z : node.n4.w));
+                             
+                float4 tminx = lox * nodeInvDir.x + nodePos.x;
+                float4 tmaxx = hix * nodeInvDir.x + nodePos.x;
+                float4 tminy = loy * nodeInvDir.y + nodePos.y;
+                float4 tmaxy = hiy * nodeInvDir.y + nodePos.y;
+                float4 tminz = loz * nodeInvDir.z + nodePos.z;
+                float4 tmaxz = hiz * nodeInvDir.z + nodePos.z;
+                        
+                float4 cmin = max(max(max(tminx, tminy), tminz), 0.0f);
+                float4 cmax = min(min(min(tmaxx, tmaxy), tmaxz), tmax);
+        
+                uint isInner = (meta & (meta << 1)) & 0x10101010;
+                uint innerMask = (isInner >> 4) * 0xff;
+                uint bitIndex = (meta ^ (octinv4 & innerMask)) & 0x1F1F1F1F;
+                uint childBits = (meta >> 5) & 0x07070707;
+
+                [unroll]
+                for (int j = 0; j < 4; ++j)
+                {
+                    if (cmin[j] <= cmax[j])
+                    {
+                        uint shiftBits = (childBits >> (j * 8)) & 255;
+                        uint bitShift = (bitIndex >> (j * 8)) & 31;
+                        hitmask |= shiftBits << bitShift;
+                    }
+                }
+            }
+
+            return hitmask;
+        }
+
+        void IntersectTriangle(int triAddr, const Ray ray, inout RayHit hit)
+        {
+            float3 e1 = BVHTriangles[triAddr + 0].xyz;
+            float3 e2 = BVHTriangles[triAddr + 1].xyz;
+            float4 v0 = BVHTriangles[triAddr + 2];
+    
+            float3 r = cross(ray.direction.xyz, e1);
+            float a = dot(e2, r);
+            
+            if (abs(a) > 0.0000001f)
+            {
+                float f = 1.0f / a;
+                float3 s = ray.origin.xyz - v0.xyz;
+                float u = f * dot(s, r);
+        
+                if (u >= 0.0f && u <= 1.0f)
+                {
+                    float3 q = cross(s, e2);
+                    float v = f * dot(ray.direction.xyz, q);
+            
+                    if (v >= 0.0f && u + v <= 1.0f)
+                    {
+                        float d = f * dot(e1, q);
+                
+                        if (d > 0.0f && d < hit.t)
+                        {
+                            hit.t = d;
+                            hit.barycentric = float2(u, v);
+                            hit.triIndex = asuint(v0.w);
+                        }
+                    }
+                }
+            }
+        }
+
+        RayHit CastRayCWBVH(const Ray ray, uint nodeOffset, uint triangleOffset)
+        {
+            RayHit hit = (RayHit) 0;
+            hit.t = TMax;
+
+            float3 invDir = rcp(ray.direction.xyz);
+            uint octinv4 = (7 - ((ray.direction.x < 0 ? 4 : 0) | (ray.direction.y < 0 ? 2 : 0) | (ray.direction.z < 0 ? 1 : 0))) * 0x1010101;
+    
+            uint2 stack[STACK_SIZE];
+            uint stackPtr = 0;
+            uint2 nodeGroup = uint2(0, 0x80000000);
+            uint2 triGroup = uint2(0, 0);
+    
+            while (true)
+            {
+                if (nodeGroup.y > 0x00FFFFFF)
+                {
+                    uint mask = nodeGroup.y;
+                    uint childBitIndex = firstbithigh(mask);
+                    uint childNodeBaseIndex = nodeGroup.x;
+            
+                    nodeGroup.y &= ~(1 << childBitIndex);
+                    if (nodeGroup.y > 0x00FFFFFF) 
+                    { 
+                        // Push onto stack
+                        stack[stackPtr++] = nodeGroup;
+                    }
+            
+                    uint slotIndex = (childBitIndex - 24) ^ (octinv4 & 255);
+                    uint relativeIndex = countbits(mask & ~(0xFFFFFFFF << slotIndex));
+                    uint childNodeIndex = nodeOffset + childNodeBaseIndex + relativeIndex;
+
+                    BVHNode node = BVHNodes[childNodeIndex];
+                    uint hitmask = IntersectCWBVHNode(ray.origin, invDir, octinv4, hit.t, node);
+
+                    nodeGroup.x = asuint(node.n1.x);
+                    nodeGroup.y = (hitmask & 0xFF000000) | (asuint(node.n0.w) >> 24);
+                    triGroup.x = asuint(node.n1.y);
+                    triGroup.y = hitmask & 0x00FFFFFF;
+                    hit.steps++;
+                }
+                else
+                {
+                    triGroup = nodeGroup;
+                    nodeGroup = uint2(0, 0);
+                }
+        
+                // Process all triangles in the current group
+                while (triGroup.y != 0)
+                {
+                    int triangleIndex = firstbithigh(triGroup.y);
+                    int triAddr = triangleOffset + triGroup.x + (triangleIndex * 3);
+            
+                    // Check intersection and update hit if its closer
+                    IntersectTriangle(triAddr, ray, hit);
+            
+                    triGroup.y -= 1 << triangleIndex;
+                }
+        
+                if (nodeGroup.y <= 0x00FFFFFF)
+                {
+                    if (stackPtr > 0) 
+                    { 
+                        // Pop the stack
+                        nodeGroup = stack[--stackPtr];
+                    }
+                    else
+                    {
+                        // Traversal complete, exit loop
+                        break;
+                    }
+                }
+            }
+    
+            return hit;
+        }
+    };
+}

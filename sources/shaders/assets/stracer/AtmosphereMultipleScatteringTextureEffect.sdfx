@@ -1,0 +1,11 @@
+﻿// From: https://github.com/andr3wmac/unity-tinybvh/blob/main/Assets/Resources/RayIntersection.compute
+
+namespace Stracer.Rendering
+{
+    effect AtmosphereMultipleScatteringTextureEffect
+    {
+        using params AtmosphereParameters;
+
+        mixin AtmosphereMultipleScatteringTextureEffectCS<PerDraw.Atmosphere>;
+    };
+}

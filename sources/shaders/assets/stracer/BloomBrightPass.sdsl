@@ -1,0 +1,21 @@
+﻿namespace Stracer.Rendering
+{
+    shader BloomBrightPass : ImageEffectShader, ExposureCommon, PostEffectCommon
+    {
+        stage float BrightPassSteepness = 2.0f;
+        stage float ThresholdOffset = 4.0f;
+
+        stage override float4 Shading()
+        {
+            float3 c = Texture0.Sample(LinearSampler, streams.TexCoord).xyz;
+            c *= GetExposure();
+
+            float luminance = CalculateLuminance(c);
+            c *= 0.2;
+            //c *= smoothstep(0, 1, saturate(sqrt(luminance) / (BrightPassSteepness + 1) - ThresholdOffset));
+            c = SimpleToneMap(c);
+        
+            return float4(c, 1);
+        }
+    };
+}

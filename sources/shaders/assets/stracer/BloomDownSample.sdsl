@@ -1,0 +1,35 @@
+﻿namespace Stracer.Rendering
+{
+    shader BloomDownSample : ImageEffectShader, PostEffectCommon
+    {
+        float4 Box4(float4 p0, float4 p1, float4 p2, float4 p3)
+        {
+	        return (p0 + p1 + p2 + p3) * 0.25f;
+        }
+
+        stage override float4 Shading()
+        {
+            float2 offset = Texture0TexelSize;
+        
+            float4 c0 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(-2, -2) * offset);
+            float4 c1 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(0,-2)*offset);
+            float4 c2 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(2, -2) * offset);
+            float4 c3 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(-1, -1) * offset);
+            float4 c4 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(1, -1) * offset);
+            float4 c5 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(-2, 0) * offset);
+            float4 c6 = Texture0.Sample(LinearSampler, streams.TexCoord);
+            float4 c7 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(2, 0) * offset);
+            float4 c8 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(-1, 1) * offset);
+            float4 c9 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(1, 1) * offset);
+            float4 c10 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(-2, 2) * offset);
+            float4 c11 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(0, 2) * offset);
+            float4 c12 = Texture0.Sample(LinearSampler, streams.TexCoord + float2(2, 2) * offset);
+
+             return Box4(c0, c1, c5, c6) * 0.125f +
+                Box4(c1, c2, c6, c7) * 0.125f +
+                Box4(c5, c6, c10, c11) * 0.125f +
+                Box4(c6, c7, c11, c12) * 0.125f +
+                Box4(c3, c4, c8, c9) * 0.5f;
+        }
+    };
+}
