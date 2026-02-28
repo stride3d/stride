@@ -160,8 +160,8 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 StructuredType structType = (blocks.Contains(typeStructInstruction.ResultId))
                     ? structName switch
                     {
-                        var s when s.StartsWith("type.StructuredBuffer.") => new StructuredBufferType(fields[0].Type),
-                        var s when s.StartsWith("type.RWStructuredBuffer.") => new StructuredBufferType(fields[0].Type, true),
+                        var s when s.StartsWith("type.StructuredBuffer.") => new StructuredBufferType(fields[0].Type is ArrayType a ? a.BaseType : fields[0].Type),
+                        var s when s.StartsWith("type.RWStructuredBuffer.") => new StructuredBufferType(fields[0].Type is ArrayType a2 ? a2.BaseType : fields[0].Type, true),
                         var s when s.StartsWith("type.") => new ConstantBufferSymbol(structName.Substring("type.".Length), fields),
                         _ => throw new InvalidOperationException(),
                     }
