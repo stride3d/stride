@@ -77,7 +77,7 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <inheritdoc/>
-        protected override Rectangle? UpateValueFromFloat(float value)
+        protected override Rectangle? UpdateValueFromFloat(float value)
         {
             var intValue = (int)Math.Round(value, MidpointRounding.AwayFromZero);
             return new Rectangle(0, 0, intValue, intValue);
