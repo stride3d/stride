@@ -33,12 +33,12 @@ namespace Stride.Shaders.Compiler
     /// <summary>
     /// An <see cref="IEffectCompiler"/> which will compile effect into multiple shader code, and compile them with a <see cref="IShaderCompiler"/>.
     /// </summary>
-    public class EffectCompiler : EffectCompilerBase
+    public partial class EffectCompiler : EffectCompilerBase
     {
         private bool d3dCompilerLoaded = false;
         private static readonly Object WriterLock = new Object();
 
-        private ShaderLoader shaderLoader;
+        private FileShaderLoader shaderLoader;
 
         private readonly object shaderMixinParserLock = new object();
 
@@ -63,7 +63,7 @@ namespace Stride.Shaders.Compiler
 
         public override ObjectId GetShaderSourceHash(string type)
         {
-            return GetShaderLoader().SourceManager.GetShaderSourceHash(type);
+            return GetFileShaderLoader().SourceManager.GetShaderSourceHash(type);
         }
 
         /// <summary>
@@ -72,39 +72,22 @@ namespace Stride.Shaders.Compiler
         /// <param name="modifiedShaders"></param>
         public override void ResetCache(HashSet<string> modifiedShaders)
         {
-            GetShaderLoader().SourceManager.DeleteObsoleteCache(modifiedShaders);
+            GetFileShaderLoader().SourceManager.DeleteObsoleteCache(modifiedShaders);
         }
 
-        public ShaderLoader GetShaderLoader()
+        public FileShaderLoader GetFileShaderLoader()
         {
             lock (shaderMixinParserLock)
             {
                 if (shaderLoader == null)
                 {
-                    shaderLoader = new ShaderLoader(FileProvider);
+                    shaderLoader = new FileShaderLoader(FileProvider);
                     shaderLoader.SourceManager.LookupDirectoryList.AddRange(SourceDirectories); // TODO: temp
                     shaderLoader.SourceManager.UseFileSystem = UseFileSystem;
                     shaderLoader.SourceManager.UrlToFilePath = UrlToFilePath; // TODO: temp
                 }
 
                 return shaderLoader;
-            }
-        }
-
-        public class ShaderLoader(IVirtualFileProvider FileProvider) : ShaderLoaderBase(new ShaderCache())
-        {
-            public ShaderSourceManager SourceManager { get; } = new(FileProvider);
-
-            protected override bool ExternalFileExists(string name) => SourceManager.IsClassExists(name);
-
-            public override bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash)
-            {
-                var result = SourceManager.LoadShaderSource(name);
-                filename = result.Path;
-                code = result.Source;
-                hash = result.Hash;
-
-                return true;
             }
         }
 
@@ -160,7 +143,7 @@ namespace Stride.Shaders.Compiler
             // In .sdsl, class has been renamed to shader to avoid ambiguities with HLSL
             shaderMixinSource.AddMacro("class", "shader");
 
-            var shaderMixer = new ShaderMixer(GetShaderLoader());
+            var shaderMixer = new ShaderMixer(GetFileShaderLoader());
             shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(effectParameters.Platform is not GraphicsPlatform.Vulkan), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints);
 
             /*var parsingResult = GetMixinParser().Parse(shaderMixinSource, shaderMixinSource.Macros.ToArray());
