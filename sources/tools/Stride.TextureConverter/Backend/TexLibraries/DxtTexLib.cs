@@ -290,12 +290,12 @@ namespace Stride.TextureConverter.TexLibraries
             UpdateImage(image, libraryData);
 
             var alphaSize = DDSHeader.GetAlphaDepth(loader.FilePath);
-            image.OriginalAlphaDepth = alphaSize != -1 ? alphaSize : image.Format.AlphaSizeInBits;
+            image.OriginalAlphaDepth = alphaSize != -1 ? alphaSize : image.Format.AlphaSizeInBits();
         }
 
         private static void ChangeDxtImageType(DxtTextureLibraryData libraryData, DXGI_FORMAT dxgiFormat)
         {
-            if (((PixelFormat)libraryData.Metadata.format).SizeInBits != ((PixelFormat)dxgiFormat).SizeInBits)
+            if (((PixelFormat)libraryData.Metadata.format).SizeInBits() != ((PixelFormat)dxgiFormat).SizeInBits())
                 throw new ArgumentException("Impossible to change image data format. The two formats '{0}' and '{1}' are not compatibles.".ToFormat(libraryData.Metadata.format, dxgiFormat));
 
             libraryData.Metadata.format = dxgiFormat;
@@ -320,7 +320,7 @@ namespace Stride.TextureConverter.TexLibraries
             ScratchImage scratchImage = new ScratchImage();
 
             HRESULT hr;
-            if (request.Format.IsCompressed)
+            if (request.Format.IsCompressed())
             {
                 var topImage = libraryData.DxtImages[0];
                 if (topImage.Width % 4 != 0 || topImage.Height % 4 != 0)
@@ -422,7 +422,7 @@ namespace Stride.TextureConverter.TexLibraries
         private void Convert(TexImage image, DxtTextureLibraryData libraryData, ConvertingRequest request)
         {
             // TODO: temp if request format is SRGB we force it to non-srgb to perform the conversion. Will not work if texture input is SRGB
-            var outputFormat = request.Format.IsSRgb ? request.Format.ToNonSRgb() : request.Format;
+            var outputFormat = request.Format.IsSRgb() ? request.Format.ToNonSRgb() : request.Format;
 
             Log.Verbose($"Converting texture from {(PixelFormat)libraryData.Metadata.format} to {outputFormat}");
 
@@ -461,7 +461,7 @@ namespace Stride.TextureConverter.TexLibraries
             Log.Verbose("Decompressing texture ...");
 
             // determine the output format to avoid any sRGB/RGB conversions (only decompression, no conversion)
-            var outputFormat = !((PixelFormat)libraryData.Metadata.format).IsSRgb ? request.DecompressedFormat.ToNonSRgb() : request.DecompressedFormat.ToSRgb();
+            var outputFormat = !((PixelFormat)libraryData.Metadata.format).IsSRgb() ? request.DecompressedFormat.ToNonSRgb() : request.DecompressedFormat.ToSRgb();
 
             var scratchImage = new ScratchImage();
             var hr = Utilities.Decompress(libraryData.DxtImages, libraryData.DxtImages.Length, ref libraryData.Metadata, (DXGI_FORMAT)outputFormat, scratchImage);
@@ -784,7 +784,7 @@ namespace Stride.TextureConverter.TexLibraries
             image.MipmapCount = libraryData.Metadata.MipLevels;
             image.ArraySize = libraryData.Metadata.ArraySize;
             image.SlicePitch = libraryData.DxtImages[0].SlicePitch;
-            image.OriginalAlphaDepth = Math.Min(image.OriginalAlphaDepth, image.Format.AlphaSizeInBits);
+            image.OriginalAlphaDepth = Math.Min(image.OriginalAlphaDepth, image.Format.AlphaSizeInBits());
         }
 
 

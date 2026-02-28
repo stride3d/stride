@@ -65,7 +65,7 @@ namespace Stride.Graphics.Regression
                         || buffer.RowStride != referenceBuffer.RowStride)
                         return false;
 
-                    var swapBGR = buffer.Format.IsBgraOrder != referenceBuffer.Format.IsBgraOrder;
+                    var swapBGR = buffer.Format.IsBGRAOrder() != referenceBuffer.Format.IsBGRAOrder();
                     // For now, we handle only those specific cases
                     if ((buffer.Format != PixelFormat.R8G8B8A8_UNorm_SRgb && buffer.Format != PixelFormat.B8G8R8A8_UNorm_SRgb)
                         || referenceBuffer.Format != PixelFormat.B8G8R8A8_UNorm)
@@ -74,7 +74,7 @@ namespace Stride.Graphics.Regression
                         return false;
                     }
 
-                    bool checkAlpha = buffer.Format.AlphaSizeInBits > 0;
+                    bool checkAlpha = buffer.Format.AlphaSizeInBits() > 0;
 
                     // Compare remaining bytes.
                     int allowedDiff = 2;

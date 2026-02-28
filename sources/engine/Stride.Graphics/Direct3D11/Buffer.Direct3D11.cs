@@ -149,7 +149,7 @@ namespace Stride.Graphics
                 {
                     // TODO: The way to calculate the count is not always correct depending on the ViewFlags...etc.
                     count = ViewFlags.HasFlag(BufferFlags.RawBuffer) ? Description.SizeInBytes / sizeof(int) :
-                            ViewFlags.HasFlag(BufferFlags.ShaderResource) ? Description.SizeInBytes / viewFormat.SizeInBytes :
+                            ViewFlags.HasFlag(BufferFlags.ShaderResource) ? Description.SizeInBytes / viewFormat.SizeInBytes() :
                             0;
                 }
                 else
@@ -298,7 +298,7 @@ namespace Stride.Graphics
 
                     Buffer = new()
                     {
-                        ElementWidth = (uint) (pixelFormat.SizeInBytes * width),
+                        ElementWidth = (uint) (pixelFormat.SizeInBytes() * width),
                         ElementOffset = 0
                     }
                 };

@@ -51,7 +51,7 @@ namespace Stride.Editor.Thumbnails
             using (var texImage = texTool.Load(image, Parameters.SRgb))
             {
                 // Rescale image so that it fits the thumbnail asked resolution
-                texTool.Decompress(texImage, texImage.Format.IsSRgb);
+                texTool.Decompress(texImage, texImage.Format.IsSRgb());
                 texTool.Resize(texImage, thumbnailSize.X, thumbnailSize.Y, Filter.Rescaling.Lanczos3);
 
                 // Save

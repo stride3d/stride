@@ -63,7 +63,7 @@ namespace Stride.Rendering.Images
             get => luminanceFormat;
             set
             {
-                if (value.IsCompressed || value.IsPacked || value.IsTypeless || value == PixelFormat.None)
+                if (value.IsCompressed() || value.IsPacked() || value.IsTypeless() || value == PixelFormat.None)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), "Unsupported format [{0}] (must be not none, compressed, packed or typeless)".ToFormat(value));
                 }

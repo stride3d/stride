@@ -141,7 +141,7 @@ namespace Stride.Graphics
             // Use R16G16_SNorm as it is supported from HW Level 9.1
             // See https://msdn.microsoft.com/en-us/library/windows/desktop/ff471324%28v=vs.85%29.aspx
             const PixelFormat DefaultUVFormat = PixelFormat.R16G16_SNorm;
-            var newUvSize = DefaultUVFormat.SizeInBytes;
+            var newUvSize = DefaultUVFormat.SizeInBytes();
 
             for (int i = 0; i <= maxTexcoord; i++)
             {

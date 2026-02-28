@@ -26,7 +26,7 @@ internal static class VertexElementValidator
         int stride = 0;
 
         for (int i = 0; i < elements.Length; i++)
-            stride += elements[i].Format.SizeInBytes;
+            stride += elements[i].Format.SizeInBytes();
 
         return stride;
     }
@@ -76,12 +76,12 @@ internal static class VertexElementValidator
             int elementOffset = elements[elementIndex].AlignedByteOffset;
             if (elementOffset == VertexElement.AppendAligned)
             {
-                elementOffset = elementIndex == 0 ? 0 : totalOffset + elements[elementIndex - 1].Format.SizeInBytes;
+                elementOffset = elementIndex == 0 ? 0 : totalOffset + elements[elementIndex - 1].Format.SizeInBytes();
             }
             totalOffset = elementOffset;
 
             // Validate the element offset
-            int typeSize = elements[elementIndex].Format.SizeInBytes;
+            int typeSize = elements[elementIndex].Format.SizeInBytes();
             if (elementOffset == VertexElement.AppendAligned || (elementOffset + typeSize) > vertexStride)
             {
                 throw new ArgumentException($"The {nameof(VertexElement)}'s offset and size makes it extend beyond the vertex stride", nameof(elements));
