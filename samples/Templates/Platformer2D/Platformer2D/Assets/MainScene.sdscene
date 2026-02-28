@@ -1,0 +1,2732 @@
+!SceneAsset
+Id: b97c1868-2681-4e4d-b8b9-a19960649142
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 8e823153-30f3-4a9f-951f-ca7a9884ee49
+        - ref!! 38856d68-1e76-41e1-a710-8c35c7e826af
+        - ref!! 1d01864d-6fbf-4b0f-a48a-71f55d58686a
+        - ref!! 07a1bf37-f2d4-4c62-a2df-e5c2dca22bef
+        - ref!! a2c8ae6a-bdcf-45f9-90cb-bef4763ec1bc
+        - ref!! 7f170113-7104-45f4-b7db-cf704e128528
+        - ref!! 0c3666ee-e42f-4980-9f5c-e8e838577347
+        - ref!! dc16b205-b82a-4658-82ba-90316edd7121
+        - ref!! 9e465a2e-0681-4201-bc42-b652177fd355
+        - ref!! 39dd7aa5-a8ac-4e6f-8032-732bcd4b65fe
+        - ref!! 78794813-b690-4b8c-8c50-844c24e8a68a
+        - ref!! da8577ab-13f4-483f-af28-f0bdf1bfe4f6
+        - ref!! 2d4dbdcb-c6e9-4a32-a9f5-b25a82324157
+        - ref!! 19108baf-59b6-424b-8680-ca0f921f3343
+        - ref!! 21b861dd-4bbc-42ae-841d-2635c332956a
+        - ref!! 678b69fb-b866-4460-84df-898534179e1e
+        - ref!! 0c2ced55-60f2-47c3-b76d-7586a1a44215
+        - ref!! 716163c9-3a68-452a-866b-5cc079a6f4c6
+        - ref!! 705a595b-1892-4d93-af03-5fbc974633d2
+        - ref!! 57b2ab29-170f-443e-946d-e2626a2abb80
+        - ref!! 017ac138-bf8f-4136-b06e-5439addedb09
+        - ref!! 939b9bd1-98a0-431d-a456-4ffb33e4a19d
+        - ref!! 106747e7-b0f0-48f8-96bd-c45d7fa000dc
+        - ref!! a78721c4-a5a5-4dca-bbf9-2cadb592a265
+        - ref!! 41747f66-6df2-4028-852e-54a76e3b8ff2
+        - ref!! 2afcda69-93b1-4dc4-a172-773dca7871be
+        - ref!! 8af53610-9538-4c99-b3a6-68c67183c789
+        - ref!! b556b2b2-2545-4897-9028-eb8a37b83f72
+        - ref!! 1fe28797-aa99-47ff-ab06-aa3538b59918
+        - ref!! 44273cdc-5232-4272-af8e-5fa04c13f6d6
+        - ref!! 3a8d7bb0-f671-4748-bcb2-2281a7d98dc1
+        - ref!! 070bb4a7-ee23-47e7-b1f0-c214d1b6ae34
+        - ref!! 71492ec7-6cf1-4253-9881-b34e68b97984
+        - ref!! 3aa25f07-6988-4fcd-ab36-9eef90525f6a
+        - ref!! 145739ba-ad58-4c1a-aa98-2e21927ccf86
+        - ref!! a81f72ed-ac45-400c-94e1-9b5af6cb0bb2
+        - ref!! 7075d7b2-9c74-442f-a6e2-ab2d2229c495
+        - ref!! 5243adc8-8ae3-43fa-b679-cdaa56d05119
+        - ref!! e9c7e3a8-3af2-4b31-8cb4-caaa45ceef9b
+        - ref!! 143fbb3e-8155-4e73-914a-122f5d0c3a12
+        - ref!! b4c730a6-488a-4cc6-9b62-f530bcaa123e
+        - ref!! aeae4626-f3e1-4607-b650-54ff42a57b44
+        - ref!! 4fe99592-d15e-46dc-a0c7-ed72930ba421
+        - ref!! 4b83d48b-fa10-4379-ba3f-11b4e0c3389b
+        - ref!! ccc36bea-1674-4945-99bd-db5e3891eef7
+        - ref!! 9545141c-5080-4270-9c01-53b666f485a8
+        - ref!! 86f84cd2-6188-458f-a227-5a40bbbe7d97
+        - ref!! b6834158-8416-4c54-ae6a-cfc000b7bbeb
+        - ref!! 8a131671-e026-4995-82b2-5406f117ce07
+        - ref!! 4dce2595-83f6-47c5-8c5b-d08ee53f7d04
+        - ref!! 15fcdcb6-b4ca-49f2-a35d-149845f47b60
+        - ref!! 3c97e06a-4e16-4faa-b814-88cccaaa23cd
+        - ref!! 69629efd-0437-4445-846b-f51c6b17913f
+        - ref!! 8777711d-94ad-4c11-90d9-fdcd7445dfe1
+        - ref!! 6230af38-d5c9-4067-a745-909abd90b961
+        - ref!! 64d29142-1af1-4f72-b7a6-c23c721c7fc4
+        - ref!! d0582ef3-5dd7-4518-8d87-99ed66f6d0ba
+        - ref!! 1d9557f2-694a-4c95-93ce-8243fd361a50
+        - ref!! ad91393c-7826-4b03-86f4-d88a742a955d
+        - ref!! 1149a399-e513-4174-a849-3bfe59212f1b
+        - ref!! efec274f-7909-4649-81f2-0ddde5c879d7
+        - ref!! 47188d80-0a56-4b25-afa6-cb10f18dbb5a
+        - ref!! 05e238bb-5938-4c04-b07d-4f9d0aa5fb3b
+        - ref!! 9efa0b2c-b6e0-4455-9037-259054538ba5
+        - ref!! e9597f7f-1d3b-4160-a82a-a58461770eef
+        - ref!! 2d14083b-e6c4-4090-9455-4a75c903cf28
+        - ref!! 683a0fc4-3446-4f73-bafe-c8c6c2a871d1
+        - ref!! e0ebf9a8-d749-40db-acb5-87586bb5e5d2
+        - ref!! dc3accdc-4e16-4d16-9b68-4afa2fdc6541
+        - ref!! 71a879d8-660f-4124-ae7c-af7bbfe67e47
+    Parts:
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 017ac138-bf8f-4136-b06e-5439addedb09
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 2ee2f2bd-05a0-4997-b0ac-193fd6373773
+                        Position*: {X: 13.0, Y: -3.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: ba5c7839-47b7-42db-9d9d-426015a3188b
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: e37336c0-4245-4745-abf5-bec842d9343d
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: a69c562d-0085-460a-9f44-d766eaea8bc0
+        -   Folder: Coins
+            Entity:
+                Id: 05e238bb-5938-4c04-b07d-4f9d0aa5fb3b
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: b19d3f7e-f624-4b60-a14a-0ad6c067876a
+                        Position*: {X: -13.0, Y: -4.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: 4b45f919-df82-4de9-9586-6f146ea87d7e
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: a4d83c1b-641a-4e02-8f26-ac2cee6759d4
+                        Sprite: ref!! 4b45f919-df82-4de9-9586-6f146ea87d7e
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: 8315d1e2-fda6-4349-83f2-798494e82273
+                        StaticColliderComponent: ref!! fc935383-581c-49b2-bbe1-0ceb957c9185
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: fc935383-581c-49b2-bbe1-0ceb957c9185
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: ac7cb05c-6bce-4e3b-8fbb-ccad618c87a9
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 070bb4a7-ee23-47e7-b1f0-c214d1b6ae34
+                Name: Platform_Thin_short
+                Components:
+                    89fda52fd0dcd43889322555fec8d1da: !TransformComponent
+                        Id: 41da61d4-5909-4962-a577-598cdf24225a
+                        Position*: {X: -13.5, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    38f388c3d5cc14129696b9b4940105b6: !SpriteComponent
+                        Id: 92f405a5-3275-4e75-a6d1-d7d2531da19d
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 1
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    fdbc84f119d35b74720fafb625a63045: !StaticColliderComponent
+                        Id: 31f1f46c-7aa5-45de-9c65-41681557a2e9
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a3e271dc2945c92633e135fb0746b73b: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: b4f4dad7-71d0-41ed-96e8-4c44deb4e618:WorldPrefabs/Platform_Thin_short
+                BasePartId: d5871d1f-0974-4d34-8dd7-9955583ffe62
+                InstanceId: ecf5bebf-efd6-4851-b99d-8801b3e56535
+        -   Folder: Map/Floor
+            Entity:
+                Id: 07a1bf37-f2d4-4c62-a2df-e5c2dca22bef
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: c20723bb-ce34-427a-be82-1b97f4834870
+                        Position: {X: 0.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 0931efd5-64fa-4cc8-93e8-97f76cd1a621
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: 4ad22454-8d93-4947-8801-09a6242a7250
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: 3477b5af-b32e-4337-bfc9-7c0c9c4a89c4
+        -   Folder: Map/Floor
+            Entity:
+                Id: 0c2ced55-60f2-47c3-b76d-7586a1a44215
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: 12c54e6b-845d-44b9-bc2b-a68d8fe482be
+                        Position*: {X: -12.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 691e336f-5bf9-4291-a5f1-05ebdf4ab2fa
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: 1b6ea49e-1c7d-452f-8764-8f738c718b3f
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: 05d1fa21-1005-420c-a225-ed02043f998c
+        -   Folder: Map/Floor
+            Entity:
+                Id: 0c3666ee-e42f-4980-9f5c-e8e838577347
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: 89c659b5-f92c-45b7-a219-88cc812f17b4
+                        Position*: {X: 6.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 4095574a-ba24-44bf-96f5-2ab518a52c8e
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: 3ff0c167-bde0-4d93-80fe-bc2f0c2b724b
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: 7d2835dc-89fc-48d4-b10b-dfe371b7cec6
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 106747e7-b0f0-48f8-96bd-c45d7fa000dc
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 23b90cad-cd2c-4a73-98c7-8f83fda33ea7
+                        Position*: {X: 6.0, Y: -2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: 4ffb07cf-0d77-491f-b923-e3e50d05b610
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: b5f58b43-0dd6-43e1-a305-05e57213f12f
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: f2922bb5-0d24-403e-9d84-547a5a458396
+        -   Folder: Coins
+            Entity:
+                Id: 1149a399-e513-4174-a849-3bfe59212f1b
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: 2e38a1c7-208b-4772-8d14-964ac42a63ac
+                        Position*: {X: 13.0, Y: -4.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: c9f58347-7a33-4f36-8bf1-17e039d206b9
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: cc46cca2-c94f-4a10-b633-b26259582185
+                        Sprite: ref!! c9f58347-7a33-4f36-8bf1-17e039d206b9
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: 5daa99a2-202f-4f3d-a267-99a1efcad88f
+                        StaticColliderComponent: ref!! 420fe826-f751-40e2-b691-689f7eb381b2
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: 420fe826-f751-40e2-b691-689f7eb381b2
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: 1487f931-ac59-4fb6-ac23-93d9385a657a
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 143fbb3e-8155-4e73-914a-122f5d0c3a12
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: c33116b6-7fe6-4ea1-bbcb-32f379544f3a
+                        Position*: {X: 5.0, Y: 0.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: 106bef94-1074-413f-9b36-403ba840d568
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: eee210ea-f73e-44f4-9afb-8f16b2c568f7
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 878ef986-5c56-453d-9503-cdec61434de1
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 145739ba-ad58-4c1a-aa98-2e21927ccf86
+                Name: Platform_Thin_short
+                Components:
+                    89fda52fd0dcd43889322555fec8d1da: !TransformComponent
+                        Id: 45b54c4a-3fe9-4373-aff6-854bade44d93
+                        Position*: {X: -10.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    38f388c3d5cc14129696b9b4940105b6: !SpriteComponent
+                        Id: a9b34694-efc4-4133-8793-e8801cee513f
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 1
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    fdbc84f119d35b74720fafb625a63045: !StaticColliderComponent
+                        Id: 4fb8791d-2ba0-407c-8715-6adf45b96cbb
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a3e271dc2945c92633e135fb0746b73b: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: b4f4dad7-71d0-41ed-96e8-4c44deb4e618:WorldPrefabs/Platform_Thin_short
+                BasePartId: d5871d1f-0974-4d34-8dd7-9955583ffe62
+                InstanceId: 1c722839-aef0-4ec2-bf29-7344a9673b26
+        -   Folder: Map/Wall/Right
+            Entity:
+                Id: 15fcdcb6-b4ca-49f2-a35d-149845f47b60
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: ea99005f-1a0a-47e5-ae49-f02bbb355f9a
+                        Position*: {X: 14.5, Y: -5.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: 38b4e3e8-998d-4d88-864a-69509db858a2
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: eedee594-04c6-416d-8011-291ab08637a6
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 5806b22d-aeda-423c-a724-c6c611ee39fa
+        -   Folder: Map/Floor
+            Entity:
+                Id: 19108baf-59b6-424b-8680-ca0f921f3343
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: ed872e8c-0a24-420d-b88c-308b5f2785fb
+                        Position*: {X: -6.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 1eda3c47-30dd-4d30-a750-49384f88ad73
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: 29a05c51-7578-4108-a90a-44ac61b74894
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: 44d9a6b6-b9f2-46a7-bc45-801c26d99053
+        -   Entity:
+                Id: 1d01864d-6fbf-4b0f-a48a-71f55d58686a
+                Name: Player
+                Components:
+                    09d9adf3f351c53a54fe5abd3049d010: !TransformComponent
+                        Id: e6bf9c8c-6615-4691-bd18-dcb50b11caec
+                        Position: {X: 0.0, Y: -6.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    fdce07a5ad7ead8e3b70441c84454176: !SpriteComponent
+                        Id: 9eb91181-85f7-4026-9827-4f687df669d9
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c805102c-bb90-4d52-9429-dc7e873a001c:Sprites/knight_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    1aae5b7c99a80425dad5a895b79aca36: !CharacterComponent
+                        Id: 6c53052b-df5e-4b94-9a69-5d71f11000e2
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        StepHeight: 0.05
+                        FallSpeed: 10.0
+                        MaxSlope: {Radians: 0.0}
+                        JumpSpeed: 7.0
+                        Gravity: {X: 0.0, Y: -10.0, Z: 0.0}
+                        ColliderShapes:
+                            94190bddf5edf1dfe55e23d3b33a2b76: !CapsuleColliderShapeDesc
+                                Is2D: true
+                                Radius: 0.4
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    c6a4e0b10f6435cda498bfaa02311444: !Platformer2D.Player.PlayerController,Platformer2D
+                        Id: 61d3db51-dd47-4c05-971d-15dc8b6cb6dc
+                        spriteSheet: null
+                        CharacterComponent: ref!! 6c53052b-df5e-4b94-9a69-5d71f11000e2
+                        Sprite: ref!! 9eb91181-85f7-4026-9827-4f687df669d9
+        -   Entity:
+                Id: 1d9557f2-694a-4c95-93ce-8243fd361a50
+                Name: Background
+                Components:
+                    3aae2921fdeb37e472c443ae87c033a1: !TransformComponent
+                        Id: 64a01be9-6653-4887-9cc5-e4975c762580
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9b80eb9ef3b9d6c70dd15d2437f7587: !BackgroundComponent
+                        Id: fe902fcc-2564-4826-8252-18a3a1583d2b
+                        Texture: 50562287-8d9a-4613-a14a-ecb46f748419:Sprites/sky
+                        Is2D: true
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 1fe28797-aa99-47ff-ab06-aa3538b59918
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 2b035f85-ad08-424f-bdcb-3e4ebda59ced
+                        Position*: {X: -3.0, Y: -2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: eb97d18a-3416-4742-8fbc-fd0bd97f09e8
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: e8ef9864-ac9d-4d34-a9e8-a685a4591fc2
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 7b47f0c4-9b45-443c-ac97-c0d35ca5bdb3
+        -   Folder: Map/Floor
+            Entity:
+                Id: 21b861dd-4bbc-42ae-841d-2635c332956a
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: b215c5c8-3850-47c6-ac37-84014d831715
+                        Position*: {X: -8.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 585449fb-457d-497e-9e2e-f8230b9da545
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: df7cc7d2-7a66-4705-959a-e3b92547b3d3
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: f5f4ebb3-6911-4889-9032-84bf78062587
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 2afcda69-93b1-4dc4-a172-773dca7871be
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 947249ae-31c8-44ae-a536-5eaae10f7adf
+                        Position*: {X: -13.0, Y: -2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: bc0b2fd1-0c08-4f74-b5f9-c4761dfff500
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: d96e0ca1-a571-4a4b-b5a7-410930178c2d
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 21357636-eea9-493c-b7fc-c49bc561c6ec
+        -   Folder: Coins
+            Entity:
+                Id: 2d14083b-e6c4-4090-9455-4a75c903cf28
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: 13c7afd1-01c6-4d70-bd27-0e9ea2c0dd80
+                        Position*: {X: 9.0, Y: 3.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: 67ad0b3c-f33d-4151-b714-8c361088f1a9
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: 568cd032-a68a-488f-9bc3-f0bbd654ffdc
+                        Sprite: ref!! 67ad0b3c-f33d-4151-b714-8c361088f1a9
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: 2107e193-ed1f-48f0-baae-29ed2ee1b038
+                        StaticColliderComponent: ref!! e7857bcc-a575-4d18-8bf1-afe39e0d59bc
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: e7857bcc-a575-4d18-8bf1-afe39e0d59bc
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: 9341b285-5e04-4a37-8260-83438afa0861
+        -   Folder: Map/Floor
+            Entity:
+                Id: 2d4dbdcb-c6e9-4a32-a9f5-b25a82324157
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: fa0f44c0-43da-4b3c-b184-1f3596f8a096
+                        Position*: {X: -4.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 7046043c-4ba1-45c7-8cda-9b7529a9c204
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: fee8c8cc-e3ba-4679-b67a-1e080eec7653
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: e348b333-0d15-49bf-816e-9d4e32b16430
+        -   Folder: Coins
+            Entity:
+                Id: 38856d68-1e76-41e1-a710-8c35c7e826af
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: b5275293-b6b7-445f-986d-554ec59cdbff
+                        Position*: {X: 6.0, Y: -4.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: 5e9ce338-eac8-4e23-ac7d-fc3394062d69
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: 628d5a26-ce74-4f3e-81be-fdbfcb0a8ca1
+                        Sprite: ref!! 5e9ce338-eac8-4e23-ac7d-fc3394062d69
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: e805e40d-5162-4d56-967d-d996986fb768
+                        StaticColliderComponent: ref!! e23c70b8-d1a2-47eb-8a46-b83e2469a213
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: e23c70b8-d1a2-47eb-8a46-b83e2469a213
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: 40a2acc7-4059-4960-940d-fa75f5904048
+        -   Folder: Map/Floor
+            Entity:
+                Id: 39dd7aa5-a8ac-4e6f-8032-732bcd4b65fe
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: 5adcd97b-2bd6-43d6-ab87-d3b22ea02a49
+                        Position*: {X: 12.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 7e695a63-d73e-4f58-8be2-87cbf6ccbc01
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: a99bf0cf-d3f4-4b75-836f-a166de027d75
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: 720a0a6f-e044-48c1-9cc5-cf09d53ded43
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 3a8d7bb0-f671-4748-bcb2-2281a7d98dc1
+                Name: Platform_Thin_short
+                Components:
+                    89fda52fd0dcd43889322555fec8d1da: !TransformComponent
+                        Id: dea0319d-7f2e-4296-8291-ec50b5fa070e
+                        Position*: {X: 1.0, Y: -1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    38f388c3d5cc14129696b9b4940105b6: !SpriteComponent
+                        Id: de683841-bda3-4411-95b9-5d9b4f792e2b
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 1
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    fdbc84f119d35b74720fafb625a63045: !StaticColliderComponent
+                        Id: 0e47c365-5f95-4774-92a5-735cd8c5ebee
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a3e271dc2945c92633e135fb0746b73b: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: b4f4dad7-71d0-41ed-96e8-4c44deb4e618:WorldPrefabs/Platform_Thin_short
+                BasePartId: d5871d1f-0974-4d34-8dd7-9955583ffe62
+                InstanceId: 44b43a3f-6c05-4681-af5b-d16b4f3180a2
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 3aa25f07-6988-4fcd-ab36-9eef90525f6a
+                Name: Platform_Thin_short
+                Components:
+                    89fda52fd0dcd43889322555fec8d1da: !TransformComponent
+                        Id: caf96f21-025b-47cd-b98f-9ef372080c47
+                        Position*: {X: -5.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    38f388c3d5cc14129696b9b4940105b6: !SpriteComponent
+                        Id: fa1b21da-76eb-4f97-a0d7-633de9929f06
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 1
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    fdbc84f119d35b74720fafb625a63045: !StaticColliderComponent
+                        Id: 4d5ba1aa-d5a5-4079-ab68-031f2a9be805
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a3e271dc2945c92633e135fb0746b73b: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: b4f4dad7-71d0-41ed-96e8-4c44deb4e618:WorldPrefabs/Platform_Thin_short
+                BasePartId: d5871d1f-0974-4d34-8dd7-9955583ffe62
+                InstanceId: 9ed5c7f2-84ba-43e5-b990-120c17ac117b
+        -   Folder: Map/Wall/Right
+            Entity:
+                Id: 3c97e06a-4e16-4faa-b814-88cccaaa23cd
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: fe341e04-86ce-4dd4-9b11-bf2112122d44
+                        Position*: {X: 14.5, Y: -3.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: dcb11d7e-075b-4a66-85a4-0ccfc1b5f35c
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: 9721f4ec-7e3d-4f45-b30d-68eca856332f
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 5ecf8b9b-b576-4a93-87c4-54f8b619245b
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 41747f66-6df2-4028-852e-54a76e3b8ff2
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 09d45557-7519-4d09-ae0c-e37a68429b3b
+                        Position*: {X: -5.0, Y: -5.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: bb98ac69-5e7c-46e5-9283-857598740b90
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: 13d3bc22-f51e-4478-957e-7ad75da7a547
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 895d2e70-d1a8-4256-ab69-a1d0277f7dec
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 44273cdc-5232-4272-af8e-5fa04c13f6d6
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: c191ca0f-41db-41c7-a46a-6b40aa961d3a
+                        Position*: {X: -2.0, Y: 0.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: dd1babd8-a3e4-4ae2-a82e-3ff3d3ecc9be
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: 7d339053-a8dc-44f4-9101-9cbc791e6041
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 13740eda-ae72-454e-9e82-7e4d552afe12
+        -   Folder: Coins
+            Entity:
+                Id: 47188d80-0a56-4b25-afa6-cb10f18dbb5a
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: 2bac84bd-a738-4b57-bbcd-d755c1b95309
+                        Position*: {X: 13.0, Y: 6.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: d8e752fd-57b3-46a7-80de-c65a4894b56e
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: 4865835e-0b40-495f-a4fb-c24f26cdc72b
+                        Sprite: ref!! d8e752fd-57b3-46a7-80de-c65a4894b56e
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: 53c370a6-35b0-4b1e-bf23-6ea2d715570e
+                        StaticColliderComponent: ref!! 8a01b15a-6db9-4a89-a683-2ea44f2dbabc
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: 8a01b15a-6db9-4a89-a683-2ea44f2dbabc
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: d7fa6c47-c8f8-4cb4-bb04-bc95c9a7730f
+        -   Folder: Map/Wall/Left
+            Entity:
+                Id: 4b83d48b-fa10-4379-ba3f-11b4e0c3389b
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: 90db9803-dc3d-41cf-8e26-7c1ec9bfc553
+                        Position*: {X: -14.5, Y: -3.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: 38969928-f5c1-45e9-bf59-94b81024a884
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: 0cff7ef7-f307-4621-9e63-6c5757fc0133
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 33052425-c01d-4008-a029-220d2a46e04d
+        -   Folder: Map/Wall/Right
+            Entity:
+                Id: 4dce2595-83f6-47c5-8c5b-d08ee53f7d04
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: bab9ac87-1706-4045-8b8d-8e9d51f758a8
+                        Position*: {X: 14.5, Y: -7.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: 1df6e588-ae0d-4190-9601-a208689d155c
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: 797396e1-aa8f-4ac8-8e68-5310f546b66f
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 11152b20-6da0-4dc6-8ae3-b308ab243c76
+        -   Folder: Map/Wall/Left
+            Entity:
+                Id: 4fe99592-d15e-46dc-a0c7-ed72930ba421
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: bc73cf52-841b-4899-9f3a-a60224f26a29
+                        Position*: {X: -14.5, Y: -5.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: 11fb532c-7238-45ac-aa11-a3e91f2d85ab
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: 38d47578-e75e-4bd3-a441-1f3295dca793
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 747384de-32a5-4af4-b125-b05368b4760f
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 5243adc8-8ae3-43fa-b679-cdaa56d05119
+                Name: Platform_Thin_short
+                Components:
+                    89fda52fd0dcd43889322555fec8d1da: !TransformComponent
+                        Id: 6c1f3fab-ad3a-49ce-868c-c8176c6d787c
+                        Position*: {X: 9.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    38f388c3d5cc14129696b9b4940105b6: !SpriteComponent
+                        Id: ef893687-cd4d-448e-bb5b-b24ab3e354a3
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 1
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    fdbc84f119d35b74720fafb625a63045: !StaticColliderComponent
+                        Id: 755a9107-c0f2-4a99-9ef1-1780c539886a
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a3e271dc2945c92633e135fb0746b73b: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: b4f4dad7-71d0-41ed-96e8-4c44deb4e618:WorldPrefabs/Platform_Thin_short
+                BasePartId: d5871d1f-0974-4d34-8dd7-9955583ffe62
+                InstanceId: b61a5f93-2113-4c05-a595-e5f72302408e
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 57b2ab29-170f-443e-946d-e2626a2abb80
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 615595e1-5102-4da5-a49f-51341d84b2d2
+                        Position*: {X: 13.0, Y: -5.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: 392fa031-a56f-4914-9183-ba601fdadb34
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: 3b2d7ac2-c117-40cd-9287-a5d43d07679f
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 7787e655-7ea7-4c0c-b911-277bf153e9d9
+        -   Folder: Map/Wall/Right
+            Entity:
+                Id: 6230af38-d5c9-4067-a745-909abd90b961
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: 1902cb46-3003-48d9-9bfe-73888558a2bd
+                        Position*: {X: 14.5, Y: 3.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: 9e7a5b90-b557-4194-9c66-f40e734fe5ac
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: ec06202f-96f7-4527-8c84-bae4f06ff31a
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 89cfa365-5162-45cb-8b23-c19fb2e7a816
+        -   Folder: Map/Wall/Right
+            Entity:
+                Id: 64d29142-1af1-4f72-b7a6-c23c721c7fc4
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: a6cb2fcf-d2c7-4001-9b41-62085c82d289
+                        Position*: {X: 14.5, Y: 5.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: 4633766b-0884-4f7b-9573-738b423d50ca
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: e89e7fce-9f58-4aab-8cbb-955d0f58d918
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 39a44953-b906-41ad-a676-2eeedce49938
+        -   Folder: Map/Floor
+            Entity:
+                Id: 678b69fb-b866-4460-84df-898534179e1e
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: 73bcde05-e8fa-4cb1-be29-9be019a2432e
+                        Position*: {X: -10.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 8cabe8cc-6a9a-4943-888c-63b114ac3fde
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: e8f7f40d-9d1e-4146-a4c8-24a19d67e70b
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: ed850a89-65fc-4064-8df0-c6f9bf52a326
+        -   Folder: Coins
+            Entity:
+                Id: 683a0fc4-3446-4f73-bafe-c8c6c2a871d1
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: 9bdb7894-2695-4ebb-8adb-60b80f013e67
+                        Position*: {X: -2.0, Y: 6.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: 8c3c77c1-d54d-4130-a4da-8653b0e4fbf6
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: bcd5566a-7b1d-40b3-9e9e-62347ac89113
+                        Sprite: ref!! 8c3c77c1-d54d-4130-a4da-8653b0e4fbf6
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: 06b3ade1-20d1-464b-a872-85cbf1d74635
+                        StaticColliderComponent: ref!! f86cd3fb-207f-4edd-a8fb-5b532f995778
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: f86cd3fb-207f-4edd-a8fb-5b532f995778
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: 977ef888-5181-4c32-809e-9a97b36c76ac
+        -   Folder: Map/Wall/Right
+            Entity:
+                Id: 69629efd-0437-4445-846b-f51c6b17913f
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: 11469b10-bac8-4a63-9725-cbcbf456b2ff
+                        Position*: {X: 14.5, Y: -1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: e2c6efc6-2367-4ca8-8f3f-a508383710f2
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: 130c3b1e-b182-41f4-a86b-1c5eefa7b9be
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 4c4d5d6f-8723-4d57-acd4-83835ded2836
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 705a595b-1892-4d93-af03-5fbc974633d2
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 8b04cd74-2a8c-4999-b6cb-d083e4fa8fa1
+                        Position*: {X: 6.0, Y: -5.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: a2578366-592d-4732-8944-41222c44309b
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: 0c4000b3-3e93-419a-9c70-18ba47ddd80b
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 08ae7701-db9c-4b75-8066-d880a205a1f6
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 7075d7b2-9c74-442f-a6e2-ab2d2229c495
+                Name: Platform_Thin_short
+                Components:
+                    89fda52fd0dcd43889322555fec8d1da: !TransformComponent
+                        Id: 3625c14e-59d4-40d7-8686-a13986cac077
+                        Position*: {X: 12.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    38f388c3d5cc14129696b9b4940105b6: !SpriteComponent
+                        Id: 6f5e3749-39fb-46e9-a395-acd60232249d
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 1
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    fdbc84f119d35b74720fafb625a63045: !StaticColliderComponent
+                        Id: 5c643a88-5a52-426b-9b54-9879a819ef86
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a3e271dc2945c92633e135fb0746b73b: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: b4f4dad7-71d0-41ed-96e8-4c44deb4e618:WorldPrefabs/Platform_Thin_short
+                BasePartId: d5871d1f-0974-4d34-8dd7-9955583ffe62
+                InstanceId: 032bbc2d-4f4d-4c25-8a8e-40ca08223b68
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 71492ec7-6cf1-4253-9881-b34e68b97984
+                Name: Platform_Thin_short
+                Components:
+                    89fda52fd0dcd43889322555fec8d1da: !TransformComponent
+                        Id: 56add957-0efc-45ef-b7a3-961c934a5c2d
+                        Position*: {X: -13.5, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    38f388c3d5cc14129696b9b4940105b6: !SpriteComponent
+                        Id: 9295c291-e32a-4d80-8a10-30a14acea912
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 1
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    fdbc84f119d35b74720fafb625a63045: !StaticColliderComponent
+                        Id: 2b4c68b3-f385-434c-9aa3-d424c450e6ab
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a3e271dc2945c92633e135fb0746b73b: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: b4f4dad7-71d0-41ed-96e8-4c44deb4e618:WorldPrefabs/Platform_Thin_short
+                BasePartId: d5871d1f-0974-4d34-8dd7-9955583ffe62
+                InstanceId: 2c7fa5c7-c2c8-4d16-a792-ec9bb46b7e48
+        -   Folder: Map/Floor
+            Entity:
+                Id: 716163c9-3a68-452a-866b-5cc079a6f4c6
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: f2df1848-bb18-4cbe-8bcc-7e473a8d0be0
+                        Position*: {X: -14.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 852aa5e5-77c3-4f0c-9087-e4dde48fd2ba
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: 8ffa2446-9fa1-42b1-98ef-b114fcd872ea
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: bfb5bde8-8748-4693-afcb-023aa8302a3f
+        -   Folder: Coins
+            Entity:
+                Id: 71a879d8-660f-4124-ae7c-af7bbfe67e47
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: 820d478a-a41d-468f-b636-03e3f6c90ca7
+                        Position*: {X: -2.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: a7bd0314-41f5-474b-a0d0-d32d971e08e6
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: 4421cadf-5899-4357-9b4c-f137c1359b97
+                        Sprite: ref!! a7bd0314-41f5-474b-a0d0-d32d971e08e6
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: aa67da10-80f5-4719-a8fe-71210ea6e474
+                        StaticColliderComponent: ref!! 105aab29-2d4a-4de4-a3fb-816bda97e7d6
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: 105aab29-2d4a-4de4-a3fb-816bda97e7d6
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: 29565914-1e1c-455a-8844-fc6ce5f4d89d
+        -   Folder: Map/Floor
+            Entity:
+                Id: 78794813-b690-4b8c-8c50-844c24e8a68a
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: 08f85c08-b67b-447e-8edf-b4107a5f31cb
+                        Position*: {X: 14.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 274d4869-f837-4360-a058-2bf2f14df337
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: b0e784f1-8810-4e52-82f8-a8fd417c84df
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: 3de7df9a-4fb3-4c56-97bb-c9f14e4e8c0c
+        -   Folder: Map/Floor
+            Entity:
+                Id: 7f170113-7104-45f4-b7db-cf704e128528
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: e4a74308-4202-41ee-94b3-ab4b79c20cc8
+                        Position*: {X: 4.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 419f69c7-7cbf-4192-947b-620f85ba8142
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: fdc91bb8-2a18-4170-adae-07b5bef132f1
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: 852b37c5-0988-4934-841b-c5ee82f9621e
+        -   Folder: Map/Wall/Left
+            Entity:
+                Id: 86f84cd2-6188-458f-a227-5a40bbbe7d97
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: 7ee01131-ef67-4e6f-980d-261c4fcea3da
+                        Position*: {X: -14.5, Y: 3.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: f0ebe51c-017b-45df-aa0b-98c5d522a627
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: ae352ae0-9aeb-4fad-a80d-04fb8877e8c0
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 45ec4884-a3cd-4962-9d56-8e76a2f88023
+        -   Folder: Map/Wall/Right
+            Entity:
+                Id: 8777711d-94ad-4c11-90d9-fdcd7445dfe1
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: fc2b462e-8e42-4595-9d82-ce06634f3ec0
+                        Position*: {X: 14.5, Y: 1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: 9b1631bc-5eed-40bb-9eaa-214baa021598
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: 7066537f-e756-4769-bb14-874163bb56ba
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 36dad2c2-1452-4988-8b33-8c8fe36fe8ef
+        -   Folder: Map/Wall/Left
+            Entity:
+                Id: 8a131671-e026-4995-82b2-5406f117ce07
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: fa0f2fd8-38ee-4a78-9a56-450a1ce8a0c0
+                        Position*: {X: -14.5, Y: 7.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: 501f62bd-fc12-42c1-a0f3-f97c4563ebec
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: fadb2566-fd7e-481d-8ffe-38ee91e5c4c8
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 1596837a-f719-405c-93c6-b502b7bc3a33
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 8af53610-9538-4c99-b3a6-68c67183c789
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 74ba5ada-9887-4eee-a9a8-c617db4bcab7
+                        Position*: {X: -9.0, Y: -4.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: 764b6a90-5941-448d-9c96-2cad57cbc9c4
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: 77e16444-6af3-4c58-b86e-c33ee8dcd5e6
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 0120bffc-414b-407b-8dfa-9947d611aa3d
+        -   Entity:
+                Id: 8e823153-30f3-4a9f-951f-ca7a9884ee49
+                Name: Camera
+                Components:
+                    056d78ae5793f2e8bd9abc383225b846: !TransformComponent
+                        Id: 1f22cf77-9832-4f90-9186-33ae826b6a98
+                        Position: {X: 0.0, Y: 0.0, Z: 1.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    227078520d3f76f05a952f5b60b49a52: !CameraComponent
+                        Id: e4f6ed28-c659-4c5f-ad26-7871c6142127
+                        Name: null
+                        Projection: Orthographic
+                        OrthographicSize: 16.0
+                        Slot: 291722d5-fb04-46ed-b58d-7f4455266d8e
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: 939b9bd1-98a0-431d-a456-4ffb33e4a19d
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 547cfa51-ad4b-4959-b1c3-8ce58c1385cc
+                        Position*: {X: 8.0, Y: -2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: 9cd9920e-b36d-4c9f-b002-8dd3998bed67
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: bddc98ff-1053-4b00-b548-be201c66dab2
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 6c31ed4b-a336-46bd-a3d1-fc8810d4144f
+        -   Folder: Map/Wall/Left
+            Entity:
+                Id: 9545141c-5080-4270-9c01-53b666f485a8
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: f62a4cb6-95f1-4d95-9317-dbd5dfb494f7
+                        Position*: {X: -14.5, Y: 1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: 756ce323-c7eb-40b2-a973-21312c5b0c92
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: 48f3e68a-5f9a-4c39-a19b-d162fc16f215
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: c36b7307-9018-40ec-9ea5-4077d3f6a3a4
+        -   Folder: Map/Floor
+            Entity:
+                Id: 9e465a2e-0681-4201-bc42-b652177fd355
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: 3616cb73-e748-4a17-806a-332200d7d019
+                        Position*: {X: 10.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 437d694c-c24d-4108-b3ea-981939ca1b89
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: 0ae08a9d-92b5-41ef-8113-e82db7ebd49a
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: 5b4d57fe-b56b-4c86-a4c5-a057d6043a2e
+        -   Folder: Coins
+            Entity:
+                Id: 9efa0b2c-b6e0-4455-9037-259054538ba5
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: d3f4ec1f-e418-4552-8096-22ce2eb5fc88
+                        Position*: {X: -13.0, Y: -1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: a0617af2-855a-43e5-9146-97da75bedf06
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: bcbf945e-0a2a-41ed-812f-96adec19cc0d
+                        Sprite: ref!! a0617af2-855a-43e5-9146-97da75bedf06
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: bad274c7-fdcc-405d-99d5-31ccbf327b4a
+                        StaticColliderComponent: ref!! 0c10424f-cee4-48d6-b988-08d63de8a48e
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: 0c10424f-cee4-48d6-b988-08d63de8a48e
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: 8bd46700-f792-40e5-b616-409c47a54bd8
+        -   Folder: Map/Floor
+            Entity:
+                Id: a2c8ae6a-bdcf-45f9-90cb-bef4763ec1bc
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: 291c6c6b-105f-45c0-8e53-90118e738105
+                        Position*: {X: 2.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 0f03af33-5f74-40ad-b8d8-b937d3009062
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: 6a9aa7aa-02c8-4835-91fa-4c72951db35a
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: cdf84075-a8bf-4ef3-8c34-c12499373d2f
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: a78721c4-a5a5-4dca-bbf9-2cadb592a265
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 8caa4d88-6dac-4c20-a2c8-a4bbec94a1be
+                        Position*: {X: 4.0, Y: -2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: dcbe895b-e3ff-4f49-b462-95ea77c921c4
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: b7bb8e4a-8118-4aee-a07f-7bea3a663c2e
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 33fedb68-9d90-4424-b55a-b167ab28dea6
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: a81f72ed-ac45-400c-94e1-9b5af6cb0bb2
+                Name: Platform_Thin_short
+                Components:
+                    89fda52fd0dcd43889322555fec8d1da: !TransformComponent
+                        Id: d5fe3bb0-f875-4c04-9943-22b11fd3ec82
+                        Position*: {X: -7.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    38f388c3d5cc14129696b9b4940105b6: !SpriteComponent
+                        Id: 9ccbac4e-fe04-4ffd-947e-c462a30402c7
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 1
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    fdbc84f119d35b74720fafb625a63045: !StaticColliderComponent
+                        Id: 849becb4-f733-42c8-a8df-1fb80bffe7be
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a3e271dc2945c92633e135fb0746b73b: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: b4f4dad7-71d0-41ed-96e8-4c44deb4e618:WorldPrefabs/Platform_Thin_short
+                BasePartId: d5871d1f-0974-4d34-8dd7-9955583ffe62
+                InstanceId: d675e8c5-8083-4c1b-8869-f8ba4e46ae99
+        -   Folder: Coins
+            Entity:
+                Id: ad91393c-7826-4b03-86f4-d88a742a955d
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: 7e238520-3bbf-4aa3-a99b-ced78e18ed1d
+                        Position*: {X: 13.0, Y: -6.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: 8a96e174-3f44-46ec-92cb-8865d0c01c2d
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: 84eec927-5a28-4826-bee5-b8de5d4c8816
+                        Sprite: ref!! 8a96e174-3f44-46ec-92cb-8865d0c01c2d
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: 70d8559d-abf9-4a38-9f65-2442efaeeaf9
+                        StaticColliderComponent: ref!! 6e1a46cd-9c8b-46e7-b897-da953246d81a
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: 6e1a46cd-9c8b-46e7-b897-da953246d81a
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: 92b4e2ba-ea15-4bff-85a2-e8198d7d05b8
+        -   Folder: Map/Wall/Left
+            Entity:
+                Id: aeae4626-f3e1-4607-b650-54ff42a57b44
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: 2c166523-ca37-4666-94d8-cea95b5ad5f9
+                        Position*: {X: -14.5, Y: -7.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: 13e5bee6-1949-481a-9249-7fa86fe84e67
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: 9fca8603-e092-4310-8e3a-096de598567f
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 3c9f5e6d-f15f-4408-9640-5710e1f1cc9d
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: b4c730a6-488a-4cc6-9b62-f530bcaa123e
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 1bed525d-b7c0-4219-ab3f-1760f331c751
+                        Position*: {X: 13.0, Y: 4.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: 21c7bcb9-e6ff-46a8-89dd-f598edc61f69
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: bcef7734-70ee-4861-b3fa-be3153aaec97
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 4c8be80c-1fb4-4e21-90c1-d4f6ad68066e
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: b556b2b2-2545-4897-9028-eb8a37b83f72
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: fd008fd3-a888-49f5-9d7f-b12a6a004635
+                        Position*: {X: -5.0, Y: -2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: b6a3c475-bc43-4805-aa1d-4c148631cd61
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: 6fc86bc6-22bd-45d0-889b-38916ceca404
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 814610c2-ddf4-43d8-9600-c4bd0956adac
+        -   Folder: Map/Wall/Left
+            Entity:
+                Id: b6834158-8416-4c54-ae6a-cfc000b7bbeb
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: 662e099b-7c71-4289-8cd9-d1069ba272e1
+                        Position*: {X: -14.5, Y: 5.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: 660ad264-e30e-4f03-aaf2-c9027b30e3b8
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: 27e339d7-02a7-48fe-ad49-dddf794640e1
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 1af385df-86bc-4c03-828e-4ac39f774bb4
+        -   Folder: Map/Wall/Left
+            Entity:
+                Id: ccc36bea-1674-4945-99bd-db5e3891eef7
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: 08a73e70-2f83-4c1e-b393-6537dee4f45f
+                        Position*: {X: -14.5, Y: -1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: c80e4757-1f89-4da3-9f4d-45c21b301a0b
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: d9b9ad07-7260-46d2-b94c-5621b26bea2f
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 05ee1cb7-f854-403e-b335-2bb4301ea5c6
+        -   Folder: Map/Wall/Right
+            Entity:
+                Id: d0582ef3-5dd7-4518-8d87-99ed66f6d0ba
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: 13cbf7f5-c6d8-48bf-b3e8-238980dd635d
+                        Position*: {X: 14.5, Y: 7.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: 45d83b37-6378-4541-9063-a90b22d9a7dd
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: 5d1f9bc9-e1d7-4788-bb10-a6fb069cf1df
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb:WorldPrefabs/Wall
+                BasePartId: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                InstanceId: 085d6c31-a3e5-4cd9-9475-1e6bd99c8d04
+        -   Folder: Map/Floor
+            Entity:
+                Id: da8577ab-13f4-483f-af28-f0bdf1bfe4f6
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: b9da541e-4a86-4778-ac14-a04b489e69e6
+                        Position*: {X: -2.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: b81e1ed1-fab8-463d-a54b-60b605fbae7c
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: 09499661-afc9-400d-83e4-30c0786c0d21
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: 2709ba2b-1b54-4187-b6c1-9ab84e4ed67a
+        -   Folder: Map/Floor
+            Entity:
+                Id: dc16b205-b82a-4658-82ba-90316edd7121
+                Name: Platform_Thick_long
+                Components:
+                    20f9276efc76d56da73398d0710656f4: !TransformComponent
+                        Id: 62ca1612-f2dc-4001-a515-d6bc7a5e351f
+                        Position*: {X: 8.0, Y: -8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a21979cf00278ebc58064c6f81abb412: !SpriteComponent
+                        Id: 3ba379c7-5943-4135-85cd-a2772bb4f06e
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 2
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    2d8f25f180e3182173f8aaa66cf6cd8a: !StaticColliderComponent
+                        Id: 77688b78-b8ff-4ec7-9946-d9fbfd7d5873
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            871b0d7c5a000160d4688735144c4309: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.1, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: d8b2fb42-429d-4448-b6cf-5e8d25260d7a:WorldPrefabs/Platform_Thick_long
+                BasePartId: 998cd5e2-baf0-43c8-a300-9df5130ed98b
+                InstanceId: ba12e165-1c75-4f54-999b-3e9061b002e4
+        -   Folder: Coins
+            Entity:
+                Id: dc3accdc-4e16-4d16-9b68-4afa2fdc6541
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: 1379ea27-051d-4d02-9daf-364a417905cb
+                        Position*: {X: -9.0, Y: -2.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: f1adbf94-79fc-4e60-9cf4-b53d8432c6b2
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: 0c58a5c2-e0da-4eb6-9fc4-106cddc4fa85
+                        Sprite: ref!! f1adbf94-79fc-4e60-9cf4-b53d8432c6b2
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: 126ff7e0-b136-45ee-aa26-53724ddf23fa
+                        StaticColliderComponent: ref!! 26a2da81-0f2c-4158-ad0d-422a319e0abe
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: 26a2da81-0f2c-4158-ad0d-422a319e0abe
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: 43b4cabb-2261-4f7b-ac6e-9b79667885f3
+        -   Folder: Coins
+            Entity:
+                Id: e0ebf9a8-d749-40db-acb5-87586bb5e5d2
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: 84dc59e1-cac5-4dd4-8831-6dd6e44191c3
+                        Position*: {X: -5.0, Y: -4.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: 58f68fd3-2039-4a18-970d-104fda4c89e6
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: fe93f3cf-db9a-4de8-9e5b-da2323991869
+                        Sprite: ref!! 58f68fd3-2039-4a18-970d-104fda4c89e6
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: 6b89194b-bd00-490c-b9b4-a1faeef1ca00
+                        StaticColliderComponent: ref!! cb39c3a6-bb58-4630-a519-d717b7d71368
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: cb39c3a6-bb58-4630-a519-d717b7d71368
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: 88665b59-f5ff-47b2-8630-ba40dc9dfb3b
+        -   Folder: Coins
+            Entity:
+                Id: e9597f7f-1d3b-4160-a82a-a58461770eef
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: 1c1a0803-311e-4688-8a0c-8a3c8103c74a
+                        Position*: {X: -13.5, Y: 4.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: 9ea541b5-caa3-4e24-b2e8-5889bed6ff47
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: 43780b0f-f28a-4cb5-9270-9dbbf28a5229
+                        Sprite: ref!! 9ea541b5-caa3-4e24-b2e8-5889bed6ff47
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: fb4b7c15-66ce-4db6-8187-7952aecb5743
+                        StaticColliderComponent: ref!! 9a7a6324-fc57-4fa0-8c1f-1ca2dfeccf8b
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: 9a7a6324-fc57-4fa0-8c1f-1ca2dfeccf8b
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: 47f0c958-951a-4d04-97d7-7251e3b4cff2
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: e9c7e3a8-3af2-4b31-8cb4-caaa45ceef9b
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 798bb80a-bef7-463e-8698-fce51676b8fd
+                        Position*: {X: -2.0, Y: 4.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: f5e5096c-d5b2-46f0-be75-7282966037c2
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: a39c3411-5ee8-459f-abae-ad6f4d35c4ef
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: a954e461-1843-4050-96cd-6e43e6b82b47:WorldPrefabs/Platform_Thin_long
+                BasePartId: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                InstanceId: 408a148e-9ab8-4beb-8cce-8f816ad4d7c8
+        -   Folder: Coins
+            Entity:
+                Id: efec274f-7909-4649-81f2-0ddde5c879d7
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: 669256b5-3e9e-42ed-9304-24c759462881
+                        Position*: {X: 13.0, Y: -2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: ca121b1e-f4a6-4dc8-8ba7-415b4435b297
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: 4678018c-d798-4a77-a708-e08ec3df7c2f
+                        Sprite: ref!! ca121b1e-f4a6-4dc8-8ba7-415b4435b297
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: 33a94438-983a-4bb4-8b06-87f5eeb0ad29
+                        StaticColliderComponent: ref!! 38017bf1-b4fc-4684-af4a-86cedfdfc051
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: 38017bf1-b4fc-4684-af4a-86cedfdfc051
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+            Base:
+                BasePartAsset: e84eac4c-033e-490b-bf5b-3b0466b56bac:Coin
+                BasePartId: 73a4d210-3371-45d9-ae64-8309c29cd682
+                InstanceId: 9aaae41f-b384-4819-8630-23009357b6fe

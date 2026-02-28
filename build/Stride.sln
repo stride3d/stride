@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11205.157 d18.0
+VisualStudioVersion = 18.0.11205.157
 MinimumVisualStudioVersion = 18.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "90-Tools", "90-Tools", "{1AE1AC60-5D2F-4CA7-AE20-888F44551185}"
 EndProject
@@ -79,6 +79,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "71-StrideAssets.Tests", "71-StrideAssets.Tests", "{A47B451D-3162-410F-BAF7-C650C4B7A4B0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.GameStudio", "..\sources\editor\Stride.GameStudio\Stride.GameStudio.csproj", "{2FCA2D8B-B10F-4DCA-9847-4221F74BA586}"
+	ProjectSection(ProjectDependencies) = postProject
+		{040F754C-17F4-4B5F-B974-93F1E39D107F} = {040F754C-17F4-4B5F-B974-93F1E39D107F}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine", "..\sources\engine\Stride.Engine\Stride.Engine.csproj", "{C121A566-555E-42B9-9B0A-1696529A9088}"
 EndProject

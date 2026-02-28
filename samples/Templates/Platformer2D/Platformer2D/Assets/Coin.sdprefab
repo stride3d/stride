@@ -1,0 +1,46 @@
+!PrefabAsset
+Id: e84eac4c-033e-490b-bf5b-3b0466b56bac
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 73a4d210-3371-45d9-ae64-8309c29cd682
+    Parts:
+        -   Folder: Coins
+            Entity:
+                Id: 73a4d210-3371-45d9-ae64-8309c29cd682
+                Name: Coin
+                Components:
+                    bd6c862663f431c20e4e71d1008ede5e: !TransformComponent
+                        Id: 4c14e52c-7a5c-4a9c-a660-a49c5b25fef7
+                        Position: {X: 6.0, Y: -3.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d5890e1a6f58646b097a8eb852dce712: !SpriteComponent
+                        Id: 4ec5ec49-f029-41ca-9402-c6802b9bca82
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: c9c540bb-2671-42de-bf06-b935954cd604:Sprites/coin_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    227a9894ca38cdbfaba3ceaabddf708f: !Platformer2D.Gameplay.CoinRotation,Platformer2D
+                        Id: efe1a55c-8b48-4e39-891e-e9ee9d93fd06
+                        Sprite: ref!! 4ec5ec49-f029-41ca-9402-c6802b9bca82
+                    00333083b1a4a66664cf165b07be04fd: !Platformer2D.Gameplay.CollectCoin,Platformer2D
+                        Id: 710fb168-8788-47e4-a553-fa3cc1a6db0a
+                        StaticColliderComponent: ref!! 4e5cc1af-9342-4dc7-8d7a-cd17e59dad7a
+                        SoundEffect: ae74b3ba-e6ab-4b7d-aefa-e5c13aeee712:Audio/coin_get
+                    1860df22024defbf44e056d1d0e1464d: !StaticColliderComponent
+                        Id: 4e5cc1af-9342-4dc7-8d7a-cd17e59dad7a
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f187d37aff16130ec23d3e708f3632c8: !SphereColliderShapeDesc
+                                Is2D: true
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
