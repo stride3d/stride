@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "stride-game-runtime": {
+      "type": "sse",
+      "url": "http://localhost:5272/sse"
+    },
+    "stride-game-studio": {
+      "type": "sse",
+      "url": "http://localhost:5271/sse"
+    }
+  }
+}

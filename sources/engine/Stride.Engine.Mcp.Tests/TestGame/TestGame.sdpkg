@@ -1,0 +1,22 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: TestGame
+    Version: 4.3.0.1
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir Assets
+ResourceFolders: []
+OutputGroupDirectories: {}
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - b1c2d3e4-f5a6-7890-bcde-f12345678901:GameSettings
+    - c2d3e4f5-a6b7-8901-cdef-123456789012:GraphicsCompositor
+    - d3e4f5a6-b7c8-9012-defa-234567890123:MainScene
+    - e4f5a6b7-c8d9-0123-efab-345678901234:CubeModel
+    - f5a6b7c8-d9e0-1234-fabc-456789012345:GroundModel
+    - aabd516e-97c9-4e00-b6b9-d77e9faddde8:UI/TestUIPage
