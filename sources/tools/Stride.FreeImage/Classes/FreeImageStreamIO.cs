@@ -35,6 +35,7 @@
 
 using System;
 using System.IO;
+using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
@@ -86,7 +87,7 @@ namespace FreeImageAPI.IO
 			}
 			uint readCount = 0;
 			byte* ptr = (byte*)buffer;
-			byte[] bufferTemp = new byte[size];
+			byte[] bufferTemp = ArrayPool<byte>.Shared.Rent((int)size);
 			int read;
 			while (readCount < count)
 			{
@@ -102,6 +103,7 @@ namespace FreeImageAPI.IO
 				}
 				readCount++;
 			}
+			ArrayPool<byte>.Shared.Return(bufferTemp);
 			return readCount;
 		}
 
@@ -116,7 +118,7 @@ namespace FreeImageAPI.IO
 				return 0;
 			}
 			uint writeCount = 0;
-			byte[] bufferTemp = new byte[size];
+			byte[] bufferTemp = ArrayPool<byte>.Shared.Rent((int)size);
 			byte* ptr = (byte*)buffer;
 			while (writeCount < count)
 			{
@@ -134,6 +136,7 @@ namespace FreeImageAPI.IO
 				}
 				writeCount++;
 			}
+			ArrayPool<byte>.Shared.Return(bufferTemp);
 			return writeCount;
 		}
 
