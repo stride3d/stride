@@ -281,6 +281,45 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileInterlockedCompareStoreFloatBitwise(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue compare, SpirvValue value) => throw new NotImplementedException();
     public override SpirvValue CompileInterlockedCompareExchangeFloatBitwise(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue result, SpirvValue compare, SpirvValue value, SpirvValue original) => throw new NotImplementedException();
 
+    // Misc
+    public override SpirvValue CompileClip(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x)
+    {
+        // clip(x) discards the pixel if any component of x is less than zero.
+        // Equivalent to: if (any(x < 0)) discard;
+        var inputType = context.ReverseTypes[x.TypeId];
+        var zero = context.CompileConstant(0.0f);
+
+        int conditionId;
+        if (inputType is VectorType v)
+        {
+            var zeroVec = context.CreateConstantCompositeRepeat(inputType, zero, v.Size);
+            var boolVecType = new VectorType(ScalarType.Boolean, v.Size);
+            var cmpId = context.Bound++;
+            builder.InsertData(new OpFOrdLessThan(context.GetOrRegister(boolVecType), cmpId, x.Id, zeroVec.Id));
+            var anyResult = builder.Insert(new OpAny(context.GetOrRegister(ScalarType.Boolean), context.Bound++, cmpId));
+            conditionId = anyResult.ResultId;
+        }
+        else
+        {
+            var cmpId = context.Bound++;
+            builder.InsertData(new OpFOrdLessThan(context.GetOrRegister(ScalarType.Boolean), cmpId, x.Id, zero.Id));
+            conditionId = cmpId;
+        }
+
+        var killBlockId = context.Bound++;
+        var mergeBlockId = context.Bound++;
+
+        builder.Insert(new OpSelectionMerge(mergeBlockId, Specification.SelectionControlMask.None));
+        builder.Insert(new OpBranchConditional(conditionId, killBlockId, mergeBlockId, []));
+
+        builder.CreateBlock(context, killBlockId, "clip_kill");
+        builder.Insert(new OpKill());
+
+        builder.CreateBlock(context, mergeBlockId, "clip_merge");
+
+        return new();
+    }
+
     public override SpirvValue CompileAbort(SpirvContext context, SpirvBuilder builder, FunctionType functionType)
     {
         builder.Insert(new OpTerminateInvocation());
@@ -290,7 +329,6 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileD3DCOLORtoUBYTE4(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileGetRenderTargetSampleCount(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => throw new NotImplementedException();
     public override SpirvValue CompileGetRenderTargetSamplePosition(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue s) => throw new NotImplementedException();
-    public override SpirvValue CompileClip(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileEvaluateAttributeAtSample(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value, SpirvValue index) => throw new NotImplementedException();
     public override SpirvValue CompileEvaluateAttributeCentroid(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value) => throw new NotImplementedException();
     public override SpirvValue CompileEvaluateAttributeSnapped(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value, SpirvValue offset) => throw new NotImplementedException();
