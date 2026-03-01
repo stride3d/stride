@@ -113,6 +113,9 @@ public partial class SpirvBuilder
             // If one side is unsigned, promote to unsigned (bitcast)
             (ScalarType { Type: Scalar.Int } l, ScalarType { Type: Scalar.UInt } r) => r,
             (ScalarType { Type: Scalar.UInt } l, ScalarType { Type: Scalar.Int } r) => l,
+            // Bool promotes to int/uint/float in arithmetic contexts (HLSL implicit conversion)
+            (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Float or Scalar.Double } r) => r,
+            (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Float or Scalar.Double } l, ScalarType { Type: Scalar.Boolean }) => l,
             _ => throw new NotImplementedException($"Couldn't figure out element type for binary operation between {leftElementType} and {rightElementType}"),
         };
     }
