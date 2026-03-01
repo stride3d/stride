@@ -235,6 +235,12 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         return new(instruction.ResultId, instruction.ResultType);
     }
 
+    public override SpirvValue CompileMad(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, SpirvValue c)
+    {
+        var instruction = builder.Insert(new GLSLFma(a.TypeId, context.Bound++, context.GetGLSL(), a.Id, b.Id, c.Id));
+        return new(instruction.ResultId, instruction.ResultType);
+    }
+
     // Float checks
     public override SpirvValue CompileIsnan(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileFloatUnaryCall(context, builder, functionType, Specification.Op.OpIsNan, x);
     public override SpirvValue CompileIsinf(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileFloatUnaryCall(context, builder, functionType, Specification.Op.OpIsInf, x);
@@ -298,7 +304,6 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileIsnormal(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileLdexp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue exp) => throw new NotImplementedException();
     public override SpirvValue CompileLit(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue l, SpirvValue h, SpirvValue m) => throw new NotImplementedException();
-    public override SpirvValue CompileMad(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, SpirvValue c) => throw new NotImplementedException();
     public override SpirvValue CompileModf(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue ip) => throw new NotImplementedException();
     public override SpirvValue CompileMsad4(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue reference, SpirvValue source, SpirvValue accum) => throw new NotImplementedException();
     public override SpirvValue CompileProcess2DQuadTessFactorsAvg(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue RawEdgeFactors, SpirvValue InsideScale, SpirvValue RoundedEdgeFactors, SpirvValue RoundedInsideFactors, SpirvValue UnroundedInsideFactors) => throw new NotImplementedException();
