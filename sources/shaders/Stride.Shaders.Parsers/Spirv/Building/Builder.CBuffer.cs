@@ -1,4 +1,4 @@
-﻿using Stride.Shaders.Core;
+using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using System;
 using System.Collections.Generic;
@@ -21,6 +21,7 @@ partial class SpirvBuilder
 
         static (int Size, int Alignment) Array((int Size, int Alignment) current, int count, AlignmentRules alignmentRules) => alignmentRules switch
         {
+            // HLSL array size: last element is not padded to stride
             AlignmentRules.CBuffer => ((current.Size + 15) / 16 * 16 * (count - 1) + current.Size, 16),
             AlignmentRules.StructuredBuffer => (current.Size * count, current.Alignment),
         };
@@ -52,6 +53,9 @@ partial class SpirvBuilder
         {
             var memberSizeAndAlignment = ComputeBufferOffset(member.Type, member.TypeModifier, ref offset, alignmentRules);
             offset += memberSizeAndAlignment.Size;
+            // SPIR-V/spirv-cross requires that no field falls within stride*count of an array.
+            // Pad offset past the full array stride range so subsequent fields don't overlap.
+            PadOffsetAfterArray(member.Type, member.TypeModifier, offset - memberSizeAndAlignment.Size, ref offset, alignmentRules);
             maxAlignment = Math.Max(memberSizeAndAlignment.Alignment, maxAlignment);
         }
 
@@ -83,5 +87,22 @@ partial class SpirvBuilder
         constantBufferOffset = (constantBufferOffset + alignment - 1) / alignment * alignment;
 
         return (size, alignment);
+    }
+
+    /// <summary>
+    /// After advancing past an array member, ensure the offset is past stride*count of the array.
+    /// SPIR-V/spirv-cross cannot express fields that fall within an array's stride*count range,
+    /// even if those bytes are padding in the last element (which HLSL allows).
+    /// </summary>
+    public static void PadOffsetAfterArray(SymbolType type, TypeModifier typeModifier, int memberOffset, ref int constantBufferOffset, AlignmentRules alignmentRules)
+    {
+        if (alignmentRules == AlignmentRules.CBuffer && type is ArrayType a)
+        {
+            var elementSize = TypeSizeInBuffer(a.BaseType, typeModifier, alignmentRules).Size;
+            var stride = (elementSize + 15) / 16 * 16;
+            var paddedEnd = memberOffset + stride * a.Size;
+            if (constantBufferOffset < paddedEnd)
+                constantBufferOffset = paddedEnd;
+        }
     }
 }

@@ -438,6 +438,7 @@ namespace Stride.Shaders.Compilers.SDSL
 
                     // Adjust offset for next item
                     constantBufferOffset += memberSize;
+                    SpirvBuilder.PadOffsetAfterArray(member.Type, member.TypeModifier, memberInfos[index].Offset, ref constantBufferOffset, SpirvBuilder.AlignmentRules.CBuffer);
                 }
 
                 globalContext.Reflection.ConstantBuffers.Add(new EffectConstantBufferDescription

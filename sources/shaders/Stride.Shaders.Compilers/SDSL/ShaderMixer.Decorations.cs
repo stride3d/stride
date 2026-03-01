@@ -81,6 +81,7 @@ public partial class ShaderMixer
             DecorateMember(context, structId, i, offset, memberSize, s.Members[i].Type, s.Members[i].TypeModifier);
 
             offset += memberSize;
+            SpirvBuilder.PadOffsetAfterArray(s.Members[i].Type, s.Members[i].TypeModifier, offsets[i], ref offset, alignmentRules);
         }
 
         decoratedStructs[structId] = (alignmentRules, offset, offsets);

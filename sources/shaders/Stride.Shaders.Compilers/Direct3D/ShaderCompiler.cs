@@ -354,6 +354,17 @@ namespace Stride.Shaders.Compiler.Direct3D
                         // Adjust offset for next item
                         constantBufferOffset += memberSize;
 
+                        // Pad offset past full array stride range for spirv-cross compatibility:
+                        // spirv-cross uses stride*count for arrays, while HLSL allows packing into
+                        // the last element's padding. Ensure next field starts after stride*count.
+                        if (member.Type.Elements > 0)
+                        {
+                            var stride = (member.Type.ElementSize + 15) / 16 * 16;
+                            var paddedEnd = member.Offset + stride * member.Type.Elements;
+                            if (constantBufferOffset < paddedEnd)
+                                constantBufferOffset = paddedEnd;
+                        }
+
                         reflectionConstantBuffer.Members[index] = member;
                     }
 
