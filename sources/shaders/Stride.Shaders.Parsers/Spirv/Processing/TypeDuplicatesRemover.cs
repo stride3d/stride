@@ -288,7 +288,8 @@ public class TypeDuplicateHelper
             || op == Op.OpSDSLImportShader
             || op == Op.OpSDSLImportVariable
             || op == Op.OpSDSLImportFunction
-            || op == Op.OpSDSLImportStruct;
+            || op == Op.OpSDSLImportStruct
+            || op == Op.OpExtInstImport;
     }
 
     public static bool OpCheckDuplicateForConstant(Op op)
