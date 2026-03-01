@@ -213,7 +213,32 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                             if (parameterType.Match == null || parameterType.Match.Value.BaseType == index)
                                 throw new InvalidOperationException($"Intrinsic {name}: Can't resolve parameter {index} of type {parameterType}");
 
-                            parameterTypeHelper[index].BaseType = parameterTypeHelper[parameterType.Match.Value.BaseType].BaseType;
+                            var matchBaseTypeIndex = parameterType.Match.Value.BaseType;
+                            if (matchBaseTypeIndex == -1)
+                            {
+                                // Match thisType's base type
+                                parameterTypeHelper[index].BaseType = thisType switch
+                                {
+                                    TextureType t => t.ReturnType,
+                                    BufferType b => b.BaseType,
+                                    null => throw new ArgumentNullException(nameof(thisType)),
+                                    _ => throw new InvalidOperationException($"Can't resolve thisType base type for {thisType}"),
+                                };
+                            }
+                            else if (matchBaseTypeIndex == -3)
+                            {
+                                // Match funcT base type
+                                parameterTypeHelper[index].BaseType = thisType switch
+                                {
+                                    ByteAddressBufferType => ScalarType.UInt,
+                                    null => throw new ArgumentNullException(nameof(thisType)),
+                                    _ => throw new NotImplementedException($"$funcT not supported for {thisType}"),
+                                };
+                            }
+                            else
+                            {
+                                parameterTypeHelper[index].BaseType = parameterTypeHelper[matchBaseTypeIndex].BaseType;
+                            }
                         }
                     }
 
