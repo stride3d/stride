@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
 
 namespace Stride.Shaders.Spirv.Building;
@@ -117,13 +118,12 @@ public partial class SpirvContext
 
     private int RegisterStructuredBufferType(StructuredBufferType structuredBufferType)
     {
-        var runtimeArrayType = Buffer.Add(new OpTypeRuntimeArray(Bound++, GetOrRegister(structuredBufferType.BaseType))).ResultId;
+        var elementSize = SpirvBuilder.TypeSizeInBuffer(structuredBufferType.BaseType, TypeModifier.None, SpirvBuilder.AlignmentRules.StructuredBuffer).Size;
+        var runtimeArrayType = GetOrCreateRuntimeArray(GetOrRegister(structuredBufferType.BaseType), elementSize);
 
         var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).ResultId;
         AddName(bufferType, $"type.{(structuredBufferType.WriteAllowed ? "RW" : "")}StructuredBuffer.{structuredBufferType.BaseType.ToId()}");
         Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.Offset, [0]));
-
-        // TODO: Add array stride and offsets
         Buffer.Add(new OpDecorate(bufferType, Specification.Decoration.Block, []));
 
         return bufferType;
