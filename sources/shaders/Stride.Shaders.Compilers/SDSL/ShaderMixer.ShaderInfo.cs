@@ -109,10 +109,10 @@ public partial class ShaderMixer
             var shaderName = importShader.ShaderName;
             if (importShader.Values.Elements.Length > 0)
             {
-                var genericArguments = new object[importShader.Values.Elements.Length];
+                var genericArguments = new string[importShader.Values.Elements.Length];
                 for (int j = 0; j < genericArguments.Length; j++)
                 {
-                    genericArguments[j] = context.GetConstantValue(importShader.Values.Elements.Span[j]);
+                    genericArguments[j] = ShaderClassSource.ConvertGenericArgToString(context.GetConstantValue(importShader.Values.Elements.Span[j]));
                 }
                 shaderName += $"<{string.Join(",", genericArguments)}>";
             }

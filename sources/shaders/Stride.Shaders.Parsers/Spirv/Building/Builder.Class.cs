@@ -282,7 +282,7 @@ public partial class SpirvBuilder
             if (!declaringContext.GenericValueCache.TryGetValue(constantId, out var textValue))
             {
                 textValue = declaringContext.TryGetConstantValue(constantId, out var constantValue, out _, false)
-                    ? constantValue.ToString()
+                    ? ShaderClassSource.ConvertGenericArgToString(constantValue)
                     : GetIdRefAsString(genericIndex);
 
                 declaringContext.GenericValueCache.Add(constantId, textValue);
