@@ -70,6 +70,22 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         return new(sample.ResultId, sample.ResultType);
     }
 
+    public override SpirvValue CompileSampleBias(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue bias, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
+    {
+        if (clamp != null || status != null)
+            throw new NotImplementedException();
+
+        var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+
+        var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+
+        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams, bias: bias);
+        var sample = builder.Insert(new OpImageSampleImplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
+
+        return new(sample.ResultId, sample.ResultType);
+    }
+
     public override SpirvValue CompileSampleLevel(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue lod, SpirvValue? o = null, SpirvValue? status = null)
     {
         if (status != null)
@@ -118,6 +134,54 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         return new(sample.ResultId, sample.ResultType);
     }
 
+    public override SpirvValue CompileSampleCmpBias(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue bias, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
+    {
+        if (clamp != null || status != null)
+            throw new NotImplementedException();
+
+        var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+
+        var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+
+        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams, bias: bias);
+        var sample = builder.Insert(new OpImageSampleDrefImplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
+
+        return new(sample.ResultId, sample.ResultType);
+    }
+
+    public override SpirvValue CompileSampleCmpGrad(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue ddx, SpirvValue ddy, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
+    {
+        if (clamp != null || status != null)
+            throw new NotImplementedException();
+
+        var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+
+        var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+
+        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams, ddx, ddy);
+        var sample = builder.Insert(new OpImageSampleDrefExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
+
+        return new(sample.ResultId, sample.ResultType);
+    }
+
+    public override SpirvValue CompileSampleCmpLevel(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? compareValue = null, SpirvValue? lod = null, SpirvValue? o = null, SpirvValue? status = null, SpirvValue? c = null)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+
+        var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+
+        var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+
+        TextureGenerateImageOperands(lod, o, null, out var imask, out var imParams);
+        var sample = builder.Insert(new OpImageSampleDrefExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue!.Value.Id, imask, imParams));
+
+        return new(sample.ResultId, sample.ResultType);
+    }
+
     public override SpirvValue CompileSampleCmpLevelZero(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? status = null)
     {
         if (status != null)
@@ -132,6 +196,125 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var sample = builder.Insert(new OpImageSampleDrefExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
 
         return new(sample.ResultId, sample.ResultType);
+    }
+
+    public override SpirvValue CompileCalculateLevelOfDetail(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x)
+    {
+        var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+
+        var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+
+        var float2Type = context.GetOrRegister(new VectorType(ScalarType.Float, 2));
+        var queryResult = builder.Insert(new OpImageQueryLod(float2Type, context.Bound++, sampledImage.ResultId, x.Id));
+
+        // Component 0 = selected (clamped) mip level
+        var floatType = context.GetOrRegister(ScalarType.Float);
+        var result = builder.Insert(new OpCompositeExtract(floatType, context.Bound++, queryResult.ResultId, [0]));
+        return new(result.ResultId, result.ResultType);
+    }
+
+    public override SpirvValue CompileCalculateLevelOfDetailUnclamped(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x)
+    {
+        var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+
+        var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+
+        var float2Type = context.GetOrRegister(new VectorType(ScalarType.Float, 2));
+        var queryResult = builder.Insert(new OpImageQueryLod(float2Type, context.Bound++, sampledImage.ResultId, x.Id));
+
+        // Component 1 = unclamped LOD
+        var floatType = context.GetOrRegister(ScalarType.Float);
+        var result = builder.Insert(new OpCompositeExtract(floatType, context.Bound++, queryResult.ResultId, [1]));
+        return new(result.ResultId, result.ResultType);
+    }
+
+    // Gather: component 0 (same as GatherRed)
+    public override SpirvValue CompileGather(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? status = null)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+        return CompileGatherComponent(context, builder, functionType, texture, s, x, 0, o);
+    }
+
+    public override SpirvValue CompileGatherRed(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+        if (o1 != null)
+            return CompileGatherComponentConstOffsets(context, builder, functionType, texture, s, x, 0, o1.Value, o2!.Value, o3!.Value, o4!.Value);
+        return CompileGatherComponent(context, builder, functionType, texture, s, x, 0, o);
+    }
+
+    public override SpirvValue CompileGatherGreen(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+        if (o1 != null)
+            return CompileGatherComponentConstOffsets(context, builder, functionType, texture, s, x, 1, o1.Value, o2!.Value, o3!.Value, o4!.Value);
+        return CompileGatherComponent(context, builder, functionType, texture, s, x, 1, o);
+    }
+
+    public override SpirvValue CompileGatherBlue(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+        if (o1 != null)
+            return CompileGatherComponentConstOffsets(context, builder, functionType, texture, s, x, 2, o1.Value, o2!.Value, o3!.Value, o4!.Value);
+        return CompileGatherComponent(context, builder, functionType, texture, s, x, 2, o);
+    }
+
+    public override SpirvValue CompileGatherAlpha(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+        if (o1 != null)
+            return CompileGatherComponentConstOffsets(context, builder, functionType, texture, s, x, 3, o1.Value, o2!.Value, o3!.Value, o4!.Value);
+        return CompileGatherComponent(context, builder, functionType, texture, s, x, 3, o);
+    }
+
+    public override SpirvValue CompileGatherCmp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? status = null)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+        return CompileGatherDref(context, builder, functionType, texture, s, x, compareValue, o);
+    }
+
+    public override SpirvValue CompileGatherCmpRed(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+        if (o1 != null)
+            return CompileGatherDrefConstOffsets(context, builder, functionType, texture, s, x, compareValue, o1.Value, o2!.Value, o3!.Value, o4!.Value);
+        return CompileGatherDref(context, builder, functionType, texture, s, x, compareValue, o);
+    }
+
+    public override SpirvValue CompileGatherCmpGreen(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+        if (o1 != null)
+            return CompileGatherDrefConstOffsets(context, builder, functionType, texture, s, x, compareValue, o1.Value, o2!.Value, o3!.Value, o4!.Value);
+        return CompileGatherDref(context, builder, functionType, texture, s, x, compareValue, o);
+    }
+
+    public override SpirvValue CompileGatherCmpBlue(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+        if (o1 != null)
+            return CompileGatherDrefConstOffsets(context, builder, functionType, texture, s, x, compareValue, o1.Value, o2!.Value, o3!.Value, o4!.Value);
+        return CompileGatherDref(context, builder, functionType, texture, s, x, compareValue, o);
+    }
+
+    public override SpirvValue CompileGatherCmpAlpha(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? o1 = null, SpirvValue? o2 = null, SpirvValue? o3 = null, SpirvValue? o4 = null, SpirvValue? status = null)
+    {
+        if (status != null)
+            throw new NotImplementedException();
+        if (o1 != null)
+            return CompileGatherDrefConstOffsets(context, builder, functionType, texture, s, x, compareValue, o1.Value, o2!.Value, o3!.Value, o4!.Value);
+        return CompileGatherDref(context, builder, functionType, texture, s, x, compareValue, o);
     }
 
     public override SpirvValue CompileGetDimensions(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue? x = null, SpirvValue? width = null, SpirvValue? levels = null, SpirvValue? elements = null, SpirvValue? height = null, SpirvValue? samples = null, SpirvValue? depth = null)
@@ -234,6 +417,69 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         return default;
     }
 
+    private SpirvValue CompileGatherComponent(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, uint component, SpirvValue? o)
+    {
+        var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+        var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+
+        var componentConstant = context.CompileConstant(component);
+        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams);
+        var gather = builder.Insert(new OpImageGather(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, componentConstant.Id, imask, imParams));
+        return new(gather.ResultId, gather.ResultType);
+    }
+
+    private SpirvValue CompileGatherComponentConstOffsets(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, uint component, SpirvValue o1, SpirvValue o2, SpirvValue o3, SpirvValue o4)
+    {
+        var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+        var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+
+        var componentConstant = context.CompileConstant(component);
+
+        // Build ConstOffsets: array of 4 vec2<int> constant
+        var int2Type = new VectorType(ScalarType.Int, 2);
+        var arrayType = context.GetOrRegister(new ArrayType(int2Type, 4));
+        var constOffsetsId = context.Bound++;
+        builder.InsertData(new OpConstantComposite(arrayType, constOffsetsId, [o1.Id, o2.Id, o3.Id, o4.Id]));
+
+        Span<int> operands = [constOffsetsId];
+        var imask = ImageOperandsMask.ConstOffsets;
+        var imParams = new EnumerantParameters(operands);
+        var gather = builder.Insert(new OpImageGather(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, componentConstant.Id, imask, imParams));
+        return new(gather.ResultId, gather.ResultType);
+    }
+
+    private SpirvValue CompileGatherDref(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o)
+    {
+        var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+        var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+
+        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams);
+        var gather = builder.Insert(new OpImageDrefGather(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
+        return new(gather.ResultId, gather.ResultType);
+    }
+
+    private SpirvValue CompileGatherDrefConstOffsets(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue o1, SpirvValue o2, SpirvValue o3, SpirvValue o4)
+    {
+        var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+        var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+
+        // Build ConstOffsets: array of 4 vec2<int> constant
+        var int2Type = new VectorType(ScalarType.Int, 2);
+        var arrayType = context.GetOrRegister(new ArrayType(int2Type, 4));
+        var constOffsetsId = context.Bound++;
+        builder.InsertData(new OpConstantComposite(arrayType, constOffsetsId, [o1.Id, o2.Id, o3.Id, o4.Id]));
+
+        Span<int> operands = [constOffsetsId];
+        var imask = ImageOperandsMask.ConstOffsets;
+        var imParams = new EnumerantParameters(operands);
+        var gather = builder.Insert(new OpImageDrefGather(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, imask, imParams));
+        return new(gather.ResultId, gather.ResultType);
+    }
+
     private static void StoreQueryComponent(SpirvContext context, SpirvBuilder builder, int uintTypeId, int sizeResultId, int sizeComponents, int componentIndex, SpirvValue outParam)
     {
         int valueId;
@@ -268,23 +514,28 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         }
     }
 
-    private void TextureGenerateImageOperands(SpirvValue? lod, SpirvValue? offset, SpirvValue? sampleIndex, out ImageOperandsMask imask, out EnumerantParameters imParams, SpirvValue? ddx = null, SpirvValue? ddy = null)
+    private void TextureGenerateImageOperands(SpirvValue? lod, SpirvValue? offset, SpirvValue? sampleIndex, out ImageOperandsMask imask, out EnumerantParameters imParams, SpirvValue? ddx = null, SpirvValue? ddy = null, SpirvValue? bias = null)
     {
         imask = ImageOperandsMask.None;
-        // Allocate for worst case (5 operands: lod/grad(2) + offset + sample)
-        Span<int> operands = stackalloc int[5];
+        // Allocate for worst case (6 operands: bias + grad(2) + lod + offset + sample)
+        Span<int> operands = stackalloc int[6];
         int operandCount = 0;
-        // Operands must appear in bit-order: Grad(0x4) < Lod(0x8) < Offset(0x10) < Sample(0x40)
-        if (ddx != null && ddy != null)
+        // Operands must appear in bit-order: Bias(0x1) < Lod(0x2) < Grad(0x4) < Offset(0x10) < Sample(0x40)
+        if (bias != null)
         {
-            imask |= ImageOperandsMask.Grad;
-            operands[operandCount++] = ddx.Value.Id;
-            operands[operandCount++] = ddy.Value.Id;
+            imask |= ImageOperandsMask.Bias;
+            operands[operandCount++] = bias.Value.Id;
         }
         if (lod != null)
         {
             imask |= ImageOperandsMask.Lod;
             operands[operandCount++] = lod.Value.Id;
+        }
+        if (ddx != null && ddy != null)
+        {
+            imask |= ImageOperandsMask.Grad;
+            operands[operandCount++] = ddx.Value.Id;
+            operands[operandCount++] = ddy.Value.Id;
         }
         if (offset != null)
         {
