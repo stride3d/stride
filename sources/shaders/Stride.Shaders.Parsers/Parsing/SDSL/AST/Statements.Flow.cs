@@ -31,7 +31,8 @@ public partial class Discard(TextLocation info) : Statement(info)
     }
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context) = compiler;
+        builder.Insert(new OpKill());
     }
 }
 public partial class Continue(TextLocation info) : Statement(info)
