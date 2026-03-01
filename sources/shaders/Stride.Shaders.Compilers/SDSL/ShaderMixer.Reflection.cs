@@ -369,6 +369,11 @@ public partial class ShaderMixer
                                 Type = structuredBufferType.WriteAllowed ? EffectParameterType.RWStructuredBuffer : EffectParameterType.StructuredBuffer,
                             });
 
+                            // Add UserTypeGOOGLE decoration so SPIRV-Cross preserves StructuredBuffer type
+                            context.Add(new OpDecorateString(variable.ResultId, Specification.Decoration.UserTypeGOOGLE, $"{(structuredBufferType.WriteAllowed ? "rw" : "")}structuredbuffer:<{structuredBufferType.BaseType.ToId().ToLowerInvariant()}>"));
+                            if (!structuredBufferType.WriteAllowed)
+                                context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.NonWritable, []));
+
                             var baseType = structuredBufferType.BaseType;
                             // This will add array stride and offsets decorations
                             EmitTypeDecorationsRecursively(context, baseType, SpirvBuilder.AlignmentRules.StructuredBuffer);
@@ -379,6 +384,11 @@ public partial class ShaderMixer
                             {
                                 Type = byteAddressBufferType.WriteAllowed ? EffectParameterType.RWByteAddressBuffer : EffectParameterType.ByteAddressBuffer,
                             });
+
+                            // Add UserTypeGOOGLE decoration so SPIRV-Cross preserves ByteAddressBuffer type
+                            context.Add(new OpDecorateString(variable.ResultId, Specification.Decoration.UserTypeGOOGLE, byteAddressBufferType.WriteAllowed ? "rwbyteaddressbuffer" : "byteaddressbuffer"));
+                            if (!byteAddressBufferType.WriteAllowed)
+                                context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.NonWritable, []));
                         }
                     }
                     else if (variableType is SamplerType)
