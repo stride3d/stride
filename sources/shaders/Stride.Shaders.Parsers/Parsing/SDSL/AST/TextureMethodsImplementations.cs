@@ -86,6 +86,22 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         return new(sample.ResultId, sample.ResultType);
     }
 
+    public override SpirvValue CompileSampleGrad(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue ddx, SpirvValue ddy, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
+    {
+        if (clamp != null || status != null)
+            throw new NotImplementedException();
+
+        var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+
+        var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
+        var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
+
+        TextureGenerateImageOperands(null, o, null, out var imask, out var imParams, ddx, ddy);
+        var sample = builder.Insert(new OpImageSampleExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
+
+        return new(sample.ResultId, sample.ResultType);
+    }
+
     public override SpirvValue CompileSampleCmp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue compareValue, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
     {
         if (clamp != null || status != null)
@@ -252,12 +268,19 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         }
     }
 
-    private void TextureGenerateImageOperands(SpirvValue? lod, SpirvValue? offset, SpirvValue? sampleIndex, out ImageOperandsMask imask, out EnumerantParameters imParams)
+    private void TextureGenerateImageOperands(SpirvValue? lod, SpirvValue? offset, SpirvValue? sampleIndex, out ImageOperandsMask imask, out EnumerantParameters imParams, SpirvValue? ddx = null, SpirvValue? ddy = null)
     {
         imask = ImageOperandsMask.None;
-        // Allocate for worst case (3 operands)
-        Span<int> operands = stackalloc int[3];
+        // Allocate for worst case (5 operands: lod/grad(2) + offset + sample)
+        Span<int> operands = stackalloc int[5];
         int operandCount = 0;
+        // Operands must appear in bit-order: Grad(0x4) < Lod(0x8) < Offset(0x10) < Sample(0x40)
+        if (ddx != null && ddy != null)
+        {
+            imask |= ImageOperandsMask.Grad;
+            operands[operandCount++] = ddx.Value.Id;
+            operands[operandCount++] = ddy.Value.Id;
+        }
         if (lod != null)
         {
             imask |= ImageOperandsMask.Lod;
