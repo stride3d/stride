@@ -454,6 +454,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     if (!remapIds.TryGetValue(typeStruct2.ResultId, out var structId))
                         structId = typeStruct2.ResultId;
                     structTypes.Add(structName, structId);
+                    // Also add an entry using ToId()-style name for structured buffer types,
+                    // since OpSDSLImportStruct.StructName uses ToId() format (e.g. "StructuredBuffer<X>")
+                    // while OpName uses "type.StructuredBuffer.X" format
+                    if (structName.StartsWith("type.StructuredBuffer."))
+                        structTypes.TryAdd($"StructuredBuffer<{structName.Substring("type.StructuredBuffer.".Length)}>", structId);
+                    else if (structName.StartsWith("type.RWStructuredBuffer."))
+                        structTypes.TryAdd($"RWStructuredBuffer<{structName.Substring("type.RWStructuredBuffer.".Length)}>", structId);
                 }
 
                 // Process OpSDSLImport
