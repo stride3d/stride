@@ -85,9 +85,9 @@ namespace Stride.Assets.Presentation.ViewModel
             projectWatcherCompletion.SetResult(projectWatcher);
             workspaceCompletion.SetResult(workspace);
 
-            void TrackedAssembliesCollectionChanged(object sender, Core.Collections.TrackingCollectionChangedEventArgs e)
+            void TrackedAssembliesCollectionChanged(object sender, Core.Collections.TrackingCollectionChangedEventArgs<ProjectWatcher.TrackedAssembly> e)
             {
-                if (((ProjectWatcher.TrackedAssembly)e.Item).Project is { } project)
+                if ((e.Item).Project is { } project)
                 {
                     switch (e.Action)
                     {
