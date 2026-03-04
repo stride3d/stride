@@ -1,28 +1,26 @@
-<Project>
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
-    <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.Core.props" />
-  <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
+    <StrideRuntime>true</StrideRuntime>
+    <StridePublicApi>true</StridePublicApi>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-    <StridePublicApi>true</StridePublicApi>
-    <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

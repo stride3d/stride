@@ -30,11 +30,11 @@
   <!-- ================================================================ -->
   <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
     <!-- Launcher code depends on whether graphics API is used -->
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\..\..\sources\shared\tests\xunit\LauncherSimple.Desktop.cs"
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherSimple.Desktop.cs"
              Condition="'$(StrideGraphicsApiDependent)' != 'true' And '$(IncludeXunitLauncher)' != 'false'">
       <Link>LauncherSimple.Desktop.cs</Link>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\..\..\sources\shared\tests\xunit\LauncherSimple.Desktop.cs"
+    <Compile Include="$(MSBuildThisFileDirectory)LauncherGame.Desktop.cs"
              Condition="'$(StrideGraphicsApiDependent)' == 'true' And '$(IncludeXunitLauncher)' != 'false'">
       <Link>LauncherGame.Desktop.cs</Link>
     </Compile>

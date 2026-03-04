@@ -3,11 +3,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-
-    <!-- Disable xunit launcher (not needed for dotnet test) -->
-    <IncludeXunitLauncher>false</IncludeXunitLauncher>
-    <StartupObject></StartupObject>
-    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -25,5 +20,4 @@
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
   </ItemGroup>
-
 </Project>
