@@ -27,15 +27,15 @@ The SDK solution (`sources/sdk/Stride.Sdk.slnx`) contains:
 ### Build Process
 
 1. **Clean NuGet cache** (unless --no-clean is specified):
-   Delete cached Stride SDK packages from: `C:\Users\musse\.nuget\packages`
+   Delete cached Stride SDK packages from: `%USERPROFILE%\.nuget\packages`
 
    Packages to clean (delete these folders if they exist):
    - `stride.sdk`
    - `stride.sdk.runtime`
 
    ```bash
-   rmdir /s /q "C:\Users\musse\.nuget\packages\stride.sdk" 2>nul
-   rmdir /s /q "C:\Users\musse\.nuget\packages\stride.sdk.runtime" 2>nul
+   rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk" 2>nul
+   rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.runtime" 2>nul
    ```
 
 2. **Clean previous build output** (optional but recommended):
@@ -80,7 +80,7 @@ sources/sdk/ (source)
     ↓ dotnet build
 build/packages/*.nupkg (local packages)
     ↓ dotnet restore (on consuming project)
-C:\Users\musse\.nuget\packages\ (cache)
+%USERPROFILE%\.nuget\packages\ (cache)
     ↓
 Project uses cached SDK
 ```

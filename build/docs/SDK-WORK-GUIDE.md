@@ -53,8 +53,8 @@ To this:
 
 ```bash
 # 1. Clean NuGet cache (CRITICAL - don't skip!)
-rmdir /s /q "C:\Users\musse\.nuget\packages\stride.sdk" 2>nul
-rmdir /s /q "C:\Users\musse\.nuget\packages\stride.sdk.runtime" 2>nul
+rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk" 2>nul
+rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.runtime" 2>nul
 
 # 2. Clean previous build output (optional but recommended)
 del /q "build\packages\*.nupkg" 2>nul
@@ -96,7 +96,7 @@ build/packages/          (Local NuGet packages - .nupkg files)
     ↓
     dotnet restore (on consuming project)
     ↓
-C:\Users\musse\.nuget\packages\  (NuGet global cache)
+%USERPROFILE%\.nuget\packages\  (NuGet global cache)
     ↓
     Build uses cached SDK
 ```

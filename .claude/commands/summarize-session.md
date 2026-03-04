@@ -250,8 +250,8 @@ Migrating additional core projects to SDK format
 **CRITICAL:** After modifying SDK source, MUST clear NuGet cache:
 
 ```bash
-rmdir /s /q "C:\Users\musse\.nuget\packages\stride.sdk" 2>nul
-rmdir /s /q "C:\Users\musse\.nuget\packages\stride.sdk.runtime" 2>nul
+rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk" 2>nul
+rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.runtime" 2>nul
 ```
 
 Then rebuild SDK and restore consuming projects.
@@ -348,7 +348,7 @@ git log --oneline -5
 /build-sdk
 # OR manually:
 dotnet build sources\sdk\Stride.Sdk.slnx
-rmdir /s /q "C:\Users\musse\.nuget\packages\stride.sdk" 2>nul
+rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk" 2>nul
 
 # Build Stride.Core
 dotnet restore sources\core\Stride.Core\Stride.Core.csproj

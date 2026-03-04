@@ -37,8 +37,8 @@ Build and run `Stride.GameStudio` project from `build\Stride.sln` (located in `6
 dotnet build sources\sdk\Stride.Sdk.slnx
 
 # IMPORTANT: Clear NuGet cache after SDK changes
-rmdir /s /q "C:\Users\musse\.nuget\packages\stride.sdk" 2>nul
-rmdir /s /q "C:\Users\musse\.nuget\packages\stride.sdk.runtime" 2>nul
+rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk" 2>nul
+rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.runtime" 2>nul
 ```
 
 ## Testing
