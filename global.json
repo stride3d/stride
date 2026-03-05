@@ -6,7 +6,6 @@
   "msbuild-sdks": {
     "Stride.Sdk": "4.3.0-dev",
     "Stride.Sdk.Editor": "4.3.0-dev",
-    "Stride.Sdk.Runtime": "4.3.0-dev",
     "Stride.Sdk.Tests": "4.3.0-dev"
   }
 }
