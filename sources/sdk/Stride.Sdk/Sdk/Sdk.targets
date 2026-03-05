@@ -43,4 +43,9 @@
   <!-- This gives us all standard .NET SDK functionality -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
+  <!-- ================================================================ -->
+  <!-- Native build mode configuration (Clang/MSVC selection) -->
+  <!-- ================================================================ -->
+  <Import Project="Stride.NativeBuildMode.props" />
+
 </Project>

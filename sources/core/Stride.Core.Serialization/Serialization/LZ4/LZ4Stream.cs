@@ -380,7 +380,7 @@ public class LZ4Stream : Stream
                     fixed (byte* pDst = buffer)
                     {
                         Debug.Assert(pSrc is not null);
-                        Utilities.CopyWithAlignmentFallback(pDst + offset, pSrc + bufferOffset, (uint)chunk);
+                        MemoryUtilities.CopyWithAlignmentFallback(pDst + offset, pSrc + bufferOffset, (uint)chunk);
                     }
                 }
 
@@ -511,7 +511,7 @@ public class LZ4Stream : Stream
                     fixed (byte* pDst = dataBuffer)
                     {
                         Debug.Assert(pDst is not null);
-                        Utilities.CopyWithAlignmentFallback(pDst + bufferOffset, pSrc + offset, (uint)chunk);
+                        MemoryUtilities.CopyWithAlignmentFallback(pDst + bufferOffset, pSrc + offset, (uint)chunk);
                     }
                 }
 

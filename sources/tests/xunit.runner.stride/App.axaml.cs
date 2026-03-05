@@ -14,6 +14,7 @@ public partial class App : Application
 {
     internal readonly CancellationTokenSource cts = new();
     internal Action<bool>? setInteractiveMode;
+    internal Action<bool>? setForceSaveImage;
 
     public override void Initialize()
     {
@@ -35,7 +36,9 @@ public partial class App : Application
                     Tests =
                     {
                         SetInteractiveMode = setInteractiveMode,
+                        SetForceSaveImage = setForceSaveImage,
                         IsInteractiveMode = true,
+                        IsForceSaveImage = false,
                     }
                 }
             };
@@ -52,7 +55,9 @@ public partial class App : Application
                     Tests =
                     {
                         SetInteractiveMode = setInteractiveMode,
+                        SetForceSaveImage = setForceSaveImage,
                         IsInteractiveMode = true,
+                        IsForceSaveImage = false,
                     }
                 }
             };

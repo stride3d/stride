@@ -2,13 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Stride.Core;
 using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -20,9 +17,17 @@ namespace Stride.Graphics
         private VkSwapchainKHR swapChain;
         private VkSurfaceKHR surface;
 
-        private Texture backbuffer;
+        private Texture backBuffer;
+
+        // As many as swapchain backbuffer
+        private VkSemaphore[] submitSemaphores;
         private SwapChainImageInfo[] swapchainImages;
         private uint currentBufferIndex;
+
+        private const int kNumberOfFramesInFlight = 2;
+        private int currentFrameIndex = 0;
+        private VkSemaphore[] acquireSemaphores;
+        private VkFence[] frameFences;
 
         private struct SwapChainImageInfo
         {
@@ -30,24 +35,24 @@ namespace Stride.Graphics
             public VkImageView NativeColorAttachmentView;
         }
 
-        public SwapChainGraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters)
+        public unsafe SwapChainGraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters)
             : base(device, presentationParameters)
         {
             PresentInterval = presentationParameters.PresentationInterval;
 
-            backbuffer = new Texture(device);
+            backBuffer = new Texture(device);
 
             CreateSurface();
 
             // Initialize the swap chain
-            CreateSwapChain();
+            CreateSwapChain(Description.BackBufferWidth, Description.BackBufferHeight, Description.BackBufferFormat);
         }
 
         public override Texture BackBuffer
         {
             get
             {
-                return backbuffer;
+                return backBuffer;
             }
         }
 
@@ -102,9 +107,9 @@ namespace Stride.Graphics
 //                {
 //                    // Force render target destruction
 //                    // TODO: We should track all user created render targets that points to back buffer as well (or deny their creation?)
-//                    backBuffer.OnDestroyed();
+//                    backBuffer.OnDestroyed(true);
 
-//                    OnDestroyed();
+//                    OnDestroyed(true);
 
 //                    Description.IsFullScreen = true;
 
@@ -122,7 +127,7 @@ namespace Stride.Graphics
 //                    Resize(backBuffer.ViewWidth, backBuffer.ViewHeight, backBuffer.ViewFormat);
 //                }
 
-//                // If going to window mode: 
+//                // If going to window mode:
 //                if (!switchToFullScreen)
 //                {
 //                    // call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
@@ -136,38 +141,127 @@ namespace Stride.Graphics
 
         public override unsafe void Present()
         {
-            var swapChainCopy = swapChain;
-            var currentBufferIndexCopy = currentBufferIndex;
-            var presentInfo = new VkPresentInfoKHR
-            {
-                sType = VkStructureType.PresentInfoKHR,
-                swapchainCount = 1,
-                pSwapchains = &swapChainCopy,
-                pImageIndices = &currentBufferIndexCopy,
-            };
+            // Code is inspired from https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html (good code example)
+            // except we start the loop from vkQueueSubmit+vkQueuePresent and then proceed with preparing next frame resources
 
-            // Present
-            while (vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo) == VkResult.ErrorOutOfDateKHR)
+            lock (GraphicsDevice.QueueLock)
             {
-                OnRecreated();
-                swapChainCopy = swapChain;
-                presentInfo.pSwapchains = &swapChainCopy;
+                // Signal semaphore (that we will wait on during present for GPU=>GPU sync, to make sure all previous command buffers have been executed)
+                var submitSemaphore = submitSemaphores[currentBufferIndex];
+                var frameFence = GraphicsDevice.FrameFence.Semaphore;
+                var frameFenceValue = GraphicsDevice.FrameFence.NextFenceValue - 1;
+                var pipelineStageFlags = VkPipelineStageFlags.BottomOfPipe;
+                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                {
+                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    waitSemaphoreValueCount = 1,
+                    pWaitSemaphoreValues = &frameFenceValue,
+                };
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    pNext = &timelineInfo,
+                    waitSemaphoreCount = 1,
+                    pWaitSemaphores = &frameFence,
+                    pWaitDstStageMask = &pipelineStageFlags,
+                    signalSemaphoreCount = 1,
+                    pSignalSemaphores = &submitSemaphore,
+                };
+
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, frameFences[currentFrameIndex]));
+
+                var currentBufferIndexCopy = currentBufferIndex;
+                var swapChainCopy = swapChain;
+                var presentInfo = new VkPresentInfoKHR
+                {
+                    sType = VkStructureType.PresentInfoKHR,
+                    swapchainCount = 1,
+                    pSwapchains = &swapChainCopy,
+                    pImageIndices = &currentBufferIndexCopy,
+                    waitSemaphoreCount = 1,
+                    pWaitSemaphores = &submitSemaphore,
+                };
+
+                // Present
+                var presentResult = GraphicsDevice.NativeDeviceApi.vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo);
+                if (presentResult == VkResult.ErrorOutOfDateKHR)
+                {
+                    // Likely a window resize; wait for WM_SIZE to be processed next frame
+                    OnRecreated();
+                    return;
+                }
+
+                GraphicsDevice.CheckResult(presentResult);
             }
 
+            currentFrameIndex = (currentFrameIndex + 1) % kNumberOfFramesInFlight;
+
+            // Wait for frame fence to be available
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkWaitForFences(GraphicsDevice.NativeDevice, frameFences[currentFrameIndex], VkBool32.True, ulong.MaxValue));
+            GraphicsDevice.NativeDeviceApi.vkResetFences(GraphicsDevice.NativeDevice, frameFences[currentFrameIndex]);
+
+            AcquireNextImage(true);
+        }
+
+        private unsafe void AcquireNextImage(bool recreateIfFails)
+        {
             // Get next image
-            while (vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), VkFence.Null, out currentBufferIndex) == VkResult.ErrorOutOfDateKHR)
+            var result = GraphicsDevice.NativeDeviceApi.vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, acquireSemaphores[currentFrameIndex], VkFence.Null, out currentBufferIndex);
+            if (result == VkResult.ErrorOutOfDateKHR)
             {
-                OnRecreated();
+                if (recreateIfFails)
+                {
+                    OnRecreated();
+                    return;
+                }
+                else
+                    throw new InvalidOperationException($"Could not acquire swapchain image: {result}");
+            }
+            else
+            {
+                GraphicsDevice.CheckResult(result, "vkAcquireNextImageKHR");
             }
 
             // Flip render targets
-            backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
+            backBuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
+
+            lock (GraphicsDevice.QueueLock)
+            {
+                // Signal vkAcquireNextImageKHR Fence => GraphicsDevice.CommandList (so that next command list will wait for this to complete)
+                var acquireSemaphore = acquireSemaphores[currentFrameIndex];
+                var commandListFence = GraphicsDevice.CommandListFence.Semaphore;
+                var commandListFenceValue = GraphicsDevice.CommandListFence.NextFenceValue++;
+                var nextCommandListFenceValue = commandListFenceValue + 1;
+                var waitFenceValues = stackalloc ulong[] { commandListFenceValue, 0 }; // second value is ignored (binary semaphore)
+                var timelineInfo = new VkTimelineSemaphoreSubmitInfo
+                {
+                    sType = VkStructureType.TimelineSemaphoreSubmitInfo,
+                    waitSemaphoreValueCount = 2,
+                    pWaitSemaphoreValues = &waitFenceValues[0],
+                    signalSemaphoreValueCount = 1,
+                    pSignalSemaphoreValues = &nextCommandListFenceValue,
+                };
+                var semaphores = stackalloc VkSemaphore[] { commandListFence, acquireSemaphore };
+                var pipelineStageFlags = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.BottomOfPipe, VkPipelineStageFlags.BottomOfPipe };
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    pNext = &timelineInfo,
+                    waitSemaphoreCount = 2,
+                    pWaitSemaphores = &semaphores[0],
+                    pWaitDstStageMask = &pipelineStageFlags[0],
+                    signalSemaphoreCount = 1,
+                    pSignalSemaphores = &commandListFence,
+                };
+
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+            }
         }
 
         public override void BeginDraw(CommandList commandList)
         {
             // Backbuffer needs to be cleared
-            backbuffer.IsInitialized = false;
+            backBuffer.IsInitialized = false;
         }
 
         public override void EndDraw(CommandList commandList, bool present)
@@ -180,14 +274,14 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override unsafe void OnDestroyed()
+        protected internal override unsafe void OnDestroyed(bool immediately = false)
         {
             DestroySwapchain();
 
-            vkDestroySurfaceKHR(GraphicsDevice.NativeInstance, surface, null);
+            GraphicsDevice.NativeInstanceApi.vkDestroySurfaceKHR(GraphicsDevice.NativeInstance, surface, null);
             surface = VkSurfaceKHR.Null;
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
         /// <inheritdoc/>
@@ -199,13 +293,30 @@ namespace Stride.Graphics
 
             base.OnRecreated();
 
-            // Recreate swap chain
-            CreateSwapChain();
+            RecreateBackBuffer(backBuffer.Width, backBuffer.Height, backBuffer.Format);
+
+            // Check if backbuffer size changed; if yes, apply to depth buffer
+            if (Description.BackBufferWidth != DepthStencilBuffer.Description.Width
+                || Description.BackBufferHeight != DepthStencilBuffer.Description.Height)
+                ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, DepthStencilBuffer.ViewFormat);
         }
 
         protected override void ResizeBackBuffer(int width, int height, PixelFormat format)
         {
-            CreateSwapChain();
+            RecreateBackBuffer(width, height, format);
+        }
+
+        private void RecreateBackBuffer(int width, int height, PixelFormat format)
+        {
+            // Manually update all children textures
+            var fastList = DestroyChildrenTextures(backBuffer);
+
+            CreateSwapChain(width, height, format);
+
+            foreach (var texture in fastList)
+            {
+                texture.InitializeFrom(backBuffer, texture.ViewDescription);
+            }
         }
 
         protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
@@ -214,11 +325,19 @@ namespace Stride.Graphics
             newTextureDescription.Width = width;
             newTextureDescription.Height = height;
 
+            // Manually update all children textures
+            var fastList = DestroyChildrenTextures(DepthStencilBuffer);
+
             // Manually update the texture
-            DepthStencilBuffer.OnDestroyed();
+            DepthStencilBuffer.OnDestroyed(true);
 
             // Put it in our back buffer texture
             DepthStencilBuffer.InitializeFrom(newTextureDescription);
+
+            foreach (var texture in fastList)
+            {
+                texture.InitializeFrom(DepthStencilBuffer, texture.ViewDescription);
+            }
         }
 
 
@@ -227,55 +346,82 @@ namespace Stride.Graphics
             if (swapChain == VkSwapchainKHR.Null)
                 return;
 
-            vkDeviceWaitIdle(GraphicsDevice.NativeDevice);
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkDeviceWaitIdle(GraphicsDevice.NativeDevice));
 
-            backbuffer.OnDestroyed();
+            backBuffer.OnDestroyed(true);
+
+            foreach (var semaphore in submitSemaphores)
+            {
+                GraphicsDevice.NativeDeviceApi.vkDestroySemaphore(GraphicsDevice.NativeDevice, semaphore);
+            }
+            submitSemaphores = null;
 
             foreach (var swapchainImage in swapchainImages)
             {
-                vkDestroyImageView(GraphicsDevice.NativeDevice, swapchainImage.NativeColorAttachmentView, null);
+                GraphicsDevice.NativeDeviceApi.vkDestroyImageView(GraphicsDevice.NativeDevice, swapchainImage.NativeColorAttachmentView, null);
             }
             swapchainImages = null;
 
-            vkDestroySwapchainKHR(GraphicsDevice.NativeDevice, swapChain, null);
+            for (int i = 0; i < kNumberOfFramesInFlight; i++)
+            {
+                GraphicsDevice.NativeDeviceApi.vkDestroySemaphore(GraphicsDevice.NativeDevice, acquireSemaphores[i]);
+                GraphicsDevice.NativeDeviceApi.vkDestroyFence(GraphicsDevice.NativeDevice, frameFences[i]);
+            }
+            acquireSemaphores = null;
+            frameFences = null;
+
+            GraphicsDevice.NativeDeviceApi.vkDestroySwapchainKHR(GraphicsDevice.NativeDevice, swapChain, null);
             swapChain = VkSwapchainKHR.Null;
         }
 
-        private unsafe void CreateSwapChain()
+        private unsafe void CreateSwapChain(int width, int height, PixelFormat desiredFormat)
         {
-            var formats = new[] { PixelFormat.B8G8R8A8_UNorm_SRgb, PixelFormat.R8G8B8A8_UNorm_SRgb, PixelFormat.B8G8R8A8_UNorm, PixelFormat.R8G8B8A8_UNorm };
+            var formats = new[] { desiredFormat, PixelFormat.B8G8R8A8_UNorm_SRgb, PixelFormat.R8G8B8A8_UNorm_SRgb, PixelFormat.B8G8R8A8_UNorm, PixelFormat.R8G8B8A8_UNorm };
 
             foreach (var format in formats)
             {
                 var nativeFromat = VulkanConvertExtensions.ConvertPixelFormat(format);
 
-                vkGetPhysicalDeviceFormatProperties(GraphicsDevice.NativePhysicalDevice, nativeFromat, out var formatProperties);
+                GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceFormatProperties(GraphicsDevice.NativePhysicalDevice, nativeFromat, out var formatProperties);
 
                 if ((formatProperties.optimalTilingFeatures & VkFormatFeatureFlags.ColorAttachment) != 0)
                 {
                     Description.BackBufferFormat = format;
+                    if (format != desiredFormat)
+                    {
+                        // Investigate what formats we want to allow if desired format can't be created
+                        if (Debugger.IsAttached) Debugger.Break();
+                    }
                     break;
                 }
             }
 
             // Queue
             // TODO VULKAN: Queue family is needed when creating the Device, so here we can just do a sanity check?
-            var queueNodeIndex = vkGetPhysicalDeviceQueueFamilyProperties(GraphicsDevice.NativePhysicalDevice).ToArray().
-                Where((properties, index) => (properties.queueFlags & VkQueueFlags.Graphics) != 0 && vkGetPhysicalDeviceSurfaceSupportKHR(GraphicsDevice.NativePhysicalDevice, (uint)index, surface, out var supported) == VkResult.Success && supported).
-                Select((properties, index) => index).First();
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceQueueFamilyProperties(GraphicsDevice.NativePhysicalDevice, out uint queueFamilyCount);
+            Span<VkQueueFamilyProperties> queueFamilies = stackalloc VkQueueFamilyProperties[(int)queueFamilyCount];
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceQueueFamilyProperties(GraphicsDevice.NativePhysicalDevice, queueFamilies);
+            var queueNodeIndex = queueFamilies.ToArray()
+                .Where((properties, index) => (properties.queueFlags & VkQueueFlags.Graphics) != 0 && GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceSupportKHR(GraphicsDevice.NativePhysicalDevice, (uint)index, surface, out var supported) == VkResult.Success && supported)
+                .Select((properties, index) => index).First();
 
             // Surface format
             var backBufferFormat = VulkanConvertExtensions.ConvertPixelFormat(Description.BackBufferFormat);
 
-            var surfaceFormats = vkGetPhysicalDeviceSurfaceFormatsKHR(GraphicsDevice.NativePhysicalDevice, surface).ToArray();
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceFormatsKHR(GraphicsDevice.NativePhysicalDevice, surface, out uint surfaceFormatCount);
+            Span<VkSurfaceFormatKHR> surfaceFormats = stackalloc VkSurfaceFormatKHR[(int)surfaceFormatCount];
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceFormatsKHR(GraphicsDevice.NativePhysicalDevice, surface, surfaceFormats);
             if ((surfaceFormats.Length != 1 || surfaceFormats[0].format != VkFormat.Undefined) &&
-                !surfaceFormats.Any(x => x.format == backBufferFormat))
+                !surfaceFormats.ToArray().Any(x => x.format == backBufferFormat))
             {
                 backBufferFormat = surfaceFormats[0].format;
             }
 
             // Create swapchain
-            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out var surfaceCapabilities);
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out var surfaceCapabilities);
+
+            Description.BackBufferWidth = (int)surfaceCapabilities.currentExtent.width;
+            Description.BackBufferHeight = (int)surfaceCapabilities.currentExtent.height;
 
             // Buffer count
             uint desiredImageCount = Math.Max(surfaceCapabilities.minImageCount, 2);
@@ -296,7 +442,9 @@ namespace Stride.Graphics
             }
 
             // Find present mode
-            var presentModes = vkGetPhysicalDeviceSurfacePresentModesKHR(GraphicsDevice.NativePhysicalDevice, surface);
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfacePresentModesKHR(GraphicsDevice.NativePhysicalDevice, surface, out uint presentModeCount);
+            Span<VkPresentModeKHR> presentModes = stackalloc VkPresentModeKHR[(int)presentModeCount];
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfacePresentModesKHR(GraphicsDevice.NativePhysicalDevice, surface, presentModes);
             var swapChainPresentMode = VkPresentModeKHR.Fifo; // Always supported
             foreach (var presentMode in presentModes)
             {
@@ -334,7 +482,7 @@ namespace Stride.Graphics
                 oldSwapchain = swapChain,
                 clipped = true
             };
-            vkCreateSwapchainKHR(GraphicsDevice.NativeDevice, &swapchainCreateInfo, null, out var newSwapChain);
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateSwapchainKHR(GraphicsDevice.NativeDevice, &swapchainCreateInfo, null, out var newSwapChain));
 
             DestroySwapchain();
 
@@ -351,11 +499,15 @@ namespace Stride.Graphics
             }
             // Create surface
 #if STRIDE_UI_SDL
-            var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
-            Silk.NET.Core.Native.VkNonDispatchableHandle surfaceHandle = default;
-            SDL.Window.SDL.VulkanCreateSurface((Silk.NET.SDL.Window*)control.SdlHandle, new Silk.NET.Core.Native.VkHandle(GraphicsDevice.NativeInstance.Handle), ref surfaceHandle);
-            surface = new VkSurfaceKHR(surfaceHandle.Handle);
-#else
+            if (Description.DeviceWindowHandle.Context == Games.AppContextType.DesktopSDL)
+            {
+                var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
+                Silk.NET.Core.Native.VkNonDispatchableHandle surfaceHandle = default;
+                SDL.Window.SDL.VulkanCreateSurface((Silk.NET.SDL.Window*)control.SdlHandle, new Silk.NET.Core.Native.VkHandle(GraphicsDevice.NativeInstance.Handle), ref surfaceHandle);
+                surface = new VkSurfaceKHR(surfaceHandle.Handle);
+            }
+            else
+#endif
             if (Platform.Type == PlatformType.Windows)
             {
                 var controlHandle = Description.DeviceWindowHandle.Handle;
@@ -367,10 +519,10 @@ namespace Stride.Graphics
                 var surfaceCreateInfo = new VkWin32SurfaceCreateInfoKHR
                 {
                     sType = VkStructureType.Win32SurfaceCreateInfoKHR,
-                    instanceHandle = Process.GetCurrentProcess().Handle,
-                    windowHandle = controlHandle,
+                    hinstance = Process.GetCurrentProcess().Handle,
+                    hwnd = controlHandle,
                 };
-                vkCreateWin32SurfaceKHR(GraphicsDevice.NativeInstance, &surfaceCreateInfo, null, out surface);
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeInstanceApi.vkCreateWin32SurfaceKHR(GraphicsDevice.NativeInstance, &surfaceCreateInfo, null, out surface));
             }
             else if (Platform.Type == PlatformType.Android)
             {
@@ -384,7 +536,6 @@ namespace Stride.Graphics
             {
                 throw new NotSupportedException();
             }
-#endif
         }
 
         private unsafe void CreateBackBuffers()
@@ -399,23 +550,23 @@ namespace Stride.Graphics
                 Depth = 1,
                 Flags = TextureFlags.RenderTarget,
                 Format = Description.BackBufferFormat,
-                MipLevels = 1,
+                MipLevelCount = 1,
                 MultisampleCount = MultisampleCount.None,
                 Usage = GraphicsResourceUsage.Default
             };
-            backbuffer.InitializeWithoutResources(backBufferDescription);
+            backBuffer.InitializeWithoutResources(backBufferDescription);
 
             var createInfo = new VkImageViewCreateInfo
             {
                 sType = VkStructureType.ImageViewCreateInfo,
                 subresourceRange = new VkImageSubresourceRange(VkImageAspectFlags.Color, 0, 1, 0, 1),
-                format = backbuffer.NativeFormat,
+                format = backBuffer.NativeFormat,
                 viewType = VkImageViewType.Image2D,
             };
 
             // We initialize swapchain images to PresentSource, since we swap them out while in this layout.
-            backbuffer.NativeAccessMask = VkAccessFlags.MemoryRead;
-            backbuffer.NativeLayout = VkImageLayout.PresentSrcKHR;
+            backBuffer.NativeAccessMask = VkAccessFlags.MemoryRead;
+            backBuffer.NativeLayout = VkImageLayout.PresentSrcKHR;
 
             var imageMemoryBarrier = new VkImageMemoryBarrier
             {
@@ -427,56 +578,66 @@ namespace Stride.Graphics
                 dstAccessMask = VkAccessFlags.MemoryRead
             };
 
-            var commandBufferAllocationInfo = new VkCommandBufferAllocateInfo
-            {
-                sType = VkStructureType.CommandBufferAllocateInfo,
-                level = VkCommandBufferLevel.Primary,
-                commandPool = GraphicsDevice.NativeCopyCommandPools.Value,
-                commandBufferCount = 1
-            };
-            VkCommandBuffer commandBuffer;
-            vkAllocateCommandBuffers(GraphicsDevice.NativeDevice, &commandBufferAllocationInfo, &commandBuffer);
+            var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(0);
 
             var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo };
-            vkBeginCommandBuffer(commandBuffer, &beginInfo);
+            GraphicsDevice.NativeDeviceApi.vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-            var buffers = vkGetSwapchainImagesKHR(GraphicsDevice.NativeDevice, swapChain);
+            GraphicsDevice.NativeDeviceApi.vkGetSwapchainImagesKHR(GraphicsDevice.NativeDevice, swapChain, out uint swapchainImageCount);
+            Span<VkImage> buffers = stackalloc VkImage[(int)swapchainImageCount];
+            GraphicsDevice.NativeDeviceApi.vkGetSwapchainImagesKHR(GraphicsDevice.NativeDevice, swapChain, buffers);
             swapchainImages = new SwapChainImageInfo[buffers.Length];
 
-            for (int i = 0; i < buffers.Length; i++)
+            for (int index = 0; index < buffers.Length; index++)
             {
                 // Create image views
-                swapchainImages[i].NativeImage = createInfo.image = buffers[i];
-                vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out swapchainImages[i].NativeColorAttachmentView);
+                swapchainImages[index].NativeImage = createInfo.image = buffers[index];
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out swapchainImages[index].NativeColorAttachmentView));
 
                 // Transition to default layout
-                imageMemoryBarrier.image = buffers[i];
-                vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.AllCommands, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 0, null, 1, &imageMemoryBarrier);
+                imageMemoryBarrier.image = buffers[index];
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.AllCommands, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 0, null, 1, &imageMemoryBarrier);
             }
 
             // Close and submit
-            vkEndCommandBuffer(commandBuffer);
-
-            var submitInfo = new VkSubmitInfo
-            {
-                sType = VkStructureType.SubmitInfo,
-                commandBufferCount = 1,
-                pCommandBuffers = &commandBuffer,
-            };
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkEndCommandBuffer(commandBuffer));
 
             lock (GraphicsDevice.QueueLock)
             {
-                vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null);
-                vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue);
+                var submitInfo = new VkSubmitInfo
+                {
+                    sType = VkStructureType.SubmitInfo,
+                    commandBufferCount = 1,
+                    pCommandBuffers = &commandBuffer,
+                };
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null));
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue));
             }
 
-            vkFreeCommandBuffers(GraphicsDevice.NativeDevice, GraphicsDevice.NativeCopyCommandPools.Value, 1, &commandBuffer);
+            GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(0, commandBuffer);
+
+            // Create submit semaphores
+            submitSemaphores = new VkSemaphore[buffers.Length];
+            var semaphoreCreateInfo = new VkSemaphoreCreateInfo { sType = VkStructureType.SemaphoreCreateInfo };
+            for (int i = 0; i < submitSemaphores.Length; ++i)
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateSemaphore(GraphicsDevice.NativeDevice, &semaphoreCreateInfo, null, out submitSemaphores[i]));
+
+            frameFences = new VkFence[kNumberOfFramesInFlight];
+            acquireSemaphores = new VkSemaphore[kNumberOfFramesInFlight];
+            var fenceCreateInfo = new VkFenceCreateInfo { sType = VkStructureType.FenceCreateInfo };
+            for (int i = 0; i < kNumberOfFramesInFlight; i++)
+            {
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateSemaphore(GraphicsDevice.NativeDevice, &semaphoreCreateInfo, null, out acquireSemaphores[i]));
+                // Make all fence except 0 as signaled (so that next Present()=>vkWaitForFences is not blocked when fetching secondary buffers for first time)
+                fenceCreateInfo.flags = i == 0 ? VkFenceCreateFlags.None : VkFenceCreateFlags.Signaled;
+                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateFence(GraphicsDevice.NativeDevice, &fenceCreateInfo, null, out frameFences[i]));
+            }
 
             // Get next image
-            vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), VkFence.Null, out currentBufferIndex);
-            
-            // Apply the first swap chain image to the texture
-            backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
+            currentFrameIndex = 0;
+
+            // We allow failure to not have recursion (we just created, if it failed, it will likely fail again)
+            AcquireNextImage(false);
         }
     }
 }

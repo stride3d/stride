@@ -62,6 +62,22 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
+  <!-- RenderDoc Capture for Failed Tests -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <!-- By default, on Windows + Debug, enable RenderDoc captures for graphics
+         regression tests that fail. Has no effect on non-graphics tests. -->
+    <StrideCaptureRenderDocOnFailedTest
+      Condition="'$(StrideCaptureRenderDocOnFailedTest)' == '' AND
+                 '$(Configuration)' == 'Debug' AND
+                 '$(StridePlatform)' == 'Windows'">true</StrideCaptureRenderDocOnFailedTest>
+
+    <DefineConstants Condition="'$(StrideCaptureRenderDocOnFailedTest)' == 'true'">
+      STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR;$(DefineConstants)
+    </DefineConstants>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Asset Compilation Settings -->
   <!-- ================================================================ -->
   <PropertyGroup>

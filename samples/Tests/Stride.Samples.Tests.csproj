@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <!-- NuGet resolved needed for StrideDefaultAssetsPlugin.LoadDefaultTemplates() -->
   <Import Project="..\..\sources\targets\Stride.UnitTests.props" />
   <PropertyGroup>
@@ -13,8 +13,13 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="18.0.2" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="18.0.2" />
     <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\sources\shared\SharedAssemblyInfo.cs">
@@ -33,7 +38,7 @@
   <Import Project="..\..\sources\targets\Stride.UnitTests.targets" />
   <!-- Override the references set in Stride.UnitTests.targets -->
   <ItemGroup>
-    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Update="TeamCity.VSTest.TestAdapter" Version="1.0.39" />
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Update="TeamCity.VSTest.TestAdapter" Version="1.0.41" />
   </ItemGroup>
 </Project>

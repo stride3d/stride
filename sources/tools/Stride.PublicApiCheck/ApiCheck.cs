@@ -13,6 +13,17 @@ namespace Stride.PublicApiCheck
 {
     /// <summary>
     /// Helper class to check public API consistency between assemblies.
+    /// This tool attempts to detect breaking changes.
+    /// <para>
+    /// Command-line usage:
+    /// <code>
+    /// ApiCheck.exe &lt;from&gt; &lt;to&gt;
+    /// Example:
+    /// ApiCheck.exe OldVersion.dll NewVersion.dll
+    /// </code>
+    /// This will compare the public API of <c>OldVersion.dll</c> against
+    /// <c>NewVersion.dll</c> and print missing API items, if any.
+    /// </para>
     /// </summary>
     public static class ApiCheck
     {
@@ -92,7 +103,7 @@ namespace Stride.PublicApiCheck
             if (diff.Count > 0)
             {
                 var output = new StringBuilder();
-                output.AppendFormat("{0} public missing in {1}", diff.Count, Path.GetFileName(to));
+                output.AppendFormat("== {0} public missing in {1} ==", diff.Count, Path.GetFileName(to));
                 output.AppendLine();
                 foreach (var diffItem in diff)
                 {

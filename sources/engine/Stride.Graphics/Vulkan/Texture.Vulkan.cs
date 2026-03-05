@@ -2,17 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
-using System.Runtime.CompilerServices;
 using Stride.Core;
 using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
     public partial class Texture
     {
         // Note: block size for compressed formats
-        internal int TexturePixelSize => Format.SizeInBytes();
+        internal int TexturePixelSize => Format.SizeInBytes;
 
         internal const int TextureSubresourceAlignment = 4;
         internal const int TextureRowPitchAlignment = 1;
@@ -45,26 +43,29 @@ namespace Stride.Graphics
             return true;
         }
 
-        internal void SwapInternal(Texture other)
+        /// <summary>
+        ///   Swaps the Texture's internal data with another Texture.
+        /// </summary>
+        /// <param name="other">The other Texture.</param>
+        internal override void SwapInternal(GraphicsResourceBase other)
         {
-            (NativeImage, other.NativeImage)                             = (other.NativeImage, NativeImage);
-            (NativeBuffer, other.NativeBuffer)                           = (other.NativeBuffer, NativeBuffer);
-            (NativeColorAttachmentView, other.NativeColorAttachmentView) = (other.NativeColorAttachmentView, NativeColorAttachmentView);
-            (NativeDepthStencilView, other.NativeDepthStencilView)       = (other.NativeDepthStencilView, NativeDepthStencilView);
-            (NativeImageView, other.NativeImageView)                     = (other.NativeImageView, NativeImageView);
-            (NativeResourceRange, other.NativeResourceRange)             = (other.NativeResourceRange, NativeResourceRange);
-            (isNotOwningResources, other.isNotOwningResources)           = (other.isNotOwningResources, isNotOwningResources);
-            (IsInitialized, other.IsInitialized)                         = (other.IsInitialized, IsInitialized);
-            (NativeFormat, other.NativeFormat)                           = (other.NativeFormat, NativeFormat);
-            (HasStencil, other.HasStencil)                               = (other.HasStencil, HasStencil);
-            (NativeLayout, other.NativeLayout)                           = (other.NativeLayout, NativeLayout);
-            (NativeAccessMask, other.NativeAccessMask)                   = (other.NativeAccessMask, NativeAccessMask);
-            (NativeImageAspect, other.NativeImageAspect)                 = (other.NativeImageAspect, NativeImageAspect);
-            //
-            (NativeMemory, other.NativeMemory)                           = (other.NativeMemory, NativeMemory);
-            (StagingFenceValue, other.StagingFenceValue)                 = (other.StagingFenceValue, StagingFenceValue);
-            (StagingBuilder, other.StagingBuilder)                       = (other.StagingBuilder, StagingBuilder);
-            (NativePipelineStageMask, other.NativePipelineStageMask)     = (other.NativePipelineStageMask, NativePipelineStageMask);
+            var otherTexture = (Texture)other;
+
+            base.SwapInternal(other);
+
+            (NativeImage, otherTexture.NativeImage)                             = (otherTexture.NativeImage, NativeImage);
+            (NativeBuffer, otherTexture.NativeBuffer)                           = (otherTexture.NativeBuffer, NativeBuffer);
+            (NativeColorAttachmentView, otherTexture.NativeColorAttachmentView) = (otherTexture.NativeColorAttachmentView, NativeColorAttachmentView);
+            (NativeDepthStencilView, otherTexture.NativeDepthStencilView)       = (otherTexture.NativeDepthStencilView, NativeDepthStencilView);
+            (NativeImageView, otherTexture.NativeImageView)                     = (otherTexture.NativeImageView, NativeImageView);
+            (NativeResourceRange, otherTexture.NativeResourceRange)             = (otherTexture.NativeResourceRange, NativeResourceRange);
+            (isNotOwningResources, otherTexture.isNotOwningResources)           = (otherTexture.isNotOwningResources, isNotOwningResources);
+            (IsInitialized, otherTexture.IsInitialized)                         = (otherTexture.IsInitialized, IsInitialized);
+            (NativeFormat, otherTexture.NativeFormat)                           = (otherTexture.NativeFormat, NativeFormat);
+            (HasStencil, otherTexture.HasStencil)                               = (otherTexture.HasStencil, HasStencil);
+            (NativeLayout, otherTexture.NativeLayout)                           = (otherTexture.NativeLayout, NativeLayout);
+            (NativeAccessMask, otherTexture.NativeAccessMask)                   = (otherTexture.NativeAccessMask, NativeAccessMask);
+            (NativeImageAspect, otherTexture.NativeImageAspect)                 = (otherTexture.NativeImageAspect, NativeImageAspect);
         }
 
         internal Texture InitializeFromPersistent(TextureDescription description, VkImage nativeImage)
@@ -86,7 +87,7 @@ namespace Stride.Graphics
             NativeColorAttachmentView = attachmentView;
         }
 
-        private void InitializeFromImpl(DataBox[] dataBoxes = null)
+        private partial void InitializeFromImpl(DataBox[] dataBoxes = null)
         {
             NativeFormat = VulkanConvertExtensions.ConvertPixelFormat(ViewFormat);
             HasStencil = IsStencilFormat(ViewFormat);
@@ -202,16 +203,16 @@ namespace Stride.Graphics
             };
 
             // Create buffer
-            vkCreateBuffer(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out NativeBuffer);
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateBuffer(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out NativeBuffer));
 
             // Allocate and bind memory
-            vkGetBufferMemoryRequirements(GraphicsDevice.NativeDevice, NativeBuffer, out var memoryRequirements);
+            GraphicsDevice.NativeDeviceApi.vkGetBufferMemoryRequirements(GraphicsDevice.NativeDevice, NativeBuffer, out var memoryRequirements);
 
             AllocateMemory(VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent, memoryRequirements);
 
             if (NativeMemory != VkDeviceMemory.Null)
             {
-                vkBindBufferMemory(GraphicsDevice.NativeDevice, NativeBuffer, NativeMemory, 0);
+                GraphicsDevice.NativeDeviceApi.vkBindBufferMemory(GraphicsDevice.NativeDevice, NativeBuffer, NativeMemory, 0);
             }
         }
 
@@ -223,7 +224,7 @@ namespace Stride.Graphics
                 sType = VkStructureType.ImageCreateInfo,
                 arrayLayers = (uint) ArraySize,
                 extent = new VkExtent3D(Width, Height, Depth),
-                mipLevels = (uint) MipLevels,
+                mipLevels = (uint) MipLevelCount,
                 samples = VkSampleCountFlags.Count1,
                 format = NativeFormat,
                 flags = VkImageCreateFlags.None,
@@ -267,40 +268,30 @@ namespace Stride.Graphics
 
             // Create native image
             // TODO: Multisampling, flags, usage, etc.
-            vkCreateImage(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out NativeImage);
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImage(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out NativeImage));
 
             // Allocate and bind memory
-            vkGetImageMemoryRequirements(GraphicsDevice.NativeDevice, NativeImage, out var memoryRequirements);
+            GraphicsDevice.NativeDeviceApi.vkGetImageMemoryRequirements(GraphicsDevice.NativeDevice, NativeImage, out var memoryRequirements);
 
             AllocateMemory(memoryProperties, memoryRequirements);
 
             if (NativeMemory != VkDeviceMemory.Null)
             {
-                vkBindImageMemory(GraphicsDevice.NativeDevice, NativeImage, NativeMemory, 0);
+                GraphicsDevice.NativeDeviceApi.vkBindImageMemory(GraphicsDevice.NativeDevice, NativeImage, NativeMemory, 0);
             }
         }
 
         private unsafe void InitializeData(DataBox[] dataBoxes)
         {
-            // Begin copy command buffer
-            var commandBufferAllocateInfo = new VkCommandBufferAllocateInfo
-            {
-                sType = VkStructureType.CommandBufferAllocateInfo,
-                commandPool = GraphicsDevice.NativeCopyCommandPools.Value,
-                commandBufferCount = 1,
-                level = VkCommandBufferLevel.Primary
-            };
-            VkCommandBuffer commandBuffer;
-
-            vkAllocateCommandBuffers(GraphicsDevice.NativeDevice, &commandBufferAllocateInfo, &commandBuffer);
+            var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(GraphicsDevice.CopyFence.GetCompletedValue());
 
             var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo, flags = VkCommandBufferUsageFlags.OneTimeSubmit };
-            vkBeginCommandBuffer(commandBuffer, &beginInfo);
+            GraphicsDevice.NativeDeviceApi.vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
             if (dataBoxes != null && dataBoxes.Length > 0)
             {
                 // Buffer-to-image copies need to be aligned to the pixel size and 4 (always a power of 2)
-                var blockSize = Format.BlockSize();
+                var blockSize = Format.BlockSize;
                 var alignmentMask = (blockSize < 4 ? 4 : blockSize) - 1;
 
                 int totalSize = dataBoxes.Length * alignmentMask;
@@ -318,13 +309,13 @@ namespace Stride.Graphics
                 if (Usage == GraphicsResourceUsage.Staging)
                 {
                     bufferBarriers[1] = new VkBufferMemoryBarrier(NativeBuffer, NativeAccessMask, VkAccessFlags.TransferWrite);
-                    vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                    GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
                 }
                 else
                 {
                     // Image barrier
                     var initialBarrier = new VkImageMemoryBarrier(NativeImage, new VkImageSubresourceRange(NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue), VkAccessFlags.None, VkAccessFlags.TransferWrite, VkImageLayout.Undefined, VkImageLayout.TransferDstOptimal);
-                    vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, bufferBarriers, imageMemoryBarrierCount: 1, &initialBarrier);
+                    GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, bufferBarriers, imageMemoryBarrierCount: 1, &initialBarrier);
                 }
 
                 // Copy data boxes to upload buffer
@@ -332,15 +323,15 @@ namespace Stride.Graphics
                 {
                     var slicePitch = dataBoxes[i].SlicePitch;
 
-                    int arraySlice = i / MipLevels;
-                    int mipSlice = i % MipLevels;
+                    int arraySlice = i / MipLevelCount;
+                    int mipSlice = i % MipLevelCount;
                     var mipMapDescription = GetMipMapDescription(mipSlice);
 
                     var alignment = ((uploadOffset + alignmentMask) & ~alignmentMask) - uploadOffset;
                     uploadMemory += alignment;
                     uploadOffset += alignment;
 
-                    Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) (dataBoxes[i].DataPointer), (uint) slicePitch);
+                    MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) (dataBoxes[i].DataPointer), (uint) slicePitch);
 
                     if (Usage == GraphicsResourceUsage.Staging)
                     {
@@ -348,10 +339,10 @@ namespace Stride.Graphics
                         {
                             srcOffset = (ulong) uploadOffset,
                             dstOffset = (ulong) ComputeBufferOffset(i, depthSlice: 0),
-                            size = (uint) ComputeSubresourceSize(i)
+                            size = (uint) ComputeSubResourceSize(i)
                         };
 
-                        vkCmdCopyBuffer(commandBuffer, uploadResource, NativeBuffer, regionCount: 1, &copy);
+                        GraphicsDevice.NativeDeviceApi.vkCmdCopyBuffer(commandBuffer, uploadResource, NativeBuffer, regionCount: 1, &copy);
                     }
                     else
                     {
@@ -360,14 +351,14 @@ namespace Stride.Graphics
                         {
                             bufferOffset = (ulong) uploadOffset,
                             imageSubresource = new VkImageSubresourceLayers(VkImageAspectFlags.Color, (uint) mipSlice, (uint) arraySlice, layerCount: 1),
-                            bufferRowLength = (uint) (dataBoxes[i].RowPitch * Format.BlockWidth() / Format.BlockSize()),
-                            bufferImageHeight = (uint) (dataBoxes[i].SlicePitch * Format.BlockHeight() / dataBoxes[i].RowPitch),
+                            bufferRowLength = (uint) (dataBoxes[i].RowPitch * Format.BlockWidth / Format.BlockSize),
+                            bufferImageHeight = (uint) (dataBoxes[i].SlicePitch * Format.BlockHeight / dataBoxes[i].RowPitch),
                             imageOffset = new VkOffset3D(0, 0, 0),
                             imageExtent = new VkExtent3D(mipMapDescription.Width, mipMapDescription.Height, mipMapDescription.Depth)
                         };
 
                         // Copy from upload buffer to image
-                        vkCmdCopyBufferToImage(commandBuffer, uploadResource, NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &copy);
+                        GraphicsDevice.NativeDeviceApi.vkCmdCopyBufferToImage(commandBuffer, uploadResource, NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &copy);
                     }
 
                     uploadMemory += slicePitch;
@@ -377,7 +368,7 @@ namespace Stride.Graphics
                 if (Usage == GraphicsResourceUsage.Staging)
                 {
                     bufferBarriers[0] = new VkBufferMemoryBarrier(NativeBuffer, VkAccessFlags.TransferWrite, NativeAccessMask);
-                    vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                    GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
                 }
 
                 IsInitialized = true;
@@ -390,30 +381,21 @@ namespace Stride.Graphics
                     new VkImageSubresourceRange(NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue),
                     dataBoxes == null || dataBoxes.Length == 0 ? VkAccessFlags.None : VkAccessFlags.TransferWrite, NativeAccessMask,
                     dataBoxes == null || dataBoxes.Length == 0 ? VkImageLayout.Undefined : VkImageLayout.TransferDstOptimal, NativeLayout);
-                vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &imageMemoryBarrier);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &imageMemoryBarrier);
             }
 
             // Close and submit
-            vkEndCommandBuffer(commandBuffer);
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkEndCommandBuffer(commandBuffer));
 
-            var submitInfo = new VkSubmitInfo
-            {
-                sType = VkStructureType.SubmitInfo,
-                commandBufferCount = 1,
-                pCommandBuffers = &commandBuffer
-            };
+            var copyFenceValue = GraphicsDevice.ExecuteAndWaitCopyQueueGPU(commandBuffer);
+            GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CopyFence.NextFenceValue, commandBuffer);
 
-            lock (GraphicsDevice.QueueLock)
-            {
-                vkQueueSubmit(GraphicsDevice.NativeCommandQueue, submitCount: 1, &submitInfo, VkFence.Null);
-                vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue);
-            }
-
-            vkFreeCommandBuffers(GraphicsDevice.NativeDevice, GraphicsDevice.NativeCopyCommandPools.Value, commandBufferCount: 1, &commandBuffer);
+            // Make sure any subsequent CPU access (i.e. MapSubresource) will wait for copy command list to be finished
+            CopyFenceValue = copyFenceValue;
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
+        protected internal override void OnDestroyed(bool immediately = false)
         {
             if (ParentTexture != null || isNotOwningResources)
             {
@@ -460,10 +442,13 @@ namespace Stride.Graphics
                 }
             }
 
-            base.OnDestroyed();
+            base.OnDestroyed(immediately);
         }
 
-        private void OnRecreateImpl()
+        /// <summary>
+        ///   Perform Vulkan-specific recreation of the Texture.
+        /// </summary>
+        private partial void OnRecreateImpl()
         {
             // Dependency: wait for underlying texture to be recreated
             if (ParentTexture != null && ParentTexture.LifetimeState != GraphicsResourceLifetimeState.Active)
@@ -504,12 +489,12 @@ namespace Stride.Graphics
                 subresourceRange = new VkImageSubresourceRange(IsDepthStencil ? VkImageAspectFlags.Depth : VkImageAspectFlags.Color, (uint) mipIndex, (uint) mipCount, (uint) arrayOrDepthSlice, (uint) layerCount) // TODO VULKAN: Select between depth and stencil?
             };
 
-            if (IsMultisample)
+            if (IsMultiSampled)
                 throw new NotImplementedException();
 
             if (this.ArraySize > 1)
             {
-                if (IsMultisample && Dimension != TextureDimension.Texture2D)
+                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
                     throw new NotSupportedException("Multisample is only supported for 2D Textures");
 
                 if (Dimension == TextureDimension.Texture3D)
@@ -532,7 +517,7 @@ namespace Stride.Graphics
             }
             else
             {
-                if (IsMultisample && Dimension != TextureDimension.Texture2D)
+                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
                     throw new NotSupportedException("Multisample is only supported for 2D RenderTarget Textures");
 
                 if (Dimension == TextureDimension.TextureCube)
@@ -552,7 +537,7 @@ namespace Stride.Graphics
                 }
             }
 
-            vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out var imageView);
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out var imageView));
             return imageView;
         }
 
@@ -575,12 +560,12 @@ namespace Stride.Graphics
                 subresourceRange = new VkImageSubresourceRange(VkImageAspectFlags.Color, (uint) mipIndex, (uint) mipCount, (uint) arrayOrDepthSlice, 1)
             };
 
-            if (IsMultisample)
+            if (IsMultiSampled)
                 throw new NotImplementedException();
 
             if (this.ArraySize > 1)
             {
-                if (IsMultisample && Dimension != TextureDimension.Texture2D)
+                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
                     throw new NotSupportedException("Multisample is only supported for 2D Textures");
 
                 if (Dimension == TextureDimension.Texture3D)
@@ -588,14 +573,14 @@ namespace Stride.Graphics
             }
             else
             {
-                if (IsMultisample && Dimension != TextureDimension.Texture2D)
+                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
                     throw new NotSupportedException("Multisample is only supported for 2D RenderTarget Textures");
 
                 if (Dimension == TextureDimension.TextureCube)
                     throw new NotSupportedException("TextureCube dimension is expecting an arraysize > 1");
             }
 
-            vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out var imageView);
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out var imageView));
             return imageView;
         }
 
@@ -630,11 +615,15 @@ namespace Stride.Graphics
             //        createInfo.Flags |= (int)AttachmentViewCreateFlags.AttachmentViewCreateReadOnlyStencilBit;
             //}
 
-            vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out var imageView);
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out var imageView));
             return imageView;
         }
 
-        private bool IsFlipped()
+        /// <summary>
+        ///   Indicates if the Texture is flipped vertically, i.e. if the rows are ordered bottom-to-top instead of top-to-bottom.
+        /// </summary>
+        /// <returns><see langword="true"/> if the Texture is flipped; <see langword="false"/> otherwise.</returns>
+        private partial bool IsFlipped()
         {
             return false;
         }
@@ -652,9 +641,9 @@ namespace Stride.Graphics
         /// <returns>The updated texture description.</returns>
         private static TextureDescription CheckMipLevels(GraphicsDevice device, ref TextureDescription description)
         {
-            if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 && (description.Flags & TextureFlags.DepthStencil) == 0 && description.Format.IsCompressed())
+            if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 && (description.Flags & TextureFlags.DepthStencil) == 0 && description.Format.IsCompressed)
             {
-                description.MipLevels = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevels);
+                description.MipLevelCount = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevelCount);
             }
             return description;
         }
@@ -708,7 +697,7 @@ namespace Stride.Graphics
 
                 foreach (var fallbackFormat in fallbackFormats)
                 {
-                    vkGetPhysicalDeviceFormatProperties(device.NativePhysicalDevice, fallbackFormat, out var formatProperties);
+                    device.NativeInstanceApi.vkGetPhysicalDeviceFormatProperties(device.NativePhysicalDevice, fallbackFormat, out var formatProperties);
 
                     if ((formatProperties.optimalTilingFeatures & VkFormatFeatureFlags.DepthStencilAttachment) != 0)
                     {

@@ -10,7 +10,8 @@ namespace Stride.Shaders.Parser.Utility
         public static readonly MessageCode WarningDeclarationCall                   = new MessageCode("W0201", "The method invocation [{0}] calls the method [{1}] which is only declared, and not defined in class [{2}]");
         public static readonly MessageCode WarningMissingStageKeyword               = new MessageCode("W0202", "The stage keyword is missing in The method declaration [{0}] in class [{1}]");
         public static readonly MessageCode WarningUseSemanticType                   = new MessageCode("W0203", "The generic [{0}] is not of Semantic type but was used as semantic. Change the type or change name of the generic if there is a conflict.");
-                                                                              
+        public static readonly MessageCode WarningMissingOverrideKeyword            = new MessageCode("W0204", "Override keyword should be used when overriding the method declaration [{0}] in class [{1}]");
+
         // analysis errors: E0###                                                   
         public static readonly MessageCode ErrorCyclicDependency                    = new MessageCode("E0201", "Cyclic mixin [{0}] dependency");
         public static readonly MessageCode ErrorFunctionRedefined                   = new MessageCode("E0202", "There is already a function with the same signature as [{0}] in class [{1}]");
@@ -24,7 +25,6 @@ namespace Stride.Shaders.Parser.Utility
         public static readonly MessageCode ErrorExternStageVariableNotFound         = new MessageCode("E0210", "There is no matching instance for variable [{0}] in class [{1}]");
         public static readonly MessageCode ErrorExternStageFunctionNotFound         = new MessageCode("E0211", "Unable to find the virtual call [{0}] of extern class [{1}] in context [{2}]");
         public static readonly MessageCode ErrorMissingOverride                     = new MessageCode("E0212", "There is already a method with the same signature as [{0}] in class [{1}]. Missing override keyword?");
-        public static readonly MessageCode ErrorOverrideDeclaration                 = new MessageCode("E0213", "There is no need for the override keyword when overriding the method declaration [{0}] in class [{1}]");
         public static readonly MessageCode ErrorNoMethodToOverride                  = new MessageCode("E0214", "There is no method [{0}] to override in class [{1}]");
         public static readonly MessageCode ErrorShaderClassTypeParameter            = new MessageCode("E0215", "The function [{0}] has a paramater [{1}] of shader class type which is not allowed in class [{2}]");
         public static readonly MessageCode ErrorShaderClassReturnType               = new MessageCode("E0216", "The function [{0}] is not allowed to return a class in class [{1}]");

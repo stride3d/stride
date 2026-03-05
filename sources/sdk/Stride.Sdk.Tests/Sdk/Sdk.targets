@@ -29,13 +29,13 @@
   <!-- Include xUnit Launcher Code -->
   <!-- ================================================================ -->
   <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
-    <!-- Launcher code depends on whether graphics API is used -->
+    <!-- Launcher code depends on whether this is a graphics regression test -->
     <Compile Include="$(MSBuildThisFileDirectory)LauncherSimple.Desktop.cs"
-             Condition="'$(StrideGraphicsApiDependent)' != 'true' And '$(IncludeXunitLauncher)' != 'false'">
+             Condition="'$(StrideGraphicsRegression)' != 'true' And '$(IncludeXunitLauncher)' != 'false'">
       <Link>LauncherSimple.Desktop.cs</Link>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)LauncherGame.Desktop.cs"
-             Condition="'$(StrideGraphicsApiDependent)' == 'true' And '$(IncludeXunitLauncher)' != 'false'">
+             Condition="'$(StrideGraphicsRegression)' == 'true' And '$(IncludeXunitLauncher)' != 'false'">
       <Link>LauncherGame.Desktop.cs</Link>
     </Compile>
   </ItemGroup>

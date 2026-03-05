@@ -21,6 +21,25 @@ namespace Stride.Engine
         /// </summary>
         /// <userdoc>The root element of the page.</userdoc>
         [DataMember]
-        public UIElement RootElement { get; set; }
+        public UIElement RootElement
+        {
+            get;
+            set
+            {
+                field = value;
+                field?.UIElementServices = new UIElementServices { Services = Services };
+            }
+        }
+
+        [DataMemberIgnore]
+        internal IServiceRegistry Services
+        {
+            get;
+            set
+            {
+                field = value;
+                RootElement?.UIElementServices = new UIElementServices { Services = Services };
+            }
+        }
     }
 }

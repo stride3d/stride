@@ -13,11 +13,11 @@ namespace Stride.UI
         /// <summary>
         /// The key that triggered the event.
         /// </summary>
-        public Keys Key { get; internal set; }
+        public Keys Key { get; init; }
 
         /// <summary>
         /// A reference to the input system that can be used to check the status of the other keys.
         /// </summary>
-        public InputManager Input { get; internal set; }
+        public InputManager Input { get; init; }
     }
 }

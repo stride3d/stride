@@ -2,31 +2,66 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Linq;
+
 using Stride.Graphics;
 using Stride.Shaders;
 
 namespace Stride.Rendering
 {
     /// <summary>
-    /// Defines a layout used by <see cref="EffectParameterUpdater"/> to update several <see cref="ResourceGroup"/> from a <see cref="ParameterCollection"/>.
+    ///   Defines the layout used by <see cref="EffectParameterUpdater"/> to update several <see cref="ResourceGroup"/>s
+    ///   from a <see cref="ParameterCollection"/>.
     /// </summary>
     public class EffectParameterUpdaterLayout
     {
+        /// <summary>
+        ///   An array of descriptions of the layouts for the resource groups used by the Effect.
+        /// </summary>
         internal ResourceGroupLayout[] ResourceGroupLayouts;
 
+        /// <summary>
+        ///   An array of <see cref="DescriptorSetLayoutBuilder"/>s that define the structure
+        ///   of resource bindings for the Effect.
+        /// </summary>
         internal DescriptorSetLayoutBuilder[] Layouts;
-        internal ParameterCollectionLayout ParameterCollectionLayout = new ParameterCollectionLayout();
+        /// <summary>
+        ///   A description of how a collection of parameters map to binding slots and Constant Buffer data.
+        /// </summary>
+        internal ParameterCollectionLayout ParameterCollectionLayout = new();
 
-        public EffectParameterUpdaterLayout(GraphicsDevice graphicsDevice, Effect effect, DescriptorSetLayoutBuilder[] layouts)
+
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="EffectParameterUpdaterLayout"/> class.
+        /// </summary>
+        /// <param name="graphicsDevice">
+        ///   The Graphics Device used to create resource group layouts. Cannot be <see langword="null"/>.
+        /// </param>
+        /// <param name="effect">
+        ///   The effect whose parameters and constant buffers are processed. Cannot be <see langword="null"/>.
+        /// </param>
+        /// <param name="layouts">
+        ///   An array of <see cref="DescriptorSetLayoutBuilder"/> instances that define the layouts
+        ///   for resource groups. Each layout is processed to extract resources and Constant Buffers.
+        ///   Cannot be <see langword="null"/> or contain <see langword="null"/> elements.
+        /// </param>
+        /// <remarks>
+        ///   This constructor processes the provided Descriptor Set layouts to create resource group layouts
+        ///   and associates them with the Effect's parameters.
+        ///   It identifies Constant Buffers within the layouts and processes them to ensure they are compatible
+        ///   with the Effect's bytecode.
+        /// </remarks>
+        public EffectParameterUpdaterLayout(GraphicsDevice graphicsDevice,
+                                            EffectBytecode effectBytecode, DescriptorSetLayoutBuilder[] layouts)
         {
             Layouts = layouts;
 
-            // Process constant buffers
             ResourceGroupLayouts = new ResourceGroupLayout[layouts.Length];
+
+            // Process Constant Buffers
             for (int layoutIndex = 0; layoutIndex < layouts.Length; layoutIndex++)
             {
                 var layout = layouts[layoutIndex];
-                if (layout == null)
+                if (layout is null)
                     continue;
 
                 ParameterCollectionLayout.ProcessResources(layout);
@@ -38,10 +73,10 @@ namespace Stride.Rendering
                     var layoutEntry = layout.Entries[entryIndex];
                     if (layoutEntry.Class == EffectParameterClass.ConstantBuffer)
                     {
-                        // For now we assume first cbuffer will be the main one
-                        if (cbuffer == null)
+                        // For now we assume first Constant Buffer will be the main one
+                        if (cbuffer is null)
                         {
-                            cbuffer = effect.Bytecode.Reflection.ConstantBuffers.First(x => x.Name == layoutEntry.Key.Name);
+                            cbuffer = effectBytecode.Reflection.ConstantBuffers.First(x => x.Name == layoutEntry.Key.Name);
                             ParameterCollectionLayout.ProcessConstantBuffer(cbuffer);
                         }
                     }
@@ -49,7 +84,7 @@ namespace Stride.Rendering
 
                 var resourceGroupDescription = new ResourceGroupDescription(layout, cbuffer);
 
-                ResourceGroupLayouts[layoutIndex] = ResourceGroupLayout.New(graphicsDevice, resourceGroupDescription, effect.Bytecode);
+                ResourceGroupLayouts[layoutIndex] = ResourceGroupLayout.New(graphicsDevice, resourceGroupDescription);
             }
         }
     }

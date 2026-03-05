@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,7 +25,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
+
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -33,13 +33,22 @@ using Stride.Core.ReferenceCounting;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Graphics.Data;
-using Utilities = Stride.Core.Utilities;
 
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Class used for all Textures (1D, 2D, 3D, DepthStencil, RenderTargets...etc.)
+    ///   All-in-one <strong>GPU Texture</strong> that is able to represent many types of textures (1D, 2D, 3D, Depth-Stencil Buffers, Render Targets, etc),
+    ///   as well as <strong>Texture Views</strong> over a parent Texture.
     /// </summary>
+    /// <remarks>
+    ///   <para><see cref="Texture"/> constains static methods for creating new Textures by specifying all their characteristics.</para>
+    ///   <para>
+    ///     Also look for the following static methods that aid in the creation of specific kinds of buffers:
+    ///     <see cref="New1D"/> (for <strong>one-dimensional Textures</strong>), <see cref="New2D"/> (for <strong>two-dimensional Textures</strong>),
+    ///     <see cref="New3D"/> (for <strong>three-dimensional Textures</strong>), and <see cref="NewCube"/> (for <strong>six-sided two-dimensional Cube-maps</strong>).
+    ///   </para>
+    ///   <para>Consult the documentation of your graphics API for more information on each kind of Texture.</para>
+    /// </remarks>
     [ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<Texture>), Profile = "Content")]
     [ContentSerializer(typeof(TextureContentSerializer))]
     [ContentSerializer(typeof(TextureImageSerializer))]
@@ -54,348 +63,227 @@ namespace Stride.Graphics
         private Size3? fullQualitySize;
 
         /// <summary>
-        /// Common description for the original texture. See remarks.
+        ///   Gets the common description for the original Texture.
         /// </summary>
-        /// <remarks>
-        /// This field and the properties in TextureDessciption must be considered as readonly when accessing from this instance.
-        /// </remarks>
-        public TextureDescription Description
-        {
-            get
-            {
-                return textureDescription;
-            }
-        }
+        public ref readonly TextureDescription Description => ref textureDescription;
 
         /// <summary>
-        /// Gets the view description.
+        ///   Gets the view description.
         /// </summary>
-        /// <value>The view description.</value>
-        public TextureViewDescription ViewDescription
-        {
-            get
-            {
-                return textureViewDescription;
-            }
-        }
+        public ref readonly TextureViewDescription ViewDescription => ref textureViewDescription;
 
         /// <summary>
-        /// The dimension of a texture.
+        ///   Gets the type of the Texture.
         /// </summary>
         public TextureDimension Dimension
-        {
-            get
-            {
-                // TODO: What's the point of storing the dimensions?
-                // We could just as well generate the "TextureDimension" based on the "TextureTarget" property,
-                // because "TextureDimension" is fully dependent on the "TextureTarget" property.
-                // E.g. "Texture2D" and "Texture2DMultisample" both return "TextureDimension.Texture2D".
-                return textureDescription.Dimension;
-            }
-        }
+            // TODO: What's the point of storing the dimensions?
+            // We could just as well generate the "TextureDimension" based on the "TextureTarget" property,
+            // because "TextureDimension" is fully dependent on the "TextureTarget" property.
+            // E.g. "Texture2D" and "Texture2DMultisample" both return "TextureDimension.Texture2D".
+            // TODO: Stale comment?
+            => textureDescription.Dimension;
 
         /// <summary>
-        /// The width of this texture view.
+        ///   Gets the width of the Texture View.
         /// </summary>
-        /// <value>The width of the view.</value>
         public int ViewWidth { get; private set; }
 
         /// <summary>
-        /// The height of this texture view.
+        ///   Gets the height of the Texture View.
         /// </summary>
-        /// <value>The height of the view.</value>
         public int ViewHeight { get; private set; }
 
         /// <summary>
-        /// The depth of this texture view.
+        ///   Gets the depth of the Texture View.
         /// </summary>
-        /// <value>The view depth.</value>
         public int ViewDepth { get; private set; }
 
         /// <summary>
-        /// The format of this texture view.
+        ///   Gets the pixel format of the Texture View.
         /// </summary>
-        /// <value>The view format.</value>
-        public PixelFormat ViewFormat
-        {
-            get
-            {
-                return textureViewDescription.Format;
-            }
-        }
+        public PixelFormat ViewFormat => textureViewDescription.Format;
 
         /// <summary>
-        /// The format of this texture view.
+        ///   Gets a combination of flags describing the type of Texture View and how it can be bound to the graphics pipeline.
         /// </summary>
-        /// <value>The type of the view.</value>
-        public TextureFlags ViewFlags
-        {
-            get
-            {
-                return textureViewDescription.Flags;
-            }
-        }
+        public TextureFlags ViewFlags => textureViewDescription.Flags;
 
         /// <summary>
-        /// The format of this texture view.
+        ///   Gets a value indicating which sub-resources of the Texture are accessible through the Texture View.
         /// </summary>
-        /// <value>The type of the view.</value>
-        public ViewType ViewType
-        {
-            get
-            {
-                return textureViewDescription.Type;
-            }
-        }
+        public ViewType ViewType => textureViewDescription.Type;
 
         /// <summary>
-        /// The dimension of the texture view.
+        ///   Gets the type of the Texture View.
         /// </summary>
         public TextureDimension ViewDimension
-        {
-            get => Dimension == TextureDimension.TextureCube && ViewType != ViewType.Full ? TextureDimension.Texture2D : Dimension;
-        }
+            => Dimension == TextureDimension.TextureCube && ViewType != ViewType.Full
+                ? TextureDimension.Texture2D   // For cube-maps, if not full, the View is over a single cube face
+                : Dimension;
 
         /// <summary>
-        /// The miplevel index of this texture view.
+        ///   Gets the index of the mip-level the Texture View is referencing.
         /// </summary>
-        /// <value>The mip level.</value>
-        public int MipLevel
-        {
-            get
-            {
-                return textureViewDescription.MipLevel;
-            }
-        }
+        /// <value>The index of the mip-level the Texture View references. The first (largest) mipLevel is always index 0.</value>
+        /// <remarks>
+        ///   See <see cref="Graphics.ViewType"/> for more information on how <see cref="MipLevel"/> and <see cref="ArraySlice"/>
+        ///   determines which sub-resources to select based on <see cref="ViewType"/>.
+        /// </remarks>
+        public int MipLevel => textureViewDescription.MipLevel;
 
         /// <summary>
-        /// The array index of this texture view.
+        ///   Gets the index of the array slice the Texture View is referencing.
         /// </summary>
-        /// <value>The array slice.</value>
-        public int ArraySlice
-        {
-            get
-            {
-                return textureViewDescription.ArraySlice;
-            }
-        }
+        /// <value>
+        ///   The array index the Texture View references.
+        ///   If the parent Texture is not a Texture Array or a Cube-map, only a single array slice will exist with index 0.
+        /// </value>
+        /// <remarks>
+        ///   See <see cref="Graphics.ViewType"/> for more information on how <see cref="MipLevel"/> and <see cref="ArraySlice"/>
+        ///   determines which sub-resources to select based on <see cref="ViewType"/>.
+        /// </remarks>
+        public int ArraySlice => textureViewDescription.ArraySlice;
 
         /// <summary>
-        /// The width of the texture.
+        ///   Gets the width of the Texture.
         /// </summary>
-        /// <value>The width.</value>
-        public int Width
-        {
-            get
-            {
-                return textureDescription.Width;
-            }
-        }
+        /// <value>The width of the Texture in pixels.</value>
+        public int Width => textureDescription.Width;
 
         /// <summary>
-        /// The height of the texture.
+        ///   Gets the height of the Texture.
         /// </summary>
-        /// <value>The height.</value>
-        public int Height
-        {
-            get
-            {
-                return textureDescription.Height;
-            }
-        }
+        /// <value>The height of the Texture in pixels.</value>
+        public int Height => textureDescription.Height;
 
         /// <summary>
-        /// The depth of the texture.
+        ///   Gets the depth of the Texture.
         /// </summary>
-        /// <value>The depth.</value>
-        public int Depth
-        {
-            get
-            {
-                return textureDescription.Depth;
-            }
-        }
+        /// <value>The depth of the Texture in pixels.</value>
+        public int Depth => textureDescription.Depth;
 
         /// <summary>
-        /// Number of textures in the array.
+        ///   Gets the number of Textures in the array (if this is a Texture Array).
         /// </summary>
-        /// <value>The size of the array.</value>
-        /// <remarks>This field is only valid for 1D, 2D and Cube <see cref="Texture" />.</remarks>
-        public int ArraySize
-        {
-            get
-            {
-                return textureDescription.ArraySize;
-            }
-        }
+        /// <value>The largestSize of the array. If this is not a Texture Array, it will return 1.</value>
+        /// <remarks>This field is only valid for 1D, 2D and Cube <see cref="Texture"/>s.</remarks>
+        public int ArraySize => textureDescription.ArraySize;
 
         /// <summary>
-        /// The maximum number of mipmap levels in the texture.
+        ///   Gets the maximum number of mip-Levels in the Texture.
         /// </summary>
-        /// <value>The mip levels.</value>
-        public int MipLevels
-        {
-            get
-            {
-                return textureDescription.MipLevels;
-            }
-        }
+        public int MipLevelCount => textureDescription.MipLevelCount;
 
         /// <summary>
-        /// Texture format (see <see cref="PixelFormat" />)
+        ///   Gets the pixel format of the Texture.
         /// </summary>
-        /// <value>The format.</value>
-        public PixelFormat Format
-        {
-            get
-            {
-                return textureDescription.Format;
-            }
-        }
+        public PixelFormat Format => textureDescription.Format;
 
         /// <summary>
-        /// Structure that specifies multisampling parameters for the texture.
+        ///   Gets the multisampling for the Texture.
         /// </summary>
-        /// <value>The multi sample level.</value>
-        /// <remarks>This field is only valid for a 2D <see cref="Texture" />.</remarks>
-        public MultisampleCount MultisampleCount
-        {
-            get
-            {
-                return textureDescription.MultisampleCount;
-            }
-        }
+        /// <value>A value of <see cref="Graphics.MultisampleCount"/> specifying the number of samples per pixel.</value>
+        /// <remarks>This field is only valid for 2D <see cref="Texture"/>s.</remarks>
+        public MultisampleCount MultisampleCount => textureDescription.MultisampleCount;
 
         /// <summary>
-        /// Value that identifies how the texture is to be read from and written to.
+        ///   Gets the intended usage of the Texture.
         /// </summary>
-        public GraphicsResourceUsage Usage
-        {
-            get
-            {
-                return textureDescription.Usage;
-            }
-        }
+        /// <value>A value that identifies how the Texture is to be read from and written to.</value>
+        public GraphicsResourceUsage Usage => textureDescription.Usage;
 
         /// <summary>
-        /// Texture flags.
+        ///   Gets a combination of flags indicating how the Texture can be bound to the graphics pipeline.
         /// </summary>
-        public TextureFlags Flags
-        {
-            get
-            {
-                return textureDescription.Flags;
-            }
-        }
+        public TextureFlags Flags => textureDescription.Flags;
 
         /// <summary>
-        /// Resource options for DirectX 11 textures.
+        ///   Gets a combination of flags indicating special options for the Texture, like sharing.
         /// </summary>
-        public TextureOptions Options
-        {
-            get
-            {
-                return textureDescription.Options;
-            }
-        }
+        public TextureOptions Options => textureDescription.Options;
 
         /// <summary>
-        /// The shared handle if created with TextureOption.Shared or TextureOption.SharedNthandle, IntPtr.Zero otherwise.
+        ///   Gets a handle that identifies the Texture as a shared resource when it has the
+        ///   option <see cref="TextureOptions.Shared"/> or <see cref="TextureOptions.SharedNtHandle"/>.
         /// </summary>
+        /// <value>
+        ///   A handle that identifies the shared Texture, or <see cref="IntPtr.Zero"/> if it is not a shared resource.
+        /// </value>
         public IntPtr SharedHandle { get; private set; } = IntPtr.Zero;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
         /// <summary>
-        /// Gets the name of the shared Nt handle when created with TextureOption.SharedNthandle.
+        ///   Gets the name of the shared NT handle that identifies the Texture as a shared resource
+        ///   when it has the option <see cref="TextureOptions.SharedNtHandle"/>.
         /// </summary>
-        public string SharedNtHandleName { get; private set; } = string.Empty; 
+        /// <value>
+        ///   The name of the NT handle of the shared Texture, or <see cref="string.Empty"/> if it is not a shared resource.
+        /// </value>
+        public string SharedNtHandleName { get; private set; } = string.Empty;
 #endif
 
         /// <summary>
-        /// Gets a value indicating whether this instance is a render target.
+        ///   Gets a value indicating if the Texture View is a Render Target View.
         /// </summary>
-        /// <value><c>true</c> if this instance is render target; otherwise, <c>false</c>.</value>
-        public bool IsRenderTarget
-        {
-            get
-            {
-                return (ViewFlags & TextureFlags.RenderTarget) != 0;
-            }
-        }
+        /// <value>
+        ///   <see langword="true"/> if the Texture View is a Render Target View; otherwise, <see langword="false"/>.
+        /// </value>
+        public bool IsRenderTarget => ViewFlags.HasFlag(TextureFlags.RenderTarget);
 
         /// <summary>
-        /// Gets a value indicating whether this instance is a depth stencil.
+        ///   Gets a value indicating if the Texture View is a Depth-Stencil View.
         /// </summary>
-        /// <value><c>true</c> if this instance is a depth stencil; otherwise, <c>false</c>.</value>
-        public bool IsDepthStencil
-        {
-            get
-            {
-                return (ViewFlags & TextureFlags.DepthStencil) != 0;
-            }
-        }
+        /// <value>
+        ///   <see langword="true"/> if the Texture View is a Depth-Stencil View; otherwise, <see langword="false"/>.
+        /// </value>
+        public bool IsDepthStencil => ViewFlags.HasFlag(TextureFlags.DepthStencil);
 
         /// <summary>
-        /// Gets a value indicating whether this instance is a depth stencil readonly.
+        ///   Gets a value indicating if the Texture View is a read-only Depth-Stencil View.
         /// </summary>
-        /// <value><c>true</c> if this instance is a depth stencil readonly; otherwise, <c>false</c>.</value>
-        public bool IsDepthStencilReadOnly
-        {
-            get
-            {
-                return (ViewFlags & TextureFlags.DepthStencilReadOnly) == TextureFlags.DepthStencilReadOnly;
-            }
-        }
+        /// <value>
+        ///   <see langword="true"/> if the Texture View is a read-only Depth-Stencil View; otherwise, <see langword="false"/>.
+        /// </value>
+        public bool IsDepthStencilReadOnly => (ViewFlags & TextureFlags.DepthStencilReadOnly) == TextureFlags.DepthStencilReadOnly;
 
         /// <summary>
-        /// Gets a value indicating whether this instance is a shader resource.
+        ///   Gets a value indicating if the Texture View is a Shader Resource View.
         /// </summary>
-        /// <value><c>true</c> if this instance is a shader resource; otherwise, <c>false</c>.</value>
-        public bool IsShaderResource
-        {
-            get
-            {
-                return (ViewFlags & TextureFlags.ShaderResource) != 0;
-            }
-        }
+        /// <value>
+        ///   <see langword="true"/> if the Texture View is a Shader Resource View; otherwise, <see langword="false"/>.
+        /// </value>
+        public bool IsShaderResource => ViewFlags.HasFlag(TextureFlags.ShaderResource);
 
         /// <summary>
-        /// Gets a value indicating whether this instance is a shader resource.
+        ///   Gets a value indicating if the Texture View is an Unordered Access View.
         /// </summary>
-        /// <value><c>true</c> if this instance is a shader resource; otherwise, <c>false</c>.</value>
-        public bool IsUnorderedAccess
-        {
-            get
-            {
-                return (ViewFlags & TextureFlags.UnorderedAccess) != 0;
-            }
-        }
+        /// <value>
+        ///   <see langword="true"/> if the Texture View is an Unordered Access View; otherwise, <see langword="false"/>.
+        /// </value>
+        public bool IsUnorderedAccess => ViewFlags.HasFlag(TextureFlags.UnorderedAccess);
 
         /// <summary>
-        /// Gets a value indicating whether this instance is a multi sample texture.
+        ///   Gets a value indicating if the Texture is a multi-sampled Texture.
         /// </summary>
-        /// <value><c>true</c> if this instance is multi sample texture; otherwise, <c>false</c>.</value>
-        public bool IsMultisample
-        {
-            get
-            {
-                return this.MultisampleCount > MultisampleCount.None;
-            }
-        }
+        /// <value>
+        ///   <see langword="true"/> if the Texture is multi-sampled; otherwise, <see langword="false"/>.
+        /// </value>
+        public bool IsMultiSampled => MultisampleCount > MultisampleCount.None;
 
         /// <summary>
-        /// Gets a boolean indicating whether this <see cref="Texture"/> is a using a block compress format (BC1, BC2, BC3, BC4, BC5, BC6H, BC7).
+        ///   Gets a value indicating if the Texture is a using a block compress format (BC1, BC2, BC3, BC4, BC5, BC6H, BC7).
         /// </summary>
-        public bool IsBlockCompressed { get; private set; }
+        /// <seealso cref="Format"/>
+        public bool IsBlockCompressed => Description.Format.IsCompressed;
 
         /// <summary>
-        /// Gets the size of this texture.
+        ///   Gets the largestSize of the Texture or Texture View.
         /// </summary>
-        /// <value>The size.</value>
-        public Size3 Size => new Size3(ViewWidth, ViewHeight, ViewDepth);
-        
+        /// <value>The largestSize of the Texture or Texture View as (Width, Height, Depth).</value>
+        public Size3 Size => new(ViewWidth, ViewHeight, ViewDepth);
+
         /// <summary>
-        /// When texture streaming is activated, the size of the texture when loaded at full quality.
+        ///   Gets the largestSize of the Texture when loaded at full quality when <em>texture streaming</em> is enabled.
         /// </summary>
         public Size3 FullQualitySize
         {
@@ -403,54 +291,92 @@ namespace Stride.Graphics
             internal set => fullQualitySize = value;
         }
 
-        /// <summary> 
-        /// The width stride in bytes (number of bytes per row).
+        /// <summary>
+        ///   Gets the width stride of the Texture in bytes (y.e. the number of bytes per row).
         /// </summary>
         internal int RowStride { get; private set; }
 
         /// <summary>
-        /// The underlying parent texture (if this is a view).
+        ///   Gets the underlying parent Texture if this is a Texture View.
         /// </summary>
         internal Texture ParentTexture { get; private set; }
 
         /// <summary>
-        /// Returns the total memory allocated by the texture in bytes.
+        ///   Gets the total amount of memory allocated by the Texture in bytes.
         /// </summary>
         internal int SizeInBytes { get; private set; }
 
         private MipMapDescription[] mipmapDescriptions;
 
-        public Texture()
-        {
-        }
+
+        // Needed for serialization
+        public Texture() { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Texture"/> class.
+        ///   Initializes a new instance of the <see cref="Texture"/> class.
         /// </summary>
-        /// <param name="device">The device.</param>
-        internal Texture(GraphicsDevice device) : base(device)
-        {
-        }
+        /// <param name="device">The graphics device.</param>
+        internal Texture(GraphicsDevice device) : base(device) { }
 
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="Texture"/> class.
+        /// </summary>
+        /// <param name="device">The graphics device.</param>
+        /// <param name="name">
+        ///   A name that can be used to identify the Texture.
+        ///   Specify <see langword="null"/> to use the type's name instead.
+        /// </param>
+        internal Texture(GraphicsDevice device, string? name) : base(device, name) { }
+
+
+        /// <inheritdoc/>
         protected override void Destroy()
         {
             base.Destroy();
-            if (ParentTexture != null)
-            {
-                ParentTexture.ReleaseInternal();
-            }
+
+            ParentTexture?.ReleaseInternal();
         }
 
+        /// <inheritdoc/>
         protected internal override bool OnRecreate()
         {
             base.OnRecreate();
+
             OnRecreateImpl();
             return true;
         }
 
+        /// <summary>
+        ///   Perform platform-specific recreation of the Texture.
+        /// </summary>
+        private partial void OnRecreateImpl();
+
+        /// <summary>
+        ///   Initializes the Texture from a <see cref="TextureDescription"/> and, optionally, initial data.
+        /// </summary>
+        /// <param name="description">The description of the Texture's characteristics.</param>
+        /// <param name="textureDatas">Initial data to upload to the Texture, or <see langword="null"/> if no initial data is provided.</param>
+        /// <returns>The current Texture already initialized.</returns>
+        /// <exception cref="NotSupportedException">
+        ///   The Texture's <see cref="Flags"/> and the <see cref="ViewFlags"/> are not compatible. The parent Texture must include all
+        ///   the flags defined by the Texture View.
+        /// </exception>
+        /// <exception cref="NotSupportedException">
+        ///   The <see cref="MultisampleCount"/> is not supported for the specified <see cref="Format"/>. Check the
+        ///   <see cref="GraphicsDevice.Features"/> for information about supported pixel formats and the compatible
+        ///   multi-sample counts.
+        /// </exception>
+        /// <exception cref="NotSupportedException">Multi-sampling is only supported for 2D Textures.</exception>
+        /// <exception cref="NotSupportedException">A Texture Cube must have an array size greater than 1.</exception>
+        /// <exception cref="NotSupportedException">Texture Arrays are not supported for 3D Textures.</exception>
+        /// <exception cref="NotSupportedException"><see cref="ViewType.MipBand"/> is not supported for Render Targets.</exception>
+        /// <exception cref="NotSupportedException">Multi-sampling is not supported for Unordered Access Views.</exception>
+        /// <exception cref="NotSupportedException">The Depth-Stencil format specified is not supported.</exception>
+        /// <exception cref="NotSupportedException">Cannot create a read-only Depth-Stencil View because the device does not support it.</exception>
         internal Texture InitializeFrom(TextureDescription description, DataBox[] textureDatas = null)
         {
-            return InitializeFrom(null, description, new TextureViewDescription(), textureDatas);
+            var viewDescription = new TextureViewDescription();
+            return InitializeFrom(parentTexture: null, in description, in viewDescription, textureDatas);
         }
 
 #if STRIDE_PLATFORM_ANDROID //&& USE_GLES_EXT_OES_TEXTURE
@@ -461,31 +387,110 @@ namespace Stride.Graphics
         }
 #endif
 
-        internal Texture InitializeFrom(TextureDescription description, TextureViewDescription viewDescription, DataBox[] textureDatas = null)
+        /// <summary>
+        ///   Initializes the Texture View from a Texture's <see cref="TextureDescription"/> and, optionally, initial data.
+        ///   Also initializes a Texture View over the resource.
+        /// </summary>
+        /// <param name="description">The description of the Texture's characteristics.</param>
+        /// <param name="viewDescription">The description of the Texture View's characteristics.</param>
+        /// <param name="textureDatas">
+        ///   Initial data to upload through the Texture View, or <see langword="null"/> if no initial data is provided.
+        /// </param>
+        /// <returns>The current Texture already initialized.</returns>
+        /// <exception cref="NotSupportedException">
+        ///   <para>
+        ///     The Texture's <see cref="Flags"/> and the <see cref="ViewFlags"/> are not compatible. The parent Texture must include all
+        ///     the flags defined by the Texture View, or
+        ///   </para>
+        ///   <para>
+        ///     The <see cref="MultisampleCount"/> is not supported for the specified <see cref="Format"/>. Check the
+        ///     <see cref="GraphicsDevice.Features"/> for information about supported pixel formats and the compatible
+        ///     multi-sample counts.
+        ///   </para>
+        /// </exception>
+        internal Texture InitializeFrom(ref readonly TextureDescription description,
+                                        ref readonly TextureViewDescription viewDescription,
+                                        DataBox[] textureDatas = null)
         {
-            return InitializeFrom(null, description, viewDescription, textureDatas);
+            return InitializeFrom(parentTexture: null, in description, in viewDescription, textureDatas);
         }
 
-        internal Texture InitializeFrom(Texture parentTexture, TextureViewDescription viewDescription, DataBox[] textureDatas = null)
+        /// <summary>
+        ///   Initializes the Texture View for a Texture and, optionally, uploads initial data.
+        /// </summary>
+        /// <param name="parentTexture">The parent Texture.</param>
+        /// <param name="viewDescription">The description of the Texture View's characteristics.</param>
+        /// <param name="textureDatas">
+        ///   Initial data to upload through the Texture View, or <see langword="null"/> if no initial data is provided.
+        /// </param>
+        /// <returns>The current Texture View already initialized.</returns>
+        /// <exception cref="NotSupportedException">
+        ///   <para>
+        ///     The Texture's <see cref="Flags"/> and the <see cref="ViewFlags"/> are not compatible. The parent Texture must include all
+        ///     the flags defined by the Texture View, or
+        ///   </para>
+        ///   <para>
+        ///     The <see cref="MultisampleCount"/> is not supported for the specified <see cref="Format"/>. Check the
+        ///     <see cref="GraphicsDevice.Features"/> for information about supported pixel formats and the compatible
+        ///     multi-sample counts.
+        ///   </para>
+        /// </exception>
+        internal Texture InitializeFrom(Texture parentTexture, ref readonly TextureViewDescription viewDescription, DataBox[] textureDatas = null)
         {
-            return InitializeFrom(parentTexture, parentTexture.Description, viewDescription, textureDatas);
+            return InitializeFrom(parentTexture, in parentTexture.Description, in viewDescription, textureDatas);
         }
 
-        internal Texture InitializeFrom(Texture parentTexture, TextureDescription description, TextureViewDescription viewDescription, DataBox[] textureDatas = null)
+        /// <summary>
+        ///   Initializes the Texture or Texture View and, optionally, uploads initial data.
+        /// </summary>
+        /// <param name="parentTexture">
+        ///   The parent Texture to initialize a Texture View over, or <see langword="null"/> if no parent Texture is specified,
+        ///   in which case this may be a "root" resource and a view over it all-in-one.
+        /// </param>
+        /// <param name="description">
+        ///   The description of the characteristics of the Texture to create,
+        ///   or the parent Texture's characteristics if this is a Texture View.
+        /// </param>
+        /// <param name="viewDescription">The description of the Texture View's characteristics.</param>
+        /// <param name="textureDatas">
+        ///   Initial data to upload through the Texture View, or <see langword="null"/> if no initial data is provided.
+        /// </param>
+        /// <returns>The current Texture View already initialized.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Invalid Texture share options (<see cref="TextureOptions"/>) specified.</exception>
+        /// <exception cref="NotSupportedException">
+        ///   The Texture's <see cref="Flags"/> and the <see cref="ViewFlags"/> are not compatible. The parent Texture must include all
+        ///   the flags defined by the Texture View.
+        /// </exception>
+        /// <exception cref="NotSupportedException">
+        ///   The <see cref="MultisampleCount"/> is not supported for the specified <see cref="Format"/>. Check the
+        ///   <see cref="GraphicsDevice.Features"/> for information about supported pixel formats and the compatible
+        ///   multi-sample counts.
+        /// </exception>
+        /// <exception cref="NotSupportedException">Multi-sampling is only supported for 2D Textures.</exception>
+        /// <exception cref="NotSupportedException">A Texture Cube must have an array size greater than 1.</exception>
+        /// <exception cref="NotSupportedException">Texture Arrays are not supported for 3D Textures.</exception>
+        /// <exception cref="NotSupportedException"><see cref="ViewType.MipBand"/> is not supported for Render Targets.</exception>
+        /// <exception cref="NotSupportedException">Multi-sampling is not supported for Unordered Access Views.</exception>
+        /// <exception cref="NotSupportedException">The Depth-Stencil format specified is not supported.</exception>
+        /// <exception cref="NotSupportedException">Cannot create a read-only Depth-Stencil View because the device does not support it.</exception>
+        internal Texture InitializeFrom(Texture parentTexture,
+                                        ref readonly TextureDescription description,
+                                        ref readonly TextureViewDescription viewDescription,
+                                        DataBox[] textureDatas = null)
         {
             ParentTexture = parentTexture;
             ParentTexture?.AddReferenceInternal();
 
             textureDescription = description;
             textureViewDescription = viewDescription;
-            IsBlockCompressed = description.Format.IsCompressed();
             RowStride = ComputeRowPitch(0);
             mipmapDescriptions = Image.CalculateMipMapDescription(description);
-            SizeInBytes = ArraySize * mipmapDescriptions?.Sum(desc => desc.MipmapSize) ?? 0;
+            SizeInBytes = ArraySize * mipmapDescriptions?.Sum(mip => mip.MipmapSize) ?? 0;
 
             ViewWidth = Math.Max(1, Width >> MipLevel);
             ViewHeight = Math.Max(1, Height >> MipLevel);
             ViewDepth = Math.Max(1, Depth >> MipLevel);
+
             if (ViewFormat == PixelFormat.None)
             {
                 textureViewDescription.Format = description.Format;
@@ -495,18 +500,22 @@ namespace Stride.Graphics
                 textureViewDescription.Flags = description.Flags;
             }
 
-            // Check that the view is compatible with the parent texture
+            // Check that the Texture View flags are compatible with the parent Texture's flags
             var filterViewFlags = (TextureFlags)((int)ViewFlags & (~DepthStencilReadOnlyFlags));
             if ((Flags & filterViewFlags) != filterViewFlags)
             {
-                throw new NotSupportedException("Cannot create a texture view with flags [{0}] from the parent texture [{1}] as the parent texture must include all flags defined by the view".ToFormat(ViewFlags, Flags));
+                throw new NotSupportedException(
+                    $"Cannot create a Texture View with flags [{ViewFlags}] from the parent Texture with flags [{Flags}]. " +
+                    $"The parent Texture must include all the flags defined by the Texture View");
             }
 
-            if (IsMultisample)
+            if (IsMultiSampled)
             {
                 var maxCount = GraphicsDevice.Features[Format].MultisampleCountMax;
                 if (maxCount < MultisampleCount)
-                    throw new NotSupportedException($"Cannot create a texture with format {Format} and multisample level {MultisampleCount}. Maximum supported level is {maxCount}");
+                    throw new NotSupportedException(
+                        $"Cannot create a Texture with format {Format} and multi-sample level {MultisampleCount}. " +
+                        $"The maximum supported level is {maxCount}");
             }
 
             InitializeFromImpl(textureDatas);
@@ -515,7 +524,20 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Releases the texture data.
+        ///   Initializes the Texture with no initial data.
+        /// </summary>
+        private void InitializeFromImpl() => InitializeFromImpl(dataBoxes: null);
+
+        /// <summary>
+        ///   Performs platform-dependent initialization of the Texture.
+        /// </summary>
+        /// <param name="dataBoxes">
+        ///   An array of <see cref="DataBox"/> pointing to the data to initialize the Texture's sub-resources.
+        /// </param>
+        private partial void InitializeFromImpl(DataBox[] dataBoxes);
+
+        /// <summary>
+        ///   Releases the Texture data.
         /// </summary>
         public void ReleaseData()
         {
@@ -523,39 +545,58 @@ namespace Stride.Graphics
             OnDestroyed();
 
             // Clean description
-            textureDescription = new TextureDescription();
-            textureViewDescription = new TextureViewDescription();
+            textureDescription = default;
+            textureViewDescription = default;
             ViewWidth = ViewHeight = ViewDepth = 0;
             SizeInBytes = 0;
             mipmapDescriptions = null;
         }
 
+
         /// <summary>
-        /// Gets a view on this texture for a particular <see cref="ViewType" />, array index (or zIndex for Texture3D), and mipmap index.
+        ///   Gets a Texture View on this Texture.
         /// </summary>
-        /// <param name="viewDescription">The view description.</param>
-        /// <returns>A new texture object that is bouded to the requested view.</returns>
+        /// <param name="viewDescription">The description of the Texture View to create.</param>
+        /// <returns>A new <see cref="Texture"/> that represents the requested Texture View.</returns>
+        /// <exception cref="NotSupportedException">
+        ///   <para>
+        ///     The Texture's <see cref="Flags"/> and the <see cref="ViewFlags"/> are not compatible. The parent Texture must include all
+        ///     the flags defined by the Texture View, or
+        ///   </para>
+        ///   <para>
+        ///     The <see cref="MultisampleCount"/> is not supported for the specified <see cref="Format"/>. Check the
+        ///     <see cref="GraphicsDevice.Features"/> for information about supported pixel formats and the compatible
+        ///     multi-sample counts.
+        ///   </para>
+        /// </exception>
         public Texture ToTextureView(TextureViewDescription viewDescription)
         {
-            return new Texture(GraphicsDevice).InitializeFrom(ParentTexture ?? this, viewDescription);
+            var texture = GraphicsDevice.IsDebugMode
+                ? new Texture(GraphicsDevice, Name + " " + GetViewDebugName(in viewDescription))
+                : new Texture(GraphicsDevice);
+
+            return texture.InitializeFrom(ParentTexture ?? this, in viewDescription);
         }
 
         /// <summary>
-        /// Gets the mipmap description of this instance for the specified mipmap level.
+        ///   Gets the description a specific mipLevel of the Texture.
         /// </summary>
-        /// <param name="mipmap">The mipmap.</param>
-        /// <returns>A description of a particular mipmap for this texture.</returns>
-        public MipMapDescription GetMipMapDescription(int mipmap)
+        /// <param name="mipLevel">The mipmap level to query.</param>
+        /// <returns>A <see cref="MipMapDescription"/> describing the requested mipmap.</returns>
+        public ref readonly MipMapDescription GetMipMapDescription(int mipLevel)
         {
-            return mipmapDescriptions[mipmap];
+            return ref mipmapDescriptions[mipLevel];
         }
 
         /// <summary>
-        /// Calculates the size of a particular mip.
+        ///   Calculates the largestSize of a specific mip-level.
         /// </summary>
-        /// <param name="size">The size.</param>
-        /// <param name="mipLevel">The mip level.</param>
-        /// <returns>System.Int32.</returns>
+        /// <param name="size">The original full largestSize from which to calculate mip-level largestSize, in texels.</param>
+        /// <param name="mipLevel">The mip-level index.</param>
+        /// <returns>The largestSize of the specified <paramref name="mipLevel"/>, in texels.</returns>
+        /// <remarks>
+        ///   Each mip-level becomes progressively smaller as <paramref name="mipLevel"/> grows.
+        /// </remarks>
         public static int CalculateMipSize(int size, int mipLevel)
         {
             mipLevel = Math.Min(mipLevel, Image.CountMips(size));
@@ -563,328 +604,677 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Calculates the number of miplevels for a Texture 1D.
+        ///   Counts the number of mip-levels for a one-dimensional Texture.
         /// </summary>
-        /// <param name="width">The width of the texture.</param>
-        /// <param name="mipLevels">A <see cref="MipMapCount"/>, set to true to calculates all mipmaps, to false to calculate only 1 miplevel, or > 1 to calculate a specific amount of levels.</param>
-        /// <returns>The number of miplevels.</returns>
-        public static int CalculateMipLevels(int width, MipMapCount mipLevels)
+        /// <param name="width">The width of the Texture, in texels.</param>
+        /// <param name="mipLevels">
+        ///   <para>
+        ///     A <see cref="MipMapCount"/> structure describing the number of mipmaps for the Texture.
+        ///     Specify <see cref="MipMapCount.Auto"/> to have <strong>all mipmaps</strong>, or
+        ///     <see cref="MipMapCount.One"/> to indicate a <strong>single mipmap</strong>, or
+        ///     any number greater than 1 for a particular mipmap count.
+        ///   </para>
+        ///   <para>
+        ///     You can also specify a number (which will be converted implicitly) or a <see cref="bool"/>.
+        ///     See <see cref="MipMapCount"/> for more information about accepted values.
+        ///   </para>
+        /// </param>
+        /// <returns>The number of mip-levels that can be created for <paramref name="width"/>.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="mipLevels"/> is greater than the maximum number of possible mip-levels for the provided <paramref name="width"/>.
+        /// </exception>
+        public static int CountMipLevels(int width, MipMapCount mipLevels)
         {
-            if (mipLevels > 1)
+            switch (mipLevels.Count)
             {
-                int maxMips = CountMips(width);
-                if (mipLevels > maxMips)
-                    throw new InvalidOperationException($"MipLevels must be <= {maxMips}");
+                case > 1: // Specific number
+                {
+                    var maxMipLevels = CountMipLevels(width);
+                    ArgumentOutOfRangeException.ThrowIfGreaterThan(mipLevels.Count, maxMipLevels, nameof(mipLevels));
+                    return mipLevels.Count;
+                }
+                case 0:
+                    return CountMipLevels(width);  // All mips
+
+                default:
+                    return 1;  // Single mip
             }
-            else if (mipLevels == 0)
+        }
+
+        /// <summary>
+        ///   Counts the number of mip-levels for a one-dimensional Texture.
+        /// </summary>
+        /// <param name="width">The width of the Texture, in texels.</param>
+        /// <returns>The number of mip-levels that can be created for <paramref name="width"/>.</returns>
+        public static int CountMipLevels(int width)
+        {
+            int mipLevels = 1;
+
+            while (width > 1)
             {
-                mipLevels = CountMips(width);
+                ++mipLevels;
+
+                width >>= 1;
             }
-            else
-            {
-                mipLevels = 1;
-            }
+
             return mipLevels;
         }
 
         /// <summary>
-        /// Calculates the number of miplevels for a Texture 2D.
+        ///   Counts the number of mip-levels for a two-dimensional Texture.
         /// </summary>
-        /// <param name="width">The width of the texture.</param>
-        /// <param name="height">The height of the texture.</param>
-        /// <param name="mipLevels">A <see cref="MipMapCount"/>, set to true to calculates all mipmaps, to false to calculate only 1 miplevel, or > 1 to calculate a specific amount of levels.</param>
-        /// <returns>The number of miplevels.</returns>
-        public static int CalculateMipLevels(int width, int height, MipMapCount mipLevels)
+        /// <param name="width">The width of the Texture, in texels.</param>
+        /// <param name="height">The height of the Texture, in texels.</param>
+        /// <param name="mipLevels">
+        ///   <para>
+        ///     A <see cref="MipMapCount"/> structure describing the number of mipmaps for the Texture.
+        ///     Specify <see cref="MipMapCount.Auto"/> to have <strong>all mipmaps</strong>, or
+        ///     <see cref="MipMapCount.One"/> to indicate a <strong>single mipmap</strong>, or
+        ///     any number greater than 1 for a particular mipmap count.
+        ///   </para>
+        ///   <para>
+        ///     You can also specify a number (which will be converted implicitly) or a <see cref="bool"/>.
+        ///     See <see cref="MipMapCount"/> for more information about accepted values.
+        ///   </para>
+        /// </param>
+        /// <returns>The number of mip-levels that can be created for <paramref name="width"/> and <paramref name="height"/>.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="mipLevels"/> is greater than the maximum number of possible mip-levels for the provided
+        ///   <paramref name="width"/> and <paramref name="height"/>.
+        /// </exception>
+        public static int CountMipLevels(int width, int height, MipMapCount mipLevels)
         {
-            if (mipLevels > 1)
+            switch (mipLevels.Count)
             {
-                int maxMips = CountMips(width, height);
-                if (mipLevels > maxMips)
-                    throw new InvalidOperationException($"MipLevels must be <= {maxMips}");
+                case > 1:  // Specific number
+                {
+                    var maxMipLevels = CountMipLevels(width, height);
+                    ArgumentOutOfRangeException.ThrowIfGreaterThan(mipLevels.Count, maxMipLevels, nameof(mipLevels));
+                    return mipLevels.Count;
+                }
+                case 0:
+                    return CountMipLevels(width, height);  // All mips
+
+                default:
+                    return 1;  // Single mip
             }
-            else if (mipLevels == 0)
-            {
-                mipLevels = CountMips(width, height);
-            }
-            else
-            {
-                mipLevels = 1;
-            }
-            return mipLevels;
         }
 
         /// <summary>
-        /// Calculates the number of miplevels for a Texture 2D.
+        ///   Counts the number of mip-levels for a two-dimensional Texture.
         /// </summary>
-        /// <param name="width">The width of the texture.</param>
-        /// <param name="height">The height of the texture.</param>
-        /// <param name="depth">The depth of the texture.</param>
-        /// <param name="mipLevels">A <see cref="MipMapCount"/>, set to true to calculates all mipmaps, to false to calculate only 1 miplevel, or > 1 to calculate a specific amount of levels.</param>
-        /// <returns>The number of miplevels.</returns>
-        public static int CalculateMipLevels(int width, int height, int depth, MipMapCount mipLevels)
+        /// <param name="width">The width of the Texture, in texels.</param>
+        /// <param name="height">The height of the Texture, in texels.</param>
+        /// <returns>The number of mip-levels that can be created for <paramref name="width"/> and <paramref name="height"/>.</returns>
+        public static int CountMipLevels(int width, int height)
         {
-            if (mipLevels > 1)
-            {
-                if (!MathUtil.IsPow2(width) || !MathUtil.IsPow2(height) || !MathUtil.IsPow2(depth))
-                    throw new InvalidOperationException("Width/Height/Depth must be power of 2");
-
-                int maxMips = CountMips(width, height, depth);
-                if (mipLevels > maxMips)
-                    throw new InvalidOperationException($"MipLevels must be <= {maxMips}");
-            }
-            else if (mipLevels == 0)
-            {
-                if (!MathUtil.IsPow2(width) || !MathUtil.IsPow2(height) || !MathUtil.IsPow2(depth))
-                    throw new InvalidOperationException("Width/Height/Depth must be power of 2");
-
-                mipLevels = CountMips(width, height, depth);
-            }
-            else
-            {
-                mipLevels = 1;
-            }
-            return mipLevels;
+            return CountMipLevels(Math.Max(width, height));
         }
 
         /// <summary>
-        /// Gets the absolute sub-resource index from the array and mip slice.
+        ///   Counts the number of mip-levels for a three-dimensional Texture.
         /// </summary>
-        /// <param name="arraySlice">The array slice index.</param>
-        /// <param name="mipSlice">The mip slice index.</param>
-        /// <returns>A value equals to arraySlice * Description.MipLevels + mipSlice.</returns>
-        public int GetSubResourceIndex(int arraySlice, int mipSlice)
+        /// <param name="width">The width of the Texture, in texels.</param>
+        /// <param name="height">The height of the Texture, in texels.</param>
+        /// <param name="depth">The depth of the Texture, in texels.</param>
+        /// <param name="mipLevels">
+        ///   <para>
+        ///     A <see cref="MipMapCount"/> structure describing the number of mipmaps for the Texture.
+        ///     Specify <see cref="MipMapCount.Auto"/> to have <strong>all mipmaps</strong>, or
+        ///     <see cref="MipMapCount.One"/> to indicate a <strong>single mipmap</strong>, or
+        ///     any number greater than 1 for a particular mipmap count.
+        ///   </para>
+        ///   <para>
+        ///     You can also specify a number (which will be converted implicitly) or a <see cref="bool"/>.
+        ///     See <see cref="MipMapCount"/> for more information about accepted values.
+        ///   </para>
+        /// </param>
+        /// <returns>
+        ///   The number of mip-levels that can be created for <paramref name="width"/>, <paramref name="height"/>,
+        ///   and <paramref name="depth"/>.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="mipLevels"/> is greater than the maximum number of possible mip-levels for the provided
+        ///   <paramref name="width"/>, <paramref name="height"/>, and <paramref name="depth"/>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///   <paramref name="width"/>, <paramref name="height"/>, and <paramref name="depth"/> must all be
+        ///   a power of two.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///   The dimensions must be a <strong>power of two (2^n)</strong>.
+        /// </exception>
+        public static int CountMipLevels(int width, int height, int depth, MipMapCount mipLevels)
         {
-            return arraySlice * MipLevels + mipSlice;
+            switch (mipLevels.Count)
+            {
+                case > 1:  // Specific number
+                {
+                    if (!int.IsPow2(width) || !int.IsPow2(height) || !int.IsPow2(depth))
+                        throw new InvalidOperationException("Width/Height/Depth must be power of 2");
+
+                    var maxMipLevels = CountMipLevels(width, height, depth);
+                    ArgumentOutOfRangeException.ThrowIfGreaterThan(mipLevels.Count, maxMipLevels, nameof(mipLevels));
+                    return mipLevels.Count;
+                }
+                case 0:
+                    if (!int.IsPow2(width) || !int.IsPow2(height) || !int.IsPow2(depth))
+                        throw new InvalidOperationException("Width/Height/Depth must be power of 2");
+
+                    return CountMipLevels(width, height, depth);  // All mips
+
+                default:
+                    return 1;  // Single mip
+            }
         }
 
         /// <summary>
-        /// Calculates the expected width of a texture using a specified type.
+        ///   Counts the number of mip-levels for a three-dimensional Texture.
         /// </summary>
-        /// <typeparam name="TData">The type of the T pixel data.</typeparam>
-        /// <returns>The expected width</returns>
-        /// <exception cref="System.ArgumentException">If the size is invalid</exception>
-        public int CalculateWidth<TData>(int mipLevel = 0) where TData : unmanaged
+        /// <param name="width">The width of the Texture, in texels.</param>
+        /// <param name="height">The height of the Texture, in texels.</param>
+        /// <param name="depth">The depth of the Texture, in texels.</param>
+        /// <returns>
+        ///   The number of mip-levels that can be created for <paramref name="width"/>, <paramref name="height"/>,
+        ///   and <paramref name="depth"/>.
+        /// </returns>
+        public static int CountMipLevels(int width, int height, int depth)
         {
-            var widthOnMip = CalculateMipSize((int)Width, mipLevel);
-            var rowStride = widthOnMip * Format.SizeInBytes();
+            return CountMipLevels(Math.Max(width, Math.Max(height, depth)));
+        }
 
-            var dataStrideInBytes = Unsafe.SizeOf<TData>() * widthOnMip;
-            var width = ((double)rowStride / dataStrideInBytes) * widthOnMip;
-            if (Math.Abs(width - (int)width) > double.Epsilon)
+        /// <summary>
+        ///   Returns the absolute sub-resource index from an array slice and mip-level.
+        /// </summary>
+        /// <param name="arrayIndex">The array index.</param>
+        /// <param name="mipLevel">The mip slice index.</param>
+        /// <returns>The sub-resource absolute index, calculated as <c>arrayIndex * Description.MipLevelCount + mipLevel</c>.</returns>
+        public int GetSubResourceIndex(int arrayIndex, int mipLevel)
+        {
+            return arrayIndex * MipLevelCount + mipLevel;
+        }
+
+        /// <summary>
+        ///   Calculates the expected width of the Texture for a specific mip-level, in <typeparamref name="TData"/> elements.
+        /// </summary>
+        /// <typeparam name="TData">The type of the pixel data.</typeparam>
+        /// <param name="mipLevel">
+        ///   The mip-level for which to calculate the width.
+        ///   By default, the first mip-level at index 0 is selected, which is the most detailed one.
+        /// </param>
+        /// <returns>
+        ///   The expected width of the Texture for the mip-level specified by <paramref name="mipLevel"/>, y.e. the
+        ///   number of <typeparamref name="TData"/> elements across the width of the Texture.
+        /// </returns>
+        /// <remarks>
+        ///   <para>
+        ///     The expected width of the Texture depends both on the largestSize of <see cref="Format"/> and the largestSize
+        ///     of <typeparamref name="TData"/>. It's relation (which must be an integer ratio) defines how they
+        ///     alter the original mip-level width.
+        ///   </para>
+        ///   <para>
+        ///     For example, for a Texture with a width of 100 pixels and format <see cref="PixelFormat.R8G8B8A8_UNorm"/> (4 bytes per pixel),
+        ///     this method allows to interpret the width as different types:
+        ///     <code>
+        ///       int widthAsUInts = texture.CalculateWidth&lt;uint>();   // 100 uints
+        ///       int widthAsBytes = texture.CalculateWidth&lt;byte>();   // 400 bytes
+        ///       int widthAsFloats = texture.CalculateWidth&lt;float>(); // 100 floats
+        ///     </code>
+        ///   </para>
+        /// </remarks>
+        /// <exception cref="ArgumentException">
+        ///   The largestSize of <see cref="Format"/> and the largestSize of <typeparamref name="TData"/> does not match.
+        ///   The ratio between the two must be an integer, or else there would be remaining bytes.
+        /// </exception>
+        public unsafe int CalculateWidth<TData>(int mipLevel = 0) where TData : unmanaged
+        {
+            var mipWidth = CalculateMipSize(Width, mipLevel);
+
+            var rowStride = mipWidth * Format.SizeInBytes;
+            var dataStrideInBytes = mipWidth * sizeof(TData);
+
+            var (width, rem) = Math.DivRem(rowStride * mipWidth, dataStrideInBytes);
+
+            if (rem != 0)
                 throw new ArgumentException("sizeof(TData) / sizeof(Format) * Width is not an integer");
 
-            return (int)width;
+            return width;
         }
 
         /// <summary>
-        /// Calculates the number of pixel data this texture is requiring for a particular mip level.
+        ///   Calculates the number of pixel elements of type <typeparamref name="TData"/> the Texture requires
+        ///   for a particular mip-level.
         /// </summary>
-        /// <typeparam name="TData">The type of the T pixel data.</typeparam>
-        /// <param name="mipLevel">The mip level.</param>
-        /// <returns>The number of pixel data.</returns>
-        /// <remarks>This method is used to allocated a texture data buffer to hold pixel datas: var textureData = new T[ texture.CalculatePixelCount&lt;T&gt;() ] ;.</remarks>
+        /// <typeparam name="TData">The type of the pixel data.</typeparam>
+        /// <param name="mipLevel">
+        ///   The mip-level for which to calculate the width.
+        ///   By default, the first mip-level at index 0 is selected, which is the most detailed one.
+        /// </param>
+        /// <returns>
+        ///   The expected number of <typeparamref name="TData"/> elements of the Texture for the mip-level specified by <paramref name="mipLevel"/>.
+        /// </returns>
+        /// <remarks>
+        ///   This method can be used to allocate a Texture data buffer to hold pixel data of type <typeparamref name="TData"/> as follows:
+        ///   <code>
+        ///     var textureData = new TData[ texture.CalculatePixelDataCount&lt;TData&gt;() ];
+        ///   </code>
+        /// </remarks>
+        /// <exception cref="ArgumentException">
+        ///   The largestSize of <see cref="Format"/> and the largestSize of <typeparamref name="TData"/> does not match.
+        ///   The ratio between the two must be an integer, or else there would be remaining bytes.
+        /// </exception>
+        /// <seealso cref="CalculateWidth{TData}(int)"/>
         public int CalculatePixelDataCount<TData>(int mipLevel = 0) where TData : unmanaged
         {
-            return CalculateWidth<TData>(mipLevel) * CalculateMipSize(Height, mipLevel) * CalculateMipSize(Depth, mipLevel);
+            return CalculateWidth<TData>(mipLevel)
+                 * CalculateMipSize(Height, mipLevel)
+                 * CalculateMipSize(Depth, mipLevel);
+        }
+
+        #region Debug
+
+        /// <summary>
+        ///   Generates a debug-friendly name for the Texture based on its usage, flags, etc.
+        /// </summary>
+        /// <param name="textureDescription">The description of the Texture.</param>
+        /// <returns>A string representing the debug name of the Texture.</returns>
+        private static string GetDebugName(ref readonly TextureDescription textureDescription)
+        {
+            var textureUsage = textureDescription.Usage;
+            var arraySize = textureDescription.ArraySize;
+            var textureDimension = textureDescription.Dimension;
+            var multiSampleCount = textureDescription.MultisampleCount;
+            var flags = textureDescription.Flags;
+            var width = textureDescription.Width;
+            var height = textureDescription.Height;
+            var depth = textureDescription.Depth;
+            var format = textureDescription.Format;
+
+            return GetDebugName(textureUsage, textureDimension, width, height, depth, arraySize, flags, format, multiSampleCount);
         }
 
         /// <summary>
-        /// Gets the content of this texture to an array of data.
+        ///   Generates a debug-friendly name for the Texture based on its usage, flags, etc.
         /// </summary>
-        /// <typeparam name="TData">The type of the T data.</typeparam>
-        /// <param name="commandList">The command list.</param>
-        /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
-        /// <param name="mipSlice">The mip slice index.</param>
-        /// <returns>The texture data.</returns>
-        /// <remarks>
-        /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
-        /// This method creates internally a stagging resource, copies to it and map it to memory. Use method with explicit staging resource
-        /// for optimal performances.</remarks>
-        public TData[] GetData<TData>(CommandList commandList, int arraySlice = 0, int mipSlice = 0) where TData : unmanaged
+        /// <param name="textureUsage">The usage of the Texture.</param>
+        /// <param name="textureDimension">The dimension of the Texture.</param>
+        /// <param name="width">The width of the Texture.</param>
+        /// <param name="height">The height of the Texture.</param>
+        /// <param name="depth">The depth of the Texture.</param>
+        /// <param name="arraySize">The number of array slices in the Texture.</param>
+        /// <param name="textureFlags">The flags of the Texture.</param>
+        /// <param name="format">The pixel format of the Texture.</param>
+        /// <param name="multiSampleCount">The multi-sample count of the Texture.</param>
+        /// <returns>A string representing the debug name of the Texture.</returns>
+        private static string GetDebugName(GraphicsResourceUsage textureUsage, TextureDimension textureDimension,
+                                           int width, int height = 1, int depth = 1, int arraySize = 1,
+                                           TextureFlags textureFlags = TextureFlags.None, PixelFormat format = PixelFormat.None,
+                                           MultisampleCount multiSampleCount = MultisampleCount.None)
         {
-            var toData = new TData[this.CalculatePixelDataCount<TData>(mipSlice)];
-            GetData(commandList, toData, arraySlice, mipSlice);
+            var usage = textureUsage != GraphicsResourceUsage.Default
+                ? $"{textureUsage} "
+                : string.Empty;
+
+            var dimension = textureDimension switch
+            {
+                TextureDimension.Texture1D when arraySize > 1 => $"1D Texture Array ({arraySize} elements)",
+                TextureDimension.Texture1D => "1D Texture",
+                TextureDimension.Texture2D when arraySize > 1 => $"2D Texture Array ({arraySize} elements)",
+                TextureDimension.Texture2D => "2D Texture",
+                TextureDimension.Texture3D => "3D Texture",
+                TextureDimension.TextureCube when arraySize > 1 => $"Cube Texture Array ({arraySize} elements)",
+                TextureDimension.TextureCube => "Cube Texture",
+
+                _ => "Texture"
+            };
+
+            var msaa = multiSampleCount > MultisampleCount.None
+                ? $" MSAA {multiSampleCount}"
+                : string.Empty;
+
+            var flags = textureFlags switch
+            {
+                TextureFlags.ShaderResource => "SRV ",
+                TextureFlags.RenderTarget => "Render Target ",
+                TextureFlags.UnorderedAccess => "UAV ",
+                TextureFlags.DepthStencil => "Depth-Stencil ",
+
+                _ => string.Empty
+            };
+
+            var size = string.Empty;
+            if (textureDimension is TextureDimension.Texture1D)
+                size = $"{width}";
+            else if (textureDimension is TextureDimension.Texture2D or TextureDimension.TextureCube)
+                size = $"{width}x{height}";
+            else if (textureDimension is TextureDimension.Texture3D)
+                size = $"{width}x{height}x{depth}";
+
+            return $"{usage}{flags}{dimension}{msaa} ({size}, {format})";
+        }
+
+        /// <summary>
+        ///   Generates a debug-friendly name for a View on a Texture based on its type, flags, etc.
+        /// </summary>
+        /// <param name="viewDescription">The description of the Texture View.</param>
+        /// <returns>A string representing the debug name of the Texture View.</returns>
+        private static string GetViewDebugName(ref readonly TextureViewDescription viewDescription)
+        {
+            var viewType = viewDescription.Type;
+            var flags = viewDescription.Flags;
+            var format = viewDescription.Format;
+            var arraySlice = viewDescription.ArraySlice;
+            var mipLevel = viewDescription.MipLevel;
+
+            return GetViewDebugName(viewType, flags, format, arraySlice, mipLevel);
+        }
+
+        /// <summary>
+        ///   Generates a debug-friendly name for a View on a Texture based on its type, flags, etc.
+        /// </summary>
+        /// <param name="viewType">The type of the Texture View.</param>
+        /// <param name="viewFlags">Flags describing how the Texture View can be bound to the graphics pipeline.</param>
+        /// <param name="format">The pixel format of the Texture View.</param>
+        /// <param name="arraySlice">The index of the array slice the Texture View is referencing.</param>
+        /// <param name="mipLevel">The index of the mip-level the Texture View is referencing.</param>
+        /// <returns>A string representing the debug name of the Texture View.</returns>
+        private static string GetViewDebugName(ViewType viewType, TextureFlags viewFlags, PixelFormat format, int arraySlice, int mipLevel)
+        {
+            var type = viewType switch
+            {
+                ViewType.MipBand => "Mip Band ",
+                ViewType.ArrayBand => "Array Band ",
+                ViewType.Single => "Single ",
+
+                _ => string.Empty
+            };
+
+            var flags = viewFlags switch
+            {
+                TextureFlags.ShaderResource => "ShaderResourceView",
+                TextureFlags.RenderTarget => "RenderTargetView",
+                TextureFlags.UnorderedAccess => "UnorderedAccessView",
+                TextureFlags.DepthStencil => "DepthStencilView",
+
+                _ => string.Empty
+            };
+
+            var mipAndSlice = viewType != ViewType.Full
+                ? $" (Mip {mipLevel}, Slice {arraySlice})"
+                : string.Empty;
+
+            var viewFormat = format != PixelFormat.None
+                ? $" [{format}]"
+                : string.Empty;
+
+            return $"{type}{flags}{mipAndSlice}{viewFormat}";
+        }
+
+        /// <summary>
+        ///   Generates a debug-friendly name for a View on a Texture based on its type, flags, etc.
+        /// </summary>
+        /// <param name="textureDescription">The description of the Texture.</param>
+        /// <param name="viewDescription">The description of the Texture View.</param>
+        /// <returns>A string representing the debug name of the Texture View.</returns>
+        private static string GetViewDebugName(ref readonly TextureDescription textureDescription,
+                                               ref readonly TextureViewDescription viewDescription)
+        {
+            var debugName = GetDebugName(in textureDescription);
+            var viewDebugName = GetViewDebugName(in viewDescription);
+
+            return string.IsNullOrWhiteSpace(viewDebugName)
+                ? debugName
+                : debugName + " " + viewDebugName;
+        }
+
+        #endregion
+
+        #region GetData: Reading data from the Texture
+
+        // TODO: Some methods are marked as main-thread only. This is true for some platforms, but for all?
+
+        /// <summary>
+        ///   Copies the contents of the Texture from GPU memory to CPU memory.
+        /// </summary>
+        /// <typeparam name="TData">The type of the pixel data.</typeparam>
+        /// <param name="commandList">The <see cref="CommandList"/> where to register the command.</param>
+        /// <param name="arrayIndex">
+        ///   <para>
+        ///     The array index.
+        ///     If the Texture is not a Texture Array or a Cube-map, only a single array slice will exist with index 0, which is the default value.
+        ///   </para>
+        ///   <para>This index must be 0 for a three-dimensional Texture.</para>
+        /// </param>
+        /// <param name="mipLevel">
+        ///   The mip-level to get the data from.
+        ///   By default, the first mip-level at index 0 is selected, which is the most detailed one.
+        /// </param>
+        /// <returns>An array of <typeparamref name="TData"/> with the Texture's data.</returns>
+        /// <remarks>
+        ///   This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
+        ///   <para>
+        ///     This method creates internally a <em>staging Resource</em>, copies the data into it, and maps it to CPU memory.
+        ///     You can use one of the methods that specify an explicit staging Resource for better performance.
+        ///   </para>
+        /// </remarks>
+        public TData[] GetData<TData>(CommandList commandList, int arrayIndex = 0, int mipLevel = 0) where TData : unmanaged
+        {
+            var toData = new TData[CalculatePixelDataCount<TData>(mipLevel)];
+            GetData(commandList, toData, arrayIndex, mipLevel);
             return toData;
         }
 
         /// <summary>
-        /// Copies the content of this texture to an array of data.
+        ///   Copies the contents of the Texture from GPU memory to CPU memory.
         /// </summary>
-        /// <typeparam name="TData">The type of the T data.</typeparam>
-        /// <param name="commandList">The command list.</param>
-        /// <param name="toData">The destination buffer to receive a copy of the texture datas.</param>
-        /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
-        /// <param name="mipSlice">The mip slice index.</param>
-        /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
-        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <paramref name="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
+        /// <typeparam name="TData">The type of the pixel data.</typeparam>
+        /// <param name="commandList">The <see cref="CommandList"/> where to register the command.</param>
+        /// <param name="toData">The destination buffer to copy the Texture data into.</param>
+        /// <param name="arrayIndex">
+        ///   <para>
+        ///     The array index.
+        ///     If the Texture is not a Texture Array or a Cube-map, only a single array slice will exist with index 0, which is the default value.
+        ///   </para>
+        ///   <para>This index must be 0 for a three-dimensional Texture.</para>
+        /// </param>
+        /// <param name="mipLevel">
+        ///   The mip-level to get the data from.
+        ///   By default, the first mip-level at index 0 is selected, which is the most detailed one.
+        /// </param>
+        /// <param name="doNotWait">
+        ///   If <see langword="true"/> this method will return immediately if the resource is still being used by the GPU for writing.
+        ///   <see langword="false"/> makes this method wait until the operation is complete. The default value is <see langword="false"/> (wait).
+        /// </param>
+        /// <returns>
+        ///   <see langword="true"/> if data was correctly retrieved;
+        ///   <see langword="false"/> if <paramref name="doNotWait"/> flag was <see langword="true"/> and the resource is still being used by the GPU for writing.
+        /// </returns>
         /// <remarks>
-        /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
-        /// This method creates internally a stagging resource if this texture is not already a stagging resouce, copies to it and map it to memory. Use method with explicit staging resource
-        /// for optimal performances.</remarks>
-        public bool GetData<TData>(CommandList commandList, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : unmanaged
+        ///   This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
+        ///   <para>
+        ///     This method creates internally a <em>staging Resource</em>, copies the data into it, and maps it to CPU memory.
+        ///     You can use one of the methods that specify an explicit staging Resource for better performance.
+        ///   </para>
+        /// </remarks>
+        public bool GetData<TData>(CommandList commandList, TData[] toData, int arrayIndex = 0, int mipLevel = 0, bool doNotWait = false) where TData : unmanaged
         {
-            // Get data from this resource
             if (Usage == GraphicsResourceUsage.Staging)
             {
-                // Directly if this is a staging resource
-                return GetData(commandList, this, toData, arraySlice, mipSlice, doNotWait);
+                // Get the data directly if this is a staging Resource
+                return GetData(commandList, stagingTexture: this, toData, arrayIndex, mipLevel, doNotWait);
             }
             else
             {
-                // Unefficient way to use the Copy method using dynamic staging texture
-                using (var throughStaging = this.ToStaging())
-                    return GetData(commandList, throughStaging, toData, arraySlice, mipSlice, doNotWait);
+                // Inefficient way to use the Copy method using a dynamic staging Texture
+                using var throughStaging = ToStaging();
+                return GetData(commandList, throughStaging, toData, arrayIndex, mipLevel, doNotWait);
             }
         }
 
         /// <summary>
-        /// Copies the content of this texture from GPU memory to an array of data on CPU memory using a specific staging resource.
+        ///   Copies the contents of the Texture from GPU memory to CPU memory using a specific staging Resource.
         /// </summary>
-        /// <typeparam name="TData">The type of the T data.</typeparam>
-        /// <param name="commandList">The command list.</param>
-        /// <param name="stagingTexture">The staging texture used to transfer the texture to.</param>
-        /// <param name="toData">To data.</param>
-        /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
-        /// <param name="mipSlice">The mip slice index.</param>
-        /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
-        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <paramref name="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
-        /// <exception cref="System.ArgumentException">When strides is different from optimal strides, and TData is not the same size as the pixel format, or Width * Height != toData.Length</exception>
-        /// <remarks>
-        /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
-        /// </remarks>
-        public unsafe bool GetData<TData>(CommandList commandList, Texture stagingTexture, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : unmanaged
+        /// <typeparam name="TData">The type of the pixel data.</typeparam>
+        /// <param name="commandList">The <see cref="CommandList"/> where to register the command.</param>
+        /// <param name="stagingTexture">The staging Texture used to transfer the Texture contents to.</param>
+        /// <param name="toData">The destination buffer to copy the Texture data into.</param>
+        /// <param name="arrayIndex">
+        ///   <para>
+        ///     The array index.
+        ///     If the Texture is not a Texture Array or a Cube-map, only a single array slice will exist with index 0, which is the default value.
+        ///   </para>
+        ///   <para>This index must be 0 for a three-dimensional Texture.</para>
+        /// </param>
+        /// <param name="mipLevel">
+        ///   The mip-level to get the data from.
+        ///   By default, the first mip-level at index 0 is selected, which is the most detailed one.
+        /// </param>
+        /// <param name="doNotWait">
+        ///   If <see langword="true"/> this method will return immediately if the resource is still being used by the GPU for writing.
+        ///   <see langword="false"/> makes this method wait until the operation is complete. The default value is <see langword="false"/> (wait).
+        /// </param>
+        /// <returns>
+        ///   <see langword="true"/> if data was correctly retrieved;
+        ///   <see langword="false"/> if <paramref name="doNotWait"/> flag was <see langword="true"/> and the resource is still being used by the GPU for writing.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        ///   The length of the destination buffer <paramref name="toData"/> is not compatible with the expected largestSize for the data
+        ///   at <paramref name="arrayIndex"/> and <paramref name="mipLevel"/>.
+        /// </exception>
+        public unsafe bool GetData<TData>(CommandList commandList, Texture stagingTexture, TData[] toData, int arrayIndex = 0, int mipLevel = 0, bool doNotWait = false) where TData : unmanaged
         {
-            return GetData(commandList, stagingTexture, toData.AsSpan(), arraySlice, mipSlice, doNotWait);
+            return GetData(commandList, stagingTexture, toData.AsSpan(), arrayIndex, mipLevel, doNotWait);
         }
 
         /// <summary>
-        /// Copies the content an array of data on CPU memory to this texture into GPU memory using the specified <see cref="GraphicsDevice"/> (The graphics device could be deffered).
+        ///   Copies the contents of the Texture from GPU memory to CPU memory using a specific staging Resource.
         /// </summary>
-        /// <typeparam name="TData">The type of the T data.</typeparam>
-        /// <param name="commandList">The command list.</param>
-        /// <param name="fromData">The data to copy from.</param>
-        /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
-        /// <param name="mipSlice">The mip slice index.</param>
-        /// <param name="region">Destination region</param>
-        /// <exception cref="System.ArgumentException">When strides is different from optimal strides, and TData is not the same size as the pixel format, or Width * Height != toData.Length</exception>
-        /// <remarks>
-        /// See unmanaged documentation for usage and restrictions.
-        /// </remarks>
-        public unsafe void SetData<TData>(CommandList commandList, TData[] fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null) where TData : unmanaged
+        /// <param name="commandList">The <see cref="CommandList"/> where to register the command.</param>
+        /// <param name="stagingTexture">The staging Texture used to transfer the Texture contents to.</param>
+        /// <param name="toData">A ptrFromData to the data buffer in CPU memory to copy the Texture contents into.</param>
+        /// <param name="arrayIndex">
+        ///   <para>
+        ///     The array index.
+        ///     If the Texture is not a Texture Array or a Cube-map, only a single array slice will exist with index 0, which is the default value.
+        ///   </para>
+        ///   <para>This index must be 0 for a three-dimensional Texture.</para>
+        /// </param>
+        /// <param name="mipLevel">
+        ///   The mip-level to get the data from.
+        ///   By default, the first mip-level at index 0 is selected, which is the most detailed one.
+        /// </param>
+        /// <param name="doNotWait">
+        ///   If <see langword="true"/> this method will return immediately if the resource is still being used by the GPU for writing.
+        ///   <see langword="false"/> makes this method wait until the operation is complete. The default value is <see langword="false"/> (wait).
+        /// </param>
+        /// <returns>
+        ///   <see langword="true"/> if data was correctly retrieved;
+        ///   <see langword="false"/> if <paramref name="doNotWait"/> flag was <see langword="true"/> and the resource is still being used by the GPU for writing.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        ///   The length of the destination buffer <paramref name="toData"/> is not compatible with the expected largestSize for the data
+        ///   at <paramref name="arrayIndex"/> and <paramref name="mipLevel"/>.
+        /// </exception>
+        [Obsolete("This method is obsolete. Use the Span-based methods instead")]
+        public unsafe bool GetData(CommandList commandList, Texture stagingTexture, DataPointer toData, int arrayIndex = 0, int mipLevel = 0, bool doNotWait = false)
         {
-            SetData(commandList, fromData.AsSpan(), arraySlice, mipSlice, region);
+            return GetData(commandList, stagingTexture, new Span<byte>((void*)toData.Pointer, toData.Size), arrayIndex, mipLevel, doNotWait);
         }
 
         /// <summary>
-        /// Copies the content of this texture from GPU memory to a pointer on CPU memory using a specific staging resource.
+        ///   Copies the contents of the Texture from GPU memory to CPU memory using a specific staging Resource.
         /// </summary>
-        /// <param name="commandList">The command list.</param>
-        /// <param name="stagingTexture">The staging texture used to transfer the texture to.</param>
-        /// <param name="toData">The pointer to data in CPU memory.</param>
-        /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
-        /// <param name="mipSlice">The mip slice index.</param>
-        /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
-        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <paramref name="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
-        /// <exception cref="System.ArgumentException">When strides is different from optimal strides, and TData is not the same size as the pixel format, or Width * Height != toData.Length</exception>
-        /// <remarks>
-        /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
-        /// </remarks>
-        [Obsolete("Use span instead")]
-        public unsafe bool GetData(CommandList commandList, Texture stagingTexture, DataPointer toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false)
+        /// <param name="commandList">The <see cref="CommandList"/> where to register the command.</param>
+        /// <param name="stagingTexture">The staging Texture used to transfer the Texture contents to.</param>
+        /// <param name="toData">The data buffer in CPU memory to copy the Texture contents into.</param>
+        /// <param name="arrayIndex">
+        ///   <para>
+        ///     The array index.
+        ///     If the Texture is not a Texture Array or a Cube-map, only a single array slice will exist with index 0, which is the default value.
+        ///   </para>
+        ///   <para>This index must be 0 for a three-dimensional Texture.</para>
+        /// </param>
+        /// <param name="mipLevel">
+        ///   The mip-level to get the data from.
+        ///   By default, the first mip-level at index 0 is selected, which is the most detailed one.
+        /// </param>
+        /// <param name="doNotWait">
+        ///   If <see langword="true"/> this method will return immediately if the resource is still being used by the GPU for writing.
+        ///   <see langword="false"/> makes this method wait until the operation is complete. The default value is <see langword="false"/> (wait).
+        /// </param>
+        /// <returns>
+        ///   <see langword="true"/> if data was correctly retrieved;
+        ///   <see langword="false"/> if <paramref name="doNotWait"/> flag was <see langword="true"/> and the resource is still being used by the GPU for writing.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        ///   The length of the destination buffer <paramref name="toData"/> is not compatible with the expected largestSize for the data
+        ///   at <paramref name="arrayIndex"/> and <paramref name="mipLevel"/>.
+        /// </exception>
+        public unsafe bool GetData<T>(CommandList commandList, Texture stagingTexture, Span<T> toData, int arrayIndex = 0, int mipLevel = 0, bool doNotWait = false) where T : unmanaged
         {
-            return GetData(commandList, stagingTexture, new Span<byte>((void*)toData.Pointer, toData.Size), arraySlice, mipSlice, doNotWait);
-        }
+            ArgumentNullException.ThrowIfNull(stagingTexture);
 
-        /// <summary>
-        /// Copies the content of this texture from GPU memory to a pointer on CPU memory using a specific staging resource.
-        /// </summary>
-        /// <param name="commandList">The command list.</param>
-        /// <param name="stagingTexture">The staging texture used to transfer the texture to.</param>
-        /// <param name="toData">The pointer to data in CPU memory.</param>
-        /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
-        /// <param name="mipSlice">The mip slice index.</param>
-        /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
-        /// <returns><c>true</c> if data was correctly retrieved, <c>false</c> if <paramref name="doNotWait"/> flag was true and the resource is still being used by the GPU for writing.</returns>
-        /// <exception cref="System.ArgumentException">When strides is different from optimal strides, and TData is not the same size as the pixel format, or Width * Height != toData.Length</exception>
-        /// <remarks>
-        /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
-        /// </remarks>
-        public unsafe bool GetData<T>(CommandList commandList, Texture stagingTexture, Span<T> toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where T : unmanaged
-        {
-            if (stagingTexture == null) throw new ArgumentNullException("stagingTexture");
-            var device = GraphicsDevice;
-            //var deviceContext = device.NativeDeviceContext;
+            // Get a description for the specified mip-level
+            ref readonly var mipmap = ref GetMipMapDescription(mipLevel);
 
-            // Get mipmap description for the specified mipSlice
-            var mipmap = this.GetMipMapDescription(mipSlice);
-
-            // Copy height, depth
             int height = mipmap.HeightPacked;
             int depth = mipmap.Depth;
-
-            // Calculate depth stride based on mipmap level
             int rowStride = mipmap.RowStride;
-
-            // Depth Stride
             int textureDepthStride = mipmap.DepthStride;
-
-            // MipMap Stride
             int mipMapSize = mipmap.MipmapSize;
 
             int destLengthInBytes = toData.Length * sizeof(T);
 
-            // Check size validity of data to copy to
             if (destLengthInBytes > mipMapSize)
-                throw new ArgumentException($"Size of toData ({destLengthInBytes} bytes) is not compatible expected size ({mipMapSize} bytes) : Width * Height * Depth * sizeof(PixelFormat) size in bytes");
+                throw new ArgumentException($"The length of the destination buffer ({destLengthInBytes} bytes) is not compatible with " +
+                    $"the expected largestSize ({mipMapSize} bytes) : Width * Height * Depth * sizeof(Format) largestSize in bytes");
 
-            // Copy the actual content of the texture to the staging resource
+            // Copy the actual content of the texture to the staging Resource
             if (!ReferenceEquals(this, stagingTexture))
                 commandList.Copy(this, stagingTexture);
 
-            // Calculate the subResourceIndex for a Texture
-            int subResourceIndex = this.GetSubResourceIndex(arraySlice, mipSlice);
+            int subResourceIndex = GetSubResourceIndex(arrayIndex, mipLevel);
 
-            // Map the staging resource to a CPU accessible memory
-            var mappedResource = commandList.MapSubresource(stagingTexture, subResourceIndex, MapMode.Read, doNotWait);
+            // Map the staging Resource to CPU-accessible memory
+            var mappedResource = commandList.MapSubResource(stagingTexture, subResourceIndex, MapMode.Read, doNotWait);
 
-            // Box can be empty if DoNotWait is set to true, return false if empty
+            // Box can be empty if `doNotWait` is true: Return false if empty
             var box = mappedResource.DataBox;
             if (box.IsEmpty)
-            {
                 return false;
-            }
 
-            // If depth == 1 (Texture, Texture or TextureCube), then depthStride is not used
-            var boxDepthStride = this.Depth == 1 ? box.SlicePitch : textureDepthStride;
+            // If depth == 1 (like for 1D, 2D, or Cube), then depthStride is not used
+            var boxDepthStride = Depth == 1 ? box.SlicePitch : textureDepthStride;
 
             var isFlippedTexture = IsFlipped();
 
             // The fast way: If same stride, we can directly copy the whole texture in one shot
             if (box.RowPitch == rowStride && boxDepthStride == textureDepthStride && !isFlippedTexture)
             {
-                fixed(void* destPtr = toData)
-                    Utilities.CopyWithAlignmentFallback(destPtr, (void*)box.DataPointer, (uint)mipMapSize);
+                fixed (void* destPtr = toData)
+                    MemoryUtilities.CopyWithAlignmentFallback(destPtr, (void*) box.DataPointer, (uint) mipMapSize);
             }
             else
             {
                 // Otherwise, the long way by copying each scanline
-                var sourcePerDepthPtr = (byte*)box.DataPointer;
+                var sourcePerDepthPtr = (byte*) box.DataPointer;
                 fixed (T* ptr = toData)
                 {
-                    byte* destPtr = (byte*)ptr;
+                    byte* destPtr = (byte*) ptr;
+
                     // Iterate on all depths
                     for (int j = 0; j < depth; j++)
                     {
                         var sourcePtr = sourcePerDepthPtr;
-                        // Iterate on each line
 
+                        // Iterate on each line
                         if (isFlippedTexture)
                         {
                             sourcePtr += box.RowPitch * (height - 1);
                             for (int i = height - 1; i >= 0; i--)
                             {
                                 // Copy a single row
-                                Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)rowStride);
+                                MemoryUtilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint) rowStride);
                                 sourcePtr -= box.RowPitch;
                                 destPtr += rowStride;
                             }
@@ -894,7 +1284,7 @@ namespace Stride.Graphics
                             for (int i = 0; i < height; i++)
                             {
                                 // Copy a single row
-                                Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)rowStride);
+                                MemoryUtilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint) rowStride);
                                 sourcePtr += box.RowPitch;
                                 destPtr += rowStride;
                             }
@@ -904,251 +1294,371 @@ namespace Stride.Graphics
                 }
             }
 
-            // Make sure that we unmap the resource in case of an exception
-            commandList.UnmapSubresource(mappedResource);
+            commandList.UnmapSubResource(mappedResource);
 
             return true;
         }
 
+        #endregion
+
+        #region SetData: Writing data into the Texture
+
         /// <summary>
-        /// Copies the content an data on CPU memory to this texture into GPU memory.
+        ///   Copies the contents of an array of data on CPU memory into the Texture in GPU memory.
         /// </summary>
-        /// <param name="commandList">The <see cref="CommandList"/>.</param>
-        /// <param name="fromData">The data to copy from.</param>
-        /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
-        /// <param name="mipSlice">The mip slice index.</param>
-        /// <param name="region">Destination region</param>
-        /// <exception cref="System.ArgumentException">When strides is different from optimal strides, and TData is not the same size as the pixel format, or Width * Height != toData.Length</exception>
+        /// <typeparam name="TData">The type of the pixel data.</typeparam>
+        /// <param name="commandList">The <see cref="CommandList"/> where to register the command.</param>
+        /// <param name="fromData">The data buffer to copy from.</param>
+        /// <param name="arrayIndex">
+        ///   <para>
+        ///     The array index.
+        ///     If the Texture is not a Texture Array or a Cube-map, only a single array slice will exist with index 0, which is the default value.
+        ///   </para>
+        ///   <para>This index must be 0 for a three-dimensional Texture.</para>
+        /// </param>
+        /// <param name="mipLevel">
+        ///   The mip-level to copy the data to.
+        ///   By default, the first mip-level at index 0 is selected, which is the most detailed one.
+        /// </param>
+        /// <param name="region">
+        ///   An optional <see cref="ResourceRegion"/> describing the region of data of the Texture to copy into.
+        ///   Specify <see langword="null"/> to copy to the whole sub-Resource at <paramref name="arrayIndex"/>/<paramref name="mipLevel"/>.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///   The length of <paramref name="fromData"/> is not compatible with the expected largestSize for the data
+        ///   at <paramref name="arrayIndex"/> and <paramref name="mipLevel"/>.
+        ///   This can also occur when the stride is different from the optimal stride, and <typeparamref name="TData"/> is not the same largestSize as
+        ///   the largestSize of <see cref="Format"/>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///   <paramref name="region"/> can only be specified (non-<see langword="null"/>) for Textures with <see cref="GraphicsResourceUsage.Default"/>.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   The <paramref name="region"/> largestSize (in any of its dimensions) cannot be greater than the mip-level largestSize.
+        /// </exception>
         /// <remarks>
-        /// See unmanaged documentation for usage and restrictions.
+        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource"/> for more information about
+        ///   usage and restrictions.
         /// </remarks>
-        [Obsolete("Use span instead")]
-        public unsafe void SetData(CommandList commandList, DataPointer fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null)
+        public unsafe void SetData<TData>(CommandList commandList, TData[] fromData, int arrayIndex = 0, int mipLevel = 0, ResourceRegion? region = null) where TData : unmanaged
         {
-            SetData(commandList, new Span<byte>((void*)fromData.Pointer, fromData.Size), arraySlice, mipSlice, region);
+            SetData<TData>(commandList, fromData.AsSpan(), arrayIndex, mipLevel, region);
         }
 
         /// <summary>
-        /// Copies the content an data on CPU memory to this texture into GPU memory.
+        ///   Copies the contents of a data buffer on CPU memory into the Texture in GPU memory.
         /// </summary>
-        /// <param name="commandList">The <see cref="CommandList"/>.</param>
-        /// <param name="fromData">The data to copy from.</param>
-        /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
-        /// <param name="mipSlice">The mip slice index.</param>
-        /// <param name="region">Destination region</param>
-        /// <exception cref="System.ArgumentException">When strides is different from optimal strides, and TData is not the same size as the pixel format, or Width * Height != toData.Length</exception>
+        /// <param name="commandList">The <see cref="CommandList"/> where to register the command.</param>
+        /// <param name="fromData">A ptrFromData to the data buffer to copy from.</param>
+        /// <param name="arrayIndex">
+        ///   <para>
+        ///     The array index.
+        ///     If the Texture is not a Texture Array or a Cube-map, only a single array slice will exist with index 0, which is the default value.
+        ///   </para>
+        ///   <para>This index must be 0 for a three-dimensional Texture.</para>
+        /// </param>
+        /// <param name="mipLevel">
+        ///   The mip-level to copy the data to.
+        ///   By default, the first mip-level at index 0 is selected, which is the most detailed one.
+        /// </param>
+        /// <param name="region">
+        ///   An optional <see cref="ResourceRegion"/> describing the region of data of the Texture to copy into.
+        ///   Specify <see langword="null"/> to copy to the whole sub-Resource at <paramref name="arrayIndex"/>/<paramref name="mipLevel"/>.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///   The length of <paramref name="fromData"/> is not compatible with the expected largestSize for the data
+        ///   at <paramref name="arrayIndex"/> and <paramref name="mipLevel"/>.
+        ///   This can also occur when the stride is different from the optimal stride, and <typeparamref name="TData"/> is not the same largestSize as
+        ///   the largestSize of <see cref="Format"/>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///   <paramref name="region"/> can only be specified (non-<see langword="null"/>) for Textures with <see cref="GraphicsResourceUsage.Default"/>.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   The <paramref name="region"/> largestSize (in any of its dimensions) cannot be greater than the mip-level largestSize.
+        /// </exception>
         /// <remarks>
-        /// See unmanaged documentation for usage and restrictions.
+        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource"/> for more information about
+        ///   usage and restrictions.
         /// </remarks>
-        public unsafe void SetData<T>(CommandList commandList, Span<T> fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null) where T : unmanaged
+        [Obsolete("This method is obsolete. Use the Span-based methods instead")]
+        public unsafe void SetData(CommandList commandList, DataPointer fromData, int arrayIndex = 0, int mipLevel = 0, ResourceRegion? region = null)
         {
-            if (commandList == null) throw new ArgumentNullException("commandList");
-            if (region.HasValue && this.Usage != GraphicsResourceUsage.Default)
-                throw new ArgumentException("Region is only supported for textures with ResourceUsage.Default");
+            SetData(commandList, new ReadOnlySpan<byte>((void*) fromData.Pointer, fromData.Size), arrayIndex, mipLevel, region);
+        }
 
-            // Get mipmap description for the specified mipSlice
-            var mipMapDesc = this.GetMipMapDescription(mipSlice);
+        /// <summary>
+        ///   Copies the contents of a data buffer on CPU memory into the Texture in GPU memory.
+        /// </summary>
+        /// <typeparam name="TData">The type of the pixel data.</typeparam>
+        /// <param name="commandList">The <see cref="CommandList"/> where to register the command.</param>
+        /// <param name="fromData">The data buffer to copy from.</param>
+        /// <param name="arrayIndex">
+        ///   <para>
+        ///     The array index.
+        ///     If the Texture is not a Texture Array or a Cube-map, only a single array slice will exist with index 0, which is the default value.
+        ///   </para>
+        ///   <para>This index must be 0 for a three-dimensional Texture.</para>
+        /// </param>
+        /// <param name="mipLevel">
+        ///   The mip-level to copy the data to.
+        ///   By default, the first mip-level at index 0 is selected, which is the most detailed one.
+        /// </param>
+        /// <param name="region">
+        ///   An optional <see cref="ResourceRegion"/> describing the region of data of the Texture to copy into.
+        ///   Specify <see langword="null"/> to copy to the whole sub-Resource at <paramref name="arrayIndex"/>/<paramref name="mipLevel"/>.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///   The length of <paramref name="fromData"/> is not compatible with the expected largestSize for the data
+        ///   at <paramref name="arrayIndex"/> and <paramref name="mipLevel"/>.
+        ///   This can also occur when the stride is different from the optimal stride, and <typeparamref name="TData"/> is not the same largestSize as
+        ///   the largestSize of <see cref="Format"/>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///   <paramref name="region"/> can only be specified (non-<see langword="null"/>) for Textures with <see cref="GraphicsResourceUsage.Default"/>.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   The <paramref name="region"/> largestSize (in any of its dimensions) cannot be greater than the mip-level largestSize.
+        /// </exception>
+        /// <remarks>
+        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource"/> for more information about
+        ///   usage and restrictions.
+        /// </remarks>
+        public unsafe void SetData<TData>(CommandList commandList, ReadOnlySpan<TData> fromData, int arrayIndex = 0, int mipLevel = 0, ResourceRegion? region = null) where TData : unmanaged
+        {
+            ArgumentNullException.ThrowIfNull(commandList);
 
-            int width = mipMapDesc.Width;
-            int height = mipMapDesc.Height;
-            int depth = mipMapDesc.Depth;
+            if (region.HasValue && Usage != GraphicsResourceUsage.Default)
+                throw new ArgumentException($"A region can only be specified for Textures with {nameof(GraphicsResourceUsage)}.{nameof(GraphicsResourceUsage.Default)}", nameof(region));
+
+            // Get a description for the specified mip-level
+            ref readonly var mipmap = ref GetMipMapDescription(mipLevel);
+
+            int width = mipmap.Width;
+            int height = mipmap.Height;
+            int depth = mipmap.Depth;
 
             // If we are using a region, then check that parameters are fine
-            if (region.HasValue)
+            if (region is ResourceRegion regionToCheck)
             {
-                int newWidth = region.Value.Right - region.Value.Left;
-                int newHeight = region.Value.Bottom - region.Value.Top;
-                int newDepth = region.Value.Back - region.Value.Front;
-                if (newWidth > width)
-                    throw new ArgumentException($"Region width [{newWidth}] cannot be greater than mipmap width [{width}]", "region");
-                if (newHeight > height)
-                    throw new ArgumentException($"Region height [{newHeight}] cannot be greater than mipmap height [{height}]", "region");
-                if (newDepth > depth)
-                    throw new ArgumentException($"Region depth [{newDepth}] cannot be greater than mipmap depth [{depth}]", "region");
+                if (regionToCheck.Width > width)
+                    throw new ArgumentOutOfRangeException(nameof(region), $"The region's width [{regionToCheck.Width}] cannot be greater than the mip-level's width [{width}]");
+                if (regionToCheck.Height > height)
+                    throw new ArgumentOutOfRangeException(nameof(region), $"The region's height [{regionToCheck.Height}] cannot be greater than the mip-level's height [{height}]");
+                if (regionToCheck.Depth > depth)
+                    throw new ArgumentOutOfRangeException(nameof(region), $"The region's depth [{regionToCheck.Depth}] cannot be greater than the mip-level's depth [{depth}]");
 
-                width = newWidth;
-                height = newHeight;
-                depth = newDepth;
+                width = regionToCheck.Width;
+                height = regionToCheck.Height;
+                depth = regionToCheck.Depth;
             }
 
-            // Size per pixel
-            var sizePerElement = Format.SizeInBytes();
+            var sizePerElement = Format.SizeInBytes;
 
-            // Calculate depth stride based on mipmap level
-            int rowStride;
-
-            // Depth Stride
-            int textureDepthStride;
-
-            // Compute Actual pitch
-            Image.ComputePitch(this.Format, width, height, out rowStride, out textureDepthStride, out width, out height);
+            // Compute actual pitch
+            Image.ComputePitch(Format, width, height, out var rowStride, out var textureDepthStride, out width, out height);
 
             // Size Of actual texture data
             int sizeOfTextureData = textureDepthStride * depth;
 
-            int fromDataSizeInBytes = fromData.Length * sizeof(T);
+            int fromDataSizeInBytes = fromData.Length * sizeof(TData);
 
-            // Check size validity of data to copy to
+            // Check largestSize validity of data to copy from
             if (fromDataSizeInBytes < sizeOfTextureData)
-                throw new ArgumentException($"Size of fromData ({fromDataSizeInBytes} bytes) is not compatible expected size must be at least {sizeOfTextureData} bytes : Width * Height * Depth * sizeof(PixelFormat) size in bytes");
+                throw new ArgumentException($"The length of the source data buffer ({fromDataSizeInBytes} bytes) is not compatible with the expected largestSize " +
+                    $"of at least {sizeOfTextureData} bytes : Width * Height * Depth * sizeof(Format) largestSize in bytes");
 
-            // Calculate the subResourceIndex for a Texture
-            int subResourceIndex = this.GetSubResourceIndex(arraySlice, mipSlice);
+            int subResourceIndex = GetSubResourceIndex(arrayIndex, mipLevel);
 
-            fixed (void* pointer = fromData)
+            fixed (void* ptrFromData = fromData)
             {
-                // If this texture is declared as default usage, we use UpdateSubresource that supports sub resource region.
-                if (this.Usage == GraphicsResourceUsage.Default)
+                // If the Texture is declared as Default usage, we use UpdateSubresource that supports sub-Resource region
+                if (Usage == GraphicsResourceUsage.Default)
                 {
-                    // If using a specific region, we need to handle this case
-                    if (region.HasValue)
+                    if (region is ResourceRegion validRegion)
                     {
-                        var regionValue = region.Value;
-                        nint sourceDataPtr = (nint)pointer;
-
-                        // Workaround when using region with a deferred context and a device that does not support CommandList natively
-                        // see http://blogs.msdn.com/b/chuckw/archive/2010/07/28/known-issue-direct3d-11-updatesubresource-and-deferred-contexts.aspx
-                        if (commandList.GraphicsDevice.NeedWorkAroundForUpdateSubResource)
-                        {
-                            if (IsBlockCompressed)
-                            {
-                                regionValue.Left /= 4;
-                                regionValue.Right /= 4;
-                                regionValue.Top /= 4;
-                                regionValue.Bottom /= 4;
-                            }
-                            sourceDataPtr = new IntPtr((byte*)sourceDataPtr - (regionValue.Front * textureDepthStride) - (regionValue.Top * rowStride) - (regionValue.Left * sizePerElement));
-                        }
-                        commandList.UpdateSubresource(this, subResourceIndex, new DataBox(sourceDataPtr, rowStride, textureDepthStride), regionValue);
+                        commandList.UpdateSubResource(resource: this, subResourceIndex, new DataBox((nint) ptrFromData, rowStride, textureDepthStride), validRegion);
                     }
                     else
                     {
-                        commandList.UpdateSubresource(this, subResourceIndex, new DataBox((nint)pointer, rowStride, textureDepthStride));
+                        commandList.UpdateSubResource(resource: this, subResourceIndex, new DataBox((nint) ptrFromData, rowStride, textureDepthStride));
                     }
                 }
                 else
                 {
-                    var mappedResource = commandList.MapSubresource(this, subResourceIndex, this.Usage == GraphicsResourceUsage.Dynamic ? MapMode.WriteDiscard : MapMode.Write);
+                    var mappedResource = commandList.MapSubResource(resource: this, subResourceIndex, Usage == GraphicsResourceUsage.Dynamic ? MapMode.WriteDiscard : MapMode.Write);
                     var box = mappedResource.DataBox;
 
-                    // If depth == 1 (Texture, Texture or TextureCube), then depthStride is not used
-                    var boxDepthStride = this.Depth == 1 ? box.SlicePitch : textureDepthStride;
+                    // If depth == 1 (like for 1D, 2D, or Cube), then depthStride is not used
+                    var boxDepthStride = Depth == 1 ? box.SlicePitch : textureDepthStride;
 
                     // The fast way: If same stride, we can directly copy the whole texture in one shot
                     if (box.RowPitch == rowStride && boxDepthStride == textureDepthStride)
                     {
-                        Utilities.CopyWithAlignmentFallback((void*)box.DataPointer, pointer, (uint)sizeOfTextureData);
+                        MemoryUtilities.CopyWithAlignmentFallback((void*) box.DataPointer, ptrFromData, (uint) sizeOfTextureData);
                     }
                     else
                     {
                         // Otherwise, the long way by copying each scanline
-                        var destPerDepthPtr = (byte*)box.DataPointer;
-                        var sourcePtr = (byte*)pointer;
+                        var destPerDepthPtr = (byte*) box.DataPointer;
+                        var sourcePtr = (byte*) ptrFromData;
 
                         // Iterate on all depths
-                        for (int j = 0; j < depth; j++)
+                        for (int z = 0; z < depth; z++)
                         {
                             var destPtr = destPerDepthPtr;
+
                             // Iterate on each line
-                            for (int i = 0; i < height; i++)
+                            for (int y = 0; y < height; y++)
                             {
-                                Utilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint)rowStride);
+                                MemoryUtilities.CopyWithAlignmentFallback(destPtr, sourcePtr, (uint) rowStride);
                                 destPtr += box.RowPitch;
                                 sourcePtr += rowStride;
                             }
                             destPerDepthPtr += box.SlicePitch;
                         }
                     }
-                    commandList.UnmapSubresource(mappedResource);
+                    commandList.UnmapSubResource(mappedResource);
                 }
             }
         }
 
+        #endregion
+
         /// <summary>
-        /// Makes a copy of this texture.
+        ///   Creates a copy of the Texture.
         /// </summary>
+        /// <returns>A copy of the Texture.</returns>
         /// <remarks>
-        /// This method doesn't copy the content of the texture.
+        ///   This method creates a new Texture with the exact same characteristics, but <strong>does not copy the contents</strong>
+        ///   of the Texture to the new one.
         /// </remarks>
-        /// <returns>
-        /// A copy of this texture.
-        /// </returns>
         public Texture Clone()
         {
-            return new Texture(GraphicsDevice).InitializeFrom(textureDescription.ToCloneableDescription(), ViewDescription);
+            var cloneableDescription = textureDescription.ToCloneableDescription();
+
+            var texture = GraphicsDevice.IsDebugMode
+                ? new Texture(GraphicsDevice, Name)
+                : new Texture(GraphicsDevice);
+
+            return texture.InitializeFrom(in cloneableDescription, in ViewDescription);
         }
 
         /// <summary>
-        /// Return an equivalent staging texture CPU read-writable from this instance.
+        ///   Creates a new Texture with the needed changes to serve as a staging Texture that can be read / written by the CPU.
         /// </summary>
-        /// <returns>The equivalent staging texture.</returns>
+        /// <returns>The equivalent staging Texture.</returns>
         public Texture ToStaging()
         {
-            return new Texture(this.GraphicsDevice).InitializeFrom(textureDescription.ToStagingDescription(), ViewDescription.ToStagingDescription());
+            var stagingDescription = textureDescription.ToStagingDescription();
+            var stagingViewDescription = ViewDescription.ToStagingDescription();
+
+            var texture = GraphicsDevice.IsDebugMode
+                ? new Texture(GraphicsDevice, Name)
+                : new Texture(GraphicsDevice);
+
+            return texture.InitializeFrom(in stagingDescription, in stagingViewDescription);
         }
 
         /// <summary>
-        /// Loads a texture from a stream.
+        ///   Loads a Texture from a stream.
         /// </summary>
         /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-        /// <param name="stream">The stream to load the texture from.</param>
-        /// <param name="textureFlags">True to load the texture with unordered access enabled. Default is false.</param>
-        /// <param name="usage">Usage of the resource. Default is <see cref="GraphicsResourceUsage.Immutable"/> </param>
-        /// <param name="loadAsSRGB">Indicate if the texture should be loaded as an sRGB texture. If false, the texture is load in its default format.</param>
-        /// <returns>A texture</returns>
-        public static Texture Load(GraphicsDevice device, Stream stream, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, bool loadAsSRGB = false)
+        /// <param name="stream">The stream to load the Texture from.</param>
+        /// <param name="textureFlags">
+        ///   A combination of flags determining what kind of Texture and how the is should behave
+        ///   (i.e. how it is bound, how can it be read / written, etc.).
+        ///   By default, it is <see cref="TextureFlags.ShaderResource"/>.
+        /// </param>
+        /// <param name="usage">
+        ///   A combination of flags determining how the Texture will be used during rendering.
+        ///   The default is <see cref="GraphicsResourceUsage.Immutable"/>, meaning it will need read access by the GPU.
+        /// </param>
+        /// <param name="loadAsSrgb">
+        ///   <see langword="true"/> if the Texture should be loaded as an sRGB Texture;
+        ///   <see langword="false"/> to load it in its default format.
+        /// </param>
+        /// <returns>The loaded Texture.</returns>
+        public static Texture Load(GraphicsDevice device, Stream stream, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, bool loadAsSrgb = false)
         {
-            using (var image = Image.Load(stream, loadAsSRGB))
-                return New(device, image, textureFlags, usage);
+            using var image = Image.Load(stream, loadAsSrgb);
+
+            return New(device, image, textureFlags, usage);
         }
 
         /// <summary>
-        /// Loads a texture from a stream.
+        ///   Creates a new Texture from an <see cref="Image"/>.
         /// </summary>
-        /// <param name="device">The <see cref="GraphicsDevice" />.</param>
-        /// <param name="image">The image.</param>
-        /// <param name="textureFlags">True to load the texture with unordered access enabled. Default is false.</param>
-        /// <param name="usage">Usage of the resource. Default is <see cref="GraphicsResourceUsage.Immutable" /></param>
-        /// <returns>A texture</returns>
-        /// <exception cref="System.InvalidOperationException">Dimension not supported</exception>
+        /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+        /// <param name="image">An <see cref="Image"/> to create the Texture from.</param>
+        /// <param name="textureFlags">
+        ///   A combination of flags determining what kind of Texture and how the is should behave
+        ///   (i.e. how it is bound, how can it be read / written, etc.).
+        ///   By default, it is <see cref="TextureFlags.ShaderResource"/>.
+        /// </param>
+        /// <param name="usage">
+        ///   A combination of flags determining how the Texture will be used during rendering.
+        ///   The default is <see cref="GraphicsResourceUsage.Immutable"/>, meaning it will need read access by the GPU.
+        /// </param>
+        /// <returns>The loaded Texture.</returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="device"/> is <see langword="null"/>, or
+        ///   <paramref name="image"/> is <see langword="null"/>.
+        /// </exception>
         public static Texture New(GraphicsDevice device, Image image, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
         {
-            if (device == null) throw new ArgumentNullException("device");
-            if (image == null) throw new ArgumentNullException("image");
+            ArgumentNullException.ThrowIfNull(device);
+            ArgumentNullException.ThrowIfNull(image);
 
             return New(device, image.Description, image.ToDataBox());
         }
 
         /// <summary>
-        /// Creates a new texture with the specified generic texture description.
+        ///   Creates a new Texture with the specified description.
         /// </summary>
-        /// <param name="graphicsDevice">The graphics device.</param>
-        /// <param name="description">The description.</param>
-        /// <param name="boxes">The data boxes.</param>
-        /// <returns>A Texture instance, either a RenderTarget or DepthStencilBuffer or Texture, depending on Binding flags.</returns>
-        /// <exception cref="System.ArgumentNullException">graphicsDevice</exception>
+        /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+        /// <param name="description">A <see cref="TextureDescription"/> for the new Texture.</param>
+        /// <param name="boxes">
+        ///   An optional array of <see cref="DataBox"/> structures describing the initial data for all the sub-Resources of the new Texture.
+        /// </param>
+        /// <returns>The new Texture.</returns>
+        /// <exception cref="ArgumentNullException">graphicsDevice</exception>
         public static Texture New(GraphicsDevice graphicsDevice, TextureDescription description, params DataBox[] boxes)
         {
             return New(graphicsDevice, description, new TextureViewDescription(), boxes);
         }
 
         /// <summary>
-        /// Creates a new texture with the specified generic texture description.
+        ///   Creates a new Texture with the specified description.
         /// </summary>
-        /// <param name="graphicsDevice">The graphics device.</param>
-        /// <param name="description">The description.</param>
-        /// <param name="viewDescription">The view description.</param>
-        /// <param name="boxes">The data boxes.</param>
-        /// <returns>A Texture instance, either a RenderTarget or DepthStencilBuffer or Texture, depending on Binding flags.</returns>
-        /// <exception cref="System.ArgumentNullException">graphicsDevice</exception>
+        /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+        /// <param name="description">A <see cref="TextureDescription"/> for the new Texture.</param>
+        /// <param name="viewDescription">A <see cref="TextureViewDescription"/> describing a Texture View that will be created the same time.</param>
+        /// <param name="boxes">
+        ///   An optional array of <see cref="DataBox"/> structures describing the initial data for all the sub-Resources of the new Texture.
+        /// </param>
+        /// <returns>The new Texture.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="graphicsDevice"/> is <see langword="null"/>.</exception>
+        /// <exception cref="NotSupportedException">
+        ///   <para>
+        ///     The Texture's <see cref="Flags"/> and the <see cref="ViewFlags"/> are not compatible. The parent Texture must include all
+        ///     the flags defined by the Texture View, or
+        ///   </para>
+        ///   <para>
+        ///     The <see cref="MultisampleCount"/> is not supported for the specified <see cref="Format"/>. Check the
+        ///     <see cref="GraphicsDevice.Features"/> for information about supported pixel formats and the compatible
+        ///     multi-sample counts.
+        ///   </para>
+        /// </exception>
         public static Texture New(GraphicsDevice graphicsDevice, TextureDescription description, TextureViewDescription viewDescription, params DataBox[] boxes)
         {
-            if (graphicsDevice == null)
-            {
-                throw new ArgumentNullException("graphicsDevice");
-            }
+            ArgumentNullException.ThrowIfNull(graphicsDevice);
 
-            return new Texture(graphicsDevice).InitializeFrom(description, viewDescription, boxes);
+            var texture = graphicsDevice.IsDebugMode
+                ? new Texture(graphicsDevice, GetViewDebugName(in description, in viewDescription))
+                : new Texture(graphicsDevice);
+
+            return texture.InitializeFrom(in description, in viewDescription, boxes);
         }
 
 #if STRIDE_PLATFORM_ANDROID //&& USE_GLES_EXT_OES_TEXTURE
@@ -1166,41 +1676,51 @@ namespace Stride.Graphics
 #endif
 
         /// <summary>
-        /// Saves this texture to a stream with a specified format.
+        ///   Saves the Texture to a stream with the specified image format.
         /// </summary>
-        /// <param name="commandList">The command list.</param>
-        /// <param name="stream">The stream.</param>
-        /// <param name="fileType">Type of the image file.</param>
+        /// <param name="commandList">The <see cref="CommandList"/> where to register the command.</param>
+        /// <param name="stream">The stream to write the Texture contents to.</param>
+        /// <param name="fileType">The type of the image file to create.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="stream"/> is <see langword="null"/>.</exception>
         public void Save(CommandList commandList, Stream stream, ImageFileType fileType)
         {
-            if (stream == null) throw new ArgumentNullException("stream");
-            using (var staging = ToStaging())
-                Save(commandList, stream, staging, fileType);
+            ArgumentNullException.ThrowIfNull(stream);
+
+            using var staging = ToStaging();
+            Save(commandList, stream, staging, fileType);
         }
 
         /// <summary>
-        /// Gets the GPU content of this texture as an <see cref="Image"/> on the CPU.
+        ///   Copies the contents of the Texture on GPU memory to an <see cref="Image"/> on the CPU.
         /// </summary>
+        /// <param name="commandList">The <see cref="CommandList"/> where to register the command.</param>
+        /// <returns>The Image on CPU memory.</returns>
         public Image GetDataAsImage(CommandList commandList)
         {
+            // Directly if this is a staging Resource
             if (Usage == GraphicsResourceUsage.Staging)
-                return GetDataAsImage(commandList, this); // Directly if this is a staging resource
+                return GetDataAsImage(commandList, stagingTexture: this);
 
             using var stagingTexture = ToStaging();
             return GetDataAsImage(commandList, stagingTexture);
         }
 
         /// <summary>
-        /// Gets the GPU content of this texture to an <see cref="Image"/> on the CPU.
+        ///   Gets the contents of the Texture on GPU memory to an <see cref="Image"/> on the CPU.
         /// </summary>
-        /// <param name="commandList">The command list.</param>
-        /// <param name="stagingTexture">The staging texture used to temporary transfer the image from the GPU to CPU.</param>
-        /// <exception cref="ArgumentException">If stagingTexture is not a staging texture.</exception>
+        /// <param name="commandList">The <see cref="CommandList"/> where to register the command.</param>
+        /// <param name="stagingTexture">
+        ///   The staging Texture used to temporarily transfer the image from GPU memory to CPU memory.
+        /// </param>
+        /// <exception cref="ArgumentException"><paramref name="stagingTexture"/> is not a staging Texture.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="stagingTexture"/> is <see langword="null"/>.</exception>
+        /// <returns>The Image on CPU memory.</returns>
         public unsafe Image GetDataAsImage(CommandList commandList, Texture stagingTexture)
         {
-            if (stagingTexture == null) throw new ArgumentNullException("stagingTexture");
+            ArgumentNullException.ThrowIfNull(stagingTexture);
+
             if (stagingTexture.Usage != GraphicsResourceUsage.Staging)
-                throw new ArgumentException("Invalid texture used as staging. Must have Usage = GraphicsResourceUsage.Staging", "stagingTexture");
+                throw new ArgumentException("Invalid Texture used as staging Resource. It must have GraphicsResourceUsage.Staging", nameof(stagingTexture));
 
             var image = Image.New(stagingTexture.Description);
             try
@@ -1210,13 +1730,13 @@ namespace Stride.Graphics
                     for (int mipLevel = 0; mipLevel < image.Description.MipLevels; mipLevel++)
                     {
                         var pixelBuffer = image.PixelBuffer[arrayIndex, mipLevel];
-                        GetData(commandList, stagingTexture, new Span<byte>((byte*)pixelBuffer.DataPointer, pixelBuffer.BufferStride), arrayIndex, mipLevel);
+                        GetData(commandList, stagingTexture, new Span<byte>((byte*) pixelBuffer.DataPointer, pixelBuffer.BufferStride), arrayIndex, mipLevel);
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
-                // If there was an exception, free the allocated image to avoid any memory leak.
+                // If there was an exception, free the allocated image to avoid any memory leak
                 image.Dispose();
                 throw;
             }
@@ -1224,100 +1744,176 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Saves this texture to a stream with a specified format.
+        ///   Saves the Texture to a stream with a specified format.
         /// </summary>
-        /// <param name="commandList">The command list.</param>
-        /// <param name="stream">The stream.</param>
-        /// <param name="stagingTexture">The staging texture used to temporary transfer the image from the GPU to CPU.</param>
-        /// <param name="fileType">Type of the image file.</param>
-        /// <exception cref="ArgumentException">If stagingTexture is not a staging texture.</exception>
+        /// <param name="commandList">The <see cref="CommandList"/> where to register the command.</param>
+        /// <param name="stream">The stream to write the Texture to.</param>
+        /// <param name="stagingTexture">
+        ///   The staging Texture used to temporarily transfer the image from GPU memory to CPU memory.
+        /// </param>
+        /// <param name="fileType">The type of the image file to create.</param>
+        /// <exception cref="ArgumentException"><paramref name="stagingTexture"/> is not a staging Texture.</exception>
         public void Save(CommandList commandList, Stream stream, Texture stagingTexture, ImageFileType fileType)
         {
-            using (var image = GetDataAsImage(commandList, stagingTexture))
-                image.Save(stream, fileType);
+            using var image = GetDataAsImage(commandList, stagingTexture);
+            image.Save(stream, fileType);
         }
 
         /// <summary>
-        /// Calculates the mip map count from a requested level.
+        ///   Calculates the mipmap count for a Texture with the specified dimensions up to a requested mip-level.
         /// </summary>
-        /// <param name="requestedLevel">The requested level.</param>
-        /// <param name="width">The width.</param>
-        /// <param name="height">The height.</param>
-        /// <param name="depth">The depth.</param>
-        /// <returns>The resulting mipmap count (clamp to [1, maxMipMapCount] for this texture)</returns>
+        /// <param name="requestedLevel">The requested mip-level.</param>
+        /// <param name="width">The width of the Texture, in pixels.</param>
+        /// <param name="height">The height of the Texture, in pixels.</param>
+        /// <param name="depth">The depth of the Texture, in pixels.</param>
+        /// <returns>The computed mip-level count.</returns>
         internal static int CalculateMipMapCount(MipMapCount requestedLevel, int width, int height = 0, int depth = 0)
         {
-            int size = Math.Max(Math.Max(width, height), depth);
-            //int maxMipMap = 1 + (int)Math.Ceiling(Math.Log(size) / Math.Log(2.0));
-            int maxMipMap = CountMips(size);
+            int largestSize = Math.Max(Math.Max(width, height), depth);
 
-            return requestedLevel == 0 ? maxMipMap : Math.Min(requestedLevel, maxMipMap);
+            int maxMipLevelCount = CountMipLevels(largestSize);
+
+            // If all mip-levels requested (0), accept the full count, else limit to `requestedLevel`
+            return requestedLevel == 0 ? maxMipLevelCount : Math.Min(requestedLevel, maxMipLevelCount);
         }
 
-        private static DataBox GetDataBox<T>(PixelFormat format, int width, int height, int depth, T[] textureData, IntPtr fixedPointer) where T : unmanaged
+        /// <summary>
+        ///   Computes and validates the memory layout of the data of a Texture that corresponds to a specific
+        ///   pixel format and dimensions.
+        /// </summary>
+        /// <typeparam name="TData"></typeparam>
+        /// <param name="format">The pixel format of the Texture to calculate the <see cref="DataBox"/> for.</param>
+        /// <param name="width">The width in pixels of the Texture to calculate the <see cref="DataBox"/> for.</param>
+        /// <param name="height">The height in pixels of the Texture to calculate the <see cref="DataBox"/> for.</param>
+        /// <param name="depth">The depth in pixels of the Texture to calculate the <see cref="DataBox"/> for.</param>
+        /// <param name="textureData">The data buffer to upload to the Texture.</param>
+        /// <param name="fixedPointer">A pointer to the data buffer to upload to the Texture.</param>
+        /// <returns>A <see cref="DataBox"/> structure describing the data and its memory layout.</returns>
+        /// <exception cref="ArgumentException">
+        ///   The length of <paramref name="textureData"/> and data type <typeparamref name="TData"/> are incorrect for
+        ///   the specified size and pixel <paramref name="format"/>.
+        /// </exception>
+        private static unsafe DataBox GetDataBox<TData>(PixelFormat format, int width, int height, int depth, TData[] textureData, IntPtr fixedPointer) where TData : unmanaged
         {
-            // Check that the textureData size is correct
-            if (textureData == null) throw new ArgumentNullException("textureData");
+            ArgumentNullException.ThrowIfNull(textureData);
+
+            // Check that the textureData has the correct size for the Texture's data
             Image.ComputePitch(format, width, height, out var rowPitch, out var slicePitch, out _, out _);
-            if (Unsafe.SizeOf<T>() * textureData.Length != (slicePitch * depth)) throw new ArgumentException("Invalid size for Image");
+
+            if (sizeof(TData) * textureData.Length != (slicePitch * depth))
+                throw new ArgumentException("Invalid Texture data length", nameof(textureData));
 
             return new DataBox(fixedPointer, rowPitch, slicePitch);
         }
 
         /// <summary>
-        /// Swaps the texture internal data with the other texture.
+        ///   Swaps the Texture's internal data with another Texture.
         /// </summary>
-        /// <param name="other">The other texture.</param>
+        /// <param name="other">The other Texture.</param>
         internal void Swap([NotNull] Texture other)
         {
-            Utilities.Swap(ref textureDescription, ref other.textureDescription);
-            Utilities.Swap(ref textureViewDescription, ref other.textureViewDescription);
-            Utilities.Swap(ref mipmapDescriptions, ref other.mipmapDescriptions);
-            Utilities.Swap(ref fullQualitySize, ref other.fullQualitySize);
+            (textureDescription, other.textureDescription) = (other.textureDescription, textureDescription);
+            (textureViewDescription, other.textureViewDescription) = (other.textureViewDescription, textureViewDescription);
+            (mipmapDescriptions, other.mipmapDescriptions) = (other.mipmapDescriptions, mipmapDescriptions);
+            (fullQualitySize, other.fullQualitySize) = (other.fullQualitySize, fullQualitySize);
 
-            var temp = ViewWidth;
-            ViewWidth = other.ViewWidth;
-            other.ViewWidth = temp;
-
-            temp = ViewHeight;
-            ViewHeight = other.ViewHeight;
-            other.ViewHeight = temp;
-
-            temp = ViewDepth;
-            ViewDepth = other.ViewDepth;
-            other.ViewDepth = temp;
-
-            temp = SizeInBytes;
-            SizeInBytes = other.SizeInBytes;
-            other.SizeInBytes = temp;
+            (other.ViewWidth, ViewWidth) = (ViewWidth, other.ViewWidth);
+            (other.ViewHeight, ViewHeight) = (ViewHeight, other.ViewHeight);
+            (other.ViewDepth, ViewDepth) = (ViewDepth, other.ViewDepth);
+            (other.SizeInBytes, SizeInBytes) = (SizeInBytes, other.SizeInBytes);
 
             SwapInternal(other);
         }
 
+        /// <summary>
+        ///   Computes the bounds of a Texture View based on the View type, which determines what sub-Resources
+        ///   the Texture View can access.
+        /// </summary>
+        /// <param name="viewType">The View type.</param>
+        /// <param name="arrayOrDepthIndex">
+        ///   The index of the selected array slice (if a Texture Array or Cube) or depth slice (if a three-dimensional Texture).
+        ///   When this method returns, it will contain the adjusted index based on the <paramref name="viewType"/>.
+        /// </param>
+        /// <param name="mipIndex">
+        ///   The index of the selected mip-level.
+        ///   When this method returns, it will contain the adjusted index based on the <paramref name="viewType"/>.
+        /// </param>
+        /// <param name="arrayOrDepthCount">
+        ///   When this method returns, it will contain the number of the selected array slices (if a Texture Array or Cube)
+        ///   or depth slices (if a three-dimensional Texture).
+        /// </param>
+        /// <param name="mipCount">
+        ///   When this method returns, it will contain the number of the selected mip-levels.
+        /// </param>
+        /// <seealso cref="Graphics.ViewType"/>
         internal void GetViewSliceBounds(ViewType viewType, ref int arrayOrDepthIndex, ref int mipIndex, out int arrayOrDepthCount, out int mipCount)
         {
-            int arrayOrDepthSize = this.Depth > 1 ? this.Depth : this.ArraySize;
+            int arrayOrDepthSize = Depth > 1 ? Depth : ArraySize;
 
             switch (viewType)
             {
+                //      Array slice
+                //       0   1   2
+                //     ┌───┬───┬───┐
+                //   0 │ ▓ │ ▓ │ ▓ │   ■ = Selected
+                // M   ├───┼───┼───┤   □ = Not selected
+                // i 1 │ ▓ │ ▓ │ ▓ │
+                // p   ├───┼───┼───┤
+                //   2 │ ▓ │ ▓ │ ▓ │
+                //     └───┴───┴───┘
+                //
                 case ViewType.Full:
                     arrayOrDepthIndex = 0;
                     mipIndex = 0;
                     arrayOrDepthCount = arrayOrDepthSize;
-                    mipCount = this.MipLevels;
+                    mipCount = MipLevelCount;
                     break;
+
+                //      Array slice
+                //       0   1   2
+                //     ┌───┬───┬───┐
+                //   0 │   │   │   │   ■ = Selected
+                // M   ├───┼───┼───┤   □ = Not selected
+                // i 1 │   │ ▓ │   │
+                // p   ├───┼───┼───┤
+                //   2 │   │   │   │
+                //     └───┴───┴───┘
+                //
                 case ViewType.Single:
                     arrayOrDepthCount = ViewDimension == TextureDimension.Texture3D ? CalculateMipSize(Depth, mipIndex) : 1;
                     mipCount = 1;
                     break;
+
+                //      Array slice
+                //       0   1   2
+                //     ┌───┬───┬───┐
+                //   0 │   │   │   │   ■ = Selected
+                // M   ├───┼───┼───┤   □ = Not selected
+                // i 1 │   │ ▓ │ ▓ │
+                // p   ├───┼───┼───┤
+                //   2 │   │   │   │
+                //     └───┴───┴───┘
+                //
                 case ViewType.MipBand:
                     arrayOrDepthCount = arrayOrDepthSize - arrayOrDepthIndex;
                     mipCount = 1;
                     break;
+
+                //      Array slice
+                //       0   1   2
+                //     ┌───┬───┬───┐
+                //   0 │   │   │   │   ■ = Selected
+                // M   ├───┼───┼───┤   □ = Not selected
+                // i 1 │   │ ▓ │   │
+                // p   ├───┼───┼───┤
+                //   2 │   │ ▓ │   │
+                //     └───┴───┴───┘
+                //
                 case ViewType.ArrayBand:
                     arrayOrDepthCount = 1;
-                    mipCount = MipLevels - mipIndex;
+                    mipCount = MipLevelCount - mipIndex;
                     break;
+
                 default:
                     arrayOrDepthCount = 0;
                     mipCount = 0;
@@ -1325,29 +1921,58 @@ namespace Stride.Graphics
             }
         }
 
+        /// <summary>
+        ///   Returns the number of Views the Texture can have.
+        /// </summary>
+        /// <returns>The number of Views the Texture can have.</returns>
         internal int GetViewCount()
         {
-            int arrayOrDepthSize = this.Depth > 1 ? this.Depth : this.ArraySize;
-            return GetViewIndex((ViewType)4, arrayOrDepthSize, this.MipLevels);
+            // TODO: This is unused and internal. Should it be kept?
+
+            int arrayOrDepthSize = Depth > 1 ? Depth : ArraySize;
+            int viewIndex = (4 * arrayOrDepthSize + arrayOrDepthSize) * MipLevelCount + MipLevelCount;
+
+            return viewIndex;
         }
 
+        /// <summary>
+        ///   Returns the sub-Resource index for a view of a specific type.
+        /// </summary>
+        /// <param name="viewType">The View type, indicating which sub-Resources the View can select.</param>
+        /// <param name="arrayOrDepthIndex">The depth or array slice index.</param>
+        /// <param name="mipIndex">The mip-level index.</param>
+        /// <returns>The index of the View.</returns>
         internal int GetViewIndex(ViewType viewType, int arrayOrDepthIndex, int mipIndex)
         {
-            int arrayOrDepthSize = this.Depth > 1 ? this.Depth : this.ArraySize;
-            return (((int)viewType) * arrayOrDepthSize + arrayOrDepthIndex) * this.MipLevels + mipIndex;
+            // TODO: This is unused and internal. Should it be kept?
+
+            int arrayOrDepthSize = Depth > 1 ? Depth : ArraySize;
+
+            return (((int) viewType) * arrayOrDepthSize + arrayOrDepthIndex) * MipLevelCount + mipIndex;
         }
 
+        /// <summary>
+        ///   Determines the correct <see cref="GraphicsResourceUsage"/> for the provided Texture flags combination.
+        /// </summary>
+        /// <param name="usage">The current Texture's intended usage.</param>
+        /// <param name="flags">The Texture's flags.</param>
+        /// <returns>The adjusted Texture flags.</returns>
         internal static GraphicsResourceUsage GetUsageWithFlags(GraphicsResourceUsage usage, TextureFlags flags)
         {
-            // If we have a texture supporting render target or unordered access, force to UsageDefault
-            if ((flags & TextureFlags.RenderTarget) != 0 || (flags & TextureFlags.UnorderedAccess) != 0)
-                return GraphicsResourceUsage.Default;
-            return usage;
+            // If we have a Texture supporting Render Target View or Unordered Access View, force GraphicsResourceUsage.Default
+            return flags.HasFlag(TextureFlags.RenderTarget) || flags.HasFlag(TextureFlags.UnorderedAccess)
+                ? GraphicsResourceUsage.Default
+                : usage;
         }
 
-        internal int ComputeSubresourceSize(int subresource)
+        /// <summary>
+        ///   Computes the size of a specific Texture's sub-Resource.
+        /// </summary>
+        /// <param name="subResourceIndex">The index of the sub-Resource.</param>
+        /// <returns>The size of the sub-Resource, in bytes.</returns>
+        internal int ComputeSubResourceSize(int subResourceIndex)
         {
-            var mipLevel = subresource % MipLevels;
+            var mipLevel = subResourceIndex % MipLevelCount;
 
             var slicePitch = ComputeSlicePitch(mipLevel);
             var depth = CalculateMipSize(Description.Depth, mipLevel);
@@ -1355,46 +1980,76 @@ namespace Stride.Graphics
             return (slicePitch * depth + TextureSubresourceAlignment - 1) / TextureSubresourceAlignment * TextureSubresourceAlignment;
         }
 
-        internal int ComputeBufferOffset(int subresource, int depthSlice)
+        /// <summary>
+        ///   Computes the offset of a specific sub-Resource in the Texture's data buffer.
+        /// </summary>
+        /// <param name="subResourceIndex">The index of the sub-Resource.</param>
+        /// <param name="depthSlice">The depth slice.</param>
+        /// <returns>The offset of the sub-Resource at <paramref name="subResourceIndex"/>, in bytes.</returns>
+        internal int ComputeBufferOffset(int subResourceIndex, int depthSlice)
         {
             int offset = 0;
 
-            for (var i = 0; i < subresource; ++i)
+            for (var i = 0; i < subResourceIndex; ++i)
             {
-                offset += ComputeSubresourceSize(i);
+                offset += ComputeSubResourceSize(i);
             }
 
             if (depthSlice != 0)
-                offset += ComputeSlicePitch(subresource % Description.MipLevels) * depthSlice;
+                offset += ComputeSlicePitch(subResourceIndex % Description.MipLevelCount) * depthSlice;
 
             return offset;
         }
 
+        /// <summary>
+        ///   Computes the slice pitch for a specific mip-level, i.e. the number of bytes a depth slice of that mip-level occupies in memory,
+        ///   including memory alignment considerations.
+        /// </summary>
+        /// <param name="mipLevel">The mip-level index.</param>
+        /// <returns>The slice pitch of the <paramref name="mipLevel"/>, in bytes.</returns>
         internal int ComputeSlicePitch(int mipLevel)
         {
             return ComputeRowPitch(mipLevel) * CalculateMipSize(Height, mipLevel);
         }
 
+        /// <summary>
+        ///   Computes the row pitch for a specific mip-level, i.e. the number of bytes a row of that mip-level occupies in memory,
+        ///   including memory alignment considerations.
+        /// </summary>
+        /// <param name="mipLevel">The mip-level index.</param>
+        /// <returns>The row pitch of the <paramref name="mipLevel"/>, in bytes.</returns>
         internal int ComputeRowPitch(int mipLevel)
         {
             // Round up to 256
+            // TODO: Stale comment?
             return ((CalculateMipSize(Width, mipLevel) * TexturePixelSize) + TextureRowPitchAlignment - 1) / TextureRowPitchAlignment * TextureRowPitchAlignment;
         }
 
+        /// <summary>
+        ///   Computes the total size of the Texture, taking into account all mip-levels and array slices.
+        /// </summary>
+        /// <returns>The total size of the Texture.</returns>
         internal int ComputeBufferTotalSize()
         {
-            int result = 0;
+            int totalSize = 0;
 
-            for (int i = 0; i < Description.MipLevels; ++i)
+            for (int i = 0; i < Description.MipLevelCount; ++i)
             {
-                result += ComputeSubresourceSize(i);
+                totalSize += ComputeSubResourceSize(i);
             }
 
-            return result * Description.ArraySize;
+            return totalSize * Description.ArraySize;
         }
 
+        /// <summary>
+        ///   Counts the number of mip-levels a Texture with the specified size can have.
+        /// </summary>
+        /// <param name="width">The width of the Texture, in pixels.</param>
+        /// <returns>The maximum number of mip-levels for the given size.</returns>
         public static int CountMips(int width)
         {
+            // TODO: Efficient calculation without loop. Lzcnt?
+
             int mipLevels = 1;
 
             while (width > 1)
@@ -1407,14 +2062,35 @@ namespace Stride.Graphics
             return mipLevels;
         }
 
+        /// <summary>
+        ///   Counts the number of mip-levels a Texture with the specified size can have.
+        /// </summary>
+        /// <param name="width">The width of the Texture, in pixels.</param>
+        /// <param name="height">The height of the Texture, in pixels.</param>
+        /// <returns>The maximum number of mip-levels for the given size.</returns>
         public static int CountMips(int width, int height)
         {
-            return CountMips(Math.Max(width, height));
+            var largestDimension = Math.Max(width, height);
+            return CountMips(largestDimension);
         }
 
+        /// <summary>
+        ///   Counts the number of mip-levels a Texture with the specified size can have.
+        /// </summary>
+        /// <param name="width">The width of the Texture, in pixels.</param>
+        /// <param name="height">The height of the Texture, in pixels.</param>
+        /// <param name="depth">The depth of the Texture, in pixels.</param>
+        /// <returns>The maximum number of mip-levels for the given size.</returns>
         public static int CountMips(int width, int height, int depth)
         {
-            return CountMips(Math.Max(width, Math.Max(height, depth)));
+            var largestDimension = Math.Max(width, Math.Max(height, depth));
+            return CountMips(largestDimension);
         }
+
+        /// <summary>
+        ///   Indicates if the Texture is flipped vertically, i.e. if the rows are ordered bottom-to-top instead of top-to-bottom.
+        /// </summary>
+        /// <returns><see langword="true"/> if the Texture is flipped; <see langword="false"/> otherwise.</returns>
+        private partial bool IsFlipped();
     }
 }

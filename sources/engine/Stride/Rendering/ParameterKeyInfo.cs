@@ -1,95 +1,109 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
+
 using Stride.Core;
 
-namespace Stride.Rendering
+namespace Stride.Rendering;
+
+[DataContract]
+public struct ParameterKeyInfo : IEquatable<ParameterKeyInfo>
 {
-    [DataContract]
-    public struct ParameterKeyInfo
+    public const int Invalid = -1;
+
+
+    // Common to both value and resource parameters
+
+    public ParameterKey Key;
+
+    // For Value parameters
+
+    public int Offset;
+    public int Count;
+
+    // For Resources (Object) parameters
+
+    public int BindingSlot;
+
+    #region Convenience properties
+
+    public readonly bool IsValueParameter => Offset != Invalid;
+
+    public readonly bool IsResourceParameter => BindingSlot != Invalid;
+
+    #endregion
+
+
+    public ParameterKeyInfo(ParameterKey key, int offset, int count)
     {
-        // Common
-        public ParameterKey Key;
+        Key = key;
+        Offset = offset;
+        Count = count;
+        BindingSlot = Invalid;
+    }
 
-        // Values
-        public int Offset;
-        public int Count;
+    public ParameterKeyInfo(ParameterKey key, int bindingSlot)
+    {
+        Key = key;
+        BindingSlot = bindingSlot;
+        Offset = Invalid;
+        Count = 1;
+    }
 
-        // Resources
-        public int BindingSlot;
 
-        /// <summary>
-        /// Describes a value parameter.
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="offset"></param>
-        /// <param name="size"></param>
-        public ParameterKeyInfo(ParameterKey key, int offset, int count)
-        {
-            Key = key;
-            Offset = offset;
-            Count = count;
-            BindingSlot = -1;
-        }
+    internal readonly ParameterAccessor GetObjectAccessor()
+    {
+        return new ParameterAccessor(BindingSlot, Count);
+    }
 
-        /// <summary>
-        /// Describes a resource parameter.
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="bindingSlot"></param>
-        public ParameterKeyInfo(ParameterKey key, int bindingSlot)
-        {
-            Key = key;
-            BindingSlot = bindingSlot;
-            Offset = -1;
-            Count = 1;
-        }
+    internal readonly ParameterAccessor GetValueAccessor()
+    {
+        return new ParameterAccessor(Offset, Count);
+    }
 
-        public override string ToString()
-        {
-            return $"{Key} ({(BindingSlot != -1 ? "BindingSlot " + BindingSlot : "Offset " + Offset)}, Size {Count})";
-        }
 
-        public bool Equals(ParameterKeyInfo other)
-        {
-            return Key.Equals(other.Key) && Offset == other.Offset && Count == other.Count && BindingSlot == other.BindingSlot;
-        }
+    /// <inheritdoc/>
+    public override readonly string ToString()
+    {
+        if (Key is null)
+            return "Invalid Parameter Key";
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            return obj is ParameterKeyInfo && Equals((ParameterKeyInfo)obj);
-        }
+        return IsResourceParameter
+            ? $"Object \"{Key}\" at Binding Slot {BindingSlot}"
+            : $"Value \"{Key}\" at Offset {Offset}" + (Count > 1
+                ? $" (Count {Count})"
+                : string.Empty);
+    }
 
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = Key.GetHashCode();
-                hashCode = (hashCode * 397) ^ Offset;
-                hashCode = (hashCode * 397) ^ Count;
-                hashCode = (hashCode * 397) ^ BindingSlot;
-                return hashCode;
-            }
-        }
+    /// <inheritdoc/>
+    public readonly bool Equals(ParameterKeyInfo other)
+    {
+        return Key.Equals(other.Key)
+            && Offset == other.Offset
+            && Count == other.Count
+            && BindingSlot == other.BindingSlot;
+    }
 
-        public static bool operator ==(ParameterKeyInfo left, ParameterKeyInfo right)
-        {
-            return left.Equals(right);
-        }
+    /// <inheritdoc/>
+    public override readonly bool Equals(object obj)
+    {
+        return obj is ParameterKeyInfo parameterKeyInfo && Equals(parameterKeyInfo);
+    }
 
-        public static bool operator !=(ParameterKeyInfo left, ParameterKeyInfo right)
-        {
-            return !left.Equals(right);
-        }
+    /// <inheritdoc/>
+    public override readonly int GetHashCode()
+    {
+        return HashCode.Combine(Key, Offset, Count, BindingSlot);
+    }
 
-        internal ParameterCollection.Accessor GetObjectAccessor()
-        {
-            return new ParameterCollection.Accessor(BindingSlot, Count);
-        }
+    public static bool operator ==(ParameterKeyInfo left, ParameterKeyInfo right)
+    {
+        return left.Equals(right);
+    }
 
-        internal ParameterCollection.Accessor GetValueAccessor()
-        {
-            return new ParameterCollection.Accessor(Offset, Count);
-        }
+    public static bool operator !=(ParameterKeyInfo left, ParameterKeyInfo right)
+    {
+        return !left.Equals(right);
     }
 }

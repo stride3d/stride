@@ -19,8 +19,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </PackageReference>
-    <PackageReference Include="System.IO.Compression" />
-    <PackageReference Include="System.ValueTuple" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>

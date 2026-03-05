@@ -7,17 +7,17 @@
 // -----------------------------------------------------------------------------
 /*
 * Copyright (c) 2007-2011 SlimDX Group
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in
 * all copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,7 +34,7 @@ using System.Runtime.InteropServices;
 namespace Stride.Core.Mathematics;
 
 /// <summary>
-/// Represents a color in the form of rgba.
+///   A RGBA color value with 32-bit floating-point precision per channel.
 /// </summary>
 [DataContract("Color4")]
 [DataStyle(DataStyle.Compact)]
@@ -44,12 +44,17 @@ public struct Color4 : IEquatable<Color4>, ISpanFormattable
     /// <summary>
     /// The Black color (0, 0, 0, 1).
     /// </summary>
-    public static readonly Color4 Black = new(0.0f, 0.0f, 0.0f);
+    public static readonly Color4 Black = new(red: 0, green: 0, blue: 0);
 
     /// <summary>
     /// The White color (1, 1, 1, 1).
     /// </summary>
-    public static readonly Color4 White = new(1.0f, 1.0f, 1.0f);
+    public static readonly Color4 White = new(red: 1, green: 1, blue: 1);
+
+    /// <summary>
+    /// The transparent black color (0, 0, 0, 0).
+    /// </summary>
+    public static readonly Color4 TransparentBlack = default;
 
     /// <summary>
     /// The red component of the color.

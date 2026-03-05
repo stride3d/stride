@@ -508,7 +508,7 @@ namespace Stride.Graphics
             drawCommand.Position.X /= resolutionRatio.X;
             drawCommand.Position.Y /= resolutionRatio.Y;
 
-            spriteFont.InternalDraw(commandList, ref text, ref drawCommand, alignment);
+            spriteFont.InternalDraw(commandList, text, ref drawCommand, alignment);
         }
         
         internal unsafe void DrawSprite(Texture texture, ref RectangleF destination, bool scaleDestination, ref RectangleF? sourceRectangle, Color4 color, Color4 colorAdd,

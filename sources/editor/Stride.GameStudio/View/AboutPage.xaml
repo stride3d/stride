@@ -5,7 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:gameStudio="clr-namespace:Stride.GameStudio.Helpers"
-        xmlns:crashReport="clr-namespace:Stride.Editor.CrashReport"
+        xmlns:crashReport="clr-namespace:Stride.Editor.CrashReport;assembly=Stride.Editor.CrashReport"
         mc:Ignorable="d" 
         Title="{sd:Localize About Stride, Context=About}"
         SizeToContent="WidthAndHeight" ResizeMode="NoResize"
@@ -56,7 +56,7 @@
         <LineBreak /><LineBreak />
         <!-- Privacy policy -->
         <Hyperlink TextDecorations="Underline"
-                   CommandParameter="{x:Static crashReport:CrashReportForm.PrivacyPolicyUrl}" Command="{x:Static sd:UtilityCommands.OpenHyperlinkCommand}">
+                   CommandParameter="{x:Static crashReport:CrashReportWindow.PrivacyPolicyUrl}" Command="{x:Static sd:UtilityCommands.OpenHyperlinkCommand}">
           <Run Text="{sd:Localize Privacy policy, Context=About}" />
         </Hyperlink>
       </TextBlock>

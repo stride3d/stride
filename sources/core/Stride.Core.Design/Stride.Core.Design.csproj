@@ -23,7 +23,6 @@
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Rider.PathLocator" />
-    <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="NuGet.Configuration" />

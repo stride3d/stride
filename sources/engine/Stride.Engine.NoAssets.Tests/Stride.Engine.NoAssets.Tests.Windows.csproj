@@ -6,6 +6,7 @@
     <RootNamespace>Stride.Engine.Tests</RootNamespace>
     <StrideCompileAssets>false</StrideCompileAssets>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+    <StrideGraphicsRegression>true</StrideGraphicsRegression>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />

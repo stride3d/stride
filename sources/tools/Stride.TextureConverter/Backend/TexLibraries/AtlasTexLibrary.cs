@@ -107,7 +107,7 @@ namespace Stride.TextureConverter.TexLibraries
             // Ordering textures in decreasing order : best heuristic with this algorithm.
             if (atlasSizeIncrement == 0) OrderTexture(request);
 
-            // Finding the best layout for the textures in the atlas 
+            // Finding the best layout for the textures in the atlas
             Node tree = PositionTextures(atlas, request);
 
             // One of many textures couldn't be positioned which means the atlas is too small
@@ -210,7 +210,7 @@ namespace Stride.TextureConverter.TexLibraries
 
                 for (int j = 0; j < h; ++j)
                 {
-                    Utilities.CopyWithAlignmentFallback(
+                    MemoryUtilities.CopyWithAlignmentFallback(
                         destination: (byte*)atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset,
                         source: subImageData + j * request.Texture.SubImageArray[i].RowPitch,
                         byteCount: (uint)request.Texture.SubImageArray[i].RowPitch);
@@ -291,7 +291,7 @@ namespace Stride.TextureConverter.TexLibraries
                 {
                     srcPtr = atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset;
                     destPtr = textureData + j * rowPitch;
-                    Utilities.CopyWithAlignmentFallback((void*)destPtr, (void*)srcPtr, (uint)rowPitch);
+                    MemoryUtilities.CopyWithAlignmentFallback((void*)destPtr, (void*)srcPtr, (uint)rowPitch);
                 }
 
                 offset += slicePitch;
@@ -354,7 +354,7 @@ namespace Stride.TextureConverter.TexLibraries
                 List<TexImage.SubImage> subImages = new List<TexImage.SubImage>();
 
                 w = atlas.Width;
-                h = atlas.Height;  
+                h = atlas.Height;
 
                 while (w != 1 || h != 1)
                 {
@@ -546,15 +546,15 @@ namespace Stride.TextureConverter.TexLibraries
 
                     /*if (node.Texture.SubImageArray[i].Width == 3)
                     {
-                        //xOffset += 4; 
+                        //xOffset += 4;
                         //node.Texture.SubImageArray[i].RowPitch += 4;
-                        Console.WriteLine(node.Texture.SubImageArray[i].RowPitch); ///////////////----------------------------------------------------------------------------------------
+                        Console.WriteLine(node.Texture.SubImageArray[i].RowPitch); // TODO: Fix row pitch for 24 bits textures? Why is this commented?
                     }*/
                     for (int j = 0; j < node.Texture.SubImageArray[i].Height; ++j)
                     {
                         var destPtr = atlasData + j * atlas.SubImageArray[i].RowPitch + yOffset + xOffset;
                         var srcPtr = textureData + j * node.Texture.SubImageArray[i].RowPitch;
-                        Utilities.CopyWithAlignmentFallback(destPtr, srcPtr, (uint)node.Texture.SubImageArray[i].RowPitch);
+                        MemoryUtilities.CopyWithAlignmentFallback(destPtr, srcPtr, (uint)node.Texture.SubImageArray[i].RowPitch);
                     }
 
                     x = x <= 1 ? 0 : x >>= 1;

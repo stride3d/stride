@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
 using Stride.Graphics;
+using Stride.Input;
 using Stride.UI.Events;
 
 namespace Stride.UI.Controls
@@ -148,20 +149,25 @@ namespace Stride.UI.Controls
                 if (IsReadOnly && value) // prevent selection when the Edit is read only
                     return;
 
-                isSelectionActive = value;
+                var uiSystem = UIElementServices.Services?.GetService<UISystem>();
+                var inputManager = UIElementServices.Services?.GetService<InputManager>();
+                if (inputManager is null || uiSystem is null)
+                    return;
 
-                if (IsSelectionActive)
+                isSelectionActive = value;
+                if (isSelectionActive)
                 {
-                    var previousEditText = FocusedElement as EditText;
-                    if (previousEditText != null)
+                    if (uiSystem.FocusedElement is EditText previousEditText)
                         previousEditText.IsSelectionActive = false;
 
-                    FocusedElement = this;
-                    ActivateEditTextImpl();
+                    uiSystem.FocusedElement = this;
+                    ActivateEditTextImpl(inputManager);
                 }
                 else
                 {
-                    DeactivateEditTextImpl();
+                    uiSystem.FocusedElement = null;
+                    DeactivateEditTextImpl(inputManager);
+                    Composition = "";
                 }
             }
         }
@@ -321,7 +327,7 @@ namespace Stride.UI.Controls
         /// <userdoc>The color of the selection.</userdoc>
         [DataMember]
         [Display(category: AppearanceCategory)]
-        public Color SelectionColor { get; set; } = Color.FromAbgr(0xF0F0F0FF);
+        public Color SelectionColor { get; set; } = Color.FromAbgr(0x80B4D5FF);
 
         /// <summary>
         /// Gets or sets the color of the IME composition selection.
@@ -329,7 +335,7 @@ namespace Stride.UI.Controls
         /// <userdoc>The color of the selection.</userdoc>
         [DataMember]
         [Display(category: AppearanceCategory)]
-        public Color IMESelectionColor { get; set; } = Color.FromAbgr(0xF0FFF0FF);
+        public Color IMESelectionColor { get; set; } = Color.FromAbgr(0x80FFF0FF);
 
         /// <summary>
         /// Gets or sets whether the control is read-only, or not.
@@ -895,6 +901,13 @@ namespace Stride.UI.Controls
             {
                 OnTouchMoveImpl(args);
             }
+        }
+
+        internal Vector2 GetTextRegionSize()
+        {
+            return new Vector2(
+                ActualWidth - Padding.Left - Padding.Right, 
+                ActualHeight - Padding.Top - Padding.Bottom);
         }
     }
 }
