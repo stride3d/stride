@@ -83,7 +83,7 @@
   <!-- Configuration Defaults (must be before Output Path) -->
   <!-- ================================================================ -->
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <StrideProjectType Condition="'$(MSBuildProjectExtension)' == '.vcxproj'">Cpp</StrideProjectType>
     <StrideProjectType Condition="'$(StrideProjectType)' == ''">CSharp</StrideProjectType>
   </PropertyGroup>

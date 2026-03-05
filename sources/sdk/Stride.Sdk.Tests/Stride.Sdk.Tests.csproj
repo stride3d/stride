@@ -14,8 +14,5 @@
     <None Include="$(MSBuildThisFileDirectory)Sdk/**/*.targets" Pack="true" PackagePath="Sdk/" />
     <None Include="$(MSBuildThisFileDirectory)Sdk/**/*.cs" Pack="true" PackagePath="Sdk/" />
 
-    <!-- Include build/ files for legacy NuGet PackageReference support -->
-    <None Include="$(MSBuildThisFileDirectory)build/**/*.props" Pack="true" PackagePath="build/" />
-    <None Include="$(MSBuildThisFileDirectory)build/**/*.targets" Pack="true" PackagePath="build/" />
   </ItemGroup>
 </Project>

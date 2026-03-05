@@ -16,12 +16,6 @@
     <None Include="$(MSBuildThisFileDirectory)../../targets/Stride.ruleset"
           Pack="true" PackagePath="Sdk/" />
 
-    <!-- Include build/ files for legacy NuGet PackageReference support -->
-    <None Include="$(MSBuildThisFileDirectory)build/**/*.props"
-          Pack="true" PackagePath="build/" />
-    <None Include="$(MSBuildThisFileDirectory)build/**/*.targets"
-          Pack="true" PackagePath="build/" />
-
     <!-- Package Assembly Processor binaries with SDK (interim until standalone package) -->
     <None Include="$(MSBuildThisFileDirectory)../../../deps\AssemblyProcessor/**"
           Pack="true" PackagePath="tools/AssemblyProcessor/" />
