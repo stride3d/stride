@@ -1,21 +1,16 @@
-<Project>
-  <Import Project="..\..\..\targets\Stride.UnitTests.props" />
+<Project Sdk="Stride.Sdk.Tests">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>Stride.BepuPhysics.Tests</AssemblyName>
     <RootNamespace>Stride.BepuPhysics.Tests</RootNamespace>
-    <StrideBuildTags>*</StrideBuildTags>
     <StrideCompileAssets>true</StrideCompileAssets>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>xunit.runner.stride.Program</StartupObject>
-  </PropertyGroup>
-  <ItemGroup>
+    <ItemGroup>
     <ProjectReference Include="..\..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
@@ -24,5 +19,4 @@
   <ItemGroup>
     <None Include="Stride.BepuPhysics.Tests.sdpkg" />
   </ItemGroup>
-  <Import Project="..\..\..\targets\Stride.UnitTests.targets" />
 </Project>

@@ -38,4 +38,12 @@
   <!-- This gives us all standard .NET SDK functionality -->
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
+  <!-- ================================================================ -->
+  <!-- Post-Microsoft.NET.Sdk defaults -->
+  <!-- ================================================================ -->
+  <!-- Must come AFTER Microsoft.NET.Sdk import which resets AllowUnsafeBlocks to false -->
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
 </Project>
