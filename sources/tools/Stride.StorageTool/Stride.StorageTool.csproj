@@ -1,5 +1,4 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
@@ -24,5 +23,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

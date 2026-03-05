@@ -1,11 +1,6 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
     <Compile Update="ProcessSnapshotControl.xaml.cs">
@@ -84,6 +79,4 @@
     <ProjectReference Include="..\..\engine\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Wpf\Stride.Core.Presentation.Wpf.csproj" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

@@ -1,6 +1,4 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
-
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(StrideEditorTargetFramework);net472</TargetFrameworks>
     <RootNamespace>Stride.VisualStudio.Commands</RootNamespace>
@@ -10,6 +8,4 @@
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="ServiceWire" />
   </ItemGroup>
-
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

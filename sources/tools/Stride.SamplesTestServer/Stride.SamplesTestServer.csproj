@@ -1,9 +1,7 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
   </PropertyGroup>
   <ItemGroup>
@@ -26,5 +24,4 @@
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

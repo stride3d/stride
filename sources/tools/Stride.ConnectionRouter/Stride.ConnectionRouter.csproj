@@ -1,11 +1,7 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <OutputType>WinExe</OutputType>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideNuGetResolverUI>true</StrideNuGetResolverUI>
@@ -67,5 +63,4 @@
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
-  <Import Project="$(StrideSdkTargets)" />
-  </Project>
+</Project>

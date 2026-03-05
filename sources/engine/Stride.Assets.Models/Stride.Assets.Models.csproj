@@ -1,8 +1,7 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
+    <StrideAssemblyProcessorOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
@@ -19,13 +18,12 @@
   <ItemGroup>
     <Folder Include="Analysis\" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
     <TargetsForTfmSpecificContentInPackage>_StrideIncludeNativeLibs;$(TargetsForTfmSpecificContentInPackage)</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
-  
+
   <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
       <!-- Needed by .NET Core runtime to be able to load C++/CLI assemblies -->

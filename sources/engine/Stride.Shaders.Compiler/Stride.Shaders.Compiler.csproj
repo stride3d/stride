@@ -1,10 +1,7 @@
-<Project>
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
-  <PropertyGroup>
-    <StrideBuildTags>*</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
   </PropertyGroup>
@@ -34,5 +31,4 @@
     </StrideContent>
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

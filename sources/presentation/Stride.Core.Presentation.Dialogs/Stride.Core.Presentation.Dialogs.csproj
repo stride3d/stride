@@ -1,9 +1,5 @@
-<Project>
-  <Import Project="..\..\targets\Stride.Core.props" />
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
@@ -16,10 +12,9 @@
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>  
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.Presentation.Wpf\Stride.Core.Presentation.Wpf.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

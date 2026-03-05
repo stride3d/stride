@@ -1,15 +1,9 @@
-﻿<Project>
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
-    <StridePlatform>Windows</StridePlatform>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.Core.props" />
-  <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <OutputType>Exe</OutputType>
     <PlatformTarget>x86</PlatformTarget>
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -25,5 +19,4 @@
     <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
     <ProjectReference Include="..\Stride.Core.BuildEngine.Common\Stride.Core.BuildEngine.Common.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>
