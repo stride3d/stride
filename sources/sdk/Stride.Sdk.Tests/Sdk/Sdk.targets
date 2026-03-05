@@ -41,6 +41,23 @@
   </ItemGroup>
 
   <!-- ================================================================ -->
+  <!-- Asset Compilation Support -->
+  <!-- ================================================================ -->
+  <!-- When StrideCompileAssets=true, add a build-only reference to the asset compiler
+       and import its targets for asset compilation during build.
+       Uses $(StrideRoot) from sources/Directory.Build.props to locate the source tree. -->
+  <ItemGroup Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
+    <ProjectReference Include="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'"
+          Project="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
+
+  <!-- ================================================================ -->
   <!-- Shader Code Generation Support -->
   <!-- ================================================================ -->
   <ItemGroup>
