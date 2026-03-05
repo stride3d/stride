@@ -17,10 +17,9 @@
     <!-- Add default framework no matter what (needed for references) -->
     <StrideRuntimeTargetFrameworks>$(StrideFramework)</StrideRuntimeTargetFrameworks>
 
-    <!-- Desktop platforms: Add net10.0-windows if Windows is in the platform list -->
-    <!-- Note: StrideExplicitWindowsRuntime controls whether to include net10.0-windows -->
-    <!-- For desktop-only SDK migration, we include it by default when Windows is detected -->
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkWindows)</StrideRuntimeTargetFrameworks>
+    <!-- Desktop platforms: Add net10.0-windows only if explicitly requested -->
+    <!-- Most projects only need net10.0; net10.0-windows is for WPF/WinForms dependencies -->
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkWindows)</StrideRuntimeTargetFrameworks>
 
     <!-- Mobile/UWP platforms (deferred to Phase 2) -->
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkAndroid)</StrideRuntimeTargetFrameworks>
