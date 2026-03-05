@@ -111,7 +111,7 @@
   </PropertyGroup>
   <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)RoslynPad*.dll" />
+      <BuildOutputInPackage Include="$(TargetDir)RoslynPad*.dll" />
     </ItemGroup>
   </Target>
   <Target Name="RemoveVisualStudioRoslynDependencies" AfterTargets="ResolveAssemblyReferences">

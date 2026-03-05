@@ -61,7 +61,7 @@
   </PropertyGroup>
   <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)CppNet.dll" />
+      <BuildOutputInPackage Include="$(TargetDir)CppNet.dll" />
     </ItemGroup>
   </Target>
 </Project>

@@ -30,7 +30,7 @@
   </PropertyGroup>
   <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)BulletSharp.NetStandard.dll" />
+      <BuildOutputInPackage Include="$(TargetDir)BulletSharp.NetStandard.dll" />
     </ItemGroup>
   </Target>
 </Project>

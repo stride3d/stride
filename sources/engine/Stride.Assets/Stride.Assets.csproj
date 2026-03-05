@@ -85,7 +85,7 @@
   </PropertyGroup>
   <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)VHACDSharp.dll" />
+      <BuildOutputInPackage Include="$(TargetDir)VHACDSharp.dll" />
     </ItemGroup>
   </Target>
 </Project>

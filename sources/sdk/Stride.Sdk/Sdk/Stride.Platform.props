@@ -92,13 +92,7 @@
   <!-- Output Path Configuration (lines 171-174 from extended) -->
   <!-- ================================================================ -->
   <PropertyGroup>
-    <!-- Don't append PlatformName or TargetFramework to output paths (matches old build system) -->
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateProjectSpecificOutputFolder>false</GenerateProjectSpecificOutputFolder>
-    <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">bin\</BaseOutputPath>
-    <OutputPath Condition="'$(OutputPath)' == ''">$(BaseOutputPath)$(Configuration)\</OutputPath>
-    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">obj\</BaseIntermediateOutputPath>
-    <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' == ''">$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
 
   <!-- ================================================================ -->
