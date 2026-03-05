@@ -21,7 +21,7 @@
   <!-- ================================================================ -->
   <!-- xUnit Startup Configuration -->
   <!-- ================================================================ -->
-  <PropertyGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
+  <PropertyGroup Condition="('$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows') And '$(IncludeXunitLauncher)' != 'false'">
     <StartupObject Condition="'$(StartupObject)' == ''">xunit.runner.stride.Program</StartupObject>
   </PropertyGroup>
 
