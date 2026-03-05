@@ -1,25 +1,15 @@
-<Project>
-
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
-    <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-
-  <Import Project="..\..\targets\Stride.props" />
-
-  <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
-    <StrideBuildTags>*</StrideBuildTags>
-    <RestorePackages>true</RestorePackages>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>Stride</RootNamespace>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
     <StridePackAssets>true</StridePackAssets>
     <!-- force generate Resource.designer.cs to namespace Stride.Engine to fix issue #553 -->
     <AndroidResgenNamespace>Stride.Engine</AndroidResgenNamespace>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
@@ -33,12 +23,4 @@
     <ProjectReference Include="..\Stride.VirtualReality\Stride.VirtualReality.csproj" />
     <ProjectReference Include="..\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
