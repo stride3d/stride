@@ -87,7 +87,7 @@ namespace Stride.Graphics
 
         public static bool operator ==(IndexBufferBinding left, IndexBufferBinding right)
         {
-            if (left is null && right is null)
+            if (ReferenceEquals(left, right))
                 return true;
 
             return left?.Equals(right) ?? false;
