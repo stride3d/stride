@@ -7,9 +7,6 @@
     <StrideFrameworkiOS>net10.0-ios</StrideFrameworkiOS>
     <StrideFrameworkUWP>uap10.0.16299</StrideFrameworkUWP>
     <StrideFrameworkWindows>net10.0-windows</StrideFrameworkWindows>
-
-    <StrideEditorTargetFramework>$(StrideFrameworkWindows)</StrideEditorTargetFramework>
-    <StrideXplatEditorTargetFramework>$(StrideFramework)</StrideXplatEditorTargetFramework>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 

@@ -1,4 +1,4 @@
-<Project Sdk="Stride.Sdk">
+<Project Sdk="Stride.Sdk.Editor">
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>

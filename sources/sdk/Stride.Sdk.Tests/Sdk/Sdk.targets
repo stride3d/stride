@@ -3,7 +3,7 @@
   <!-- ================================================================ -->
   <!-- Import Base Stride SDK -->
   <!-- ================================================================ -->
-  <Import Project="Sdk.targets" Sdk="Stride.Sdk" />
+  <Import Project="Sdk.targets" Sdk="Stride.Sdk.Editor" />
 
   <!-- ================================================================ -->
   <!-- Test Framework Package References -->
