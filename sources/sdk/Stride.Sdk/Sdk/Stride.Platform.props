@@ -80,6 +80,15 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
+  <!-- Configuration Defaults (must be before Output Path) -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <StrideProjectType Condition="'$(MSBuildProjectExtension)' == '.vcxproj'">Cpp</StrideProjectType>
+    <StrideProjectType Condition="'$(StrideProjectType)' == ''">CSharp</StrideProjectType>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Output Path Configuration (lines 171-174 from extended) -->
   <!-- ================================================================ -->
   <PropertyGroup>
@@ -95,15 +104,6 @@
   <PropertyGroup>
     <!-- Temp directory path for cross-platform builds -->
     <TEMP Condition="'$(TEMP)' == ''">$([System.IO.Path]::GetTempPath())</TEMP>
-  </PropertyGroup>
-
-  <!-- ================================================================ -->
-  <!-- Configuration Defaults -->
-  <!-- ================================================================ -->
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <StrideProjectType Condition="'$(MSBuildProjectExtension)' == '.vcxproj'">Cpp</StrideProjectType>
-    <StrideProjectType Condition="'$(StrideProjectType)' == ''">CSharp</StrideProjectType>
   </PropertyGroup>
 
 </Project>
