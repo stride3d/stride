@@ -32,7 +32,7 @@
   <!-- Apply Defines to DefineConstants (lines 270-274 from extended) -->
   <!-- ================================================================ -->
   <PropertyGroup>
-    <DefineConstants>$(StridePlatformDefines);$(DefineConstants)</DefineConstants>
+    <DefineConstants Condition="'$(StridePlatformDefines)' != ''">$(StridePlatformDefines);$(DefineConstants)</DefineConstants>
     <DefineConstants Condition="'$(StrideNETRuntimeDefines)' != ''">$(DefineConstants);$(StrideNETRuntimeDefines)</DefineConstants>
     <DefineConstants Condition="'$(StridePackageBuild)' == 'true'">$(DefineConstants);STRIDE_PACKAGE_BUILD</DefineConstants>
   </PropertyGroup>

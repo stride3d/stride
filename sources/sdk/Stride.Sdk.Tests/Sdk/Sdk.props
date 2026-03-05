@@ -72,9 +72,7 @@
                  '$(Configuration)' == 'Debug' AND
                  '$(StridePlatform)' == 'Windows'">true</StrideCaptureRenderDocOnFailedTest>
 
-    <DefineConstants Condition="'$(StrideCaptureRenderDocOnFailedTest)' == 'true'">
-      STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR;$(DefineConstants)
-    </DefineConstants>
+    <DefineConstants Condition="'$(StrideCaptureRenderDocOnFailedTest)' == 'true'">STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
   <!-- ================================================================ -->
