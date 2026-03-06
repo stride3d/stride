@@ -133,36 +133,33 @@ the SDK implementation. Each item is categorized as COVERED, GAP (with priority)
 - **Old:** `extended.props:278`
 - **SDK:** Added to `Sdk.targets` — auto-adds Microsoft.SourceLink.GitHub for CSharp projects.
 
-##### Gap #11: Localization satellite assemblies
-- **Old:** `extended.targets:168-201` — Generates localized DLLs using Gettext (fr, ja, es, de, ru, it, ko, zh-Hans).
-- **Condition:** Only runs when `StrideLocalized=true AND StrideBuildLocalization=true` (i.e., package builds only).
-- **Fix:** Add when packaging phase is implemented.
+##### Gap #11: Localization satellite assemblies — FIXED
+- **Old:** `extended.targets:168-201`
+- **SDK:** Added to `Sdk.targets` — Gettext-based satellite DLL generation for 8 languages.
 
-##### Gap #12: Auto-pack/deploy (StrideAutoPackDeploy)
+##### Gap #12: Auto-pack/deploy (StrideAutoPackDeploy) — FIXED
 - **Old:** `Stride.AutoPack.targets` + `extended.targets:152-163`
-- **What it does:** Auto-generates NuGet on build, copies to local feed, clears NuGet cache.
-- **Fix:** Add when packaging phase is implemented.
+- **SDK:** Added to `Sdk.targets` — guarded by `StridePackageBuild=true` to avoid pack failures during standalone builds.
 
-##### Gap #13: `StrideCompilerTargetsEnable` / DisableBuild
-- **Old:** `extended.targets:68-80` — Can skip compilation for certain TFM/platform combos.
-- **Used by:** `StrideWindowsOnly` projects, `StrideSkipUnitTests`.
-- **Fix:** Add if needed for cross-platform CI.
+##### Gap #13: `StrideCompilerTargetsEnable` / DisableBuild — FIXED
+- **Old:** `extended.targets:68-80`
+- **SDK:** Added to `Sdk.targets` with `Stride.DisableBuild.targets` empty project file.
 
 ##### Gap #14: `StrideScript=true` → `StrideAssemblyProcessor=true` — FIXED
 - **Old:** `Stride.targets:6`
 - **SDK:** Added to `Sdk.targets` — StrideScript auto-enables StrideAssemblyProcessor.
 
-##### Gap #15: `StridePlatformFullName` build dir extension suffix
-- **Old:** `extended.props:50-51` — Appends `$(StrideBuildDirExtension)` to platform name.
-- **Impact:** Only affects specialized build scenarios.
+##### Gap #15: `StridePlatformFullName` build dir extension suffix — FIXED
+- **Old:** `extended.props:50-51`
+- **SDK:** Added to `Stride.Platform.props` — appends `StrideBuildDirExtension` suffix.
 
-##### Gap #16: `_StrideTriggerPackOnInnerBuild` target
-- **Old:** `extended.props:104-113` — Forces Pack on inner builds from command line.
-- **Impact:** Only matters for NuGet package generation from CLI.
+##### Gap #16: `_StrideTriggerPackOnInnerBuild` target — FIXED
+- **Old:** `extended.props:104-113`
+- **SDK:** Added to `Sdk.targets` — forces Pack on inner builds from CLI.
 
-##### Gap #17: SharedAssemblyInfo.NuGet.cs replacement target
-- **Old:** `Stride.targets:55-62` — Replaces SharedAssemblyInfo.cs with NuGet version during package build.
-- **Impact:** Only matters for package builds.
+##### Gap #17: SharedAssemblyInfo.NuGet.cs replacement target — FIXED
+- **Old:** `Stride.targets:55-62`
+- **SDK:** Added to `Sdk.targets` — replaces SharedAssemblyInfo.cs during package builds.
 
 ##### Gap #18: UWP-specific properties
 - **Old:** `extended.props:78-83, 198-205` — UWP platform defines, platform version detection.

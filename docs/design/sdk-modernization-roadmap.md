@@ -288,11 +288,14 @@ Migrated 60+ projects:
 - [ ] Gap #1: Port Graphics API inner build dispatching system
 - [ ] Gap #3: Port .ssdeps native dependency system
 
-### 8.3 Low Priority — Packaging & Convenience
-- [ ] Gap #11: Localization satellite assemblies
-- [ ] Gap #12: Auto-pack/deploy (StrideAutoPackDeploy)
-- [ ] Gap #13: StrideCompilerTargetsEnable / DisableBuild
-- [ ] Gaps #15-18: Minor properties (see gap analysis)
+### 8.3 Low Priority — Packaging & Convenience — COMPLETE
+- [x] Gap #11: Localization satellite assemblies
+- [x] Gap #12: Auto-pack/deploy (guarded by StridePackageBuild)
+- [x] Gap #13: StrideCompilerTargetsEnable / DisableBuild
+- [x] Gap #15: StridePlatformFullName build dir extension suffix
+- [x] Gap #16: _StrideTriggerPackOnInnerBuild for CLI
+- [x] Gap #17: SharedAssemblyInfo.NuGet.cs replacement
+- Gap #18: UWP properties — intentionally deferred (UWP being phased out)
 
 ### 8.4 Solution Consolidation
 - [ ] Replace `Stride.Android.sln` with `Stride.Android.slnf` filter

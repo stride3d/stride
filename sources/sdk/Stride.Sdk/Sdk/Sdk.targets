@@ -108,6 +108,97 @@
   </ItemGroup>
 
   <!-- ================================================================ -->
+  <!-- StrideCompilerTargetsEnable - Conditional Build Skip -->
+  <!-- ================================================================ -->
+  <!-- Migrated from: sources/targets/Stride.Core.targets:73-80 -->
+  <PropertyGroup>
+    <StrideCompilerTargetsEnable Condition="'$(TargetFramework)' != '$(StrideFramework)' And '$(TargetFramework)' == '$(StrideFrameworkWindows)' And '$(StrideWindowsOnly)' == 'true'">false</StrideCompilerTargetsEnable>
+    <!-- Skip unit tests if requested -->
+    <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true' And $(StrideOutputFolder.StartsWith('Tests'))">false</StrideCompilerTargetsEnable>
+    <!-- If StrideCompilerTargetsEnable is set to false, override LanguageTargets to an empty one -->
+    <LanguageTargets Condition="'$(StrideCompilerTargetsEnable)' == 'false'">$(MSBuildThisFileDirectory)Stride.DisableBuild.targets</LanguageTargets>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Auto-Pack and Deploy for NuGet Development -->
+  <!-- ================================================================ -->
+  <!-- Migrated from: sources/targets/Stride.AutoPack.targets + Stride.Core.targets:152-166 -->
+  <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
+    <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\Stride\NugetDev"/>
+    <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\$(PackageId).$(PackageVersion).nupkg.sha512"/>
+    <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\.nupkg.metadata"/>
+  </Target>
+  <!-- Note: In old system, GeneratePackageOnBuild was always true. In SDK, we guard it
+       with StridePackageBuild to avoid pack failures during standalone project builds
+       (e.g., CompilerServices analyzer ProjectReference outputs may not exist yet). -->
+  <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false' And '$(StridePackageBuild)' == 'true'">
+    <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\..\..\build\packages\</PackageOutputPath>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>.so;.a;.bin;.dylib;$(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Localization Satellite Assemblies -->
+  <!-- ================================================================ -->
+  <!-- Migrated from: sources/targets/Stride.Core.targets:171-204 -->
+  <PropertyGroup>
+    <StrideBuildLocalization Condition="'$(StrideBuildLocalization)' == '' And '$(StridePackageBuild)' == 'true'">true</StrideBuildLocalization>
+  </PropertyGroup>
+  <Target Name="StrideGenerateLocalizationSatelliteDlls"
+          BeforeTargets="SatelliteDllsProjectOutputGroup"
+          AfterTargets="Build"
+          Returns="@(SatelliteDllsProjectOutputGroupOutput)"
+          Condition="'$(StrideLocalized)' == 'true' And '$(StrideBuildLocalization)' == 'true'">
+    <ItemGroup>
+      <StrideTranslations Include="fr;ja;es;de;ru;it;ko"/>
+      <StrideTranslations Include="zh-Hans">
+        <Source>zh_HANS-CN</Source>
+      </StrideTranslations>
+      <_StrideTranslations Include="@(StrideTranslations)">
+        <Source Condition="%(StrideTranslations.Source) == ''">%(StrideTranslations.Identity)</Source>
+      </_StrideTranslations>
+    </ItemGroup>
+    <Message Importance="High" Text="Generating translation for %(_StrideTranslations.Identity)"/>
+    <Exec Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po')"
+          Command="&quot;$(MSBuildThisFileDirectory)..\..\..\..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; -r $(TargetName) -d &quot;$(TargetDir)\&quot; -l %(_StrideTranslations.Identity) -L &quot;$(MSBuildThisFileDirectory)..\..\..\..\deps\Gettext.Net&quot; &quot;$(MSBuildThisFileDirectory)..\..\..\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po&quot;" />
+    <ItemGroup>
+      <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll')">
+        <TargetPath>%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
+        <Culture>%(_StrideTranslations.Identity)</Culture>
+      </SatelliteDllsProjectOutputGroupOutputIntermediate>
+    </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- SharedAssemblyInfo.NuGet.cs Replacement for Package Builds -->
+  <!-- ================================================================ -->
+  <!-- Migrated from: sources/targets/Stride.targets:55-62 -->
+  <Target Name="StrideReplaceVersionInfo" Condition="'$(StridePackageBuild)' == 'true'" BeforeTargets="PrepareResources">
+    <Error Condition="!Exists('$(MSBuildThisFileDirectory)..\..\..\shared\SharedAssemblyInfo.NuGet.cs')" Text="File SharedAssemblyInfo.NuGet.cs doesn't seem to have been generated. Please make sure Stride.build PackageEnvironment target has been run successfully."/>
+    <ItemGroup>
+      <StrideSharedAssemblyFile Include="@(Compile)" Condition="'%(Compile.FullPath)' == '$([System.IO.Path]::GetFullPath(`$(MSBuildThisFileDirectory)..\..\..\shared\SharedAssemblyInfo.cs`))'"/>
+      <Compile Remove="@(StrideSharedAssemblyFile)" />
+      <Compile Include="@(StrideSharedAssemblyFile->'$(MSBuildThisFileDirectory)..\..\..\shared\SharedAssemblyInfo.NuGet.cs')" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- Force Pack on Inner Builds from CLI -->
+  <!-- ================================================================ -->
+  <!-- Migrated from: sources/targets/Stride.Core-extended.props:104-113 -->
+  <Target Name="_StrideTriggerPackOnInnerBuild"
+          BeforeTargets="CoreCompile"
+          Condition="'$(BuildingInsideVisualStudio)' != 'true' And '$(GeneratePackageOnBuild)' == 'true'">
+    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
+             Condition="'%(_MSBuildProjectReferenceExistent.SetTargetFramework)' != ''"
+             BuildInParallel="$(BuildInParallel)"
+             Targets="Build;Pack"
+             RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;StrideGraphicsApi">
+    </MSBuild>
+  </Target>
+
+  <!-- ================================================================ -->
   <!-- Configuration Validation -->
   <!-- ================================================================ -->
   <Target Name="_StrideValidateConfiguration" BeforeTargets="Build">

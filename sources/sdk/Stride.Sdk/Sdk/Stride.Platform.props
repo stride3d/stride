@@ -39,6 +39,7 @@
 
     <!-- Platform full name (may be extended with build dir suffix) -->
     <StridePlatformFullName Condition="'$(StridePlatformFullName)' == ''">$(StridePlatform)</StridePlatformFullName>
+    <StridePlatformFullName Condition="'$(StrideBuildDirExtension)' != ''">$(StridePlatformFullName)-$(StrideBuildDirExtension)</StridePlatformFullName>
 
     <!-- Platform dependencies -->
     <StridePlatformDeps Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' Or '$(TargetFramework)' == '$(StrideFrameworkmacOS)' ">dotnet</StridePlatformDeps>
