@@ -40,8 +40,8 @@
     <!-- SDK package: tools/AssemblyProcessor/ is one level up from Sdk/ -->
     <StrideAssemblyProcessorBasePath Condition="'$(StrideAssemblyProcessorBasePath)' == '' And Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
 
-    <!-- Source build: relative to sources/sdk/Stride.Sdk/Sdk/ → ../../../../deps/ -->
-    <StrideAssemblyProcessorBasePath Condition="'$(StrideAssemblyProcessorBasePath)' == '' And Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
+    <!-- Source build: use StrideRoot (set by sources/Directory.Build.props) to find deps/ -->
+    <StrideAssemblyProcessorBasePath Condition="'$(StrideAssemblyProcessorBasePath)' == '' And '$(StrideRoot)' != '' And Exists('$(StrideRoot)deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)')">$(StrideRoot)deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
 
     <!-- Derived paths -->
     <StrideAssemblyProcessorPath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(StrideAssemblyProcessorBasePath)Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorPath>
@@ -67,7 +67,12 @@
   <!-- ================================================================ -->
   <!-- Main Assembly Processor Target -->
   <!-- ================================================================ -->
+  <!-- Uses BeforeTargets="CopyFilesToOutputDirectory" to run after compilation
+       but before output copy. This matches the old build system and avoids
+       import-order issues with PrepareForRunDependsOn (which gets overwritten
+       by Microsoft.NET.Sdk Sdk.targets when imported after this file). -->
   <Target Name="StrideRunAssemblyProcessor"
+          BeforeTargets="CopyFilesToOutputDirectory"
           DependsOnTargets="ResolveAssemblyReferences"
           Condition="'$(StrideAssemblyProcessor)' == 'true' And '$(StrideAssemblyProcessorPath)' != ''">
 
@@ -144,12 +149,9 @@
   <!-- ================================================================ -->
   <!-- Build Pipeline Integration -->
   <!-- ================================================================ -->
-  <PropertyGroup Condition="'$(StrideAssemblyProcessor)' == 'true'">
-    <PrepareForRunDependsOn>
-      StrideRunAssemblyProcessor;
-      $(PrepareForRunDependsOn)
-    </PrepareForRunDependsOn>
-  </PropertyGroup>
+  <!-- Integration is via BeforeTargets="CopyFilesToOutputDirectory" on the target itself.
+       PrepareForRunDependsOn cannot be used here because this file is imported BEFORE
+       Microsoft.NET.Sdk Sdk.targets, which would overwrite the property value. -->
 
   <!-- ================================================================ -->
   <!-- User Documentation (.usrdoc) File Handling -->

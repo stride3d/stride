@@ -77,7 +77,7 @@
   <!-- ================================================================ -->
   <!-- Migrated from: sources/targets/Stride.Core-extended.props:295-300 -->
   <ItemGroup Condition="!$(MSBuildProjectName.StartsWith('Stride.Core.CompilerServices'))">
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\core\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj"
+    <ProjectReference Include="$(StrideRoot)sources\core\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj"
                       OutputItemType="Analyzer"
                       SetTargetFramework="TargetFramework=netstandard2.0"
                       ReferenceOutputAssembly="false" />
@@ -144,7 +144,7 @@
        with StridePackageBuild to avoid pack failures during standalone project builds
        (e.g., CompilerServices analyzer ProjectReference outputs may not exist yet). -->
   <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false' And '$(StridePackageBuild)' == 'true'">
-    <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\..\..\build\packages\</PackageOutputPath>
+    <PackageOutputPath>$(StrideRoot)build\packages\</PackageOutputPath>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.so;.a;.bin;.dylib;$(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
@@ -172,8 +172,8 @@
       </_StrideTranslations>
     </ItemGroup>
     <Message Importance="High" Text="Generating translation for %(_StrideTranslations.Identity)"/>
-    <Exec Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po')"
-          Command="&quot;$(MSBuildThisFileDirectory)..\..\..\..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; -r $(TargetName) -d &quot;$(TargetDir)\&quot; -l %(_StrideTranslations.Identity) -L &quot;$(MSBuildThisFileDirectory)..\..\..\..\deps\Gettext.Net&quot; &quot;$(MSBuildThisFileDirectory)..\..\..\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po&quot;" />
+    <Exec Condition="Exists('$(StrideRoot)sources\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po')"
+          Command="&quot;$(StrideRoot)deps\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; -r $(TargetName) -d &quot;$(TargetDir)\&quot; -l %(_StrideTranslations.Identity) -L &quot;$(StrideRoot)deps\Gettext.Net&quot; &quot;$(StrideRoot)sources\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po&quot;" />
     <ItemGroup>
       <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll')">
         <TargetPath>%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
@@ -187,11 +187,11 @@
   <!-- ================================================================ -->
   <!-- Migrated from: sources/targets/Stride.targets:55-62 -->
   <Target Name="StrideReplaceVersionInfo" Condition="'$(StridePackageBuild)' == 'true'" BeforeTargets="PrepareResources">
-    <Error Condition="!Exists('$(MSBuildThisFileDirectory)..\..\..\shared\SharedAssemblyInfo.NuGet.cs')" Text="File SharedAssemblyInfo.NuGet.cs doesn't seem to have been generated. Please make sure Stride.build PackageEnvironment target has been run successfully."/>
+    <Error Condition="!Exists('$(StrideRoot)sources\shared\SharedAssemblyInfo.NuGet.cs')" Text="File SharedAssemblyInfo.NuGet.cs doesn't seem to have been generated. Please make sure Stride.build PackageEnvironment target has been run successfully."/>
     <ItemGroup>
-      <StrideSharedAssemblyFile Include="@(Compile)" Condition="'%(Compile.FullPath)' == '$([System.IO.Path]::GetFullPath(`$(MSBuildThisFileDirectory)..\..\..\shared\SharedAssemblyInfo.cs`))'"/>
+      <StrideSharedAssemblyFile Include="@(Compile)" Condition="'%(Compile.FullPath)' == '$([System.IO.Path]::GetFullPath(`$(StrideRoot)sources\shared\SharedAssemblyInfo.cs`))'"/>
       <Compile Remove="@(StrideSharedAssemblyFile)" />
-      <Compile Include="@(StrideSharedAssemblyFile->'$(MSBuildThisFileDirectory)..\..\..\shared\SharedAssemblyInfo.NuGet.cs')" />
+      <Compile Include="@(StrideSharedAssemblyFile->'$(StrideRoot)sources\shared\SharedAssemblyInfo.NuGet.cs')" />
     </ItemGroup>
   </Target>
 
