@@ -45,12 +45,8 @@ shader Utilities
         return specularColor + (max(specularColor, gloss) - specularColor) * pow(1.0f - saturate(dot(eye, h)), 5.0f) * factor;
     }
 
-    // flip the texture coordinate if on an opengl device.
+    // flip the texture coordinate if on an opengl device (since OpenGL is not supported anymore, do nothing)
     static float2 ConvertTexCoord(float2 texcoord) {
-#ifdef STRIDE_GRAPHICS_API_OPENGL
-        return float2(texcoord.x, 1.0f - texcoord.y);
-#else
         return texcoord;
-#endif
     }
 };

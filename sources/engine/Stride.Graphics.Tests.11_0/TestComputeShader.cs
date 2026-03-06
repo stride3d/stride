@@ -88,8 +88,6 @@ namespace Stride.Graphics.Tests
         [SkippableFact(Skip="This test is unmaintained and currently doesn't pass")]
         public void RunTest()
         {
-            SkipTestForGraphicPlatform(GraphicsPlatform.OpenGLES);
-
             RunGameTest(new TestComputeShader());
         }
     }

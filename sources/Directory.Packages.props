@@ -28,9 +28,6 @@
     <PackageVersion Include="Silk.NET.Direct3D11" Version="2.22.0" />
     <PackageVersion Include="Silk.NET.Direct3D12" Version="2.22.0" />
     <PackageVersion Include="Silk.NET.Direct3D.Compilers" Version="2.22.0" />
-    <PackageVersion Include="Silk.NET.OpenGL" Version="2.22.0" />
-    <PackageVersion Include="Silk.NET.OpenGLES" Version="2.22.0" />
-    <PackageVersion Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.22.0" />
     <PackageVersion Include="Silk.NET.OpenXR" Version="2.22.0" />
     <PackageVersion Include="Silk.NET.OpenXR.Extensions.FB" Version="2.22.0" />
     <PackageVersion Include="Silk.NET.Sdl" Version="2.22.0" />

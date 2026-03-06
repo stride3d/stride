@@ -257,7 +257,6 @@ namespace Stride.Assets.Textures
                             {
                                 case GraphicsPlatform.Direct3D11:
                                 case GraphicsPlatform.Direct3D12:
-                                case GraphicsPlatform.OpenGL:
                                 case GraphicsPlatform.Vulkan:
 
                                     // https://msdn.microsoft.com/en-us/library/windows/desktop/hh308955%28v=vs.85%29.aspx
@@ -296,11 +295,11 @@ namespace Stride.Assets.Textures
                                     // Support some specific optimized formats based on the hint or input type
                                     if (parameters.GraphicsProfile >= GraphicsProfile.Level_10_0)
                                     {
-                                        if (parameters.GraphicsPlatform != GraphicsPlatform.OpenGL && hint == TextureHint.NormalMap)
+                                        if (hint == TextureHint.NormalMap)
                                         {
                                             outputFormat = PixelFormat.BC5_UNorm;
                                         }
-                                        else if (parameters.GraphicsPlatform != GraphicsPlatform.OpenGL && hint == TextureHint.Grayscale)
+                                        else if (hint == TextureHint.Grayscale)
                                         {
                                             outputFormat = PixelFormat.BC4_UNorm;
                                         }
@@ -313,40 +312,8 @@ namespace Stride.Assets.Textures
                                         // TODO support the BC6/BC7 but they are so slow to compile that we can't use them right now
                                     }
                                     break;
-                                case GraphicsPlatform.OpenGLES: // OpenGLES on Windows
-                                    if (inputImageFormat.IsHDR)
-                                    {
-                                        outputFormat = inputImageFormat;
-                                    }
-                                    else if (parameters.IsSRgb)
-                                    {
-                                        outputFormat = PixelFormat.R8G8B8A8_UNorm_SRgb;
-                                    }
-                                    else
-                                    {
-                                        switch (parameters.GraphicsProfile)
-                                        {
-                                            case GraphicsProfile.Level_9_1:
-                                            case GraphicsProfile.Level_9_2:
-                                            case GraphicsProfile.Level_9_3:
-                                                outputFormat = alphaMode == AlphaFormat.None ? PixelFormat.ETC1 : PixelFormat.R8G8B8A8_UNorm;
-                                                break;
-                                            case GraphicsProfile.Level_10_0:
-                                            case GraphicsProfile.Level_10_1:
-                                            case GraphicsProfile.Level_11_0:
-                                            case GraphicsProfile.Level_11_1:
-                                            case GraphicsProfile.Level_11_2:
-                                                // GLES3.0 starting from Level_10_0, this profile enables ETC2 compression on Android
-                                                outputFormat = alphaMode == AlphaFormat.None ? PixelFormat.ETC1 : PixelFormat.ETC2_RGBA;
-                                                break;
-                                            default:
-                                                throw new ArgumentOutOfRangeException("GraphicsProfile");
-                                        }
-                                    }
-                                    break;
                                 default:
-                                    // OpenGL on Windows
-                                    // TODO: Need to handle OpenGL Desktop compression
+                                    // Null platform
                                     outputFormat = parameters.IsSRgb ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm;
                                     break;
                             }
@@ -361,32 +328,6 @@ namespace Stride.Assets.Textures
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
-            }
-
-            // OpenGLES: avoid BGRA (optional extension)
-            if (parameters.GraphicsPlatform == GraphicsPlatform.OpenGLES)
-            {
-                switch (outputFormat)
-                {
-                    case PixelFormat.B8G8R8A8_UNorm:
-                        outputFormat = PixelFormat.R8G8B8A8_UNorm;
-                        break;
-                    case PixelFormat.B8G8R8A8_UNorm_SRgb:
-                        outputFormat = PixelFormat.R8G8B8A8_UNorm_SRgb;
-                        break;
-                }
-            }
-
-            // OpenGL and OpenGLES: avoid R5G6B5 (not implemented)
-            if (parameters.GraphicsPlatform == GraphicsPlatform.OpenGLES || parameters.GraphicsPlatform == GraphicsPlatform.OpenGL)
-            {
-                switch (outputFormat)
-                {
-                    case PixelFormat.B5G5R5A1_UNorm:
-                    case PixelFormat.B5G6R5_UNorm:
-                        outputFormat = PixelFormat.R8G8B8A8_UNorm;
-                        break;
-                }
             }
 
             return outputFormat;

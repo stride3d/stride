@@ -65,8 +65,6 @@ public static class EffectBytecodeToSourceCodeWriter
         {
             GraphicsPlatform.Direct3D11 or
             GraphicsPlatform.Direct3D12 => "STRIDE_GRAPHICS_API_DIRECT3D",
-            GraphicsPlatform.OpenGL => "STRIDE_GRAPHICS_API_OPENGLCORE",
-            GraphicsPlatform.OpenGLES => "STRIDE_GRAPHICS_API_OPENGLES",
             GraphicsPlatform.Vulkan => "STRIDE_GRAPHICS_API_VULKAN",
 
             _ => "undefined"

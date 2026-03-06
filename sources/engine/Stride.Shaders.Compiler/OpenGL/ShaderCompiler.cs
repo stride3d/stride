@@ -55,14 +55,6 @@ namespace Stride.Shaders.Compiler.OpenGL
 
             switch (effectParameters.Platform)
             {
-                case GraphicsPlatform.OpenGL:
-                    shaderPlatform = GlslShaderPlatform.OpenGL;
-                    shaderVersion = 410;
-                    break;
-                case GraphicsPlatform.OpenGLES:
-                    shaderPlatform = GlslShaderPlatform.OpenGLES;
-                    shaderVersion = 300;
-                    break;
                 case GraphicsPlatform.Vulkan:
                     shaderPlatform = GlslShaderPlatform.Vulkan;
                     shaderVersion = 450;
@@ -75,19 +67,6 @@ namespace Stride.Shaders.Compiler.OpenGL
 
             if (shader == null)
                 return shaderBytecodeResult;
-
-            if (effectParameters.Platform == GraphicsPlatform.OpenGLES)      // TODO: Add check to run on android only. The current version breaks OpenGL ES on windows.
-            {
-                //TODO: Remove this ugly hack!
-                if (shaderSource.Contains($"Texture2D StrideInternal_TextureExt0") && shader.Contains("uniform sampler2D"))
-                {
-                    if (shaderPlatform != GlslShaderPlatform.OpenGLES || shaderVersion != 300)
-                        throw new Exception("Invalid GLES platform or version: require OpenGLES 300");
-
-                    shader = shader.Replace("uniform sampler2D", "uniform samplerExternalOES");
-                    shader = shader.Replace("#version 300 es", "#version 300 es\n#extension GL_OES_EGL_image_external_essl3 : require");
-                }
-            }
 
             if (effectParameters.Platform == GraphicsPlatform.Vulkan)
             {

@@ -25,7 +25,7 @@ public partial class DescriptorSetLayout : GraphicsResourceBase
         return new DescriptorSetLayout(device, builder);
     }
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_OPENGL || (STRIDE_GRAPHICS_API_VULKAN && STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES)
+#if STRIDE_GRAPHICS_API_DIRECT3D11 || (STRIDE_GRAPHICS_API_VULKAN && STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES)
 
     /// <summary>
     ///   The number of elements in the Descriptor Set Layout.
