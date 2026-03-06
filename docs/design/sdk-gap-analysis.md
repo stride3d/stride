@@ -92,12 +92,10 @@ the SDK implementation. Each item is categorized as COVERED, GAP (with priority)
 - **Old:** `Stride.targets:40-46`
 - **SDK:** Added to `Stride.Graphics.targets` — separate output dirs per API.
 
-##### Gap #3: .ssdeps native dependency system
+##### Gap #3: .ssdeps native dependency system — FIXED
 - **Old:** `Stride.Core.PostSettings.Dependencies.targets` (168 lines)
 - **What it does:** Reads `.ssdeps` files alongside referenced DLLs, resolves native libraries (.dll/.so/.dylib) and content files, copies them to output directory and includes in NuGet packages.
-- **SDK:** Not present.
-- **Impact:** Projects depending on native libraries (physics, audio, video) won't get native binaries in output.
-- **Fix:** Port to `Stride.Dependencies.targets` in SDK.
+- **SDK:** Added to `Stride.Dependencies.targets` — full port of read/write/package workflows with platform-specific handling (desktop, Android, iOS).
 
 #### HIGH — Needed for mobile platforms
 

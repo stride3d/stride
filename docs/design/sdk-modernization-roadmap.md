@@ -286,7 +286,7 @@ Migrated 60+ projects:
 
 ### 8.2 Critical — Multi-API Builds
 - [ ] Gap #1: Port Graphics API inner build dispatching system
-- [ ] Gap #3: Port .ssdeps native dependency system
+- [x] Gap #3: Port .ssdeps native dependency system
 
 ### 8.3 Low Priority — Packaging & Convenience — COMPLETE
 - [x] Gap #11: Localization satellite assemblies

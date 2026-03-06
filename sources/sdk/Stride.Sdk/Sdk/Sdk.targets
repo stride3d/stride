@@ -44,6 +44,11 @@
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
   <!-- ================================================================ -->
+  <!-- Native dependency system (.ssdeps) -->
+  <!-- ================================================================ -->
+  <Import Project="Stride.Dependencies.targets" />
+
+  <!-- ================================================================ -->
   <!-- Native build mode configuration (Clang/MSVC selection) -->
   <!-- ================================================================ -->
   <Import Project="Stride.NativeBuildMode.props" />
