@@ -297,14 +297,14 @@ Migrated 60+ projects:
 - [x] Gap #17: SharedAssemblyInfo.NuGet.cs replacement
 - Gap #18: UWP properties — intentionally deferred (UWP being phased out)
 
-### 8.4 Solution Consolidation — IN PROGRESS
+### 8.4 Solution Consolidation — COMPLETE
 - [x] Create `Stride.Android.slnf` filter (replaces `Stride.Android.sln`)
 - [x] Create `Stride.iOS.slnf` filter (replaces `Stride.iOS.sln`)
 - [x] Verify `Stride.Runtime.slnf` covers all runtime projects
-- [ ] Update CI workflows to use `.slnf` instead of mobile `.sln` files
-- [ ] Remove redundant `Stride.Android.sln`, `Stride.iOS.sln`, `Stride.Runtime.sln`
-- Note: Old `.sln` files kept until CI workflows (`build-android.yml`, `build-ios.yml`,
-  `build-linux-runtime.yml`, `build-windows-runtime.yml`) and `compile.bat` are updated.
+- [x] Update CI workflows to use `.slnf` instead of `.sln` files
+- [x] Remove redundant `Stride.Android.sln`, `Stride.iOS.sln`, `Stride.Runtime.sln`
+- Updated: `build-android.yml`, `build-ios.yml`, `build-linux-runtime.yml`,
+  `build-windows-runtime.yml`, `compile.bat`, `Stride.UWP.bat`, `RuniOSTest.sh`
 
 ### Phase 7.1 Cleanup — UNBLOCKED
 Old targets files can now be removed (all Phase 8.1/8.2 gaps resolved).

@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/build-ios.yml'
-      - 'build/Stride.iOS.sln'
+      - 'build/Stride.iOS.slnf'
       - 'deps/**'
       - 'sources/core/**'
       - 'sources/engine/**'
@@ -57,7 +57,7 @@ jobs:
       - uses: microsoft/setup-msbuild@v2
       - name: Build
         run: |
-          msbuild build\Stride.iOS.sln `
+          msbuild build\Stride.iOS.slnf `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `

@@ -71,12 +71,12 @@ call :compile
 set __SkipTestBuild=%__OldSkipTestBuild%
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Stride.Android.sln
+set Project=Stride.Android.slnf
 set _platform_target=Android
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Stride.iOS.sln
+set Project=Stride.iOS.slnf
 set _platform_target=iPhone
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit

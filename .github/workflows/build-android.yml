@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/build-android.yml'
-      - 'build/Stride.Android.sln'
+      - 'build/Stride.Android.slnf'
       # - 'deps/**'
       # - 'sources/core/**'
       # - 'sources/engine/**'
@@ -89,7 +89,7 @@ jobs:
           }
       - name: Build
         run: |
-          msbuild build\Stride.Android.sln `
+          msbuild build\Stride.Android.slnf `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
