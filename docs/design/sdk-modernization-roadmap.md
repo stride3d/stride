@@ -128,7 +128,7 @@ All 110 projects migrated to SDK. Zero old-style imports remaining.
 |---------|-------------|--------|
 | Stride.Core.AssemblyProcessor | Microsoft.NET.Sdk | Tool project, not a Stride library |
 | Stride.Core.AssemblyProcessor.Tests | Microsoft.NET.Sdk | Tests the tool, not Stride code |
-| *.Android.csproj, *.iOS.csproj | Legacy XML | Mobile platform variants (Phase 7 scope) |
+| *.Android.csproj, *.iOS.csproj | **Stride.Sdk.Tests** | Mobile platform variants (migrated Phase 7.2) |
 | Stride.Metrics.ServerApp | ToolsVersion="12.0" | Very old, likely dead code |
 
 ## Implementation Phases
@@ -219,8 +219,13 @@ Migrated 60+ projects:
 - [ ] Clean up `build/` directory legacy files
 - [ ] Remove `.csproj.backup` files
 
-### 7.2 Mobile Platform Projects
-- [ ] Migrate or remove *.Android.csproj, *.iOS.csproj legacy projects
+### 7.2 Mobile Platform Projects — COMPLETE
+- [x] Complete mobile platform defines in Stride.Platform.targets (Android + iOS)
+- [x] Add mobile graphics API defaults (OpenGLES) to Stride.Graphics.props
+- [x] Migrate 14 legacy Xamarin *.Android.csproj and *.iOS.csproj to SDK-style
+  - Stride.Core.Tests, Stride.Audio.Tests, Stride.Engine.Tests, Stride.Input.Tests
+  - Stride.Particles.Tests, Stride.Physics.Tests, Stride.UI.Tests
+  - Each mirrors its Windows counterpart with net10.0-android / net10.0-ios TFM
 
 ### 7.3 SDK Polish — COMPLETE
 - [x] Shader file support (*.sdsl, *.sdfx) moved to base Stride.Sdk

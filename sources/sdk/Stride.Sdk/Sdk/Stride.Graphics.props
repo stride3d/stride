@@ -23,6 +23,8 @@
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'Windows'">Direct3D11</StrideGraphicsApi>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'Linux'">OpenGL</StrideGraphicsApi>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'macOS'">Vulkan</StrideGraphicsApi>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'Android'">OpenGLES</StrideGraphicsApi>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'iOS'">OpenGLES</StrideGraphicsApi>
   </PropertyGroup>
 
 </Project>

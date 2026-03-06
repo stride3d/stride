@@ -8,7 +8,6 @@
     EVALUATION PHASE: Late (AFTER project file)
 
     This file applies platform-specific compiler defines and build settings.
-    Desktop platforms only (Windows, Linux, macOS) - mobile/UWP deferred to Phase 2.
 
     Migrated from: sources/targets/Stride.Core-extended.props (lines 194-196, 266-274)
     ================================================================
@@ -37,36 +36,24 @@
     <DefineConstants Condition="'$(StridePackageBuild)' == 'true'">$(DefineConstants);STRIDE_PACKAGE_BUILD</DefineConstants>
   </PropertyGroup>
 
+  <!-- ================================================================ -->
+  <!-- Platform Defines - Android (lines 207-238 from extended) -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
+    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</StridePlatformDefines>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Platform Defines - iOS (lines 240-244 from extended) -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">
+    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</StridePlatformDefines>
+  </PropertyGroup>
+
   <!--
-    ================================================================
-    TODO: Phase 2 - Mobile/UWP Platform Support
-    ================================================================
-
-    The following platform-specific settings are deferred to Phase 2:
-
-    1. UWP Platform (lines 198-204 from extended):
-       - Platform = x86 default
-       - StridePlatformDefines = STRIDE_PLATFORM_UWP
-       - TargetPlatformVersion detection
-       - ExtrasUwpMetaPackageVersion
-
-    2. Android Platform (lines 207-238 from extended):
-       - StridePlatformDefines = STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID
-       - AndroidStoreUncompressedFileExtensions, MandroidI18n
-       - DesignTimeBuild=False
-       - AndroidResgenNamespace, AndroidHttpClientHandlerType
-       - OutputPath customization for build directory
-
-    3. iOS Platform (lines 240-244 from extended):
-       - Platform = iPhone default
-       - StridePlatformDefines = STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS
-       - IPhoneResourcePrefix
-
-    When implementing Phase 2, add PropertyGroup blocks here conditioned on:
-    - '$(TargetFramework)' == '$(StrideFrameworkUWP)'
-    - '$(TargetFramework)' == '$(StrideFrameworkAndroid)'
-    - '$(TargetFramework)' == '$(StrideFrameworkiOS)'
-    ================================================================
+    TODO: UWP Platform Support (lines 198-204 from extended)
+    - StridePlatformDefines = STRIDE_PLATFORM_UWP
+    - Platform = x86 default, TargetPlatformVersion detection
   -->
 
 </Project>
