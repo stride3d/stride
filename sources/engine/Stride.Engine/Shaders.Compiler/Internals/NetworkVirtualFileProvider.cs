@@ -57,7 +57,7 @@ namespace Stride.Shaders.Compiler.Internals
                 {
                     var stream = await VirtualFileSystem.OpenStreamAsync(packet.Url, VirtualFileMode.Open, VirtualFileAccess.Read);
                     var data = new byte[stream.Length];
-                    await stream.ReadAsync(data, 0, data.Length);
+                    await stream.ReadExactlyAsync(data, 0, data.Length);
                     stream.Dispose();
                     socketMessageLayer.Send(new DownloadFileAnswer { StreamId = packet.StreamId, Data = data });
                 });

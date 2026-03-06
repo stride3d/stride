@@ -84,7 +84,7 @@ namespace Stride.Core.Assets.CompilerApp
                 { "log", "Enable file logging", v => options.EnableFileLogging = v != null },
                 { "disable-auto-compile", "Disable auto-compile of projects", v => options.DisableAutoCompileProjects = v != null},
                 { "project-configuration=", "Project configuration", v => options.ProjectConfiguration = v },
-                { "platform=", "Platform name", v => options.Platform = (PlatformType)Enum.Parse(typeof(PlatformType), v) },
+                { "platform=", "Platform name", v => options.Platform = Enum.Parse<PlatformType>(v) },
                 { "solution-file=", "Solution File Name", v => options.SolutionFile = v },
                 { "package-id=", "Package Id from the solution file", v => options.PackageId = Guid.Parse(v) },
                 { "package-file=", "Input Package File Name", v => options.PackageFile = v },

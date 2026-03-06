@@ -81,7 +81,7 @@ namespace FreeImageAPI
 		static MemoryArray()
 		{
 			T[] dummy = new T[2];
-			long marshalledSize = Marshal.SizeOf(typeof(T));
+			long marshalledSize = Marshal.SizeOf<T>();
 			long structureSize =
 				Marshal.UnsafeAddrOfPinnedArrayElement(dummy, 1).ToInt64() -
 				Marshal.UnsafeAddrOfPinnedArrayElement(dummy, 0).ToInt64();

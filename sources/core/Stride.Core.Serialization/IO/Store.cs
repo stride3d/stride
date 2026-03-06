@@ -323,7 +323,7 @@ public abstract class Store<T> : IDisposable where T : new()
             return;
 
         var bufferToRead = new byte[length];
-        stream.Read(bufferToRead, 0, length);
+        stream.ReadExactly(bufferToRead, 0, length);
         var memoryStream = new MemoryStream(bufferToRead);
 
         try

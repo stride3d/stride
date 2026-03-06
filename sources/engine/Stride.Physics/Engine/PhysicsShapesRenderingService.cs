@@ -48,7 +48,7 @@ namespace Stride.Physics.Engine
         {
             graphicsDevice = Services.GetSafeServiceAs<IGraphicsDeviceService>().GraphicsDevice;
 
-            foreach (var typeObject in Enum.GetValues(typeof(ComponentType)))
+            foreach (var typeObject in Enum.GetValues<ComponentType>())
             {
                 var type = (ComponentType)typeObject;
                 componentTypeDefaultMaterial[type] = PhysicsDebugShapeMaterial.CreateDefault(graphicsDevice, Color.AdjustSaturation(componentTypeColor[type], 0.77f), 1);
