@@ -1,7 +1,6 @@
-﻿<Project>
-  <!-- NuGet resolved needed for StrideDefaultAssetsPlugin.LoadDefaultTemplates() -->
-  <Import Project="..\..\sources\targets\Stride.UnitTests.props" />
+<Project Sdk="Stride.Sdk.Tests">
   <PropertyGroup>
+    <StrideRoot>$(MSBuildThisFileDirectory)..\..\</StrideRoot>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -11,20 +10,21 @@
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideSkipAutoPack>false</StrideSkipAutoPack>
     <IsPackable>true</IsPackable>
+    <!-- Skip SDK test references — we manage versions directly since ManagePackageVersionsCentrally=false -->
+    <SkipXunitReference>true</SkipXunitReference>
+    <SkipTestSdkReference>true</SkipTestSdkReference>
+    <SkipTeamCityAdapter>true</SkipTeamCityAdapter>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="18.0.2" />
     <PackageReference Include="Microsoft.Build.Framework" Version="18.0.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="TeamCity.VSTest.TestAdapter" Version="1.0.41" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\sources\shared\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
@@ -34,11 +34,6 @@
     <ProjectReference Include="..\..\sources\tools\Stride.ConnectionRouter\Stride.ConnectionRouter.csproj" />
     <ProjectReference Include="..\..\sources\tools\Stride.SamplesTestServer\Stride.SamplesTestServer.csproj" />
   </ItemGroup>
+  <!-- NuGet resolved needed for StrideDefaultAssetsPlugin.LoadDefaultTemplates() -->
   <Import Project="..\..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
-  <Import Project="..\..\sources\targets\Stride.UnitTests.targets" />
-  <!-- Override the references set in Stride.UnitTests.targets -->
-  <ItemGroup>
-    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageReference Update="TeamCity.VSTest.TestAdapter" Version="1.0.41" />
-  </ItemGroup>
 </Project>

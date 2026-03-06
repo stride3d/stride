@@ -11,7 +11,7 @@ on:
       # - 'sources/native/**'
       # - 'sources/shaders/**'
       # - 'sources/shared/**'
-      # - 'sources/targets/**'
+      # - 'sources/sdk/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'

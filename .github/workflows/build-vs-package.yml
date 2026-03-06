@@ -6,7 +6,7 @@ on:
       - '.github/workflows/build-vs-package.yml'
       - 'build/Stride.VisualStudio.sln'
       - 'sources/tools/Stride.VisualStudio.*/**'
-      - 'sources/targets/**'
+      - 'sources/sdk/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'

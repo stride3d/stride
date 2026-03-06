@@ -77,7 +77,6 @@ rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.tests" 2>nul
 | `buildengine/` | Asset build pipeline infrastructure |
 | `shaders/` | Shader parsing and compilation |
 | `sdk/` | MSBuild SDK packages (Stride.Sdk, Stride.Sdk.Editor, Stride.Sdk.Tests) - see [SDK-WORK-GUIDE.md](build/docs/SDK-WORK-GUIDE.md) |
-| `targets/` | Legacy MSBuild props/targets files (17 files, ~3500 lines - replaced by SDK, pending removal) |
 
 ### Entity-Component System
 
@@ -122,8 +121,8 @@ Multi-API support through abstraction layer in `Stride.Graphics`:
 - **Serialization:** `sources/core/Stride.Core.Serialization/`
 - **Assets:** `sources/assets/Stride.Core.Assets/`
 - **Editor:** `sources/editor/Stride.GameStudio/`
-- **Build config:** `sources/targets/Stride.props`, `sources/Directory.Build.props`
-- **SDK work:** `sources/sdk/` and `build/docs/SDK-WORK-GUIDE.md`
+- **Build config:** `sources/sdk/` (SDK packages), `sources/Directory.Build.props`
+- **SDK docs:** `build/docs/SDK-WORK-GUIDE.md`
 
 ## Build System
 
@@ -153,15 +152,13 @@ Stride supports **6 platforms** × **5 graphics APIs** = 30 build configurations
 
 ### Build System Files
 
-Current system: 17 .props/.targets files (~3500 lines):
-- `Directory.Build.props/targets` - Root level
-- `sources/targets/Stride.Core.props` - Platform detection, framework mapping
-- `sources/targets/Stride.props` - Graphics API defaults
-- `sources/targets/Stride.GraphicsApi.*.targets` - Graphics API inner builds
-- `sources/targets/Stride.Core.targets` - Assembly processor
-- `sources/targets/Stride.targets` - Build finalization
+All build logic is in SDK packages under `sources/sdk/`:
+- `Stride.Sdk/Sdk/` - Platform detection, frameworks, graphics API, assembly processor, dependencies
+- `Stride.Sdk.Editor/Sdk/` - Editor framework properties
+- `Stride.Sdk.Tests/Sdk/` - Test infrastructure (xunit, output paths, launcher code)
 
-**SDK status:** Consolidated into versioned SDK packages (Stride.Sdk, Stride.Sdk.Editor, Stride.Sdk.Tests). All 110 projects migrated.
+All 112 projects use SDK-style `<Project Sdk="Stride.Sdk">` (or Editor/Tests variants).
+Legacy `sources/targets/` directory has been removed.
 
 ### Graphics API Multi-Targeting
 

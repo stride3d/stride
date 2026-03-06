@@ -13,7 +13,7 @@
           Pack="true" PackagePath="Sdk/" />
 
     <!-- Include Code Analysis ruleset -->
-    <None Include="$(MSBuildThisFileDirectory)../../targets/Stride.ruleset"
+    <None Include="$(MSBuildThisFileDirectory)Sdk/Stride.ruleset"
           Pack="true" PackagePath="Sdk/" />
 
     <!-- Package Assembly Processor binaries with SDK (interim until standalone package) -->

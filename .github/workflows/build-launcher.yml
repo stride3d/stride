@@ -9,7 +9,7 @@ on:
       - 'sources/launcher/**'
       - 'sources/presentation/**'
       - 'sources/shared/**'
-      - 'sources/targets/**'
+      - 'sources/sdk/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'

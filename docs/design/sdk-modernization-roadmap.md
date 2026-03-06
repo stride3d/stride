@@ -213,11 +213,14 @@ Migrated 60+ projects:
 
 **Goal:** Remove old build system, finalize SDK
 
-### 7.1 Remove Legacy Build Files
-- [ ] Archive/remove `sources/targets/*.props` and `*.targets` (17 files)
-- [ ] Remove `Directory.Build.props/targets` old-system imports
-- [ ] Clean up `build/` directory legacy files
-- [ ] Remove `.csproj.backup` files
+### 7.1 Remove Legacy Build Files — COMPLETE
+- [x] Migrated `Stride.Samples.Tests.csproj` from old imports to `Sdk="Stride.Sdk.Tests"`
+- [x] Migrated `xunit.runner.stride.csproj` from `Microsoft.NET.Sdk` + old imports to `Sdk="Stride.Sdk"`
+- [x] Moved `Stride.ruleset` into SDK package directory (`sources/sdk/Stride.Sdk/Sdk/`)
+- [x] Deleted entire `sources/targets/` directory (24 files, ~3500 lines of legacy build system)
+- [x] Updated `Stride.sln` to remove "00-Targets.Private" solution folder entries
+- [x] Updated all CI workflows to replace `sources/targets/**` path trigger with `sources/sdk/**`
+- Note: T4 template in `Stride.ProjectGenerator` still references old paths (legacy dead code, not build-breaking)
 
 ### 7.2 Mobile Platform Projects — COMPLETE
 - [x] Complete mobile platform defines in Stride.Platform.targets (Android + iOS)
@@ -306,11 +309,11 @@ Migrated 60+ projects:
 - Updated: `build-android.yml`, `build-ios.yml`, `build-linux-runtime.yml`,
   `build-windows-runtime.yml`, `compile.bat`, `Stride.UWP.bat`, `RuniOSTest.sh`
 
-### Phase 7.1 Cleanup — UNBLOCKED
-Old targets files can now be removed (all Phase 8.1/8.2 gaps resolved).
-Remaining:
-- Last 2 projects importing old targets need migration
-- Verified: 124 projects use SDK, only 2 still import old targets
+### Phase 7.1 Cleanup — COMPLETE
+Old `sources/targets/` directory deleted. All 24 legacy build files removed.
+- `Stride.Samples.Tests.csproj` and `xunit.runner.stride.csproj` migrated to SDK
+- `Stride.ruleset` moved into SDK package; `nuget-icon.png` already had copy in `sources/sdk/`
+- CI workflows updated to trigger on `sources/sdk/**` instead of `sources/targets/**`
 
 ## Known Issues
 
@@ -324,5 +327,5 @@ Remaining:
 - [SDK Work Guide](../../build/docs/SDK-WORK-GUIDE.md)
 - [Property Evaluation Analysis](../../build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md)
 - [SDK Gap Analysis](./sdk-gap-analysis.md)
-- [Current Build System](../../sources/targets/)
+- [SDK Packages](../../sources/sdk/)
 - [.NET SDK Documentation](https://learn.microsoft.com/en-us/dotnet/core/project-sdk/overview)
