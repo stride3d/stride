@@ -269,11 +269,47 @@ Migrated 60+ projects:
 ### Decision 8: No build/ Convention Files — DECIDED
 **Choice:** SDK packages must ONLY use `Sdk/` folder. NuGet `build/` convention files cause double-import when `Sdk="PackageName"` is used on `<Project>` element.
 
+## Phase 8: SDK Feature Parity
+
+**Goal:** Close remaining gaps between old build system and SDK. See [sdk-gap-analysis.md](./sdk-gap-analysis.md) for full audit.
+
+### 8.1 High Priority — Mobile & Graphics Correctness
+- [ ] Gap #7: Fix StrideUI Vulkan condition (add Vulkan to WINFORMS/WPF condition)
+- [ ] Gap #6: Add `OutputType=Library` for Android
+- [ ] Gap #4: Add Android-specific build properties (SupportedOSPlatformVersion, link mode, etc.)
+- [ ] Gap #5: Add iOS-specific build properties (Platform, IPhoneResourcePrefix, etc.)
+- [ ] Gap #8: Add Stride.Core.CompilerServices analyzer reference
+- [ ] Gap #2: Add Graphics API output path adjustment for `StrideGraphicsApiDependent`
+- [ ] Gap #9: Add `StridePublicApi` documentation support
+
+### 8.2 Critical — Multi-API Builds
+- [ ] Gap #1: Port Graphics API inner build dispatching system
+- [ ] Gap #3: Port .ssdeps native dependency system
+
+### 8.3 Low Priority — Packaging & Convenience
+- [ ] Gap #10: SourceLink package reference
+- [ ] Gap #11: Localization satellite assemblies
+- [ ] Gap #12: Auto-pack/deploy (StrideAutoPackDeploy)
+- [ ] Gap #13: StrideCompilerTargetsEnable / DisableBuild
+- [ ] Gap #14: StrideScript → StrideAssemblyProcessor
+- [ ] Gaps #15-18: Minor properties (see gap analysis)
+
+### 8.4 Solution Consolidation
+- [ ] Replace `Stride.Android.sln` with `Stride.Android.slnf` filter
+- [ ] Replace `Stride.iOS.sln` with `Stride.iOS.slnf` filter
+- [ ] Verify `Stride.Runtime.slnf` covers all runtime projects
+- [ ] Consider removing redundant `Stride.Runtime.sln`
+
+### Phase 7.1 Cleanup — BLOCKED
+Old targets files cannot be removed until:
+- All Phase 8.1/8.2 gaps are resolved
+- Last 2 projects importing old targets are migrated
+- Verified: 124 projects use SDK, only 2 still import old targets
+
 ## Known Issues
 
 1. **Serialization test failures:** NullReferenceException in generated serializers. All projects now use consistent SDK, providing a good foundation for debugging.
-2. **Mobile platform projects:** Legacy XML-header `.csproj` files for Android/iOS are out of scope until Phase 7.
-3. **C++/CLI dependencies:** Stride.Graphics and Stride.Shaders.Compiler have DirectX type references that require MSBuild (not dotnet CLI) to build.
+2. **C++/CLI dependencies:** Stride.Graphics and Stride.Shaders.Compiler have DirectX type references that require MSBuild (not dotnet CLI) to build.
 
 ## References
 
@@ -281,5 +317,6 @@ Migrated 60+ projects:
 - [Build Properties Inventory](./stride-build-properties-inventory.md)
 - [SDK Work Guide](../../build/docs/SDK-WORK-GUIDE.md)
 - [Property Evaluation Analysis](../../build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md)
+- [SDK Gap Analysis](./sdk-gap-analysis.md)
 - [Current Build System](../../sources/targets/)
 - [.NET SDK Documentation](https://learn.microsoft.com/en-us/dotnet/core/project-sdk/overview)
