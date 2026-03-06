@@ -31,11 +31,11 @@ namespace Stride.Assets.Models
         public List<ModelMaterial> Materials { get; set; }
         public string EffectName { get; set; }
 
-        /// <summary>
-        /// When non-empty, only meshes attached to nodes whose indices appear in this list
-        /// will be included in the compiled model. Used by the hierarchy splitter.
-        /// </summary>
+        // When set, only meshes from these node indices are included. Used by hierarchy splitting.
         public List<int> NodeFilter { get; set; }
+
+        // Root transform baked into vertices during import; undone for unskinned hierarchy sub-models.
+        protected Matrix SourceRootTransform { get; set; } = Matrix.Identity;
 
         public List<IModelModifier> ModelModifiers { get; set; }
 
@@ -88,9 +88,7 @@ namespace Stride.Assets.Models
             // Apply materials
             if (NodeFilter != null && NodeFilter.Count > 0 && model.Meshes.Count > 0)
             {
-                // For hierarchy sub-models, compact the material list to only include materials
-                // actually used by the remaining meshes after NodeFilter filtering. This avoids
-                // loading unused materials at runtime and keeps MaterialIndex valid.
+                // Compact materials to only those used by the filtered meshes.
                 var usedMaterialIndices = new SortedSet<int>(model.Meshes.Select(m => m.MaterialIndex));
                 var oldToNewMaterialIndex = new Dictionary<int, int>();
                 int newMaterialIndex = 0;
@@ -164,11 +162,18 @@ namespace Stride.Assets.Models
             var hierarchyUpdater = new SkeletonUpdater(modelSkeleton);
             hierarchyUpdater.UpdateMatrices();
 
-            // For hierarchy sub-models (NodeFilter set) without a skeleton, keep vertices in
-            // node-local space. The entity's TransformComponent in the generated prefab handles
-            // positioning. Baking vertices to root space here would cause a double-transform
-            // because the entity hierarchy already reproduces the node transforms.
+            // Unskinned hierarchy sub-models keep vertices in node-local space;
+            // the prefab's entity transforms handle positioning.
             bool isUnskinnedHierarchySubModel = NodeFilter != null && NodeFilter.Count > 0 && skeleton == null;
+
+            // Undo the rootTransform baking from ProcessMesh for hierarchy sub-models.
+            Matrix inverseSourceRootTransform = Matrix.Identity;
+            bool needsRootTransformUndo = false;
+            if (isUnskinnedHierarchySubModel && SourceRootTransform != Matrix.Identity)
+            {
+                Matrix.Invert(ref SourceRootTransform, out inverseSourceRootTransform);
+                needsRootTransformUndo = true;
+            }
 
             // Move meshes in the new nodes
             foreach (var mesh in model.Meshes)
@@ -185,6 +190,15 @@ namespace Stride.Assets.Models
 
                 if (isUnskinnedHierarchySubModel)
                 {
+                    // Undo rootTransform baking; entity transforms handle positioning instead.
+                    if (needsRootTransformUndo)
+                    {
+                        for (int vbIdx = 0; vbIdx < mesh.Draw.VertexBuffers.Length; vbIdx++)
+                        {
+                            mesh.Draw.VertexBuffers[vbIdx].TransformBuffer(ref inverseSourceRootTransform);
+                        }
+                    }
+
                     // Strip skinning data (if any) since there is no skeleton at runtime
                     mesh.Skinning = null;
                     // Place all meshes at the model root; the entity transform handles positioning

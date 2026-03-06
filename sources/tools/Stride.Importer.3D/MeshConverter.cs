@@ -52,6 +52,9 @@ namespace Stride.Importer.ThreeD
         private Matrix rootTransformInverse;
         private Model modelData;
 
+        // Root transform baked into vertices by ProcessMesh; used to undo baking for hierarchy sub-models.
+        public Matrix RootTransform => rootTransform;
+
         private readonly List<ModelNodeDefinition> nodes = new();
         private readonly Dictionary<string, int> textureNameCount = new();
 
@@ -63,6 +66,10 @@ namespace Stride.Importer.ThreeD
         private void ResetConversionData()
         {
             textureNameCount.Clear();
+            rootTransform = Matrix.Identity;
+            rootTransformInverse = Matrix.Identity;
+            rootOrientation = Quaternion.Identity;
+            rootOrientationInverse = Quaternion.Identity;
         }
 
         public unsafe EntityInfo ExtractEntity(string inputFilename, string outputFilename, bool extractTextureDependencies, bool deduplicateMaterials)

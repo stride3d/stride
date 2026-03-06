@@ -12,29 +12,13 @@ namespace Stride.Importer.Common
         public int Depth;
         public bool Preserve;
 
-        /// <summary>
-        /// Index of the parent node in the flat node list, or -1 for the root node.
-        /// </summary>
+        // -1 for root nodes
         public int ParentIndex = -1;
 
-        /// <summary>
-        /// Indices of meshes directly attached to this node.
-        /// </summary>
         public List<int> MeshIndices;
 
-        /// <summary>
-        /// Local position relative to parent.
-        /// </summary>
         public Vector3 LocalPosition;
-
-        /// <summary>
-        /// Local rotation relative to parent.
-        /// </summary>
         public Quaternion LocalRotation = Quaternion.Identity;
-
-        /// <summary>
-        /// Local scale relative to parent.
-        /// </summary>
         public Vector3 LocalScale = Vector3.One;
     }
 }

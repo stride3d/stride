@@ -17,38 +17,16 @@ using Stride.Rendering;
 namespace Stride.Assets.Models
 {
     /// <summary>
-    /// Splits a model source file into multiple <see cref="ModelAsset"/>s — one for each node
-    /// that carries meshes — and generates a <see cref="PrefabAsset"/> that mirrors the original
-    /// scene hierarchy with <see cref="ModelComponent"/>s on the appropriate entities.
+    /// Splits a model into per-node <see cref="ModelAsset"/>s and generates a <see cref="PrefabAsset"/> mirroring the scene hierarchy.
     /// </summary>
     public static class HierarchyModelSplitter
     {
-        /// <summary>
-        /// Result produced by <see cref="SplitModelByHierarchy"/>.
-        /// </summary>
         public class SplitResult
         {
-            /// <summary>
-            /// Individual model asset items created from the split (one per mesh-bearing node).
-            /// </summary>
             public List<AssetItem> ModelAssets { get; } = new List<AssetItem>();
-
-            /// <summary>
-            /// The generated prefab asset item that mirrors the original hierarchy.
-            /// </summary>
             public AssetItem PrefabAsset { get; set; }
         }
 
-        /// <summary>
-        /// Splits the imported scene into per-node <see cref="ModelAsset"/>s and produces a
-        /// <see cref="PrefabAsset"/> that reproduces the original hierarchy.
-        /// </summary>
-        /// <param name="assetSource">Source file path (e.g. the .fbx file).</param>
-        /// <param name="localPath">Logical path of the source asset.</param>
-        /// <param name="entityInfo">Entity info extracted from the source file.</param>
-        /// <param name="existingAssetReferences">Already-imported asset items (materials, textures, skeleton) available for referencing.</param>
-        /// <param name="skeletonAsset">Optional skeleton asset, if one was imported.</param>
-        /// <returns>A <see cref="SplitResult"/> containing the generated assets.</returns>
         public static SplitResult SplitModelByHierarchy(
             UFile assetSource,
             UFile localPath,
@@ -101,13 +79,7 @@ namespace Stride.Assets.Models
                     }
                 }
 
-                // For non-skinned sub-models: MergeMeshes = true, no skeleton.
-                // The entity transform in the prefab handles positioning. Vertex data stays
-                // in node-local space (ExportModel skips baking when NodeFilter is set and
-                // skeleton is null).
-                //
-                // For skinned sub-models: keep skeleton so bone deformation works at runtime.
-                // MergeMeshes must be false to preserve per-mesh skinning data.
+                // Skinned: keep skeleton + separate meshes. Non-skinned: merge meshes, entity transform handles positioning.
                 if (nodeHasSkinning && skeletonAsset != null)
                 {
                     modelAsset.MergeMeshes = false;
@@ -120,10 +92,7 @@ namespace Stride.Assets.Models
                     // No skeleton — entity transform handles positioning
                 }
 
-                // Include ALL materials from the source file so that Mesh.MaterialIndex
-                // (which is a scene-wide Assimp index) remains valid during compilation.
-                // ExportModel compacts unused materials at compile time, so the runtime
-                // Model only contains the materials this sub-model actually references.
+                // Include all materials so MaterialIndex stays valid; ExportModel compacts unused ones.
                 foreach (var material in entityInfo.Materials)
                 {
                     var modelMaterial = new ModelMaterial
@@ -152,7 +121,6 @@ namespace Stride.Assets.Models
                     });
                 }
 
-                // Use a sanitised, uniquified node name to avoid file-system and URL collisions
                 var safeName = GetUniqueName(SanitizeName(node.Name), usedNames);
                 var modelUrl = new UFile($"{baseName}/{safeName}");
                 var assetItem = new AssetItem(modelUrl, modelAsset);
@@ -160,17 +128,16 @@ namespace Stride.Assets.Models
                 nodeIndexToModelAsset[nodeIndex] = assetItem;
             }
 
-            // --- 2. Build the Prefab ---
-            result.PrefabAsset = BuildPrefab(baseName, hierarchy, nodeIndexToModelAsset, rootWrapperIndex);
+            // --- 2. Build the Prefab (only if we created at least one sub-model) ---
+                if (nodeIndexToModelAsset.Count > 0)
+                {
+                    result.PrefabAsset = BuildPrefab(baseName, hierarchy, nodeIndexToModelAsset, rootWrapperIndex);
+                }
 
-            return result;
+                return result;
         }
 
-        /// <summary>
-        /// Detects a root wrapper node — a single root node at depth 0 with no meshes.
-        /// FBX files typically have a "RootNode" wrapper; other formats may not.
-        /// Returns the node index of the wrapper, or -1 if no wrapper was detected.
-        /// </summary>
+        // Returns the index of a meshless, near-identity root wrapper node, or -1.
         private static int DetectRootWrapperNode(SceneHierarchyInfo hierarchy)
         {
             if (hierarchy.Nodes.Count == 0)
@@ -185,6 +152,10 @@ namespace Stride.Assets.Models
             if (root.MeshIndices != null && root.MeshIndices.Count > 0)
                 return -1;
 
+            // Keep the root if it has a meaningful transform (rotation, scale, offset)
+            if (!IsNearIdentityTransform(root))
+                return -1;
+
             // Check that no other nodes are also at root level
             for (int i = 1; i < hierarchy.Nodes.Count; i++)
             {
@@ -195,15 +166,25 @@ namespace Stride.Assets.Models
             return 0;
         }
 
-        /// <summary>
-        /// Builds a <see cref="PrefabAsset"/> whose entity hierarchy mirrors the scene nodes.
-        /// Entities that correspond to mesh-bearing nodes get a <see cref="ModelComponent"/> pointing
-        /// at the split <see cref="ModelAsset"/>.
-        /// </summary>
-        /// <param name="baseName">Base name for the prefab asset URL.</param>
-        /// <param name="hierarchy">Scene hierarchy data.</param>
-        /// <param name="nodeIndexToModelAsset">Mapping from node index to the created model asset.</param>
-        /// <param name="rootWrapperIndex">Index of the root wrapper node to skip, or -1.</param>
+        private const float NearIdentityEpsilon = 1e-4f;
+
+        private static bool IsNearIdentityTransform(NodeInfo node)
+        {
+            if (node.LocalPosition.Length() > NearIdentityEpsilon)
+                return false;
+
+            if ((node.LocalScale - Vector3.One).Length() > NearIdentityEpsilon)
+                return false;
+
+            // Quaternion q and -q represent the same rotation; use absolute dot
+            var dot = Quaternion.Dot(node.LocalRotation, Quaternion.Identity);
+            if (MathF.Abs(dot) < 1.0f - NearIdentityEpsilon)
+                return false;
+
+            return true;
+        }
+
+        // Builds a prefab mirroring the scene hierarchy, attaching ModelComponents to mesh-bearing nodes.
         private static AssetItem BuildPrefab(
             string baseName,
             SceneHierarchyInfo hierarchy,
@@ -221,7 +202,8 @@ namespace Stride.Assets.Models
                     continue;
 
                 var node = hierarchy.Nodes[i];
-                var entity = new Entity(node.Name, node.LocalPosition, node.LocalRotation, node.LocalScale);
+                var entityName = string.IsNullOrWhiteSpace(node.Name) ? $"Node_{i}" : node.Name;
+                var entity = new Entity(entityName, node.LocalPosition, node.LocalRotation, node.LocalScale);
 
                 // Attach a ModelComponent if this node has meshes
                 if (nodeIndexToModelAsset.TryGetValue(i, out var modelAssetItem))
@@ -277,9 +259,6 @@ namespace Stride.Assets.Models
             return new AssetItem(prefabUrl, prefab);
         }
 
-        /// <summary>
-        /// Returns a unique name by appending a numeric suffix if the name has already been used.
-        /// </summary>
         private static string GetUniqueName(string baseName, Dictionary<string, int> usedNames)
         {
             if (!usedNames.TryGetValue(baseName, out var count))
@@ -303,6 +282,13 @@ namespace Stride.Assets.Models
             return uniqueName;
         }
 
+        private static readonly HashSet<string> ReservedDeviceNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "CON", "PRN", "AUX", "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+        };
+
         private static string SanitizeName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -315,7 +301,16 @@ namespace Stride.Assets.Models
                 if (Array.IndexOf(invalidChars, chars[i]) >= 0)
                     chars[i] = '_';
             }
-            return new string(chars);
+
+            var result = new string(chars).Trim().Trim('.');
+
+            if (string.IsNullOrWhiteSpace(result))
+                return "Node";
+
+            if (ReservedDeviceNames.Contains(result))
+                return $"_{result}_";
+
+            return result;
         }
     }
 }
