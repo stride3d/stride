@@ -3,6 +3,7 @@
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:interactivity="clr-namespace:Stride.Core.Presentation.Interactivity;assembly=Stride.Core.Presentation.Wpf"
                     xmlns:view="clr-namespace:Stride.Core.Assets.Editor.View"
                     xmlns:viewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel"
                     xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.View.Behaviors"
@@ -13,6 +14,16 @@
     <ResourceDictionary Source="ImageDictionary.xaml" />
     <ResourceDictionary Source="../Themes/ThemeSelector.xaml" />
   </ResourceDictionary.MergedDictionaries>
+
+  <Style TargetType="sd:PropertyViewItem" BasedOn="{StaticResource {x:Type sd:PropertyViewItem}}">
+    <Setter Property="interactivity:Interaction.Behaviors">
+      <Setter.Value>
+        <interactivity:BehaviorCollection>
+          <behaviors:PropertyViewItemDragDropBehavior CanDrag="True" CanInsert="True" DisplayInsertAdorner="True" />
+        </interactivity:BehaviorCollection>
+      </Setter.Value>
+    </Setter>
+  </Style>
 
   <Style TargetType="view:DataGridEx">
     <Setter Property="Background" Value="{StaticResource NormalBrush}" />
