@@ -48,6 +48,7 @@ namespace Stride.Assets.Presentation.Templates
         private bool importSkeleton = true;
         private bool dontImportSkeleton;
         private bool reuseSkeleton;
+        private bool splitModelByHierarchy;
 
         public ImportModelFromFileViewModel(IViewModelServiceProvider serviceProvider)
             : base(serviceProvider)
@@ -70,6 +71,8 @@ namespace Stride.Assets.Presentation.Templates
         public bool DontImportSkeleton { get { return dontImportSkeleton; } set { SetValue(ref dontImportSkeleton, value); } }
 
         public bool ReuseSkeleton { get { return reuseSkeleton; } set { SetValue(ref reuseSkeleton, value); } }
+
+        public bool SplitModelByHierarchy { get { return splitModelByHierarchy; } set { SetValue(ref splitModelByHierarchy, value); } }
 
         public Skeleton SkeletonToReuse { get { return referenceContainer.Skeleton; } set { referenceContainer.Skeleton = value; } }
 

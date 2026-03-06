@@ -13,5 +13,12 @@ namespace Stride.Importer.Common
         public List<string> AnimationNodes;
         public List<MeshParameters> Models;
         public List<NodeInfo> Nodes;
+
+        /// <summary>
+        /// Rich scene hierarchy data extracted from the model file.
+        /// Contains parent-child relationships, per-node mesh assignments, and local transforms.
+        /// Populated when hierarchy splitting is needed; may be null for legacy import paths.
+        /// </summary>
+        public SceneHierarchyInfo SceneHierarchy;
     }
 }

@@ -72,11 +72,18 @@ namespace Stride.Assets.Models
             // Need to remember the DeduplicateMaterials setting per ModelAsset since the importer may be rerun on this asset
             if (!importParameters.InputParameters.TryGet(DeduplicateMaterialsKey, out var deduplicateMaterials))
                 deduplicateMaterials = true;    // Dedupe is the default value
+            if (!importParameters.InputParameters.TryGet(SplitModelByHierarchyKey, out var splitByHierarchy))
+                splitByHierarchy = false;
             foreach (var item in assetItems)
             {
                 if (item.Asset is ModelAsset modelAsset)
                 {
                     modelAsset.DeduplicateMaterials = deduplicateMaterials;
+                    // Only set SplitModelByHierarchy on models that are not already sub-models
+                    // produced by the hierarchy splitter (which have NodeFilter set).
+                    // Setting this flag on sub-models would cause recursive splitting on reimport.
+                    if (modelAsset.NodeFilter == null || modelAsset.NodeFilter.Count == 0)
+                        modelAsset.SplitModelByHierarchy = splitByHierarchy;
                 }
             }
             return assetItems;

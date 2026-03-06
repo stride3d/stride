@@ -31,6 +31,12 @@ namespace Stride.Assets.Models
         public List<ModelMaterial> Materials { get; set; }
         public string EffectName { get; set; }
 
+        /// <summary>
+        /// When non-empty, only meshes attached to nodes whose indices appear in this list
+        /// will be included in the compiled model. Used by the hierarchy splitter.
+        /// </summary>
+        public List<int> NodeFilter { get; set; }
+
         public List<IModelModifier> ModelModifiers { get; set; }
 
         /// <summary>
@@ -67,14 +73,64 @@ namespace Stride.Assets.Models
                 return null;
             }
 
-            // Apply materials
-            foreach (var modelMaterial in Materials)
+            // Filter meshes by node index when NodeFilter is set (hierarchy splitting)
+            if (NodeFilter != null && NodeFilter.Count > 0)
             {
-                if (modelMaterial.MaterialInstance?.Material == null)
+                var allowedNodeIndices = new HashSet<int>(NodeFilter);
+                model.Meshes = model.Meshes.Where(m => allowedNodeIndices.Contains(m.NodeIndex)).ToList();
+
+                if (model.Meshes.Count == 0)
                 {
-                    commandContext.Logger.Verbose($"The material [{modelMaterial.Name}] is null in the list of materials.");
+                    commandContext.Logger.Warning($"No meshes matched the node filter [{string.Join(", ", NodeFilter)}] in {ContextAsString}. The model will be empty.");
                 }
-                model.Materials.Add(modelMaterial.MaterialInstance);
+            }
+
+            // Apply materials
+            if (NodeFilter != null && NodeFilter.Count > 0 && model.Meshes.Count > 0)
+            {
+                // For hierarchy sub-models, compact the material list to only include materials
+                // actually used by the remaining meshes after NodeFilter filtering. This avoids
+                // loading unused materials at runtime and keeps MaterialIndex valid.
+                var usedMaterialIndices = new SortedSet<int>(model.Meshes.Select(m => m.MaterialIndex));
+                var oldToNewMaterialIndex = new Dictionary<int, int>();
+                int newMaterialIndex = 0;
+                foreach (var oldIndex in usedMaterialIndices)
+                {
+                    oldToNewMaterialIndex[oldIndex] = newMaterialIndex++;
+
+                    if (oldIndex < Materials.Count)
+                    {
+                        var mat = Materials[oldIndex];
+                        if (mat.MaterialInstance?.Material == null)
+                            commandContext.Logger.Verbose($"The material [{mat.Name}] is null in the list of materials.");
+                        model.Materials.Add(mat.MaterialInstance);
+                    }
+                    else
+                    {
+                        // Safety: if the index is out of range, add a null instance to keep alignment
+                        commandContext.Logger.Warning($"Material index {oldIndex} is out of range (Materials has {Materials.Count} entries).");
+                        model.Materials.Add(new MaterialInstance());
+                    }
+                }
+
+                // Remap mesh MaterialIndex to the compacted range
+                foreach (var mesh in model.Meshes)
+                {
+                    if (oldToNewMaterialIndex.TryGetValue(mesh.MaterialIndex, out var remapped))
+                        mesh.MaterialIndex = remapped;
+                }
+            }
+            else
+            {
+                // Standard path: add all materials in order
+                foreach (var modelMaterial in Materials)
+                {
+                    if (modelMaterial.MaterialInstance?.Material == null)
+                    {
+                        commandContext.Logger.Verbose($"The material [{modelMaterial.Name}] is null in the list of materials.");
+                    }
+                    model.Materials.Add(modelMaterial.MaterialInstance);
+                }
             }
 
             model.BoundingBox = BoundingBox.Empty;
@@ -108,6 +164,12 @@ namespace Stride.Assets.Models
             var hierarchyUpdater = new SkeletonUpdater(modelSkeleton);
             hierarchyUpdater.UpdateMatrices();
 
+            // For hierarchy sub-models (NodeFilter set) without a skeleton, keep vertices in
+            // node-local space. The entity's TransformComponent in the generated prefab handles
+            // positioning. Baking vertices to root space here would cause a double-transform
+            // because the entity hierarchy already reproduces the node transforms.
+            bool isUnskinnedHierarchySubModel = NodeFilter != null && NodeFilter.Count > 0 && skeleton == null;
+
             // Move meshes in the new nodes
             foreach (var mesh in model.Meshes)
             {
@@ -119,6 +181,15 @@ namespace Stride.Assets.Models
                     {
                         mesh.Draw.VertexBuffers[vbIdx].TransformBuffer(ref transformationMatrix);
                     }
+                }
+
+                if (isUnskinnedHierarchySubModel)
+                {
+                    // Strip skinning data (if any) since there is no skeleton at runtime
+                    mesh.Skinning = null;
+                    // Place all meshes at the model root; the entity transform handles positioning
+                    mesh.NodeIndex = 0;
+                    continue;
                 }
 
                 var skinning = mesh.Skinning;
@@ -193,6 +264,7 @@ namespace Stride.Assets.Models
             {
                 foreach (var modifier in ModelModifiers)
                 {
+                    if (modifier == null) continue;
                     modifier.Apply(commandContext, model);
                 }
             }
@@ -236,6 +308,7 @@ namespace Stride.Assets.Models
                             Draw = generatedMesh,
                             NodeIndex = baseMesh.NodeIndex,
                             Skinning = baseMesh.Skinning,
+                            BlendShapes = baseMesh.BlendShapes,
                         });
                     }
                 }
@@ -256,9 +329,12 @@ namespace Stride.Assets.Models
                 var vertexBuffers = mesh.Draw.VertexBuffers;
                 for (int vbIdx = 0; vbIdx < vertexBuffers.Length; vbIdx++)
                 {
-                    // Compute local mesh bounding box (no node transformation)
+                    // Compute local mesh bounding box from the primary vertex buffer only.
+                    // Auxiliary buffers (e.g. blend shape delta streams) have no POSITION semantic
+                    // and ComputeBounds returns BoundingBox.Empty for them, which would corrupt the mesh bounds.
                     Matrix matrix = Matrix.Identity;
-                    mesh.BoundingBox = vertexBuffers[vbIdx].ComputeBounds(ref matrix, out mesh.BoundingSphere);
+                    if (vbIdx == 0)
+                        mesh.BoundingBox = vertexBuffers[vbIdx].ComputeBounds(ref matrix, out mesh.BoundingSphere);
 
                     // Compute model bounding box (includes node transformation)
                     hierarchyUpdater.GetWorldMatrix(mesh.NodeIndex, out matrix);

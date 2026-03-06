@@ -104,7 +104,8 @@ namespace Stride.Importer.ThreeD
                     Materials = ExtractMaterials(scene, materialNames),
                     Models = ExtractModels(scene, meshNames, materialNames, nodeNames),
                     Nodes = ExtractNodeHierarchy(scene, nodeNames),
-                    AnimationNodes = ExtractAnimations(scene, animationNames)
+                    AnimationNodes = ExtractAnimations(scene, animationNames),
+                    SceneHierarchy = ExtractSceneHierarchy(scene, nodeNames, meshNames, materialNames)
                 };
 
                 if (extractTextureDependencies)
@@ -1543,22 +1544,67 @@ namespace Stride.Importer.ThreeD
         private unsafe List<NodeInfo> ExtractNodeHierarchy(Scene* scene, Dictionary<IntPtr, string> nodeNames)
         {
             var allNodes = new List<NodeInfo>();
-            GetNodes(scene->MRootNode, 0, nodeNames, allNodes);
+            GetNodes(scene->MRootNode, 0, -1, nodeNames, allNodes);
             return allNodes;
         }
 
-        private unsafe void GetNodes(Node* node, int depth, Dictionary<IntPtr, string> nodeNames, List<NodeInfo> allNodes)
+        private unsafe void GetNodes(Node* node, int depth, int parentIndex, Dictionary<IntPtr, string> nodeNames, List<NodeInfo> allNodes)
         {
+            var currentIndex = allNodes.Count;
+
+            var meshIndices = new List<int>();
+            for (uint m = 0; m < node->MNumMeshes; ++m)
+                meshIndices.Add((int)node->MMeshes[m]);
+
+            var transform = node->MTransformation.ToStrideMatrix();
+            Vector3 scale, position;
+            Quaternion rotation;
+            transform.Decompose(out scale, out rotation, out position);
+
             var newNodeInfo = new NodeInfo
             {
                 Name = nodeNames[(IntPtr)node],
                 Depth = depth,
-                Preserve = true
+                Preserve = true,
+                ParentIndex = parentIndex,
+                MeshIndices = meshIndices,
+                LocalPosition = position,
+                LocalRotation = rotation,
+                LocalScale = scale
             };
 
             allNodes.Add(newNodeInfo);
             for (uint i = 0; i < node->MNumChildren; ++i)
-                GetNodes(node->MChildren[i], depth + 1, nodeNames, allNodes);
+                GetNodes(node->MChildren[i], depth + 1, currentIndex, nodeNames, allNodes);
+        }
+
+        private unsafe SceneHierarchyInfo ExtractSceneHierarchy(Scene* scene, Dictionary<IntPtr, string> nodeNames,
+            Dictionary<IntPtr, string> meshNames, Dictionary<IntPtr, string> materialNames)
+        {
+            var hierarchy = new SceneHierarchyInfo();
+
+            // Build the enriched node list
+            var allNodes = new List<NodeInfo>();
+            GetNodes(scene->MRootNode, 0, -1, nodeNames, allNodes);
+            hierarchy.Nodes = allNodes;
+
+            // Build mesh index to material name and mesh name mappings
+            for (uint i = 0; i < scene->MNumMeshes; ++i)
+            {
+                var mesh = scene->MMeshes[i];
+                var material = scene->MMaterials[mesh->MMaterialIndex];
+
+                if (meshNames.ContainsKey((IntPtr)mesh))
+                    hierarchy.MeshIndexToMeshName[(int)i] = meshNames[(IntPtr)mesh];
+
+                if (materialNames.ContainsKey((IntPtr)material))
+                    hierarchy.MeshIndexToMaterialName[(int)i] = materialNames[(IntPtr)material];
+
+                hierarchy.MeshIndexToMaterialIndex[(int)i] = (int)mesh->MMaterialIndex;
+                hierarchy.MeshIndexToHasSkinning[(int)i] = mesh->MNumBones > 0;
+            }
+
+            return hierarchy;
         }
 
         private unsafe List<string> ExtractAnimations(Scene* scene, Dictionary<IntPtr, string> animationNames)
