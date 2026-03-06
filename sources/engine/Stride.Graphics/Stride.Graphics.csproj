@@ -27,8 +27,6 @@
     </Compile>
     <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
     <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
-    <None Include="..\..\targets\Stride.GraphicsApi.PackageReference.targets" PackagePath="build\" Pack="true" />
-    <None Include="..\..\targets\Stride.GraphicsApi.PackageReference.targets" PackagePath="buildTransitive\" Pack="true" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\core\Stride.Core.Tasks\Stride.Core.Tasks.csproj">

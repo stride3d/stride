@@ -140,11 +140,8 @@
     <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\$(PackageId).$(PackageVersion).nupkg.sha512"/>
     <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\.nupkg.metadata"/>
   </Target>
-  <!-- Note: In old system, GeneratePackageOnBuild was always true. In SDK, we guard it
-       with StridePackageBuild to avoid pack failures during standalone project builds
-       (e.g., CompilerServices analyzer ProjectReference outputs may not exist yet). -->
-  <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false' And '$(StridePackageBuild)' == 'true'">
-    <PackageOutputPath>$(StrideRoot)build\packages\</PackageOutputPath>
+  <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
+    <PackageOutputPath>$(StrideRoot)bin\packages\</PackageOutputPath>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.so;.a;.bin;.dylib;$(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
