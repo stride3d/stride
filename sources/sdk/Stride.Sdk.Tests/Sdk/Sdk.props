@@ -32,8 +32,8 @@
   <!-- Test-Specific Output Paths -->
   <!-- ================================================================ -->
   <PropertyGroup>
-    <!-- Compute test output directory -->
-    <_StrideTestOutputDir>$(MSBuildThisFileDirectory)..\..\..\..\..\..\bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\</_StrideTestOutputDir>
+    <!-- Compute test output directory using StrideRoot (set by sources/Directory.Build.props) -->
+    <_StrideTestOutputDir Condition="'$(StrideRoot)' != ''">$(StrideRoot)bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\</_StrideTestOutputDir>
     <_StrideTestOutputDir Condition="'$(StrideGraphicsApiDependent)' == 'true'">$(_StrideTestOutputDir)$(StrideGraphicsApi)\</_StrideTestOutputDir>
 
     <!-- Set output path (use custom path if not already set) -->
