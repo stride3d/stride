@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Command Simplification Rules
+
+When running shell commands that are already allowed in settings.json (git log, git diff, git status, git show, git fetch, dotnet build/restore/test/add/new/sln), **use the simplest form possible** to avoid unnecessary permission prompts:
+- Use `git log --oneline -5` not `git log --oneline -5 | head`
+- Use `git diff` not `git diff | head -50`
+- Avoid piping allowed commands through other tools (head, tail, grep, etc.) as the pipe creates a new command pattern
+- If you need to filter output, prefer git's own flags (e.g., `git log -5` instead of `git log | head -5`)
+- Do NOT prefix commands with `cd "c:\Users\MUSSET\source\repos\Misc\stride" &&` — the working directory is already set correctly. The `cd` prefix breaks settings.json command pattern matching.
+
 ## Build Commands
 
 **Important:** Use MSBuild directly (not `dotnet` CLI) because the solution contains C++/CLI projects.
