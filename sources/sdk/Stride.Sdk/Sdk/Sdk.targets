@@ -116,7 +116,7 @@
   <!-- ================================================================ -->
   <!-- Migrated from: sources/targets/Stride.Core-extended.props:276-279 -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp'" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp' And '$(SkipSourceLink)' != 'true'" PrivateAssets="All" />
   </ItemGroup>
 
   <!-- ================================================================ -->
