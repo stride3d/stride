@@ -280,18 +280,18 @@ Migrated 60+ projects:
 - [x] Gap #5: Add iOS-specific build properties (Platform, IPhoneResourcePrefix, etc.)
 - [x] Gap #8: Add Stride.Core.CompilerServices analyzer reference
 - [x] Gap #2: Add Graphics API output path adjustment for `StrideGraphicsApiDependent`
-- [ ] Gap #9: Add `StridePublicApi` documentation support
+- [x] Gap #9: Add `StridePublicApi` documentation support
+- [x] Gap #10: SourceLink package reference
+- [x] Gap #14: StrideScript → StrideAssemblyProcessor
 
 ### 8.2 Critical — Multi-API Builds
 - [ ] Gap #1: Port Graphics API inner build dispatching system
 - [ ] Gap #3: Port .ssdeps native dependency system
 
 ### 8.3 Low Priority — Packaging & Convenience
-- [ ] Gap #10: SourceLink package reference
 - [ ] Gap #11: Localization satellite assemblies
 - [ ] Gap #12: Auto-pack/deploy (StrideAutoPackDeploy)
 - [ ] Gap #13: StrideCompilerTargetsEnable / DisableBuild
-- [ ] Gap #14: StrideScript → StrideAssemblyProcessor
 - [ ] Gaps #15-18: Minor properties (see gap analysis)
 
 ### 8.4 Solution Consolidation

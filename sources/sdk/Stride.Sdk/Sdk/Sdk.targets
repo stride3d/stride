@@ -72,6 +72,42 @@
   </ItemGroup>
 
   <!-- ================================================================ -->
+  <!-- StridePublicApi - User Documentation (.usrdoc) Support -->
+  <!-- ================================================================ -->
+  <!-- Migrated from: sources/targets/Stride.Core.targets:51-65 -->
+  <PropertyGroup Condition="'$(StridePublicApi)' == 'true'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.usrdoc</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_StrideRegisterUserDocOutputs</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="_StrideRegisterUserDocOutputs">
+    <ItemGroup Condition="Exists('$(OutputPath)$(AssemblyName).usrdoc')">
+      <BuildOutputInPackage Include="$(OutputPath)$(AssemblyName).usrdoc"/>
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideRegisterUserDocReferenceRelatedFileExtensions" Condition="'$(StridePublicApi)' == 'true'" BeforeTargets="ResolveAssemblyReferences">
+    <PropertyGroup>
+      <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.usrdoc</AllowedReferenceRelatedFileExtensions>
+    </PropertyGroup>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- StrideScript - Auto-enable Assembly Processor for scripts -->
+  <!-- ================================================================ -->
+  <!-- Migrated from: sources/targets/Stride.targets:6 -->
+  <PropertyGroup>
+    <StrideAssemblyProcessor Condition="'$(StrideScript)' == 'true'">true</StrideAssemblyProcessor>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- SourceLink - GitHub Source Debugging -->
+  <!-- ================================================================ -->
+  <!-- Migrated from: sources/targets/Stride.Core-extended.props:276-279 -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp'" PrivateAssets="All" />
+  </ItemGroup>
+
+  <!-- ================================================================ -->
   <!-- Configuration Validation -->
   <!-- ================================================================ -->
   <Target Name="_StrideValidateConfiguration" BeforeTargets="Build">

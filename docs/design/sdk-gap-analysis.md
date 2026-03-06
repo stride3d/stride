@@ -123,18 +123,15 @@ the SDK implementation. Each item is categorized as COVERED, GAP (with priority)
 - **Old:** `extended.props:295-300`
 - **SDK:** Added to `Sdk.targets` — auto-references CompilerServices as Roslyn analyzer.
 
-##### Gap #9: `StridePublicApi` user documentation support
-- **Old:** `Stride.Core.targets:51-65` — Sets `GenerateDocumentationFile=true`, registers `.usrdoc` outputs for packaging.
-- **SDK:** Partially covered (`.usrdoc` copy in `AssemblyProcessor.targets`) but missing the `GenerateDocumentationFile` and packaging registration.
-- **Impact:** Public API documentation may not be generated or packaged correctly.
-- **Fix:** Add `StridePublicApi` support block to SDK.
+##### Gap #9: `StridePublicApi` user documentation support — FIXED
+- **Old:** `Stride.Core.targets:51-65`
+- **SDK:** Added to `Sdk.targets` — GenerateDocumentationFile, .usrdoc packaging registration, reference extension.
 
 #### LOW — Packaging/convenience, safe to defer
 
-##### Gap #10: SourceLink package reference
-- **Old:** `extended.props:278` — Auto-adds `Microsoft.SourceLink.GitHub`.
-- **Impact:** Debugging NuGet packages won't link to GitHub source.
-- **Fix:** Add when packaging phase is implemented.
+##### Gap #10: SourceLink package reference — FIXED
+- **Old:** `extended.props:278`
+- **SDK:** Added to `Sdk.targets` — auto-adds Microsoft.SourceLink.GitHub for CSharp projects.
 
 ##### Gap #11: Localization satellite assemblies
 - **Old:** `extended.targets:168-201` — Generates localized DLLs using Gettext (fr, ja, es, de, ru, it, ko, zh-Hans).
@@ -151,10 +148,9 @@ the SDK implementation. Each item is categorized as COVERED, GAP (with priority)
 - **Used by:** `StrideWindowsOnly` projects, `StrideSkipUnitTests`.
 - **Fix:** Add if needed for cross-platform CI.
 
-##### Gap #14: `StrideScript=true` → `StrideAssemblyProcessor=true`
+##### Gap #14: `StrideScript=true` → `StrideAssemblyProcessor=true` — FIXED
 - **Old:** `Stride.targets:6`
-- **Used by:** User game scripts (not engine projects).
-- **Fix:** Add for game project template support.
+- **SDK:** Added to `Sdk.targets` — StrideScript auto-enables StrideAssemblyProcessor.
 
 ##### Gap #15: `StridePlatformFullName` build dir extension suffix
 - **Old:** `extended.props:50-51` — Appends `$(StrideBuildDirExtension)` to platform name.
