@@ -50,6 +50,42 @@
     <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</StridePlatformDefines>
   </PropertyGroup>
 
+  <!-- ================================================================ -->
+  <!-- Android-Specific Build Properties (lines 207-228 from extended) -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
+    <!-- On Android, everything is library (even Exe) — Stride.Core.targets:47 -->
+    <OutputType>Library</OutputType>
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+    <AndroidStoreUncompressedFileExtensions />
+    <!-- Use AssemblyName for Resource class to avoid clashes between assemblies -->
+    <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(OutputType)' == 'Exe'">
+    <AndroidApplication>true</AndroidApplication>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(Configuration)' == 'Debug'">
+    <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
+    <AndroidLinkMode>None</AndroidLinkMode>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(Configuration)' == 'Release'">
+    <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- iOS-Specific Build Properties (lines 240-261 from extended) -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">
+    <Platform Condition="'$(Platform)' == ''">iPhone</Platform>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+  </PropertyGroup>
+  <!-- Create empty platform configuration so MSBuild/VS Configuration Manager knows about them -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhone'" />
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Release|iPhone'" />
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator'" />
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator'" />
+
   <!--
     TODO: UWP Platform Support (lines 198-204 from extended)
     - StridePlatformDefines = STRIDE_PLATFORM_UWP

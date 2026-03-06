@@ -88,18 +88,9 @@ the SDK implementation. Each item is categorized as COVERED, GAP (with priority)
 - **Impact:** Projects with `StrideGraphicsApiDependent=true` only get built for one API instead of all.
 - **Fix:** Port inner build dispatch logic to `Stride.GraphicsApi.targets` in SDK.
 
-##### Gap #2: Graphics API output path adjustment
+##### Gap #2: Graphics API output path adjustment — FIXED
 - **Old:** `Stride.targets:40-46`
-  ```xml
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <IntermediateOutputPath>obj\$(Configuration)\$(TargetFramework)\$(StrideGraphicsApi)\</IntermediateOutputPath>
-    <OutputPath>bin\$(Configuration)\$(TargetFramework)\$(StrideGraphicsApi)\</OutputPath>
-  </PropertyGroup>
-  ```
-- **SDK:** Not present.
-- **Impact:** Multi-API builds overwrite each other's output.
-- **Fix:** Add to `Stride.Graphics.targets` in SDK.
+- **SDK:** Added to `Stride.Graphics.targets` — separate output dirs per API.
 
 ##### Gap #3: .ssdeps native dependency system
 - **Old:** `Stride.Core.PostSettings.Dependencies.targets` (168 lines)
@@ -110,56 +101,27 @@ the SDK implementation. Each item is categorized as COVERED, GAP (with priority)
 
 #### HIGH — Needed for mobile platforms
 
-##### Gap #4: Android-specific build properties
+##### Gap #4: Android-specific build properties — FIXED
 - **Old:** `extended.props:207-228`
-  - `SupportedOSPlatformVersion=21`
-  - `AndroidStoreUncompressedFileExtensions` (empty)
-  - `AndroidApplication=true` when `OutputType=Exe`
-  - `AndroidUseSharedRuntime=True` and `AndroidLinkMode=None` for Debug
-  - `AndroidUseSharedRuntime=False` and `AndroidLinkMode=SdkOnly` for Release
-  - `AndroidResgenNamespace=$(AssemblyName)`
-  - `DesignTimeBuild` default for Xamarin compatibility
-- **SDK:** Not present.
-- **Impact:** Android builds may use wrong defaults, fail deployment, or produce oversized APKs.
-- **Fix:** Create `Stride.Platform.Android.targets` or add to `Stride.Platform.targets`.
+- **SDK:** Added to `Stride.Platform.targets` — OutputType, SupportedOSPlatformVersion, link mode, etc.
 
-##### Gap #5: iOS-specific build properties
+##### Gap #5: iOS-specific build properties — FIXED
 - **Old:** `extended.props:240-261`
-  - `Platform=iPhone` default
-  - `IPhoneResourcePrefix=Resources`
-  - Configuration/Platform combos (Debug|iPhone, Release|iPhone, etc.)
-  - `_RemoveNativeReferencesManifest` target (workaround for msbuild bug)
-- **SDK:** Not present.
-- **Impact:** iOS builds may not find resources or fail on deployment.
-- **Fix:** Create `Stride.Platform.iOS.targets` or add to `Stride.Platform.targets`.
+- **SDK:** Added to `Stride.Platform.targets` — Platform default, IPhoneResourcePrefix, config combos.
 
-##### Gap #6: `OutputType=Library` for Android
-- **Old:** `Stride.Core.targets:47` — Forces all Android projects to `OutputType=Library`.
-- **SDK:** Not present.
-- **Impact:** Android app projects may fail to deploy correctly.
-- **Fix:** Add single line to `Stride.Platform.targets`.
+##### Gap #6: `OutputType=Library` for Android — FIXED
+- **Old:** `Stride.Core.targets:47`
+- **SDK:** Added to `Stride.Platform.targets` as part of Android properties block.
 
 #### MEDIUM — Functional but degraded
 
-##### Gap #7: StrideUI Vulkan condition difference
-- **Old:** `Stride.props:84` — `StrideUI` includes `WINFORMS;WPF` for Windows with D3D11, D3D12, **or Vulkan**.
-- **SDK:** `Graphics.targets:85` — Only D3D11 **or D3D12**. Vulkan excluded.
-- **Impact:** Vulkan on Windows loses WPF/WinForms windowing support.
-- **Fix:** Add `Or '$(StrideGraphicsApi)' == 'Vulkan'` to the condition.
+##### Gap #7: StrideUI Vulkan condition difference — FIXED
+- **Old:** `Stride.props:84` — includes Vulkan in WINFORMS/WPF condition.
+- **SDK:** Fixed in `Stride.Graphics.targets` — added Vulkan to condition.
 
-##### Gap #8: Stride.Core.CompilerServices analyzer reference
+##### Gap #8: Stride.Core.CompilerServices analyzer reference — FIXED
 - **Old:** `extended.props:295-300`
-  ```xml
-  <ItemGroup Condition="!$(MSBuildProjectName.StartsWith(Stride.Core.CompilerServices))">
-    <ProjectReference Include="...Stride.Core.CompilerServices.csproj"
-                      OutputItemType="Analyzer"
-                      SetTargetFramework="TargetFramework=netstandard2.0"
-                      ReferenceOutputAssembly="false" />
-  </ItemGroup>
-  ```
-- **SDK:** Not present.
-- **Impact:** Stride-specific Roslyn analyzers/code fixes don't fire.
-- **Fix:** Add to `Sdk.targets`.
+- **SDK:** Added to `Sdk.targets` — auto-references CompilerServices as Roslyn analyzer.
 
 ##### Gap #9: `StridePublicApi` user documentation support
 - **Old:** `Stride.Core.targets:51-65` — Sets `GenerateDocumentationFile=true`, registers `.usrdoc` outputs for packaging.

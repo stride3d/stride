@@ -61,6 +61,17 @@
   </ItemGroup>
 
   <!-- ================================================================ -->
+  <!-- Stride.Core.CompilerServices Roslyn Analyzer -->
+  <!-- ================================================================ -->
+  <!-- Migrated from: sources/targets/Stride.Core-extended.props:295-300 -->
+  <ItemGroup Condition="!$(MSBuildProjectName.StartsWith('Stride.Core.CompilerServices'))">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\core\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj"
+                      OutputItemType="Analyzer"
+                      SetTargetFramework="TargetFramework=netstandard2.0"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- ================================================================ -->
   <!-- Configuration Validation -->
   <!-- ================================================================ -->
   <Target Name="_StrideValidateConfiguration" BeforeTargets="Build">

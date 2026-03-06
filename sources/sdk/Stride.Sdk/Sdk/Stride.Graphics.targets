@@ -78,11 +78,22 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
+  <!-- Graphics API Output Path Adjustment (Stride.targets:40-46) -->
+  <!-- ================================================================ -->
+  <!-- When building for multiple graphics APIs, each API gets its own output subdirectory -->
+  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\$(TargetFramework)\$(StrideGraphicsApi)\</IntermediateOutputPath>
+    <OutputPath>bin\$(Configuration)\$(TargetFramework)\$(StrideGraphicsApi)\</OutputPath>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- UI Framework Configuration -->
   <!-- ================================================================ -->
   <PropertyGroup>
     <StrideUI Condition="'$(TargetFramework)' != '$(StrideFrameworkUWP)'">SDL</StrideUI>
-    <StrideUI Condition="'$(TargetFramework)' == '$(StrideFrameworkWindows)' AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
+    <StrideUI Condition="'$(TargetFramework)' == '$(StrideFrameworkWindows)' AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12' Or '$(StrideGraphicsApi)' == 'Vulkan')">$(StrideUI);WINFORMS;WPF</StrideUI>
 
     <DefineConstants Condition="$(StrideUI.Contains('SDL'))">$(DefineConstants);STRIDE_UI_SDL</DefineConstants>
     <DefineConstants Condition="$(StrideUI.Contains('WINFORMS'))">$(DefineConstants);STRIDE_UI_WINFORMS</DefineConstants>

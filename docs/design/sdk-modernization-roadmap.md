@@ -273,13 +273,13 @@ Migrated 60+ projects:
 
 **Goal:** Close remaining gaps between old build system and SDK. See [sdk-gap-analysis.md](./sdk-gap-analysis.md) for full audit.
 
-### 8.1 High Priority — Mobile & Graphics Correctness
-- [ ] Gap #7: Fix StrideUI Vulkan condition (add Vulkan to WINFORMS/WPF condition)
-- [ ] Gap #6: Add `OutputType=Library` for Android
-- [ ] Gap #4: Add Android-specific build properties (SupportedOSPlatformVersion, link mode, etc.)
-- [ ] Gap #5: Add iOS-specific build properties (Platform, IPhoneResourcePrefix, etc.)
-- [ ] Gap #8: Add Stride.Core.CompilerServices analyzer reference
-- [ ] Gap #2: Add Graphics API output path adjustment for `StrideGraphicsApiDependent`
+### 8.1 High Priority — Mobile & Graphics Correctness — COMPLETE
+- [x] Gap #7: Fix StrideUI Vulkan condition (add Vulkan to WINFORMS/WPF condition)
+- [x] Gap #6: Add `OutputType=Library` for Android
+- [x] Gap #4: Add Android-specific build properties (SupportedOSPlatformVersion, link mode, etc.)
+- [x] Gap #5: Add iOS-specific build properties (Platform, IPhoneResourcePrefix, etc.)
+- [x] Gap #8: Add Stride.Core.CompilerServices analyzer reference
+- [x] Gap #2: Add Graphics API output path adjustment for `StrideGraphicsApiDependent`
 - [ ] Gap #9: Add `StridePublicApi` documentation support
 
 ### 8.2 Critical — Multi-API Builds
