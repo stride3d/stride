@@ -81,12 +81,10 @@ the SDK implementation. Each item is categorized as COVERED, GAP (with priority)
 
 #### CRITICAL — Blocks correctness for engine builds
 
-##### Gap #1: Graphics API inner build dispatching
-- **Old:** `Stride.GraphicsApi.Dev.targets` + `Stride.GraphicsApi.PackageReference.targets` (~150 lines)
+##### Gap #1: Graphics API inner build dispatching — FIXED
+- **Old:** `Stride.GraphicsApi.Dev.targets` + `Stride.GraphicsApi.PackageReference.targets` (~260 lines)
 - **What it does:** When `StrideGraphicsApiDependent=true`, dispatches separate inner builds per API (D3D11, D3D12, OpenGL, etc.), each producing a separate DLL in its own subfolder.
-- **SDK:** Not present. Only the _configuration_ for single-API builds is implemented.
-- **Impact:** Projects with `StrideGraphicsApiDependent=true` only get built for one API instead of all.
-- **Fix:** Port inner build dispatch logic to `Stride.GraphicsApi.targets` in SDK.
+- **SDK:** Added to `Stride.GraphicsApi.InnerBuild.targets` — full port of inner build dispatch, project reference propagation, NuGet package layout, and PackageReference consumer resolution.
 
 ##### Gap #2: Graphics API output path adjustment — FIXED
 - **Old:** `Stride.targets:40-46`

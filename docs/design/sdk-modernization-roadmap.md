@@ -284,8 +284,8 @@ Migrated 60+ projects:
 - [x] Gap #10: SourceLink package reference
 - [x] Gap #14: StrideScript → StrideAssemblyProcessor
 
-### 8.2 Critical — Multi-API Builds
-- [ ] Gap #1: Port Graphics API inner build dispatching system
+### 8.2 Critical — Multi-API Builds — COMPLETE
+- [x] Gap #1: Port Graphics API inner build dispatching system
 - [x] Gap #3: Port .ssdeps native dependency system
 
 ### 8.3 Low Priority — Packaging & Convenience — COMPLETE

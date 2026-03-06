@@ -44,6 +44,13 @@
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
   <!-- ================================================================ -->
+  <!-- Graphics API inner build dispatching (multi-API builds) -->
+  <!-- ================================================================ -->
+  <!-- MUST come after Microsoft.NET.Sdk Sdk.targets because it overrides
+       _ComputeTargetFrameworkItems and _WalkEachTargetPerFramework -->
+  <Import Project="Stride.GraphicsApi.InnerBuild.targets" />
+
+  <!-- ================================================================ -->
   <!-- Native dependency system (.ssdeps) -->
   <!-- ================================================================ -->
   <Import Project="Stride.Dependencies.targets" />

@@ -1,0 +1,308 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    ================================================================
+    Stride.GraphicsApi.InnerBuild.targets - Multi-API Build Dispatch
+    ================================================================
+
+    Migrated from:
+    - sources/targets/Stride.GraphicsApi.Dev.targets (project references)
+    - sources/targets/Stride.GraphicsApi.PackageReference.targets (NuGet consumers)
+
+    IMPORTANT: This file MUST be imported AFTER Microsoft.NET.Sdk Sdk.targets
+    because it overrides _ComputeTargetFrameworkItems and _WalkEachTargetPerFramework
+    defined in Microsoft.Common.CrossTargeting.targets and NuGet.Build.Tasks.Pack.targets.
+
+    When StrideGraphicsApiDependent=true, this system:
+    1. Extends the standard TFM-based inner build dispatch to include a
+       StrideGraphicsApi dimension (TFM x API = separate inner builds)
+    2. Propagates StrideGraphicsApi through project references
+    3. Adjusts NuGet package layout to include API subfolders
+    4. Resolves correct API-specific DLLs from NuGet packages
+
+    Package layout for graphics-API-dependent projects:
+       lib/net10.0/Direct3D11/MyAssembly.dll
+       lib/net10.0/Direct3D12/MyAssembly.dll
+       lib/net10.0/Vulkan/MyAssembly.dll
+       lib/net10.0/MyAssembly.dll  (placeholder for RuntimeCopyLocalItems)
+    ================================================================
+  -->
+
+  <!-- ================================================================ -->
+  <!-- Query target: returns graphics APIs for current TFM              -->
+  <!-- ================================================================ -->
+  <Target Name="_StrideQueryGraphicsApis" Returns="@(_StrideGraphicsApisItemsInternal)" Condition="'$(StrideProjectType)' != 'Cpp'">
+    <ItemGroup Condition="'$(StrideGraphicsApis)' != ''">
+      <_StrideGraphicsApisItemsInternal Include="$(StrideGraphicsApis)" TargetFramework="$(TargetFramework)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(StrideGraphicsApis)' == ''">
+      <_StrideGraphicsApisItemsInternal Include="$(StrideGraphicsApi)" TargetFramework="$(TargetFramework)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- Override _ComputeTargetFrameworkItems to add Graphics API dim    -->
+  <!-- ================================================================ -->
+  <!-- Original: Microsoft.Common.CrossTargeting.targets
+       This override adds StrideGraphicsApi as an additional inner build
+       dimension when StrideGraphicsApiDependent=true. For each TFM, it
+       queries which graphics APIs apply, then creates one _InnerBuildProjects
+       entry per TFM x API combination. -->
+  <Target Name="_ComputeTargetFrameworkItems" Returns="@(InnerOutput)">
+    <ItemGroup>
+      <_TargetFramework Condition="'$(TargetFrameworks)' != ''" Include="$(TargetFrameworks)" />
+      <_TargetFramework Condition="'$(TargetFrameworks)' == ''" Include="$(TargetFramework)" />
+      <!-- Make normalization explicit: Trim; Deduplicate by keeping first occurrence, case insensitive -->
+      <_TargetFrameworkNormalized Include="@(_TargetFramework-&gt;Trim()-&gt;Distinct())" />
+    </ItemGroup>
+
+    <!-- Non-graphics-API-dependent: standard behavior (one inner build per TFM) -->
+    <ItemGroup Condition="'$(StrideGraphicsApiDependent)' != 'true'">
+      <_InnerBuildProjects Include="$(MSBuildProjectFile)">
+        <AdditionalProperties>TargetFramework=%(_TargetFrameworkNormalized.Identity)</AdditionalProperties>
+      </_InnerBuildProjects>
+    </ItemGroup>
+
+    <!-- Graphics-API-dependent: query each TFM for its graphics APIs -->
+    <MSBuild Projects="$(MSBuildProjectFile)"
+             Condition="'$(StrideGraphicsApiDependent)' == 'true'"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="TargetFramework=%(_TargetFrameworkNormalized.Identity)"
+             RemoveProperties="StrideGraphicsApi"
+             Targets="_StrideQueryGraphicsApis">
+      <Output ItemName="_StrideGraphicsApisItems" TaskParameter="TargetOutputs" />
+    </MSBuild>
+
+    <!-- Create one inner build per TFM x API combination -->
+    <ItemGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
+      <_TargetFrameworkWithStrideGraphicsApi Include="@(_StrideGraphicsApisItems->'%(OriginalItemSpec)')" StrideGraphicsApi="%(_StrideGraphicsApisItems.Identity)" />
+      <_InnerBuildProjects Include="$(MSBuildProjectFile)">
+        <AdditionalProperties Condition="'%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApiDependent)' != 'true'">TargetFramework=%(_TargetFrameworkWithStrideGraphicsApi.TargetFramework)</AdditionalProperties>
+        <AdditionalProperties Condition="'%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApiDependent)' == 'true'">TargetFramework=%(_TargetFrameworkWithStrideGraphicsApi.TargetFramework);StrideGraphicsApi=%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApi)</AdditionalProperties>
+      </_InnerBuildProjects>
+    </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- Project reference Graphics API propagation                       -->
+  <!-- ================================================================ -->
+  <!-- Detects if referenced projects are StrideGraphicsApiDependent
+       and injects StrideGraphicsApi into their SetTargetFramework.
+       For non-dependent references, removes StrideGraphicsApi to
+       prevent unnecessary rebuilds. -->
+  <Target Name="_StrideQueryGraphicsApiDependent" Returns="@(_StrideGraphicsApiDependentItemsInternal)" Condition="'$(StrideProjectType)' != 'Cpp'">
+    <ItemGroup>
+      <_StrideGraphicsApiDependentItemsInternal Include="stride_fake_graphics_api" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_StrideProjectReferenceGraphicsApiDependent" BeforeTargets="PrepareProjectReferences">
+    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform); %(_MSBuildProjectReferenceExistent.SetTargetFramework);"
+             RemoveProperties="StrideGraphicsApi"
+             Targets="_StrideQueryGraphicsApiDependent"
+             SkipNonexistentTargets="true">
+      <Output ItemName="_StrideGraphicsApiDependentItems" TaskParameter="TargetOutputs" />
+    </MSBuild>
+    <PropertyGroup>
+      <!-- Transmit current graphics API. This is useful in case we have transitions such as:
+           Direct3D12 -> ProjectWithoutGraphicsApi -> Direct3D12
+           otherwise it would try to build 3rd project twice (due to the reference from ProjectWithoutGraphicsApi). -->
+      <_StrideGraphicsApiCurrent>$(StrideGraphicsApi)</_StrideGraphicsApiCurrent>
+      <!-- Fallback in case the project without graphics API is the project initiating the build. -->
+      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == '' And '$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</_StrideGraphicsApiCurrent>
+      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">$(StrideDefaultGraphicsApi)</_StrideGraphicsApiCurrent>
+      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">Direct3D11</_StrideGraphicsApiCurrent>
+    </PropertyGroup>
+    <ItemGroup>
+      <_MSBuildProjectReferenceExistent Remove="@(_StrideGraphicsApiDependentItems->'%(OriginalItemSpec)')" />
+      <_MSBuildProjectReferenceExistent Include="@(_StrideGraphicsApiDependentItems->'%(OriginalItemSpec)')" Condition="'%(_StrideGraphicsApiDependentItems.StrideGraphicsApiDependent)' != 'true'" />
+      <_MSBuildProjectReferenceExistent Include="@(_StrideGraphicsApiDependentItems->'%(OriginalItemSpec)')" Condition="'%(_StrideGraphicsApiDependentItems.StrideGraphicsApiDependent)' == 'true'">
+        <StrideGraphicsApiDependent>%(_StrideGraphicsApiDependentItems.StrideGraphicsApiDependent)</StrideGraphicsApiDependent>
+        <StrideGraphicsApi>$(_StrideGraphicsApiCurrent)</StrideGraphicsApi>
+        <SetTargetFramework>%(_StrideGraphicsApiDependentItems.SetTargetFramework);StrideGraphicsApi=$(_StrideGraphicsApiCurrent)</SetTargetFramework>
+      </_MSBuildProjectReferenceExistent>
+      <_MSBuildProjectReferenceExistent Condition="'%(_MSBuildProjectReferenceExistent.StrideGraphicsApiDependent)' != 'true'">
+        <GlobalPropertiesToRemove>%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);StrideGraphicsApi</GlobalPropertiesToRemove>
+      </_MSBuildProjectReferenceExistent>
+    </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- Package output path adjustment for multi-API layout              -->
+  <!-- ================================================================ -->
+  <!-- Prefixes all package output items with the StrideGraphicsApi
+       subfolder. For the default API, uses Include (copy) so top-level
+       folder retains default libraries for RuntimeCopyLocalItems.
+       For non-default APIs, uses Update (move). -->
+  <Target Name="_StridePackUpdateOutputTargetPath">
+    <!-- Default graphics API: copy (keep both top-level and subfolder) -->
+    <ItemGroup Condition="'$(StrideGraphicsApi)' == '$(StrideDefaultGraphicsApi)'">
+      <SatelliteDllsProjectOutputGroupOutput Include="@(SatelliteDllsProjectOutputGroupOutput)">
+        <TargetPath Condition="'%(SatelliteDllsProjectOutputGroupOutput.TargetPath)' == ''">%(FileName)%(Extension)</TargetPath>
+        <TargetPath>$(StrideGraphicsApi)\%(SatelliteDllsProjectOutputGroupOutput.TargetPath)</TargetPath>
+      </SatelliteDllsProjectOutputGroupOutput>
+      <BuiltProjectOutputGroupOutput Include="@(BuiltProjectOutputGroupOutput)">
+        <TargetPath Condition="'%(BuiltProjectOutputGroupOutput.TargetPath)' == ''">%(FileName)%(Extension)</TargetPath>
+        <TargetPath>$(StrideGraphicsApi)\%(BuiltProjectOutputGroupOutput.TargetPath)</TargetPath>
+      </BuiltProjectOutputGroupOutput>
+      <DocumentationProjectOutputGroupOutput Include="@(DocumentationProjectOutputGroupOutput)">
+        <TargetPath Condition="'%(DocumentationProjectOutputGroupOutput.TargetPath)' == ''">%(FileName)%(Extension)</TargetPath>
+        <TargetPath>$(StrideGraphicsApi)\%(DocumentationProjectOutputGroupOutput.TargetPath)</TargetPath>
+      </DocumentationProjectOutputGroupOutput>
+      <_PathToPriFile Include="@(_PathToPriFile)">
+        <TargetPath Condition="'%(_PathToPriFile.TargetPath)' == ''">%(FileName)%(Extension)</TargetPath>
+        <TargetPath>$(StrideGraphicsApi)\%(_PathToPriFile.TargetPath)</TargetPath>
+      </_PathToPriFile>
+      <BuildOutputInPackage Include="@(BuildOutputInPackage)">
+        <TargetPath Condition="'%(BuildOutputInPackage.TargetPath)' == ''">%(FileName)%(Extension)</TargetPath>
+        <TargetPath>$(StrideGraphicsApi)\%(BuildOutputInPackage.TargetPath)</TargetPath>
+      </BuildOutputInPackage>
+    </ItemGroup>
+
+    <!-- Non-default graphics API: update (move to subfolder only) -->
+    <ItemGroup Condition="'$(StrideGraphicsApi)' != '$(StrideDefaultGraphicsApi)'">
+      <SatelliteDllsProjectOutputGroupOutput Update="@(SatelliteDllsProjectOutputGroupOutput)">
+        <TargetPath Condition="'%(SatelliteDllsProjectOutputGroupOutput.TargetPath)' == ''">%(FileName)%(Extension)</TargetPath>
+        <TargetPath>$(StrideGraphicsApi)\%(SatelliteDllsProjectOutputGroupOutput.TargetPath)</TargetPath>
+      </SatelliteDllsProjectOutputGroupOutput>
+      <BuiltProjectOutputGroupOutput Update="@(BuiltProjectOutputGroupOutput)">
+        <TargetPath Condition="'%(BuiltProjectOutputGroupOutput.TargetPath)' == ''">%(FileName)%(Extension)</TargetPath>
+        <TargetPath>$(StrideGraphicsApi)\%(BuiltProjectOutputGroupOutput.TargetPath)</TargetPath>
+      </BuiltProjectOutputGroupOutput>
+      <DocumentationProjectOutputGroupOutput Update="@(DocumentationProjectOutputGroupOutput)">
+        <TargetPath Condition="'%(DocumentationProjectOutputGroupOutput.TargetPath)' == ''">%(FileName)%(Extension)</TargetPath>
+        <TargetPath>$(StrideGraphicsApi)\%(DocumentationProjectOutputGroupOutput.TargetPath)</TargetPath>
+      </DocumentationProjectOutputGroupOutput>
+      <_PathToPriFile Update="@(_PathToPriFile)">
+        <TargetPath Condition="'%(_PathToPriFile.TargetPath)' == ''">%(FileName)%(Extension)</TargetPath>
+        <TargetPath>$(StrideGraphicsApi)\%(_PathToPriFile.TargetPath)</TargetPath>
+      </_PathToPriFile>
+      <BuildOutputInPackage Update="@(BuildOutputInPackage)">
+        <TargetPath Condition="'%(BuildOutputInPackage.TargetPath)' == ''">%(FileName)%(Extension)</TargetPath>
+        <TargetPath>$(StrideGraphicsApi)\%(BuildOutputInPackage.TargetPath)</TargetPath>
+      </BuildOutputInPackage>
+    </ItemGroup>
+  </Target>
+
+  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_StridePackUpdateOutputTargetPath</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Override _WalkEachTargetPerFramework for NuGet Pack              -->
+  <!-- ================================================================ -->
+  <!-- Original: NuGet.Build.Tasks.Pack.targets
+       Standard NuGet uses _ProjectsWithTFM (one per TFM). We override
+       to use @(_InnerBuildProjects) which includes TFM x API combos.
+       This ensures all graphics API variants get included in the package. -->
+  <Target Name="_WalkEachTargetPerFramework" DependsOnTargets="_ComputeTargetFrameworkItems">
+    <MSBuild
+      Condition="'$(IncludeBuildOutput)' == 'true'"
+      Projects="@(_InnerBuildProjects)"
+      Targets="_GetBuildOutputFilesWithTfm">
+
+      <Output
+          TaskParameter="TargetOutputs"
+          ItemName="_BuildOutputInPackage" />
+    </MSBuild>
+
+    <MSBuild
+      Condition="'$(TargetsForTfmSpecificContentInPackage)' != ''"
+      Projects="@(_InnerBuildProjects)"
+      Targets="_GetTfmSpecificContentForPackage">
+
+      <Output
+          TaskParameter="TargetOutputs"
+          ItemName="_PackageFiles"/>
+    </MSBuild>
+
+    <MSBuild
+      Condition="'$(IncludeBuildOutput)' == 'true'"
+      Projects="@(_InnerBuildProjects)"
+      Targets="_GetDebugSymbolsWithTfm">
+
+      <Output
+          TaskParameter="TargetOutputs"
+          ItemName="_TargetPathsToSymbols" />
+    </MSBuild>
+
+    <MSBuild
+      Condition="'$(IncludeSource)' == 'true'"
+      Projects="@(_InnerBuildProjects)"
+      Targets="SourceFilesProjectOutputGroup"
+      Properties="BuildProjectReferences=false;">
+
+      <Output
+          TaskParameter="TargetOutputs"
+          ItemName="_SourceFiles" />
+    </MSBuild>
+
+    <MSBuild
+      Projects="@(_InnerBuildProjects)"
+      Targets="_GetFrameworkAssemblyReferences"
+      Properties="BuildProjectReferences=false;">
+
+      <Output
+          TaskParameter="TargetOutputs"
+          ItemName="_FrameworkAssemblyReferences" />
+    </MSBuild>
+
+    <MSBuild
+      Projects="@(_InnerBuildProjects)"
+      Targets="_GetFrameworksWithSuppressedDependencies"
+      Properties="BuildProjectReferences=false;">
+
+      <Output
+          TaskParameter="TargetOutputs"
+          ItemName="_FrameworksWithSuppressedDependencies" />
+    </MSBuild>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- PackageReference consumer: resolve correct API-specific DLLs     -->
+  <!-- ================================================================ -->
+  <!-- When consuming Stride NuGet packages via PackageReference, the
+       package contains API-specific DLLs in subfolders. This target
+       selects the correct variant based on current StrideGraphicsApi. -->
+  <Target Name="_StridePackageReferenceResolveGraphicsApi" AfterTargets="ResolvePackageAssets">
+    <PropertyGroup>
+      <_StrideGraphicsApiCurrent>$(StrideGraphicsApi)</_StrideGraphicsApiCurrent>
+      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == '' And '$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</_StrideGraphicsApiCurrent>
+      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">$(StrideDefaultGraphicsApi)</_StrideGraphicsApiCurrent>
+      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">Direct3D11</_StrideGraphicsApiCurrent>
+    </PropertyGroup>
+    <ItemGroup>
+      <!-- Find RuntimeCopyLocalItems that have an API-specific subfolder -->
+      <_StrideGraphicsRuntimeCopyLocalFolders Include="@(RuntimeCopyLocalItems->'%(RootDir)%(Directory)$(_StrideGraphicsApiCurrent)')" Condition="'%(NuGetPackageId)' != '' And Exists('%(RootDir)%(Directory)$(_StrideGraphicsApiCurrent)')">
+      </_StrideGraphicsRuntimeCopyLocalFolders>
+      <!-- Remove the generic (top-level) copies — we'll replace with API-specific -->
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition="'%(NuGetPackageId)' != '' And Exists('%(RootDir)%(Directory)$(_StrideGraphicsApiCurrent)\')">
+      </RuntimeCopyLocalItems>
+    </ItemGroup>
+
+    <!-- Deduplicate folder entries -->
+    <RemoveDuplicates Inputs="@(_StrideGraphicsRuntimeCopyLocalFolders)">
+      <Output TaskParameter="Filtered" ItemName="_StrideGraphicsRuntimeCopyLocalFoldersFiltered" />
+    </RemoveDuplicates>
+
+    <!-- Expand .dll/.exe specific to this Graphics API -->
+    <CreateItem Include="@(_StrideGraphicsRuntimeCopyLocalFoldersFiltered->'%(Identity)\*.dll')" AdditionalMetadata="CopyLocal=true;AssetType=runtime" PreserveExistingMetadata="false">
+      <Output TaskParameter="Include" ItemName="_StrideGraphicsRuntimeCopyLocal" />
+    </CreateItem>
+    <CreateItem Include="@(_StrideGraphicsRuntimeCopyLocalFoldersFiltered->'%(Identity)\*.exe')" AdditionalMetadata="CopyLocal=true;AssetType=runtime" PreserveExistingMetadata="false">
+      <Output TaskParameter="Include" ItemName="_StrideGraphicsRuntimeCopyLocal" />
+    </CreateItem>
+
+    <ItemGroup>
+      <_StrideGraphicsRuntimeCopyLocal Update="@(_StrideGraphicsRuntimeCopyLocal)">
+        <DestinationSubPath>%(Filename)%(Extension)</DestinationSubPath>
+        <PathInPackage>$([System.Text.RegularExpressions.Regex]::Match('%(PathInPackage)', `(.*)/[^/]*`).get_Groups().get_Item(1).ToString())/$(_StrideGraphicsApiCurrent)/%(Filename)%(Extension)</PathInPackage>
+      </_StrideGraphicsRuntimeCopyLocal>
+
+      <RuntimeCopyLocalItems Include="@(_StrideGraphicsRuntimeCopyLocal)" />
+    </ItemGroup>
+  </Target>
+
+</Project>
