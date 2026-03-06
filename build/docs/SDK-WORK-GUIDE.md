@@ -1,47 +1,60 @@
 # Stride SDK Work Guide
 
-This guide documents the ongoing work to create `Stride.Sdk` - an MSBuild SDK that encapsulates the complex Stride build system logic.
+This guide documents the `Stride.Sdk` MSBuild SDK that encapsulates the Stride build system logic.
 
 ## Overview
 
-The SDK-style build system aims to simplify Stride project files and consolidate build logic into a versioned SDK package, following .NET SDK conventions.
-
-### Current State (sources/sdk/)
+The SDK-style build system simplifies Stride project files and consolidates build logic into versioned SDK packages, following .NET SDK conventions.
 
 **Branch:** `feature/stride-sdk`
+**Status:** All 110 projects migrated. Phase 7 (cleanup/polish) in progress.
 
-**SDK Projects:**
-- `Stride.Sdk` - Main SDK package providing `<Project Sdk="Stride.Sdk">`
-- `Stride.Sdk.Runtime` - Runtime-specific SDK extensions
-- `Stride.Sdk.Tests` - Test project validating SDK functionality
+## SDK Packages
 
-**Solution:** `sources/sdk/Stride.Sdk.slnx`
+| Package | Purpose |
+|---------|---------|
+| **Stride.Sdk** | Base SDK for all Stride projects. Platform detection, frameworks, graphics API, assembly processor, shader support. |
+| **Stride.Sdk.Editor** | Editor SDK. Composes Stride.Sdk, adds editor framework properties. |
+| **Stride.Sdk.Tests** | Test SDK. Composes Stride.Sdk.Editor, adds xunit packages and test infrastructure. |
 
-### Goals
+### SDK Hierarchy
 
-Transform Stride projects from this:
+```
+Stride.Sdk (base: platform, graphics, assembly processor, shaders)
+  └── Stride.Sdk.Editor (adds StrideEditorTargetFramework, StrideXplatEditorTargetFramework)
+        └── Stride.Sdk.Tests (adds xunit, test infrastructure, asset compilation)
+```
 
+### Project Examples
+
+**Runtime library:**
 ```xml
-<!-- Current: Complex with implicit imports -->
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <!-- Many Stride-specific properties scattered across files -->
+    <StrideRuntime>true</StrideRuntime>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
   </PropertyGroup>
-  <!-- Implicit: Directory.Build.props/targets -->
-  <!-- Implicit: sources/targets/Stride.*.props/targets (17 files!) -->
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" />
+  </ItemGroup>
 </Project>
 ```
 
-To this:
-
+**Editor/tool project:**
 ```xml
-<!-- Target: Clean with explicit SDK -->
-<Project Sdk="Stride.Sdk">
+<Project Sdk="Stride.Sdk.Editor">
   <PropertyGroup>
-    <TargetFrameworks>net10.0;net10.0-android;net10.0-ios</TargetFrameworks>
-    <StrideGraphicsApis>Direct3D11;Vulkan</StrideGraphicsApis>
+    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
   </PropertyGroup>
+</Project>
+```
+
+**Test project:**
+```xml
+<Project Sdk="Stride.Sdk.Tests">
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" />
+  </ItemGroup>
 </Project>
 ```
 
@@ -49,17 +62,18 @@ To this:
 
 ### Building the SDK
 
-**Important:** After modifying SDK source, you must clear the NuGet cache to ensure the new version is used.
+After modifying SDK source, you must clear the NuGet cache to ensure the new version is used.
 
 ```bash
-# 1. Clean NuGet cache (CRITICAL - don't skip!)
+# 1. Kill any running MSBuild/dotnet processes
+taskkill /F /IM dotnet.exe 2>nul
+
+# 2. Clean NuGet cache (CRITICAL - don't skip!)
 rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk" 2>nul
-rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.runtime" 2>nul
+rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.editor" 2>nul
+rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.tests" 2>nul
 
-# 2. Clean previous build output (optional but recommended)
-del /q "build\packages\*.nupkg" 2>nul
-
-# 3. Build the SDK (dotnet CLI works here - no C++/CLI)
+# 3. Build the SDK
 dotnet build sources\sdk\Stride.Sdk.slnx
 
 # 4. Verify packages created
@@ -68,446 +82,200 @@ dir build\packages\*.nupkg
 
 Or use the `/build-sdk` skill command.
 
-### Testing the SDK
-
-Test with the migrated `Stride.Core` project:
+### Testing Changes
 
 ```bash
-# Restore to pull in the local SDK package
-dotnet restore sources\core\Stride.Core\Stride.Core.csproj
-
-# Build to verify SDK works
+# Test a migrated project
 dotnet build sources\core\Stride.Core\Stride.Core.csproj
-```
 
-**Identifying SDK-style projects:**
-Look for `<Project Sdk="Stride.Sdk">` at the top of the .csproj file.
+# Test with restore (catches restore-phase issues)
+dotnet msbuild -restore -t:Build sources\core\Stride.Core\Stride.Core.csproj
+```
 
 ### NuGet Package Flow
 
-Understanding the package flow is critical:
-
 ```
 sources/sdk/             (SDK source code)
-    ↓
-    dotnet build
-    ↓
-build/packages/          (Local NuGet packages - .nupkg files)
-    ↓
-    dotnet restore (on consuming project)
-    ↓
+    ↓ dotnet build
+build/packages/          (Local .nupkg files)
+    ↓ dotnet restore (on consuming project)
 %USERPROFILE%\.nuget\packages\  (NuGet global cache)
-    ↓
-    Build uses cached SDK
+    ↓ Build uses cached SDK
 ```
 
-**Common issue:** Old SDK version cached
-- **Symptom:** Changes to SDK source don't appear in builds
-- **Cause:** NuGet cache not cleared after SDK rebuild
-- **Solution:** Always clear cache before building SDK
+**Common issue:** Old SDK version cached. Always clear cache after SDK changes.
 
 ## SDK Structure
 
 ### Package Layout
 
-The SDK follows .NET SDK conventions with two special folders:
-
 ```
 Stride.Sdk.nupkg
-├── Sdk/                    # MSBuild SDK resolver looks here
-│   ├── Sdk.props           # Imported first (properties, defaults)
-│   └── Sdk.targets         # Imported last (targets, validation)
-└── build/                  # Legacy NuGet PackageReference support
-    ├── Stride.Sdk.props
-    └── Stride.Sdk.targets
+└── Sdk/                    # MSBuild SDK resolver looks here
+    ├── Sdk.props           # Imported BEFORE project file
+    ├── Sdk.targets         # Imported AFTER project file
+    ├── Stride.Frameworks.props/.targets
+    ├── Stride.Platform.props/.targets
+    ├── Stride.Graphics.props/.targets
+    ├── Stride.AssemblyProcessor.targets
+    ├── Stride.CodeAnalysis.targets
+    ├── Stride.PackageInfo.targets
+    └── Stride.NativeBuildMode.props
 ```
 
-**MSBuild import order:**
+**Important:** SDK packages must ONLY use `Sdk/` folder. Never add `build/` convention files — NuGet auto-imports them even for SDK packages, causing double-import issues.
+
+### MSBuild Import Order
+
 ```
-<Project Sdk="Stride.Sdk">
-    ↓ (automatic)
-Stride.Sdk/Sdk/Sdk.props
+Stride.Sdk/Sdk/Sdk.props     ← BEFORE project file
     ↓
-Project content (.csproj)
-    ↓ (automatic)
-Stride.Sdk/Sdk/Sdk.targets
-```
-
-### Understanding Property Evaluation Timing
-
-**Critical Rule:** Properties defined in the .csproj are NOT visible in Sdk.props!
-
-This is the most important concept for SDK migration. MSBuild evaluates files in a specific order, and properties flow through this pipeline.
-
-**Example of CORRECT pattern:**
-
-```xml
-<!-- Sdk.props - Set defaults (can be overridden) -->
-<PropertyGroup>
-  <StrideRuntime Condition="'$(StrideRuntime)' == ''">false</StrideRuntime>
-</PropertyGroup>
-
-<!-- User's .csproj - Override default -->
-<PropertyGroup>
-  <StrideRuntime>true</StrideRuntime>
-</PropertyGroup>
-
-<!-- Sdk.targets - Check final value and act on it -->
-<PropertyGroup Condition="'$(StrideRuntime)' == 'true'">
-  <TargetFrameworks>net10.0;net10.0-android;net10.0-ios</TargetFrameworks>
-</PropertyGroup>
-```
-
-**Example of INCORRECT pattern (from old build system):**
-
-```xml
-<!-- sources/targets/Stride.Core.props - WRONG PHASE! -->
-<PropertyGroup Condition="'$(StrideRuntime)' == 'true'">
-  <TargetFrameworks>...</TargetFrameworks>
-</PropertyGroup>
-<!-- This FAILS because StrideRuntime from .csproj isn't set yet! -->
-```
-
-**Why this matters for SDK migration:**
-
-When migrating logic from `sources/targets/*.props` to the SDK:
-1. Check if the logic uses properties that projects define
-2. If yes, move that logic to Sdk.targets (not Sdk.props)
-3. Keep only default value assignments in Sdk.props
-
-**Historical workaround in old system:**
-
-The old build system worked around this by having projects set properties BEFORE importing:
-
-```xml
-<!-- Old pattern (sources/core/Stride.Core.IO/Stride.Core.IO.csproj) -->
-<PropertyGroup>
-  <StrideRuntime>true</StrideRuntime>  <!-- Set property first -->
-</PropertyGroup>
-<Import Project="..\..\targets\Stride.Core.props" />  <!-- Then import -->
-```
-
-This made properties visible during the import, but it's a workaround that shouldn't be necessary with proper SDK design where the evaluation order is standardized.
-
-### Key Files
-
-| File | Purpose |
-|------|---------|
-| `sources/sdk/Stride.Sdk/Sdk.props` | Early property definitions, defaults |
-| `sources/sdk/Stride.Sdk/Sdk.targets` | Build logic, targets, validation |
-| `sources/sdk/Stride.Sdk/Stride.Sdk.csproj` | SDK package project |
-| `sources/sdk/Stride.Sdk.Runtime/Sdk.props` | Runtime-specific properties |
-| `sources/sdk/Stride.Sdk.Runtime/Sdk.targets` | Runtime-specific targets |
-
-## Migration Strategy
-
-### What Needs to Move to SDK
-
-From the existing build system (`sources/targets/`, `Directory.Build.*`):
-
-**High Priority (Core Functionality):**
-- Platform detection and `StridePlatform` logic
-- Graphics API selection and conditional compilation
-- Target framework mapping (`StrideRuntime`)
-- Assembly processor integration
-- Native dependency management
-
-**Medium Priority (Common Scenarios):**
-- Unit test skipping logic
-- Package build configuration
-- Version generation
-- Shader compilation
-
-**Low Priority (Can Stay External):**
-- Advanced installer/packaging targets
-- CI-specific build orchestration
-- Platform-specific workarounds
-
-### Migration Phases
-
-**Phase 1: Core Stride.Core Projects (Current)**
-- Migrate `Stride.Core.csproj` as proof of concept
-- Basic property forwarding from old system
-- Validate builds still work
-
-**Phase 2: Engine Projects**
-- Migrate `Stride.Engine` and dependencies
-- Graphics API targeting
-- Assembly processor integration
-
-**Phase 3: Asset/Editor Projects**
-- Asset compilation
-- Editor-specific logic
-- VSIX package generation
-
-**Phase 4: Full Solution**
-- All projects migrated
-- Remove old `sources/targets/` files
-- Update game project templates
-
-## Current Challenges
-
-### 1. Build System Complexity
-
-The existing system has **17 .props/.targets files** with interdependencies:
-
-```
-Directory.Build.props/targets (root)
+YourProject.csproj            ← User properties
     ↓
-sources/targets/Stride.Core.props
-sources/targets/Stride.Core.*.props (platform-specific)
-sources/targets/Stride.props
-sources/targets/Stride.GraphicsApi.*.targets
-sources/targets/Stride.Core.targets
-sources/targets/Stride.targets
-    ... and more
+Stride.Sdk/Sdk/Sdk.targets   ← AFTER project file
 ```
 
-**Challenge:** Understanding import order and property evaluation timing.
+### Property Evaluation Timing
 
-### 2. Graphics API Multi-Targeting
+**Critical Rule:** Properties defined in .csproj are NOT visible in Sdk.props, only in Sdk.targets.
 
-Stride uses a **custom inner build system** for Graphics APIs:
+| Location | Can See .csproj Properties? | Use For |
+|----------|---------------------------|---------|
+| Sdk.props | No | Default values, framework constants |
+| .csproj | Yes (own + Sdk.props) | User configuration |
+| Sdk.targets | Yes (all) | Conditional logic, derived properties |
 
+**Correct pattern:**
 ```xml
-<StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
-<StrideGraphicsApis>Direct3D11;Direct3D12;Vulkan</StrideGraphicsApis>
-```
+<!-- Sdk.props: Set default -->
+<StrideRuntime Condition="'$(StrideRuntime)' == ''">false</StrideRuntime>
 
-This creates separate output folders per API:
-```
-bin/Release/net10.0/
-    Direct3D11/
-        Stride.Graphics.dll
-    Direct3D12/
-        Stride.Graphics.dll
-    Vulkan/
-        Stride.Graphics.dll
-```
-
-**Challenge:** This is non-standard and IDE/tooling struggles with it.
-
-**SDK Consideration:** Should we:
-- Keep custom system (simpler migration)?
-- Move to RuntimeIdentifier-based approach (standard but complex)?
-- Hybrid approach?
-
-### 3. Platform Multi-Targeting
-
-Two mechanisms exist:
-1. Standard .NET `TargetFrameworks` (net10.0, net10.0-android, etc.)
-2. Stride `StrideRuntime=true` (auto-generates TargetFrameworks)
-
-**Current approach:**
-```xml
+<!-- .csproj: Override -->
 <StrideRuntime>true</StrideRuntime>
-<!-- Auto-expands to: -->
-<!-- <TargetFrameworks>net10.0;net10.0-android;net10.0-ios</TargetFrameworks> -->
-```
 
-**SDK Decision:** Should we keep `StrideRuntime` convenience or require explicit `TargetFrameworks`?
-
-### 4. Property Evaluation Phase Analysis
-
-Based on analysis of `Stride.Core.csproj.backup`, these properties are commonly defined by projects:
-
-| Property | Defined In | Correct Check Phase | Status in Old System |
-|----------|------------|-------------------|---------------------|
-| `StrideRuntime` | .csproj | ❌ .props / ✅ .targets | VIOLATED in Stride.Core.props:58 |
-| `StrideAssemblyProcessor` | .csproj | ✅ .targets | Correctly checked in Stride.Core.targets:94 |
-| `StrideCodeAnalysis` | .csproj | ✅ .targets | Correctly checked in Stride.Core.targets:35 |
-| `StrideAssemblyProcessorOptions` | .csproj | ✅ .targets | Used correctly |
-| `StrideBuildTags` | .csproj | N/A | Unused - can be removed |
-| `RestorePackages` | .csproj | N/A | Unused - can be removed |
-
-**Key Finding:** The old build system has a **critical bug** in `sources/targets/Stride.Core.props:58`:
-
-```xml
-<!-- Line 58: WRONG PHASE - StrideRuntime from .csproj not yet defined! -->
+<!-- Sdk.targets: Act on final value -->
 <PropertyGroup Condition="'$(StrideRuntime)' == 'true'">
-  <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
+  <TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks>
 </PropertyGroup>
 ```
 
-**Impact:**
-- This condition **always evaluates to false** when building individual projects
-- `StrideRuntime=true` in .csproj is not yet visible at this evaluation phase
-- Multi-targeting only works when `StrideRuntime` is passed via command-line (from `build/Stride.build`)
-- Silent failure - no error, just doesn't enable multi-targeting
+## Key Properties
 
-**SDK Fix:** The new SDK correctly handles this by checking `StrideRuntime` in `Stride.Frameworks.targets` (which evaluates AFTER the .csproj is loaded), fixing this long-standing bug.
+### Platform
 
-### 5. C++/CLI Projects
+| Property | Purpose | Set By |
+|----------|---------|--------|
+| `StridePlatform` | Current platform (Windows, Linux, macOS) | Auto-detected in Stride.Platform.props |
+| `StridePlatforms` | List of target platforms | Auto-detected |
+| `StrideRuntime` | Enable multi-platform targeting | Project (.csproj) |
 
-Some engine projects use C++/CLI and require `msbuild.exe` (not `dotnet build`).
+### Graphics API
 
-**SDK Consideration:** SDK packages themselves can use `dotnet build`, but migrated projects with C++/CLI still need `msbuild`.
+| Property | Purpose | Set By |
+|----------|---------|--------|
+| `StrideGraphicsApi` | Current API (Direct3D11, Vulkan, etc.) | Stride.Graphics.props (platform default) |
+| `StrideGraphicsApis` | List of target APIs | Stride.Graphics.props |
+| `StrideGraphicsApiDependent` | Enable multi-API inner builds | Project (.csproj) |
 
-## Reference: Existing Build System
+### Build Control
 
-### Key Properties (to preserve in SDK)
+| Property | Purpose | Set By |
+|----------|---------|--------|
+| `StrideAssemblyProcessor` | Enable IL post-processing | Project (.csproj) |
+| `StrideAssemblyProcessorOptions` | Processor flags | Project (.csproj) |
+| `StrideCodeAnalysis` | Enable code analysis rules | Project (.csproj) |
+| `StrideCompileAssets` | Enable asset compilation | Project (.csproj) |
+| `StridePackageBuild` | Building for NuGet release | Build script |
 
-**Platform:**
-- `StridePlatform` / `StridePlatforms` - Windows, Linux, macOS, Android, iOS, UWP
-- `StrideRuntime` - Enable multi-platform targeting
-- `StridePlatformDefines` - Platform conditional compilation
+### Editor
 
-**Graphics API:**
-- `StrideGraphicsApi` / `StrideGraphicsApis` - Direct3D11, Direct3D12, OpenGL, OpenGLES, Vulkan
-- `StrideGraphicsApiDependent` - Enable multi-API inner builds
-- `StrideGraphicsApiDefines` - API conditional compilation
+| Property | Purpose | Set By |
+|----------|---------|--------|
+| `StrideEditorTargetFramework` | Editor TFM (WPF) | Stride.Editor.Frameworks.props |
+| `StrideXplatEditorTargetFramework` | Cross-platform editor TFM | Stride.Editor.Frameworks.props |
 
-**Build Control:**
-- `StrideSkipUnitTests` - Skip test projects
-- `StrideAssemblyProcessor` - Enable assembly processing
-- `StridePackageBuild` - Building for NuGet release
-- `StridePublicApi` - Generate public API documentation
+## SDK Features
 
-### Key Files (sources/targets/)
+### Shader Code Generation
 
-Current build system split across:
+The SDK automatically configures `.sdsl` and `.sdfx` files:
+- `.sdsl` files get `Generator="StrideShaderKeyGenerator"`
+- `.sdfx` files get `Generator="StrideEffectCodeGenerator"`
+- Generated `.cs` files are marked as dependent on their source shader
 
-| File | Purpose | Lines |
-|------|---------|-------|
-| `Stride.Core.props` | Platform detection, runtime selection | ~200 |
-| `Stride.props` | Graphics API defaults | ~100 |
-| `Stride.GraphicsApi.Dev.targets` | Graphics API inner builds | ~400 |
-| `Stride.Core.targets` | Assembly processor, native deps | ~300 |
-| `Stride.targets` | Version, shaders | ~200 |
+### Assembly Processor
 
-**Total:** ~1200 lines of critical MSBuild logic to migrate
+When `StrideAssemblyProcessor=true`, the SDK runs IL post-processing after compilation for:
+- Serialization code generation
+- Parameter key generation
+- Auto module initializer
 
-## Testing Strategy
+### Configuration Validation
 
-### Unit Tests
+The SDK validates configuration at build time:
+- Error if `StrideGraphicsApiDependent=true` but `StrideGraphicsApi` is empty
+- Error if `StrideAssemblyProcessorPath` is set but doesn't exist
+- Warning if `StridePlatform` is not set
 
-`Stride.Sdk.Tests` project should validate:
-- ✅ SDK properties are imported correctly
-- ✅ Platform detection works
-- ✅ Graphics API selection works
-- ✅ Conditional compilation defines are set
-- ✅ Target frameworks are expanded correctly
+## Troubleshooting
 
-### Integration Tests
-
-Manual testing required:
-1. Build `Stride.Core.csproj` (SDK consumer)
-2. Verify correct platform binaries generated
-3. Check conditional compilation works
-4. Validate IDE IntelliSense
-5. Test on multiple machines/environments
-
-### Regression Tests
-
-Before/after comparison:
+### Build fails after SDK changes
+Kill dotnet processes and clear NuGet cache:
 ```bash
-# Build with old system
-git checkout master
-msbuild sources\core\Stride.Core\Stride.Core.csproj /t:Rebuild
-
-# Build with SDK
-git checkout feature/stride-sdk
-dotnet build sources\core\Stride.Core\Stride.Core.csproj
-
-# Compare outputs
-fc /b bin\old\Stride.Core.dll bin\new\Stride.Core.dll
+taskkill /F /IM dotnet.exe 2>nul
+rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk" 2>nul
+dotnet build sources\sdk\Stride.Sdk.slnx
 ```
 
-## Known Issues & Limitations
+### Configuration is empty (bin\net10.0\ instead of bin\Debug\net10.0\)
+This was caused by `build/` convention files in the SDK package. They were removed. If it recurs, check that no `build/` folder exists in the SDK packages.
 
-### IntelliSense Defaults
+### Properties from .csproj not visible
+Check if the property is being read in Sdk.props (too early). Move the logic to Sdk.targets.
 
-**Issue:** When `StrideGraphicsApis` lists multiple APIs, IntelliSense defaults to the first one, causing other API code to appear grayed out.
+### Multi-targeting not working
+Ensure `StrideRuntime=true` is set in the .csproj. The SDK expands this in Sdk.targets (not Sdk.props) because it needs to see the user's value.
 
-**Current Workaround:** Set design-time default:
-```xml
-<PropertyGroup>
-  <StrideDefaultGraphicsApiDesignTime>Vulkan</StrideDefaultGraphicsApiDesignTime>
-</PropertyGroup>
+## File Locations
+
+### SDK Source
+```
+sources/sdk/
+├── Stride.Sdk/Sdk/          # Base SDK files
+├── Stride.Sdk.Editor/Sdk/   # Editor SDK files
+├── Stride.Sdk.Tests/Sdk/    # Test SDK files
+└── Stride.Sdk.slnx          # SDK solution
 ```
 
-**SDK Opportunity:** Auto-detect last built API from marker file.
+### Old Build System (being replaced in Phase 7)
+```
+sources/targets/              # 17 .props/.targets files (~3500 lines)
+```
 
-### Build Performance
+### Documentation
+```
+build/docs/SDK-WORK-GUIDE.md                      # This file
+build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md     # Property evaluation analysis
+docs/design/sdk-modernization-roadmap.md           # Migration roadmap
+```
 
-**Issue:** Graphics API multi-targeting multiplies build time:
-- Single API: ~3-5 minutes
-- All 5 APIs: ~15-25 minutes
+### global.json SDK Entries
+```json
+{
+  "msbuild-sdks": {
+    "Stride.Sdk": "4.3.0-dev",
+    "Stride.Sdk.Editor": "4.3.0-dev",
+    "Stride.Sdk.Tests": "4.3.0-dev"
+  }
+}
+```
 
-**SDK Opportunity:** Add build profiles for dev vs. release.
-
-### IDE Support
-
-**Issue:** C# DevKit and some IDEs struggle with custom inner build system.
-
-**SDK Opportunity:** Consider more standard approaches (even if verbose).
-
-## Related Documentation
-
-From `feature/build-analysis-and-improvements` branch:
-
-- `build/docs/01-build-system-overview.md` - Current architecture deep-dive
-- `build/docs/02-platform-targeting.md` - Multi-platform builds
-- `build/docs/03-graphics-api-management.md` - Graphics API targeting
-- `build/docs/07-improvement-proposals.md` - Long-term vision and SDK proposal
-
-**Key insight from documentation:**
-> The build system has grown to ~3500 lines across 17 files. The SDK can consolidate this into a versioned package with cleaner project files.
-
-## Next Steps
-
-### Immediate Tasks
-
-1. ✅ Document SDK structure and workflow (this file)
-2. Continue migrating `Stride.Core` props/targets to SDK
-3. Add SDK unit tests for property resolution
-4. Validate Graphics API multi-targeting in SDK
-
-### Short-term Goals
-
-1. Complete `Stride.Core` migration as proof of concept
-2. Migrate `Stride.Graphics` (graphics API dependent)
-3. Update `/build-sdk` command with learnings
-4. Create SDK troubleshooting guide
-
-### Medium-term Goals
-
-1. Migrate all Core and Engine projects
-2. Update game project templates to use SDK
-3. Create migration tool for existing projects
-4. Remove old `sources/targets/` files
-
-### Long-term Vision
-
-See `build/docs/07-improvement-proposals.md` - "Long-Term Vision" section.
-
-**Target state:**
-- Single `Stride.Sdk` package encapsulates all build logic
-- Minimal project files (10-20 lines)
-- Standard .NET SDK patterns where possible
-- Versioned SDK updates (separate from engine version)
-
-## Questions & Discussion
-
-**Open design questions:**
-
-1. **Graphics API targeting:** Keep custom inner build system or move to RID-based?
-2. **StrideRuntime:** Keep convenience property or require explicit TargetFrameworks?
-3. **Versioning:** Should SDK version match engine version (4.4.0) or independent (1.0.0)?
-4. **Backward compat:** How long should we support old project format?
-
-**Discuss in:**
-- GitHub issue: [Build System] SDK Work
-- Discord: #build-system channel
-
-## Resources
+## References
 
 - [MSBuild SDKs Documentation](https://learn.microsoft.com/visualstudio/msbuild/how-to-use-project-sdk)
 - [.NET SDK GitHub](https://github.com/dotnet/sdk)
-- [NuGet SDK-style packages](https://learn.microsoft.com/nuget/create-packages/creating-a-package-msbuild)
+- [SDK Modernization Roadmap](../../docs/design/sdk-modernization-roadmap.md)
 
 ---
 
-**Status:** Work in Progress
-**Branch:** `feature/stride-sdk`
-**Last Updated:** January 2026
+**Last Updated:** March 2026

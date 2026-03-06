@@ -222,15 +222,15 @@ Migrated 60+ projects:
 ### 7.2 Mobile Platform Projects
 - [ ] Migrate or remove *.Android.csproj, *.iOS.csproj legacy projects
 
-### 7.3 SDK Polish
-- [ ] Add default ItemGroup includes (*.sdyaml, *.sdsl, *.sdfx)
-- [ ] Consider implicit usings (Stride.Core, Stride.Core.Mathematics)
-- [ ] Improve error messages for misconfiguration
+### 7.3 SDK Polish — COMPLETE
+- [x] Shader file support (*.sdsl, *.sdfx) moved to base Stride.Sdk
+- [x] Configuration validation (error/warning messages for misconfiguration)
+- [ ] Consider implicit usings (deferred — no precedent in old build system)
 - [ ] Version bump to 1.0.0
 
-### 7.4 Documentation
-- [ ] Update CLAUDE.md
-- [ ] Update build documentation
+### 7.4 Documentation — COMPLETE
+- [x] Update CLAUDE.md
+- [x] Update SDK-WORK-GUIDE.md (full rewrite)
 - [ ] Create migration guide for community/forks
 
 ### Success Criteria

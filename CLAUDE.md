@@ -40,14 +40,15 @@ MSBuild path: "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Cur
 **Run Game Studio:**
 Build and run `Stride.GameStudio` project from `build\Stride.sln` (located in `60-Editor` solution folder).
 
-**Build SDK packages (WIP):**
+**Build SDK packages:**
 ```bash
 # Use /build-sdk skill or manually:
 dotnet build sources\sdk\Stride.Sdk.slnx
 
 # IMPORTANT: Clear NuGet cache after SDK changes
 rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk" 2>nul
-rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.runtime" 2>nul
+rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.editor" 2>nul
+rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.tests" 2>nul
 ```
 
 ## Testing
@@ -75,8 +76,8 @@ rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.runtime" 2>nul
 | `presentation/` | WPF-based UI framework |
 | `buildengine/` | Asset build pipeline infrastructure |
 | `shaders/` | Shader parsing and compilation |
-| `sdk/` | **WIP** - MSBuild SDK-style build system rework (see [SDK-WORK-GUIDE.md](build/docs/SDK-WORK-GUIDE.md)) |
-| `targets/` | MSBuild props/targets files (17 files, ~3500 lines - being consolidated into SDK) |
+| `sdk/` | MSBuild SDK packages (Stride.Sdk, Stride.Sdk.Editor, Stride.Sdk.Tests) - see [SDK-WORK-GUIDE.md](build/docs/SDK-WORK-GUIDE.md) |
+| `targets/` | Legacy MSBuild props/targets files (17 files, ~3500 lines - replaced by SDK, pending removal) |
 
 ### Entity-Component System
 
@@ -160,7 +161,7 @@ Current system: 17 .props/.targets files (~3500 lines):
 - `sources/targets/Stride.Core.targets` - Assembly processor
 - `sources/targets/Stride.targets` - Build finalization
 
-**SDK goal:** Consolidate into versioned `Stride.Sdk` package.
+**SDK status:** Consolidated into versioned SDK packages (Stride.Sdk, Stride.Sdk.Editor, Stride.Sdk.Tests). All 110 projects migrated.
 
 ### Graphics API Multi-Targeting
 

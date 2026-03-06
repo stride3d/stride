@@ -48,4 +48,28 @@
   <!-- ================================================================ -->
   <Import Project="Stride.NativeBuildMode.props" />
 
+  <!-- ================================================================ -->
+  <!-- Shader Code Generation Support -->
+  <!-- ================================================================ -->
+  <!-- Configure .sdsl and .sdfx files with their code generators,
+       and mark generated .cs files as dependent on their source shader -->
+  <ItemGroup>
+    <Compile Update="**\*.sdsl.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.sdsl" Generator="StrideShaderKeyGenerator" />
+    <Compile Update="**\*.sdfx.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
+  </ItemGroup>
+
+  <!-- ================================================================ -->
+  <!-- Configuration Validation -->
+  <!-- ================================================================ -->
+  <Target Name="_StrideValidateConfiguration" BeforeTargets="Build">
+    <Error Condition="'$(StrideGraphicsApiDependent)' == 'true' And '$(StrideGraphicsApi)' == ''"
+           Text="StrideGraphicsApi must be set when StrideGraphicsApiDependent is true. Set a default in your project or use Stride.Graphics.props." />
+    <Error Condition="'$(StrideAssemblyProcessor)' == 'true' And '$(StrideAssemblyProcessorPath)' != '' And !Exists('$(StrideAssemblyProcessorPath)')"
+           Text="StrideAssemblyProcessorPath '$(StrideAssemblyProcessorPath)' does not exist. Rebuild the assembly processor or check the path." />
+    <Warning Condition="'$(StridePlatform)' == ''"
+             Text="StridePlatform is not set. Platform-specific features may not work correctly. Check Stride.Platform.props." />
+  </Target>
+
 </Project>
