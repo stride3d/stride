@@ -77,6 +77,7 @@ jobs:
           echo "ANDROID_NDK_HOME=$ndkPath" >> $env:GITHUB_ENV
           echo "Using NDK at: $ndkPath"
       - uses: microsoft/setup-msbuild@v2
+      - uses: ./.github/actions/build-sdk
       - name: Debug NDK Configuration
         shell: pwsh
         run: |

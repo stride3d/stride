@@ -49,6 +49,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libbsd-dev clang llvm lld
+      - uses: ./.github/actions/build-sdk
       - name: Patch NativePath for Linux
         run: |
           # Make strlcat_chk and strlcpy_chk non-fatal on Linux

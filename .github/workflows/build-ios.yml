@@ -55,6 +55,7 @@ jobs:
       - name: Install .NET iOS Workload
         run: dotnet workload install ios
       - uses: microsoft/setup-msbuild@v2
+      - uses: ./.github/actions/build-sdk
       - name: Build
         run: |
           msbuild build\Stride.iOS.slnf `

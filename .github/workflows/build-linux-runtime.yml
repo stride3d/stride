@@ -63,6 +63,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - uses: microsoft/setup-msbuild@v2
+      - uses: ./.github/actions/build-sdk
       - name: Build
         run: |
           msbuild build\Stride.Runtime.slnf `
