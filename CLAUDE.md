@@ -76,7 +76,7 @@ rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.sdk.tests" 2>nul
 | `presentation/` | WPF-based UI framework |
 | `buildengine/` | Asset build pipeline infrastructure |
 | `shaders/` | Shader parsing and compilation |
-| `sdk/` | MSBuild SDK packages (Stride.Sdk, Stride.Sdk.Editor, Stride.Sdk.Tests) - see [SDK-WORK-GUIDE.md](build/docs/SDK-WORK-GUIDE.md) |
+| `sdk/` | MSBuild SDK packages (Stride.Sdk, Stride.Sdk.Editor, Stride.Sdk.Tests) - see [SDK-GUIDE.md](build/docs/SDK-GUIDE.md) |
 
 ### Entity-Component System
 
@@ -122,7 +122,7 @@ Multi-API support through abstraction layer in `Stride.Graphics`:
 - **Assets:** `sources/assets/Stride.Core.Assets/`
 - **Editor:** `sources/editor/Stride.GameStudio/`
 - **Build config:** `sources/sdk/` (SDK packages), `sources/Directory.Build.props`
-- **SDK docs:** `build/docs/SDK-WORK-GUIDE.md`
+- **SDK docs:** `build/docs/SDK-GUIDE.md`
 
 ## Build System
 
@@ -204,13 +204,12 @@ When a project uses `<Project Sdk="Stride.Sdk">`, MSBuild evaluates files in thi
 
 **Historical note:** The old build system used `<Import Project="..\..\targets\Stride.Core.props" />` after setting properties, which allowed properties to be visible during the import. This workaround pattern is unnecessary with proper SDK design where the evaluation order is standardized.
 
-See [SDK-WORK-GUIDE.md](build/docs/SDK-WORK-GUIDE.md#understanding-property-evaluation-timing) for detailed examples.
+See [SDK-GUIDE.md](build/docs/SDK-GUIDE.md#property-evaluation-order) for detailed examples.
 
 ### Build Documentation
 
 Comprehensive build system documentation exists in `build/docs/`:
-- `SDK-WORK-GUIDE.md` - SDK development workflow
-- `SDK-PROPERTY-EVALUATION-ANALYSIS.md` - Property evaluation order analysis
+- `SDK-GUIDE.md` - Build system reference
 - See `feature/build-analysis-and-improvements` branch for detailed analysis
 
 ## Coding Guidelines

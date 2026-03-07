@@ -22,8 +22,7 @@
     Rule: User properties from .csproj ARE visible here.
           This is where conditional logic belongs.
 
-    See: build/docs/SDK-WORK-GUIDE.md#understanding-property-evaluation-timing
-         build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md
+    See: build/docs/SDK-GUIDE.md#property-evaluation-order
     ================================================================
   -->
 
@@ -87,7 +86,6 @@
   <!-- ================================================================ -->
   <!-- Stride.Core.CompilerServices Roslyn Analyzer -->
   <!-- ================================================================ -->
-  <!-- Migrated from: sources/targets/Stride.Core-extended.props:295-300 -->
   <ItemGroup Condition="!$(MSBuildProjectName.StartsWith('Stride.Core.CompilerServices'))">
     <ProjectReference Include="$(StrideRoot)sources\core\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj"
                       OutputItemType="Analyzer"
@@ -98,7 +96,6 @@
   <!-- ================================================================ -->
   <!-- StridePublicApi - User Documentation (.usrdoc) Support -->
   <!-- ================================================================ -->
-  <!-- Migrated from: sources/targets/Stride.Core.targets:51-65 -->
   <PropertyGroup Condition="'$(StridePublicApi)' == 'true'">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.usrdoc</AllowedOutputExtensionsInPackageBuildOutputFolder>
@@ -118,7 +115,6 @@
   <!-- ================================================================ -->
   <!-- StrideScript - Auto-enable Assembly Processor for scripts -->
   <!-- ================================================================ -->
-  <!-- Migrated from: sources/targets/Stride.targets:6 -->
   <PropertyGroup>
     <StrideAssemblyProcessor Condition="'$(StrideScript)' == 'true'">true</StrideAssemblyProcessor>
   </PropertyGroup>
@@ -126,7 +122,6 @@
   <!-- ================================================================ -->
   <!-- SourceLink - GitHub Source Debugging -->
   <!-- ================================================================ -->
-  <!-- Migrated from: sources/targets/Stride.Core-extended.props:276-279 -->
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp' And '$(SkipSourceLink)' != 'true'" PrivateAssets="All" />
   </ItemGroup>
@@ -134,7 +129,6 @@
   <!-- ================================================================ -->
   <!-- StrideCompilerTargetsEnable - Conditional Build Skip -->
   <!-- ================================================================ -->
-  <!-- Migrated from: sources/targets/Stride.Core.targets:73-80 -->
   <PropertyGroup>
     <StrideCompilerTargetsEnable Condition="'$(TargetFramework)' != '$(StrideFramework)' And '$(TargetFramework)' == '$(StrideFrameworkWindows)' And '$(StrideWindowsOnly)' == 'true'">false</StrideCompilerTargetsEnable>
     <!-- Skip unit tests if requested -->
@@ -146,7 +140,6 @@
   <!-- ================================================================ -->
   <!-- Auto-Pack and Deploy for NuGet Development -->
   <!-- ================================================================ -->
-  <!-- Migrated from: sources/targets/Stride.AutoPack.targets + Stride.Core.targets:152-166 -->
   <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
     <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\Stride\NugetDev"/>
     <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\$(PackageId).$(PackageVersion).nupkg.sha512"/>
@@ -162,7 +155,6 @@
   <!-- ================================================================ -->
   <!-- Localization Satellite Assemblies -->
   <!-- ================================================================ -->
-  <!-- Migrated from: sources/targets/Stride.Core.targets:171-204 -->
   <PropertyGroup>
     <StrideBuildLocalization Condition="'$(StrideBuildLocalization)' == '' And '$(StridePackageBuild)' == 'true'">true</StrideBuildLocalization>
   </PropertyGroup>
@@ -194,7 +186,6 @@
   <!-- ================================================================ -->
   <!-- SharedAssemblyInfo.NuGet.cs Replacement for Package Builds -->
   <!-- ================================================================ -->
-  <!-- Migrated from: sources/targets/Stride.targets:55-62 -->
   <Target Name="StrideReplaceVersionInfo" Condition="'$(StridePackageBuild)' == 'true'" BeforeTargets="PrepareResources">
     <Error Condition="!Exists('$(StrideRoot)sources\shared\SharedAssemblyInfo.NuGet.cs')" Text="File SharedAssemblyInfo.NuGet.cs doesn't seem to have been generated. Please make sure Stride.build PackageEnvironment target has been run successfully."/>
     <ItemGroup>
@@ -207,7 +198,6 @@
   <!-- ================================================================ -->
   <!-- Force Pack on Inner Builds from CLI -->
   <!-- ================================================================ -->
-  <!-- Migrated from: sources/targets/Stride.Core-extended.props:104-113 -->
   <Target Name="_StrideTriggerPackOnInnerBuild"
           BeforeTargets="CoreCompile"
           Condition="'$(BuildingInsideVisualStudio)' != 'true' And '$(GeneratePackageOnBuild)' == 'true'">

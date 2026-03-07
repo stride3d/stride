@@ -27,7 +27,7 @@ Historical workaround in old system:
 - Example: sources/core/Stride.Core.IO/Stride.Core.IO.csproj
 - This made the property visible during import, but it's a hack
 
-See: build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md for full analysis
+See: build/docs/SDK-GUIDE.md#property-evaluation-order
 
 ----
 

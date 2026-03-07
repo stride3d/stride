@@ -10,12 +10,11 @@
     This file integrates Stride's custom code analysis ruleset.
     Projects opt-in by setting StrideCodeAnalysis=true.
 
-    Migrated from: sources/targets/Stride.Core-extended.targets:40-43
     ================================================================
   -->
 
   <!-- ================================================================ -->
-  <!-- Code Analysis Ruleset Integration (lines 40-43 from extended.targets) -->
+  <!-- Code Analysis Ruleset Integration -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Stride.ruleset</CodeAnalysisRuleSet>

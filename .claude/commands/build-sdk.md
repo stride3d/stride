@@ -95,7 +95,7 @@ This is part of the **WIP SDK-style build system rework** on branch `feature/str
 - Migrating `Stride.Core.csproj` as proof of concept
 - Moving platform/API targeting logic from `sources/targets/` into SDK
 
-**For more details, see:** `build/docs/SDK-WORK-GUIDE.md`
+**For more details, see:** `build/docs/SDK-GUIDE.md`
 
 ### Important: MSBuild Evaluation Order
 
@@ -106,6 +106,6 @@ Properties from the .csproj are NOT visible in Sdk.props!
 - **Sdk.props** - Set defaults only
 - **Sdk.targets** - Check user values and compute derived properties
 
-See [SDK-PROPERTY-EVALUATION-ANALYSIS.md](../../build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md) for details.
+See build/docs/SDK-GUIDE.md#property-evaluation-order for details.
 
 Report success/failure and list the packages that were built.

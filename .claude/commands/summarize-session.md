@@ -72,10 +72,9 @@ Condense the old "Latest Session" to ~20-30 lines:
 ## Previous Session - Property Evaluation Analysis
 
 Documented MSBuild SDK evaluation order bug in old build system (sources/targets/Stride.Core.props:58).
-Created SDK-PROPERTY-EVALUATION-ANALYSIS.md (400+ lines) and updated documentation.
+Updated SDK documentation.
 
 **Commits:** f0cec9b30, d2427615d
-**Key files:** build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md, .claude/commands/analyze-csproj-migration.md
 ```
 
 ### 4. Project Status (Current State)
@@ -290,8 +289,7 @@ Sdk.props (before .csproj) → .csproj (user properties) → Sdk.targets (after 
 
 **Documentation:**
 - CLAUDE.md - Project guidance
-- build/docs/SDK-WORK-GUIDE.md - SDK development workflow
-- build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md - Property evaluation analysis
+- build/docs/SDK-GUIDE.md - SDK development workflow
 
 **Migrated Projects:**
 - sources/core/Stride.Core/Stride.Core.csproj (SDK-style)

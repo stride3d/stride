@@ -81,7 +81,7 @@ Properties defined in .csproj are:
 - ❌ NOT visible in Sdk.props
 - ✅ VISIBLE in Sdk.targets
 
-See [SDK-PROPERTY-EVALUATION-ANALYSIS.md](../../build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md) for detailed explanation.
+See build/docs/SDK-GUIDE.md#property-evaluation-order for detailed explanation.
 
 ## Example Usage
 

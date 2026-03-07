@@ -13,7 +13,6 @@
     - UI framework selection (StrideUI)
     - Design-time build API selection for IntelliSense
 
-    Migrated from: sources/targets/Stride.props (lines 14-94)
     ================================================================
   -->
 

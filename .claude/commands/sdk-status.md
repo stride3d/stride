@@ -59,6 +59,6 @@ When checking SDK implementation:
 - Look for evaluation phase violations from old system
 - Confirm StrideRuntime logic is in .targets (fixes old bug)
 
-See [SDK-PROPERTY-EVALUATION-ANALYSIS.md](../../build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md) for details.
+See build/docs/SDK-GUIDE.md#property-evaluation-order for details.
 
 Report the current state of the SDK work, what's implemented, and what remains to be done.

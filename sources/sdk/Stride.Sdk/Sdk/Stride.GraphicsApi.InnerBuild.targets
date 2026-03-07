@@ -5,10 +5,6 @@
     Stride.GraphicsApi.InnerBuild.targets - Multi-API Build Dispatch
     ================================================================
 
-    Migrated from:
-    - sources/targets/Stride.GraphicsApi.Dev.targets (project references)
-    - sources/targets/Stride.GraphicsApi.PackageReference.targets (NuGet consumers)
-
     IMPORTANT: This file MUST be imported AFTER Microsoft.NET.Sdk Sdk.targets
     because it overrides _ComputeTargetFrameworkItems and _WalkEachTargetPerFramework
     defined in Microsoft.Common.CrossTargeting.targets and NuGet.Build.Tasks.Pack.targets.

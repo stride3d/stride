@@ -8,16 +8,14 @@
     EVALUATION PHASE: Early (BEFORE project file)
 
     This file sets platform-specific defaults that can be overridden by projects.
-    Desktop platforms only (Windows, Linux, macOS) - mobile/UWP deferred to Phase 2.
 
-    Migrated from: sources/targets/Stride.Core-extended.props
     ================================================================
   -->
 
   <!-- Framework constants are defined in Stride.Frameworks.props -->
 
   <!-- ================================================================ -->
-  <!-- Platform Auto-Detection - Desktop Only (lines 17-20, 27 from extended) -->
+  <!-- Platform Auto-Detection -->
   <!-- ================================================================ -->
   <PropertyGroup>
     <!-- Preserve original platform if already set -->
@@ -49,7 +47,7 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- StridePlatforms Default Detection (lines 37-39, 72-75 from extended) -->
+  <!-- StridePlatforms Default Detection -->
   <!-- ================================================================ -->
   <PropertyGroup>
     <StrideCommonPreSettingsName Condition="'$(StrideCommonPreSettingsName)' == ''">Stride</StrideCommonPreSettingsName>
@@ -68,7 +66,7 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- Graphics API Defaults for Desktop (lines 40-45 from extended) -->
+  <!-- Graphics API Defaults per Platform -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
     <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
@@ -90,7 +88,7 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- Output Path Configuration (lines 171-174 from extended) -->
+  <!-- Output Path Configuration -->
   <!-- ================================================================ -->
   <PropertyGroup>
     <GenerateProjectSpecificOutputFolder>false</GenerateProjectSpecificOutputFolder>

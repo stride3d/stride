@@ -159,7 +159,7 @@ fc /b bin\old\Stride.Core.dll bin\new\Stride.Core.dll
 
 The new SDK-style format fixes critical bugs in the old system where properties were checked at the wrong evaluation phase.
 
-See [SDK-PROPERTY-EVALUATION-ANALYSIS.md](../../build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md) for detailed explanation.
+See build/docs/SDK-GUIDE.md#property-evaluation-order for detailed explanation.
 
 ## Example Usage
 

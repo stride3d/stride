@@ -238,7 +238,7 @@ Migrated 60+ projects:
 
 ### 7.4 Documentation — COMPLETE
 - [x] Update CLAUDE.md
-- [x] Update SDK-WORK-GUIDE.md (full rewrite)
+- [x] Update SDK-GUIDE.md (full rewrite)
 - [ ] Create migration guide for community/forks
 
 ### Success Criteria
@@ -324,7 +324,7 @@ Old `sources/targets/` directory deleted. All 24 legacy build files removed.
 
 - [SDK Research Document](./sdk-modernization-research.md)
 - [Build Properties Inventory](./stride-build-properties-inventory.md)
-- [SDK Work Guide](../../build/docs/SDK-WORK-GUIDE.md)
+- [SDK Work Guide](../../build/docs/SDK-GUIDE.md)
 - [Property Evaluation Analysis](../../build/docs/SDK-PROPERTY-EVALUATION-ANALYSIS.md)
 - [SDK Gap Analysis](./sdk-gap-analysis.md)
 - [SDK Packages](../../sources/sdk/)

@@ -5,8 +5,6 @@
     Stride.Dependencies.targets - Native Dependency System (.ssdeps)
     ================================================================
 
-    Migrated from: sources/targets/Stride.Core.PostSettings.Dependencies.targets
-
     Manages native libraries and content files that travel alongside
     managed assemblies via .ssdeps manifest files.
 

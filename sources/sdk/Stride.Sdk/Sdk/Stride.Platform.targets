@@ -9,40 +9,39 @@
 
     This file applies platform-specific compiler defines and build settings.
 
-    Migrated from: sources/targets/Stride.Core-extended.props (lines 194-196, 266-274)
     ================================================================
   -->
 
   <!-- ================================================================ -->
-  <!-- Platform Defines - Desktop Frameworks (line 195 from extended) -->
+  <!-- Platform Defines - Desktop Frameworks -->
   <!-- ================================================================ -->
   <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' ">
     <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP</StridePlatformDefines>
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- Platform Defines - Android (lines 207-238 from extended) -->
+  <!-- Platform Defines - Android -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
     <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</StridePlatformDefines>
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- Platform Defines - iOS (lines 240-244 from extended) -->
+  <!-- Platform Defines - iOS -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">
     <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</StridePlatformDefines>
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- .NET Runtime Defines (lines 266-268 from extended) -->
+  <!-- .NET Runtime Defines -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="$(TargetFramework.StartsWith('net10'))">
     <StrideNETRuntimeDefines>STRIDE_RUNTIME_CORECLR</StrideNETRuntimeDefines>
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- Apply Defines to DefineConstants (lines 270-274 from extended) -->
+  <!-- Apply Defines to DefineConstants -->
   <!-- IMPORTANT: Must come AFTER all StridePlatformDefines are set   -->
   <!-- ================================================================ -->
   <PropertyGroup>
@@ -52,10 +51,10 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- Android-Specific Build Properties (lines 207-228 from extended) -->
+  <!-- Android-Specific Build Properties -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
-    <!-- On Android, everything is library (even Exe) — Stride.Core.targets:47 -->
+    <!-- On Android, everything is library (even Exe) -->
     <OutputType>Library</OutputType>
     <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
     <AndroidStoreUncompressedFileExtensions />
@@ -75,7 +74,7 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- iOS-Specific Build Properties (lines 240-261 from extended) -->
+  <!-- iOS-Specific Build Properties -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">
     <Platform Condition="'$(Platform)' == ''">iPhone</Platform>
@@ -87,10 +86,6 @@
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator'" />
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator'" />
 
-  <!--
-    TODO: UWP Platform Support (lines 198-204 from extended)
-    - StridePlatformDefines = STRIDE_PLATFORM_UWP
-    - Platform = x86 default, TargetPlatformVersion detection
-  -->
+  <!-- UWP platform support intentionally omitted (UWP is being phased out) -->
 
 </Project>
