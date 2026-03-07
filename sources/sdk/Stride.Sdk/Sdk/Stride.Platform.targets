@@ -21,22 +21,6 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
-  <!-- .NET Runtime Defines (lines 266-268 from extended) -->
-  <!-- ================================================================ -->
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('net10'))">
-    <StrideNETRuntimeDefines>STRIDE_RUNTIME_CORECLR</StrideNETRuntimeDefines>
-  </PropertyGroup>
-
-  <!-- ================================================================ -->
-  <!-- Apply Defines to DefineConstants (lines 270-274 from extended) -->
-  <!-- ================================================================ -->
-  <PropertyGroup>
-    <DefineConstants Condition="'$(StridePlatformDefines)' != ''">$(StridePlatformDefines);$(DefineConstants)</DefineConstants>
-    <DefineConstants Condition="'$(StrideNETRuntimeDefines)' != ''">$(DefineConstants);$(StrideNETRuntimeDefines)</DefineConstants>
-    <DefineConstants Condition="'$(StridePackageBuild)' == 'true'">$(DefineConstants);STRIDE_PACKAGE_BUILD</DefineConstants>
-  </PropertyGroup>
-
-  <!-- ================================================================ -->
   <!-- Platform Defines - Android (lines 207-238 from extended) -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
@@ -48,6 +32,23 @@
   <!-- ================================================================ -->
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">
     <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</StridePlatformDefines>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- .NET Runtime Defines (lines 266-268 from extended) -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('net10'))">
+    <StrideNETRuntimeDefines>STRIDE_RUNTIME_CORECLR</StrideNETRuntimeDefines>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Apply Defines to DefineConstants (lines 270-274 from extended) -->
+  <!-- IMPORTANT: Must come AFTER all StridePlatformDefines are set   -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <DefineConstants Condition="'$(StridePlatformDefines)' != ''">$(StridePlatformDefines);$(DefineConstants)</DefineConstants>
+    <DefineConstants Condition="'$(StrideNETRuntimeDefines)' != ''">$(DefineConstants);$(StrideNETRuntimeDefines)</DefineConstants>
+    <DefineConstants Condition="'$(StridePackageBuild)' == 'true'">$(DefineConstants);STRIDE_PACKAGE_BUILD</DefineConstants>
   </PropertyGroup>
 
   <!-- ================================================================ -->
