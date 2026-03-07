@@ -4,8 +4,6 @@
     <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
     <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

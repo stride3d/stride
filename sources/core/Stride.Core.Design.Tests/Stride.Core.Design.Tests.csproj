@@ -5,11 +5,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Core.Design\Stride.Core.Design.csproj" />

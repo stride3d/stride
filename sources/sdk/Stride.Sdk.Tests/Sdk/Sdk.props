@@ -24,6 +24,9 @@
     <!-- Allow unsafe code (common in tests) -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
+    <!-- Enable assembly processor for test projects -->
+    <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">true</StrideAssemblyProcessor>
+
     <!-- Use cross-platform editor target framework by default -->
     <TargetFramework Condition="'$(TargetFramework)' == '' And '$(TargetFrameworks)' == ''">$(StrideXplatEditorTargetFramework)</TargetFramework>
   </PropertyGroup>

@@ -4,11 +4,6 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-  </PropertyGroup>
-
   <ItemGroup>
     <EmbeddedResource Include="files\*.yaml" />
   </ItemGroup>

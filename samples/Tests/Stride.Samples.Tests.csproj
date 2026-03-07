@@ -6,8 +6,6 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideSkipAutoPack>false</StrideSkipAutoPack>
     <IsPackable>true</IsPackable>
     <!-- Skip SDK test references — we manage versions directly since ManagePackageVersionsCentrally=false -->
