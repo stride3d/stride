@@ -6,7 +6,6 @@
       "..\\sources\\core\\Stride.Core.Mathematics\\Stride.Core.Mathematics.csproj",
       "..\\sources\\core\\Stride.Core.MicroThreading\\Stride.Core.MicroThreading.csproj",
       "..\\sources\\core\\Stride.Core.Serialization\\Stride.Core.Serialization.csproj",
-      "..\\sources\\core\\Stride.Core.Tasks\\Stride.Core.Tasks.csproj",
       "..\\sources\\core\\Stride.Core\\Stride.Core.csproj",
       "..\\sources\\engine\\Stride.Audio\\Stride.Audio.csproj",
       "..\\sources\\engine\\Stride.Engine\\Stride.Engine.csproj",
@@ -27,6 +26,7 @@
       "..\\sources\\engine\\Stride.VirtualReality\\Stride.VirtualReality.csproj",
       "..\\sources\\engine\\Stride.Voxels\\Stride.Voxels.csproj",
       "..\\sources\\engine\\Stride\\Stride.csproj",
+      "..\\sources\\tools\\Stride.FreeImage\\Stride.FreeImage.csproj",
       "..\\sources\\shaders\\Irony\\Irony.csproj",
       "..\\sources\\shaders\\Stride.Core.Shaders\\Stride.Core.Shaders.csproj"
     ]
