@@ -38,6 +38,18 @@
   <Import Project="Stride.PackageInfo.targets" />
 
   <!-- ================================================================ -->
+  <!-- Disable ValidateExecutableReferences -->
+  <!-- ================================================================ -->
+  <!-- Stride's graphics API inner build system (_ComputeTargetFrameworkItems
+       override) creates multiple inner build entries per TFM — one per
+       graphics API.  The .NET SDK's ValidateExecutableReferences task
+       calls .Single() on entries filtered by TFM, which crashes when
+       multiple graphics-API variants share the same TFM. -->
+  <PropertyGroup>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Import base Microsoft.NET.Sdk targets -->
   <!-- ================================================================ -->
   <!-- This gives us all standard .NET SDK functionality -->
