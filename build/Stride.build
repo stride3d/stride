@@ -7,9 +7,9 @@ Example of use:
 <Project ToolsVersion="15.0" DefaultTarget="Help" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <StrideRoot>$(MSBuildThisFileDirectory)..\</StrideRoot>
-    <StrideSolution>$(StrideRoot)build\Stride</StrideSolution>
-    <StrideVisualStudioSolution>$(StrideRoot)build\Stride.VisualStudio</StrideVisualStudioSolution>
-    <StrideSolutionLauncher>$(StrideRoot)build\Stride.Launcher</StrideSolutionLauncher>
+    <StrideSolution>$(StrideRoot)build\Stride.sln</StrideSolution>
+    <StrideVisualStudioSolution>$(StrideRoot)build\Stride.VisualStudio.sln</StrideVisualStudioSolution>
+    <StrideSolutionLauncher>$(StrideRoot)build\Stride.Launcher.sln</StrideSolutionLauncher>
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
     <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)</BuildProperties>
     <StrideSign Condition="'$(StrideSign)' == ''">true</StrideSign>
@@ -41,8 +41,8 @@ Example of use:
 
     <Delete Files="@(FilesToDeleteVSIX)"/>
 
-    <MSBuild Targets="Restore" Projects="$(StrideVisualStudioSolution).sln" />
-    <MSBuild Targets="Stride_VisualStudio_Package;Stride_VisualStudio_PackageInstall" Projects="$(StrideVisualStudioSolution).sln" Properties="$(BuildProperties);Platform=Any CPU"/>
+    <MSBuild Targets="Restore" Projects="$(StrideVisualStudioSolution)" />
+    <MSBuild Targets="Stride_VisualStudio_Package;Stride_VisualStudio_PackageInstall" Projects="$(StrideVisualStudioSolution)" Properties="$(BuildProperties);Platform=Any CPU"/>
     <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec" -BasePath "$(StrideRoot)sources\tools\Stride.VisualStudio.Package" -OutputDirectory "$(StrideRoot)bin\vsix"' />
  
     <ItemGroup>
@@ -136,7 +136,7 @@ Example of use:
   <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;SignPackage;VSIXPlugin"/>
 
   <Target Name="RestoreInternal">
-    <MSBuild Targets="Restore" Projects="$(StrideSolution).sln" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
+    <MSBuild Targets="Restore" Projects="$(StrideSolution)" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
   </Target>
   
   <Target Name="Restore">
@@ -145,87 +145,111 @@ Example of use:
 
   <Target Name="Build">
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution)" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
   </Target>
 
   <Target Name="BuildRuntime">
     <PropertyGroup>
-      <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
+      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
     </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties)"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution)"/>
+    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties)"/>
   </Target>
-  
+
   <Target Name="BuildWindows">
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution)" Properties="$(BuildProperties);StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
   </Target>
 
   <Target Name="BuildWindowsDirect3D11">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=Direct3D11;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <PropertyGroup>
+      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution)"/>
+    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=Direct3D11;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
-  
+
   <Target Name="BuildWindowsDirect3D12">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApis=Direct3D12"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=Direct3D12;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <PropertyGroup>
+      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution);StrideGraphicsApis=Direct3D12"/>
+    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=Direct3D12;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
   <Target Name="BuildWindowsOpenGL">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApis=OpenGL"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <PropertyGroup>
+      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution);StrideGraphicsApis=OpenGL"/>
+    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
   <Target Name="BuildWindowsOpenGLES">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApis=OpenGLES"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=OpenGLES;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <PropertyGroup>
+      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution);StrideGraphicsApis=OpenGLES"/>
+    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=OpenGLES;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
   <Target Name="BuildAndroid">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Android;StrideSolution=$(StrideSolution).Android"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Android.sln" Properties="$(BuildProperties);StridePlatforms=Android;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <PropertyGroup>
+      <StrideAndroidSolution>$(StrideRoot)build\Stride.Android.slnf</StrideAndroidSolution>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Android;StrideSolution=$(StrideAndroidSolution)"/>
+    <MSBuild Targets="Build" Projects="$(StrideAndroidSolution)" Properties="$(BuildProperties);StridePlatforms=Android;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
   <Target Name="BuildiOS">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=iOS;StrideSolution=$(StrideSolution).iOS"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).iOS.sln" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <PropertyGroup>
+      <StrideiOSSolution>$(StrideRoot)build\Stride.iOS.slnf</StrideiOSSolution>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=iOS;StrideSolution=$(StrideiOSSolution)"/>
+    <MSBuild Targets="Build" Projects="$(StrideiOSSolution)" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
-  
+
   <Target Name="BuildUWP">
     <PropertyGroup>
-      <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
+      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
       <StridePlatforms>UWP</StridePlatforms>
     </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution)"/>
+    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
-  
+
   <Target Name="BuildWindowsVulkan">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApis=Vulkan"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <PropertyGroup>
+      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution);StrideGraphicsApis=Vulkan"/>
+    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StrideGraphicsApis=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
-  
+
   <Target Name="BuildLinux">
     <PropertyGroup>
-      <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
+      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
       <StridePlatforms>Linux</StridePlatforms>
     </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
-  </Target> 
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+  </Target>
 
   <Target Name="BuildLinuxVulkan">
     <PropertyGroup>
-      <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
+      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
       <StridePlatforms>Linux</StridePlatforms>
     </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApis=Vulkan"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
-  </Target> 
-  
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution);StrideGraphicsApis=Vulkan"/>
+    <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+  </Target>
+
   <Target Name="BuildmacOS">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StrideSolution=$(StrideSolution).macOS"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).macOS.sln" Properties="$(BuildProperties);Platform=macOS"/>
+    <PropertyGroup>
+      <StridemacOSSolution>$(StrideRoot)build\Stride.macOS.sln</StridemacOSSolution>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StrideSolution=$(StridemacOSSolution)"/>
+    <MSBuild Targets="Build" Projects="$(StridemacOSSolution)" Properties="$(BuildProperties);Platform=macOS"/>
   </Target> 
 
   <Target Name="DownloadXunitRunnerConsole">
@@ -250,7 +274,7 @@ Example of use:
     </CreateItem>
     <!-- Restore NuGet packages -->
     <Message Importance="High" Text="Restoring NuGet packages"/>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileDirectory)Stride.sln" />
+    <MSBuild Targets="Restore" Projects="$(StrideSolution)" />
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileDirectory)Stride.Tests.%(StrideTestCategoriesItem.Identity).slnf" />
     <!-- Build -->
     <Message Importance="High" Text="Building unit tests"/>
@@ -361,10 +385,7 @@ Example of use:
   </Target>
   
   <Target Name="BuildLauncher" DependsOnTargets="SignCredentialsCheck">
-    <PropertyGroup>
-      <StrideSolution>Stride.Launcher</StrideSolution>
-    </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Windows;StrideSolution=$(StrideSolution);RuntimeIdentifiers=win-x64"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Windows;StrideSolution=$(StrideSolutionLauncher);RuntimeIdentifiers=win-x64"/>
     <MSBuild Projects="..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj" Targets="Publish" Properties="$(BuildProperties);PublishProfile=FolderProfile;SolutionName=Stride.Launcher" />
   </Target>
 
