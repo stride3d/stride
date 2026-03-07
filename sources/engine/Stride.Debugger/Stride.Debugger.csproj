@@ -1,14 +1,11 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Sdk.Editor">
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <OutputType>Exe</OutputType>
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Mono.Options" />
@@ -21,5 +18,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

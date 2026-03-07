@@ -1,15 +1,9 @@
-<Project>
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
-    <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
-  <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <StrideRuntime>true</StrideRuntime>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
-    <StrideBuildTags>*</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -26,5 +20,4 @@
     <None Include="StrideNative.h" />
     <None Include="StrideNative.cpp" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

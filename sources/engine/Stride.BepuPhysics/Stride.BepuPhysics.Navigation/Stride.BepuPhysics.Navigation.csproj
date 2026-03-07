@@ -1,23 +1,12 @@
-<Project>
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-  <Import Project="..\..\..\targets\Stride.props" />
-
-  <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
-    <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="DotRecast.Recast.Toolset" />
@@ -27,6 +16,4 @@
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
     <ProjectReference Include="..\..\Stride.Navigation\Stride.Navigation.csproj" />
   </ItemGroup>
-
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

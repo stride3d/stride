@@ -1,6 +1,4 @@
-<Project>
-  <Import Project="..\..\targets\Stride.Core.props" />
-
+<Project Sdk="Stride.Sdk.Editor">
   <PropertyGroup>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -18,6 +16,4 @@
     <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.Translation\Stride.Core.Translation.csproj" />
   </ItemGroup>
-
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

@@ -1,17 +1,8 @@
-<Project>
-  <Import Project="..\..\targets\Stride.UnitTests.props" />
+<Project Sdk="Stride.Sdk.Tests">
   <PropertyGroup>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\..\assets\Stride.Core.Assets.Quantum.Tests\Stride.Core.Assets.Quantum.Tests.csproj" />
@@ -19,7 +10,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
   </ItemGroup>
-  <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>

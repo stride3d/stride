@@ -1,8 +1,7 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Sdk.Editor">
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
+    <StrideAssemblyProcessorOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
@@ -18,5 +17,4 @@
     <ProjectReference Include="..\..\engine\Stride.Assets\Stride.Assets.csproj" />
     <ProjectReference Include="..\..\engine\Stride.Engine\Stride.Engine.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

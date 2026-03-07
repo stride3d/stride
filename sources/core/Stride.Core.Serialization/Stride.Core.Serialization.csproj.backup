@@ -1,0 +1,37 @@
+﻿<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Stride.Core.props" />
+  <PropertyGroup>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="K4os.Compression.LZ4.Legacy" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
+    <ProjectReference Include="..\Stride.Core.IO\Stride.Core.IO.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Reflection\" />
+  </ItemGroup>
+  <Import Project="$(StrideSdkTargets)" />
+</Project>

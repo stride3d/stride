@@ -1,22 +1,17 @@
-<Project>
-  <Import Project="..\..\targets\Stride.UnitTests.props" />
+<Project Sdk="Stride.Sdk.Tests">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>Stride.Particles.Tests</AssemblyName>
     <RootNamespace>Stride.Particles.Tests</RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
-    <StrideBuildTags>*</StrideBuildTags>
     <StrideCompileAssets>true</StrideCompileAssets>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideGraphicsRegression>true</StrideGraphicsRegression>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>xunit.runner.stride.Program</StartupObject>
-  </PropertyGroup>
-  <ItemGroup>
+    <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.Particles\Stride.Particles.csproj" />
@@ -64,5 +59,4 @@
     <None Include="GameAssets\VisualTestUpdaters.sdscene" />
     <None Include="Stride.Particles.Tests.sdpkg" />
   </ItemGroup>
-  <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>

@@ -1,18 +1,17 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Sdk.Editor">
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
     <StridePackAssets>true</StridePackAssets>
-    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
     <ProjectReference Include="..\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj" />
   </ItemGroup>
@@ -24,5 +23,4 @@
     <None Include="Templates\Assets\.sdtpl\SpriteStudioAnimation.png" />
     <None Include="Templates\Assets\.sdtpl\SpriteStudioModel.png" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

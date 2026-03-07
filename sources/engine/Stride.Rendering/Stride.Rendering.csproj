@@ -1,11 +1,8 @@
-﻿<Project>
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
-  <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideBuildTags>*</StrideBuildTags>
     <StridePackAssets>true</StridePackAssets>
   </PropertyGroup>
   <ItemGroup>
@@ -23,5 +20,4 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

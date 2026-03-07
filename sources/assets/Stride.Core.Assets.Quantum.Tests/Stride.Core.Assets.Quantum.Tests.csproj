@@ -1,19 +1,9 @@
-<Project>
-  <Import Project="..\..\targets\Stride.UnitTests.props" />
+<Project Sdk="Stride.Sdk.Tests">
   <PropertyGroup>
-    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
-    <StrideBuildTags>LinuxTools;WindowsTools</StrideBuildTags>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Stride.Core.Assets.Tests\Helpers\GuidGenerator.cs">
       <Link>Helpers\GuidGenerator.cs</Link>
@@ -29,5 +19,4 @@
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
-  <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>

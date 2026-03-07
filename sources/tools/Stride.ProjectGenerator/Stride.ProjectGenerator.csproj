@@ -1,11 +1,7 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Sdk.Editor">
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
   </PropertyGroup>
   <ItemGroup>
@@ -63,5 +59,4 @@
     <Content Include="Templates\Stride.UnitTests\Resources\StrideIcon150x150.png" />
     <Resource Include="Templates\Stride.UnitTests\Resources\StrideIcon54x54.png" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

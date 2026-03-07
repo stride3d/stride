@@ -1,0 +1,186 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    ================================================================
+    Stride.Sdk - Assembly Processor Integration (Stride.AssemblyProcessor.targets)
+    ================================================================
+
+    EVALUATION PHASE: Late (AFTER project file)
+
+    This file integrates the Stride Assembly Processor into the build pipeline.
+    The Assembly Processor is critical for Stride's functionality:
+    - Adds module initializers (auto-registration code)
+    - Processes serialization attributes
+    - Modifies IL for Stride-specific features
+
+    Implementation follows: sources/core/Stride.Core/build/Stride.Core.targets
+    ================================================================
+  -->
+
+  <!-- ================================================================ -->
+  <!-- Assembly Processor Property Defaults -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <!-- Disabled by default - projects must opt-in -->
+    <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">false</StrideAssemblyProcessor>
+
+    <!-- Default options: parameter key + module initializers + serialization -->
+    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- Assembly Processor Path Detection -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <!-- Framework selection -->
+    <StrideAssemblyProcessorFramework Condition="'$(StrideAssemblyProcessorFramework)' == ''">netstandard2.0</StrideAssemblyProcessorFramework>
+    <StrideAssemblyProcessorExt Condition="'$(StrideAssemblyProcessorExt)' == ''">.dll</StrideAssemblyProcessorExt>
+
+    <!-- Path detection: SDK package vs source build -->
+    <!-- SDK package: tools/AssemblyProcessor/ is one level up from Sdk/ -->
+    <StrideAssemblyProcessorBasePath Condition="'$(StrideAssemblyProcessorBasePath)' == '' And Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
+
+    <!-- Source build: use StrideRoot (set by sources/Directory.Build.props) to find deps/ -->
+    <StrideAssemblyProcessorBasePath Condition="'$(StrideAssemblyProcessorBasePath)' == '' And '$(StrideRoot)' != '' And Exists('$(StrideRoot)deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)')">$(StrideRoot)deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
+
+    <!-- Derived paths -->
+    <StrideAssemblyProcessorPath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(StrideAssemblyProcessorBasePath)Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorPath>
+
+    <!-- Serialization hash file -->
+    <StrideAssemblyProcessorSerializationHashFile Condition="'$(StrideAssemblyProcessorSerializationHashFile)' == ''">$(IntermediateOutputPath)$(TargetName).sdserializationhash</StrideAssemblyProcessorSerializationHashFile>
+
+    <!-- Read hash for temp directory isolation (avoids file locking) -->
+    <StrideAssemblyProcessorHash Condition="'$(StrideAssemblyProcessorPath)' != '' And Exists('$(StrideAssemblyProcessorPath).hash')">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorPath).hash'))</StrideAssemblyProcessorHash>
+
+    <!-- Temp directory -->
+    <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorHash)' != ''">$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
+    <StrideAssemblyProcessorTempPath Condition="'$(StrideAssemblyProcessorTempBasePath)' != ''">$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
+  <!-- UsingTask Declaration -->
+  <!-- ================================================================ -->
+  <UsingTask TaskName="AssemblyProcessorTask"
+             AssemblyFile="$(StrideAssemblyProcessorTempPath)"
+             Condition="'$(StrideAssemblyProcessorTempPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true'" />
+
+  <!-- ================================================================ -->
+  <!-- Main Assembly Processor Target -->
+  <!-- ================================================================ -->
+  <!-- Uses BeforeTargets="CopyFilesToOutputDirectory" to run after compilation
+       but before output copy. This matches the old build system and avoids
+       import-order issues with PrepareForRunDependsOn (which gets overwritten
+       by Microsoft.NET.Sdk Sdk.targets when imported after this file). -->
+  <Target Name="StrideRunAssemblyProcessor"
+          BeforeTargets="CopyFilesToOutputDirectory"
+          DependsOnTargets="ResolveAssemblyReferences"
+          Condition="'$(StrideAssemblyProcessor)' == 'true' And '$(StrideAssemblyProcessorPath)' != ''">
+
+    <!-- Step 1: Write references to cache file -->
+    <WriteLinesToFile File="$(IntermediateOutputPath)StrideReferences.cache"
+                      Lines="@(ReferencePath)"
+                      Overwrite="true" />
+
+    <!-- Step 2: Build explicit reference list for add-reference flag -->
+    <ItemGroup>
+      <!-- Include references from direct/explicit PackageReference -->
+      <StrideAddReference Include="@(ReferencePath)"
+                          Condition="'%(PackageReference.IsImplicitlyDefined)' != 'true'">
+        <NuGetPackageReference>%(PackageReference.Identity)</NuGetPackageReference>
+      </StrideAddReference>
+
+      <!-- Filter to only matching NuGet packages -->
+      <StrideAddReference Remove="@(StrideAddReference)"
+                          Condition="'%(StrideAddReference.NuGetPackageId)' != '%(StrideAddReference.NuGetPackageReference)' Or ('%(StrideAddReference.ExternallyResolved)' != 'true' And '%(StrideAddReference.BuildReference)' != 'true')"/>
+
+      <!-- Also include non-NuGet references (Reference and ProjectReference) -->
+      <StrideAddReference Include="@(ReferencePath)"
+                          Condition="'%(ReferencePath.NuGetPackageId)' == ''"/>
+    </ItemGroup>
+
+    <!-- Step 3: Build complete options string -->
+    <PropertyGroup>
+      <!-- Start with explicit references for NuGet packages -->
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) @(StrideAddReference->'--add-reference=%22%(Identity)%22',' ')</StrideAssemblyProcessorOptions>
+
+      <!-- Documentation file -->
+      <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
+
+      <!-- References file (all references) -->
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)StrideReferences.cache"</StrideAssemblyProcessorOptions>
+
+      <!-- Platform -->
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --platform=$(StridePlatform)</StrideAssemblyProcessorOptions>
+
+      <!-- Target assembly (last positional argument) -->
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>
+
+      <!-- Delete on error if assembly is signed -->
+      <StrideAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(StrideAssemblyProcessorOptions) --delete-output-on-error</StrideAssemblyProcessorOptions>
+    </PropertyGroup>
+
+    <!-- Step 4: Copy processor to temp directory (avoids MSBuild file locking) -->
+    <ItemGroup>
+      <StrideAssemblyProcessorFilesToCopy Include="$(StrideAssemblyProcessorBasePath)*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(StrideAssemblyProcessorFilesToCopy)"
+          DestinationFolder="$(StrideAssemblyProcessorTempBasePath)"
+          Condition="!Exists('$(StrideAssemblyProcessorTempPath)')" />
+
+    <!-- Step 5: Execute processor -->
+    <Message Condition="'$(StrideAssemblyProcessorDev)' != 'true'"
+             Importance="low"
+             Text="&quot;$(StrideAssemblyProcessorTempPath)&quot; $(StrideAssemblyProcessorOptions)"/>
+
+    <!-- Task mode (normal) -->
+    <AssemblyProcessorTask Condition="'$(StrideAssemblyProcessorDev)' != 'true'"
+                           Arguments="$(StrideAssemblyProcessorOptions)"/>
+
+    <!-- Dev mode: use Exec to avoid file locking -->
+    <Exec Condition="'$(StrideAssemblyProcessorDev)' == 'true'"
+          Command="&quot;$(StrideAssemblyProcessorTempPath)&quot; $(StrideAssemblyProcessorOptions)"/>
+
+    <!-- Cleanup ItemGroup -->
+    <ItemGroup>
+      <StrideAddReference Remove="@(StrideAddReference)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- Build Pipeline Integration -->
+  <!-- ================================================================ -->
+  <!-- Integration is via BeforeTargets="CopyFilesToOutputDirectory" on the target itself.
+       PrepareForRunDependsOn cannot be used here because this file is imported BEFORE
+       Microsoft.NET.Sdk Sdk.targets, which would overwrite the property value. -->
+
+  <!-- ================================================================ -->
+  <!-- User Documentation (.usrdoc) File Handling -->
+  <!-- ================================================================ -->
+  <Target Name="_StrideCopyUserDoc"
+          AfterTargets="StrideRunAssemblyProcessor"
+          Condition="'$(StridePublicApi)' == 'true' And '$(StrideAssemblyProcessor)' == 'true'">
+
+    <!-- Copy .usrdoc from intermediate to output directory -->
+    <Copy Condition="Exists('%(DocFileItem.RelativeDir)%(DocFileItem.Filename).usrdoc')"
+          SourceFiles="@(DocFileItem->'%(RelativeDir)%(Filename).usrdoc')"
+          DestinationFolder="$(OutDir)"
+          SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
+          OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+          Retries="$(CopyRetryCount)"
+          RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+          UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)"
+          UseSymboliclinksIfPossible="$(CreateSymbolicLinksForCopyFilesToOutputDirectoryIfPossible)">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
+    </Copy>
+  </Target>
+
+  <!-- ================================================================ -->
+  <!-- Validation -->
+  <!-- ================================================================ -->
+  <Target Name="_StrideValidateAssemblyProcessor"
+          BeforeTargets="StrideRunAssemblyProcessor"
+          Condition="'$(StrideAssemblyProcessor)' == 'true' And '$(StrideAssemblyProcessorPath)' == ''">
+    <Warning Text="Assembly Processor enabled (StrideAssemblyProcessor=true) but binaries not found. Checked: SDK tools/AssemblyProcessor/ and source deps/AssemblyProcessor/" />
+  </Target>
+
+</Project>

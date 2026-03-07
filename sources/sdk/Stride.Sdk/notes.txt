@@ -1,0 +1,50 @@
+$(StrideProjectType)' == 'Cpp' -> there are no projects setting that value to Cpp
+
+strategy -> build the files step by step copying only what's needed for a given project
+that way we will remove evberything that either is not used or doesn't work (e.g. properties evaluated to early).
+
+----
+
+## Property Evaluation Order (Critical!)
+
+MSBuild SDK evaluation: Sdk.props → .csproj → Sdk.targets
+
+Key insight: Properties defined in the .csproj are NOT visible in Sdk.props!
+
+Old build system bug found:
+- sources/targets/Stride.Core.props:58 checks $(StrideRuntime) == 'true'
+- But StrideRuntime is defined IN THE .CSPROJ which hasn't loaded yet!
+- This is why multi-targeting only works via command-line properties
+- The condition always evaluates to FALSE when building individual projects
+
+SDK fix:
+- Stride.Frameworks.targets checks StrideRuntime (AFTER .csproj loads)
+- Correctly implements the multi-targeting logic
+- Multi-targeting now works from .csproj files!
+
+Historical workaround in old system:
+- Projects set StrideRuntime BEFORE importing Stride.Core.props
+- Example: sources/core/Stride.Core.IO/Stride.Core.IO.csproj
+- This made the property visible during import, but it's a hack
+
+See: build/docs/SDK-GUIDE.md#property-evaluation-order
+
+----
+
+post work cleanup
+
+- rename StrideEditorTargetFramework to StrideEditorFramework
+    - or rename StrideFramework to StrideTargetFramework
+- determine whether some logic should be moved to .targets files
+
+----
+
+in Stride.Frameworks.targets (moved from .props to .targets)
+- restored StrideExplicitWindowsRuntime guard for net10.0-windows TFM
+- now that this logic is in .targets, StrideExplicitWindowsRuntime is visible from .csproj
+- without the guard, all StrideRuntime projects got net10.0-windows which broke package conditions
+
+----
+
+Stride.PackageInfo.props
+- consider putting all info from SharedAssemblyInfo into that props

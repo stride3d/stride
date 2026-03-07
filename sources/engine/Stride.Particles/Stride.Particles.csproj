@@ -1,12 +1,9 @@
-<Project>
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
-  <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
-    <StrideBuildTags>*</StrideBuildTags>
+    <StrideAssemblyProcessorOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StridePackAssets>true</StridePackAssets>
   </PropertyGroup>
   <ItemGroup>
@@ -17,5 +14,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

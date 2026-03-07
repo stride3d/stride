@@ -1,5 +1,4 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Sdk.Editor">
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
@@ -37,5 +36,4 @@
       <LastGenOutput>TargetGenerator.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

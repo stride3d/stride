@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Stride.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -22,7 +22,4 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.utility" />
   </ItemGroup>
-
-  <Import Project="..\..\targets\Stride.PackageVersion.targets" />
-  <Import Project="..\..\targets\Stride.AutoPack.targets" />
 </Project>

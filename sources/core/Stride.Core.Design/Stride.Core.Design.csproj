@@ -1,28 +1,26 @@
-<Project>
-  <Import Project="..\..\targets\Stride.Core.props" />
+<Project Sdk="Stride.Sdk.Editor">
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
     <ProjectReference Include="..\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
     <ProjectReference Include="..\Stride.Core.Yaml\Stride.Core.Yaml.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="JetBrains.Rider.PathLocator" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" />
@@ -31,7 +29,4 @@
     <PackageReference Include="SharpDX" />
     <PackageReference Include="System.Management" />
   </ItemGroup>
-  
-  <Import Project="$(StrideSdkTargets)" />
-
 </Project>

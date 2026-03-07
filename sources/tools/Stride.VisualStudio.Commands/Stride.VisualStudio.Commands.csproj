@@ -1,8 +1,6 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Sdk.Editor">
   <PropertyGroup>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
   </PropertyGroup>
   <PropertyGroup>
@@ -11,7 +9,7 @@
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>    
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ServiceWire" />
@@ -28,5 +26,4 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

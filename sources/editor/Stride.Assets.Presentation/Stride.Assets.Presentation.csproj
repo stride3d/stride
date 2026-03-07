@@ -1,7 +1,5 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Sdk.Editor">
   <PropertyGroup>
-    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePackAssets>true</StridePackAssets>
     <StrideLocalized>true</StrideLocalized>
@@ -9,7 +7,6 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization --parameter-key</StrideAssemblyProcessorOptions>
-    <RestorePackages>true</RestorePackages>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
   </PropertyGroup>
@@ -108,14 +105,13 @@
     <None Include="Templates\Core\**" />
     <None Include="Templates\Assets\**" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
+
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
-
   </PropertyGroup>
   <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)RoslynPad*.dll" />
+      <BuildOutputInPackage Include="$(TargetDir)RoslynPad*.dll" />
     </ItemGroup>
   </Target>
   <Target Name="RemoveVisualStudioRoslynDependencies" AfterTargets="ResolveAssemblyReferences">
