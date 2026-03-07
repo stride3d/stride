@@ -21,7 +21,6 @@
       "..\\sources\\engine\\Stride.Shaders.Compiler\\Stride.Shaders.Compiler.csproj",
       "..\\sources\\engine\\Stride.Shaders.Parser\\Stride.Shaders.Parser.csproj",
       "..\\sources\\engine\\Stride.Shaders\\Stride.Shaders.csproj",
-      "..\\sources\\engine\\Stride.Shared\\Refactor\\Stride.Refactor.shproj",
       "..\\sources\\engine\\Stride.SpriteStudio.Runtime\\Stride.SpriteStudio.Runtime.csproj",
       "..\\sources\\engine\\Stride.UI\\Stride.UI.csproj",
       "..\\sources\\engine\\Stride.Video\\Stride.Video.csproj",
@@ -29,8 +28,7 @@
       "..\\sources\\engine\\Stride.Voxels\\Stride.Voxels.csproj",
       "..\\sources\\engine\\Stride\\Stride.csproj",
       "..\\sources\\shaders\\Irony\\Irony.csproj",
-      "..\\sources\\shaders\\Stride.Core.Shaders\\Stride.Core.Shaders.csproj",
-      "..\\sources\\shared\\Stride.Core.ShellHelper\\Stride.Core.ShellHelper.shproj"
+      "..\\sources\\shaders\\Stride.Core.Shaders\\Stride.Core.Shaders.csproj"
     ]
   }
 }
