@@ -67,6 +67,8 @@ namespace Stride.Shaders.Compiler
                 compiler = new NullEffectCompiler(fileProvider, selectedDatabase);
             }
 
+            return compiler;
+
             return new EffectCompilerCache(compiler, selectedDatabase, taskSchedulerSelector);
         }
     }

@@ -45,7 +45,7 @@
     <ProjectReference Include="..\Stride\Stride.csproj" />
     <PackageReference Include="System.Memory" />
     <PackageReference Include="WinPixEventRuntime" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
-    <PackageReference Include="Vortice.Vulkan" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
+    <PackageReference Include="Vortice.Vulkan" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkAndroid)' Or '$(TargetFramework)' == '$(StrideFrameworkiOS)'" />
     <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
     <PackageReference Include="Silk.NET.Direct3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
     <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />

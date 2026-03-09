@@ -32,7 +32,7 @@
     <!-- SharpDX is needed for WIC -->
     <PackageReference Include="SharpDX.Direct2D1" Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
     <PackageReference Include="System.Drawing.Common" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
-    <ProjectReference Include="..\..\tools\Stride.FreeImage\Stride.FreeImage.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.FreeImage\Stride.FreeImage.csproj" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)'" />
   </ItemGroup>
 
   <ItemGroup>
