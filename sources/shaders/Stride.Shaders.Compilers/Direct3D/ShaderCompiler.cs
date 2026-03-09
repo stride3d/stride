@@ -121,7 +121,7 @@ namespace Stride.Shaders.Compiler.Direct3D
 
                 if (compileErrors.Handle is not null)
                 {
-                    bytecodeResult.Warning(GetTextFromBlob(compileErrors));
+                    ProcessCompilerErrors(compileErrors, bytecodeResult);
                 }
             }
 
@@ -195,11 +195,29 @@ namespace Stride.Shaders.Compiler.Direct3D
                     // Log compilation errors
                     if (compileErrors.Handle is not null)
                     {
-                        bytecodeResult.Error(GetTextFromBlob(compileErrors));
+                        ProcessCompilerErrors(compileErrors, bytecodeResult);
                     }
                 }
 
                 return result;
+            }
+
+            static void ProcessCompilerErrors(ComPtr<ID3D10Blob> compileErrors, ShaderBytecodeResult bytecodeResult)
+            {
+                var compileErrorsStr = GetTextFromBlob(compileErrors);
+                using (StringReader reader = new StringReader(compileErrorsStr))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (line.Contains(": error"))
+                            bytecodeResult.Error(line);
+                        else if (line.Contains(": warning"))
+                            bytecodeResult.Warning(line);
+                        else
+                            bytecodeResult.Info(line);
+                    }
+                }
             }
 
             //
@@ -700,7 +718,8 @@ namespace Stride.Shaders.Compiler.Direct3D
                 if (blob.Handle is null)
                     return null;
 
-                var blobBuffer = blob.Handle->Buffer;
+                // Remove nul terminator
+                var blobBuffer = blob.Handle->Buffer[0..^1];
                 return blobBuffer.GetString();
             }
 
