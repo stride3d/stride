@@ -278,7 +278,7 @@ namespace Stride.Engine
             Vector3.Transform(ref position, ref worldMatrixInv, out position);
             
             worldMatrix.Decompose(out _, out Quaternion parentRot, out _);
-            rotation = Quaternion.Invert(parentRot) * rotation;
+            rotation = rotation * Quaternion.Invert(parentRot);
             
             transformComponent.Position = position;
             transformComponent.Rotation = rotation;
@@ -335,7 +335,7 @@ namespace Stride.Engine
             }
 
             transformComponent.Parent.WorldMatrix.Decompose(out _, out Quaternion parentRot, out _);
-            transformComponent.Rotation = Quaternion.Invert(parentRot) * rotation;
+            transformComponent.Rotation = rotation * Quaternion.Invert(parentRot);
         }
     }
 }

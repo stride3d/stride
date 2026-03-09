@@ -78,5 +78,26 @@ namespace Stride.Engine.Tests
             Assert.Equal(Vector3.Zero, pos);
             Assert.Equal(Quaternion.Identity, rot);
         }
+
+        [Fact]
+        public void TestSetWorldTransformationNested()
+        {
+            var scene = new Scene();
+            var parent = new Entity { Scene = scene }.Transform;
+            var child = new Entity { Transform = { Parent = parent } }.Transform;
+            var targetPosition = new Vector3(2, 2, 2);
+            var targetRotation = Quaternion.RotationY(MathF.PI * 0.1f);
+
+            parent.Position = new Vector3(1, 1, 1);
+            parent.Rotation = Quaternion.RotationX(MathF.PI * 0.05f);
+
+            child.UpdateWorldMatrix();
+            child.SetWorld(targetPosition, targetRotation);
+            child.UpdateWorldMatrix();
+
+            child.GetWorldTransformation(out var position, out var rotation, out _);
+            Assert.Equal(targetPosition, position);
+            Assert.Equal(targetRotation, rotation);
+        }
     }
 }
