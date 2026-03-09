@@ -1,4 +1,4 @@
-<Project Sdk="Stride.Sdk">
+<Project Sdk="Stride.Build.Sdk">
   <PropertyGroup>
     <Description>Stride Core IO assembly.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

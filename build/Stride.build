@@ -30,12 +30,12 @@ Example of use:
   </Target>
 
   <!--
-  Build Stride MSBuild SDK packages (Stride.Sdk, Stride.Sdk.Editor, Stride.Sdk.Tests)
-  into the local NuGet cache. Required before any project using Sdk="Stride.Sdk" can build.
+  Build Stride MSBuild SDK packages (Stride.Build.Sdk, Stride.Build.Sdk.Editor, Stride.Build.Sdk.Tests)
+  into the local NuGet cache. Required before any project using Sdk="Stride.Build.Sdk" can build.
   -->
   <Target Name="BuildSdk">
     <PropertyGroup>
-      <StrideSdkSolution>$(StrideRoot)sources\sdk\Stride.Sdk.slnx</StrideSdkSolution>
+      <StrideSdkSolution>$(StrideRoot)sources\sdk\Stride.Build.Sdk.slnx</StrideSdkSolution>
     </PropertyGroup>
     <MSBuild Targets="Restore" Projects="$(StrideSdkSolution)" />
     <MSBuild Targets="Build" Projects="$(StrideSdkSolution)" />

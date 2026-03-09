@@ -1,4 +1,4 @@
-<Project Sdk="Stride.Sdk.Tests">
+<Project Sdk="Stride.Build.Sdk.Tests">
   <PropertyGroup>
     <TargetFramework>net10.0-ios</TargetFramework>
     <AssemblyName>Stride.Physics.Tests</AssemblyName>

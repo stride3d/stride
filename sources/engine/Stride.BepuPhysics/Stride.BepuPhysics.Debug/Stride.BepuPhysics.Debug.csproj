@@ -1,4 +1,4 @@
-<Project Sdk="Stride.Sdk">
+<Project Sdk="Stride.Build.Sdk">
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <RootNamespace>Stride.BepuPhysics.Debug</RootNamespace>

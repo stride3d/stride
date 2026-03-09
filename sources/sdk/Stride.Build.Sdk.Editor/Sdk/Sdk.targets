@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- Import base Stride.Sdk targets -->
-  <Import Project="Sdk.targets" Sdk="Stride.Sdk" />
+  <!-- Import base Stride.Build.Sdk targets -->
+  <Import Project="Sdk.targets" Sdk="Stride.Build.Sdk" />
 
   <!--
     Future editor-specific targets can go here:

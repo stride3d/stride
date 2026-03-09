@@ -21,11 +21,13 @@
     <Copyright>Copyright © Stride contributors</Copyright>
     <Authors>Stride contributors</Authors>
     <PackageTags>Stride;3D;SDK</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <!-- Include icon -->
+  <!-- Include icon and readme -->
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)nuget-icon.png" Pack="true" PackagePath="" Visible="false"/>
+    <None Include="$(MSBuildProjectDirectory)\README.md" Pack="true" PackagePath="" Visible="false"/>
   </ItemGroup>
 
   <!-- Remove previous package from NuGet cache -->

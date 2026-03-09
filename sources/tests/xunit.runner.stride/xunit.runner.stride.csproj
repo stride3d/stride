@@ -1,4 +1,4 @@
-<Project Sdk="Stride.Sdk">
+<Project Sdk="Stride.Build.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

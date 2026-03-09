@@ -1,4 +1,4 @@
-<Project Sdk="Stride.Sdk.Editor">
+<Project Sdk="Stride.Build.Sdk.Editor">
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>

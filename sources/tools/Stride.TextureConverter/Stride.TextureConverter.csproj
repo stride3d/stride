@@ -1,4 +1,4 @@
-<Project Sdk="Stride.Sdk.Editor">
+<Project Sdk="Stride.Build.Sdk.Editor">
   <PropertyGroup>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <OutputType>Library</OutputType>

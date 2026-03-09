@@ -4,8 +4,8 @@
     "rollForward": "latestMinor"
   },
   "msbuild-sdks": {
-    "Stride.Sdk": "4.3.0-dev",
-    "Stride.Sdk.Editor": "4.3.0-dev",
-    "Stride.Sdk.Tests": "4.3.0-dev"
+    "Stride.Build.Sdk": "4.3.0-dev",
+    "Stride.Build.Sdk.Editor": "4.3.0-dev",
+    "Stride.Build.Sdk.Tests": "4.3.0-dev"
   }
 }

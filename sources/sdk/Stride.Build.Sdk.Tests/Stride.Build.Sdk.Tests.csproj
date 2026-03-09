@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">  
   <PropertyGroup>
     <!-- Package Identity -->
-    <PackageId>Stride.Sdk.Tests</PackageId>
+    <PackageId>Stride.Build.Sdk.Tests</PackageId>
     <PackageTags>$(PackageTags);tests;testing</PackageTags>
   </PropertyGroup>
 

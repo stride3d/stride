@@ -3,7 +3,7 @@
   <!-- ================================================================ -->
   <!-- Import Base Stride SDK -->
   <!-- ================================================================ -->
-  <Import Project="Sdk.props" Sdk="Stride.Sdk.Editor" />
+  <Import Project="Sdk.props" Sdk="Stride.Build.Sdk.Editor" />
 
   <!-- ================================================================ -->
   <!-- Test Project Properties -->

@@ -3,7 +3,7 @@
   <!-- ================================================================ -->
   <!-- Import Base Stride SDK -->
   <!-- ================================================================ -->
-  <Import Project="Sdk.targets" Sdk="Stride.Sdk.Editor" />
+  <Import Project="Sdk.targets" Sdk="Stride.Build.Sdk.Editor" />
 
   <!-- ================================================================ -->
   <!-- Test Framework Package References -->
@@ -57,7 +57,7 @@
   <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'"
           Project="$(StrideRoot)sources\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
 
-  <!-- Shader code generation support is inherited from Stride.Sdk -->
+  <!-- Shader code generation support is inherited from Stride.Build.Sdk -->
 
   <!-- ================================================================ -->
   <!-- Native Libraries Copying -->
