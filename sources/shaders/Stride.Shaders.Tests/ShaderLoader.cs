@@ -56,9 +56,9 @@ class ShaderLoader(params string[] searchPaths) : ShaderLoaderBase(new TestShade
 
     class TestShaderCache : ShaderCache
     {
-        public override void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode, ObjectId? hash = null)
+        public override void RegisterShader(string name, string? generics, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode, ObjectId? hash = null)
         {
-            base.RegisterShader(name, defines, bytecode, hash);
+            base.RegisterShader(name, generics, defines, bytecode, hash);
 
             Console.WriteLine($"Registering shader {name}");
             Spv.Dis(bytecode, DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);

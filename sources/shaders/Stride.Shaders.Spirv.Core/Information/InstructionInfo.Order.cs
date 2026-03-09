@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -32,6 +32,9 @@ public partial class InstructionInfo
         ];
         foreach (var e in initSDSL)
             OrderGroup[(e, null)] = group;
+
+        group++;
+        OrderGroup[(Op.OpSourceHashSDSL, null)] = group;
 
         group++;
         OrderGroup[(Op.OpExtension, null)] = group;

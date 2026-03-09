@@ -58,7 +58,7 @@ public static partial class Spv
 
     public static string Dis(SpirvReader reader, DisassemblerFlags flags = DisassemblerFlags.Name, bool writeToConsole = false)
     {
-        using var buffer = SpirvBytecode.CreateBufferFromBytecode(reader.Words);
+        using var buffer = SpirvBytecode.CreateFromSpan(reader.Words);
         var writer = new DisWriter(buffer, flags, writeToConsole);
         writer.Disassemble();
         return writer.ToString();

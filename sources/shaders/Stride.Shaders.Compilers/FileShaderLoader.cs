@@ -4,7 +4,7 @@ using Stride.Shaders.Spirv.Building;
 
 namespace Stride.Shaders.Compilers;
 
-public class FileShaderLoader(IVirtualFileProvider FileProvider) : ShaderLoaderBase(new FileShaderCache(FileProvider))
+public class FileShaderLoader(IVirtualFileProvider FileProvider) : ShaderLoaderBase(new FileShaderCache(VirtualFileSystem.ApplicationCache))
 {
     public ShaderSourceManager SourceManager { get; } = new(FileProvider);
 

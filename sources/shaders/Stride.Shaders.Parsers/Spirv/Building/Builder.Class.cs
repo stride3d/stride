@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.HighPerformance;
+using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing;
@@ -19,12 +19,38 @@ using System.Text;
 using System.Threading.Tasks;
 using Stride.Core.Storage;
 using static Stride.Shaders.Spirv.Specification;
+using Stride.Shaders.Spirv.Core.Parsing;
 
 namespace Stride.Shaders.Spirv.Building;
 
 public record class ShaderMixinInstantiation(List<ShaderClassInstantiation> Mixins, Dictionary<string, ShaderMixinInstantiation[]> Compositions);
 
-public record struct ShaderBuffers(SpirvContext Context, SpirvBuffer Buffer);
+public record struct ShaderBuffers(SpirvContext Context, SpirvBuffer Buffer)
+{
+    public static ShaderBuffers CreateFromSpan(Span<int> span)
+    {
+        if (span[0] != Specification.MagicNumber)
+            throw new InvalidOperationException("SPIRV Magic number not found");
+
+        var header = SpirvHeader.Read(span);
+
+        var context = new SpirvContext();
+        var buffer = new SpirvBuffer();
+
+        int wid = SpirvHeader.IntSpanSize;
+        bool isContext = true;
+        while (wid < span.Length)
+        {
+            var instruction = new OpData(span.Slice(wid, span[wid] >> 16));
+            if (instruction.Op == Op.OpSDSLShader)
+                isContext = false;
+            (isContext ? context.GetBuffer() : buffer).Add(instruction);
+            wid += span[wid] >> 16;
+        }
+
+        return new(context, buffer);
+    }
+}
 
 public enum ResolveStep
 {
@@ -423,18 +449,21 @@ public partial class SpirvBuilder
         genericResolver.ValidateGenericParameters(classNameWithGenerics, genericParameters);
     }
 
-    private static string BuildGenericClassName(string className, GenericResolver resolver)
+    private static string BuildGenericArguments(GenericResolver resolver)
+    {
+        var result = new string[resolver.GenericArgumentCount];
+        for (int i = 0; i < resolver.GenericArgumentCount; i++)
+            result[i] = resolver.ResolveGenericAsString(i);
+        return string.Join(',', result);
+    }
+
+    private static string BuildGenericClassName(string className, string genericArguments)
     {
         StringBuilder sb = new();
-        sb.Append(className).Append("<");
-
-        for (int i = 0; i < resolver.GenericArgumentCount; i++)
-        {
-            if (i > 0)
-                sb.Append(",");
-            sb.Append(resolver.ResolveGenericAsString(i));
-        }
-        sb.Append(">");
+        sb.Append(className)
+            .Append("<")
+            .Append(genericArguments)
+            .Append(">");
         return sb.ToString();
     }
 
@@ -737,9 +766,10 @@ public partial class SpirvBuilder
         if (genericResolver.GenericArgumentCount > 0)
         {
             // First, try to build name for cache lookup
-            var classNameWithGenerics = BuildGenericClassName(className, genericResolver);
+            var genericArguments = BuildGenericArguments(genericResolver);
+            var classNameWithGenerics = BuildGenericClassName(className, genericArguments);
             var cache = genericResolver.Cache ?? shaderLoader.Cache;
-            if (cache.TryLoadFromCache(classNameWithGenerics, macros, out var cachedShaderBuffers, out var cachedHash))
+            if (cache.TryLoadFromCache(className, genericArguments, macros, out var cachedShaderBuffers, out var cachedHash))
             {
                 shaderBuffers = cachedShaderBuffers;
                 hash = cachedHash;
@@ -759,7 +789,7 @@ public partial class SpirvBuilder
                 shaderBuffers.Buffer = CopyBuffer(shaderBuffers.Buffer);
 
                 InstantiateGenericShader(ref shaderBuffers, classNameWithGenerics, genericResolver, shaderLoader, macros);
-                cache.RegisterShader(classNameWithGenerics, macros, shaderBuffers, hash);
+                cache.RegisterShader(className, genericArguments, macros, shaderBuffers, hash);
             }
 
             // Run in all cases (even if cached)

@@ -2,10 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using CommunityToolkit.HighPerformance;
 using Stride.Core.IO;
 using Stride.Core.Storage;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 
 namespace Stride.Shaders.Compilers;
@@ -14,7 +16,7 @@ namespace Stride.Shaders.Compilers;
 /// File-backed <see cref="IShaderCache"/> that persists compiled shader bytecodes
 /// to disk via <see cref="IVirtualFileProvider"/>, falling back to in-memory cache for hot lookups.
 /// </summary>
-public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath = "shader/cache") : IShaderCache
+public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath = "shaders") : IShaderCache
 {
     private readonly ShaderCache memoryCache = new();
 
@@ -34,13 +36,13 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
         }
     }
 
-    public void RegisterShader(string name, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode, ObjectId? hash)
+    public void RegisterShader(string name, string? generics, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode, ObjectId? hash)
     {
-        memoryCache.RegisterShader(name, defines, bytecode, hash);
+        memoryCache.RegisterShader(name, generics, defines, bytecode, hash);
 
         try
         {
-            var path = GetCachePath(name, defines);
+            var path = GetCachePath(name, generics, defines);
             var dir = path[..path.LastIndexOf('/')];
             if (!fileProvider.DirectoryExists(dir))
                 fileProvider.CreateDirectory(dir);
@@ -55,14 +57,14 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
         }
     }
 
-    public bool TryLoadFromCache(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash)
+    public bool TryLoadFromCache(string name, string? generics, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash)
     {
-        if (memoryCache.TryLoadFromCache(name, defines, out buffer, out hash))
+        if (memoryCache.TryLoadFromCache(name, generics, defines, out buffer, out hash))
             return true;
 
         try
         {
-            var path = GetCachePath(name, defines);
+            var path = GetCachePath(name, generics, defines);
             if (!fileProvider.FileExists(path))
             {
                 buffer = default;
@@ -75,7 +77,7 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
             buffer = Deserialize(reader, out hash);
 
             // Populate in-memory cache for subsequent lookups
-            memoryCache.RegisterShader(name, defines, buffer, hash);
+            memoryCache.RegisterShader(name, generics, defines, buffer, hash);
             return true;
         }
         catch
@@ -87,11 +89,11 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
         }
     }
 
-    private string GetCachePath(string name, ReadOnlySpan<ShaderMacro> defines)
+    private string GetCachePath(string name, string? generics, ReadOnlySpan<ShaderMacro> defines)
     {
         var sanitized = SanitizeName(name);
-        var macrosKey = defines.Length == 0 ? "default" : ComputeMacrosHash(defines);
-        return $"{basePath}/{sanitized}/{macrosKey}";
+        var macrosKey = defines.Length == 0 ? "default" : ComputeCacheFilename(generics, defines);
+        return $"{basePath}/{sanitized}_{macrosKey}.spv";
     }
 
     private static string SanitizeName(string name)
@@ -109,9 +111,11 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
         return new string(result);
     }
 
-    private static string ComputeMacrosHash(ReadOnlySpan<ShaderMacro> defines)
+    private static string ComputeCacheFilename(string? generics, ReadOnlySpan<ShaderMacro> defines)
     {
         var builder = new ObjectIdBuilder();
+        if (generics != null)
+            builder.Write(generics);
         for (int i = 0; i < defines.Length; i++)
         {
             var nameBytes = Encoding.UTF8.GetBytes(defines[i].Name ?? string.Empty);
@@ -124,44 +128,31 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
 
     private static void Serialize(BinaryWriter writer, ShaderBuffers buffers, ObjectId hash)
     {
-        // Header
-        writer.Write(buffers.Context.Bound);
-        WriteObjectId(writer, hash);
-
-        // Context buffer
-        var contextBuffer = buffers.Context.GetBuffer();
-        writer.Write(GetTotalWordCount(contextBuffer));
-        WriteBuffer(writer, contextBuffer);
-
-        // Main buffer
-        WriteBuffer(writer, buffers.Buffer);
+        var bytecode = SpirvBytecode.CreateBytecodeFromBuffers(buffers.Context.GetBuffer(), buffers.Buffer);
+        writer.Write(bytecode);
     }
 
     private static ShaderBuffers Deserialize(BinaryReader reader, out ObjectId hash)
     {
-        // Header
-        var bound = reader.ReadInt32();
-        hash = ReadObjectId(reader);
+        var buffer = new byte[reader.BaseStream.Length];
+        reader.ReadExactly(buffer);
 
-        // Context buffer
-        var contextWordCount = reader.ReadInt32();
-        var contextWords = new int[contextWordCount];
-        for (int i = 0; i < contextWordCount; i++)
-            contextWords[i] = reader.ReadInt32();
+        var result = ShaderBuffers.CreateFromSpan(buffer.AsSpan().Cast<byte, int>());
 
-        // Main buffer — read remaining bytes
-        var remainingBytes = reader.BaseStream.Length - reader.BaseStream.Position;
-        var mainWordCount = (int)(remainingBytes / sizeof(int));
-        var mainWords = new int[mainWordCount];
-        for (int i = 0; i < mainWordCount; i++)
-            mainWords[i] = reader.ReadInt32();
+        // Fetch hash from OpSourceHashSDSL
+        hash = default;
+        foreach (var i in result.Context)
+        {
+            if (i.Op == Spirv.Specification.Op.OpSourceHashSDSL && (OpSourceHashSDSL)i is { } sourceHash)
+            {
+                hash = new ObjectId((uint)sourceHash.Hash1, (uint)sourceHash.Hash2, (uint)sourceHash.Hash3, (uint)sourceHash.Hash4);
+                break;
+            }
+        }
 
-        // Reconstruct
-        var contextBuffer = new SpirvBuffer(contextWords);
-        var mainBuffer = new SpirvBuffer(mainWords);
-        var context = new SpirvContext(contextBuffer) { Bound = bound };
-        ShaderClass.ProcessNameAndTypes(context);
-        return new ShaderBuffers(context, mainBuffer);
+        ShaderClass.ProcessNameAndTypes(result.Context);
+
+        return result;
     }
 
     private static int GetTotalWordCount(SpirvBuffer buffer)

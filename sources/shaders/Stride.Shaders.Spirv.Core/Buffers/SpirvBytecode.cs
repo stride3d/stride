@@ -25,17 +25,17 @@ public record SpirvBytecode(SpirvHeader Header, SpirvBuffer Buffer) : IDisposabl
         return new SpirvHeader("1.4", 0, bound);
     }
 
-    public Span<byte> ToBytecode()
+    public Span<byte> ToSpan()
     {
         return CreateBytecodeFromBuffers(Header, false, Buffer);
     }
 
-    public static SpirvBytecode CreateBufferFromBytecode(Span<byte> span)
+    public static SpirvBytecode CreateFromSpan(Span<byte> span)
     {
-        return CreateBufferFromBytecode(MemoryMarshal.Cast<byte, int>(span));
+        return CreateFromSpan(MemoryMarshal.Cast<byte, int>(span));
     }
 
-    public static SpirvBytecode CreateBufferFromBytecode(Span<int> span)
+    public static SpirvBytecode CreateFromSpan(Span<int> span)
     {
         if (span[0] != Specification.MagicNumber)
             throw new InvalidOperationException("SPIRV Magic number not found");

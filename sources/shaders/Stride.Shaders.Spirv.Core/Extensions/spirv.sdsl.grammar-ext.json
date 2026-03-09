@@ -376,6 +376,17 @@
       ]
     },
     {
+      "opname": "OpSourceHashSDSL",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind" : "IdRef",          "name" : "'File'" },
+        { "kind" : "LiteralInteger", "name" : "Hash1" },
+        { "kind" : "LiteralInteger", "name" : "Hash2" },
+        { "kind" : "LiteralInteger", "name" : "Hash3" },
+        { "kind" : "LiteralInteger", "name" : "Hash4" }
+      ]
+    },
+    {
       "opname": "OpEffectSDFX",
       "opcode" : 9000,
       "class": "Miscellaneous",

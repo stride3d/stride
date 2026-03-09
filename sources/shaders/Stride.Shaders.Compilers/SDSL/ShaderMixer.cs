@@ -317,6 +317,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         OpName nameInstruction = i;
                         names.Add(nameInstruction.Target, nameInstruction.Name);
                     }
+
+                    // Skip source hash (doesn't make sense during mixing, as it's not a 1 sdsl <=> 1 spv mapping anymore)
+                    if (i.Op == Op.OpSourceHashSDSL)
+                        include = false;
+
                     if (i.Op == Op.OpFunction && (OpFunction)i is { } function && shader[index + 1].Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)shader[index + 1] is { } functionInfo)
                     {
                         var isStage = (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
@@ -1003,7 +1008,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpSDSLImportShader
                 || i.Op == Op.OpSDSLImportFunction
                 || i.Op == Op.OpSDSLImportVariable
-                || i.Op == Op.OpSDSLFunctionInfo)
+                || i.Op == Op.OpSDSLFunctionInfo
+                || i.Op == Op.OpSourceHashSDSL)
                 return true;
             if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && ((OpDecorate)i).Decoration is
                     Decoration.FunctionParameterDefaultValueSDSL

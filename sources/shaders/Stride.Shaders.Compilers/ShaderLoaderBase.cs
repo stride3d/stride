@@ -1,4 +1,4 @@
-﻿using Stride.Shaders.Compilers.SDSL;
+using Stride.Shaders.Compilers.SDSL;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -27,7 +27,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash, out bool isFromCache)
     {
-        isFromCache = Cache.TryLoadFromCache(name, defines, out buffer, out hash);
+        isFromCache = Cache.TryLoadFromCache(name, null, defines, out buffer, out hash);
         if (isFromCache)
             return true;
 
@@ -51,7 +51,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
     public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash, out bool isFromCache)
     {
-        isFromCache = Cache.TryLoadFromCache(name, defines, out buffer, out hash);
+        isFromCache = Cache.TryLoadFromCache(name, null, defines, out buffer, out hash);
         if (isFromCache)
             return true;
 
@@ -78,6 +78,6 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
             ShaderLoader = this,
         };
 
-        return sdslc.Compile(text, hash, macros, out buffer);
+        return sdslc.Compile(filename, text, hash, macros, out buffer);
     }
 }

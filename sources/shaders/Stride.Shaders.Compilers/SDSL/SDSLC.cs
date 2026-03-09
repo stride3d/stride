@@ -16,7 +16,7 @@ namespace Stride.Shaders.Compilers.SDSL;
 
 public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 {
-    public readonly bool Compile(string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out ShaderBuffers lastBuffer)
+    public readonly bool Compile(string filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out ShaderBuffers lastBuffer)
     {
         var parsed = SDSLParser.Parse(code);
         lastBuffer = default;
@@ -38,6 +38,14 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                         ShaderLoader = ShaderLoader,
                         CurrentMacros = [.. macros],
                     };
+                    
+                    // Add OpSource
+                    var filenameId = compiler.Context.Add(new OpString(compiler.Context.Bound++, filename)).ResultId;
+                    // TODO: Add SourceLanguage.SDSL
+                    compiler.Context.Add(new OpSource(Spirv.Specification.SourceLanguage.Unknown, 0, filenameId, null));
+                    compiler.Context.Add(new OpSourceHashSDSL(filenameId, (int)hash.Hash1, (int)hash.Hash2, (int)hash.Hash3, (int)hash.Hash4));
+                    // TODO: Do we want to record macros with a custom OpMacroSDSL? (mostly for debug purposes)
+
                     compiler.Macros.AddRange(macros);
                     shader.Compile(table, compiler);
 
@@ -45,7 +53,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                         throw new Exception($"Some parse errors:{Environment.NewLine}{string.Join(Environment.NewLine, table.Errors)}");
 
                     lastBuffer = compiler.ToShaderBuffers();
-                    ShaderLoader.Cache.RegisterShader(shader.Name, macros, lastBuffer, hash);
+                    ShaderLoader.Cache.RegisterShader(shader.Name, null, macros, lastBuffer, hash);
                 }
                 else if (declaration is ShaderEffect or EffectParameters)
                 {

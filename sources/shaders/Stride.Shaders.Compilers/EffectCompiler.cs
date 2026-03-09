@@ -189,7 +189,7 @@ namespace Stride.Shaders.Compiler
                 if (!File.Exists(shaderSourceFilename))
                 {
                     File.WriteAllBytes(Path.ChangeExtension(shaderSourceFilename, ".spv"), spirvBytecode);
-                    File.WriteAllText(Path.ChangeExtension(shaderSourceFilename, ".spvdis"), Spirv.Tools.Spv.Dis(SpirvBytecode.CreateBufferFromBytecode(spirvBytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
+                    File.WriteAllText(Path.ChangeExtension(shaderSourceFilename, ".spvdis"), Spirv.Tools.Spv.Dis(SpirvBytecode.CreateFromSpan(spirvBytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
                 }
             }
 #else
