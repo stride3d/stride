@@ -1,13 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.AddAssets;
 using Stride.Core.Assets.Editor.Components.Properties;
@@ -19,8 +16,6 @@ using Stride.Core.Assets.Editor.View.Behaviors;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Assets.Tracking;
-using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -30,9 +25,9 @@ using Stride.Core.Presentation.Core;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Translation;
 using Stride.Core.Presentation.ViewModels;
-using System.Collections;
+using Stride.Core.Presentation.Windows;
+using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
@@ -552,7 +547,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private async Task<string> GetAssetCopyDirectory(DirectoryBaseViewModel directory, UFile file)
         {
             var path = directory.Path;
-            var message = Tr._p("Message", "Do you want to place the resource in the default location ?");
+            var message = Tr._p("Message", "Do you want to place the resource in the default location?");
             var finalPath = Path.GetFullPath(Path.Combine(directory.Package.Package.ResourceFolders[0], path, file.GetFileName()));
             var pathResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (pathResult == MessageBoxResult.No)
@@ -587,39 +582,99 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private async Task<List<AssetViewModel>> InvokeAddAssetTemplate(LoggerResult logger, string name, DirectoryBaseViewModel directory, TemplateAssetDescription templateDescription, [CanBeNull] IList<UFile> files, PropertyContainer? customParameters)
         {
-            List<AssetViewModel> newAssets = new List<AssetViewModel>();
+            const int DialogClosed = 0;
+            const int DialogYes = 1;
+            const int DialogNo = 2;
+            const int DialogYesToAll = 3;
+            const int DialogNoToAll = 4;
+
+            var newAssets = new List<AssetViewModel>();
+            IReadOnlyList<DialogButtonInfo> copyPromptWithToAllButtons = DialogHelper.CreateButtons(
+            [
+                Tr._p("Button", "Yes"),
+                Tr._p("Button", "No"),
+                Tr._p("Button", "Yes to all"),
+                Tr._p("Button", "No to all")
+            ], 1, 2);
+
+            IReadOnlyList<DialogButtonInfo> overwritePromptWithToAllButtons = DialogHelper.CreateButtons(
+            [
+                Tr._p("Button", "Yes"),
+                Tr._p("Button", "No"),
+                Tr._p("Button", "Yes to all")
+            ], 1, 2);
+
+            IReadOnlyList<DialogButtonInfo> dialogDefaultButtons = DialogHelper.CreateButtons(
+            [
+                Tr._p("Button", "Yes"),
+                Tr._p("Button", "No")
+            ], 1, 2);
+
+            var yesToAll = false;
+            var overwriteAll = false;
+            var finalPath = string.Empty;
+
             if (files is not null)
             {
-                for (int i = 0; i < files.Count; i++)
+                for (var i = 0; i < files.Count; i++)
                 {
                     var file = files[i];
-                    bool inResourceFolder = directory.Package.Package.ResourceFolders.Any(x => file.FullPath.StartsWith(x.FullPath, StringComparison.Ordinal));
+                    var inResourceFolder = directory.Package.Package.ResourceFolders.Any(x => file.FullPath.StartsWith(x.FullPath, StringComparison.Ordinal));
 
                     if (inResourceFolder)
+                    {
                         continue;
+                    }
 
-                    var message = Tr._p("Message", "Source file '{0}' is not inside of your project's resource folders, do you want to copy it?").ToFormat(file.FullPath);
+                    if (!yesToAll)
+                    {
+                        var message = Tr._p("Message", "Source file '{0}' is not inside of your project's resource folders, do you want to copy it?").ToFormat(file.FullPath);
 
-                    var copyResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                        var copyResult = await Dialogs.MessageBoxAsync(message, i != files.Count - 1 ? copyPromptWithToAllButtons : dialogDefaultButtons, MessageBoxImage.Warning);
 
-                    if (copyResult != MessageBoxResult.Yes)
-                        continue;
+                        if (copyResult is DialogClosed or DialogNo)
+                        {
+                            continue;
+                        }
 
-                    string finalPath = await GetAssetCopyDirectory(directory, file);
+                        if (copyResult is DialogNoToAll)
+                        {
+                            break;
+                        }
+
+                        if (copyResult is DialogYesToAll)
+                        {
+                            yesToAll = true;
+                        }
+
+                        if (copyResult is DialogYes or DialogYesToAll)
+                        {
+                            finalPath = await GetAssetCopyDirectory(directory, file);
+                        }
+                    }
+                    else
+                    {
+                        // If "Yes to all" we're going to assume they want to use the same directory as the initial file.
+                        finalPath = Path.Combine(Path.GetDirectoryName(finalPath), file.GetFileName());
+                    }
 
                     try
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(finalPath));
                         if (File.Exists(finalPath))
                         {
-                            message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(finalPath);
-
-                            copyResult = await Dialogs.MessageBoxAsync(message, MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-                            // Abort if the user says no or closes the prompt
-                            if (copyResult != MessageBoxResult.Yes)
+                            if (!overwriteAll)
                             {
-                                return newAssets;
+                                var message = Tr._p("Message", "The file '{0}' already exists, it will get overwritten if you continue, do you really want to proceed?").ToFormat(finalPath);
+
+                                var copyResult = await Dialogs.MessageBoxAsync(message, i != files.Count - 1 ? overwritePromptWithToAllButtons : dialogDefaultButtons, MessageBoxImage.Warning);
+
+                                overwriteAll = copyResult is DialogYesToAll;
+
+                                if (copyResult is DialogClosed or DialogNo)
+                                {
+                                    return newAssets;
+                                }
                             }
                             File.Copy(file.FullPath, finalPath, true);
                         }
@@ -632,7 +687,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     }
                     catch (Exception ex)
                     {
-                        message = Tr._p("Message", $"An error occurred while copying the asset to the resources folder : {ex.Message}");
+                        var message = Tr._p("Message", "An error occurred while copying the asset to the resources folder: {0}").ToFormat(ex.Message);
                         await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
                         return newAssets;
                     }
