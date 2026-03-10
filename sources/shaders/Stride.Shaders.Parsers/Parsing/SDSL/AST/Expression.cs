@@ -77,6 +77,55 @@ public partial class EmptyExpression(TextLocation info) : Expression(info)
     public override string ToString() => string.Empty;
 }
 
+public partial class AssignExpression(Expression target, AssignOperator op, Expression value, TextLocation info) : Expression(info)
+{
+    public Expression Target { get; set; } = target;
+    public AssignOperator Operator { get; set; } = op;
+    public Expression Value { get; set; } = value;
+
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        Target.ProcessSymbol(table);
+        Value.ProcessSymbol(table);
+        Type = Target.Type;
+    }
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+        var targetVal = Target.Compile(table, compiler);
+        var source = Value.CompileAsValue(table, compiler);
+
+        if (Operator != AssignOperator.Simple)
+        {
+            var binaryOperator = Operator switch
+            {
+                AssignOperator.Plus => Core.Operator.Plus,
+                AssignOperator.Minus => Core.Operator.Minus,
+                AssignOperator.Mul => Core.Operator.Mul,
+                AssignOperator.Div => Core.Operator.Div,
+                AssignOperator.Mod => Core.Operator.Mod,
+                AssignOperator.RightShift => Core.Operator.RightShift,
+                AssignOperator.LeftShift => Core.Operator.LeftShift,
+                AssignOperator.AND => Core.Operator.AND,
+                AssignOperator.OR => Core.Operator.OR,
+                AssignOperator.XOR => Core.Operator.XOR,
+            };
+
+            var left = builder.AsValue(context, targetVal);
+            source = builder.BinaryOperation(table, context, left, binaryOperator, source, info);
+        }
+
+        var resultType = targetVal.GetValueType(context);
+        source = builder.Convert(context, source, resultType);
+        Target.SetValue(table, compiler, source);
+
+        return targetVal;
+    }
+
+    public override string ToString() => $"{Target} {Operator.ToAssignSymbol()} {Value}";
+}
+
 public partial class ParenthesisExpression(Expression expression, TextLocation info) : Expression(info)
 {
     public Expression Expression { get; set; } = expression;

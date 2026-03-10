@@ -13,8 +13,40 @@ public struct ExpressionParser : IParser<Expression>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (Ternary(ref scanner, result, out parsed))
+        if (Assignment(ref scanner, result, out parsed))
             return true;
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
+    }
+
+    /// <summary>
+    /// <c>assignment ::= ternary ( assign_op assignment )?</c>
+    /// Right-associative: a = b = c parses as a = (b = c)
+    /// </summary>
+    public static bool Assignment<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if (Ternary(ref scanner, result, out parsed))
+        {
+            var pos2 = scanner.Position;
+            Parsers.Spaces0(ref scanner, result, out _);
+            if (LiteralsParser.AssignOperators(ref scanner, null!, out var op))
+            {
+                Parsers.Spaces0(ref scanner, result, out _);
+                // Right-associative: recurse into Assignment for the RHS
+                if (Assignment(ref scanner, result, out var rhs))
+                {
+                    parsed = new AssignExpression(parsed, op, rhs, scanner[position..scanner.Position]);
+                    return true;
+                }
+                else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0015, scanner[scanner.Position], scanner.Memory));
+            }
+            else
+            {
+                scanner.Position = pos2;
+                return true;
+            }
+        }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 

@@ -249,15 +249,22 @@ public record struct LiteralsParser : IParser<Literal>
         where TScanner : struct, IScanner
     {
         op = AssignOperator.NOp;
+        var position = scanner.Position;
         if (
             Tokens.AnyOf(
-                ["=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>="],
+                ["<<=", ">>=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "="],
                 ref scanner,
                 out var matched,
                 advance: true
             )
         )
         {
+            // Guard: "=" must not be followed by "=" (that would be "==")
+            if (matched == "=" && Tokens.Char('=', ref scanner))
+            {
+                scanner.Position = position;
+                return false;
+            }
             op = matched.ToAssignOperator();
             return true;
         }
