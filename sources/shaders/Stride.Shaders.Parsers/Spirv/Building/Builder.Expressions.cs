@@ -283,6 +283,24 @@ public partial class SpirvBuilder
         leftType = context.ReverseTypes[left.TypeId];
         rightType = context.ReverseTypes[right.TypeId];
 
+        // SPIR-V arithmetic ops (OpFAdd, OpFSub, OpFMul, etc.) only accept scalar/vector types.
+        // For matrices, decompose into column vectors, apply the op per-column, then reconstruct.
+        if (leftType is MatrixType matType)
+        {
+            if (op is not (Operator.Plus or Operator.Minus or Operator.Mul or Operator.Div))
+                throw new InvalidOperationException($"Operator '{op}' is not supported on matrix types");
+
+            var columnTypeId = context.GetOrRegister(new VectorType(matType.BaseType, matType.Rows));
+            Span<int> columnResults = stackalloc int[matType.Columns];
+            for (int i = 0; i < matType.Columns; i++)
+            {
+                var colLeft = Buffer.Insert(Position++, new OpCompositeExtract(columnTypeId, context.Bound++, left.Id, [i])).ToValue();
+                var colRight = Buffer.Insert(Position++, new OpCompositeExtract(columnTypeId, context.Bound++, right.Id, [i])).ToValue();
+                columnResults[i] = BinaryOperation(table, context, colLeft, op, colRight, info).Id;
+            }
+            return Buffer.Insert(Position++, new OpCompositeConstruct(resultTypeId, resultId, [.. columnResults])).ToValue();
+        }
+
         var leftElementType = leftType.GetElementType();
         var rightElementType = rightType.GetElementType();
 
