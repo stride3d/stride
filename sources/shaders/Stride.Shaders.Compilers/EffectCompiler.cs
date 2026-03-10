@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
 using Silk.NET.SPIRV;
@@ -91,7 +90,7 @@ namespace Stride.Shaders.Compiler
             }
         }
 
-        public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters)
+        public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId mixinObjectId)
         {
             var log = new LoggerResult();
 
@@ -172,28 +171,25 @@ namespace Stride.Shaders.Compiler
             }*/
 
             // -------------------------------------------------------
-            // Save shader log
-            // TODO: TEMP code to allow debugging generated shaders on Windows Desktop
+            // Save shader log to DynamicCache folder
 #if STRIDE_PLATFORM_DESKTOP
-            var shaderId = ObjectId.FromBytes(spirvBytecode);
-
-            var logDir = Path.Combine(PlatformFolders.ApplicationBinaryDirectory, "log");
-            if (!Directory.Exists(logDir))
-            {
-                Directory.CreateDirectory(logDir);
-            }
-            var shaderSourceFilename = Path.Combine(logDir, "shader_" + fullEffectName.Replace('.', '_') + "_" + shaderId + ".hlsl");
+            var effectDir = Path.Combine(
+                PlatformFolders.ApplicationCacheDirectory,
+                EffectCompilerCache.GetEffectCacheDirectory(fullEffectName));
+            if (!Directory.Exists(effectDir))
+                Directory.CreateDirectory(effectDir);
+            var shaderBaseFilename = Path.Combine(effectDir, mixinObjectId.ToString());
             lock (WriterLock) // protect write in case the same shader is created twice
             {
                 // Write shader before generating to make sure that we are having a trace before compiling it (compiler may crash...etc.)
-                if (!File.Exists(shaderSourceFilename))
+                if (!File.Exists(shaderBaseFilename + ".spv"))
                 {
-                    File.WriteAllBytes(Path.ChangeExtension(shaderSourceFilename, ".spv"), spirvBytecode);
-                    File.WriteAllText(Path.ChangeExtension(shaderSourceFilename, ".spvdis"), Spirv.Tools.Spv.Dis(SpirvBytecode.CreateFromSpan(spirvBytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
+                    File.WriteAllBytes(shaderBaseFilename + ".spv", spirvBytecode);
+                    File.WriteAllText(shaderBaseFilename + ".spvdis", Spirv.Tools.Spv.Dis(SpirvBytecode.CreateFromSpan(spirvBytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
                 }
             }
 #else
-            string shaderSourceFilename = null;
+            string shaderBaseFilename = null;
 #endif
 
             // Select the correct backend compiler
@@ -226,8 +222,6 @@ namespace Stride.Shaders.Compiler
 
             var bytecode = new EffectBytecode { Reflection = effectReflection, HashSources = usedHashSources };
 
-            var shaderSourceText = new StringBuilder();
-
             if (translatorBackend != null)
             {
                 var translator = new SpirvTranslator(spirvBytecode.ToArray().AsMemory().Cast<byte, uint>());
@@ -247,20 +241,27 @@ namespace Stride.Shaders.Compiler
                         ExecutionModel.Fragment => ShaderStage.Pixel,
                         ExecutionModel.GLCompute => ShaderStage.Compute,
                     };
-                    var result = compiler.Compile(code, entryPoint.TranslatedName, shaderStage, effectParameters, bytecode.Reflection, shaderSourceFilename);
-                    result.CopyTo(log);
 
-                    shaderSourceText.AppendLine("// ==========================================");
-                    shaderSourceText.AppendLine($"//         {shaderStage} shader");
-                    shaderSourceText.AppendLine(code);
-                    shaderSourceText.AppendLine();
-
-                    shaderSourceText.AppendLine($"// {result.Messages.Count} errors & messages:");
-                    foreach (var message in result.Messages)
+#if STRIDE_PLATFORM_DESKTOP
+                    var stageSuffix = shaderStage switch
                     {
-                        shaderSourceText.AppendLine($"[{message.Type}] {message.Text}");
-                        shaderSourceText.AppendLine();
+                        ShaderStage.Vertex => "vs",
+                        ShaderStage.Hull => "hs",
+                        ShaderStage.Domain => "ds",
+                        ShaderStage.Geometry => "gs",
+                        ShaderStage.Pixel => "ps",
+                        ShaderStage.Compute => "cs",
+                    };
+                    var stageFilename = $"{shaderBaseFilename}_{stageSuffix}.hlsl";
+                    lock (WriterLock)
+                    {
+                        File.WriteAllText(stageFilename, code);
                     }
+#else
+                    string stageFilename = null;
+#endif
+                    var result = compiler.Compile(code, entryPoint.TranslatedName, shaderStage, effectParameters, bytecode.Reflection, stageFilename);
+                    result.CopyTo(log);
 
                     if (result.HasErrors)
                     {
@@ -354,9 +355,6 @@ namespace Stride.Shaders.Compiler
             bytecode.Stages = shaderStageBytecodes.ToArray();
 
 #if STRIDE_PLATFORM_DESKTOP
-            int shaderSourceLineOffset = 0;
-            int shaderSourceCharacterOffset = 0;
-            string outputShaderLog;
             lock (WriterLock) // protect write in case the same shader is created twice
             {
                 var builder = new StringBuilder();
@@ -414,41 +412,7 @@ namespace Stride.Shaders.Compiler
                 }
                 builder.AppendLine("*************************/");
 
-                shaderSourceCharacterOffset = builder.Length;
-
-                // Re-append the shader with all informations
-                builder.Append(shaderSourceText);
-
-                outputShaderLog = builder.ToString();
-
-                File.WriteAllText(shaderSourceFilename, outputShaderLog);
-            }
-
-            // Count lines till source start
-            for (int i = 0; i < shaderSourceCharacterOffset-1;)
-            {
-                if (outputShaderLog[i] == '\r' && outputShaderLog[i + 1] == '\n')
-                {
-                    shaderSourceLineOffset++;
-                    i += 2;
-                }
-                else
-                    i++;
-            }
-
-            // Rewrite shader log
-            Regex shaderLogReplace = new Regex(@"\.hlsl\((\d+),[0-9\-]+\):");
-            foreach (var msg in log.Messages)
-            {
-                var match = shaderLogReplace.Match(msg.Text);
-                if (match.Success)
-                {
-                    int line = int.Parse(match.Groups[1].Value);
-                    line += shaderSourceLineOffset;
-
-                    msg.Text = msg.Text.Remove(match.Groups[1].Index, match.Groups[1].Length)
-                        .Insert(match.Groups[1].Index, line.ToString());
-                }
+                File.WriteAllText(shaderBaseFilename + "_meta.hlsl", builder.ToString());
             }
 #endif
 

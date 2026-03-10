@@ -61,11 +61,8 @@ namespace Stride.Shaders.Compiler
             }
         }
 
-        public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixin, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters)
+        public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixin, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId mixinObjectId)
         {
-            var usedParameters = compilerParameters;
-            var mixinObjectId = ShaderMixinObjectId.Compute(mixin, usedParameters.EffectParameters);
-
             // Final url of the compiled bytecode
             var compiledUrl = string.Format("{0}/{1}", CompiledShadersKey, mixinObjectId);
 
@@ -85,7 +82,7 @@ namespace Stride.Shaders.Compiler
                 if (Compiler is NullEffectCompiler && bytecode.Key == null)
                 {
                     var stringBuilder = new StringBuilder();
-                    stringBuilder.AppendFormat("Unable to find compiled shaders [{0}] for mixin [{1}] with parameters [{2}]", compiledUrl, mixin, usedParameters.ToStringPermutationsDetailed());
+                    stringBuilder.AppendFormat("Unable to find compiled shaders [{0}] for mixin [{1}] with parameters [{2}]", compiledUrl, mixin, compilerParameters.ToStringPermutationsDetailed());
                     Log.Error(stringBuilder.ToString());
                     throw new InvalidOperationException(stringBuilder.ToString());
                 }
@@ -106,9 +103,36 @@ namespace Stride.Shaders.Compiler
 
                             if (bytecode.Key != null)
                             {
-                                // If we successfully retrieved it from cache, add it to index map so that it won't be collected and available for faster lookup 
+                                // If we successfully retrieved it from cache, add it to index map so that it won't be collected and available for faster lookup
                                 database.ContentIndexMap[compiledUrl] = newBytecodeId;
                             }
+                        }
+                    }
+                }
+
+                // ------------------------------------------------------------------------------------------------------------
+                // 2.5) Try to load from application cache (DynamicCache entries)
+                // ------------------------------------------------------------------------------------------------------------
+                if (bytecode.Key == null)
+                {
+                    var appCachePath = GetAppCachePath(mixin.Name, mixinObjectId);
+                    if (VirtualFileSystem.ApplicationCache.FileExists(appCachePath))
+                    {
+                        try
+                        {
+                            using var stream = VirtualFileSystem.ApplicationCache.OpenStream(
+                                appCachePath, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read);
+                            var loadedBytecode = EffectBytecode.FromStream(stream);
+                            if (loadedBytecode != null && !IsBytecodeObsolete(loadedBytecode))
+                            {
+                                bytecode = new KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>(
+                                    loadedBytecode, EffectBytecodeCacheLoadSource.DynamicCache);
+                                bytecodes[loadedBytecode.ComputeId()] = bytecode;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Warning($"Failed to load effect bytecode from application cache '{appCachePath}': {ex.Message}");
                         }
                     }
                 }
@@ -155,7 +179,7 @@ namespace Stride.Shaders.Compiler
             var effectLog = GlobalLogger.GetLogger("EffectCompilerCache");
 
             // Note: this compiler is expected to not be async and directly write stuff in localLogger
-            var compiledShader = base.Compile(mixinTree, effectParameters, compilerParameters).WaitForResult();
+            var compiledShader = base.Compile(mixinTree, effectParameters, compilerParameters, mixinObjectId).WaitForResult();
             compiledShader.CompilationLog.CopyTo(log);
 
             // If there are any errors, return immediately
@@ -176,7 +200,7 @@ namespace Stride.Shaders.Compiler
             // Check if we really need to store the bytecode
             lock (bytecodes)
             {
-                // Using custom serialization to the database to store an object with a custom id
+                // Using custom serialization to store the bytecode
                 // TODO: Check if we really need to write the bytecode everytime even if id is not changed
                 var memoryStream = new MemoryStream();
                 compiledShader.Bytecode.WriteTo(memoryStream);
@@ -186,14 +210,37 @@ namespace Stride.Shaders.Compiler
                 writer.Write(CurrentCache);
 
                 memoryStream.Position = 0;
-                database.ObjectDatabase.Write(memoryStream, newBytecodeId, true);
-                database.ContentIndexMap[compiledUrl] = newBytecodeId;
 
-                // Save bytecode Id to the database cache as well
-                memoryStream.SetLength(0);
-                memoryStream.Write((byte[])newBytecodeId, 0, ObjectId.HashSize);
-                memoryStream.Position = 0;
-                database.ObjectDatabase.Write(memoryStream, mixinObjectId, true);
+                if (CurrentCache == EffectBytecodeCacheLoadSource.DynamicCache)
+                {
+                    // Persist to ApplicationCache (file-based, no ObjectDatabase index needed)
+                    var appCachePath = GetAppCachePath(mixinTree.Name, mixinObjectId);
+                    try
+                    {
+                        var dir = Path.GetDirectoryName(appCachePath)!;
+                        if (!string.IsNullOrEmpty(dir) && !VirtualFileSystem.ApplicationCache.DirectoryExists(dir))
+                            VirtualFileSystem.ApplicationCache.CreateDirectory(dir);
+                        using var appStream = VirtualFileSystem.ApplicationCache.OpenStream(
+                            appCachePath, VirtualFileMode.Create, VirtualFileAccess.Write);
+                        memoryStream.CopyTo(appStream);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning($"Failed to save effect bytecode to application cache '{appCachePath}': {ex.Message}");
+                    }
+                }
+                else
+                {
+                    // StartupCache: persist to DatabaseFileProvider
+                    database.ObjectDatabase.Write(memoryStream, newBytecodeId, true);
+                    database.ContentIndexMap[compiledUrl] = newBytecodeId;
+
+                    // Save bytecode Id to the database cache as well
+                    memoryStream.SetLength(0);
+                    memoryStream.Write((byte[])newBytecodeId, 0, ObjectId.HashSize);
+                    memoryStream.Position = 0;
+                    database.ObjectDatabase.Write(memoryStream, mixinObjectId, true);
+                }
 
                 if (!bytecodes.ContainsKey(newBytecodeId))
                 {
@@ -289,6 +336,20 @@ namespace Stride.Shaders.Compiler
                 }
             }
             return false;
+        }
+
+        public static string GetEffectCacheDirectory(string mixinName)
+            => $"effects/{SanitizeMixinName(mixinName)}";
+
+        public static string GetAppCachePath(string mixinName, ObjectId mixinObjectId)
+            => $"{GetEffectCacheDirectory(mixinName)}/{mixinObjectId}";
+
+        public static string SanitizeMixinName(string name)
+        {
+            var sb = new StringBuilder(name.Length);
+            foreach (char c in name)
+                sb.Append(char.IsLetterOrDigit(c) || c == '.' || c == '-' || c == '_' ? c : '_');
+            return sb.ToString();
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Stride.Shaders.Compiler
 
         public override IVirtualFileProvider FileProvider { get; set; }
 
-        public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters = null)
+        public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId mixinObjectId)
         {
             throw new NotSupportedException("Shader Compilation is not allowed at run time on this platform.");
         }
