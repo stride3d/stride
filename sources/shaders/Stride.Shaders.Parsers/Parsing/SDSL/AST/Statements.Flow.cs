@@ -192,20 +192,24 @@ public partial class For(Statement initializer, Expression cond, List<Statement>
     public Statement Body { get; set; } = body;
     public ShaderAttribute? Attribute = attribute;
     public List<ForAnnotation> Annotations { get; set; } = [];
+    public SymbolFrame SymbolFrame { get; set; }
 
     public override void ProcessSymbol(SymbolTable table)
     {
+        table.Push();
         Initializer.ProcessSymbol(table);
         Condition.ProcessSymbol(table);
         Body.ProcessSymbol(table);
         foreach (var update in Update)
             update.ProcessSymbol(table);
+        SymbolFrame = table.Pop();
     }
 
     public override void Compile(SymbolTable table, CompilerUnit compiler)
     {
         var (builder, context) = compiler;
 
+        table.Push(SymbolFrame);
         Initializer.Compile(table, compiler);
 
         // Prepare blocks ids
@@ -248,6 +252,7 @@ public partial class For(Statement initializer, Expression cond, List<Statement>
 
         builder.ForBlockCount++;
         builder.CurrentEscapeBlocks = previousEscapeBlocks;
+        table.Pop();
     }
 
     public override string ToString()
