@@ -70,7 +70,7 @@ public struct NumberParser : IParser<Literal>
                     return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
                 while (Tokens.Digit(ref scanner, advance: true)) ;
             }
-            else if (Tokens.FloatSuffix(ref scanner, out _) || Tokens.Char('e', ref scanner)) { }
+            else if (Tokens.FloatSuffix(ref scanner, out _) || Tokens.Char('e', ref scanner) || Tokens.Char('E', ref scanner)) { }
             else return Parsers.Exit(ref scanner, result, out parsed, position);
         }
         else if (Tokens.Digit(ref scanner, 0, advance: true))
@@ -88,12 +88,14 @@ public struct NumberParser : IParser<Literal>
 
         var value = double.Parse(scanner.Span[position..scanner.Position], CultureInfo.InvariantCulture);
         int? exponent = null;
-        if (Tokens.Char('e', ref scanner, advance: true))
+        if (Tokens.Char('e', ref scanner, advance: true) || Tokens.Char('E', ref scanner, advance: true))
         {
             var signed = Tokens.AnyOf(["+", "-"], ref scanner, out var matched, advance: true);
-            if (Integer(ref scanner, result, out var exp))
+            var expStart = scanner.Position;
+            if (Tokens.Digit(ref scanner, advance: true))
             {
-                exponent = (int)((IntegerLiteral)exp).Value;
+                while (Tokens.Digit(ref scanner, advance: true)) ;
+                exponent = int.Parse(scanner.Span[expStart..scanner.Position], CultureInfo.InvariantCulture);
                 if (signed && matched == "-")
                     exponent = -exponent;
             }
