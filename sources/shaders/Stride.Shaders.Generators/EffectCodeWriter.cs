@@ -294,21 +294,19 @@ public class EffectCodeWriter : ShaderWriter
         CloseBrace();
     }
 
-    public override void VisitAssign(Assign assign)
+    public override void VisitAssignExpression(AssignExpression assignExpression)
     {
-        if (assign.Variables.Count == 1
-            && assign.Variables[0].Value is not null
-            && TryParameters(assign.Variables[0].Variable, out var typeTarget, out var typeMember, out var extraPath))
+        if (TryParameters(assignExpression.Target, out var typeTarget, out var typeMember, out var extraPath))
         {
             Write("context.SetParam(").Write(typeTarget).Write(".").Write(typeMember.ToString()).Write(", ");
-            VisitNode(assign.Variables[0].Value);
+            VisitNode(assignExpression.Value);
             Write(")");
             if (extraPath != null)
                 Write(".").Write(extraPath);
         }
         else
         {
-            base.VisitAssign(assign);
+            base.VisitAssignExpression(assignExpression);
         }
     }
 

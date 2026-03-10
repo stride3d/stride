@@ -383,14 +383,11 @@ public class ShaderWriter : NodeWalker
         }
     }
 
-    public override void VisitVariableAssign(VariableAssign variableAssign)
+    public override void VisitAssignExpression(AssignExpression assignExpression)
     {
-        VisitNode(variableAssign.Variable);
-        if (variableAssign.Value != null)
-        {
-            WriteSpace().Write(variableAssign.Operator?.ToAssignSymbol() ?? "=").WriteSpace();
-            VisitNode(variableAssign.Value);
-        }
+        VisitNode(assignExpression.Target);
+        WriteSpace().Write(assignExpression.Operator.ToAssignSymbol()).WriteSpace();
+        VisitNode(assignExpression.Value);
     }
 
     public override void VisitDeclaredVariableAssign(DeclaredVariableAssign declaredVariableAssign)
@@ -405,16 +402,6 @@ public class ShaderWriter : NodeWalker
         {
             WriteSpace().Write(declaredVariableAssign.Operator?.ToAssignSymbol() ?? "=").WriteSpace();
             VisitNode(declaredVariableAssign.Value);
-        }
-        WriteLine(";");
-    }
-
-    public override void VisitAssign(Assign assign)
-    {
-        for (var i = 0; i < assign.Variables.Count; i++)
-        {
-            VisitNode(assign.Variables[i]);
-            if (i < assign.Variables.Count - 1) Write(",").WriteSpace();
         }
         WriteLine(";");
     }

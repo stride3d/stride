@@ -39,8 +39,6 @@ public record struct StatementParsers : IParser<Statement>
             return true;
         else if (!Tokens.Char('{', ref scanner) && Expression(ref scanner, result, out parsed))
             return true;
-        else if (!Tokens.Char('{', ref scanner) && Assignments(ref scanner, result, out parsed))
-            return true;
         else if (Block(ref scanner, result, out parsed))
             return true;
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -83,14 +81,11 @@ public record struct StatementParsers : IParser<Statement>
     internal static bool Declare<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => new DeclareStatementParser().Match(ref scanner, result, out parsed, orError);
-    internal static bool Assignments<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
-        where TScanner : struct, IScanner
-        => new AssignmentsParser().Match(ref scanner, result, out parsed, orError);
     internal static bool DeclareOrAssign<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (Assignments(ref scanner, result, out parsed, orError))
+        if (Expression(ref scanner, result, out parsed, orError))
             return true;
         else if (Declare(ref scanner, result, out parsed, orError))
             return true;
@@ -98,17 +93,7 @@ public record struct StatementParsers : IParser<Statement>
     }
     internal static bool AssignOrExpression<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
-    {
-        var position = scanner.Position;
-        if (Assignments(ref scanner, result, out parsed, orError))
-            return true;
-        else if (Expression(ref scanner, result, out parsed, orError))
-            return true;
-        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
-    }
-    internal static bool VarAssign<TScanner>(ref TScanner scanner, ParseResult result, out VariableAssign parsed, in ParseError? orError = null)
-        where TScanner : struct, IScanner
-        => new VariableAssignParser().Match(ref scanner, result, out parsed, orError);
+        => Expression(ref scanner, result, out parsed, orError);
     internal static bool DeclaredVarAssign<TScanner>(ref TScanner scanner, ParseResult result, out DeclaredVariableAssign parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new DeclaredVariableAssignParser().Match(ref scanner, result, out parsed, orError);
@@ -274,41 +259,6 @@ public record struct BlockStatementParser : IParser<Statement>
 
 
 
-public record struct VariableAssignParser : IParser<VariableAssign>
-{
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out VariableAssign parsed, in ParseError? orError = null) where TScanner : struct, IScanner
-    {
-        var position = scanner.Position;
-        if (PostfixParser.Postfix(ref scanner, result, out var p))
-        {
-            if (
-                Parsers.FollowedBy(
-                    ref scanner,
-                    result,
-                    (ref TScanner s, ParseResult result, out AssignOperator op, in ParseError? orError = null) => LiteralsParser.AssignOperators(ref s, null!, out op) && Parsers.Spaces0(ref s, result, out _),
-                    out var op,
-                    withSpaces: true,
-                    advance: true)
-            )
-            {
-                Parsers.Spaces0(ref scanner, result, out _);
-                if (ExpressionParser.Expression(ref scanner, result, out var expression))
-                {
-                    parsed = new(p, false, scanner[position..scanner.Position], op, expression);
-                    return true;
-                }
-                else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0015, scanner[position], scanner.Memory));
-            }
-            else
-            {
-                parsed = new(p, false, scanner[position..scanner.Position]);
-                return true;
-            }
-        }
-        else return Parsers.Exit(ref scanner, result, out parsed, position);
-    }
-}
-
 public record struct DeclaredVariableAssignParser : IParser<DeclaredVariableAssign>
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out DeclaredVariableAssign parsed, in ParseError? orError = null) where TScanner : struct, IScanner
@@ -395,25 +345,3 @@ public record struct DeclareStatementParser : IParser<Statement>
     }
 }
 
-public record struct AssignmentsParser : IParser<Statement>
-{
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null)
-        where TScanner : struct, IScanner
-    {
-        var position = scanner.Position;
-        if (Parsers.Repeat<TScanner, VariableAssign>(ref scanner, result, StatementParsers.VarAssign, out var assigns, 1, true, ","))
-        {
-            Parsers.Spaces0(ref scanner, result, out _);
-            if (Tokens.Char(';', ref scanner, advance: true))
-            {
-                parsed = new Assign(scanner[position..scanner.Position])
-                {
-                    Variables = assigns
-                };
-                return true;
-            }
-            else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0033, scanner[scanner.Position], scanner.Memory));
-        }
-        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
-    }
-}

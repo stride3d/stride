@@ -147,9 +147,9 @@ public record struct MixinParser : IParser<Mixin>
                 && SDSL.Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true))
             {
                 if (mixinType is Specification.MixinKindSDFX.ComposeSet or Specification.MixinKindSDFX.Child or Specification.MixinKindSDFX.Macro
-                    && statement is Assign { Variables: [{ Value: { } value, Variable: Identifier variable }] } assign)
+                    && statement is ExpressionStatement { Expression: AssignExpression { Target: Identifier variable, Value: { } value } assign })
                 {
-                    if (assign.Variables[0].Operator == AssignOperator.Plus && mixinType == Specification.MixinKindSDFX.ComposeSet)
+                    if (assign.Operator == AssignOperator.Plus && mixinType == Specification.MixinKindSDFX.ComposeSet)
                         mixinType = Specification.MixinKindSDFX.ComposeAdd;
                     parsed = new Mixin(mixinType, variable, value, scanner[position..scanner.Position]);
                 }
@@ -171,19 +171,6 @@ public record struct MixinParser : IParser<Mixin>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (
-            PostfixParser.Postfix(ref scanner, result, out var variable)
-            && SDSL.Parsers.FollowedByDel(ref scanner, result, LiteralsParser.AssignOperators, out AssignOperator op, withSpaces: true, advance: true)
-            && SDSL.Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression value, withSpaces: true, advance: true)
-        )
-        {
-            parsed = new Assign(scanner[position..scanner.Position])
-            {
-                Variables = [new(variable, false, scanner[position..scanner.Position], op, value)]
-            };
-            return true;
-        }
-        scanner.Position = position;
         if (ExpressionParser.Expression(ref scanner, result, out var expression))
         {
             parsed = new ExpressionStatement(expression, scanner[position..scanner.Position]);

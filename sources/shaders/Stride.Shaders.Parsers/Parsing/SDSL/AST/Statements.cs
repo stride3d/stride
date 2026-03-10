@@ -82,24 +82,6 @@ public abstract class Declaration(TypeName typename, TextLocation info) : Statem
     public TypeName TypeName { get; set; } = typename;
 }
 
-public partial class VariableAssign(Expression variable, bool isConst, TextLocation info, AssignOperator? op = null, Expression? value = null) : Statement(info)
-{
-    public Expression Variable { get; set; } = variable;
-    public AssignOperator? Operator { get; set; } = op;
-    public Expression? Value { get; set; } = value;
-    public bool IsConst { get; set; } = isConst;
-
-    public override void Compile(SymbolTable table, CompilerUnit compiler)
-    {
-        throw new NotImplementedException();
-    }
-    public override string ToString()
-        => Value switch
-        {
-            null => Variable.ToString() ?? "",
-            Expression v => $"{Variable} {Operator?.ToAssignSymbol()} {v}"
-        };
-}
 public partial class DeclaredVariableAssign(Identifier variable, bool isConst, TextLocation info, AssignOperator? op = null, Expression? value = null) : Statement(info)
 {
     public Identifier Variable { get; set; } = variable;
@@ -221,61 +203,6 @@ public partial class Declare(TypeName typename, TextLocation info) : Declaration
     }
 }
 
-public partial class Assign(TextLocation info) : Statement(info)
-{
-    public List<VariableAssign> Variables { get; set; } = [];
-
-    public override void ProcessSymbol(SymbolTable table)
-    {
-        foreach (var variable in Variables)
-        {
-            variable.Variable.ProcessSymbol(table);
-            variable.Value!.ProcessSymbol(table);
-        }
-    }
-
-    public override void Compile(SymbolTable table, CompilerUnit compiler)
-    {
-        var (builder, context) = compiler;
-        foreach (var variable in Variables)
-        {
-            var target = variable.Variable.Compile(table, compiler);
-            var source = variable.Value!.CompileAsValue(table, compiler);
-
-            if (variable.Operator != AssignOperator.Simple)
-            {
-                var binaryOperator = (variable.Operator) switch
-                {
-                    AssignOperator.Plus => Operator.Plus,
-                    AssignOperator.Minus => Operator.Minus,
-                    AssignOperator.Mul => Operator.Mul,
-                    AssignOperator.Div => Operator.Div,
-                    AssignOperator.Mod => Operator.Mod,
-                    AssignOperator.RightShift => Operator.RightShift,
-                    AssignOperator.LeftShift => Operator.LeftShift,
-                    AssignOperator.AND => Operator.AND,
-                    AssignOperator.OR => Operator.OR,
-                    AssignOperator.XOR => Operator.XOR,
-                };
-
-                var left = builder.AsValue(context, target);
-                var right = builder.AsValue(context, source);
-
-                source = builder.BinaryOperation(table, context, left, binaryOperator, right, info);
-            }
-
-            // Make sure to convert to proper type
-            var resultType = target.GetValueType(context);
-            source = builder.Convert(context, source, resultType);
-
-            variable.Variable.SetValue(table, compiler, source);
-        }
-    }
-    public override string ToString()
-    {
-        return string.Join(", ", Variables.Select(x => x.ToString())) + ";";
-    }
-}
 
 
 
