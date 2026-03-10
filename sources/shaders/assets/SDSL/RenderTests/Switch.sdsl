@@ -1,0 +1,37 @@
+// PSMain(ExpectedResult=#FFFFFFFF, cbuffer.Test=(Test1=1))
+// PSMain(ExpectedResult=#7F7F7F7F, cbuffer.Test=(Test1=2))
+// PSMain(ExpectedResult=#3F3F3F3F, cbuffer.Test=(Test1=3))
+// PSMain(ExpectedResult=#00000000, cbuffer.Test=(Test1=99))
+
+namespace Stride.Shaders.Tests;
+
+shader Switch
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void PSMain()
+    {
+        float v = 0.0;
+        switch (Test1)
+        {
+            case 1:
+                v = 1.0;
+                break;
+            case 2:
+                v = 127.0 / 255.0;
+                break;
+            case 3:
+                v = 63.0 / 255.0;
+                break;
+            default:
+                v = 0.0;
+                break;
+        }
+        streams.ColorTarget = float4(v, v, v, v);
+    }
+}

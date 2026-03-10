@@ -15,6 +15,8 @@ public partial class SpirvBuilder
 
     public int WhileBlockCount { get; internal set; } = 0;
 
+    public int SwitchBlockCount { get; internal set; } = 0;
+
     public EscapeBlocks? CurrentEscapeBlocks { get; internal set; }
 
     public static bool IsFunctionTermination(Op op)

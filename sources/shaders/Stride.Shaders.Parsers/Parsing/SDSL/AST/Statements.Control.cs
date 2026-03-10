@@ -4,6 +4,7 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Core;
+using Stride.Shaders.Spirv.Core.Buffers;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -149,3 +150,101 @@ public partial class Else(Statement body, TextLocation info) : Flow(info)
         return $"else {Body}";
     }
 }
+
+
+public partial class SwitchStatement(Expression selector, TextLocation info) : Flow(info)
+{
+    public Expression Selector { get; set; } = selector;
+    public List<SwitchSection> Sections { get; set; } = [];
+
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        Selector.ProcessSymbol(table);
+        foreach (var section in Sections)
+        {
+            foreach (var label in section.Labels)
+            {
+                if (label is CaseLabel caseLabel)
+                    caseLabel.Value.ProcessSymbol(table);
+            }
+            foreach (var stmt in section.Statements)
+                stmt.ProcessSymbol(table);
+        }
+    }
+
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+
+        // Compile selector (must be integer scalar)
+        var selectorValue = Selector.CompileAsValue(table, compiler);
+        if (Selector.ValueType is not ScalarType st || !st.IsInteger())
+            table.AddError(new(Selector.Info, "switch selector must evaluate to an integer scalar"));
+
+        // Pre-allocate block IDs: one per section + merge block
+        var mergeBlock = context.Bound++;
+        var sectionBlockIds = new int[Sections.Count];
+        for (int i = 0; i < Sections.Count; i++)
+            sectionBlockIds[i] = context.Bound++;
+
+        // Set up escape blocks so break targets the merge block
+        var previousEscapeBlocks = builder.CurrentEscapeBlocks;
+        builder.CurrentEscapeBlocks = new SpirvBuilder.EscapeBlocks(mergeBlock, mergeBlock);
+
+        // Build (literal, blockId) pairs and find default block
+        int defaultBlockId = mergeBlock;
+        var casePairs = new List<(int, int)>();
+        for (int i = 0; i < Sections.Count; i++)
+        {
+            foreach (var label in Sections[i].Labels)
+            {
+                if (label is DefaultLabel)
+                    defaultBlockId = sectionBlockIds[i];
+                else if (label is CaseLabel caseLabel && caseLabel.Value is IntegerLiteral intLit)
+                    casePairs.Add(((int)intLit.Value, sectionBlockIds[i]));
+                else
+                    table.AddError(new(label.Info, "case label must be an integer literal"));
+            }
+        }
+
+        // Emit selection merge + switch
+        builder.Insert(new OpSelectionMerge(mergeBlock, Specification.SelectionControlMask.None));
+        Span<(int, int)> pairsSpan = casePairs.ToArray();
+        builder.Insert(new OpSwitch(selectorValue.Id, defaultBlockId, new LiteralArray<(int, int)>(pairsSpan)));
+
+        // Compile each section's block
+        for (int i = 0; i < Sections.Count; i++)
+        {
+            builder.CreateBlock(context, sectionBlockIds[i], $"switch_case_{builder.SwitchBlockCount}_{i}");
+            foreach (var stmt in Sections[i].Statements)
+                stmt.Compile(table, compiler);
+            if (!SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+                builder.Insert(new OpBranch(mergeBlock));
+        }
+
+        // Merge block
+        builder.CreateBlock(context, mergeBlock, $"switch_merge_{builder.SwitchBlockCount}");
+
+        builder.SwitchBlockCount++;
+        builder.CurrentEscapeBlocks = previousEscapeBlocks;
+    }
+}
+
+public class SwitchSection(List<SwitchLabel> labels, List<Statement> statements, TextLocation info)
+{
+    public TextLocation Info { get; set; } = info;
+    public List<SwitchLabel> Labels { get; set; } = labels;
+    public List<Statement> Statements { get; set; } = statements;
+}
+
+public abstract class SwitchLabel(TextLocation info)
+{
+    public TextLocation Info { get; set; } = info;
+}
+
+public class CaseLabel(Expression value, TextLocation info) : SwitchLabel(info)
+{
+    public Expression Value { get; set; } = value;
+}
+
+public class DefaultLabel(TextLocation info) : SwitchLabel(info);

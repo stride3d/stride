@@ -17,6 +17,11 @@ public record struct StatementParsers : IParser<Statement>
             parsed = cond;
             return true;
         }
+        else if (Switch(ref scanner, result, out var switchStmt))
+        {
+            parsed = switchStmt;
+            return true;
+        }
         else if (Flow(ref scanner, result, out var flow))
         {
             parsed = flow;
@@ -110,6 +115,9 @@ public record struct StatementParsers : IParser<Statement>
     internal static bool Controls<TScanner>(ref TScanner scanner, ParseResult result, out ConditionalFlow parsed, ParseError? orError = null)
        where TScanner : struct, IScanner
        => new ControlsParser().Match(ref scanner, result, out parsed, orError);
+    internal static bool Switch<TScanner>(ref TScanner scanner, ParseResult result, out SwitchStatement parsed, ParseError? orError = null)
+       where TScanner : struct, IScanner
+       => new SwitchStatementParser().Match(ref scanner, result, out parsed, orError);
     internal static bool Flow<TScanner>(ref TScanner scanner, ParseResult result, out Flow parsed, ParseError? orError = null)
       where TScanner : struct, IScanner
       => new FlowParsers().Match(ref scanner, result, out parsed, orError);

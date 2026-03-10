@@ -258,6 +258,23 @@ public static partial class Spv
 
         }
 
+        private DisWriter AppendPairLiteralIntegerIdRefs(SpvOperand operand)
+        {
+            var count = operand.Quantifier switch
+            {
+                OperandQuantifier.One => 1,
+                OperandQuantifier.ZeroOrMore => operand.Words.Length / 2,
+                OperandQuantifier.ZeroOrOne => operand.Words.Length == 0 ? 0 : 1,
+            };
+
+            for (int i = 0; i < count; ++i)
+            {
+                AppendLiteralNumber(operand.Words[i * 2]);
+                AppendIdRef(operand.Words[i * 2 + 1]);
+            }
+            return this;
+        }
+
         private DisWriter AppendPairIdRefLiteralIntegers(SpvOperand operand)
         {
             var count = operand.Quantifier switch
@@ -369,6 +386,7 @@ public static partial class Spv
                             _ => throw new NotImplementedException("Unsupported image operands quantifier " + operand.Quantifier + " with length " + operand.Words.Length)
                         },
                         OperandKind.PairIdRefLiteralInteger => AppendPairIdRefLiteralIntegers(operand),
+                        OperandKind.PairLiteralIntegerIdRef => AppendPairLiteralIntegerIdRefs(operand),
                     };
                 }
                 AppendLine("");
