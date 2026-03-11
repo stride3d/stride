@@ -71,6 +71,41 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 context.Names.Add(target, name);
         }
 
+        static SymbolType? ParseTextureReturnType(string s) => s switch
+        {
+            "float"  => ScalarType.Float,
+            "float2" => new VectorType(ScalarType.Float, 2),
+            "float3" => new VectorType(ScalarType.Float, 3),
+            "float4" => new VectorType(ScalarType.Float, 4),
+            "int"    => ScalarType.Int,
+            "int2"   => new VectorType(ScalarType.Int, 2),
+            "int3"   => new VectorType(ScalarType.Int, 3),
+            "int4"   => new VectorType(ScalarType.Int, 4),
+            "uint"   => ScalarType.UInt,
+            "uint2"  => new VectorType(ScalarType.UInt, 2),
+            "uint3"  => new VectorType(ScalarType.UInt, 3),
+            "uint4"  => new VectorType(ScalarType.UInt, 4),
+            _        => null,
+        };
+
+        // Pre-pass: collect UserTypeGOOGLE decorations on texture types so we can
+        // recover the exact ReturnType (e.g. float2) when reading OpTypeImage.
+        var textureReturnTypes = new Dictionary<int, SymbolType>();
+        for (var i = start; i < end; i++)
+        {
+            var inst = context[i];
+            if (inst.Op == Op.OpDecorateString)
+            {
+                OpDecorateString dec = inst;
+                if (dec.Decoration == Decoration.UserTypeGOOGLE)
+                {
+                    var symbolType = ParseTextureReturnType(dec.Value);
+                    if (symbolType != null)
+                        textureReturnTypes[dec.Target] = symbolType;
+                }
+            }
+        }
+
         var realShaderImporter = shaderImporter ?? new EmptyShaderImporter();
         var importedShaders = new Dictionary<int, ShaderSymbol>();
 
@@ -207,12 +242,25 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 }
                 else
                 {
+                    // Prefer UserTypeGOOGLE decoration (exact ReturnType from compilation).
+                    // Fall back to ImageFormat for RW textures, or float4 for sampled (HLSL convention).
+                    SymbolType returnType = textureReturnTypes.TryGetValue(typeImage.ResultId, out var userType)
+                        ? userType
+                        : (typeImage.Sampled == 2
+                            ? typeImage.Imageformat switch
+                            {
+                                Specification.ImageFormat.Rg32f or Specification.ImageFormat.Rg32i or Specification.ImageFormat.Rg32ui => new VectorType(sampledType, 2),
+                                Specification.ImageFormat.Rgba32f or Specification.ImageFormat.Rgba32i or Specification.ImageFormat.Rgba32ui => new VectorType(sampledType, 4),
+                                _ => (SymbolType)sampledType,
+                            }
+                            : new VectorType(sampledType, 4));
+
                     TextureType textureType = typeImage.Dim switch
                     {
-                        Dim.Dim1D => new Texture1DType(sampledType),
-                        Dim.Dim2D => new Texture2DType(sampledType),
-                        Dim.Dim3D => new Texture3DType(sampledType),
-                        Dim.Cube => new TextureCubeType(sampledType),
+                        Dim.Dim1D => new Texture1DType(returnType),
+                        Dim.Dim2D => new Texture2DType(returnType),
+                        Dim.Dim3D => new Texture3DType(returnType),
+                        Dim.Cube => new TextureCubeType(returnType),
                         _ => throw new NotImplementedException(),
                     };
                     textureType = textureType with
@@ -337,15 +385,19 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             {
                 structTypes.Add(((StructuredType)shaderBuffers.Context.ReverseTypes[typeStructInstruction.ResultId], -1));
             }
-            else if (i.Op == Op.OpDecorate && (OpDecorate)i is
+            else if (i.Op == Op.OpDecorate)
             {
-                Decoration: Decoration.FunctionParameterDefaultValueSDSL,
-                Target: var target,
-            } decorateFunctionParameters)
-            {
-                methodsDefaultParameters.Add(target, new(shaderBuffers.Context, decorateFunctionParameters.DecorationParameters.Span.ToArray()));
+                // OpDecorate binary layout: [header][target][decoration][params...]
+                // Read raw memory to avoid InitializeProperties overwrite bug when params.count > 1
+                var span = i.Data.Memory.Span;
+                if (span.Length >= 3 && span[2] == (int)Decoration.FunctionParameterDefaultValueSDSL)
+                {
+                    var target = span[1];
+                    var defaultIds = span[3..].ToArray();
+                    methodsDefaultParameters.Add(target, new(shaderBuffers.Context, defaultIds));
+                }
             }
-            else if (i.Op == Op.OpDecorate && (OpDecorate)i is
+            if (i.Op == Op.OpDecorate && (OpDecorate)i is
             {
                 Decoration: Decoration.ShaderConstantSDSL,
                 Target: var target2,

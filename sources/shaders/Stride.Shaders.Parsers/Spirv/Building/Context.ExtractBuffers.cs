@@ -41,9 +41,30 @@ public partial class SpirvContext
             if (isGenericReference)
                 i.Data.Memory.Span[0] = (int)(i.Data.Memory.Span[0] & 0xFFFF0000) | (int)Specification.Op.OpSDSLGenericParameter;
 
-            // Note: we try to avoid duplicating the last (constant) instruction if there is a desired ID (so that it keeps its name/identity) 
+            // For OpTypeImage: find the UserTypeGOOGLE decoration in the source buffer so CheckForDuplicates
+            // can distinguish e.g. Texture2D<float2> vs Texture2D<float4> (same binary, different return type).
+            // IdResult is still the original source ID here because RemapIds does not remap the current instruction's own result.
+            string? sourceUserTypeGOOGLE = null;
+            if (i.Op == Specification.Op.OpTypeImage && i.Data.IdResult.HasValue)
+            {
+                var originalId = i.Data.IdResult.Value;
+                foreach (var inst in source)
+                {
+                    if (inst.Op == Specification.Op.OpDecorateString)
+                    {
+                        Spirv.Core.OpDecorateString dec = inst;
+                        if (dec.Decoration == Specification.Decoration.UserTypeGOOGLE && dec.Target == originalId)
+                        {
+                            sourceUserTypeGOOGLE = dec.Value;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Note: we try to avoid duplicating the last (constant) instruction if there is a desired ID (so that it keeps its name/identity)
             if ((TypeDuplicateHelper.OpCheckDuplicateForTypesAndImport(i.Op) || TypeDuplicateHelper.OpCheckDuplicateForConstant(i.Op) || isGenericReference)
-                && typeDuplicateInserter.CheckForDuplicates(i.Data, out var existingData)
+                && typeDuplicateInserter.CheckForDuplicates(i.Data, sourceUserTypeGOOGLE, out var existingData)
                 && (index != lastResultIndex || desiredResultId == null))
             {
                 // Make sure this data is declared at current index, otherwise move it.

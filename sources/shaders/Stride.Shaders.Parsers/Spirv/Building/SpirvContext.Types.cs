@@ -90,14 +90,14 @@ public partial class SpirvContext
             FunctionType f => RegisterFunctionType(f, id),
             PointerType p => RegisterPointerType(p, id),
             LoadedShaderSymbol s => ImportShaderType(s, id),
-            Texture1DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
-                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
-            Texture2DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
-                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
-            Texture3DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
-                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
-            TextureCubeType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
-                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
+            Texture1DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType.GetElementType()), t.Dimension,
+                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
+            Texture2DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType.GetElementType()), t.Dimension,
+                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
+            Texture3DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType.GetElementType()), t.Dimension,
+                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
+            TextureCubeType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType.GetElementType()), t.Dimension,
+                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
             SamplerType st => Buffer.AddData(new OpTypeSampler(id)).IdResult,
             BufferType b => Buffer.AddData(new OpTypeImage(id, GetOrRegister(b.BaseType), Specification.Dim.Buffer,
                 2, 0, 0, b.WriteAllowed ? 2 : 1, Specification.ImageFormat.Unknown, null)).IdResult,
@@ -111,6 +111,9 @@ public partial class SpirvContext
             // StructSymbol st => RegisterStruct(st),
             _ => throw new NotImplementedException($"Can't add type {type}")
         };
+        if (type is TextureType texType && instruction.HasValue)
+            Buffer.Add(new OpDecorateString(instruction.Value, Specification.Decoration.UserTypeGOOGLE, texType.ReturnType.ToId()));
+
         Types[type] = instruction ?? -1;
         ReverseTypes[instruction ?? -1] = type;
         return instruction ?? -1;
@@ -279,5 +282,28 @@ public partial class SpirvContext
         Add(new OpTypePointer(id, pointerType.StorageClass, baseType));
         AddName(id, pointerType.ToId());
         return id;
+    }
+
+    // Derives the SPIR-V ImageFormat for a storage (RW) texture from its return type.
+    // Note: 3-component float/int/uint formats don't exist in SPIR-V (no Rgb32f etc.).
+    private static Specification.ImageFormat GetStorageImageFormat(SymbolType returnType)
+    {
+        var scalar = returnType.GetElementType();
+        int count = returnType.GetElementCount();
+        return (scalar.Type, count) switch
+        {
+            (Scalar.Float, 1) => Specification.ImageFormat.R32f,
+            (Scalar.Float, 2) => Specification.ImageFormat.Rg32f,
+            (Scalar.Float, 4) => Specification.ImageFormat.Rgba32f,
+            (Scalar.Float, 3) => throw new NotSupportedException(
+                "3-component float storage textures have no SPIR-V ImageFormat equivalent. Use float4 instead."),
+            (Scalar.UInt, 1) => Specification.ImageFormat.R32ui,
+            (Scalar.UInt, 2) => Specification.ImageFormat.Rg32ui,
+            (Scalar.UInt, 4) => Specification.ImageFormat.Rgba32ui,
+            (Scalar.Int, 1) => Specification.ImageFormat.R32i,
+            (Scalar.Int, 2) => Specification.ImageFormat.Rg32i,
+            (Scalar.Int, 4) => Specification.ImageFormat.Rgba32i,
+            _ => Specification.ImageFormat.Unknown,
+        };
     }
 }

@@ -62,10 +62,15 @@ public abstract record SymbolType()
         }
 
         // Note: templateTypeName is resolved lazily (because it might not be a buffer type and we don't need to resolve it)
+
+        // Preserves the full vector/scalar type (e.g. float2 stays float2). Defaults to float4 when no template given (HLSL default).
+        static SymbolType ResolveReturnType(TypeName? templateTypeName)
+            => templateTypeName == null ? new VectorType(ScalarType.Float, 4) : templateTypeName.Type;
+
+        // Returns only the scalar element type — required for OpTypeImage sampled type and intrinsic base-type matching.
         static ScalarType ResolveScalarType(TypeName? templateTypeName)
         {
             var templateType = templateTypeName?.Type ?? ScalarType.Float;
-
             return templateType switch
             {
                 VectorType v => v.BaseType,
@@ -81,24 +86,24 @@ public abstract record SymbolType()
             "ByteAddressBuffer" => new ByteAddressBufferType(false),
             "RWByteAddressBuffer" => new ByteAddressBufferType(true),
 
-            "Texture1D" => new Texture1DType(ResolveScalarType(templateTypeName)),
-            "Texture2D" => new Texture2DType(ResolveScalarType(templateTypeName)),
-            "Texture2DMS" => new Texture2DType(ResolveScalarType(templateTypeName)) { Multisampled = true },
-            "Texture3D" => new Texture3DType(ResolveScalarType(templateTypeName)),
-            "TextureCube" => new TextureCubeType(ResolveScalarType(templateTypeName)),
+            "Texture1D" => new Texture1DType(ResolveReturnType(templateTypeName)),
+            "Texture2D" => new Texture2DType(ResolveReturnType(templateTypeName)),
+            "Texture2DMS" => new Texture2DType(ResolveReturnType(templateTypeName)) { Multisampled = true },
+            "Texture3D" => new Texture3DType(ResolveReturnType(templateTypeName)),
+            "TextureCube" => new TextureCubeType(ResolveReturnType(templateTypeName)),
 
-            "Texture1DArray" => new Texture1DType(ResolveScalarType(templateTypeName)) { Arrayed = true },
-            "Texture2DArray" => new Texture2DType(ResolveScalarType(templateTypeName)) { Arrayed = true },
-            "Texture2DMSArray" => new Texture2DType(ResolveScalarType(templateTypeName)) { Multisampled = true, Arrayed = true },
-            "Texture3DArray" => new Texture3DType(ResolveScalarType(templateTypeName)) { Arrayed = true },
-            "TextureCubeArray" => new TextureCubeType(ResolveScalarType(templateTypeName)) { Arrayed = true },
+            "Texture1DArray" => new Texture1DType(ResolveReturnType(templateTypeName)) { Arrayed = true },
+            "Texture2DArray" => new Texture2DType(ResolveReturnType(templateTypeName)) { Arrayed = true },
+            "Texture2DMSArray" => new Texture2DType(ResolveReturnType(templateTypeName)) { Multisampled = true, Arrayed = true },
+            "Texture3DArray" => new Texture3DType(ResolveReturnType(templateTypeName)) { Arrayed = true },
+            "TextureCubeArray" => new TextureCubeType(ResolveReturnType(templateTypeName)) { Arrayed = true },
 
-            "RWTexture1D" => new Texture1DType(ResolveScalarType(templateTypeName)) { Sampled = 2 },
-            "RWTexture2D" => new Texture2DType(ResolveScalarType(templateTypeName)) { Sampled = 2 },
-            "RWTexture3D" => new Texture3DType(ResolveScalarType(templateTypeName)) { Sampled = 2 },
+            "RWTexture1D" => new Texture1DType(ResolveReturnType(templateTypeName)) { Sampled = 2 },
+            "RWTexture2D" => new Texture2DType(ResolveReturnType(templateTypeName)) { Sampled = 2 },
+            "RWTexture3D" => new Texture3DType(ResolveReturnType(templateTypeName)) { Sampled = 2 },
 
-            "RWTexture1DArray" => new Texture1DType(ResolveScalarType(templateTypeName)) { Sampled = 2, Arrayed = true },
-            "RWTexture2DArray" => new Texture2DType(ResolveScalarType(templateTypeName)) { Sampled = 2, Arrayed = true },
+            "RWTexture1DArray" => new Texture1DType(ResolveReturnType(templateTypeName)) { Sampled = 2, Arrayed = true },
+            "RWTexture2DArray" => new Texture2DType(ResolveReturnType(templateTypeName)) { Sampled = 2, Arrayed = true },
 
             _ => null,
         };
@@ -293,26 +298,26 @@ public sealed partial record SampledImage(TextureType ImageType) : SymbolType()
     public override string ToString() => $"SampledImage<{ImageType}>";
 }
 
-public abstract partial record TextureType(ScalarType ReturnType, Dim Dimension, int Depth, bool Arrayed, bool Multisampled, int Sampled, ImageFormat Format) : SymbolType()
+public abstract partial record TextureType(SymbolType ReturnType, Dim Dimension, int Depth, bool Arrayed, bool Multisampled, int Sampled, ImageFormat Format) : SymbolType()
 {
     public override string ToId() => $"Texture_{ReturnType}";
     public override string ToString() => $"Texture<{ReturnType}>({Dimension}, {Depth}, {Arrayed}, {Multisampled}, {Sampled}, {Format})";
 }
 
-public sealed partial record Texture1DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim1D, 2, false, false, 1, ImageFormat.Unknown)
+public sealed partial record Texture1DType(SymbolType ReturnType) : TextureType(ReturnType, Dim.Dim1D, 2, false, false, 1, ImageFormat.Unknown)
 {
     public override string ToString() => $"{(Sampled == 2 ? "RW" : "")}Texture1D{(Arrayed ? "Array" : "")}<{ReturnType}>";
 }
-public sealed partial record Texture2DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim2D, 2, false, false, 1, ImageFormat.Unknown)
+public sealed partial record Texture2DType(SymbolType ReturnType) : TextureType(ReturnType, Dim.Dim2D, 2, false, false, 1, ImageFormat.Unknown)
 {
     public override string ToString() => $"{(Sampled == 2 ? "RW" : "")}Texture2D{(Multisampled ? "MS" : "")}{(Arrayed ? "Array" : "")}<{ReturnType}>";
 }
-public sealed partial record Texture3DType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Dim3D, 2, false, false, 1, ImageFormat.Unknown)
+public sealed partial record Texture3DType(SymbolType ReturnType) : TextureType(ReturnType, Dim.Dim3D, 2, false, false, 1, ImageFormat.Unknown)
 {
     public override string ToString() => $"{(Sampled == 2 ? "RW" : "")}Texture3D{(Arrayed ? "Array" : "")}<{ReturnType}>";
 }
 
-public sealed partial record TextureCubeType(ScalarType ReturnType) : TextureType(ReturnType, Dim.Cube, 2, false, false, 1, ImageFormat.Unknown)
+public sealed partial record TextureCubeType(SymbolType ReturnType) : TextureType(ReturnType, Dim.Cube, 2, false, false, 1, ImageFormat.Unknown)
 {
     public override string ToString() => $"TextureCube{(Arrayed ? "Array" : "")}<{ReturnType}>";
 }

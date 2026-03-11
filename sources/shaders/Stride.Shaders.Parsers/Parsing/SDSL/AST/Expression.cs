@@ -662,7 +662,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                 // ImageWrite
                 case (PointerType { BaseType: TextureType textureType }, IndexerExpression indexer):
                     {
-                        var resultType = new VectorType(textureType.ReturnType, 4);
+                        var resultType = textureType.ReturnType;
                         var image = builder.AsValue(context, lvalueBase);
 
                         var imageCoordValue = ConvertTexCoord(context, builder, textureType, indexer.Index.CompileAsValue(table, compiler), ScalarType.Int);

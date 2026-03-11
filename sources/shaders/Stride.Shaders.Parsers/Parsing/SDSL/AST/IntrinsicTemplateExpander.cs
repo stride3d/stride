@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
+using Stride.Shaders.Spirv.Building;
 using SymbolType = Stride.Shaders.Core.SymbolType;
 
 namespace Stride.Shaders.Parsing.SDSL;
@@ -219,7 +220,7 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                                 // Match thisType's base type
                                 parameterTypeHelper[index].BaseType = thisType switch
                                 {
-                                    TextureType t => t.ReturnType,
+                                    TextureType t => t.ReturnType.GetElementType(),
                                     BufferType b => b.BaseType,
                                     null => throw new ArgumentNullException(nameof(thisType)),
                                     _ => throw new InvalidOperationException($"Can't resolve thisType base type for {thisType}"),
@@ -276,7 +277,7 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                                 return thisType switch
                                 {
                                     null => throw new ArgumentNullException(nameof(thisType)),
-                                    TextureType t => new(t.ReturnType, new(4, null), default),
+                                    TextureType t => new(t.ReturnType.GetElementType(), new(t.ReturnType.GetElementCount(), null), default),
                                     BufferType b => new(b.BaseType, new(4, null), default),
                                 };
                             }
