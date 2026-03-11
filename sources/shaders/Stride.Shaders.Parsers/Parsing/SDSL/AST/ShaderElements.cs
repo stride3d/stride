@@ -233,13 +233,15 @@ public partial class ShaderStruct(Identifier typename, TextLocation info) : Shad
 
         Type = new StructType(TypeName.ToString(), fields);
         table.DeclaredTypes.Add(TypeName.ToString(), Type);
+
+        // Register in the SPIR-V context immediately so that CBuffer.ProcessSymbol can reference
+        // this struct type as a member type before the Compile phase runs.
+        context.DeclareStructuredType((StructType)Type, context.Bound++);
     }
 
     public void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
     {
-        var (builder, context) = compiler;
-        var structType = (StructType)Type;
-        context.DeclareStructuredType(structType, context.Bound++);
+        // Already registered in ProcessSymbol.
     }
 
     public override string ToString()
