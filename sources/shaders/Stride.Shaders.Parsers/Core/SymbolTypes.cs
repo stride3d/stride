@@ -617,15 +617,23 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
         }
 
         var variables = CollectionsMarshal.AsSpan(Variables);
+
+        // Pass 1: non-cbuffer variables (stream outputs, plain shader members, etc.)
         foreach (ref var c in variables)
         {
-            if (c.Symbol.Id.Name == name)
+            if (c.Symbol.Id.Name == name
+                && !(c.Symbol.Type is PointerType { StorageClass: Specification.StorageClass.Uniform } pp && pp.BaseType is ConstantBufferSymbol))
             {
                 symbol = c.Symbol;
                 return true;
             }
+        }
 
-            // For cbuffer, all their members are visible directly at the top-level without referencing the cbuffer
+        // Pass 2: promoted cbuffer members across all cbuffers.
+        // Must be a separate pass so that no cbuffer variable name (from any cbuffer) can shadow
+        // a promoted member from another cbuffer (cbuffer names are transparent in HLSL).
+        foreach (ref var c in variables)
+        {
             if (c.Symbol.Type is PointerType { StorageClass: Specification.StorageClass.Uniform } p && p.BaseType is ConstantBufferSymbol cb)
             {
                 for (int index = 0; index < cb.Members.Count; index++)
@@ -638,6 +646,17 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
                         return true;
                     }
                 }
+            }
+        }
+
+        // Pass 3: cbuffer variable itself (last resort — cbuffer names are not user-accessible in HLSL,
+        // but may be needed internally, e.g. when the compiler resolves a cbuffer by name).
+        foreach (ref var c in variables)
+        {
+            if (c.Symbol.Id.Name == name)
+            {
+                symbol = c.Symbol;
+                return true;
             }
         }
 
