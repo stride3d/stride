@@ -317,7 +317,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         }
 
         if (missingParameters > 0)
-            throw new InvalidOperationException($"Function {Name} was called with {arguments.Values.Count} arguments but there was {(defaultParameters > 0 ? $"between {functionType.ParameterTypes.Count - defaultParameters} and {functionType.ParameterTypes.Count}" : functionType.ParameterTypes.Count)} expected");
+            throw new InvalidOperationException($"Function {Name} was called with {arguments.Values.Count} arguments but there was {(defaultParameters > 0 ? $"between {functionType.ParameterTypes.Count - defaultParameters} and {functionType.ParameterTypes.Count}" : functionType.ParameterTypes.Count)} expected (methodDefaultParameters={(methodDefaultParameters == null ? "null" : $"[{string.Join(",", methodDefaultParameters.Value.DefaultValues)}]({methodDefaultParameters.Value.DefaultValues.Length} values)")}, missing={missingParameters})");
     }
 
     protected void ProcessOutputArguments(SymbolTable table, CompilerUnit compiler, FunctionType functionType, Span<int> compiledParams)
@@ -347,7 +347,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
     public static int OverloadScore(FunctionType functionType, int defaultParameters, SymbolType[] argumentTypes)
     {
         // Check argument count
-        if (argumentTypes.Length > functionType.ParameterTypes.Count || argumentTypes.Length < functionType.ParameterTypes.Count + defaultParameters)
+        if (argumentTypes.Length > functionType.ParameterTypes.Count || argumentTypes.Length < functionType.ParameterTypes.Count - defaultParameters)
             return int.MaxValue;
 
         // Check if argument can be converted
