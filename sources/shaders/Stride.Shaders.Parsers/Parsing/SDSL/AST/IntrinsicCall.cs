@@ -51,6 +51,8 @@ public class IntrinsicCallHelper
             BufferType { WriteAllowed: false } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.BufferMethods), IntrinsicsDefinitions.BufferMethods), BufferMethodsImplementations.Instance),
             BufferType { WriteAllowed: true } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.RWBufferMethods), IntrinsicsDefinitions.RWBufferMethods), BufferMethodsImplementations.Instance),
 
+            AppendStructuredBufferType => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.AppendStructuredBufferMethods), IntrinsicsDefinitions.AppendStructuredBufferMethods), AppendStructuredBufferMethodsImplementations.Instance),
+            ConsumeStructuredBufferType => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.ConsumeStructuredBufferMethods), IntrinsicsDefinitions.ConsumeStructuredBufferMethods), ConsumeStructuredBufferMethodsImplementations.Instance),
             StructuredBufferType { WriteAllowed: false } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.StructuredBufferMethods), IntrinsicsDefinitions.StructuredBufferMethods), null),
             StructuredBufferType { WriteAllowed: true } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.RWStructuredBufferMethods), IntrinsicsDefinitions.RWStructuredBufferMethods), null),
 

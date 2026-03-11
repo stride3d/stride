@@ -101,6 +101,8 @@ public partial class SpirvContext
             SamplerType st => Buffer.AddData(new OpTypeSampler(id)).IdResult,
             BufferType b => Buffer.AddData(new OpTypeImage(id, GetOrRegister(b.BaseType), Specification.Dim.Buffer,
                 2, 0, 0, b.WriteAllowed ? 2 : 1, Specification.ImageFormat.Unknown, null)).IdResult,
+            AppendStructuredBufferType ab => RegisterAppendOrConsumeStructuredBufferType("Append", ab.BaseType),
+            ConsumeStructuredBufferType cb => RegisterAppendOrConsumeStructuredBufferType("Consume", cb.BaseType),
             StructuredBufferType b => RegisterStructuredBufferType(b),
             ByteAddressBufferType b => RegisterByteAddressBufferType(b),
             SampledImage si => Buffer.AddData(new OpTypeSampledImage(id, GetOrRegister(si.ImageType))).IdResult,
@@ -126,6 +128,19 @@ public partial class SpirvContext
 
         var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).ResultId;
         AddName(bufferType, $"type.{(structuredBufferType.WriteAllowed ? "RW" : "")}StructuredBuffer.{structuredBufferType.BaseType.ToId()}");
+        Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.Offset, [0]));
+        Buffer.Add(new OpDecorate(bufferType, Specification.Decoration.Block, []));
+
+        return bufferType;
+    }
+
+    private int RegisterAppendOrConsumeStructuredBufferType(string prefix, SymbolType baseType)
+    {
+        var elementSize = SpirvBuilder.TypeSizeInBuffer(baseType, TypeModifier.None, SpirvBuilder.AlignmentRules.StructuredBuffer).Size;
+        var runtimeArrayType = GetOrCreateRuntimeArray(GetOrRegister(baseType), elementSize);
+
+        var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).ResultId;
+        AddName(bufferType, $"type.{prefix}StructuredBuffer.{baseType.ToId()}");
         Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.Offset, [0]));
         Buffer.Add(new OpDecorate(bufferType, Specification.Decoration.Block, []));
 

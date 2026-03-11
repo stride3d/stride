@@ -56,8 +56,14 @@ public abstract record SymbolType()
         {
             case "StructuredBuffer":
             case "RWStructuredBuffer":
-                var templateType = templateTypeName.Type;
+                var templateType = templateTypeName!.Type;
                 result = new StructuredBufferType(templateType, name.StartsWith("RW"));
+                return true;
+            case "AppendStructuredBuffer":
+                result = new AppendStructuredBufferType(templateTypeName!.Type);
+                return true;
+            case "ConsumeStructuredBuffer":
+                result = new ConsumeStructuredBufferType(templateTypeName!.Type);
                 return true;
         }
 
@@ -274,6 +280,18 @@ public sealed partial record StructuredBufferType(SymbolType BaseType, bool Writ
 {
     public override string ToId() => $"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType.ToId()}>";
     public override string ToString() => $"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType}>";
+}
+
+public sealed partial record AppendStructuredBufferType(SymbolType BaseType) : StructuredType($"AppendStructuredBuffer<{BaseType.ToId()}>", [new(string.Empty, BaseType, TypeModifier.None)])
+{
+    public override string ToId() => $"AppendStructuredBuffer<{BaseType.ToId()}>";
+    public override string ToString() => $"AppendStructuredBuffer<{BaseType}>";
+}
+
+public sealed partial record ConsumeStructuredBufferType(SymbolType BaseType) : StructuredType($"ConsumeStructuredBuffer<{BaseType.ToId()}>", [new(string.Empty, BaseType, TypeModifier.None)])
+{
+    public override string ToId() => $"ConsumeStructuredBuffer<{BaseType.ToId()}>";
+    public override string ToString() => $"ConsumeStructuredBuffer<{BaseType}>";
 }
 
 public sealed partial record BufferType(ScalarType BaseType, bool WriteAllowed = false) : SymbolType()
