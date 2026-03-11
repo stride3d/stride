@@ -113,6 +113,8 @@ internal static class BuiltinProcessor
             (not ExecutionModel.Fragment, StreamVariableType.Output, "SV_POSITION") => AddBuiltin(context, variable, BuiltIn.Position),
             (not ExecutionModel.Fragment and not ExecutionModel.Vertex, StreamVariableType.Input, "SV_POSITION") => AddBuiltin(context, variable, BuiltIn.Position),
             (ExecutionModel.Fragment, StreamVariableType.Input, "SV_POSITION") => AddBuiltin(context, variable, BuiltIn.FragCoord),
+            // In vertex shaders, SV_POSITION as input is just a regular vertex attribute (object-space position)
+            (ExecutionModel.Vertex, StreamVariableType.Input, "SV_POSITION") => false,
             // Vertex shaders inputs (SV_InstanceID, SV_VertexID, etc.)
             (ExecutionModel.Vertex, StreamVariableType.Input, "SV_INSTANCEID") => AddBuiltin(context, variable, BuiltIn.InstanceIndex),
             (ExecutionModel.Vertex, StreamVariableType.Input, "SV_VERTEXID") => AddBuiltin(context, variable, BuiltIn.VertexIndex),
