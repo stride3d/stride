@@ -97,10 +97,10 @@ public partial class DeclaredVariableAssign(Identifier variable, bool isConst, T
 
     public override void ProcessSymbol(SymbolTable table)
     {
-        Value?.ProcessSymbol(table, TypeName.Type);
         SymbolType valueType;
         if (TypeName.Name == "var")
         {
+            Value?.ProcessSymbol(table);
             if (Value == null)
                 table.Errors.Add(new(Info, "can't infer `var` type without a value"));
             valueType = Value.ValueType;
@@ -109,6 +109,7 @@ public partial class DeclaredVariableAssign(Identifier variable, bool isConst, T
         {
             TypeName.ProcessSymbol(table);
             valueType = TypeName.Type;
+            Value?.ProcessSymbol(table, TypeName.Type);
         }
         Type = new PointerType(valueType, Specification.StorageClass.Function);
         Variable.Type = Type;

@@ -310,6 +310,7 @@ public partial class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
 
         var expectedElementType = expectedType switch
         {
+            VectorType v => v.BaseType,
             MatrixType m => m.BaseType,
             ArrayType a => a.BaseType,
             _ => null,
@@ -318,8 +319,8 @@ public partial class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
         foreach (var value in Values)
             value.ProcessSymbol(table, expectedElementType);
 
-        // Matrix brace initialization is fully handled by CompositeLiteral.CompileImpl
-        if (expectedType is MatrixType)
+        // Vector/Matrix brace initialization is fully handled by CompositeLiteral.CompileImpl
+        if (expectedType is VectorType or MatrixType)
             return;
 
         if (Type == null && Values.Count > 0)
