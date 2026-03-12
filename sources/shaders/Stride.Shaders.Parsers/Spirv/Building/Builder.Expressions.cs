@@ -488,10 +488,11 @@ public partial class SpirvBuilder
             (ScalarType, VectorType or MatrixType) => 1,
 
             // Truncation
-            // Emit warning? (warning: implicit truncation of vector type)
-            (VectorType or MatrixType, ScalarType) => 13,
-            (VectorType v1, VectorType v2) when v1.Size > v2.Size => 13,
-            (MatrixType m1, MatrixType m2) when (m1.Rows > m2.Rows && m1.Columns >= m2.Columns) || (m1.Rows >= m2.Rows && m1.Columns > m2.Columns) => 13,
+            // Shape-changing truncation (vector/matrix to scalar) costs more than dimension-reducing truncation
+            // This ensures e.g. mul(float3, float4x4) picks mul_vm(float3, float3x4) over mul_sm(float, float4x4)
+            (VectorType or MatrixType, ScalarType) => 20,
+            (VectorType v1, VectorType v2) when v1.Size > v2.Size => 10 + (v1.Size - v2.Size),
+            (MatrixType m1, MatrixType m2) when (m1.Rows > m2.Rows && m1.Columns >= m2.Columns) || (m1.Rows >= m2.Rows && m1.Columns > m2.Columns) => 10 + (m1.Rows - m2.Rows) + (m1.Columns - m2.Columns),
 
             // Note: conversions such as float2x2<=>float4 are allowed but not implemented in Convert()
             (MatrixType m1, VectorType v2) when v2.Size == m1.Rows * m1.Columns => 1,
