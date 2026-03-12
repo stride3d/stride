@@ -264,7 +264,7 @@ internal static class ParsersExtensions
             scanner.MatchWhiteSpace(advance: true);
             if (scanner.Match(">", true))
             {
-                layout = new Layout("any", "any", new TextLocation(scanner.Code, position..scanner.Position));
+                layout = new Layout("any", null, new TextLocation(scanner.Code, position..scanner.Position));
                 return true;
             }
             var size1Pos = scanner.Position;
