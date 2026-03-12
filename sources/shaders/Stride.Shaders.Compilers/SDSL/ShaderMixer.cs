@@ -78,6 +78,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 break;
             }
         }
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Sampled is 2 && typeImage.Imageformat == ImageFormat.Unknown)
+            {
+                context.Add(new OpCapability(Capability.StorageImageWriteWithoutFormat));
+                break;
+            }
+        }
         foreach (var i in temp)
         {
             if (i.Op is Op.OpImageQuerySizeLod or Op.OpImageQuerySize or Op.OpImageQueryLevels or Op.OpImageQuerySamples)

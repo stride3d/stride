@@ -311,8 +311,7 @@ public partial class SpirvContext
             (Scalar.Float, 1) => Specification.ImageFormat.R32f,
             (Scalar.Float, 2) => Specification.ImageFormat.Rg32f,
             (Scalar.Float, 4) => Specification.ImageFormat.Rgba32f,
-            (Scalar.Float, 3) => throw new NotSupportedException(
-                "3-component float storage textures have no SPIR-V ImageFormat equivalent. Use float4 instead."),
+            (Scalar.Float, 3) => Specification.ImageFormat.Unknown,
             (Scalar.UInt, 1) => Specification.ImageFormat.R32ui,
             (Scalar.UInt, 2) => Specification.ImageFormat.Rg32ui,
             (Scalar.UInt, 4) => Specification.ImageFormat.Rgba32ui,
