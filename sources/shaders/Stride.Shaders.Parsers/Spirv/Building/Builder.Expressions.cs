@@ -491,7 +491,7 @@ public partial class SpirvBuilder
             // Emit warning? (warning: implicit truncation of vector type)
             (VectorType or MatrixType, ScalarType) => 13,
             (VectorType v1, VectorType v2) when v1.Size > v2.Size => 13,
-            (MatrixType m1, MatrixType m2) when m1.Rows > m2.Rows && m1.Columns > m2.Columns => 13,
+            (MatrixType m1, MatrixType m2) when (m1.Rows > m2.Rows && m1.Columns >= m2.Columns) || (m1.Rows >= m2.Rows && m1.Columns > m2.Columns) => 13,
 
             // Note: conversions such as float2x2<=>float4 are allowed but not implemented in Convert()
             (MatrixType m1, VectorType v2) when v2.Size == m1.Rows * m1.Columns => 1,
