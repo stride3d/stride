@@ -356,7 +356,12 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileProcessTriTessFactorsMin(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue RawEdgeFactors, SpirvValue InsideScale, SpirvValue RoundedEdgeFactors, SpirvValue RoundedInsideFactor, SpirvValue UnroundedInsideFactor) => throw new NotImplementedException();
     public override SpirvValue CompileReversebits(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileSource_mark(SpirvContext context, SpirvBuilder builder, FunctionType functionType) => throw new NotImplementedException();
-    public override SpirvValue CompileTranspose(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
+    public override SpirvValue CompileTranspose(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x)
+    {
+        var returnTypeId = context.GetOrRegister(functionType.ReturnType);
+        var result = builder.Insert(new OpTranspose(returnTypeId, context.Bound++, x.Id));
+        return new(result.ResultId, result.ResultType);
+    }
     public override SpirvValue CompileCheckAccessFullyMapped(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue status) => throw new NotImplementedException();
     public override SpirvValue CompileAddUint64(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b) => throw new NotImplementedException();
     public override SpirvValue CompileNonUniformResourceIndex(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue index) => throw new NotImplementedException();
