@@ -10,6 +10,44 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
 {
     public static TextureMethodsImplementations Instance { get; } = new();
 
+    /// <summary>
+    /// SPIR-V requires OpImageSample*/OpImageFetch result types to be a 4-component vector.
+    /// This method returns the vec4 type for sampling, and if the actual return type is smaller,
+    /// extracts the needed components from the vec4 result.
+    /// </summary>
+    private static (int Vec4TypeId, bool NeedsExtract) GetImageSampleResultType(SpirvContext context, FunctionType functionType, TextureType textureType)
+    {
+        var returnType = functionType.ReturnType;
+        var scalarType = returnType.GetElementType();
+        var vec4Type = new VectorType((ScalarType)scalarType, 4);
+        var vec4TypeId = context.GetOrRegister(vec4Type);
+        var needsExtract = returnType.GetElementCount() < 4;
+        return (vec4TypeId, needsExtract);
+    }
+
+    private static SpirvValue ExtractFromVec4(SpirvContext context, SpirvBuilder builder, FunctionType functionType, int vec4ResultId)
+    {
+        var returnType = functionType.ReturnType;
+        var elementCount = returnType.GetElementCount();
+        var returnTypeId = context.GetOrRegister(returnType);
+
+        if (elementCount == 1)
+        {
+            // Scalar: extract component 0
+            var extract = builder.InsertData(new OpCompositeExtract(returnTypeId, context.Bound++, vec4ResultId, [0]));
+            return new(extract);
+        }
+        else
+        {
+            // vec2 or vec3: shuffle from vec4
+            Span<int> indices = stackalloc int[elementCount];
+            for (int i = 0; i < elementCount; i++)
+                indices[i] = i;
+            var shuffle = builder.InsertData(new OpVectorShuffle(returnTypeId, context.Bound++, vec4ResultId, vec4ResultId, new(indices)));
+            return new(shuffle);
+        }
+    }
+
     public override SpirvValue CompileLoad(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue x, SpirvValue? o = null, SpirvValue? status = null, SpirvValue? s = null)
     {
         if (status != null)
@@ -30,6 +68,8 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         if (textureType.Arrayed)
             textureDim++;
 
+        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType, textureType);
+
         if (imageCoordSize > textureDim)
         {
             // Coord has extra component (LOD): extract it and strip from coord
@@ -42,14 +82,16 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             x = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(coordType), context.Bound++, x.Id, x.Id, new(shuffleIndices))));
 
             TextureGenerateImageOperands(lod, o, s, out var imask, out var imParams);
-            var loadResult = builder.Insert(new OpImageFetch(context.GetOrRegister(functionType.ReturnType), context.Bound++, texture.Id, x.Id, imask, imParams));
+            var loadResult = builder.Insert(new OpImageFetch(vec4TypeId, context.Bound++, texture.Id, x.Id, imask, imParams));
+            if (needsExtract) return ExtractFromVec4(context, builder, functionType, loadResult.ResultId);
             return new(loadResult.ResultId, loadResult.ResultType);
         }
         else
         {
             // No LOD component (e.g. RWTexture): use coord directly
             TextureGenerateImageOperands(null, o, s, out var imask, out var imParams);
-            var loadResult = builder.Insert(new OpImageFetch(context.GetOrRegister(functionType.ReturnType), context.Bound++, texture.Id, x.Id, imask, imParams));
+            var loadResult = builder.Insert(new OpImageFetch(vec4TypeId, context.Bound++, texture.Id, x.Id, imask, imParams));
+            if (needsExtract) return ExtractFromVec4(context, builder, functionType, loadResult.ResultId);
             return new(loadResult.ResultId, loadResult.ResultType);
         }
     }
@@ -60,13 +102,15 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             throw new NotImplementedException();
 
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType, textureType);
 
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
         TextureGenerateImageOperands(null, o, null, out var imask, out var imParams);
-        var sample = builder.Insert(new OpImageSampleImplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
+        var sample = builder.Insert(new OpImageSampleImplicitLod(vec4TypeId, context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
 
+        if (needsExtract) return ExtractFromVec4(context, builder, functionType, sample.ResultId);
         return new(sample.ResultId, sample.ResultType);
     }
 
@@ -76,13 +120,15 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             throw new NotImplementedException();
 
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType, textureType);
 
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
         TextureGenerateImageOperands(null, o, null, out var imask, out var imParams, bias: bias);
-        var sample = builder.Insert(new OpImageSampleImplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
+        var sample = builder.Insert(new OpImageSampleImplicitLod(vec4TypeId, context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
 
+        if (needsExtract) return ExtractFromVec4(context, builder, functionType, sample.ResultId);
         return new(sample.ResultId, sample.ResultType);
     }
 
@@ -92,13 +138,15 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             throw new NotImplementedException();
 
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType, textureType);
 
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
         TextureGenerateImageOperands(lod, o, null, out var imask, out var imParams);
-        var sample = builder.Insert(new OpImageSampleExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
+        var sample = builder.Insert(new OpImageSampleExplicitLod(vec4TypeId, context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
 
+        if (needsExtract) return ExtractFromVec4(context, builder, functionType, sample.ResultId);
         return new(sample.ResultId, sample.ResultType);
     }
 
@@ -108,13 +156,15 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             throw new NotImplementedException();
 
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
+        var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType, textureType);
 
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
 
         TextureGenerateImageOperands(null, o, null, out var imask, out var imParams, ddx, ddy);
-        var sample = builder.Insert(new OpImageSampleExplicitLod(context.GetOrRegister(functionType.ReturnType), context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
+        var sample = builder.Insert(new OpImageSampleExplicitLod(vec4TypeId, context.Bound++, sampledImage.ResultId, x.Id, imask, imParams));
 
+        if (needsExtract) return ExtractFromVec4(context, builder, functionType, sample.ResultId);
         return new(sample.ResultId, sample.ResultType);
     }
 
