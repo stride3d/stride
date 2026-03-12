@@ -152,10 +152,19 @@ public record struct GenericIdentifierParser : IParser<GenericIdentifier>
                 && Parsers.Spaces0(ref scanner, result, out _)
             )
             {
+                var errCount = result.Errors.Count;
                 ParameterParsers.GenericsList(ref scanner, result, out var values);
                 Parsers.Spaces0(ref scanner, result, out _);
                 if (!Tokens.Char('>', ref scanner, advance: true))
-                    return Parsers.Exit(ref scanner, result, out parsed, position);
+                {
+                    // Not a generic — restore position and errors added by GenericsList
+                    // to avoid poisoning downstream parsers (e.g. `x < y` parsed as `x<y>`)
+                    while (result.Errors.Count > errCount)
+                        result.Errors.RemoveAt(result.Errors.Count - 1);
+                    scanner.Position = position;
+                    parsed = default;
+                    return false;
+                }
                 parsed = new GenericIdentifier(typename, values, scanner[position..scanner.Position]);
                 return true;
             }

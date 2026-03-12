@@ -173,13 +173,11 @@ public struct ExpressionParser : IParser<Expression>
                     parsed = shift;
                 else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
-            Parsers.Spaces0(ref scanner, result, out _);
         }
         while (
             !Parsers.FollowedByAny(ref scanner, ["<<=", ">>="], out _, withSpaces: true)
             && Parsers.FollowedByAny(ref scanner, ["<=", ">=", "<", ">"], out op, withSpaces: true, advance: true)
         );
-
         if (parsed is not null)
             return true;
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -241,7 +239,7 @@ public struct ExpressionParser : IParser<Expression>
         }
         while (
             !Parsers.FollowedByAny(ref scanner, ["&&", "&="], out _, withSpaces: true)
-            && Parsers.FollowedByAny(ref scanner, ["&"], out op, advance: true)
+            && Parsers.FollowedByAny(ref scanner, ["&"], out op, withSpaces: true, advance: true)
         );
         if (parsed is not null)
             return true;
@@ -276,7 +274,7 @@ public struct ExpressionParser : IParser<Expression>
         }
         while (
             !Parsers.FollowedByAny(ref scanner, ["||", "|="], out _, withSpaces: true)
-            && Parsers.FollowedByAny(ref scanner, ["|"], out op, advance: true)
+            && Parsers.FollowedByAny(ref scanner, ["|"], out op, withSpaces: true, advance: true)
         );
         if (parsed is not null)
             return true;
@@ -310,7 +308,7 @@ public struct ExpressionParser : IParser<Expression>
         }
         while (
             !Parsers.FollowedByAny(ref scanner, ["^="], out _, withSpaces: true)
-            && Parsers.FollowedByAny(ref scanner, ["^"], out op, advance: true)
+            && Parsers.FollowedByAny(ref scanner, ["^"], out op, withSpaces: true, advance: true)
         );
         if (parsed is not null)
             return true;
@@ -342,7 +340,7 @@ public struct ExpressionParser : IParser<Expression>
                 else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        while (Parsers.FollowedByAny(ref scanner, ["&&"], out op, advance: true));
+        while (Parsers.FollowedByAny(ref scanner, ["&&"], out op, withSpaces: true, advance: true));
         if (parsed is not null)
             return true;
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -372,7 +370,7 @@ public struct ExpressionParser : IParser<Expression>
                 else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        while (Parsers.FollowedByAny(ref scanner, ["||"], out op, advance: true));
+        while (Parsers.FollowedByAny(ref scanner, ["||"], out op, withSpaces: true, advance: true));
         if (parsed is not null)
             return true;
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);

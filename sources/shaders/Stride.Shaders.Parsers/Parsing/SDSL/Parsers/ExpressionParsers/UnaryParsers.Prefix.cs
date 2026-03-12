@@ -99,16 +99,18 @@ public record struct PrefixParser : IParser<Expression>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (
-                Parsers.FollowedBy(ref scanner, Tokens.Char('('), withSpaces: true, advance: true)
-                && Parsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName typeName, withSpaces: true, advance: true)
-                && Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true)
-                && Parsers.FollowedBy(ref scanner, result, PostfixParser.Postfix, out Expression expression, withSpaces: true, advance: true)
-        )
-        {
-            parsed = new CastExpression(typeName, Operator.Cast, expression, scanner[position..scanner.Position]);
-            return true;
+        var s1 = Parsers.FollowedBy(ref scanner, Tokens.Char('('), withSpaces: true, advance: true);
+        if (!s1) { return Parsers.Exit(ref scanner, result, out parsed, position, orError); }
+        var s2 = Parsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName typeName, withSpaces: true, advance: true);
+        if (!s2) { scanner.Position = position; return Parsers.Exit(ref scanner, result, out parsed, position, orError); }
+        var s3 = Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true);
+        if (!s3) { scanner.Position = position; return Parsers.Exit(ref scanner, result, out parsed, position, orError); }
+        var s4 = Parsers.FollowedBy(ref scanner, result, PostfixParser.Postfix, out Expression expression, withSpaces: true, advance: true);
+        if (!s4) {
+            scanner.Position = position;
+            return Parsers.Exit(ref scanner, result, out parsed, position, orError);
         }
-        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
+        parsed = new CastExpression(typeName, Operator.Cast, expression, scanner[position..scanner.Position]);
+        return true;
     }
 }
