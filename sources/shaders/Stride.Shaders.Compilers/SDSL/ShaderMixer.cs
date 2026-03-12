@@ -770,7 +770,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (mixinNode.CompositionArrays.TryGetValue(accessChain.BaseId, out var compositions)
                     || (mixinNode.Stage != null && mixinNode.Stage.CompositionArrays.TryGetValue(accessChain.BaseId, out compositions)))
                 {
-                    var compositionIndex = (int)context.GetConstantValue(accessChain.Values.Elements.Span[0]);
+                    var compositionIndex = (int)context.GetConstantValue(accessChain.Indexes.Elements.Span[0]);
                     compositionArrayAccesses.Add(accessChain.ResultId, compositions[compositionIndex]);
 
                     SetOpNop(i.Data.Memory.Span);
@@ -978,9 +978,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // Transform OpTypeFunctionSDSL into OpTypeFunction (we don't need extra info anymore)
             if (i.Op == Op.OpTypeFunctionSDSL && (OpTypeFunctionSDSL)i is { } functionType)
             {
-                Span<int> parameterTypes = stackalloc int[functionType.Values.Elements.Span.Length];
-                for (int j = 0; j < functionType.Values.Elements.Span.Length; ++j)
-                    parameterTypes[j] = functionType.Values.Elements.Span[j].Item1;
+                Span<int> parameterTypes = stackalloc int[functionType.ParameterTypes.Elements.Span.Length];
+                for (int j = 0; j < functionType.ParameterTypes.Elements.Span.Length; ++j)
+                    parameterTypes[j] = functionType.ParameterTypes.Elements.Span[j].Item1;
 
                 // Make sure to unify same types: they might have different OpTypeFunctionSDSL due to modifiers but end up having the same OpTypeFunction once modifiers info is removed
                 // If two duplicate OpTypeFunction exists, this causes SPIR-V validation errors

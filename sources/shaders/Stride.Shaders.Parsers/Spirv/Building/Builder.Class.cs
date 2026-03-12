@@ -184,7 +184,7 @@ public partial class SpirvBuilder
 
     public static ShaderClassInstantiation ConvertToShaderClassSource(SpirvContext declaringContext, OpSDSLImportShader importShader)
     {
-        return new ShaderClassInstantiation(importShader.ShaderName, importShader.Values.Elements.Memory.ToArray());
+        return new ShaderClassInstantiation(importShader.ShaderName, importShader.Generics.Elements.Memory.ToArray());
     }
 
     public static ShaderClassInstantiation BuildInheritanceListIncludingSelf(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
@@ -654,16 +654,16 @@ public partial class SpirvBuilder
 
                     var existing = new HashSet<int>();
                     var target = 0;
-                    for (int index = 0; index < entryPoint.Values.Elements.Length; ++index)
+                    for (int index = 0; index < entryPoint.InterfaceIds.Elements.Length; ++index)
                     {
-                        if (existing.Add(entryPoint.Values.Elements.Span[index]))
+                        if (existing.Add(entryPoint.InterfaceIds.Elements.Span[index]))
                         {
-                            entryPoint.Values.Elements.Span[target++] = entryPoint.Values.Elements.Span[index];
+                            entryPoint.InterfaceIds.Elements.Span[target++] = entryPoint.InterfaceIds.Elements.Span[index];
                         }
                     }
 
                     // Slice and reassign to refresh InstructionMemory and size
-                    entryPoint.Values = entryPoint.Values.Slice(0, target);
+                    entryPoint.InterfaceIds = entryPoint.InterfaceIds.Slice(0, target);
                 }
             }
 

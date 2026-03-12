@@ -182,7 +182,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             else if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is { } typeStructInstruction)
             {
                 var structName = context.Names[typeStructInstruction.ResultId];
-                var fieldsData = typeStructInstruction.Values;
+                var fieldsData = typeStructInstruction.MemberTypes;
                 var fields = new List<StructuredTypeMember>();
                 for (var index = 0; index < fieldsData.WordCount; index++)
                 {
@@ -229,7 +229,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 var tmp = new OpTypeFunction(instruction);
                 var returnType = context.ReverseTypes[typeFunctionInstruction.ReturnType];
                 var parameterTypes = new List<FunctionParameter>();
-                foreach (var operand in typeFunctionInstruction.Values)
+                foreach (var operand in typeFunctionInstruction.ParameterTypes)
                 {
                     parameterTypes.Add(new(context.ReverseTypes[operand.Item1], (ParameterModifiers)operand.Item2));
                 }
@@ -301,7 +301,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             // This only happens during EvaluateInheritanceAndCompositions so it's not important to have all information valid
             else if (instruction.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)instruction is { } importShader)
             {
-                var classSource = new ShaderClassInstantiation(importShader.ShaderName, importShader.Values.Elements.Memory.ToArray());
+                var classSource = new ShaderClassInstantiation(importShader.ShaderName, importShader.Generics.Elements.Memory.ToArray());
                 var shaderSymbol = realShaderImporter.Import(classSource, context);
 
                 RegisterType(importShader.ResultId, shaderSymbol);

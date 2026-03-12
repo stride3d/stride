@@ -175,8 +175,8 @@ internal static class ReadWriteAnalyzer
                 // In case it's a patch access, i.e. patch[0], mark the access as being a stream
                 if (patchInstructionIds.TryGetValue(currentBase, out var patchStreamKind))
                 {
-                    var patchVariableId = accessChain.Values.Elements.Span[0];
-                    if (accessChain.Values.Elements.Length > 1)
+                    var patchVariableId = accessChain.Indexes.Elements.Span[0];
+                    if (accessChain.Indexes.Elements.Length > 1)
                         throw new InvalidOperationException("OpAccessChain on PatchType can have only 1 element");
                     streamsInstructionIds.Add(accessChain.ResultId, patchStreamKind);
                 }
@@ -186,7 +186,7 @@ internal static class ReadWriteAnalyzer
                     // In case it's a streams access, mark the stream as being the base
                     if (streamsInstructionIds.TryGetValue(currentBase, out var streamKind))
                     {
-                        var streamVariableId = accessChain.Values.Elements.Span[0];
+                        var streamVariableId = accessChain.Indexes.Elements.Span[0];
                         var streamInfo = streams[streamVariableId];
 
                         // Set this base for OpStore/OpLoad stream R/W analysis

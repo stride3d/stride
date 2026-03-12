@@ -97,7 +97,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     // Note: we currently use EffectCodeWriter to generate C# code instead
                     throw new NotImplementedException();
                     string DecodeString(int id) => throw new NotImplementedException();
-                    var instSource = new ShaderClassSource(DecodeString(mixinInstruction.Value), mixinInstruction.Values);
+                    var instSource = new ShaderClassSource(DecodeString(mixinInstruction.Value), mixinInstruction.Generics);
                     var evaluatedSource = EvaluateEffects(instSource);
 
                     switch (mixinInstruction.Kind)

@@ -105,7 +105,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 {
                     if (variableToMemberIndices.TryGetValue(accessChain.BaseId, out var memberIndex))
                     {
-                        accessChain.Values = new([context.CompileConstant(memberIndex).Id, .. accessChain.Values.Elements.Span]);
+                        accessChain.Indexes = new([context.CompileConstant(memberIndex).Id, .. accessChain.Indexes.Elements.Span]);
                         accessChain.BaseId = cbufferVariable.ResultId;
                     }
                 }
@@ -116,7 +116,7 @@ namespace Stride.Shaders.Compilers.SDSL
             {
                 if (i.Op == Op.OpEntryPoint && (OpEntryPoint)i is { } entryPoint)
                 {
-                    entryPoint.Values = new([.. entryPoint.Values, cbufferVariable.ResultId]);
+                    entryPoint.InterfaceIds = new([.. entryPoint.InterfaceIds, cbufferVariable.ResultId]);
                 }
             }
 
@@ -279,12 +279,12 @@ namespace Stride.Shaders.Compilers.SDSL
                             if (variables.TryGetValue(accessChain.BaseId, out var cbuffer) && cbuffer.MemberIndexOffset > 0)
                             {
                                 // According to spec, this must be a OpConstant (and we only create them with int)
-                                var indexes = accessChain.Values.Elements.Span;
+                                var indexes = accessChain.Indexes.Elements.Span;
                                 var constantId = indexes[0];
                                 var index = cbuffer.MemberIndexOffset + (int)context.GetConstantValue(constantId);
                                 indexes[0] = context.CompileConstant(index).Id;
 
-                                // Regenerate buffer (since we modify accessChain.Values, it doesn't get rebuilt automatically)
+                                // Regenerate buffer (since we modify accessChain.Indexes, it doesn't get rebuilt automatically)
                                 accessChain.UpdateInstructionMemory();
                             }
                         }

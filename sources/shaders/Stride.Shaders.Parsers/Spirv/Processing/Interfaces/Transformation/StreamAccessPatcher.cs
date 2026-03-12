@@ -128,9 +128,9 @@ internal static class StreamAccessPatcher
                 // In case it's a streams.Variable access, patch acces to use STREAMS struct with proper index to this variable
                 // Note: we made sure in AccessChainExpression to decompose access such as inputs[2].variable into two OpAccessChain
                 //       so that we match this easier to detect format
-                if (accessChain.Values.Elements.Length == 1 && streamsInstructionIds.TryGetValue(accessChain.BaseId, out var streamAccessInfo))
+                if (accessChain.Indexes.Elements.Length == 1 && streamsInstructionIds.TryGetValue(accessChain.BaseId, out var streamAccessInfo))
                 {
-                    var streamVariableId = accessChain.Values.Elements.Span[0];
+                    var streamVariableId = accessChain.Indexes.Elements.Span[0];
                     var streamInfo = streams[streamVariableId];
                     var streamStructMemberIndex = streamAccessInfo.Kind switch
                     {
@@ -141,13 +141,13 @@ internal static class StreamAccessPatcher
 
                     // TODO: this won't update accessChain.Memory yet but setting accessChain.Base later will fix that
                     //       we'll need a better way to update LiteralArray and propagate changes
-                    accessChain.Values.Elements.Span[0] = context.CompileConstant(streamStructMemberIndex).Id;
+                    accessChain.Indexes.Elements.Span[0] = context.CompileConstant(streamStructMemberIndex).Id;
 
                     if (streamAccessInfo.IsImplicit)
                         accessChain.BaseId = streamsVariableId;
                     else
                         // Force refresh of InstructionMemory
-                        // TODO: remove when accessChain.Values update properly the instruction
+                        // TODO: remove when accessChain.Indexes update properly the instruction
                         accessChain.BaseId = accessChain.BaseId;
                 }
             }

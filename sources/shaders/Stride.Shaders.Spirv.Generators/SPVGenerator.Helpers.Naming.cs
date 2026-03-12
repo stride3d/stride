@@ -45,7 +45,6 @@ public partial class SPVGenerator
     {
         return (name, quant) switch
         {
-            (_, "*") => "values",
             ("event", _) => "eventId",
             ("string", _) => "value",
             ("base", _) => "baseId",
@@ -53,6 +52,42 @@ public partial class SPVGenerator
             ("default", _) => "defaultId",
             _ => name.Replace("'", "").ToLowerInvariant()
         };
+    }
+
+    /// <summary>
+    /// Extracts the first quoted name from a SPIR-V operand name that may contain
+    /// multi-value documentation like "'Member 0 type', +\n'member 1 type', +\n...".
+    /// Strips digit suffixes to produce a clean base name (e.g., "Member 0 type" → "Member type").
+    /// </summary>
+    static string ExtractFirstOperandName(string name)
+    {
+        // Take up to the first comma or + that separates multiple values
+        var commaIdx = name.IndexOf(',');
+        var plusIdx = name.IndexOf('+');
+        var newlineIdx = name.IndexOf('\n');
+        var end = name.Length;
+        if (commaIdx > 0) end = Math.Min(end, commaIdx);
+        if (plusIdx > 0) end = Math.Min(end, plusIdx);
+        if (newlineIdx > 0) end = Math.Min(end, newlineIdx);
+        var first = name[..end].Trim().Trim('\'').Trim();
+
+        // Strip digit suffixes and capitalize each word for CamelCase
+        // e.g. "Member 0 type" → "MemberTypes", "Argument 0" → "Arguments"
+        // If a digit was removed, pluralize by adding "s" at the end
+        var sb = new StringBuilder();
+        var parts = first.Split(' ');
+        bool hadDigit = false;
+        foreach (var part in parts)
+        {
+            if (part.Length > 0 && part.All(char.IsDigit))
+            {
+                hadDigit = true;
+                continue;
+            }
+            sb.Append(char.ToUpperInvariant(part[0]));
+            sb.Append(part[1..]);
+        }
+        return sb.Length > 0 ? sb.ToString() : first;
     }
 
     public static void PreProcessOperands(InstructionData op, Dictionary<string, OpKind> operandKinds, List<(string Name, string Type)> parameters)
@@ -84,14 +119,14 @@ public partial class SPVGenerator
                         if (e.Quantifier == "?")
                             parameters.AddUnique(ConvertOperandName(name), $"{realKind}?");
                         else if (e.Quantifier == "*")
-                            parameters.AddUnique("values", $"Span<{realKind}>");
+                            parameters.AddUnique(ConvertOperandName(ExtractFirstOperandName(name), "*"), $"Span<{realKind}>");
                     }
                     else
                     {
                         if (e.Quantifier == "?")
                             parameters.AddUnique(ConvertKindToName(kind!), $"{realKind}?");
                         else if (e.Quantifier == "*")
-                            parameters.AddUnique("values", $"Span<{realKind}>");
+                            parameters.AddUnique(ConvertKindToName(kind!), $"Span<{realKind}>");
                     }
                 }
                 else
@@ -139,14 +174,14 @@ public partial class SPVGenerator
                         if (e.Quantifier == "?")
                             parameters.AddUnique(realKind + "? " + ConvertOperandName(name));
                         else if (e.Quantifier == "*")
-                            parameters.AddUnique("Span<" + realKind + "> values");
+                            parameters.AddUnique("Span<" + realKind + "> " + ConvertOperandName(ExtractFirstOperandName(name), "*"));
                     }
                     else
                     {
                         if (e.Quantifier == "?")
                             parameters.AddUnique(realKind + "? " + ConvertKindToName(kind!));
                         else if (e.Quantifier == "*")
-                            parameters.AddUnique("Span<" + realKind + "> values");
+                            parameters.AddUnique("Span<" + realKind + "> " + ConvertKindToName(kind!));
                     }
                 }
                 else
@@ -190,14 +225,14 @@ public partial class SPVGenerator
                         if (quant == "?")
                             parameters.AddUnique(ConvertOperandName(name));
                         else if (quant == "*")
-                            parameters.AddUnique("values");
+                            parameters.AddUnique(ConvertOperandName(ExtractFirstOperandName(name), "*"));
                     }
                     else
                     {
                         if (quant == "?")
                             parameters.AddUnique(ConvertKindToName(kind!));
                         else if (quant == "*")
-                            parameters.AddUnique("values");
+                            parameters.AddUnique(ConvertKindToName(kind!));
                     }
                 }
                 else
@@ -268,27 +303,29 @@ public partial class SPVGenerator
             }
 
         }
-        return (result.ToString(), quant) switch
+        var name = result.ToString() switch
         {
-            ("event", _) => "eventId",
-            ("string", _) => "value",
-            ("base", _) => "baseId",
-            ("object", _) => "objectId",
-            ("default", _) => "defaultId",
-            ("IdResult", _) => "resultId",
-            ("IdResultType", _) => "resultType",
-            ("IdRef", "*") => "id",
-            ("IdRef", "?") => "id",
-            ("IdRef", null) => "id",
-            ("LiteralInteger", _) => "",
-            ("LiteralFloat", _) => "",
-            ("LiteralString", _) => "",
-            ("Dim", _) => "",
-            ("ImageFormat", _) => "",
-            ("ExecutionMode", _) => "",
-            ("ExecutionModel", _) => "",
-            (string v, _) => v
+            "event" => "eventId",
+            "string" => "value",
+            "base" => "baseId",
+            "object" => "objectId",
+            "default" => "defaultId",
+            "interface" => "interfaceId",
+            "IdResult" => "resultId",
+            "IdResultType" => "resultType",
+            "IdRef" => "id",
+            "LiteralInteger" => "",
+            "LiteralFloat" => "",
+            "LiteralString" => "",
+            "Dim" => "",
+            "ImageFormat" => "",
+            "ExecutionMode" => "",
+            "ExecutionModel" => "",
+            string v => v
         };
+        if (quant == "*" && name.Length > 0 && !name.EndsWith("s"))
+            name += "s";
+        return name;
     }
     static string LowerFirst(string s)
         => char.IsLower(s[0]) ? s : $"{char.ToLowerInvariant(s[0])}{s[1..]}";

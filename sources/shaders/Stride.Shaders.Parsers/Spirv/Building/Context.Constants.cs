@@ -163,7 +163,7 @@ public partial class SpirvContext
         if ((i.Op == Specification.Op.OpConstantComposite || i.Op == Specification.Op.OpSpecConstantComposite) &&
             (OpConstantComposite)i is { } constantComposite)
         {
-            var values = constantComposite.Values;
+            var values = constantComposite.Constituents;
             var constants = new object[values.WordCount];
             for (int j = 0; j < values.WordCount; ++j)
             {

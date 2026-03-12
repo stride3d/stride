@@ -107,12 +107,12 @@ public partial class ShaderMixer
         {
             // TODO: some common code to generate name, so that it doesn't deviate from ToClassName() called later when doing ShadersByName lookups
             var shaderName = importShader.ShaderName;
-            if (importShader.Values.Elements.Length > 0)
+            if (importShader.Generics.Elements.Length > 0)
             {
-                var genericArguments = new string[importShader.Values.Elements.Length];
+                var genericArguments = new string[importShader.Generics.Elements.Length];
                 for (int j = 0; j < genericArguments.Length; j++)
                 {
-                    genericArguments[j] = ShaderClassSource.ConvertGenericArgToString(context.GetConstantValue(importShader.Values.Elements.Span[j]));
+                    genericArguments[j] = ShaderClassSource.ConvertGenericArgToString(context.GetConstantValue(importShader.Generics.Elements.Span[j]));
                 }
                 shaderName += $"<{string.Join(",", genericArguments)}>";
             }
