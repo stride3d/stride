@@ -21,7 +21,7 @@ public partial class SpirvContext
             int v => Buffer.AddData(new OpConstant<int>(GetOrRegister(ScalarType.Int), Bound++, v)),
             ulong v => Buffer.AddData(new OpConstant<ulong>(GetOrRegister(ScalarType.UInt64), Bound++, v)),
             long v => Buffer.AddData(new OpConstant<long>(GetOrRegister(ScalarType.Int64), Bound++, v)),
-            //Half v => Buffer.Add(new OpConstant<Half>(GetOrRegister(ScalarType.From("half")), Bound++, v)),
+            Half v => Buffer.AddData(new OpConstant<Half>(GetOrRegister(ScalarType.Half), Bound++, v)),
             float v => Buffer.AddData(new OpConstant<float>(GetOrRegister(ScalarType.Float), Bound++, v)),
             double v => Buffer.AddData(new OpConstant<double>(GetOrRegister(ScalarType.Double), Bound++, v)),
             _ => throw new NotImplementedException()

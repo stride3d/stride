@@ -675,6 +675,20 @@ public partial class SpirvBuilder
                                                                                                     context.CreateConstantCompositeVectorRepeat(new FloatLiteral(new(32, true, true), 1.0, null, new()), elementSize).Id,
                                                                                                     context.CreateConstantCompositeVectorRepeat(new FloatLiteral(new(32, true, true), 0.0, null, new()), elementSize).Id)),
 
+                    // Half conversions (OpFConvert for float<->half<->double, standard int conversions)
+                    (ScalarType { Type: Scalar.Half }, ScalarType { Type: Scalar.Float }) => InsertData(new OpFConvert(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.Half }, ScalarType { Type: Scalar.Double }) => InsertData(new OpFConvert(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Half }) => InsertData(new OpFConvert(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.Double }, ScalarType { Type: Scalar.Half }) => InsertData(new OpFConvert(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.Half }, ScalarType { Type: Scalar.Int }) => InsertData(new OpConvertFToS(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.Half }, ScalarType { Type: Scalar.UInt }) => InsertData(new OpConvertFToU(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Half }) => InsertData(new OpConvertSToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Half }) => InsertData(new OpConvertUToF(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
+                    (ScalarType { Type: Scalar.Half }, ScalarType { Type: Scalar.Boolean }) => InsertData(new OpFOrdNotEqual(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue, context.CreateConstantCompositeVectorRepeat(new FloatLiteral(new(16, true, true), 0.0, null, new()), elementSize).Id)),
+                    (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Half }) => InsertData(new OpSelect(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue,
+                                                                                                    context.CreateConstantCompositeVectorRepeat(new FloatLiteral(new(16, true, true), 1.0, null, new()), elementSize).Id,
+                                                                                                    context.CreateConstantCompositeVectorRepeat(new FloatLiteral(new(16, true, true), 0.0, null, new()), elementSize).Id)),
+
                     // Bitcast (int=>uint or uint=>int)
                     (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.UInt }) => InsertData(new OpBitcast(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),
                     (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Int }) => InsertData(new OpBitcast(context.GetOrRegister(castTypeSameSize), context.Bound++, rowValue)),

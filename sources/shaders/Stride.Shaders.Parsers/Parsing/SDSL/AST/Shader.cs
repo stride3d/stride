@@ -138,7 +138,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
 
                 RegisterType(floatInstruction.ResultId, floatInstruction.Width switch
                 {
-                    16 => throw new NotImplementedException(),
+                    16 => ScalarType.Half,
                     32 => ScalarType.Float,
                     64 => ScalarType.Double,
                     _ => throw new InvalidOperationException(),

@@ -75,6 +75,7 @@ public partial class SpirvContext
                     Scalar.UInt => Buffer.AddData(new OpTypeInt(id, 32, 0)).IdResult,
                     Scalar.Int64 => Buffer.AddData(new OpTypeInt(id, 64, 1)).IdResult,
                     Scalar.UInt64 => Buffer.AddData(new OpTypeInt(id, 64, 0)).IdResult,
+                    Scalar.Half => Buffer.AddData(new OpTypeFloat(id, 16, null)).IdResult,
                     Scalar.Float => Buffer.AddData(new OpTypeFloat(id, 32, null)).IdResult,
                     Scalar.Double => Buffer.AddData(new OpTypeFloat(id, 64, null)).IdResult,
                     _ => throw new NotImplementedException($"Can't add type {type}")

@@ -333,8 +333,82 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileEvaluateAttributeCentroid(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value) => throw new NotImplementedException();
     public override SpirvValue CompileEvaluateAttributeSnapped(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value, SpirvValue offset) => throw new NotImplementedException();
     public override SpirvValue CompileGetAttributeAtVertex(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue value, SpirvValue VertexID) => throw new NotImplementedException();
-    public override SpirvValue CompileF16tof32(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
-    public override SpirvValue CompileF32tof16(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
+    public override SpirvValue CompileF16tof32(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x)
+    {
+        // f16tof32(uint) -> float: UnpackHalf2x16 returns float2, extract .x
+        // For vector variants: decompose, apply per-element, recompose
+        var returnType = functionType.ReturnType;
+        var inputType = context.ReverseTypes[x.TypeId];
+        var float2Type = context.GetOrRegister(new VectorType(ScalarType.Float, 2));
+        var floatType = context.GetOrRegister(ScalarType.Float);
+
+        if (inputType is ScalarType)
+        {
+            // UnpackHalf2x16(x) -> float2, then extract .x
+            var unpack = builder.Insert(new GLSLExp(float2Type, context.Bound++, context.GetGLSL(), x.Id));
+            unpack.InstructionMemory.Span[4] = 62; // GLSLstd450 UnpackHalf2x16
+            var extract = new SpirvValue(builder.InsertData(new OpCompositeExtract(floatType, context.Bound++, unpack.ResultId, [0])));
+            return extract;
+        }
+        else if (inputType is VectorType v)
+        {
+            var uintType = context.GetOrRegister(ScalarType.UInt);
+            var components = new int[v.Size];
+            for (int i = 0; i < v.Size; i++)
+            {
+                // Extract uint component
+                var comp = new SpirvValue(builder.InsertData(new OpCompositeExtract(uintType, context.Bound++, x.Id, [i])));
+                // UnpackHalf2x16 -> float2
+                var unpack = builder.Insert(new GLSLExp(float2Type, context.Bound++, context.GetGLSL(), comp.Id));
+                unpack.InstructionMemory.Span[4] = 62; // GLSLstd450 UnpackHalf2x16
+                // Extract .x -> float
+                var extract = new SpirvValue(builder.InsertData(new OpCompositeExtract(floatType, context.Bound++, unpack.ResultId, [0])));
+                components[i] = extract.Id;
+            }
+            var result = new SpirvValue(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(returnType), context.Bound++, [.. components])));
+            return result;
+        }
+        throw new InvalidOperationException($"Unexpected type {inputType} for f16tof32");
+    }
+    public override SpirvValue CompileF32tof16(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x)
+    {
+        // f32tof16(float) -> uint: PackHalf2x16(float2(x, 0.0)) -> uint
+        // For vector variants: decompose, apply per-element, recompose
+        var returnType = functionType.ReturnType;
+        var inputType = context.ReverseTypes[x.TypeId];
+        var float2Type = context.GetOrRegister(new VectorType(ScalarType.Float, 2));
+        var floatType = context.GetOrRegister(ScalarType.Float);
+        var uintType = context.GetOrRegister(ScalarType.UInt);
+        var zero = context.AddConstant(0.0f);
+
+        if (inputType is ScalarType)
+        {
+            // Construct float2(x, 0.0)
+            var float2Val = new SpirvValue(builder.InsertData(new OpCompositeConstruct(float2Type, context.Bound++, [x.Id, zero])));
+            // PackHalf2x16(float2) -> uint
+            var pack = builder.Insert(new GLSLExp(uintType, context.Bound++, context.GetGLSL(), float2Val.Id));
+            pack.InstructionMemory.Span[4] = 58; // GLSLstd450 PackHalf2x16
+            return new(pack.ResultId, pack.ResultType);
+        }
+        else if (inputType is VectorType v)
+        {
+            var components = new int[v.Size];
+            for (int i = 0; i < v.Size; i++)
+            {
+                // Extract float component
+                var comp = new SpirvValue(builder.InsertData(new OpCompositeExtract(floatType, context.Bound++, x.Id, [i])));
+                // Construct float2(comp, 0.0)
+                var float2Val = new SpirvValue(builder.InsertData(new OpCompositeConstruct(float2Type, context.Bound++, [comp.Id, zero])));
+                // PackHalf2x16 -> uint
+                var pack = builder.Insert(new GLSLExp(uintType, context.Bound++, context.GetGLSL(), float2Val.Id));
+                pack.InstructionMemory.Span[4] = 58; // GLSLstd450 PackHalf2x16
+                components[i] = pack.ResultId;
+            }
+            var result = new SpirvValue(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(returnType), context.Bound++, [.. components])));
+            return result;
+        }
+        throw new InvalidOperationException($"Unexpected type {inputType} for f32tof16");
+    }
     public override SpirvValue CompileFirstbitlow(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileFma(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, SpirvValue c) => throw new NotImplementedException();
     public override SpirvValue CompileFrexp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue exp) => throw new NotImplementedException();
