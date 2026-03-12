@@ -73,7 +73,7 @@ public partial class ShaderMixer
                     shaderInfo.Functions.Add(functionName, functions = new());
                 functions.Add((function.ResultId, functionType));
             }
-            else if (i.Data.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
+            else if (i.Data.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.StorageClass != Specification.StorageClass.Function)
             {
                 var variableName = context.Names[variable.ResultId];
                 var variableType = context.ReverseTypes[variable.ResultType];

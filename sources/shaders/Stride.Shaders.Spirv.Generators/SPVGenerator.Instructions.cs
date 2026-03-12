@@ -368,9 +368,12 @@ public partial class SPVGenerator : IIncrementalGenerator
                 if (char.IsLetterOrDigit(c) || c == '_')
                 {
                     nameBuilder.Append(first ? char.ToUpperInvariant(c) : c);
-                    first &= false;
+                    first = false;
                 }
-
+                else
+                {
+                    first = true;
+                }
             }
             fieldName = nameBuilder.ToString();
         }

@@ -163,7 +163,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             else if (instruction.Op == Op.OpTypePointer && (OpTypePointer)instruction is { } pointerInstruction)
             {
                 var innerType = context.ReverseTypes[pointerInstruction.Type];
-                RegisterType(pointerInstruction.ResultId, new PointerType(innerType, pointerInstruction.Storageclass));
+                RegisterType(pointerInstruction.ResultId, new PointerType(innerType, pointerInstruction.StorageClass));
             }
             else if (instruction.Op == Op.OpTypeVoid && (OpTypeVoid)instruction is { } voidInstruction)
             {
@@ -249,7 +249,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                     SymbolType returnType = textureReturnTypes.TryGetValue(typeImage.ResultId, out var userType)
                         ? userType
                         : (typeImage.Sampled == 2
-                            ? typeImage.Imageformat switch
+                            ? typeImage.ImageFormat switch
                             {
                                 Specification.ImageFormat.Rg32f or Specification.ImageFormat.Rg32i or Specification.ImageFormat.Rg32ui => new VectorType(sampledType, 2),
                                 Specification.ImageFormat.Rgba32f or Specification.ImageFormat.Rgba32i or Specification.ImageFormat.Rgba32ui => new VectorType(sampledType, 4),
@@ -270,7 +270,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                         Depth = typeImage.Depth,
                         Arrayed = typeImage.Arrayed == 1 ? true : false,
                         Multisampled = typeImage.MS == 1 ? true : false,
-                        Format = typeImage.Imageformat,
+                        Format = typeImage.ImageFormat,
                         Sampled = typeImage.Sampled,
                     };
 
@@ -417,7 +417,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         {
             var instruction = shaderBuffers.Buffer[index];
             if (instruction.Op == Op.OpVariableSDSL && (OpVariableSDSL)instruction is { } variable &&
-                variable.Storageclass != Specification.StorageClass.Function)
+                variable.StorageClass != Specification.StorageClass.Function)
             {
                 if (!shaderBuffers.Context.Names.TryGetValue(variable.ResultId, out var variableName))
                     variableName = $"_{variable.ResultId}";

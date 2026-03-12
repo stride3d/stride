@@ -76,7 +76,7 @@ internal static class StreamAnalyzer
         foreach (var i in buffer)
         {
             if (i.Op == Op.OpVariableSDSL
-                && ((OpVariableSDSL)i) is { Storageclass: StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
+                && ((OpVariableSDSL)i) is { StorageClass: StorageClass.Uniform, ResultType: var pointerType2, ResultId: var bufferId }
                 && context.ReverseTypes[pointerType2] is PointerType { BaseType: ConstantBufferSymbol })
             {
                 var name = nameTable[bufferId];
@@ -87,7 +87,7 @@ internal static class StreamAnalyzer
 
             if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                 {
-                    Storageclass: StorageClass.Private or StorageClass.Workgroup or StorageClass.Uniform,
+                    StorageClass: StorageClass.Private or StorageClass.Workgroup or StorageClass.Uniform,
                     ResultId: int
                 } variable
                 && context.ReverseTypes[variable.ResultType] is PointerType { BaseType: not ConstantBufferSymbol })
@@ -117,7 +117,7 @@ internal static class StreamAnalyzer
 
             if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                 {
-                    Storageclass: StorageClass.UniformConstant or StorageClass.StorageBuffer,
+                    StorageClass: StorageClass.UniformConstant or StorageClass.StorageBuffer,
                     ResultId: int
                 } resource)
             {

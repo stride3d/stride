@@ -237,7 +237,7 @@ public partial class SPVGenerator
             ("IdRef", false) => "Id",
             ("IdResult", false) => "ResultId",
             ("IdResultType", false) => "ResultType",
-            (_, true) => kind.ToLower(),
+            (_, true) => LowerFirst(kind),
             (_, false) => kind
         };
     }

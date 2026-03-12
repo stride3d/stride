@@ -117,7 +117,7 @@ internal static class DeadCodeRemover
 
             if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                 {
-                    Storageclass: StorageClass.Uniform,
+                    StorageClass: StorageClass.Uniform,
                     ResultId: int
                 } variable
                 && analysisResult.CBuffers.TryGetValue(variable, out var cbufferInfo))
@@ -131,7 +131,7 @@ internal static class DeadCodeRemover
 
             if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                 {
-                    Storageclass: StorageClass.UniformConstant or StorageClass.StorageBuffer,
+                    StorageClass: StorageClass.UniformConstant or StorageClass.StorageBuffer,
                     ResultId: int
                 } resource)
             {
@@ -147,7 +147,7 @@ internal static class DeadCodeRemover
 
             if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is
                 {
-                    Storageclass: StorageClass.Private or StorageClass.Workgroup or StorageClass.Uniform,
+                    StorageClass: StorageClass.Private or StorageClass.Workgroup or StorageClass.Uniform,
                     ResultId: int
                 } variable2
                 && context.ReverseTypes[variable2.ResultType] is PointerType { BaseType: not ConstantBufferSymbol })

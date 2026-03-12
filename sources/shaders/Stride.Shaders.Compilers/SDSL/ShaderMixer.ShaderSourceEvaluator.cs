@@ -117,7 +117,7 @@ public partial class ShaderMixer
 
             foreach (var i in shader.Buffer)
             {
-                if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.Storageclass != Specification.StorageClass.Function)
+                if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.StorageClass != Specification.StorageClass.Function)
                 {
                     hasStage |= (variable.Flags & VariableFlagsMask.Stage) != 0;
 

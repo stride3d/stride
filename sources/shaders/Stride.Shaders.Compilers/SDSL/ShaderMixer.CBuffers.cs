@@ -27,7 +27,7 @@ namespace Stride.Shaders.Compilers.SDSL
             foreach (var i in temp)
             {
                 if (i.Op == Op.OpVariableSDSL
-                    && ((OpVariableSDSL)i) is { Storageclass: Specification.StorageClass.Uniform } variable
+                    && ((OpVariableSDSL)i) is { StorageClass: Specification.StorageClass.Uniform } variable
                     && context.ReverseTypes[variable.ResultType] is PointerType { BaseType: var variableType }
                     && variableType is not ConstantBufferSymbol)
                 {

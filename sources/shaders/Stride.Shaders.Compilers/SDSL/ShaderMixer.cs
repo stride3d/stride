@@ -80,7 +80,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
         foreach (var i in context)
         {
-            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Sampled is 2 && typeImage.Imageformat == ImageFormat.Unknown)
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Sampled is 2 && typeImage.ImageFormat == ImageFormat.Unknown)
             {
                 context.Add(new OpCapability(Capability.StorageImageWriteWithoutFormat));
                 break;
@@ -1059,7 +1059,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // Transform OpVariableSDSL into OpVariable (we don't need extra info anymore)
             // Note: we ignore initializer as we store a method which is already processed during InterfaceProcessor (as opposed to a const for OpVariable)
             if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable)
-                temp.Replace(i.Index, new OpVariable(variable.ResultType, variable.ResultId, variable.Storageclass, null));
+                temp.Replace(i.Index, new OpVariable(variable.ResultType, variable.ResultId, variable.StorageClass, null));
 
             // Collect IDs (except for OpName/OpDecorate/OpDecorateString metadata)
             if (i.Op != Op.OpName && i.Op != Op.OpDecorate && i.Op != Op.OpDecorateString)

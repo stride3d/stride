@@ -169,7 +169,7 @@ public partial class ShaderMixer
                     : shader.ShaderName;
             }
             else if (i.Op == Specification.Op.OpVariableSDSL && (OpVariableSDSL)i is
-            { Storageclass: Specification.StorageClass.UniformConstant or Specification.StorageClass.StorageBuffer } variable)
+            { StorageClass: Specification.StorageClass.UniformConstant or Specification.StorageClass.StorageBuffer } variable)
             {
                 // Note: we don't rename cbuffer as they have been merged and don't belong to a specific shader/composition anymore
                 var type = context.ReverseTypes[variable.ResultType];
