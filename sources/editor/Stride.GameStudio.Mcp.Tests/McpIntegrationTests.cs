@@ -311,6 +311,81 @@ public sealed class McpIntegrationTests : IAsyncLifetime
     }
 
     // =====================
+    // Describe Viewport
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task DescribeViewport_ReturnsVisibleEntities()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+        await Task.Delay(2000);
+
+        var root = await CallToolAndParseJsonAsync("describe_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var result = root.GetProperty("result");
+        Assert.Equal(sceneId, result.GetProperty("sceneId").GetString());
+
+        var camera = result.GetProperty("camera");
+        Assert.True(camera.TryGetProperty("position", out _));
+        Assert.True(camera.TryGetProperty("projection", out _));
+        Assert.True(camera.TryGetProperty("fieldOfViewDegrees", out _));
+
+        var totalEntities = result.GetProperty("totalEntitiesInScene").GetInt32();
+        Assert.True(totalEntities > 0, "Expected at least one entity in the scene");
+
+        var entities = result.GetProperty("entities");
+        Assert.True(entities.GetArrayLength() > 0, "Expected at least one entity in result");
+
+        var first = entities[0];
+        Assert.True(first.TryGetProperty("id", out _));
+        Assert.True(first.TryGetProperty("name", out _));
+        Assert.True(first.TryGetProperty("worldPosition", out _));
+        Assert.True(first.TryGetProperty("distanceToCamera", out _));
+        Assert.True(first.TryGetProperty("isVisible", out _));
+        Assert.True(first.TryGetProperty("components", out _));
+    }
+
+    [McpIntegrationFact]
+    public async Task DescribeViewport_MaxEntities_LimitsResults()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+        await Task.Delay(2000);
+
+        var root = await CallToolAndParseJsonAsync("describe_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["maxEntities"] = 2,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var entities = root.GetProperty("result").GetProperty("entities");
+        Assert.True(entities.GetArrayLength() <= 2);
+    }
+
+    [McpIntegrationFact]
+    public async Task DescribeViewport_SceneNotOpen_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("describe_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = "00000000-0000-0000-0000-000000000001",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    // =====================
     // Phase 3: Modification
     // =====================
 
@@ -1017,6 +1092,7 @@ public sealed class McpIntegrationTests : IAsyncLifetime
 
         // Viewport tools
         Assert.Contains("capture_viewport", toolNames);
+        Assert.Contains("describe_viewport", toolNames);
 
         // Phase 4 tools (Build)
         Assert.Contains("build_project", toolNames);

@@ -74,6 +74,7 @@ public sealed class GameMcpIntegrationTests : IAsyncLifetime
         Assert.Contains("get_logs", toolNames);
         Assert.Contains("simulate_input", toolNames);
         Assert.Contains("focus_element", toolNames);
+        Assert.Contains("describe_viewport", toolNames);
     }
 
     // ==================== Status & Inspection ====================
@@ -559,5 +560,92 @@ public sealed class GameMcpIntegrationTests : IAsyncLifetime
         });
 
         Assert.True(clickResult.GetProperty("success").GetBoolean());
+    }
+
+    // ==================== Describe Viewport ====================
+
+    [GameMcpIntegrationFact]
+    public async Task DescribeViewport_ReturnsEntities()
+    {
+        var result = await CallToolAsync("describe_viewport");
+
+        Assert.False(result.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.String && err.GetString() != null,
+            $"Unexpected error: {result}");
+
+        // Camera info should be present
+        var camera = result.GetProperty("camera");
+        Assert.True(camera.TryGetProperty("position", out _));
+        Assert.True(camera.TryGetProperty("projection", out _));
+        Assert.True(camera.TryGetProperty("fieldOfViewDegrees", out _));
+
+        // Should have entities
+        var totalEntities = result.GetProperty("totalEntitiesInScene").GetInt32();
+        Assert.True(totalEntities > 0, "Expected at least one entity in the scene");
+
+        var entities = result.GetProperty("entities");
+        Assert.True(entities.GetArrayLength() > 0, "Expected at least one entity in describe_viewport result");
+
+        // Each entity should have required fields
+        var first = entities[0];
+        Assert.True(first.TryGetProperty("id", out _));
+        Assert.True(first.TryGetProperty("name", out _));
+        Assert.True(first.TryGetProperty("worldPosition", out _));
+        Assert.True(first.TryGetProperty("distanceToCamera", out _));
+        Assert.True(first.TryGetProperty("isVisible", out _));
+        Assert.True(first.TryGetProperty("components", out _));
+    }
+
+    [GameMcpIntegrationFact]
+    public async Task DescribeViewport_VisibleEntitiesHaveScreenPosition()
+    {
+        var result = await CallToolAsync("describe_viewport");
+
+        var entities = result.GetProperty("entities");
+        bool foundVisible = false;
+
+        for (int i = 0; i < entities.GetArrayLength(); i++)
+        {
+            var entity = entities[i];
+            if (entity.GetProperty("isVisible").GetBoolean())
+            {
+                foundVisible = true;
+                Assert.True(entity.TryGetProperty("screenPosition", out var screenPos));
+                Assert.NotEqual(JsonValueKind.Null, screenPos.ValueKind);
+                var sx = screenPos.GetProperty("x").GetDouble();
+                var sy = screenPos.GetProperty("y").GetDouble();
+                Assert.InRange(sx, -0.5, 1.5);
+                Assert.InRange(sy, -0.5, 1.5);
+                break;
+            }
+        }
+
+        Assert.True(foundVisible, "Expected at least one visible entity in the viewport");
+    }
+
+    [GameMcpIntegrationFact]
+    public async Task DescribeViewport_MaxEntities_LimitsResults()
+    {
+        var result = await CallToolAsync("describe_viewport", new Dictionary<string, object?>
+        {
+            ["maxEntities"] = 2,
+        });
+
+        var entities = result.GetProperty("entities");
+        Assert.True(entities.GetArrayLength() <= 2, $"Expected at most 2 entities, got {entities.GetArrayLength()}");
+    }
+
+    [GameMcpIntegrationFact]
+    public async Task DescribeViewport_CameraHasReasonableValues()
+    {
+        var result = await CallToolAsync("describe_viewport");
+
+        var camera = result.GetProperty("camera");
+        var fov = camera.GetProperty("fieldOfViewDegrees").GetDouble();
+        Assert.InRange(fov, 1, 179); // Reasonable FOV range
+
+        var nearPlane = camera.GetProperty("nearPlane").GetDouble();
+        var farPlane = camera.GetProperty("farPlane").GetDouble();
+        Assert.True(nearPlane > 0, "Near plane should be positive");
+        Assert.True(farPlane > nearPlane, "Far plane should be greater than near plane");
     }
 }
