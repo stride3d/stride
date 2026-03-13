@@ -5,6 +5,7 @@ using System.Reflection;
 using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Presentation.Quantum;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Quantum;
@@ -96,6 +97,11 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
         get => name;
         set => SetValue(ref name, value); // TODO rename
     }
+    
+    /// <summary>
+    /// Gets or sets the collection of tags associated to this asset.
+    /// </summary>
+    public ObservableList<string> Tags { get; } = [];
 
     public AssetPropertyGraph? PropertyGraph { get; }
 
