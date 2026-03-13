@@ -15,12 +15,13 @@ namespace Stride.GameStudio.Mcp.Tools;
 [McpServerToolType]
 public sealed class ReloadProjectTool
 {
-    [McpServerTool(Name = "reload_project"), Description("Triggers a full GameStudio restart to reload the entire project from disk. This is equivalent to File > Reload project in the editor. Use this when external tools have modified .csproj, .sln, or other project-level files that GameStudio needs to re-read. WARNING: The MCP connection will be lost when GameStudio restarts — the client must reconnect to the new instance. If there are unsaved changes, GameStudio will show a Save/Don't Save/Cancel dialog to the user.")]
+    [McpServerTool(Name = "reload_project"), Description("Triggers a full GameStudio restart to reload the entire project from disk. This is equivalent to File > Reload project in the editor. Use this when external tools have modified .csproj, .sln, or other project-level files that GameStudio needs to re-read. Any unsaved changes are automatically saved before reloading. WARNING: The MCP connection will be lost when GameStudio restarts — the client must reconnect to the new instance.")]
     public static async Task<string> ReloadProject(
+        SessionViewModel session,
         DispatcherBridge dispatcher,
         CancellationToken cancellationToken = default)
     {
-        var result = await dispatcher.InvokeOnUIThread(() =>
+        var result = await dispatcher.InvokeTaskOnUIThread(async () =>
         {
             var editorVm = EditorViewModel.Instance;
             if (editorVm == null)
@@ -42,8 +43,10 @@ public sealed class ReloadProjectTool
                 return new { error = "ReloadSessionCommand is not an ICommandBase.", result = (object?)null };
             }
 
+            // Auto-save before reloading to prevent data loss
+            await session.SaveSession();
+
             // Fire the reload command — this will trigger the close/restart sequence asynchronously.
-            // GameStudio will show a save dialog if there are unsaved changes, then restart.
             command.Execute();
 
             return new
@@ -52,7 +55,7 @@ public sealed class ReloadProjectTool
                 result = (object)new
                 {
                     status = "reload_initiated",
-                    message = "GameStudio is restarting. The MCP connection will be lost. Reconnect to the new instance after restart.",
+                    message = "Changes saved. GameStudio is restarting. The MCP connection will be lost. Reconnect to the new instance after restart.",
                 },
             };
         }, cancellationToken);

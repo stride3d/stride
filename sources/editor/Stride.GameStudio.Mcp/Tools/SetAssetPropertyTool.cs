@@ -12,18 +12,19 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
+using Stride.Core.Reflection;
 
 namespace Stride.GameStudio.Mcp.Tools;
 
 [McpServerToolType]
 public sealed class SetAssetPropertyTool
 {
-    [McpServerTool(Name = "set_asset_property"), Description("Sets a property on an asset using a dot-notation path through the property graph. Use get_asset_details to discover available property names. Supports nested paths (e.g. 'Attributes.CullMode'). When a path segment is invalid, the error lists available property names at that level. Supports undo/redo. Asset reference properties can be set using {\"assetId\":\"GUID\"} or just \"GUID\" — use query_assets to find valid asset IDs.")]
+    [McpServerTool(Name = "set_asset_property"), Description("Sets a property on an asset using a dot-notation path through the property graph. Use get_asset_details to discover available property names. Supports nested paths (e.g. 'Attributes.CullMode'), list indexing (e.g. 'Layers[0].DiffuseModel'), and dictionary key access (e.g. 'Dict[key]'). When a path segment is invalid, the error lists available property names at that level. Supports undo/redo. Asset reference properties can be set using {\"assetId\":\"GUID\"} or just \"GUID\" — use query_assets to find valid asset IDs.")]
     public static async Task<string> SetAssetProperty(
         SessionViewModel session,
         DispatcherBridge dispatcher,
         [Description("The asset ID (GUID from query_assets)")] string assetId,
-        [Description("Dot-notation property path (e.g. 'Width', 'Attributes.CullMode', 'Layers[0].DiffuseModel')")] string propertyPath,
+        [Description("Dot-notation property path (e.g. 'Width', 'Attributes.CullMode', 'Layers[0].DiffuseModel', 'Dict[key]')")] string propertyPath,
         [Description("JSON value to set. Scalar: '2048', 'true', '\"Back\"'. Color: '{\"r\":1,\"g\":0,\"b\":0,\"a\":1}'. Asset reference: '{\"assetId\":\"GUID\"}' or '\"GUID\"'. Clear reference: 'null'.")] string value,
         CancellationToken cancellationToken = default)
     {
@@ -61,25 +62,14 @@ public sealed class SetAssetPropertyTool
             var segments = propertyPath.Split('.');
             IObjectNode currentObject = rootNode;
             IMemberNode? leafMember = null;
+            string? leafBracketKey = null;
 
             for (int i = 0; i < segments.Length; i++)
             {
                 var segment = segments[i];
 
-                // Handle indexed access: "Layers[0]"
-                string memberName = segment;
-                int? index = null;
-                var bracketStart = segment.IndexOf('[');
-                if (bracketStart >= 0)
-                {
-                    memberName = segment[..bracketStart];
-                    var bracketEnd = segment.IndexOf(']');
-                    if (bracketEnd > bracketStart + 1 &&
-                        int.TryParse(segment[(bracketStart + 1)..bracketEnd], out var parsedIndex))
-                    {
-                        index = parsedIndex;
-                    }
-                }
+                // Parse bracket notation: "Name[key]" or "Name[0]"
+                ParseBracket(segment, out var memberName, out var bracketKey);
 
                 var member = currentObject.TryGetChild(memberName);
                 if (member == null)
@@ -92,26 +82,35 @@ public sealed class SetAssetPropertyTool
                     };
                 }
 
-                if (i == segments.Length - 1 && index == null)
+                bool isLastSegment = i == segments.Length - 1;
+
+                if (isLastSegment && bracketKey == null)
                 {
-                    // This is the leaf — what we want to update
+                    // Simple leaf property
                     leafMember = member;
+                }
+                else if (isLastSegment && bracketKey != null)
+                {
+                    // Last segment with bracket — set indexed value (e.g. "Dict[key]" or "List[0]")
+                    leafMember = member;
+                    leafBracketKey = bracketKey;
                 }
                 else
                 {
                     // Navigate deeper
                     var target = member.Target;
-                    if (index.HasValue && target != null)
+                    if (bracketKey != null && target != null)
                     {
                         try
                         {
-                            target = target.IndexedTarget(new NodeIndex(index.Value));
+                            var nodeIndex = ResolveNodeIndex(target, bracketKey);
+                            target = target.IndexedTarget(nodeIndex);
                         }
-                        catch
+                        catch (Exception ex)
                         {
                             return new
                             {
-                                error = $"Index [{index.Value}] is out of range for property '{memberName}'.",
+                                error = $"Cannot resolve index [{bracketKey}] for property '{memberName}': {ex.Message}",
                                 result = (object?)null,
                             };
                         }
@@ -127,19 +126,6 @@ public sealed class SetAssetPropertyTool
                     }
 
                     currentObject = target;
-
-                    // If this is the last segment and we used an index, we need the member on the indexed target
-                    if (i == segments.Length - 1 && index.HasValue)
-                    {
-                        // The indexed target is the leaf object — but we can't set the whole object.
-                        // This case means the path ended with an indexed access like "Layers[0]"
-                        // which refers to the collection item, not a property on it.
-                        return new
-                        {
-                            error = $"Path ends with an indexed access '{segment}'. Add a property name after the index (e.g. '{segment}.PropertyName').",
-                            result = (object?)null,
-                        };
-                    }
                 }
             }
 
@@ -148,22 +134,29 @@ public sealed class SetAssetPropertyTool
                 return new { error = "Could not resolve property path.", result = (object?)null };
             }
 
-            // Convert the value
-            object? convertedValue;
-            try
-            {
-                convertedValue = JsonTypeConverter.ConvertJsonToType(jsonValue, leafMember.Type, session);
-            }
-            catch (Exception ex)
-            {
-                return new { error = $"Cannot convert value to type {leafMember.Type.Name}: {ex.Message}", result = (object?)null };
-            }
-
             // Apply in undo/redo transaction
             var undoRedoService = session.ServiceProvider.Get<IUndoRedoService>();
             using (var transaction = undoRedoService.CreateTransaction())
             {
-                leafMember.Update(convertedValue);
+                try
+                {
+                    if (leafBracketKey != null)
+                    {
+                        // Set indexed value (dictionary or collection entry)
+                        SetIndexedValue(leafMember, leafBracketKey, jsonValue, session);
+                    }
+                    else
+                    {
+                        // Simple property update
+                        var convertedValue = JsonTypeConverter.ConvertJsonToType(jsonValue, leafMember.Type, session);
+                        leafMember.Update(convertedValue);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new { error = $"Cannot set value: {ex.Message}", result = (object?)null };
+                }
+
                 undoRedoService.SetName(transaction, $"Set {propertyPath} on '{assetVm.Name}'");
             }
 
@@ -181,5 +174,82 @@ public sealed class SetAssetPropertyTool
         }, cancellationToken);
 
         return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    private static void ParseBracket(string segment, out string memberName, out string? bracketKey)
+    {
+        var bracketStart = segment.IndexOf('[');
+        if (bracketStart >= 0)
+        {
+            memberName = segment[..bracketStart];
+            var bracketEnd = segment.IndexOf(']');
+            bracketKey = bracketEnd > bracketStart + 1 ? segment[(bracketStart + 1)..bracketEnd] : null;
+        }
+        else
+        {
+            memberName = segment;
+            bracketKey = null;
+        }
+    }
+
+    private static NodeIndex ResolveNodeIndex(IObjectNode target, string bracketKey)
+    {
+        var descriptor = TypeDescriptorFactory.Default.Find(target.Type);
+
+        if (descriptor is DictionaryDescriptor dictDesc)
+        {
+            var keyType = dictDesc.KeyType;
+            if (keyType == typeof(string))
+                return new NodeIndex(bracketKey);
+            if (keyType == typeof(int) && int.TryParse(bracketKey, out var intKey))
+                return new NodeIndex(intKey);
+            if (keyType.IsEnum && Enum.TryParse(keyType, bracketKey, ignoreCase: true, out var enumKey))
+                return new NodeIndex(enumKey!);
+
+            throw new InvalidOperationException($"Cannot convert '{bracketKey}' to dictionary key type {keyType.Name}.");
+        }
+
+        // Collection/list: parse as integer index
+        if (int.TryParse(bracketKey, out var index))
+            return new NodeIndex(index);
+
+        throw new InvalidOperationException($"Cannot resolve index '{bracketKey}' — expected an integer for collection access.");
+    }
+
+    private static void SetIndexedValue(IMemberNode memberNode, string bracketKey, JsonElement jsonValue, SessionViewModel session)
+    {
+        var target = memberNode.Target;
+        if (target == null)
+            throw new InvalidOperationException("Property has no target object — cannot set indexed value.");
+
+        var nodeIndex = ResolveNodeIndex(target, bracketKey);
+        var descriptor = TypeDescriptorFactory.Default.Find(target.Type);
+
+        // Determine value type
+        Type valueType;
+        if (descriptor is DictionaryDescriptor dictDesc)
+            valueType = dictDesc.ValueType;
+        else if (descriptor is CollectionDescriptor collDesc)
+            valueType = collDesc.ElementType;
+        else
+            throw new InvalidOperationException($"Property type {target.Type.Name} does not support indexed access.");
+
+        var convertedValue = JsonTypeConverter.ConvertJsonToType(jsonValue, valueType, session);
+
+        // Check if the index already exists
+        bool exists = false;
+        if (target.Indices != null)
+        {
+            exists = target.Indices.Any(idx => Equals(idx.Value, nodeIndex.Value));
+        }
+
+        if (exists)
+        {
+            target.Update(convertedValue, nodeIndex);
+        }
+        else
+        {
+            target.Add(convertedValue, nodeIndex);
+        }
     }
 }

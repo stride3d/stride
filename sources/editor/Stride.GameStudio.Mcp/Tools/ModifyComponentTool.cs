@@ -17,6 +17,7 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
+using Stride.Core.Reflection;
 using Stride.Engine;
 
 namespace Stride.GameStudio.Mcp.Tools;
@@ -24,7 +25,7 @@ namespace Stride.GameStudio.Mcp.Tools;
 [McpServerToolType]
 public sealed class ModifyComponentTool
 {
-    [McpServerTool(Name = "modify_component"), Description("Adds, removes, or updates a component on an entity. The scene must be open in the editor (use open_scene first). Actions: 'add' creates a new component, 'remove' deletes a component by index, 'update' sets properties on a component by index. The TransformComponent (index 0) cannot be removed. This operation supports undo/redo in the editor. For 'update', asset reference properties (e.g. ModelComponent.Model, BackgroundComponent.Texture) can be set using {\"PropertyName\":{\"assetId\":\"GUID\"}} — use query_assets to find the asset ID. NOTE: User game script types require the project to be built first (use build_project).")]
+    [McpServerTool(Name = "modify_component"), Description("Adds, removes, or updates a component on an entity. The scene must be open in the editor (use open_scene first). Actions: 'add' creates a new component, 'remove' deletes a component by index, 'update' sets properties on a component by index. Supports bracket notation for dictionary/list entries (e.g. '{\"Animations[Idle]\":{\"assetId\":\"GUID\"}}') and whole-dictionary JSON objects. The TransformComponent (index 0) cannot be removed. This operation supports undo/redo in the editor. For 'update', asset reference properties (e.g. ModelComponent.Model, BackgroundComponent.Texture) can be set using {\"PropertyName\":{\"assetId\":\"GUID\"}} — use query_assets to find the asset ID. NOTE: User game script types require the project to be built first (use build_project).")]
     public static async Task<string> ModifyComponent(
         SessionViewModel session,
         DispatcherBridge dispatcher,
@@ -33,7 +34,7 @@ public sealed class ModifyComponentTool
         [Description("The action to perform: 'add', 'remove', or 'update'")] string action,
         [Description("For 'add': the component type name (e.g. 'ModelComponent', 'Stride.Engine.LightComponent'). For 'remove'/'update': not required.")] string? componentType = null,
         [Description("For 'remove'/'update': the zero-based index of the component in the entity's component list. Use get_entity to see component indices.")] int? componentIndex = null,
-        [Description("For 'update': JSON object of property names and values to set. Scalar: '{\"Intensity\":2.0,\"Enabled\":false}'. Asset references: '{\"Model\":{\"assetId\":\"GUID\"}}' or '{\"Model\":\"GUID\"}'. Use null to clear: '{\"Model\":null}'.")] string? properties = null,
+        [Description("For 'update': JSON object of property names and values to set. Scalar: '{\"Intensity\":2.0,\"Enabled\":false}'. Asset references: '{\"Model\":{\"assetId\":\"GUID\"}}' or '{\"Model\":\"GUID\"}'. Use null to clear: '{\"Model\":null}'. Bracket notation for dict entries: '{\"Animations[Idle]\":{\"assetId\":\"GUID\"}}'. Whole dict as JSON object: '{\"Animations\":{\"Idle\":{\"assetId\":\"GUID1\"},\"Run\":{\"assetId\":\"GUID2\"}}}'.")] string? properties = null,
         CancellationToken cancellationToken = default)
     {
         var result = await dispatcher.InvokeOnUIThread(() =>
@@ -245,18 +246,35 @@ public sealed class ModifyComponentTool
         {
             foreach (var (propName, jsonValue) in propertiesToSet)
             {
-                var memberNode = componentNode.TryGetChild(propName);
-                if (memberNode == null)
-                {
-                    errors.Add($"Property '{propName}' not found on {targetComponent.GetType().Name}.");
-                    continue;
-                }
-
                 try
                 {
-                    var targetType = memberNode.Type;
-                    var convertedValue = JsonTypeConverter.ConvertJsonToType(jsonValue, targetType, session);
-                    memberNode.Update(convertedValue);
+                    ParsePropertyName(propName, out var memberName, out var bracketKey);
+
+                    var memberNode = componentNode.TryGetChild(memberName);
+                    if (memberNode == null)
+                    {
+                        errors.Add($"Property '{memberName}' not found on {targetComponent.GetType().Name}.");
+                        continue;
+                    }
+
+                    if (bracketKey != null)
+                    {
+                        // Bracket notation: "Animations[Idle]" → update single dict/list entry
+                        UpdateIndexedProperty(memberNode, bracketKey, jsonValue, session);
+                    }
+                    else if (IsDictionaryType(memberNode.Type) && jsonValue.ValueKind == JsonValueKind.Object)
+                    {
+                        // Whole dictionary as JSON object
+                        UpdateDictionaryFromJson(memberNode, jsonValue, session);
+                    }
+                    else
+                    {
+                        // Simple scalar update
+                        var targetType = memberNode.Type;
+                        var convertedValue = JsonTypeConverter.ConvertJsonToType(jsonValue, targetType, session);
+                        memberNode.Update(convertedValue);
+                    }
+
                     updatedProperties.Add(propName);
                 }
                 catch (Exception ex)
@@ -280,6 +298,107 @@ public sealed class ModifyComponentTool
             },
         };
     }
+
+    private static void ParsePropertyName(string propName, out string memberName, out string? bracketKey)
+    {
+        var bracketStart = propName.IndexOf('[');
+        if (bracketStart >= 0)
+        {
+            memberName = propName[..bracketStart];
+            var bracketEnd = propName.IndexOf(']');
+            bracketKey = bracketEnd > bracketStart + 1 ? propName[(bracketStart + 1)..bracketEnd] : null;
+        }
+        else
+        {
+            memberName = propName;
+            bracketKey = null;
+        }
+    }
+
+    private static void UpdateIndexedProperty(IMemberNode memberNode, string bracketKey, JsonElement jsonValue, SessionViewModel session)
+    {
+        var target = memberNode.Target;
+        if (target == null)
+            throw new InvalidOperationException("Property has no target object — cannot set indexed value.");
+
+        var descriptor = TypeDescriptorFactory.Default.Find(target.Type);
+
+        Type valueType;
+        if (descriptor is DictionaryDescriptor dictDesc)
+            valueType = dictDesc.ValueType;
+        else if (descriptor is CollectionDescriptor collDesc)
+            valueType = collDesc.ElementType;
+        else
+            throw new InvalidOperationException($"Property type {target.Type.Name} does not support indexed access.");
+
+        var nodeIndex = ResolveNodeIndex(target, bracketKey);
+        var convertedValue = JsonTypeConverter.ConvertJsonToType(jsonValue, valueType, session);
+
+        // Check if the index already exists
+        bool exists = target.Indices != null && target.Indices.Any(idx => Equals(idx.Value, nodeIndex.Value));
+
+        if (exists)
+            target.Update(convertedValue, nodeIndex);
+        else
+            target.Add(convertedValue, nodeIndex);
+    }
+
+    private static void UpdateDictionaryFromJson(IMemberNode memberNode, JsonElement jsonObject, SessionViewModel session)
+    {
+        var target = memberNode.Target;
+        if (target == null)
+            throw new InvalidOperationException("Property has no target object — cannot update dictionary.");
+
+        var descriptor = TypeDescriptorFactory.Default.Find(target.Type);
+        if (descriptor is not DictionaryDescriptor dictDesc)
+            throw new InvalidOperationException($"Property type {target.Type.Name} is not a dictionary.");
+
+        foreach (var entry in jsonObject.EnumerateObject())
+        {
+            var key = ConvertDictionaryKey(entry.Name, dictDesc.KeyType);
+            var nodeIndex = new NodeIndex(key);
+            var convertedValue = JsonTypeConverter.ConvertJsonToType(entry.Value, dictDesc.ValueType, session);
+
+            bool exists = target.Indices != null && target.Indices.Any(idx => Equals(idx.Value, nodeIndex.Value));
+
+            if (exists)
+                target.Update(convertedValue, nodeIndex);
+            else
+                target.Add(convertedValue, nodeIndex);
+        }
+    }
+
+    private static NodeIndex ResolveNodeIndex(IObjectNode target, string bracketKey)
+    {
+        var descriptor = TypeDescriptorFactory.Default.Find(target.Type);
+
+        if (descriptor is DictionaryDescriptor dictDesc)
+        {
+            var key = ConvertDictionaryKey(bracketKey, dictDesc.KeyType);
+            return new NodeIndex(key);
+        }
+
+        // Collection/list: parse as integer index
+        if (int.TryParse(bracketKey, out var index))
+            return new NodeIndex(index);
+
+        throw new InvalidOperationException($"Cannot resolve index '{bracketKey}' — expected an integer for collection access.");
+    }
+
+    private static object ConvertDictionaryKey(string key, Type keyType)
+    {
+        if (keyType == typeof(string))
+            return key;
+        if (keyType == typeof(int) && int.TryParse(key, out var intKey))
+            return intKey;
+        if (keyType.IsEnum && Enum.TryParse(keyType, key, ignoreCase: true, out var enumKey))
+            return enumKey!;
+
+        throw new InvalidOperationException($"Cannot convert '{key}' to dictionary key type {keyType.Name}.");
+    }
+
+    private static bool IsDictionaryType(Type type)
+        => type.IsGenericType && type.GetInterface(typeof(IDictionary<,>).FullName!) != null;
 
     internal static Type? ResolveComponentType(string typeName)
     {
@@ -324,5 +443,4 @@ public sealed class ModifyComponentTool
 
         return null;
     }
-
 }

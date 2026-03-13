@@ -386,6 +386,291 @@ public sealed class McpIntegrationTests : IAsyncLifetime
     }
 
     // =====================
+    // Navigate Viewport
+    // =====================
+
+    [McpIntegrationFact]
+    public async Task NavigateViewport_GetCameraState_ReturnsState()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+        await Task.Delay(2000);
+
+        var root = await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "get_camera_state",
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var result = root.GetProperty("result");
+        Assert.Equal("get_camera_state", result.GetProperty("action").GetString());
+        Assert.True(result.TryGetProperty("position", out var position));
+        Assert.True(position.TryGetProperty("x", out _));
+        Assert.True(position.TryGetProperty("y", out _));
+        Assert.True(position.TryGetProperty("z", out _));
+        Assert.True(result.TryGetProperty("yawDegrees", out _));
+        Assert.True(result.TryGetProperty("pitchDegrees", out _));
+        Assert.True(result.TryGetProperty("projection", out _));
+        Assert.True(result.TryGetProperty("fieldOfViewDegrees", out _));
+        Assert.True(result.TryGetProperty("nearPlane", out _));
+        Assert.True(result.TryGetProperty("farPlane", out _));
+    }
+
+    [McpIntegrationFact]
+    public async Task NavigateViewport_SetPosition_MovesCamera()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+        await Task.Delay(2000);
+
+        var root = await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "set_position",
+            ["x"] = 10.0,
+            ["y"] = 5.0,
+            ["z"] = 10.0,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var result = root.GetProperty("result");
+        Assert.Equal("set_position", result.GetProperty("action").GetString());
+        var pos = result.GetProperty("position");
+        Assert.Equal(10.0, pos.GetProperty("x").GetDouble(), 0.1);
+        Assert.Equal(5.0, pos.GetProperty("y").GetDouble(), 0.1);
+        Assert.Equal(10.0, pos.GetProperty("z").GetDouble(), 0.1);
+    }
+
+    [McpIntegrationFact]
+    public async Task NavigateViewport_SetPositionWithAngles_SetsYawAndPitch()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+        await Task.Delay(2000);
+
+        var root = await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "set_position",
+            ["x"] = 0.0,
+            ["y"] = 10.0,
+            ["z"] = 0.0,
+            ["yaw"] = 90.0,
+            ["pitch"] = -45.0,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var result = root.GetProperty("result");
+        Assert.Equal(90.0, result.GetProperty("yawDegrees").GetDouble(), 1.0);
+        Assert.Equal(-45.0, result.GetProperty("pitchDegrees").GetDouble(), 1.0);
+    }
+
+    [McpIntegrationFact]
+    public async Task NavigateViewport_SetOrientation_Front()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+        await Task.Delay(2000);
+
+        var root = await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "set_orientation",
+            ["orientation"] = "Front",
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var result = root.GetProperty("result");
+        Assert.Equal("set_orientation", result.GetProperty("action").GetString());
+        Assert.Equal("Front", result.GetProperty("orientation").GetString());
+    }
+
+    [McpIntegrationFact]
+    public async Task NavigateViewport_SetOrientation_Top()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+        await Task.Delay(2000);
+
+        var root = await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "set_orientation",
+            ["orientation"] = "Top",
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        Assert.Equal("Top", root.GetProperty("result").GetProperty("orientation").GetString());
+    }
+
+    [McpIntegrationFact]
+    public async Task NavigateViewport_SetOrientation_Invalid_ReturnsError()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+        await Task.Delay(2000);
+
+        var root = await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "set_orientation",
+            ["orientation"] = "Diagonal",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+        Assert.Contains("Diagonal", root.GetProperty("error").GetString()!);
+    }
+
+    [McpIntegrationFact]
+    public async Task NavigateViewport_SetProjection_Orthographic()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+        await Task.Delay(2000);
+
+        var root = await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "set_projection",
+            ["orthographic"] = true,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        Assert.Equal("orthographic", root.GetProperty("result").GetProperty("projection").GetString());
+
+        // Restore perspective
+        await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "set_projection",
+            ["orthographic"] = false,
+        });
+    }
+
+    [McpIntegrationFact]
+    public async Task NavigateViewport_SetFieldOfView_Perspective()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+        await Task.Delay(2000);
+
+        // Ensure perspective mode first
+        await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "set_projection",
+            ["orthographic"] = false,
+        });
+
+        var root = await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "set_field_of_view",
+            ["value"] = 60.0,
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var result = root.GetProperty("result");
+        Assert.Equal("set_field_of_view", result.GetProperty("action").GetString());
+        Assert.Equal("perspective", result.GetProperty("projection").GetString());
+        Assert.Equal(60.0, result.GetProperty("fieldOfViewDegrees").GetDouble(), 1.0);
+    }
+
+    [McpIntegrationFact]
+    public async Task NavigateViewport_SetPosition_ThenGetState_PositionMatches()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+        await Task.Delay(2000);
+
+        // Set a specific position
+        await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "set_position",
+            ["x"] = 7.0,
+            ["y"] = 3.0,
+            ["z"] = 7.0,
+        });
+
+        // Wait for camera state to propagate through the game thread
+        await Task.Delay(1000);
+
+        // Get camera state and verify position
+        var root = await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "get_camera_state",
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var pos = root.GetProperty("result").GetProperty("position");
+        Assert.Equal(7.0, pos.GetProperty("x").GetDouble(), 0.5);
+        Assert.Equal(3.0, pos.GetProperty("y").GetDouble(), 0.5);
+        Assert.Equal(7.0, pos.GetProperty("z").GetDouble(), 0.5);
+    }
+
+    [McpIntegrationFact]
+    public async Task NavigateViewport_InvalidAction_ReturnsError()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+        await Task.Delay(2000);
+
+        var root = await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["action"] = "fly_around",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+        Assert.Contains("fly_around", root.GetProperty("error").GetString()!);
+    }
+
+    [McpIntegrationFact]
+    public async Task NavigateViewport_SceneNotOpen_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("navigate_viewport", new Dictionary<string, object?>
+        {
+            ["sceneId"] = "00000000-0000-0000-0000-000000000001",
+            ["action"] = "get_camera_state",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    // =====================
     // Phase 3: Modification
     // =====================
 
@@ -1093,6 +1378,7 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         // Viewport tools
         Assert.Contains("capture_viewport", toolNames);
         Assert.Contains("describe_viewport", toolNames);
+        Assert.Contains("navigate_viewport", toolNames);
 
         // Phase 4 tools (Build)
         Assert.Contains("build_project", toolNames);

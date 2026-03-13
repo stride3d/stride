@@ -20,7 +20,7 @@ namespace Stride.GameStudio.Mcp.Tools;
 [McpServerToolType]
 public sealed class CaptureViewportTool
 {
-    [McpServerTool(Name = "capture_viewport"), Description("IMPORTANT: This is the primary way to verify your changes and the only way to see the actual rendered result. Captures a PNG screenshot of the viewport for a scene or UI page that is open in the editor. The asset must already be open (use open_scene or open_ui_page first). Returns the image as a base64-encoded PNG. Use this to visually verify entity placement, lighting, UI layout, model references, and other visual aspects after making modifications.")]
+    [McpServerTool(Name = "capture_viewport"), Description("IMPORTANT: This is the primary way to verify your changes and the only way to see the actual rendered result. Captures a PNG screenshot of the viewport for a scene or UI page that is open in the editor. The asset must already be open (use open_scene or open_ui_page first). Returns the image as a base64-encoded PNG. Use this to visually verify entity placement, lighting, UI layout, model references, and other visual aspects after making modifications. TIP: To see a Camera's preview (what the game camera sees), select the Camera entity first using select_entity — selecting it activates the camera preview overlay in the viewport without needing to activate the camera component. Use navigate_viewport to control the editor camera angle before capturing.")]
     public static async Task<IEnumerable<ContentBlock>> CaptureViewport(
         SessionViewModel session,
         DispatcherBridge dispatcher,
