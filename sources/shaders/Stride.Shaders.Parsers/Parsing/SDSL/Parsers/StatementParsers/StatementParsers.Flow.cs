@@ -98,7 +98,7 @@ public record struct FlowParsers : IParser<Flow>
             // Parsing the condition
 
             if (ExpressionParser.Expression(ref scanner, result, out condition)
-                && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), advance: true)) { }
+                && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true)) { }
             else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0037, scanner[scanner.Position], scanner.Memory));
 
             Parsers.Spaces0(ref scanner, result, out _);
