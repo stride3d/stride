@@ -7,6 +7,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Interop;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Editor.EditorGame.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {
@@ -52,6 +53,14 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 
         [NotNull]
         protected internal virtual IEditorGameController Controller { get; }
+
+        /// <summary>
+        /// Gets an editor game service by its interface type.
+        /// </summary>
+        /// <typeparam name="T">The service interface type.</typeparam>
+        /// <returns>The service instance.</returns>
+        public T GetEditorGameService<T>() where T : IEditorGameViewModelService
+            => Controller.GetService<T>();
 
         [NotNull]
         public ICommandBase CopyErrorToClipboardCommand { get; }

@@ -110,6 +110,11 @@
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />
   </ItemGroup>
+  <!-- MCP dependencies -->
+  <ItemGroup>
+    <PackageVersion Include="ModelContextProtocol" Version="0.8.0-preview.1" />
+    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.8.0-preview.1" />
+  </ItemGroup>
   <!-- Windows/WPF dependencies -->
   <ItemGroup>
     <PackageVersion Include="AvalonEdit" Version="6.3.1.120" />
