@@ -39,6 +39,11 @@ internal static class EntryPointWrapperGenerator
             if (variable.Value.UsedThisStage
                 && variable.Value.VariableMethodInitializerId is int methodInitializerId)
             {
+                // Skip initializer stores for Uniform variables — writing to a cbuffer is illegal
+                // in both SPIR-V and HLSL. These default values are set from the CPU side instead.
+                if (variable.Value.Type.StorageClass == Specification.StorageClass.Uniform)
+                    continue;
+
                 liveAnalysis.ExtraReferencedMethods.Add(methodInitializerId);
 
                 var variableValueType = variable.Value.Type.BaseType;

@@ -101,7 +101,7 @@ internal static class StreamAnalyzer
                 {
                     semanticTable.TryGetValue(variable.ResultId, out var semantic);
 
-                    if (variable.MethodInitializer != null)
+                    if (variable.MethodOrConstantInitializer != null)
                         throw new NotImplementedException("Variable initializer is not supported on streams variable");
 
                     streams.Add(variable.ResultId, new StreamVariableInfo(semantic, name, type, variable.ResultId) { Patch = patchVariables.Contains(variable.ResultId) });
@@ -110,7 +110,7 @@ internal static class StreamAnalyzer
                 {
                     variables.Add(variable.ResultId, new VariableInfo(name, type, variable.ResultId)
                     {
-                        VariableMethodInitializerId = variable.MethodInitializer,
+                        VariableMethodInitializerId = variable.MethodOrConstantInitializer,
                     });
                 }
             }

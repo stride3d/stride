@@ -153,7 +153,7 @@
         {
           "kind": "IdRef",
           "quantifier": "?",
-          "name": "'MethodInitializer'"
+          "name": "'MethodOrConstantInitializer'"
         }
       ]
     },

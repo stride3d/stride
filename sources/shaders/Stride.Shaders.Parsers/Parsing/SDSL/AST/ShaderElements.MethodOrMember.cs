@@ -256,28 +256,39 @@ public sealed partial class ShaderMember(
         if (StreamKind == StreamKind.Stream || StreamKind == StreamKind.PatchStream)
             variableFlags |= Specification.VariableFlagsMask.Stream;
 
-        int? initializerMethod = null;
+        int? initializerId = null;
         if (Value != null)
         {
             var valueType = pointerType.BaseType;
 
-            // TODO: differentiate const from code that needs to go in entry point?
-            // TODO: move to entry point
-            var functionType = new FunctionType(valueType, []);
-            initializerMethod = builder.Insert(new OpFunction(context.GetOrRegister(valueType), context.Bound++, Specification.FunctionControlMask.Const, context.GetOrRegister(functionType))).ResultId;
-            builder.Insert(new OpLabel(context.Bound++));
+            if (pointerType.StorageClass == Specification.StorageClass.Uniform)
+            {
+                // Uniform variables become cbuffer members — their default values are set from the CPU side.
+                // Compile the initializer as a constant value (no function wrapper needed).
+                var constantValue = Value.CompileConstantValue(table, context, valueType);
+                initializerId = constantValue.Id;
+            }
+            else
+            {
+                // For other storage classes, wrap in an initializer method called from the entry point wrapper.
+                // This is necessary in case they can't be created as pure constant.
+                // TODO: some of them could become proper const, we could simplify those and use simpler system with constant ID (like StorageClass.Uniform)
+                var functionType = new FunctionType(valueType, []);
+                initializerId = builder.Insert(new OpFunction(context.GetOrRegister(valueType), context.Bound++, Specification.FunctionControlMask.Const, context.GetOrRegister(functionType))).ResultId;
+                builder.Insert(new OpLabel(context.Bound++));
 
-            var initialValue = Value.CompileAsValue(table, compiler);
-            initialValue = builder.Convert(context, initialValue, pointerType.BaseType);
+                var initialValue = Value.CompileAsValue(table, compiler);
+                initialValue = builder.Convert(context, initialValue, pointerType.BaseType);
 
-            builder.Return(initialValue);
-            builder.Insert(new OpFunctionEnd());
+                builder.Return(initialValue);
+                builder.Insert(new OpFunctionEnd());
 
-            context.AddName(initializerMethod.Value, $"{Name}_Initializer");
+                context.AddName(initializerId.Value, $"{Name}_Initializer");
+            }
         }
 
         // Note: StorageClass was decided in Shader.Compile()
-        builder.Insert(new OpVariableSDSL(registeredType, variable, pointerType.StorageClass, variableFlags, initializerMethod));
+        builder.Insert(new OpVariableSDSL(registeredType, variable, pointerType.StorageClass, variableFlags, initializerId));
         if (Semantic != null)
             context.Add(new OpDecorateString(variable, Specification.Decoration.UserSemantic, Semantic.Name));
         context.AddName(variable, Name);

@@ -11,7 +11,7 @@ namespace Stride.Shaders.Compilers.SDSL;
 public partial class ShaderMixer
 {
     private record struct VariableMetadata(string? Link = null, string? ResourceGroup = null, string? LogicalGroup = null, bool Color = false);
-    private record struct CBufferMemberMetadata(string? Link = null, string? LogicalGroup = null, bool Color = false);
+    private record struct CBufferMemberMetadata(string? Link = null, string? LogicalGroup = null, bool Color = false, object? DefaultValue = null);
 
     private Dictionary<int, VariableMetadata> variableMetadata = new();
     // Note: cbuffer might share same struct, which is why we store this info per variable instead of per struct (as per OpMemberDecorate was doing)

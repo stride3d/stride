@@ -21,6 +21,7 @@ namespace Stride.Shaders.Compilers.SDSL
             var members = new List<StructuredTypeMember>();
             // Remap from variable ID to member index in our new struct
             var variables = new List<int>();
+            var methodInitializers = new List<int?>();
             var variableToMemberIndices = new Dictionary<int, int>();
             // Collect any variable not a stream, not static and not a block
             int firstVariableIndex = -1;
@@ -35,6 +36,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     variableToMemberIndices.Add(variable.ResultId, members.Count);
                     members.Add(new(context.Names[variable.ResultId], variableType, TypeModifier.None));
                     variables.Add(variable.ResultId);
+                    methodInitializers.Add(variable.MethodOrConstantInitializer);
                     SetOpNop(i.Data.Memory.Span);
                 }
             }
@@ -53,7 +55,10 @@ namespace Stride.Shaders.Compilers.SDSL
                 context.AddMemberName(globalCBufferTypeId, index, member.Name);
 
                 var metadata = variableMetadata[variables[index]];
-                memberMetadata[index] = new(Link: metadata.Link, LogicalGroup: metadata.LogicalGroup, Color: metadata.Color);
+                object? defaultValue = null;
+                if (methodInitializers[index] is int constantId)
+                    context.TryGetConstantValue(constantId, out defaultValue, out _);
+                memberMetadata[index] = new(Link: metadata.Link, LogicalGroup: metadata.LogicalGroup, Color: metadata.Color, DefaultValue: defaultValue);
             }
 
             // Note: we make sure to add at a previous variable index, otherwise the OpVariableSDSL won't be inside the root MixinNode.StartInstruction/EndInstruction
@@ -427,6 +432,7 @@ namespace Stride.Shaders.Compilers.SDSL
                         Offset = constantBufferOffset,
                         Size = memberSize,
                         LogicalGroup = metadata.LogicalGroup,
+                        DefaultValue = metadata.DefaultValue,
                     };
                     if (metadata.Color)
                     {
