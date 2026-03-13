@@ -15,6 +15,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Reflection;
+using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Engine;
@@ -69,6 +70,10 @@ internal static class JsonTypeConverter
             return new { r = c4.R, g = c4.G, b = c4.B, a = c4.A };
         if (value is Matrix)
             return value.ToString();
+
+        // File/directory paths
+        if (value is UPath path)
+            return path.ToString();
 
         // Asset references
         if (value is IReference assetRef)
@@ -222,6 +227,12 @@ internal static class JsonTypeConverter
             throw new InvalidOperationException($"Cannot convert '{json}' to enum {underlyingType.Name}");
         }
 
+        // File/directory paths (UFile, UDirectory)
+        if (underlyingType == typeof(UFile))
+            return new UFile(json.GetString());
+        if (underlyingType == typeof(UDirectory))
+            return new UDirectory(json.GetString());
+
         // Stride Vector3
         if (underlyingType == typeof(Vector3) && json.ValueKind == JsonValueKind.Object)
         {
@@ -272,7 +283,7 @@ internal static class JsonTypeConverter
         if (IsPolymorphicType(underlyingType))
             return ConvertPolymorphicValue(json, underlyingType, session: null);
 
-        throw new InvalidOperationException($"Cannot convert JSON value to type {targetType.Name}. Supported types: bool, int, float, double, string, long, enum, Vector2, Vector3, Quaternion, Color3, Color4, and asset references (use session overload).");
+        throw new InvalidOperationException($"Cannot convert JSON value to type {targetType.Name}. Supported types: bool, int, float, double, string, long, enum, UFile, UDirectory, Vector2, Vector3, Quaternion, Color3, Color4, and asset references (use session overload).");
     }
 
     /// <summary>
