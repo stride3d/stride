@@ -304,137 +304,68 @@ public partial class SpirvBuilder
         var leftElementType = leftType.GetElementType();
         var rightElementType = rightType.GetElementType();
 
-        var instruction = (op, leftElementType, rightElementType) switch
-        {
-            (Operator.Plus, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpIAdd(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Plus, SymbolType l, SymbolType r)
-                when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFAdd(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Minus, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpISub(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Minus, SymbolType l, SymbolType r)
-                when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFSub(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Mul, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpIMul(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Mul, SymbolType l, SymbolType r)
-                when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFMul(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Div, SymbolType l, SymbolType r)
-                when l.IsUnsignedInteger() && r.IsUnsignedInteger()
-                => Buffer.InsertData(Position++, new OpUDiv(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Div, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpSDiv(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Div, SymbolType l, SymbolType r)
-                when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFDiv(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Mod, SymbolType l, SymbolType r)
-                when l.IsUnsignedInteger() && r.IsUnsignedInteger()
-                => Buffer.InsertData(Position++, new OpUMod(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Mod, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpSMod(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Mod, SymbolType l, SymbolType r)
-                when l.IsFloating() && r.IsNumber()
-                => Buffer.InsertData(Position++, new OpFMod(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.RightShift, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpShiftRightLogical(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.LeftShift, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpShiftLeftLogical(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.AND, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpBitwiseAnd(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.OR, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpBitwiseOr(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.XOR, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertData(Position++, new OpBitwiseXor(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.LogicalAND, ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Boolean })
-                => Buffer.InsertData(Position++, new OpLogicalAnd(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.LogicalOR, ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Boolean })
-                => Buffer.InsertData(Position++, new OpLogicalOr(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Equals, ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Boolean })
-                => Buffer.InsertData(Position++, new OpLogicalEqual(resultTypeId, resultId, left.Id, right.Id)),
-            (Operator.Equals, ScalarType { Type: Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Int or Scalar.UInt })
-                => Buffer.InsertData(Position++, new OpIEqual(resultTypeId, resultId, left.Id, right.Id)),
-            (Operator.Equals, ScalarType l, ScalarType r)
-                when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdEqual(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.NotEquals, ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Boolean })
-                => Buffer.InsertData(Position++, new OpLogicalNotEqual(resultTypeId, resultId, left.Id, right.Id)),
-            (Operator.NotEquals, ScalarType { Type: Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Int or Scalar.UInt })
-                => Buffer.InsertData(Position++, new OpINotEqual(resultTypeId, resultId, left.Id, right.Id)),
-            (Operator.NotEquals, ScalarType l, ScalarType r)
-                when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdNotEqual(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Lower, ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Int })
-                => Buffer.InsertData(Position++, new OpSLessThan(resultTypeId, resultId, left.Id, right.Id)),
-            (Operator.Lower, ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.UInt })
-                => Buffer.InsertData(Position++, new OpULessThan(resultTypeId, resultId, left.Id, right.Id)),
-            (Operator.Lower, ScalarType l, ScalarType r)
-                when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdLessThan(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.LowerOrEqual, ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Int })
-                => Buffer.InsertData(Position++, new OpSLessThanEqual(resultTypeId, resultId, left.Id, right.Id)),
-            (Operator.LowerOrEqual, ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.UInt })
-                => Buffer.InsertData(Position++, new OpULessThanEqual(resultTypeId, resultId, left.Id, right.Id)),
-            (Operator.LowerOrEqual, ScalarType l, ScalarType r)
-                when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdLessThanEqual(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.Greater, ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Int })
-                => Buffer.InsertData(Position++, new OpSGreaterThan(resultTypeId, resultId, left.Id, right.Id)),
-            (Operator.Greater, ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.UInt })
-                => Buffer.InsertData(Position++, new OpUGreaterThan(resultTypeId, resultId, left.Id, right.Id)),
-            (Operator.Greater, ScalarType l, ScalarType r)
-                when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdGreaterThan(resultTypeId, resultId, left.Id, right.Id)),
-
-            (Operator.GreaterOrEqual, ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.Int })
-                => Buffer.InsertData(Position++, new OpSGreaterThanEqual(resultTypeId, resultId, left.Id, right.Id)),
-            (Operator.GreaterOrEqual, ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.UInt })
-                => Buffer.InsertData(Position++, new OpUGreaterThanEqual(resultTypeId, resultId, left.Id, right.Id)),
-            (Operator.GreaterOrEqual, ScalarType l, ScalarType r)
-                when l.IsFloating() && r.IsFloating()
-                => Buffer.InsertData(Position++, new OpFOrdGreaterThanEqual(resultTypeId, resultId, left.Id, right.Id)),
-
-            _ => throw new NotImplementedException()
-        };
+        var spirvOp = SelectBinaryOp(op, leftElementType);
+        // All SPIR-V binary ops share the same 5-word layout (wordcount|opcode, resultType, resultId, operand1, operand2),
+        // so we create one and patch the opcode.
+        var instruction = Buffer.Insert(Position++, new OpIAdd(resultTypeId, resultId, left.Id, right.Id));
+        instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)spirvOp;
 
         if (name is not null)
             context.AddName(resultId, name);
         return new(resultId, resultTypeId, name);
     }
+
+    static Specification.Op SelectBinaryOp(Operator op, SymbolType elementType) => (op, elementType) switch
+    {
+        // Arithmetic
+        (Operator.Plus, _) when elementType.IsInteger() => Specification.Op.OpIAdd,
+        (Operator.Plus, _) when elementType.IsFloating() => Specification.Op.OpFAdd,
+        (Operator.Minus, _) when elementType.IsInteger() => Specification.Op.OpISub,
+        (Operator.Minus, _) when elementType.IsFloating() => Specification.Op.OpFSub,
+        (Operator.Mul, _) when elementType.IsInteger() => Specification.Op.OpIMul,
+        (Operator.Mul, _) when elementType.IsFloating() => Specification.Op.OpFMul,
+        (Operator.Div, _) when elementType.IsUnsignedInteger() => Specification.Op.OpUDiv,
+        (Operator.Div, _) when elementType.IsInteger() => Specification.Op.OpSDiv,
+        (Operator.Div, _) when elementType.IsFloating() => Specification.Op.OpFDiv,
+        (Operator.Mod, _) when elementType.IsUnsignedInteger() => Specification.Op.OpUMod,
+        (Operator.Mod, _) when elementType.IsInteger() => Specification.Op.OpSMod,
+        (Operator.Mod, _) when elementType.IsFloating() => Specification.Op.OpFMod,
+
+        // Shift / bitwise
+        (Operator.RightShift, _) when elementType.IsInteger() => Specification.Op.OpShiftRightLogical,
+        (Operator.LeftShift, _) when elementType.IsInteger() => Specification.Op.OpShiftLeftLogical,
+        (Operator.AND, _) when elementType.IsInteger() => Specification.Op.OpBitwiseAnd,
+        (Operator.OR, _) when elementType.IsInteger() => Specification.Op.OpBitwiseOr,
+        (Operator.XOR, _) when elementType.IsInteger() => Specification.Op.OpBitwiseXor,
+
+        // Logical
+        (Operator.LogicalAND, ScalarType { Type: Scalar.Boolean }) => Specification.Op.OpLogicalAnd,
+        (Operator.LogicalOR, ScalarType { Type: Scalar.Boolean }) => Specification.Op.OpLogicalOr,
+
+        // Equality
+        (Operator.Equals, ScalarType { Type: Scalar.Boolean }) => Specification.Op.OpLogicalEqual,
+        (Operator.Equals, _) when elementType.IsInteger() => Specification.Op.OpIEqual,
+        (Operator.Equals, _) when elementType.IsFloating() => Specification.Op.OpFOrdEqual,
+        (Operator.NotEquals, ScalarType { Type: Scalar.Boolean }) => Specification.Op.OpLogicalNotEqual,
+        (Operator.NotEquals, _) when elementType.IsInteger() => Specification.Op.OpINotEqual,
+        (Operator.NotEquals, _) when elementType.IsFloating() => Specification.Op.OpFOrdNotEqual,
+
+        // Comparison
+        (Operator.Lower, _) when elementType.IsUnsignedInteger() => Specification.Op.OpULessThan,
+        (Operator.Lower, _) when elementType.IsInteger() => Specification.Op.OpSLessThan,
+        (Operator.Lower, _) when elementType.IsFloating() => Specification.Op.OpFOrdLessThan,
+        (Operator.LowerOrEqual, _) when elementType.IsUnsignedInteger() => Specification.Op.OpULessThanEqual,
+        (Operator.LowerOrEqual, _) when elementType.IsInteger() => Specification.Op.OpSLessThanEqual,
+        (Operator.LowerOrEqual, _) when elementType.IsFloating() => Specification.Op.OpFOrdLessThanEqual,
+        (Operator.Greater, _) when elementType.IsUnsignedInteger() => Specification.Op.OpUGreaterThan,
+        (Operator.Greater, _) when elementType.IsInteger() => Specification.Op.OpSGreaterThan,
+        (Operator.Greater, _) when elementType.IsFloating() => Specification.Op.OpFOrdGreaterThan,
+        (Operator.GreaterOrEqual, _) when elementType.IsUnsignedInteger() => Specification.Op.OpUGreaterThanEqual,
+        (Operator.GreaterOrEqual, _) when elementType.IsInteger() => Specification.Op.OpSGreaterThanEqual,
+        (Operator.GreaterOrEqual, _) when elementType.IsFloating() => Specification.Op.OpFOrdGreaterThanEqual,
+
+        _ => throw new NotImplementedException($"Binary operator {op} not supported for element type {elementType}")
+    };
 
     /// <summary>
     /// Check if a type can be converted to another.
