@@ -318,6 +318,15 @@ public sealed partial record SampledImage(TextureType ImageType) : SymbolType()
 
 public abstract partial record TextureType(SymbolType ReturnType, Dim Dimension, int Depth, bool Arrayed, bool Multisampled, int Sampled, ImageFormat Format) : SymbolType()
 {
+    /// <summary>Base spatial dimensions: 1D→1, 2D→2, 3D/Cube→3.</summary>
+    public int BaseDimension => Dimension switch { Dim.Dim1D => 1, Dim.Dim2D => 2, _ => 3 };
+
+    /// <summary>Coordinate size including array layer (BaseDimension + 1 if Arrayed).</summary>
+    public int CoordinateDimension => BaseDimension + (Arrayed ? 1 : 0);
+
+    /// <summary>Number of components returned by OpImageQuerySize (Cube maps return 2, not 3).</summary>
+    public int SizeQueryDimension => (Dimension == Dim.Cube ? 2 : BaseDimension) + (Arrayed ? 1 : 0);
+
     public override string ToId() => $"Texture_{ReturnType}";
     public override string ToString() => $"Texture<{ReturnType}>({Dimension}, {Depth}, {Arrayed}, {Multisampled}, {Sampled}, {Format})";
 }

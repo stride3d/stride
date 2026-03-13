@@ -57,16 +57,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var imageCoordType = context.ReverseTypes[x.TypeId];
         var imageCoordSize = imageCoordType.GetElementCount();
 
-        // Determine the texture's natural coordinate dimension
-        var textureDim = textureType switch
-        {
-            Texture1DType => 1,
-            Texture2DType => 2,
-            Texture3DType or TextureCubeType => 3,
-            _ => throw new NotImplementedException($"Unsupported texture type {textureType}")
-        };
-        if (textureType.Arrayed)
-            textureDim++;
+        var textureDim = textureType.CoordinateDimension;
 
         var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType, textureType);
 
@@ -372,20 +363,7 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var textureType = (TextureType)context.ReverseTypes[texture.TypeId];
         var uintType = context.GetOrRegister(ScalarType.UInt);
 
-        // Determine the number of size components returned by image size query
-        // SPIR-V returns: scalar for 1D, vec2 for 2D/Cube, vec3 for 3D
-        // Add 1 if arrayed (array layers as last component)
-        int sizeComponents = textureType switch
-        {
-            Texture1DType { Arrayed: false } => 1,
-            Texture1DType { Arrayed: true } => 2,
-            Texture2DType { Arrayed: false } => 2,
-            Texture2DType { Arrayed: true } => 3,
-            Texture3DType => 3,
-            TextureCubeType { Arrayed: false } => 2,
-            TextureCubeType { Arrayed: true } => 3,
-            _ => throw new NotImplementedException($"GetDimensions not supported for texture type {textureType}")
-        };
+        int sizeComponents = textureType.SizeQueryDimension;
 
         var sizeResultType = sizeComponents == 1 ? uintType : context.GetOrRegister(new VectorType(ScalarType.UInt, sizeComponents));
 

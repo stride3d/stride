@@ -1367,30 +1367,14 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
     SpirvValue ConvertTexCoord(SpirvContext context, SpirvBuilder builder, TextureType textureType, SpirvValue spirvValue, ScalarType baseType, bool hasLod = false)
     {
-        var textureCoordSize = textureType switch
-        {
-            Texture1DType => 1,
-            Texture2DType => 2,
-            Texture3DType or TextureCubeType => 3,
-        };
-        if (textureType.Arrayed)
-            textureCoordSize++;
-        if (hasLod)
-            textureCoordSize++;
+        var textureCoordSize = textureType.CoordinateDimension + (hasLod ? 1 : 0);
         spirvValue = builder.Convert(context, spirvValue, baseType.GetVectorOrScalar(textureCoordSize));
         return spirvValue;
     }
 
     SpirvValue ConvertOffset(SpirvContext context, SpirvBuilder builder, TextureType textureType, SpirvValue spirvValue)
     {
-        var offsetSize = textureType switch
-        {
-            Texture1DType => 1,
-            Texture2DType => 2,
-            Texture3DType or TextureCubeType => 3,
-        };
-
-        spirvValue = builder.Convert(context, spirvValue, ScalarType.Int.GetVectorOrScalar(offsetSize));
+        spirvValue = builder.Convert(context, spirvValue, ScalarType.Int.GetVectorOrScalar(textureType.BaseDimension));
         return spirvValue;
     }
 
