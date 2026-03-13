@@ -1024,8 +1024,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     or Decoration.ShaderConstantSDSL
                     or Decoration.PatchConstantFuncSDSL
                     or Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL or Decoration.ResourceGroupIdSDSL
-                    or Decoration.SamplerStateFilter or Decoration.SamplerStateAddressU or Decoration.SamplerStateAddressV or Decoration.SamplerStateAddressW
-                    or Decoration.SamplerStateMipLODBias or Decoration.SamplerStateMaxAnisotropy or Decoration.SamplerStateComparisonFunc or Decoration.SamplerStateMinLOD or Decoration.SamplerStateMaxLOD)
+                    or Decoration.SamplerStateSDSL)
                 return true;
             if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && ((OpMemberDecorate)i).Decoration is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
                 return true;

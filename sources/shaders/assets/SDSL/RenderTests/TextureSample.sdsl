@@ -8,7 +8,19 @@ shader TextureSample
     stream float2 TexCoord : TEXCOORD;
 
     stage Texture2D<float4> Texture1;
-    stage SamplerState Sampler1;
+    stage SamplerState Sampler1
+    {
+        Filter = MIN_MAG_MIP_LINEAR;
+        AddressU = Clamp;
+        AddressV = Clamp;
+        AddressW = Clamp;
+        MipLODBias = 0.0;
+        MaxAnisotropy = 16;
+        ComparisonFunc = Never;
+        MinLOD = 0.0;
+        MaxLOD = 1000.0;
+        BorderColor = float4(0, 0, 0, 0);
+    };
 
     void PSMain()
     {

@@ -221,66 +221,24 @@ public partial class ShaderMixer
         var samplerStates = new Dictionary<int, Graphics.SamplerStateDescription>();
         foreach (var i in context)
         {
-            if ((i.Op == Specification.Op.OpDecorate || i.Op == Specification.Op.OpDecorateString) &&
-                     (OpDecorate)i is
-                     {
-                         Decoration:
-                            Specification.Decoration.SamplerStateFilter
-                             or Specification.Decoration.SamplerStateAddressU
-                             or Specification.Decoration.SamplerStateAddressV
-                             or Specification.Decoration.SamplerStateAddressW
-                             or Specification.Decoration.SamplerStateMipLODBias
-                             or Specification.Decoration.SamplerStateMaxAnisotropy
-                             or Specification.Decoration.SamplerStateComparisonFunc
-                             or Specification.Decoration.SamplerStateMinLOD
-                             or Specification.Decoration.SamplerStateMaxLOD,
-                         DecorationParameters: { } p
-
-                     } decorate)
+            if (i.Op == Specification.Op.OpDecorate &&
+                     (OpDecorate)i is { Decoration: Specification.Decoration.SamplerStateSDSL, DecorationParameters: { } p } decorate)
             {
-                ref var samplerState =
-                    ref CollectionsMarshal.GetValueRefOrAddDefault(samplerStates, decorate.Target, out var exists);
-                if (!exists)
-                    samplerState = Graphics.SamplerStateDescription.Default;
-                switch (decorate.Decoration)
+                var s = p.Span;
+                samplerStates[decorate.Target] = new Graphics.SamplerStateDescription
                 {
-                    case Specification.Decoration.SamplerStateFilter:
-                        samplerState.Filter = (Graphics.TextureFilter)p.Span[0];
-                        break;
-                    case Specification.Decoration.SamplerStateAddressU:
-                        samplerState.AddressU = (Graphics.TextureAddressMode)p.Span[0];
-                        break;
-                    case Specification.Decoration.SamplerStateAddressV:
-                        samplerState.AddressV = (Graphics.TextureAddressMode)p.Span[0];
-                        break;
-                    case Specification.Decoration.SamplerStateAddressW:
-                        samplerState.AddressW = (Graphics.TextureAddressMode)p.Span[0];
-                        break;
-                    case Specification.Decoration.SamplerStateMipLODBias:
-                        {
-                            using var n = new LiteralValue<string>(p.Span);
-                            samplerState.MipMapLevelOfDetailBias = float.Parse(n.Value);
-                            break;
-                        }
-                    case Specification.Decoration.SamplerStateMaxAnisotropy:
-                        samplerState.MaxAnisotropy = p.Span[0];
-                        break;
-                    case Specification.Decoration.SamplerStateComparisonFunc:
-                        samplerState.CompareFunction = (Graphics.CompareFunction)p.Span[0];
-                        break;
-                    case Specification.Decoration.SamplerStateMinLOD:
-                        {
-                            using var n = new LiteralValue<string>(p.Span);
-                            samplerState.MinMipLevel = float.Parse(n.Value);
-                            break;
-                        }
-                    case Specification.Decoration.SamplerStateMaxLOD:
-                        {
-                            using var n = new LiteralValue<string>(p.Span);
-                            samplerState.MaxMipLevel = float.Parse(n.Value);
-                            break;
-                        }
-                }
+                    Filter = (Graphics.TextureFilter)s[0],
+                    AddressU = (Graphics.TextureAddressMode)s[1],
+                    AddressV = (Graphics.TextureAddressMode)s[2],
+                    AddressW = (Graphics.TextureAddressMode)s[3],
+                    MipMapLevelOfDetailBias = BitConverter.Int32BitsToSingle(s[4]),
+                    MaxAnisotropy = s[5],
+                    CompareFunction = (Graphics.CompareFunction)s[6],
+                    MinMipLevel = BitConverter.Int32BitsToSingle(s[7]),
+                    MaxMipLevel = BitConverter.Int32BitsToSingle(s[8]),
+                    BorderColor = new(BitConverter.Int32BitsToSingle(s[9]), BitConverter.Int32BitsToSingle(s[10]),
+                                     BitConverter.Int32BitsToSingle(s[11]), BitConverter.Int32BitsToSingle(s[12])),
+                };
             }
         }
 

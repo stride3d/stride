@@ -59,71 +59,67 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
 
         var variableId = context.Bound++;
 
-        // We store SamplerState as decoration for later processing during ShaderMixer.ProcessReflection()
-        // Note: we make sure to do it before the OpVariableSDSL as per SPIR-V spec so that it is correctly processed later
+        // Encode all sampler state fields into a single OpDecorate
+        // Defaults match SamplerStateDescription.Default: Linear(21) filter, Clamp(3) addressing, no LOD bias, 16x aniso, Never(1) compare, full LOD range
+        int filter = 21; // TextureFilter.Linear = MIN_MAG_MIP_LINEAR
+        int addressU = (int)Specification.SamplerTextureAddressModeSDSL.Clamp;
+        int addressV = (int)Specification.SamplerTextureAddressModeSDSL.Clamp;
+        int addressW = (int)Specification.SamplerTextureAddressModeSDSL.Clamp;
+        int mipLODBias = 0; // BitConverter.SingleToInt32Bits(0.0f) == 0
+        int maxAnisotropy = 16;
+        int comparisonFunc = (int)Specification.SamplerComparisonFuncSDSL.Never;
+        int minLOD = BitConverter.SingleToInt32Bits(-float.MaxValue);
+        int maxLOD = BitConverter.SingleToInt32Bits(float.MaxValue);
+        int borderR = 0, borderG = 0, borderB = 0, borderA = 0; // Black (0,0,0,0)
         foreach (var parameter in Parameters)
         {
             switch (parameter.Name)
             {
                 case "Filter":
-                    {
-                        var filter = Enum.Parse<Specification.SamplerFilterSDSL>(((Identifier)parameter.Value).Name, true);
-                        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateFilter, [(int)filter]));
-                        break;
-                    }
+                    filter = (int)Enum.Parse<Specification.SamplerFilterSDSL>(((Identifier)parameter.Value).Name, true);
+                    break;
                 case "AddressU":
-                    {
-                        var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
-                        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateAddressU, [(int)addressMode]));
-                        break;
-                    }
+                    addressU = (int)Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
+                    break;
                 case "AddressV":
-                    {
-                        var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
-                        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateAddressV, [(int)addressMode]));
-                        break;
-                    }
+                    addressV = (int)Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
+                    break;
                 case "AddressW":
-                    {
-                        var addressMode = Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
-                        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateAddressW, [(int)addressMode]));
-                        break;
-                    }
+                    addressW = (int)Enum.Parse<Specification.SamplerTextureAddressModeSDSL>(((Identifier)parameter.Value).Name, true);
+                    break;
                 case "MipLODBias":
-                    {
-                        var mipLODBias = (float)((FloatLiteral)parameter.Value).Value;
-                        context.Add(new OpDecorateString(variableId, Specification.Decoration.SamplerStateMipLODBias, mipLODBias.ToString()));
-                        break;
-                    }
+                    mipLODBias = BitConverter.SingleToInt32Bits((float)((FloatLiteral)parameter.Value).Value);
+                    break;
                 case "MaxAnisotropy":
-                    {
-                        var maxAnisotropy = ((IntegerLiteral)parameter.Value).IntValue;
-                        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateMaxAnisotropy, [maxAnisotropy]));
-                        break;
-                    }
-                case "MinLOD":
-                    {
-                        var minLOD = (float)((FloatLiteral)parameter.Value).Value;
-                        context.Add(new OpDecorateString(variableId, Specification.Decoration.SamplerStateMinLOD, minLOD.ToString()));
-                        break;
-                    }
-                case "MaxLOD":
-                    {
-                        var maxLOD = (float)((FloatLiteral)parameter.Value).Value;
-                        context.Add(new OpDecorateString(variableId, Specification.Decoration.SamplerStateMaxLOD, maxLOD.ToString()));
-                        break;
-                    }
+                    maxAnisotropy = ((IntegerLiteral)parameter.Value).IntValue;
+                    break;
                 case "ComparisonFunc":
+                    comparisonFunc = (int)Enum.Parse<Specification.SamplerComparisonFuncSDSL>(((Identifier)parameter.Value).Name, true);
+                    break;
+                case "MinLOD":
+                    minLOD = BitConverter.SingleToInt32Bits((float)((FloatLiteral)parameter.Value).Value);
+                    break;
+                case "MaxLOD":
+                    maxLOD = BitConverter.SingleToInt32Bits((float)((FloatLiteral)parameter.Value).Value);
+                    break;
+                case "BorderColor":
                     {
-                        var filter = Enum.Parse<Specification.SamplerComparisonFuncSDSL>(((Identifier)parameter.Value).Name, true);
-                        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateComparisonFunc, [(int)filter]));
+                        if (parameter.Value is not VectorLiteral { TypeName.Name: "float4", Values: { Count: 4 } args })
+                            throw new NotSupportedException($"BorderColor must be float4(r, g, b, a)");
+                        borderR = BitConverter.SingleToInt32Bits((float)((NumberLiteral)args[0]).DoubleValue);
+                        borderG = BitConverter.SingleToInt32Bits((float)((NumberLiteral)args[1]).DoubleValue);
+                        borderB = BitConverter.SingleToInt32Bits((float)((NumberLiteral)args[2]).DoubleValue);
+                        borderA = BitConverter.SingleToInt32Bits((float)((NumberLiteral)args[3]).DoubleValue);
                         break;
                     }
-                case "BorderColor":
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException($"SamplerState parameter '{parameter.Name}' not implemented");
             }
         }
+        context.Add(new OpDecorate(variableId, Specification.Decoration.SamplerStateSDSL, [
+            filter, addressU, addressV, addressW, mipLODBias, maxAnisotropy, comparisonFunc, minLOD, maxLOD,
+            borderR, borderG, borderB, borderA
+        ]));
 
         var variable = builder.Insert(new OpVariableSDSL(registeredType, variableId, Specification.StorageClass.UniformConstant, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
         context.AddName(variable.ResultId, Name);
