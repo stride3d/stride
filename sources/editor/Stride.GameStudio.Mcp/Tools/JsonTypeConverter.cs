@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
@@ -13,9 +14,9 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
+using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Reflection;
-using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Engine;
@@ -53,7 +54,7 @@ internal static class JsonTypeConverter
         if (type.IsEnum)
             return value.ToString();
 
-        // Stride math types
+        // Stride math types — float vectors
         if (value is Vector2 v2)
             return new { x = v2.X, y = v2.Y };
         if (value is Vector3 v3)
@@ -62,12 +63,40 @@ internal static class JsonTypeConverter
             return new { x = v4.X, y = v4.Y, z = v4.Z, w = v4.W };
         if (value is Quaternion q)
             return new { x = q.X, y = q.Y, z = q.Z, w = q.W };
+
+        // Integer vectors
+        if (value is Int2 i2)
+            return new { x = i2.X, y = i2.Y };
+        if (value is Int3 i3)
+            return new { x = i3.X, y = i3.Y, z = i3.Z };
+        if (value is Int4 i4)
+            return new { x = i4.X, y = i4.Y, z = i4.Z, w = i4.W };
+
+        // Colors
         if (value is Color c)
-            return new { r = c.R, g = c.G, b = c.B, a = c.A };
+            return new { r = (int)c.R, g = (int)c.G, b = (int)c.B, a = (int)c.A };
         if (value is Color3 c3)
             return new { r = c3.R, g = c3.G, b = c3.B };
         if (value is Color4 c4)
             return new { r = c4.R, g = c4.G, b = c4.B, a = c4.A };
+
+        // Rectangles and sizes
+        if (value is RectangleF rf)
+            return new { x = rf.X, y = rf.Y, width = rf.Width, height = rf.Height };
+        if (value is Rectangle ri)
+            return new { x = ri.X, y = ri.Y, width = ri.Width, height = ri.Height };
+        if (value is Size2 s2)
+            return new { width = s2.Width, height = s2.Height };
+        if (value is Size2F s2f)
+            return new { width = s2f.Width, height = s2f.Height };
+        if (value is Size3 s3)
+            return new { width = s3.Width, height = s3.Height, depth = s3.Depth };
+
+        // Angle
+        if (value is AngleSingle angle)
+            return new { degrees = angle.Degrees };
+
+        // Matrix — too large for structured serialization
         if (value is Matrix)
             return value.ToString();
 
@@ -215,6 +244,18 @@ internal static class JsonTypeConverter
             return json.GetString();
         if (underlyingType == typeof(long))
             return json.GetInt64();
+        if (underlyingType == typeof(byte))
+            return json.GetByte();
+        if (underlyingType == typeof(short))
+            return json.GetInt16();
+        if (underlyingType == typeof(ushort))
+            return json.GetUInt16();
+        if (underlyingType == typeof(uint))
+            return json.GetUInt32();
+        if (underlyingType == typeof(ulong))
+            return json.GetUInt64();
+        if (underlyingType == typeof(decimal))
+            return json.GetDecimal();
 
         // Enums
         if (underlyingType.IsEnum)
@@ -227,64 +268,208 @@ internal static class JsonTypeConverter
             throw new InvalidOperationException($"Cannot convert '{json}' to enum {underlyingType.Name}");
         }
 
+        // Guid
+        if (underlyingType == typeof(Guid))
+            return json.GetGuid();
+
+        // TimeSpan (accepts seconds as number, or string like "0:00:05")
+        if (underlyingType == typeof(TimeSpan))
+        {
+            if (json.ValueKind == JsonValueKind.Number)
+                return TimeSpan.FromSeconds(json.GetDouble());
+            if (json.ValueKind == JsonValueKind.String && TimeSpan.TryParse(json.GetString(), out var ts))
+                return ts;
+            throw new InvalidOperationException($"Cannot convert '{json}' to TimeSpan. Use seconds (number) or \"h:mm:ss\" string.");
+        }
+
         // File/directory paths (UFile, UDirectory)
         if (underlyingType == typeof(UFile))
             return new UFile(json.GetString());
         if (underlyingType == typeof(UDirectory))
             return new UDirectory(json.GetString());
 
-        // Stride Vector3
-        if (underlyingType == typeof(Vector3) && json.ValueKind == JsonValueKind.Object)
-        {
-            return new Vector3(
-                json.TryGetProperty("x", out var x) || json.TryGetProperty("X", out x) ? x.GetSingle() : 0f,
-                json.TryGetProperty("y", out var y) || json.TryGetProperty("Y", out y) ? y.GetSingle() : 0f,
-                json.TryGetProperty("z", out var z) || json.TryGetProperty("Z", out z) ? z.GetSingle() : 0f);
-        }
+        // --- Float vector types ---
 
-        // Stride Vector2
         if (underlyingType == typeof(Vector2) && json.ValueKind == JsonValueKind.Object)
         {
             return new Vector2(
-                json.TryGetProperty("x", out var x) || json.TryGetProperty("X", out x) ? x.GetSingle() : 0f,
-                json.TryGetProperty("y", out var y) || json.TryGetProperty("Y", out y) ? y.GetSingle() : 0f);
+                GetFloat(json, "x", "X"),
+                GetFloat(json, "y", "Y"));
         }
 
-        // Stride Quaternion
+        if (underlyingType == typeof(Vector3) && json.ValueKind == JsonValueKind.Object)
+        {
+            return new Vector3(
+                GetFloat(json, "x", "X"),
+                GetFloat(json, "y", "Y"),
+                GetFloat(json, "z", "Z"));
+        }
+
+        if (underlyingType == typeof(Vector4) && json.ValueKind == JsonValueKind.Object)
+        {
+            return new Vector4(
+                GetFloat(json, "x", "X"),
+                GetFloat(json, "y", "Y"),
+                GetFloat(json, "z", "Z"),
+                GetFloat(json, "w", "W"));
+        }
+
+        // --- Integer vector types ---
+
+        if (underlyingType == typeof(Int2) && json.ValueKind == JsonValueKind.Object)
+        {
+            return new Int2(
+                GetInt(json, "x", "X"),
+                GetInt(json, "y", "Y"));
+        }
+
+        if (underlyingType == typeof(Int3) && json.ValueKind == JsonValueKind.Object)
+        {
+            return new Int3(
+                GetInt(json, "x", "X"),
+                GetInt(json, "y", "Y"),
+                GetInt(json, "z", "Z"));
+        }
+
+        if (underlyingType == typeof(Int4) && json.ValueKind == JsonValueKind.Object)
+        {
+            return new Int4(
+                GetInt(json, "x", "X"),
+                GetInt(json, "y", "Y"),
+                GetInt(json, "z", "Z"),
+                GetInt(json, "w", "W"));
+        }
+
+        // --- Quaternion ---
+
         if (underlyingType == typeof(Quaternion) && json.ValueKind == JsonValueKind.Object)
         {
             return new Quaternion(
-                json.TryGetProperty("x", out var x) || json.TryGetProperty("X", out x) ? x.GetSingle() : 0f,
-                json.TryGetProperty("y", out var y) || json.TryGetProperty("Y", out y) ? y.GetSingle() : 0f,
-                json.TryGetProperty("z", out var z) || json.TryGetProperty("Z", out z) ? z.GetSingle() : 0f,
-                json.TryGetProperty("w", out var w) || json.TryGetProperty("W", out w) ? w.GetSingle() : 1f);
+                GetFloat(json, "x", "X"),
+                GetFloat(json, "y", "Y"),
+                GetFloat(json, "z", "Z"),
+                GetFloat(json, "w", "W", 1f));
         }
 
-        // Stride Color4
+        // --- Color types ---
+
+        if (underlyingType == typeof(Color) && json.ValueKind == JsonValueKind.Object)
+        {
+            return new Color(
+                (byte)GetInt(json, "r", "R"),
+                (byte)GetInt(json, "g", "G"),
+                (byte)GetInt(json, "b", "B"),
+                (byte)GetInt(json, "a", "A", 255));
+        }
+
         if (underlyingType == typeof(Color4) && json.ValueKind == JsonValueKind.Object)
         {
             return new Color4(
-                json.TryGetProperty("r", out var r) || json.TryGetProperty("R", out r) ? r.GetSingle() : 0f,
-                json.TryGetProperty("g", out var g) || json.TryGetProperty("G", out g) ? g.GetSingle() : 0f,
-                json.TryGetProperty("b", out var b) || json.TryGetProperty("B", out b) ? b.GetSingle() : 0f,
-                json.TryGetProperty("a", out var a) || json.TryGetProperty("A", out a) ? a.GetSingle() : 1f);
+                GetFloat(json, "r", "R"),
+                GetFloat(json, "g", "G"),
+                GetFloat(json, "b", "B"),
+                GetFloat(json, "a", "A", 1f));
         }
 
-        // Stride Color3
         if (underlyingType == typeof(Color3) && json.ValueKind == JsonValueKind.Object)
         {
             return new Color3(
-                json.TryGetProperty("r", out var r) || json.TryGetProperty("R", out r) ? r.GetSingle() : 0f,
-                json.TryGetProperty("g", out var g) || json.TryGetProperty("G", out g) ? g.GetSingle() : 0f,
-                json.TryGetProperty("b", out var b) || json.TryGetProperty("B", out b) ? b.GetSingle() : 0f);
+                GetFloat(json, "r", "R"),
+                GetFloat(json, "g", "G"),
+                GetFloat(json, "b", "B"));
+        }
+
+        // --- Rectangle and size types ---
+
+        if (underlyingType == typeof(RectangleF) && json.ValueKind == JsonValueKind.Object)
+        {
+            return new RectangleF(
+                GetFloat(json, "x", "X"),
+                GetFloat(json, "y", "Y"),
+                GetFloat(json, "width", "Width"),
+                GetFloat(json, "height", "Height"));
+        }
+
+        if (underlyingType == typeof(Rectangle) && json.ValueKind == JsonValueKind.Object)
+        {
+            return new Rectangle(
+                GetInt(json, "x", "X"),
+                GetInt(json, "y", "Y"),
+                GetInt(json, "width", "Width"),
+                GetInt(json, "height", "Height"));
+        }
+
+        if (underlyingType == typeof(Size2) && json.ValueKind == JsonValueKind.Object)
+        {
+            return new Size2(
+                GetInt(json, "width", "Width"),
+                GetInt(json, "height", "Height"));
+        }
+
+        if (underlyingType == typeof(Size2F) && json.ValueKind == JsonValueKind.Object)
+        {
+            return new Size2F(
+                GetFloat(json, "width", "Width"),
+                GetFloat(json, "height", "Height"));
+        }
+
+        if (underlyingType == typeof(Size3) && json.ValueKind == JsonValueKind.Object)
+        {
+            return new Size3(
+                GetInt(json, "width", "Width"),
+                GetInt(json, "height", "Height"),
+                GetInt(json, "depth", "Depth"));
+        }
+
+        // --- Angle ---
+
+        if (underlyingType == typeof(AngleSingle))
+        {
+            if (json.ValueKind == JsonValueKind.Number)
+                return new AngleSingle(json.GetSingle(), AngleType.Degree);
+            if (json.ValueKind == JsonValueKind.Object)
+            {
+                if (json.TryGetProperty("degrees", out var deg) || json.TryGetProperty("Degrees", out deg))
+                    return new AngleSingle(deg.GetSingle(), AngleType.Degree);
+                if (json.TryGetProperty("radians", out var rad) || json.TryGetProperty("Radians", out rad))
+                    return new AngleSingle(rad.GetSingle(), AngleType.Radian);
+            }
+            throw new InvalidOperationException($"Cannot convert '{json}' to AngleSingle. Use a number (degrees), or {{\"degrees\": N}} / {{\"radians\": N}}.");
         }
 
         // Polymorphic types (interfaces/abstract classes) — resolve concrete type and instantiate
         if (IsPolymorphicType(underlyingType))
             return ConvertPolymorphicValue(json, underlyingType, session: null);
 
-        throw new InvalidOperationException($"Cannot convert JSON value to type {targetType.Name}. Supported types: bool, int, float, double, string, long, enum, UFile, UDirectory, Vector2, Vector3, Quaternion, Color3, Color4, and asset references (use session overload).");
+        // TypeConverter fallback — handles any type with a registered TypeConverter (e.g. custom Stride types)
+        var converter = TypeDescriptor.GetConverter(underlyingType);
+        if (converter.CanConvertFrom(typeof(string)) && json.ValueKind == JsonValueKind.String)
+        {
+            try
+            {
+                return converter.ConvertFromInvariantString(json.GetString()!);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"TypeConverter failed for {targetType.Name}: {ex.Message}", ex);
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"Cannot convert JSON value to type {targetType.Name}. " +
+            $"Supported types: all numeric primitives, bool, string, enum, Guid, TimeSpan, " +
+            $"UFile, UDirectory, Vector2/3/4, Int2/3/4, Quaternion, Color, Color3, Color4, " +
+            $"Rectangle, RectangleF, Size2, Size2F, Size3, AngleSingle, " +
+            $"asset references (use session overload), and any type with a TypeConverter.");
     }
+
+    // --- JSON property extraction helpers ---
+
+    private static float GetFloat(JsonElement json, string name1, string name2, float defaultValue = 0f)
+        => json.TryGetProperty(name1, out var v) || json.TryGetProperty(name2, out v) ? v.GetSingle() : defaultValue;
+
+    private static int GetInt(JsonElement json, string name1, string name2, int defaultValue = 0)
+        => json.TryGetProperty(name1, out var v) || json.TryGetProperty(name2, out v) ? v.GetInt32() : defaultValue;
 
     /// <summary>
     /// Parses an asset ID from JSON and creates a proper asset reference via ContentReferenceHelper.
