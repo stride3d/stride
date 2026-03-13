@@ -12,9 +12,9 @@ namespace Stride.Assets.Presentation.NodePresenters.Keys
     public static class EntityHierarchyData
     {
         public const string EntityComponentAvailableTypes = nameof(EntityComponentAvailableTypes);
-        public static readonly PropertyKey<IEnumerable<AbstractNodeType>> EntityComponentAvailableTypesKey = new PropertyKey<IEnumerable<AbstractNodeType>>(EntityComponentAvailableTypes, typeof(EntityHierarchyData), new PropertyCombinerMetadata(AbstractNodeEntryData.CombineProperty<AbstractNodeType>));
+        public static readonly PropertyKey<IEnumerable<AbstractNodeType>> EntityComponentAvailableTypesKey = new PropertyKey<IEnumerable<AbstractNodeType>>(EntityComponentAvailableTypes, typeof(EntityHierarchyData), new PropertyCombinerMetadata(AbstractNodeEntryData.CombineProperties<AbstractNodeType>));
 
         public const string EntityComponentAvailableTypeGroups = nameof(EntityComponentAvailableTypeGroups);
-        public static readonly PropertyKey<IEnumerable<AbstractNodeTypeGroup>> EntityComponentAvailableTypeGroupsKey = new PropertyKey<IEnumerable<AbstractNodeTypeGroup>>(EntityComponentAvailableTypeGroups, typeof(EntityHierarchyData), new PropertyCombinerMetadata(AbstractNodeEntryData.CombineProperty<AbstractNodeTypeGroup>));
+        public static readonly PropertyKey<IEnumerable<AbstractNodeTypeGroup>> EntityComponentAvailableTypeGroupsKey = new PropertyKey<IEnumerable<AbstractNodeTypeGroup>>(EntityComponentAvailableTypeGroups, typeof(EntityHierarchyData), new PropertyCombinerMetadata(AbstractNodeEntryData.CombineProperties<AbstractNodeTypeGroup>));
     }
 }

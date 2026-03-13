@@ -10,7 +10,22 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys
     public static class AbstractNodeEntryData
     {
         public const string AbstractNodeMatchingEntries = nameof(AbstractNodeMatchingEntries);
-        public static readonly PropertyKey<IEnumerable<AbstractNodeEntry>> Key = new PropertyKey<IEnumerable<AbstractNodeEntry>>(AbstractNodeMatchingEntries, typeof(AbstractNodeEntryData), new PropertyCombinerMetadata(CombineProperty<AbstractNodeEntry>));
+        public static readonly PropertyKey<IEnumerable<AbstractNodeEntry>> Key = new PropertyKey<IEnumerable<AbstractNodeEntry>>(AbstractNodeMatchingEntries, typeof(AbstractNodeEntryData), new PropertyCombinerMetadata(CombineProperties<AbstractNodeEntry>));
+        
+        [Obsolete("Use the generic version of CombineProperties instead, which allows to specify the type of the properties to combine. This method is kept for backward compatibility, but it is recommended to use the generic version instead.")]
+        public static object CombineProperty(IEnumerable<object> properties)
+        {
+            var result = new HashSet<AbstractNodeEntry>();
+            var hashSets = new List<HashSet<AbstractNodeEntry>>();
+            hashSets.AddRange(properties.Cast<IEnumerable<AbstractNodeEntry>>().Select(x => new HashSet<AbstractNodeEntry>(x)));
+            result = hashSets[0];
+            // We display only component types that are available for all entities
+            for (var i = 1; i < hashSets.Count; ++i)
+            {
+                result.IntersectWith(hashSets[i]);
+            }
+            return result.OrderBy(x => x.Order).ThenBy(x => x.DisplayValue);
+        }
         
         /// <summary>
         /// Combines the properties of type <typeparamref name="TAbstractNodeEntry"/> by intersecting them and ordering them by their order and display value.
@@ -21,7 +36,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys
         /// <param name="properties"></param>
         /// <typeparam name="TAbstractNodeEntry"></typeparam>
         /// <returns></returns>
-        public static IEnumerable<TAbstractNodeEntry> CombineProperty<TAbstractNodeEntry>(IEnumerable<object> properties)
+        public static IEnumerable<TAbstractNodeEntry> CombineProperties<TAbstractNodeEntry>(IEnumerable<object> properties)
             where TAbstractNodeEntry : AbstractNodeEntry
         {
             var result = new HashSet<TAbstractNodeEntry>();
