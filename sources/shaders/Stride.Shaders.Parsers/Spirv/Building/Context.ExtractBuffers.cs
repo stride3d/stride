@@ -94,6 +94,14 @@ public partial class SpirvContext
                     i.Data.IdResult = resultId;
                     typeDuplicateInserter.InsertInstruction(instructionIndex++, i.Data);
 
+                    // For OpTypeImage: also insert the UserTypeGOOGLE decoration so it stays
+                    // paired with the type during future deduplication in the mixer.
+                    if (sourceUserTypeGOOGLE != null)
+                    {
+                        var dec = new OpDecorateString(resultId, Specification.Decoration.UserTypeGOOGLE, sourceUserTypeGOOGLE);
+                        typeDuplicateInserter.InsertInstruction(instructionIndex++, new OpData(dec.InstructionMemory));
+                    }
+
                     lastResultId = resultId;
                 }
             }

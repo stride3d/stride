@@ -257,6 +257,14 @@ public class TypeDuplicateHelper
         }
     }
 
+    /// <summary>
+    /// Re-sorts namesByOp after external mutations (e.g. RemapIds) that change target IDs in the buffer.
+    /// </summary>
+    public void ResortDecorations()
+    {
+        namesByOp.Sort(comparerSort);
+    }
+
     private List<InstructionSortHelper> GetTargetList(OpData data)
     {
         switch (data.Op)

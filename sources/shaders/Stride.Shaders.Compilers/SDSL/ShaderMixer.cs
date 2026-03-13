@@ -426,8 +426,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     }
                     else
                     {
+                        // For OpTypeImage: find UserTypeGOOGLE decoration (already in context from earlier processing)
+                        // so CheckForDuplicates can distinguish textures with different return types.
+                        string? sourceUserTypeGOOGLE = null;
+                        if (i2.Op == Op.OpTypeImage && i2.IdResult.HasValue)
+                            sourceUserTypeGOOGLE = typeDuplicateInserter.FindUserTypeGOOGLE(i2.IdResult.Value);
+
                         // Check if type already exists in context (deduplicate them)
-                        if (typeDuplicateInserter.CheckForDuplicates(i2, out var existingInstruction))
+                        if (typeDuplicateInserter.CheckForDuplicates(i2, sourceUserTypeGOOGLE, out var existingInstruction))
                         {
                             if (i2.IdResult is int id)
                             {
@@ -518,6 +524,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     SetOpNop(i.Data.Memory.Span);
             }
         }
+
+        // Re-sort decoration index after remapping changed target IDs in the buffer
+        if (remapIds.Count > 0)
+            typeDuplicateInserter.ResortDecorations();
 
         // Build ShaderInfo
         var shaderInfo = new ShaderInfo(mixinNode.Shaders.Count, shaderClass.ClassName, shaderStart, buffer.Count);
