@@ -73,10 +73,9 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                     // name can be either a value (1,2,3,4,any) or a name (when multiple slots adjusted with same permutation, in which case value is [1,2,3,4]).
                     switch (name)
                     {
-                        case "any" or "1" or "2" or "3" or "4":
+                        case "1" or "2" or "3" or "4":
                             permutation = new SizePermutationGenerator(null, name switch
                             {
-                                "any" => [1, 2, 3, 4],
                                 "1" => [1],
                                 "2" => [2],
                                 "3" => [3],
@@ -86,10 +85,13 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                             break;
                         default:
                             // use name as key (and find existing one if already declared)
-                            permutation = sizePermutationGenerators.FirstOrDefault(x => x.Name == name);
+                            // For "any", we use a synthetic key per dimension so that all <> occurrences
+                            // share the same size permutation (e.g. f16tof32: float<> and uint<> must match)
+                            var key = name == "any" ? $"__any{templateIndex}" : name;
+                            permutation = sizePermutationGenerators.FirstOrDefault(x => x.Name == key);
                             if (permutation == null)
                             {
-                                permutation = new SizePermutationGenerator(name, [1, 2, 3, 4], new());
+                                permutation = new SizePermutationGenerator(key, [1, 2, 3, 4], new());
                                 sizePermutationGenerators.Add(permutation);
                             }
                             break;
@@ -338,9 +340,9 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
 
                             if (resolvedBaseType.Size1.Value > 1 && resolvedBaseType.Size2.Value > 1)
                             {
-                                if (resolvedBaseType.Size1.Generator.Name == null)
+                                if (resolvedBaseType.Size1.Generator.Name == null || resolvedBaseType.Size1.Generator.Name.StartsWith("__any"))
                                 {
-                                    // If matrix types are generated from a size generator (without a name so that there is no specific row/column pattern like in mul()),
+                                    // If matrix types are generated from a <> size generator (without a specific row/column pattern like in mul()),
                                     // we can automatically convert a call to multiple calls on each inner vector.
                                     // So we try to remember this info here
                                     if (autoMatrixLoop != null && autoMatrixLoop != resolvedBaseType.Size1.Generator)
