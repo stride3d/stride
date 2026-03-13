@@ -67,7 +67,7 @@ public record struct ParameterListParser : IParser<ShaderExpressionList>
                 break;
             // else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
         }
-        while (!scanner.IsEof && Parsers.FollowedBy(ref scanner, Tokens.Char(','), advance: true));
+        while (!scanner.IsEof && Parsers.FollowedBy(ref scanner, Tokens.Char(','), advance: true, withSpaces: true));
 
         parsed = new(scanner[position..scanner.Position])
         {
