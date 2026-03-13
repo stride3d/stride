@@ -20,6 +20,30 @@
     <SolidColorBrush x:Key="WhiteBrush" Color="White"/>
   </Styles.Resources>
 
+  <!-- Style for SearchComboBox -->
+  <Style Selector="sd|SearchComboBox">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="sd:SearchComboBox">
+        <Panel>
+          <TextBox x:Name="PART_EditableTextBox"
+                   VerticalAlignment="Center"
+                   IsEnabled="{TemplateBinding IsEnabled}"
+                   Watermark="{TemplateBinding Watermark}"/>
+          <Popup x:Name="PART_Popup"
+                 IsOpen="{TemplateBinding IsDropDownOpen}"
+                 Placement="Bottom"
+                 PlacementTarget="{Binding #PART_EditableTextBox}"
+                 Focusable="False">
+            <ListBox x:Name="PART_ListBox"
+                     MaxHeight="380"
+                     ItemsSource="{TemplateBinding ItemsSource}"
+                     ItemTemplate="{TemplateBinding ItemTemplate}"/>
+          </Popup>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
   <!-- Style for NumericTextBox -->
   <Style Selector="sd|NumericTextBox">
     <Setter Property="Template">
