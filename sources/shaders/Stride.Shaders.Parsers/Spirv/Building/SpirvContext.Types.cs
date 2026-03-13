@@ -115,7 +115,20 @@ public partial class SpirvContext
             _ => throw new NotImplementedException($"Can't add type {type}")
         };
         if (type is TextureType texType && instruction.HasValue)
-            Buffer.Add(new OpDecorateString(instruction.Value, Specification.Decoration.UserTypeGOOGLE, texType.ReturnType.ToId()));
+        {
+            var prefix = texType.Sampled == 2 ? "rw" : "";
+            var dim = texType.Dimension switch
+            {
+                Specification.Dim.Dim1D => "texture1d",
+                Specification.Dim.Dim2D => "texture2d",
+                Specification.Dim.Dim3D => "texture3d",
+                Specification.Dim.Cube => "texturecube",
+                _ => throw new NotSupportedException($"Unsupported texture dimension {texType.Dimension}")
+            };
+            var ms = texType.Multisampled ? "ms" : "";
+            var array = texType.Arrayed ? "array" : "";
+            Buffer.Add(new OpDecorateString(instruction.Value, Specification.Decoration.UserTypeGOOGLE, $"{prefix}{dim}{ms}{array}:<{texType.ReturnType.ToId()}>"));
+        }
 
         Types[type] = instruction ?? -1;
         ReverseTypes[instruction ?? -1] = type;

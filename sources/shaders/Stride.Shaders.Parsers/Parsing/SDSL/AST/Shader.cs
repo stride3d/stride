@@ -71,7 +71,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 context.Names.Add(target, name);
         }
 
-        static SymbolType? ParseTextureReturnType(string s) => s switch
+        static SymbolType? ParseReturnType(string s) => s switch
         {
             "float"  => ScalarType.Float,
             "float2" => new VectorType(ScalarType.Float, 2),
@@ -87,6 +87,15 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             "uint4"  => new VectorType(ScalarType.UInt, 4),
             _        => null,
         };
+
+        // Parse spec-compliant "texture2d:<float4>" format.
+        static SymbolType? ParseTextureReturnType(string s)
+        {
+            var colonIdx = s.IndexOf(':');
+            if (colonIdx >= 0 && s.Length > colonIdx + 2 && s[colonIdx + 1] == '<' && s[^1] == '>')
+                return ParseReturnType(s[(colonIdx + 2)..^1]);
+            return null;
+        }
 
         // Pre-pass: collect UserTypeGOOGLE decorations on texture types so we can
         // recover the exact ReturnType (e.g. float2) when reading OpTypeImage.
