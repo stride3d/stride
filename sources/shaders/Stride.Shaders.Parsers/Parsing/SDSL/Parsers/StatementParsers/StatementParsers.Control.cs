@@ -8,19 +8,23 @@ public record struct ControlsParser : IParser<ConditionalFlow>
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ConditionalFlow parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
+        => Control(ref scanner, result, out parsed, StatementParsers.Statement, orError);
+
+    public static bool Control<TScanner>(ref TScanner scanner, ParseResult result, out ConditionalFlow parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
+        where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributeList))
             Parsers.Spaces0(ref scanner, result, out _);
-        if (If(ref scanner, result, out var ifstatement, orError) && Parsers.Spaces0(ref scanner, result, out _))
+        if (If(ref scanner, result, out var ifstatement, statementParser, orError) && Parsers.Spaces0(ref scanner, result, out _))
         {
             parsed = new(ifstatement, scanner[..])
             {
                 Attributes = attributeList
             };
-            while (ElseIf(ref scanner, result, out var elseif, orError) && Parsers.Spaces0(ref scanner, result, out _))
+            while (ElseIf(ref scanner, result, out var elseif, statementParser, orError) && Parsers.Spaces0(ref scanner, result, out _))
                 parsed.ElseIfs.Add(elseif);
-            if (Else(ref scanner, result, out var elseStatement, orError))
+            if (Else(ref scanner, result, out var elseStatement, statementParser, orError))
                 parsed.Else = elseStatement;
             parsed.Info = scanner[position..scanner.Position];
             return true;
@@ -30,22 +34,11 @@ public record struct ControlsParser : IParser<ConditionalFlow>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool If<TScanner>(ref TScanner scanner, ParseResult result, out If parsed, ParseError? orError = null)
+    public static bool Control<TScanner>(ref TScanner scanner, ParseResult result, out ConditionalFlow parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
-        => new IfStatementParser().Match(ref scanner, result, out parsed, orError);
-    public static bool ElseIf<TScanner>(ref TScanner scanner, ParseResult result, out ElseIf parsed, ParseError? orError = null)
-        where TScanner : struct, IScanner
-        => new ElseIfStatementParser().Match(ref scanner, result, out parsed, orError);
-    public static bool Else<TScanner>(ref TScanner scanner, ParseResult result, out Else parsed, ParseError? orError = null)
-        where TScanner : struct, IScanner
-        => new ElseStatementParser().Match(ref scanner, result, out parsed, orError);
-}
+        => Control(ref scanner, result, out parsed, StatementParsers.Statement, orError);
 
-
-
-public record struct IfStatementParser : IParser<If>
-{
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out If parsed, in ParseError? orError = null)
+    public static bool If<TScanner>(ref TScanner scanner, ParseResult result, out If parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -59,7 +52,7 @@ public record struct IfStatementParser : IParser<If>
         {
             if (Tokens.Char(')', ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
             {
-                if (StatementParsers.Statement(ref scanner, result, out var statement, new(SDSLErrorMessages.SDSL0010, scanner[scanner.Position], scanner.Memory)))
+                if (statementParser(ref scanner, result, out var statement, new(SDSLErrorMessages.SDSL0010, scanner[scanner.Position], scanner.Memory)))
                 {
                     parsed = new(condition, statement, scanner[position..scanner.Position]);
                     return true;
@@ -69,11 +62,12 @@ public record struct IfStatementParser : IParser<If>
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
-}
 
-public record struct ElseIfStatementParser : IParser<ElseIf>
-{
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ElseIf parsed, in ParseError? orError = null)
+    public static bool If<TScanner>(ref TScanner scanner, ParseResult result, out If parsed, ParseError? orError = null)
+        where TScanner : struct, IScanner
+        => If(ref scanner, result, out parsed, StatementParsers.Statement, orError);
+
+    public static bool ElseIf<TScanner>(ref TScanner scanner, ParseResult result, out ElseIf parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -90,7 +84,7 @@ public record struct ElseIfStatementParser : IParser<ElseIf>
         {
             if (Tokens.Char(')', ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
             {
-                if (StatementParsers.Statement(ref scanner, result, out var statement, new(SDSLErrorMessages.SDSL0010, scanner[scanner.Position], scanner.Memory)))
+                if (statementParser(ref scanner, result, out var statement, new(SDSLErrorMessages.SDSL0010, scanner[scanner.Position], scanner.Memory)))
                 {
                     parsed = new(condition, statement, scanner[position..scanner.Position]);
                     return true;
@@ -100,18 +94,19 @@ public record struct ElseIfStatementParser : IParser<ElseIf>
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
-}
 
-public record struct ElseStatementParser : IParser<Else>
-{
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Else parsed, in ParseError? orError = null)
+    public static bool ElseIf<TScanner>(ref TScanner scanner, ParseResult result, out ElseIf parsed, ParseError? orError = null)
+        where TScanner : struct, IScanner
+        => ElseIf(ref scanner, result, out parsed, StatementParsers.Statement, orError);
+
+    public static bool Else<TScanner>(ref TScanner scanner, ParseResult result, out Else parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (
             Tokens.Literal("else", ref scanner, advance: true)
             && Parsers.Spaces0(ref scanner, result, out _)
-            && StatementParsers.Statement(ref scanner, result, out var statement, new(SDSLErrorMessages.SDSL0010, scanner[scanner.Position], scanner.Memory))
+            && statementParser(ref scanner, result, out var statement, new(SDSLErrorMessages.SDSL0010, scanner[scanner.Position], scanner.Memory))
         )
         {
             parsed = new(statement, scanner[position..scanner.Position]);
@@ -119,5 +114,8 @@ public record struct ElseStatementParser : IParser<Else>
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
-}
 
+    public static bool Else<TScanner>(ref TScanner scanner, ParseResult result, out Else parsed, ParseError? orError = null)
+        where TScanner : struct, IScanner
+        => Else(ref scanner, result, out parsed, StatementParsers.Statement, orError);
+}

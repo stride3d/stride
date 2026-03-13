@@ -43,12 +43,15 @@ public record struct StatementParsers : IParser<Statement>
             return true;
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
-    internal static bool Statement<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
+    internal static bool Statement<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new StatementParsers().Match(ref scanner, result, out parsed, orError);
     internal static bool Empty<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => new EmptyStatementParser().Match(ref scanner, result, out parsed, orError);
+    internal static bool Block<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
+        where TScanner : struct, IScanner
+        => BlockStatementParser.Block(ref scanner, result, out parsed, statementParser, orError);
     internal static bool Block<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => new BlockStatementParser().Match(ref scanner, result, out parsed, orError);
@@ -234,6 +237,10 @@ public record struct BlockStatementParser : IParser<Statement>
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
+        => Block(ref scanner, result, out parsed, StatementParsers.Statement, orError);
+
+    public static bool Block<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
+        where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (Tokens.Char('{', ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
@@ -242,7 +249,7 @@ public record struct BlockStatementParser : IParser<Statement>
 
             while (!scanner.IsEof && !Tokens.Char('}', ref scanner, advance: true))
             {
-                if (StatementParsers.Statement(ref scanner, result, out var statement))
+                if (statementParser(ref scanner, result, out var statement))
                 {
                     block.Statements.Add(statement);
                     Parsers.Spaces0(ref scanner, result, out _);

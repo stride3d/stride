@@ -28,12 +28,12 @@ public record struct EffectStatementParsers : IParser<Statement>
             parsed = p2;
             return true;
         }
-        else if (EffectControlsParser.Control(ref scanner, result, out var control))
+        else if (ControlsParser.Control(ref scanner, result, out var control, Statement))
         {
             parsed = control;
             return true;
         }
-        else if (Flow(ref scanner, result, out var flow))
+        else if (FlowParsers.Flow(ref scanner, result, out var flow, Statement))
         {
             parsed = flow;
             return true;
@@ -65,8 +65,6 @@ public record struct EffectStatementParsers : IParser<Statement>
         => new UsingParamsParser().Match(ref scanner, result, out parsed, orError);
     public static bool Mixin<TScanner>(ref TScanner scanner, ParseResult result, out Mixin parsed, in ParseError? orError = null) where TScanner : struct, IScanner
         => new MixinParser().Match(ref scanner, result, out parsed, orError);
-    public static bool Flow<TScanner>(ref TScanner scanner, ParseResult result, out Flow parsed, in ParseError? orError = null) where TScanner : struct, IScanner
-        => new FlowParsers().Match(ref scanner, result, out parsed, orError);
 
     public static bool EffectBlock<TScanner>(ref TScanner scanner, ParseResult result, out BlockStatement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
