@@ -262,7 +262,6 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
         {
             // Make a prepare method for just this object since it might need multiple instantiation
             updateCurrentMethod = new MethodDefinition(ComputeUpdateMethodName(typeDefinition), MethodAttributes.HideBySig | MethodAttributes.Public | MethodAttributes.Static, module.TypeSystem.Void);
-            var genericsMapping = new Dictionary<TypeReference, TypeReference>();
             foreach (var genericParameter in typeDefinition.GenericParameters)
             {
                 var genericParameterCopy = new GenericParameter(genericParameter.Name, updateCurrentMethod)
@@ -272,11 +271,9 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
                 foreach (var constraint in genericParameter.Constraints)
                     genericParameterCopy.Constraints.Add(new GenericParameterConstraint(module.ImportReference(constraint.ConstraintType)));
                 updateCurrentMethod.GenericParameters.Add(genericParameterCopy);
-
-                genericsMapping[genericParameter] = genericParameterCopy;
             }
 
-            replaceGenericsVisitor = new ResolveGenericsVisitor(genericsMapping);
+            replaceGenericsVisitor = ResolveGenericsVisitor.FromMapping(typeDefinition, updateCurrentMethod);
 
             updateMainMethod.DeclaringType.Methods.Add(updateCurrentMethod);
         }
@@ -290,102 +287,10 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
         foreach (var serializableItem in SerializationHelpers.GetSerializableItems(type, true, ComplexTypeSerializerFlags.SerializePublicFields | ComplexTypeSerializerFlags.SerializePublicProperties | ComplexTypeSerializerFlags.Updatable, context.IgnoredMembers))
         {
             if (serializableItem.MemberInfo is FieldReference fieldReference)
-            {
-                var field = fieldReference.Resolve();
-
-                // First time it is needed, let's create empty object in the class (var emptyObject = new object()) or empty local struct in the method
-                if (typeIsValueType)
-                {
-                    if (emptyStruct == null)
-                    {
-                        emptyStruct = new VariableDefinition(type);
-                        updateMainMethod.Body.Variables.Add(emptyStruct);
-                    }
-                }
-                else
-                {
-                    if (emptyObjectField == null)
-                    {
-                        emptyObjectField = new FieldDefinition("emptyObject", FieldAttributes.Static | FieldAttributes.Private, module.TypeSystem.Object);
-
-                        // Create static ctor that will initialize this object
-                        var staticConstructor = new MethodDefinition(".cctor",
-                                                MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Static | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
-                                                module.TypeSystem.Void);
-                        var staticCtorIL = new ILBuilder(staticConstructor.Body, module);
-                        staticCtorIL.Emit(OpCodes.Newobj, module.ImportReference(emptyObjectField.FieldType.Resolve().GetConstructors().Single(x => !x.IsStatic && !x.HasParameters)))
-                                    .Emit(OpCodes.Stsfld, emptyObjectField)
-                                    .Emit(OpCodes.Ret);
-
-                        updateMainMethod.DeclaringType.Fields.Add(emptyObjectField);
-                        updateMainMethod.DeclaringType.Methods.Add(staticConstructor);
-                    }
-                }
-
-                il.EmitTypeof(type, getTypeFromHandleMethod)
-                  .Emit(OpCodes.Ldstr, field.Name);
-
-                if (typeIsValueType)
-                    il.Emit(OpCodes.Ldloca, emptyStruct);
-                else
-                    il.Emit(OpCodes.Ldsfld, emptyObjectField);
-                il.Emit(OpCodes.Ldflda, il.Import(fieldReference))
-                  .Emit(OpCodes.Conv_I);
-                if (typeIsValueType)
-                    il.Emit(OpCodes.Ldloca, emptyStruct);
-                else
-                    il.Emit(OpCodes.Ldsfld, emptyObjectField);
-                il.Emit(OpCodes.Conv_I)
-                  .Emit(OpCodes.Sub)
-                  .Emit(OpCodes.Conv_I4);
-
-                var fieldType = il.Import(replaceGenericsVisitor != null ? replaceGenericsVisitor.VisitDynamic(field.FieldType) : field.FieldType);
-                il.Emit(OpCodes.Newobj, il.Import(updatableFieldGenericCtor).MakeGeneric(fieldType))
-                  .Emit(OpCodes.Call, updateEngineRegisterMemberMethod);
-            }
+                EmitFieldRegistration(il, fieldReference, type, typeIsValueType, replaceGenericsVisitor, module, updateMainMethod, ref emptyObjectField, ref emptyStruct);
 
             if (serializableItem.MemberInfo is PropertyReference propertyReference)
-            {
-                var property = propertyReference.Resolve();
-
-                var propertyGetMethod = il.Import(property.GetMethod).MakeGeneric(updateCurrentMethod.GenericParameters.ToArray());
-
-                il.EmitTypeof(type, getTypeFromHandleMethod)
-                  .Emit(OpCodes.Ldstr, property.Name);
-
-                // If it's a virtual or interface call, we need to create a dispatcher using ldvirtftn
-                if (property.GetMethod.IsVirtual)
-                    propertyGetMethod = CreateDispatcher(context.Assembly, propertyGetMethod);
-
-                il.Emit(OpCodes.Ldftn, propertyGetMethod)
-                  // Set whether getter method uses a VirtualDispatch (static call) or instance call
-                  .Emit(property.GetMethod.IsVirtual ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
-
-                // Only uses setter if it exists and it's public
-                if (property.SetMethod?.IsPublic == true)
-                {
-                    var propertySetMethod = il.Import(property.SetMethod).MakeGeneric(updateCurrentMethod.GenericParameters.ToArray());
-                    if (property.SetMethod.IsVirtual)
-                        propertySetMethod = CreateDispatcher(context.Assembly, propertySetMethod);
-                    il.Emit(OpCodes.Ldftn, propertySetMethod);
-                }
-                else
-                {
-                    // 0 (native int)
-                    il.Emit(OpCodes.Ldc_I4_0)
-                      .Emit(OpCodes.Conv_I);
-                }
-
-                // Set whether setter method uses a VirtualDispatch (static call) or instance call
-                il.Emit((property.SetMethod?.IsVirtual ?? false) ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
-
-                var propertyType = il.Import(replaceGenericsVisitor != null ? replaceGenericsVisitor.VisitDynamic(property.PropertyType) : property.PropertyType);
-
-                var updatablePropertyInflatedCtor = GetOrCreateUpdatablePropertyCtor(context.Assembly, propertyType);
-
-                il.Emit(OpCodes.Newobj, updatablePropertyInflatedCtor)
-                  .Emit(OpCodes.Call, updateEngineRegisterMemberMethod);
-            }
+                EmitPropertyRegistration(il, propertyReference, type, replaceGenericsVisitor, context.Assembly, updateCurrentMethod);
         }
 
         if (updateCurrentMethod != updateMainMethod)
@@ -400,6 +305,111 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
                 mainIL.Emit(OpCodes.Call, updateCurrentMethod.MakeGeneric(genericInstanceType.GenericArguments.Select(module.ImportReference).ToArray()));
             }
         }
+    }
+
+    private void EmitFieldRegistration(
+        ILBuilder il, FieldReference fieldReference, TypeReference type, bool typeIsValueType,
+        ResolveGenericsVisitor replaceGenericsVisitor, ModuleDefinition module,
+        MethodDefinition updateMainMethod, ref FieldDefinition emptyObjectField, ref VariableDefinition emptyStruct)
+    {
+        var field = fieldReference.Resolve();
+
+        // First time it is needed, let's create empty object in the class (var emptyObject = new object()) or empty local struct in the method
+        if (typeIsValueType)
+        {
+            if (emptyStruct == null)
+            {
+                emptyStruct = new VariableDefinition(type);
+                updateMainMethod.Body.Variables.Add(emptyStruct);
+            }
+        }
+        else
+        {
+            if (emptyObjectField == null)
+            {
+                emptyObjectField = new FieldDefinition("emptyObject", FieldAttributes.Static | FieldAttributes.Private, module.TypeSystem.Object);
+
+                // Create static ctor that will initialize this object
+                var staticConstructor = new MethodDefinition(".cctor",
+                                        MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Static | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
+                                        module.TypeSystem.Void);
+                var staticCtorIL = new ILBuilder(staticConstructor.Body, module);
+                staticCtorIL.Emit(OpCodes.Newobj, module.ImportReference(emptyObjectField.FieldType.Resolve().GetConstructors().Single(x => !x.IsStatic && !x.HasParameters)))
+                            .Emit(OpCodes.Stsfld, emptyObjectField)
+                            .Emit(OpCodes.Ret);
+
+                updateMainMethod.DeclaringType.Fields.Add(emptyObjectField);
+                updateMainMethod.DeclaringType.Methods.Add(staticConstructor);
+            }
+        }
+
+        il.EmitTypeof(type, getTypeFromHandleMethod)
+          .Emit(OpCodes.Ldstr, field.Name);
+
+        // Compute field offset: &empty.field - &empty
+        if (typeIsValueType)
+            il.Emit(OpCodes.Ldloca, emptyStruct);
+        else
+            il.Emit(OpCodes.Ldsfld, emptyObjectField);
+        il.Emit(OpCodes.Ldflda, il.Import(fieldReference))
+          .Emit(OpCodes.Conv_I);
+        if (typeIsValueType)
+            il.Emit(OpCodes.Ldloca, emptyStruct);
+        else
+            il.Emit(OpCodes.Ldsfld, emptyObjectField);
+        il.Emit(OpCodes.Conv_I)
+          .Emit(OpCodes.Sub)
+          .Emit(OpCodes.Conv_I4);
+
+        var fieldType = il.Import(replaceGenericsVisitor != null ? replaceGenericsVisitor.VisitDynamic(field.FieldType) : field.FieldType);
+        il.Emit(OpCodes.Newobj, il.Import(updatableFieldGenericCtor).MakeGeneric(fieldType))
+          .Emit(OpCodes.Call, updateEngineRegisterMemberMethod);
+    }
+
+    private void EmitPropertyRegistration(
+        ILBuilder il, PropertyReference propertyReference, TypeReference type,
+        ResolveGenericsVisitor replaceGenericsVisitor, AssemblyDefinition assembly,
+        MethodDefinition updateCurrentMethod)
+    {
+        var property = propertyReference.Resolve();
+
+        var propertyGetMethod = il.Import(property.GetMethod).MakeGeneric(updateCurrentMethod.GenericParameters.ToArray());
+
+        il.EmitTypeof(type, getTypeFromHandleMethod)
+          .Emit(OpCodes.Ldstr, property.Name);
+
+        // If it's a virtual or interface call, we need to create a dispatcher using ldvirtftn
+        if (property.GetMethod.IsVirtual)
+            propertyGetMethod = CreateDispatcher(assembly, propertyGetMethod);
+
+        il.Emit(OpCodes.Ldftn, propertyGetMethod)
+          // Set whether getter method uses a VirtualDispatch (static call) or instance call
+          .Emit(property.GetMethod.IsVirtual ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+
+        // Only uses setter if it exists and it's public
+        if (property.SetMethod?.IsPublic == true)
+        {
+            var propertySetMethod = il.Import(property.SetMethod).MakeGeneric(updateCurrentMethod.GenericParameters.ToArray());
+            if (property.SetMethod.IsVirtual)
+                propertySetMethod = CreateDispatcher(assembly, propertySetMethod);
+            il.Emit(OpCodes.Ldftn, propertySetMethod);
+        }
+        else
+        {
+            // 0 (native int)
+            il.Emit(OpCodes.Ldc_I4_0)
+              .Emit(OpCodes.Conv_I);
+        }
+
+        // Set whether setter method uses a VirtualDispatch (static call) or instance call
+        il.Emit((property.SetMethod?.IsVirtual ?? false) ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+
+        var propertyType = il.Import(replaceGenericsVisitor != null ? replaceGenericsVisitor.VisitDynamic(property.PropertyType) : property.PropertyType);
+
+        var updatablePropertyInflatedCtor = GetOrCreateUpdatablePropertyCtor(assembly, propertyType);
+
+        il.Emit(OpCodes.Newobj, updatablePropertyInflatedCtor)
+          .Emit(OpCodes.Call, updateEngineRegisterMemberMethod);
     }
 
     private static string ComputeUpdateMethodName(TypeDefinition typeDefinition)

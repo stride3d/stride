@@ -107,7 +107,6 @@ internal partial class UpdateEngineProcessor
             // UpdatableProperty.GetStructAndUnbox
             var getStructAndUnbox = RewriteBody(declaringType.Methods.First(x => x.Name == "GetStructAndUnbox"), assembly);
             getStructAndUnbox.Emit(OpCodes.Ldarg, getStructAndUnbox.Body.Method.Parameters[1])
-                             //getStructAndUnbox.Emit(OpCodes.Call, assembly.MainModule.ImportReference(unbox).MakeGenericMethod(declaringType.GenericParameters[0]));
                              .Emit(OpCodes.Unbox, declaringType.GenericParameters[0])
                              .Emit(OpCodes.Dup)
                              .Emit(OpCodes.Ldarg, getStructAndUnbox.Body.Method.Parameters[0]);
