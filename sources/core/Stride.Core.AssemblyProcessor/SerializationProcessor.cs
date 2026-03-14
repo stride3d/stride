@@ -144,7 +144,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
                 hash.Write("parent");
             }
 
-            var serializableItems = SerializerRegistry.GetSerializableItems(type, true).ToArray();
+            var serializableItems = descriptor.SerializableItems;
             var serializableItemInfos = new Dictionary<TypeReference, (FieldDefinition SerializerField, TypeReference Type)>(TypeReferenceEqualityComparer.Default);
             var localsByTypes = new Dictionary<TypeReference, VariableDefinition>(TypeReferenceEqualityComparer.Default);
 
@@ -210,7 +210,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
 
             // Add Serialize method
             GenerateSerializeMethod(type, serializerType, genericParameters, typeWithGenerics,
-                descriptor.SerializableTypeInfo, serializableItems, serializableItemInfos, localsByTypes,
+                serializableItems, serializableItemInfos, localsByTypes,
                 dataSerializerSerializeMethod, dataSerializerSerializeMethodRef,
                 parentType, parentSerializerField, module);
         }
@@ -224,7 +224,6 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         TypeDefinition serializerType,
         TypeReference[] genericParameters,
         TypeReference typeWithGenerics,
-        CecilSerializerContext.SerializableTypeInfo typeInfo,
         SerializerRegistry.SerializableItem[] serializableItems,
         Dictionary<TypeReference, (FieldDefinition SerializerField, TypeReference Type)> serializableItemInfos,
         Dictionary<TypeReference, VariableDefinition> localsByTypes,
@@ -245,7 +244,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
 
         var il = new ILBuilder(serialize.Body, module);
 
-        if (typeInfo.SerializedParentType != null)
+        if (parentType != null)
         {
             il.Emit(OpCodes.Ldarg_0)
               .Emit(OpCodes.Ldfld, parentSerializerField.MakeGeneric(genericParameters))

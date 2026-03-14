@@ -39,7 +39,13 @@ internal class SerializerDescriptor
 
     /// <summary>
     /// Base type whose serializer should be called first (for inheritance chains).
-    /// Set by <see cref="CecilSerializerContext.CollectSerializerDependencies"/>.
+    /// Set during <see cref="CecilSerializerContext.CollectSerializerDependencies"/>.
     /// </summary>
-    public TypeReference? SerializedParentType => SerializableTypeInfo.SerializedParentType;
+    public TypeReference? SerializedParentType { get; set; }
+
+    /// <summary>
+    /// The serializable fields/properties of <see cref="DataType"/>.
+    /// Computed once during collection and reused during code generation.
+    /// </summary>
+    public SerializerRegistry.SerializableItem[] SerializableItems { get; set; }
 }

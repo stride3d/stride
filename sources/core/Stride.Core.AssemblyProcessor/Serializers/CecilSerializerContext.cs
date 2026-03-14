@@ -170,7 +170,7 @@ internal class CecilSerializerContext
         return serializerType;
     }
 
-    private void CollectSerializerDependencies(TypeReference type, SerializableTypeInfo serializableTypeInfo, string profile = "Default")
+    private void CollectSerializerDependencies(TypeReference type, SerializableTypeInfo serializableTypeInfo, string profile = "Default", SerializerDescriptor? descriptor = null)
     {
         // Find the nearest serializable base type so the generated serializer can chain to it
         for (var baseType = type; (baseType = ResolveGenericsVisitor.Process(baseType, baseType.Resolve().BaseType)) != null;)
@@ -179,15 +179,21 @@ internal class CecilSerializerContext
                 continue; // ResolveGenericsVisitor failed, the type it returned is not closed, we can't serialize it
 
             var parentSerializableTypeInfo = ResolveSerializer(baseType, false, profile);
-            if (parentSerializableTypeInfo?.SerializerType != null)
+            if (parentSerializableTypeInfo?.SerializerType is not null)
             {
-                serializableTypeInfo.SerializedParentType = baseType;
+                if (descriptor is not null)
+                    descriptor.SerializedParentType = baseType;
                 break;
             }
         }
 
+        // Collect serializable items and cache them in the descriptor
+        var serializableItems = SerializerRegistry.GetSerializableItems(type, true).ToArray();
+        if (descriptor is not null)
+            descriptor.SerializableItems = serializableItems;
+
         // Process members
-        foreach (var serializableItem in SerializerRegistry.GetSerializableItems(type, true))
+        foreach (var serializableItem in serializableItems)
         {
             // Check that all closed types have a proper serializer
             if (serializableItem.Attributes.Any(x => x.AttributeType.FullName == "Stride.Core.DataMemberCustomSerializerAttribute")
@@ -260,9 +266,9 @@ internal class CecilSerializerContext
                 .Select(x => (bool)x.Argument.Value)
                 .FirstOrDefault();
 
-            var info = CollectSerializer(type);
+            var (info, descriptor) = CollectSerializer(type);
             info.Inherited = inherited;
-            CollectSerializerDependencies(type, info);
+            CollectSerializerDependencies(type, info, descriptor: descriptor);
             return info;
         }
 
@@ -312,9 +318,9 @@ internal class CecilSerializerContext
         // Parent has a generated serializer — collect one for this type too
         if (parentInfo.IsGeneratedSerializer)
         {
-            var info = CollectSerializer(type);
+            var (info, descriptor) = CollectSerializer(type);
             info.Inherited = true;
-            CollectSerializerDependencies(type, info);
+            CollectSerializerDependencies(type, info, descriptor: descriptor);
             return info;
         }
 
@@ -343,7 +349,7 @@ internal class CecilSerializerContext
         throw new InvalidOperationException("Not sure how to process this inherited serializer");
     }
 
-    private SerializableTypeInfo CollectSerializer(TypeReference type)
+    private (SerializableTypeInfo Info, SerializerDescriptor? Descriptor) CollectSerializer(TypeReference type)
     {
         var isLocal = type.Resolve().Module.Assembly == Assembly;
 
@@ -380,24 +386,26 @@ internal class CecilSerializerContext
         };
         AddSerializableType(type, serializableTypeInfo);
 
+        SerializerDescriptor? descriptor = null;
         if (isLocal && type is TypeDefinition definition)
         {
             var resolvedType = type.Resolve();
             var useClassDataSerializer = resolvedType.IsClass && !resolvedType.IsValueType && !resolvedType.IsAbstract && !resolvedType.IsInterface && resolvedType.GetEmptyConstructor() != null;
 
-            PendingSerializers.Add(new SerializerDescriptor
+            descriptor = new SerializerDescriptor
             {
                 DataType = definition,
                 SerializerClassName = className,
                 IsPublic = type.HasGenericParameters,
                 UseClassDataSerializer = useClassDataSerializer,
                 SerializableTypeInfo = serializableTypeInfo,
-            });
+            };
+            PendingSerializers.Add(descriptor);
         }
 
         serializableTypeInfo.IsGeneratedSerializer = true;
 
-        return serializableTypeInfo;
+        return (serializableTypeInfo, descriptor);
     }
 
     public void AddSerializableType(TypeReference dataType, SerializableTypeInfo serializableTypeInfo, string profile = "Default")
@@ -506,11 +514,6 @@ internal class CecilSerializerContext
         /// True if the serializer is auto-generated (for [DataContract] types).
         /// </summary>
         public bool IsGeneratedSerializer;
-
-        /// <summary>
-        /// Not null if the serializer should chain to its base type's serializer.
-        /// </summary>
-        public TypeReference? SerializedParentType;
 
         public SerializableTypeInfo(TypeReference serializerType, bool local, DataSerializerGenericMode mode = DataSerializerGenericMode.None)
         {
