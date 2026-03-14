@@ -97,7 +97,8 @@ public sealed class GameStudioFixture : IAsyncLifetime
             CreateNoWindow = false,
         };
 
-        // Pass the MCP port to the child process
+        // Enable MCP and pass the port to the child process
+        startInfo.Environment["STRIDE_MCP_ENABLED"] = "true";
         startInfo.Environment["STRIDE_MCP_PORT"] = Port.ToString();
 
         _process = Process.Start(startInfo);

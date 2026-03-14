@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -9,6 +11,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
+using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Services;
@@ -22,13 +25,15 @@ namespace Stride.GameStudio.Mcp;
 public sealed class McpServerService : IDisposable
 {
     private static readonly Logger Log = GlobalLogger.GetLogger("McpServer");
+    private const int DefaultPort = 5271;
+    private const int MaxPortRetries = 10;
 
     private readonly SessionViewModel _session;
     private readonly DispatcherBridge _dispatcherBridge;
     private WebApplication? _webApp;
     private CancellationTokenSource? _cts;
 
-    public int Port { get; }
+    public int Port { get; private set; }
     public bool IsRunning => _webApp != null;
 
     public McpServerService(SessionViewModel session)
@@ -37,29 +42,98 @@ public sealed class McpServerService : IDisposable
 
         var dispatcher = session.ServiceProvider.Get<IDispatcherService>();
         _dispatcherBridge = new DispatcherBridge(dispatcher);
+    }
 
-        // Read port from environment variable, default to 5271
+    /// <summary>
+    /// Determines whether the MCP server should start based on settings and environment variables.
+    /// Environment variable STRIDE_MCP_ENABLED overrides the setting (for CI/tests).
+    /// </summary>
+    private static bool IsEnabled()
+    {
+        // Env var takes highest priority (for CI, tests, and command-line override)
+        var envEnabled = Environment.GetEnvironmentVariable("STRIDE_MCP_ENABLED");
+        if (envEnabled != null)
+            return !string.Equals(envEnabled, "false", StringComparison.OrdinalIgnoreCase);
+
+        // Fall back to editor setting (default: false)
+        return EditorSettings.McpServerEnabled.GetValue();
+    }
+
+    /// <summary>
+    /// Resolves the port to use. Priority: env var > setting > auto-select.
+    /// A setting/env value of 0 means auto-select starting from DefaultPort.
+    /// </summary>
+    private static int ResolveConfiguredPort()
+    {
+        // Env var takes highest priority
         var portStr = Environment.GetEnvironmentVariable("STRIDE_MCP_PORT");
-        Port = int.TryParse(portStr, out var port) ? port : 5271;
+        if (int.TryParse(portStr, out var envPort))
+            return envPort;
+
+        // Fall back to editor setting (default: 0 = auto)
+        var settingsPort = EditorSettings.McpServerPort.GetValue();
+        return settingsPort;
     }
 
     public async Task StartAsync()
     {
-        var enabled = Environment.GetEnvironmentVariable("STRIDE_MCP_ENABLED");
-        if (string.Equals(enabled, "false", StringComparison.OrdinalIgnoreCase))
+        if (!IsEnabled())
         {
-            Log.Info("MCP server disabled via STRIDE_MCP_ENABLED=false");
+            Log.Info("MCP server is disabled. Enable it in Tools settings or set STRIDE_MCP_ENABLED=true.");
             return;
         }
 
         _cts = new CancellationTokenSource();
 
+        var configuredPort = ResolveConfiguredPort();
+        if (configuredPort > 0)
+        {
+            // Fixed port requested — try it once
+            await TryStartOnPort(configuredPort);
+        }
+        else
+        {
+            // Auto-select: try DefaultPort, then increment
+            var started = false;
+            for (int i = 0; i < MaxPortRetries; i++)
+            {
+                var candidatePort = DefaultPort + i;
+                if (!IsPortAvailable(candidatePort))
+                {
+                    Log.Info($"Port {candidatePort} is in use, trying next...");
+                    continue;
+                }
+
+                try
+                {
+                    await TryStartOnPort(candidatePort);
+                    started = true;
+                    break;
+                }
+                catch (IOException)
+                {
+                    // Port may have been taken between check and bind — try next
+                    Log.Info($"Port {candidatePort} could not be bound, trying next...");
+                }
+            }
+
+            if (!started)
+            {
+                Log.Error($"Failed to start MCP server: could not find an available port in range {DefaultPort}-{DefaultPort + MaxPortRetries - 1}");
+                _cts?.Dispose();
+                _cts = null;
+            }
+        }
+    }
+
+    private async Task TryStartOnPort(int port)
+    {
         try
         {
             var builder = WebApplication.CreateSlimBuilder();
             builder.WebHost.ConfigureKestrel(options =>
             {
-                options.ListenLocalhost(Port);
+                options.ListenLocalhost(port);
             });
 
             // Suppress ASP.NET Core console logging to avoid polluting GameStudio output
@@ -85,17 +159,31 @@ public sealed class McpServerService : IDisposable
             _webApp = builder.Build();
             _webApp.MapMcp();
 
-            Log.Info($"MCP server starting on http://localhost:{Port}/sse");
-            await _webApp.StartAsync(_cts.Token);
-            Log.Info($"MCP server started successfully on http://localhost:{Port}/sse");
+            Log.Info($"MCP server starting on http://localhost:{port}/sse");
+            await _webApp.StartAsync(_cts!.Token);
+            Port = port;
+            Log.Info($"MCP server started successfully on http://localhost:{port}/sse");
         }
         catch (Exception ex)
         {
-            Log.Error("Failed to start MCP server", ex);
+            Log.Error($"Failed to start MCP server on port {port}", ex);
             _webApp = null;
-            _cts?.Dispose();
-            _cts = null;
             throw;
+        }
+    }
+
+    private static bool IsPortAvailable(int port)
+    {
+        try
+        {
+            using var listener = new TcpListener(IPAddress.Loopback, port);
+            listener.Start();
+            listener.Stop();
+            return true;
+        }
+        catch (SocketException)
+        {
+            return false;
         }
     }
 

@@ -87,6 +87,16 @@ namespace Stride.Core.Assets.Editor.Settings
             {
                 DisplayName = $"{Tools}/{Tr._p("Settings", "Use effect compiler server for mobile platforms")}",
             };
+            McpServerEnabled = new SettingsKey<bool>("Tools/McpServerEnabled", SettingsContainer, false)
+            {
+                DisplayName = $"{Tools}/{Tr._p("Settings", "Enable MCP server (experimental)")}",
+                Description = Tr._p("Settings", "Hosts an MCP (Model Context Protocol) server that allows AI agents to interact with the editor. Requires restart."),
+            };
+            McpServerPort = new SettingsKey<int>("Tools/McpServerPort", SettingsContainer, 0)
+            {
+                DisplayName = $"{Tools}/{Tr._p("Settings", "MCP server port")}",
+                Description = Tr._p("Settings", "TCP port for the MCP server. Set to 0 for automatic port selection (recommended — supports multiple instances). Requires restart."),
+            };
             ReloadLastSession = new SettingsKey<bool>("Interface/ReloadLastSession", SettingsContainer, false)
             {
                 DisplayName = $"{Interface}/{Tr._p("Settings", "Automatically reload last session at startup")}",
@@ -115,6 +125,10 @@ namespace Stride.Core.Assets.Editor.Settings
 
         public static SettingsKey<bool> UseEffectCompilerServer { get; }
 
+        public static SettingsKey<bool> McpServerEnabled { get; }
+
+        public static SettingsKey<int> McpServerPort { get; }
+
         public static SettingsKey<bool> ReloadLastSession { get; }
 
         public static SettingsKey<bool> EnableMetrics { get; }
@@ -128,6 +142,8 @@ namespace Stride.Core.Assets.Editor.Settings
 
             // Settings that requires a restart must register here:
             UseEffectCompilerServer.ChangesValidated += (s, e) => NeedRestart = true;
+            McpServerEnabled.ChangesValidated += (s, e) => NeedRestart = true;
+            McpServerPort.ChangesValidated += (s, e) => NeedRestart = true;
             Language.ChangesValidated += (s, e) => NeedRestart = true;
             EnableMetrics.ChangesValidated += (s, e) => NeedRestart = true;
 
