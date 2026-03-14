@@ -34,14 +34,14 @@ public sealed class BuildProjectTool
         }
     }
 
-    [McpServerTool(Name = "build_project"), Description("Triggers a build of the current game project. The build runs asynchronously; use get_build_status to check progress. Only one build can run at a time.")]
+    [McpServerTool(Name = "build_project"), Description("Triggers a build of the current game project. Automatically saves all pending changes before building (matching the editor's Build button behavior). The build runs asynchronously; use get_build_status to check progress. After a successful build, call reload_assemblies to make new script types available. Only one build can run at a time.")]
     public static async Task<string> BuildProject(
         SessionViewModel session,
         DispatcherBridge dispatcher,
         [Description("Build configuration: 'Debug' or 'Release'")] string? configuration = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await dispatcher.InvokeOnUIThread(() =>
+        var result = await dispatcher.InvokeTaskOnUIThread(async () =>
         {
             lock (_buildLock)
             {
@@ -50,7 +50,17 @@ public sealed class BuildProjectTool
                 {
                     return new { error = "A build is already in progress. Use get_build_status to check or wait for it to complete.", build = (object?)null };
                 }
+            }
 
+            // Auto-save before building (matching the editor's Build button behavior via PrepareBuild)
+            var saved = await session.SaveSession();
+            if (!saved)
+            {
+                return new { error = "Save failed. The project must be saved before building — check the editor log for details.", build = (object?)null };
+            }
+
+            lock (_buildLock)
+            {
                 var currentProject = session.CurrentProject;
                 if (currentProject == null)
                 {

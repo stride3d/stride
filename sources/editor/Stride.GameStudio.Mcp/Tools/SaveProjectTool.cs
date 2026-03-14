@@ -13,7 +13,7 @@ namespace Stride.GameStudio.Mcp.Tools;
 [McpServerToolType]
 public sealed class SaveProjectTool
 {
-    [McpServerTool(Name = "save_project"), Description("Saves the current project/session to disk. Call this after making any modifications (scenes, entities, components, assets, properties, etc.) to persist changes. Always save before building the project. Returns whether the save was successful. WARNING: This writes the editor's in-memory state to disk and will overwrite any external changes made to scene/asset files outside of GameStudio. If you have modified files externally, use restart_game_studio first to load those changes into the editor before saving.")]
+    [McpServerTool(Name = "save_project"), Description("Saves all pending changes (scenes, entities, components, assets, etc.) to disk. Use this to persist your work — changes made through MCP tools are held in memory until saved. Note: build_project and restart_game_studio auto-save, so you don't need to call this before those. Use save_project when you want to checkpoint your work, or before external tools need to read the on-disk files. WARNING: This writes the editor's in-memory state to disk and will overwrite any external changes made to asset files outside of Game Studio.")]
     public static async Task<string> SaveProject(
         SessionViewModel session,
         DispatcherBridge dispatcher,
