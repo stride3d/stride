@@ -23,6 +23,34 @@ internal class CecilSerializerContext
         this.log = log;
 
         StrideCoreModule = assembly.GetStrideCoreModule();
+
+        // Discover referenced assemblies' serializer factories
+        foreach (var referencedAssemblyName in assembly.MainModule.AssemblyReferences)
+        {
+            try
+            {
+                var referencedAssembly = assembly.MainModule.AssemblyResolver.Resolve(referencedAssemblyName);
+                var factoryType = GetSerializerFactoryType(referencedAssembly);
+                if (factoryType != null)
+                    ReferencedAssemblySerializerFactoryTypes.Add(factoryType);
+            }
+            catch (AssemblyResolutionException)
+            {
+            }
+        }
+
+        // Run the processor pipeline
+        ICecilSerializerProcessor[] processors =
+        [
+            new ReferencedAssemblySerializerProcessor(),
+            new CecilDataContractSerializerProcessor(),
+            new PropertyKeySerializerProcessor(),
+            new UpdateEngineProcessor(),
+            new ProfileSerializerProcessor(),
+            new DataContractAliasProcessor(),
+        ];
+        foreach (var processor in processors)
+            processor.ProcessSerializers(this);
     }
 
     public PlatformType Platform { get; }
@@ -33,6 +61,8 @@ internal class CecilSerializerContext
     public AssemblyDefinition Assembly { get; }
 
     public ModuleDefinition StrideCoreModule { get; }
+
+    public List<TypeReference> ReferencedAssemblySerializerFactoryTypes { get; } = [];
 
     public List<Tuple<string, TypeDefinition, bool>> DataContractAliases { get; } = [];
 
@@ -527,6 +557,22 @@ internal class CecilSerializerContext
             Mode = mode;
             Local = local;
         }
+    }
+
+    private static TypeDefinition? GetSerializerFactoryType(AssemblyDefinition referencedAssembly)
+    {
+        var assemblySerializerFactoryAttribute =
+            referencedAssembly.CustomAttributes.FirstOrDefault(
+                x => x.AttributeType.FullName == "Stride.Core.Serialization.AssemblySerializerFactoryAttribute");
+
+        if (assemblySerializerFactoryAttribute == null)
+            return null;
+
+        var typeReference = (TypeReference)assemblySerializerFactoryAttribute.Fields.Single(x => x.Name == "Type").Argument.Value;
+        if (typeReference == null)
+            return null;
+
+        return typeReference.Resolve();
     }
 
     public class ProfileInfo

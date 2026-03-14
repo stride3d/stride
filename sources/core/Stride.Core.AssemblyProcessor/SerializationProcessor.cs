@@ -38,13 +38,10 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
 {
     public bool Process(AssemblyProcessorContext context)
     {
-        var registry = new SerializerRegistry(context.Platform, context.Assembly, context.Log);
-
-        // Register default serialization profile (to help AOT generic instantiation of serializers)
-        RegisterDefaultSerializationProfile(context.AssemblyResolver, context.Assembly, registry, context.Log);
+        var serializerContext = new CecilSerializerContext(context.Platform, context.Assembly, context.Log);
 
         // Generate serializer code using Cecil and ILBuilder
-        GenerateSerializerCode(registry, out var serializationHash);
+        GenerateSerializerCode(serializerContext, out var serializationHash);
 
         context.SerializationHash = serializationHash;
 
@@ -54,22 +51,22 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     /// <summary>
     /// Generates serializer code using Cecil and <see cref="ILBuilder"/> for readable IL emission.
     /// </summary>
-    private static void GenerateSerializerCode(SerializerRegistry registry, out ObjectId serializationHash)
+    private static void GenerateSerializerCode(CecilSerializerContext serializerContext, out ObjectId serializationHash)
     {
         var hash = new ObjectIdBuilder();
 
         // First, hash global binary format version, in case it gets bumped
         hash.Write(DataSerializer.BinaryFormatVersion);
 
-        var assembly = registry.Assembly;
+        var assembly = serializerContext.Assembly;
         var module = assembly.MainModule;
         var strideCoreModule = assembly.GetStrideCoreModule();
 
         // Generate serializer classes for each pending type
-        GenerateSerializerTypes(registry, module, strideCoreModule, hash);
+        GenerateSerializerTypes(serializerContext, module, strideCoreModule, hash);
 
         // Generate the factory type with attributes and module initializer
-        GenerateSerializerFactory(registry, assembly, module, strideCoreModule);
+        GenerateSerializerFactory(serializerContext, assembly, module, strideCoreModule);
 
         serializationHash = hash.ComputeHash();
     }
@@ -127,7 +124,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     /// Generates serializer classes (constructor, Initialize, Serialize methods) for each pending type.
     /// </summary>
     private static void GenerateSerializerTypes(
-        SerializerRegistry registry,
+        CecilSerializerContext serializerContext,
         ModuleDefinition module,
         ModuleDefinition strideCoreModule,
         ObjectIdBuilder hash)
@@ -141,7 +138,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         var dataSerializerSerializeMethod = dataSerializerTypeRef.Resolve().Methods.Single(x => x.Name == "Serialize" && (x.Attributes & MethodAttributes.Abstract) != 0);
         var dataSerializerSerializeMethodRef = module.ImportReference(dataSerializerSerializeMethod);
 
-        foreach (var descriptor in registry.Context.PendingSerializers)
+        foreach (var descriptor in serializerContext.PendingSerializers)
         {
             var type = descriptor.DataType;
             var serializerType = CreateSerializerTypeDefinition(descriptor, module, strideCoreModule);
@@ -391,7 +388,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     /// and the module initializer that registers all serializers at runtime.
     /// </summary>
     private static void GenerateSerializerFactory(
-        SerializerRegistry registry,
+        CecilSerializerContext serializerContext,
         AssemblyDefinition assembly,
         ModuleDefinition module,
         ModuleDefinition strideCoreModule)
@@ -407,10 +404,10 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         module.Types.Add(serializerFactoryType);
 
         // Add [DataSerializerGlobal] attributes for each serializable type
-        EmitDataSerializerGlobalAttributes(registry, module, strideCoreModule, typeTypeRef, serializerFactoryType);
+        EmitDataSerializerGlobalAttributes(serializerContext, module, strideCoreModule, typeTypeRef, serializerFactoryType);
 
         // Generate the Initialize method (module initializer body)
-        GenerateInitializeMethod(registry, assembly, module, strideCoreModule, serializerFactoryType);
+        GenerateInitializeMethod(serializerContext, assembly, module, strideCoreModule, serializerFactoryType);
 
         // Add [AssemblySerializerFactory] attribute to the assembly
         var assemblySerializerFactoryAttribute = strideCoreModule.GetType("Stride.Core.Serialization.AssemblySerializerFactoryAttribute");
@@ -427,7 +424,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     /// Adds [DataSerializerGlobal] attributes to the factory type for each serializable type.
     /// </summary>
     private static void EmitDataSerializerGlobalAttributes(
-        SerializerRegistry registry,
+        CecilSerializerContext serializerContext,
         ModuleDefinition module,
         ModuleDefinition strideCoreModule,
         TypeReference typeTypeRef,
@@ -437,7 +434,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         var dataSerializerGlobalAttribute = strideCoreModule.GetType("Stride.Core.Serialization.DataSerializerGlobalAttribute");
         var dataSerializerGlobalCtorRef = module.ImportReference(dataSerializerGlobalAttribute.GetConstructors().Single(x => !x.IsStatic && x.Parameters.Count == 5));
 
-        foreach (var profile in registry.Context.SerializableTypesProfiles)
+        foreach (var profile in serializerContext.SerializableTypesProfiles)
         {
             // Emit attributes for both concrete and generic serializable types
             var allTypes = profile.Value.SerializableTypes.Where(x => x.Value.Local)
@@ -469,7 +466,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     /// registering all serializers with the runtime <see cref="DataSerializerFactory"/>.
     /// </summary>
     private static void GenerateInitializeMethod(
-        SerializerRegistry registry,
+        CecilSerializerContext serializerContext,
         AssemblyDefinition assembly,
         ModuleDefinition module,
         ModuleDefinition strideCoreModule,
@@ -502,9 +499,9 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         il.EmitTypeofAssembly(serializerFactoryType, getTypeFromHandleRef, getTypeInfoRef, getAssemblyRef)
           .Emit(OpCodes.Newobj, il.Import(assemblySerializersType.Methods.Single(x => x.IsConstructor && x.Parameters.Count == 1)));
 
-        EmitDataContractAliases(il, registry, module, assemblySerializersType, getTypeFromHandleRef);
-        EmitModuleRegistrations(il, registry, module, assemblySerializersType, getTypeFromHandleRef, getTypeInfoRef, getModuleRef);
-        EmitProfileEntries(il, registry, module, strideCoreModule, mscorlibAssembly, assemblySerializersType, getTypeFromHandleRef, getTypeHandleMethodRef);
+        EmitDataContractAliases(il, serializerContext, module, assemblySerializersType, getTypeFromHandleRef);
+        EmitModuleRegistrations(il, serializerContext, module, assemblySerializersType, getTypeFromHandleRef, getTypeInfoRef, getModuleRef);
+        EmitProfileEntries(il, serializerContext, module, strideCoreModule, mscorlibAssembly, assemblySerializersType, getTypeFromHandleRef, getTypeHandleMethodRef);
 
         // DataSerializerFactory.RegisterSerializationAssembly(assemblySerializers);
         var dataSerializerFactoryRegisterRef = module.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.DataSerializerFactory").Methods.Single(x => x.Name == "RegisterSerializationAssembly" && x.Parameters[0].ParameterType.FullName == assemblySerializersType.FullName));
@@ -531,7 +528,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     }
 
     private static void EmitDataContractAliases(
-        ILBuilder il, SerializerRegistry registry, ModuleDefinition module,
+        ILBuilder il, CecilSerializerContext serializerContext, ModuleDefinition module,
         TypeDefinition assemblySerializersType, MethodReference getTypeFromHandleRef)
     {
         var getAliasesRef = module.ImportReference(assemblySerializersType.Properties.First(x => x.Name == "DataContractAliases").GetMethod);
@@ -540,7 +537,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         var aliasCtorRef = module.ImportReference(aliasTypeRef.Resolve().GetConstructors().Single());
         var addRef = module.ImportReference(addMethod).MakeGeneric(aliasTypeRef);
 
-        foreach (var alias in registry.Context.DataContractAliases)
+        foreach (var alias in serializerContext.DataContractAliases)
         {
             il.Emit(OpCodes.Dup)
               .Emit(OpCodes.Call, getAliasesRef)
@@ -553,7 +550,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     }
 
     private static void EmitModuleRegistrations(
-        ILBuilder il, SerializerRegistry registry, ModuleDefinition module,
+        ILBuilder il, CecilSerializerContext serializerContext, ModuleDefinition module,
         TypeDefinition assemblySerializersType,
         MethodReference getTypeFromHandleRef, MethodReference getTypeInfoRef, MethodReference getModuleRef)
     {
@@ -562,7 +559,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         var moduleTypeRef = ((GenericInstanceType)getModulesRef.ReturnType).GenericArguments[0];
         var addRef = module.ImportReference(addMethod).MakeGeneric(moduleTypeRef);
 
-        foreach (var referencedAssemblySerializerFactoryType in registry.ReferencedAssemblySerializerFactoryTypes)
+        foreach (var referencedAssemblySerializerFactoryType in serializerContext.ReferencedAssemblySerializerFactoryTypes)
         {
             il.Emit(OpCodes.Dup)
               .Emit(OpCodes.Call, getModulesRef)
@@ -572,7 +569,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     }
 
     private static void EmitProfileEntries(
-        ILBuilder il, SerializerRegistry registry, ModuleDefinition module,
+        ILBuilder il, CecilSerializerContext serializerContext, ModuleDefinition module,
         ModuleDefinition strideCoreModule, AssemblyDefinition mscorlibAssembly,
         TypeDefinition assemblySerializersType,
         MethodReference getTypeFromHandleRef, MethodReference getTypeHandleMethodRef)
@@ -589,7 +586,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         var runtimeHelpersType = mscorlibAssembly.MainModule.GetTypeResolved(typeof(RuntimeHelpers).FullName);
         var runClassConstructorMethod = module.ImportReference(runtimeHelpersType.Methods.Single(x => x.IsPublic && x.Name == "RunClassConstructor" && x.Parameters.Count == 1 && x.Parameters[0].ParameterType.FullName == typeof(RuntimeTypeHandle).FullName));
 
-        foreach (var profile in registry.Context.SerializableTypesProfiles)
+        foreach (var profile in serializerContext.SerializableTypesProfiles)
         {
             il.Emit(OpCodes.Dup)
               .Emit(OpCodes.Callvirt, getProfilesRef)
@@ -638,48 +635,6 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         }
     }
 
-    private static void RegisterDefaultSerializationProfile(IAssemblyResolver assemblyResolver, AssemblyDefinition assembly, SerializerRegistry registry, System.IO.TextWriter log)
-    {
-        var mscorlibAssembly = CecilExtensions.FindCorlibAssembly(assembly);
-        if (mscorlibAssembly == null)
-        {
-            log.WriteLine("Missing mscorlib.dll from assembly {0}", assembly.FullName);
-            throw new InvalidOperationException("Missing mscorlib.dll from assembly");
-        }
-
-        var coreSerializationAssembly = assemblyResolver.Resolve(new AssemblyNameReference("Stride.Core", null));
-
-        // Register serializer factories (determine which type requires which serializer)
-        registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(IList<>), coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.ListInterfaceSerializer`1")));
-        registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(List<>), coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.ListSerializer`1")));
-        registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(KeyValuePair<,>), coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.KeyValuePairSerializer`2")));
-        registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(IDictionary<,>), coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.DictionaryInterfaceSerializer`2")));
-        registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(Dictionary<,>), coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.DictionarySerializer`2")));
-        registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(Nullable<>), coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.NullableSerializer`1")));
-        registry.SerializerFactories.Add(new CecilEnumSerializerFactory(coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.EnumSerializer`1")));
-        registry.SerializerFactories.Add(new CecilArraySerializerFactory(coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.ArraySerializer`1")));
-
-        // Iterate over tuple size
-        for (int i = 1; i <= 4; ++i)
-        {
-            registry.SerializerDependencies.Add(new CecilSerializerDependency(
-                                                     string.Format("System.Tuple`{0}", i),
-                                                     coreSerializationAssembly.MainModule.GetTypeResolved(string.Format("Stride.Core.Serialization.Serializers.TupleSerializer`{0}", i))));
-
-            registry.SerializerDependencies.Add(new CecilSerializerDependency(string.Format("Stride.Core.Serialization.Serializers.TupleSerializer`{0}", i)));
-        }
-
-        // Register serializer dependencies (determine which serializer serializes which sub-type)
-        registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.ArraySerializer`1"));
-        registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.KeyValuePairSerializer`2"));
-        registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.ListSerializer`1"));
-        registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.ListInterfaceSerializer`1"));
-        registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.NullableSerializer`1"));
-        registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.DictionarySerializer`2",
-                                                                           mscorlibAssembly.MainModule.GetTypeResolved(typeof(KeyValuePair<,>).FullName)));
-        registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.DictionaryInterfaceSerializer`2",
-                                                                           mscorlibAssembly.MainModule.GetTypeResolved(typeof(KeyValuePair<,>).FullName)));
-    }
 }
 
 public static class HashExtensions
