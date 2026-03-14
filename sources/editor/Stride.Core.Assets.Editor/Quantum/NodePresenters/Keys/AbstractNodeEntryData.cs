@@ -15,7 +15,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys
         [Obsolete("Use the generic version of CombineProperties instead, which allows to specify the type of the properties to combine. This method is kept for backward compatibility, but it is recommended to use the generic version instead.")]
         public static object CombineProperty(IEnumerable<object> properties)
         {
-            var result = new HashSet<AbstractNodeEntry>();
+            HashSet<AbstractNodeEntry> result;
             var hashSets = new List<HashSet<AbstractNodeEntry>>();
             hashSets.AddRange(properties.Cast<IEnumerable<AbstractNodeEntry>>().Select(x => new HashSet<AbstractNodeEntry>(x)));
             result = hashSets[0];
@@ -39,7 +39,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys
         public static IEnumerable<TAbstractNodeEntry> CombineProperties<TAbstractNodeEntry>(IEnumerable<object> properties)
             where TAbstractNodeEntry : AbstractNodeEntry
         {
-            var result = new HashSet<TAbstractNodeEntry>();
+            HashSet<TAbstractNodeEntry> result;
             var hashSets = new List<HashSet<TAbstractNodeEntry>>();
             hashSets.AddRange(properties.Cast<IEnumerable<TAbstractNodeEntry>>().Select(x => new HashSet<TAbstractNodeEntry>(x)));
             result = hashSets[0];
