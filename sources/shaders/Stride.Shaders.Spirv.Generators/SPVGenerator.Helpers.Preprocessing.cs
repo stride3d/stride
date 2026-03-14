@@ -10,20 +10,27 @@ namespace Stride.Shaders.Spirv.Generators;
 
 public partial class SPVGenerator
 {
+    static readonly string[] RequiredFiles =
+    [
+        "spirv.core.grammar.json",
+        "spirv.sdsl.grammar-ext.json",
+        "extinst.glsl.std.450.grammar.json",
+        "SPIRV.html",
+        "GLSL.std.450.html"
+    ];
+
     public static bool IsSpirvSpecification(AdditionalText file)
-        =>
-        Path.GetFileName(file.Path) switch
-        {
-            "spirv.core.grammar.json"
-            or "spirv.sdsl.grammar-ext.json"
-            or "extinst.glsl.std.450.grammar.json"
-            or "SPIRV.html"
-            or "GLSL.std.450.html" => true,
-            _ => false
-        };
+        => Array.IndexOf(RequiredFiles, Path.GetFileName(file.Path)) >= 0;
 
     public SpirvGrammar PreProcessGrammar(ImmutableArray<AdditionalText> files, CancellationToken _)
     {
+        var fileNames = new HashSet<string>(files.Select(f => Path.GetFileName(f.Path)));
+        var missing = RequiredFiles.Where(r => !fileNames.Contains(r)).ToArray();
+        // TODO: Proper Roslyn diagnostics
+        if (missing.Length > 0)
+            throw new InvalidOperationException(
+                $"Missing SPIR-V specification files: {string.Join(", ", missing)}. Ensure git submodules are fetched (git submodule update --init).");
+
         SpirvGrammar grammar = new();
         foreach (var file in files)
         {
@@ -124,7 +131,11 @@ public partial class SPVGenerator
         // var buffer = new List<OperandData>(24);
         if (grammar.Instructions?.AsList() is List<InstructionData> instructions)
         {
-            var extinst = instructions.First(x => x.OpName == "OpExtInst");
+            var extinst = instructions.FirstOrDefault(x => x.OpName == "OpExtInst");
+            if (extinst.OpName is null)
+                throw new InvalidOperationException(
+                    "OpExtInst not found in SPIR-V grammar. Ensure git submodules are fetched (git submodule update --init). "
+                    + $"Found {instructions.Count} instructions: [{string.Join(", ", instructions.Take(5).Select(x => x.OpName))}...]");
             // Prebuilt for fast lookup
             var tableblocksCore = coreDoc!.QuerySelectorAll($"p.tableblock").ToArray();
             var coreNodesById = new Dictionary<string, IElement>();
