@@ -1551,6 +1551,86 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         });
     }
 
+    [McpIntegrationFact]
+    public async Task GetEntity_ReturnsAssetReferenceProperties()
+    {
+        var sceneId = await GetFirstSceneIdAsync();
+        await CallToolAndParseJsonAsync("open_scene", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+        });
+
+        // Create a test entity with a ModelComponent
+        var createResult = await CallToolAndParseJsonAsync("create_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["name"] = "McpAssetRefReadTest",
+        });
+        var entityId = createResult.GetProperty("entity").GetProperty("id").GetString()!;
+
+        await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+            ["action"] = "add",
+            ["componentType"] = "ModelComponent",
+        });
+
+        // Find a model asset to reference
+        var queryRoot = await CallToolAndParseJsonAsync("query_assets", new Dictionary<string, object?>
+        {
+            ["type"] = "ModelAsset",
+            ["maxResults"] = 1,
+        });
+
+        var assets = queryRoot.GetProperty("assets");
+        if (assets.GetArrayLength() > 0)
+        {
+            var modelAssetId = assets[0].GetProperty("id").GetString()!;
+
+            // Set the Model property
+            await CallToolAndParseJsonAsync("modify_component", new Dictionary<string, object?>
+            {
+                ["sceneId"] = sceneId,
+                ["entityId"] = entityId,
+                ["action"] = "update",
+                ["componentIndex"] = 1,
+                ["properties"] = JsonSerializer.Serialize(new { Model = new { assetId = modelAssetId } }),
+            });
+
+            // Now read the entity back and verify the asset reference is visible
+            var entityRoot = await CallToolAndParseJsonAsync("get_entity", new Dictionary<string, object?>
+            {
+                ["sceneId"] = sceneId,
+                ["entityId"] = entityId,
+            });
+
+            Assert.Null(entityRoot.GetProperty("error").GetString());
+            var entity = entityRoot.GetProperty("entity");
+            var components = entity.GetProperty("components");
+
+            // Find the ModelComponent (index 1, after TransformComponent)
+            var modelComp = components.EnumerateArray()
+                .FirstOrDefault(c => c.GetProperty("type").GetString() == "ModelComponent");
+            Assert.True(modelComp.ValueKind != JsonValueKind.Undefined, "ModelComponent should exist");
+
+            var props = modelComp.GetProperty("properties");
+            Assert.True(props.TryGetProperty("Model", out var modelProp), "Model property should be serialized");
+
+            // The Model property should contain the asset reference with assetRef and url
+            Assert.True(modelProp.TryGetProperty("assetRef", out var assetRefValue),
+                $"Model property should have 'assetRef' field. Actual value: {modelProp}");
+            Assert.Equal(modelAssetId, assetRefValue.GetString());
+        }
+
+        // Clean up
+        await CallToolAndParseJsonAsync("delete_entity", new Dictionary<string, object?>
+        {
+            ["sceneId"] = sceneId,
+            ["entityId"] = entityId,
+        });
+    }
+
     // =====================
     // Polymorphic Properties
     // =====================

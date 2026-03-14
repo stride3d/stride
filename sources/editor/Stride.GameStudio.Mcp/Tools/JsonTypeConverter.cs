@@ -104,9 +104,14 @@ internal static class JsonTypeConverter
         if (value is UPath path)
             return path.ToString();
 
-        // Asset references
+        // Asset references — explicit IReference types (AssetReference, UrlReferenceBase)
         if (value is IReference assetRef)
             return new { assetRef = assetRef.Id.ToString(), url = assetRef.Location?.ToString() };
+
+        // Asset references — proxy objects with AttachedReference (Model, Material, Texture, etc.)
+        var attachedRef = AttachedReferenceManager.GetAttachedReference(value);
+        if (attachedRef != null)
+            return new { assetRef = attachedRef.Id.ToString(), url = attachedRef.Url };
 
         // Entity references
         if (value is Entity entity)
