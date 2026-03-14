@@ -151,6 +151,8 @@ namespace Stride.Graphics
             public ShaderStage Stage;
             public int SlotStart;
             public SamplerState ImmutableSampler;
+
+            public string ToString() => $"DescriptorEntry [{EntryIndex}] => {Stage} {Class} {SlotStart}";
         }
     }
 }

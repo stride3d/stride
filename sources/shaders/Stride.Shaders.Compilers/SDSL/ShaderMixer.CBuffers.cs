@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.HighPerformance.Buffers;
+using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Core.Extensions;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
@@ -201,7 +201,6 @@ namespace Stride.Shaders.Compilers.SDSL
                 .GroupBy(x => ShaderClass.GetCBufferRealName(context.Names[x.VariableId]));
 
             // This helper method will transfer decorations from the old structure to the new merged structure
-            // Also, it will add a default "Link" decoration if none was set
             void ProcessDecorations(Span<(OpDataIndex Variable, int VariableId, string CompositionPath, string ShaderName, int StructTypePtrId, ConstantBufferSymbol? StructType, int MemberIndexOffset, string? LogicalGroup)> cbuffersSpan, ConstantBufferSymbol cbufferStruct, bool newStructure)
             {
                 var cbufferStructId = context.Types[cbufferStruct];
@@ -309,6 +308,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     // Update first variable to use new type
                     cbuffersSpan[0].Variable.Data.IdResultType = mergedCbufferPtrStructId;
                     cbufferMemberMetadata[cbuffersSpan[0].VariableId] = GenerateCBufferLinks(cbuffersSpan[0].VariableId, cbuffersSpan, mergedCbufferStruct);
+
                     foreach (var i in buffer)
                     {
                         if (i.Op == Op.OpName && (OpName)i is { } name)
@@ -337,6 +337,10 @@ namespace Stride.Shaders.Compilers.SDSL
                         //       Also, if we do so, maybe we could do it as part of a global pass at the end rather than now?
                     }
                 }
+
+                // Clear variable-level LogicalGroup: cbuffer resource doesn't belong to a single logical group (only its members do)
+                if (variableMetadata.TryGetValue(cbuffersSpan[0].VariableId, out var mergedVarMetadata))
+                    variableMetadata[cbuffersSpan[0].VariableId] = mergedVarMetadata with { LogicalGroup = null };
             }
 
             SpirvBuilder.RemapIds(buffer, 0, buffer.Count, idRemapping);

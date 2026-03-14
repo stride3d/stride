@@ -123,6 +123,8 @@ public partial class ShaderMixer
 
                 variableMetadata[variableInstruction.ResultId] = metadata;
 
+                // Build per-member metadata for cbuffers: resolve link names (from decorations or generated from shader/member name),
+                // compose with composition path for non-stage variables, and propagate the cbuffer's LogicalGroup to each member.
                 if (variableType is ConstantBufferSymbol cb)
                 {
                     var constantBufferStructId = context.Types[cb];
