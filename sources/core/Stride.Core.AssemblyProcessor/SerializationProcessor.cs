@@ -40,8 +40,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     }
 
     /// <summary>
-    /// Generates serializer code using Cecil.
-    /// Note: we might want something more fluent? (probably lot of work to get the system working, but would make changes easier to do -- not sure if worth it considering it didn't change much recently)
+    /// Generates serializer code using Cecil and <see cref="ILBuilder"/> for readable IL emission.
     /// </summary>
     /// <param name="registry"></param>
     private static void GenerateSerializerCode(ComplexSerializerRegistry registry, out ObjectId serializationHash)
@@ -52,16 +51,17 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         hash.Write(DataSerializer.BinaryFormatVersion);
 
         var assembly = registry.Assembly;
+        var module = assembly.MainModule;
         var strideCoreModule = assembly.GetStrideCoreModule();
 
-        var dataSerializerTypeRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.DataSerializer`1"));
+        var dataSerializerTypeRef = module.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.DataSerializer`1"));
         var serializerSelectorType = strideCoreModule.GetType("Stride.Core.Serialization.SerializerSelector");
-        var serializerSelectorTypeRef = assembly.MainModule.ImportReference(serializerSelectorType);
-        var serializerSelectorGetSerializerRef = assembly.MainModule.ImportReference(serializerSelectorType.Methods.Single(x => x.Name == "GetSerializer" && x.Parameters.Count == 0 && x.GenericParameters.Count == 1));
-        var memberSerializerCreateRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.MemberSerializer`1").Methods.Single(x => x.Name == "Create"));
+        var serializerSelectorTypeRef = module.ImportReference(serializerSelectorType);
+        var serializerSelectorGetSerializerRef = module.ImportReference(serializerSelectorType.Methods.Single(x => x.Name == "GetSerializer" && x.Parameters.Count == 0 && x.GenericParameters.Count == 1));
+        var memberSerializerCreateRef = module.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.MemberSerializer`1").Methods.Single(x => x.Name == "Create"));
 
         var dataSerializerSerializeMethod = dataSerializerTypeRef.Resolve().Methods.Single(x => x.Name == "Serialize" && (x.Attributes & MethodAttributes.Abstract) != 0);
-        var dataSerializerSerializeMethodRef = assembly.MainModule.ImportReference(dataSerializerSerializeMethod);
+        var dataSerializerSerializeMethodRef = module.ImportReference(dataSerializerSerializeMethod);
 
         // Generate serializer code for each type (we generate code similar to ComplexClassSerializerGenerator.tt, see this file for reference)
         foreach (var complexType in registry.Context.ComplexTypes)
@@ -119,56 +119,62 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
             // Add constructor (call parent constructor)
             var ctor = new MethodDefinition(".ctor",
                 MethodAttributes.RTSpecialName | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
-                MethodAttributes.Public, assembly.MainModule.TypeSystem.Void);
-            ctor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-            ctor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, assembly.MainModule.ImportReference(serializerType.BaseType.Resolve().GetEmptyConstructor(true)).MakeGeneric(typeWithGenerics)));
-            ctor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+                MethodAttributes.Public, module.TypeSystem.Void);
+            var ctorIL = new ILBuilder(ctor.Body, module);
+            ctorIL.Emit(OpCodes.Ldarg_0)
+                  .Emit(OpCodes.Call, ctorIL.Import(serializerType.BaseType.Resolve().GetEmptyConstructor(true)).MakeGeneric(typeWithGenerics))
+                  .Emit(OpCodes.Ret);
             serializerType.Methods.Add(ctor);
 
             // Add Initialize method
-            var initialize = new MethodDefinition("Initialize", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual, assembly.MainModule.TypeSystem.Void);
+            var initialize = new MethodDefinition("Initialize", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual, module.TypeSystem.Void);
             initialize.Parameters.Add(new ParameterDefinition("serializerSelector", ParameterAttributes.None, serializerSelectorTypeRef));
+            var initIL = new ILBuilder(initialize.Body, module);
             if (complexType.Value.ComplexSerializerProcessParentType != null)
             {
-                initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
-                initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, serializerSelectorGetSerializerRef.MakeGenericMethod(parentType)));
-                initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Stfld, parentSerializerField.MakeGeneric(genericParameters)));
+                initIL.Emit(OpCodes.Ldarg_0)
+                      .Emit(OpCodes.Ldarg_1)
+                      .Emit(OpCodes.Callvirt, serializerSelectorGetSerializerRef.MakeGenericMethod(parentType))
+                      .Emit(OpCodes.Stfld, parentSerializerField.MakeGeneric(genericParameters));
             }
             foreach (var serializableItem in serializableItemInfos)
             {
-                initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
-                initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldc_I4_1));
-                initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Call, memberSerializerCreateRef.MakeGeneric(serializableItem.Value.Type)));
-                initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Stfld, serializableItem.Value.SerializerField.MakeGeneric(genericParameters)));
+                initIL.Emit(OpCodes.Ldarg_0)
+                      .Emit(OpCodes.Ldarg_1)
+                      .Emit(OpCodes.Ldc_I4_1)
+                      .Emit(OpCodes.Call, memberSerializerCreateRef.MakeGeneric(serializableItem.Value.Type))
+                      .Emit(OpCodes.Stfld, serializableItem.Value.SerializerField.MakeGeneric(genericParameters));
             }
-            initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            initIL.Emit(OpCodes.Ret);
             serializerType.Methods.Add(initialize);
 
             // Add Serialize method
-            var serialize = new MethodDefinition("Serialize", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual, assembly.MainModule.TypeSystem.Void);
+            var serialize = new MethodDefinition("Serialize", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual, module.TypeSystem.Void);
             serialize.Parameters.Add(new ParameterDefinition("obj", ParameterAttributes.None, typeWithGenerics.MakeByReferenceType()));
             // Copy other parameters from parent method
             for (int i = 1; i < dataSerializerSerializeMethod.Parameters.Count; ++i)
             {
                 var parentParameter = dataSerializerSerializeMethod.Parameters[i];
-                serialize.Parameters.Add(new ParameterDefinition(parentParameter.Name, ParameterAttributes.None, assembly.MainModule.ImportReference(parentParameter.ParameterType)));
+                serialize.Parameters.Add(new ParameterDefinition(parentParameter.Name, ParameterAttributes.None, module.ImportReference(parentParameter.ParameterType)));
             }
+
+            var il = new ILBuilder(serialize.Body, module);
 
             if (complexType.Value.ComplexSerializerProcessParentType != null)
             {
-                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldfld, parentSerializerField.MakeGeneric(genericParameters)));
-                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
-                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
-                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
-                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, dataSerializerSerializeMethodRef.MakeGeneric(parentType)));
+                il.Emit(OpCodes.Ldarg_0)
+                  .Emit(OpCodes.Ldfld, parentSerializerField.MakeGeneric(genericParameters))
+                  .Emit(OpCodes.Ldarg_1)
+                  .Emit(OpCodes.Ldarg_2)
+                  .Emit(OpCodes.Ldarg_3)
+                  .Emit(OpCodes.Callvirt, dataSerializerSerializeMethodRef.MakeGeneric(parentType));
             }
 
             if (serializableItems.Length > 0)
             {
-                var blockStartInstructions = new[] { Instruction.Create(OpCodes.Nop), Instruction.Create(OpCodes.Nop) };
+                var deserializeLabel = ILBuilder.DefineLabel();
+                var endLabel = ILBuilder.DefineLabel();
+
                 // Iterate over ArchiveMode
                 for (int i = 0; i < 2; ++i)
                 {
@@ -177,14 +183,14 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
                     // Check mode
                     if (archiveMode == ArchiveMode.Serialize)
                     {
-                        serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
-                        serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldc_I4, (int) archiveMode));
-                        serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ceq));
-                        serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Brfalse, blockStartInstructions[0]));
+                        il.Emit(OpCodes.Ldarg_2)
+                          .Emit(OpCodes.Ldc_I4, (int)archiveMode)
+                          .Emit(OpCodes.Ceq)
+                          .Emit(OpCodes.Brfalse, deserializeLabel);
                     }
                     else
                     {
-                        serialize.Body.Instructions.Add(blockStartInstructions[0]);
+                        il.MarkLabel(deserializeLabel);
                     }
 
                     foreach (var serializableItem in serializableItems)
@@ -197,92 +203,89 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
                         var memberAssignBack = serializableItem.AssignBack;
                         var memberVariableName = (serializableItem.MemberInfo is PropertyDefinition || !memberAssignBack) ? ComplexSerializerRegistry.CreateMemberVariableName(serializableItem.MemberInfo) : null;
                         var serializableItemInfo = serializableItemInfos[serializableItem.Type];
-                        serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
-                        serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldfld, serializableItemInfo.SerializerField.MakeGeneric(genericParameters)));
+                        il.Emit(OpCodes.Ldarg_0)
+                          .Emit(OpCodes.Ldfld, serializableItemInfo.SerializerField.MakeGeneric(genericParameters));
 
-                        var fieldReference = serializableItem.MemberInfo is FieldReference ? assembly.MainModule.ImportReference((FieldReference)serializableItem.MemberInfo).MakeGeneric(genericParameters) : null;
+                        var fieldReference = serializableItem.MemberInfo is FieldReference ? il.Import((FieldReference)serializableItem.MemberInfo).MakeGeneric(genericParameters) : null;
 
                         if (memberVariableName != null)
                         {
                             // Use a temporary variable
                             if (!localsByTypes.TryGetValue(serializableItemInfo.Type, out var tempLocal))
                             {
-                                tempLocal = new VariableDefinition(serializableItemInfo.Type);
+                                tempLocal = il.AddLocal(serializableItemInfo.Type);
                                 localsByTypes.Add(serializableItemInfo.Type, tempLocal);
-                                serialize.Body.Variables.Add(tempLocal);
-                                serialize.Body.InitLocals = true;
                             }
 
                             if (!(archiveMode == ArchiveMode.Deserialize && memberAssignBack))
                             {
                                 // obj.Member
-                                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+                                il.Emit(OpCodes.Ldarg_1);
                                 if (!type.IsValueType)
-                                    serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldind_Ref));
+                                    il.Emit(OpCodes.Ldind_Ref);
 
                                 if (serializableItem.MemberInfo is PropertyDefinition property)
                                 {
                                     var getMethod = property.Resolve().GetMethod;
-                                    serialize.Body.Instructions.Add(Instruction.Create(getMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, assembly.MainModule.ImportReference(getMethod).MakeGeneric(genericParameters)));
+                                    il.Emit(getMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, il.Import(getMethod).MakeGeneric(genericParameters));
                                 }
                                 else if (serializableItem.MemberInfo is FieldDefinition)
                                 {
-                                    serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldfld, fieldReference));
+                                    il.Emit(OpCodes.Ldfld, fieldReference);
                                 }
-                                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Stloc, tempLocal));
-                                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloca, tempLocal));
+                                il.Emit(OpCodes.Stloc, tempLocal)
+                                  .Emit(OpCodes.Ldloca, tempLocal);
                             }
                             else
                             {
                                 // default(T)
-                                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloca, tempLocal));
-                                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Dup));
-                                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Initobj, serializableItemInfo.Type));
+                                il.Emit(OpCodes.Ldloca, tempLocal)
+                                  .Emit(OpCodes.Dup)
+                                  .Emit(OpCodes.Initobj, serializableItemInfo.Type);
                             }
                         }
                         else
                         {
                             // Use object directly
-                            serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+                            il.Emit(OpCodes.Ldarg_1);
                             if (!type.IsValueType)
-                                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldind_Ref));
-                            serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldflda, fieldReference));
+                                il.Emit(OpCodes.Ldind_Ref);
+                            il.Emit(OpCodes.Ldflda, fieldReference);
                         }
-                        serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
-                        serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
-
-                        serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, dataSerializerSerializeMethodRef.MakeGeneric(serializableItemInfo.Type)));
+                        il.Emit(OpCodes.Ldarg_2)
+                          .Emit(OpCodes.Ldarg_3)
+                          .Emit(OpCodes.Callvirt, dataSerializerSerializeMethodRef.MakeGeneric(serializableItemInfo.Type));
 
                         if (archiveMode == ArchiveMode.Deserialize && memberVariableName != null && memberAssignBack)
                         {
                             // Need to copy back to object
-                            serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+                            il.Emit(OpCodes.Ldarg_1);
                             if (!type.IsValueType)
-                                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldind_Ref));
+                                il.Emit(OpCodes.Ldind_Ref);
 
-                            serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldloc, localsByTypes[serializableItemInfo.Type]));
+                            il.Emit(OpCodes.Ldloc, localsByTypes[serializableItemInfo.Type]);
 
                             if (serializableItem.MemberInfo is PropertyDefinition property)
                             {
                                 var setMethod = property.Resolve().SetMethod;
-                                serialize.Body.Instructions.Add(Instruction.Create(setMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, assembly.MainModule.ImportReference(setMethod).MakeGeneric(genericParameters)));
+                                il.Emit(setMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, il.Import(setMethod).MakeGeneric(genericParameters));
                             }
                             else if (serializableItem.MemberInfo is FieldDefinition)
                             {
-                                serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Stfld, fieldReference));
+                                il.Emit(OpCodes.Stfld, fieldReference);
                             }
                         }
                     }
 
                     if (archiveMode == ArchiveMode.Serialize)
                     {
-                        serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Br, blockStartInstructions[1]));
+                        il.Emit(OpCodes.Br, endLabel);
                     }
                 }
 
-                serialize.Body.Instructions.Add(blockStartInstructions[1]);
+                il.MarkLabel(endLabel);
             }
-            serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            il.Emit(OpCodes.Ret);
             serializerType.Methods.Add(serialize);
 
             //assembly.MainModule.Types.Add(serializerType);
@@ -293,10 +296,10 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
 
         // String
         var stringType = mscorlibAssembly.MainModule.GetTypeResolved(typeof(string).FullName);
-        var stringTypeRef = assembly.MainModule.ImportReference(stringType);
+        var stringTypeRef = module.ImportReference(stringType);
         // Type
         var typeType = mscorlibAssembly.MainModule.GetTypeResolved(typeof(Type).FullName);
-        var typeTypeRef = assembly.MainModule.ImportReference(typeType);
+        var typeTypeRef = module.ImportReference(typeType);
         var getTypeFromHandleMethod = typeType.Methods.First(x => x.Name == nameof(Type.GetTypeFromHandle));
         var getTokenInfoExMethod = reflectionAssembly.MainModule.GetTypeResolved("System.Reflection.IntrospectionExtensions").Resolve().Methods.First(x => x.Name == nameof(IntrospectionExtensions.GetTypeInfo));
         var typeInfoType = reflectionAssembly.MainModule.GetTypeResolved(typeof(TypeInfo).FullName);
@@ -304,20 +307,20 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         var getTypeInfoAssembly = typeInfoType.Properties.Concat(typeInfoType.BaseType.Resolve().Properties).First(x => x.Name == nameof(TypeInfo.Assembly)).GetMethod;
         var getTypeInfoModule = typeInfoType.Properties.Concat(typeInfoType.BaseType.Resolve().Properties).First(x => x.Name == nameof(TypeInfo.Module)).GetMethod;
         var typeHandleProperty = typeType.Properties.First(x => x.Name == nameof(Type.TypeHandle));
-        var getTypeHandleMethodRef = assembly.MainModule.ImportReference(typeHandleProperty.GetMethod);
+        var getTypeHandleMethodRef = module.ImportReference(typeHandleProperty.GetMethod);
 
         // Generate code
         var serializerFactoryType = new TypeDefinition("Stride.Core.DataSerializers",
             Utilities.BuildValidClassName(assembly.Name.Name) + "SerializerFactory",
             TypeAttributes.BeforeFieldInit | TypeAttributes.AnsiClass | TypeAttributes.AutoClass |
             TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.Abstract,
-            assembly.MainModule.TypeSystem.Object);
-        assembly.MainModule.Types.Add(serializerFactoryType);
+            module.TypeSystem.Object);
+        module.Types.Add(serializerFactoryType);
 
-        var dataSerializerModeTypeRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.DataSerializerGenericMode"));
+        var dataSerializerModeTypeRef = module.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.DataSerializerGenericMode"));
 
         var dataSerializerGlobalAttribute = strideCoreModule.GetType("Stride.Core.Serialization.DataSerializerGlobalAttribute");
-        var dataSerializerGlobalCtorRef = assembly.MainModule.ImportReference(dataSerializerGlobalAttribute.GetConstructors().Single(x => !x.IsStatic && x.Parameters.Count == 5));
+        var dataSerializerGlobalCtorRef = module.ImportReference(dataSerializerGlobalAttribute.GetConstructors().Single(x => !x.IsStatic && x.Parameters.Count == 5));
 
         foreach (var profile in registry.Context.SerializableTypesProfiles)
         {
@@ -328,15 +331,15 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
                 {
                     ConstructorArguments =
                     {
-                        new CustomAttributeArgument(typeTypeRef, type.Value.SerializerType != null ? assembly.MainModule.ImportReference(type.Value.SerializerType) : null),
-                        new CustomAttributeArgument(typeTypeRef, assembly.MainModule.ImportReference(type.Key)),
+                        new CustomAttributeArgument(typeTypeRef, type.Value.SerializerType != null ? module.ImportReference(type.Value.SerializerType) : null),
+                        new CustomAttributeArgument(typeTypeRef, module.ImportReference(type.Key)),
                         new CustomAttributeArgument(dataSerializerModeTypeRef, type.Value.Mode),
-                        new CustomAttributeArgument(assembly.MainModule.TypeSystem.Boolean, type.Value.Inherited),
-                        new CustomAttributeArgument(assembly.MainModule.TypeSystem.Boolean, type.Value.ComplexSerializer),
+                        new CustomAttributeArgument(module.TypeSystem.Boolean, type.Value.Inherited),
+                        new CustomAttributeArgument(module.TypeSystem.Boolean, type.Value.ComplexSerializer),
                     },
                     Properties =
                     {
-                        new CustomAttributeNamedArgument("Profile", new CustomAttributeArgument(assembly.MainModule.TypeSystem.String, profile.Key))
+                        new CustomAttributeNamedArgument("Profile", new CustomAttributeArgument(module.TypeSystem.String, profile.Key))
                     },
                 });
             }
@@ -347,15 +350,15 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
                 {
                     ConstructorArguments =
                     {
-                        new CustomAttributeArgument(typeTypeRef, type.Value.SerializerType != null ? assembly.MainModule.ImportReference(type.Value.SerializerType) : null),
-                        new CustomAttributeArgument(typeTypeRef, assembly.MainModule.ImportReference(type.Key)),
+                        new CustomAttributeArgument(typeTypeRef, type.Value.SerializerType != null ? module.ImportReference(type.Value.SerializerType) : null),
+                        new CustomAttributeArgument(typeTypeRef, module.ImportReference(type.Key)),
                         new CustomAttributeArgument(dataSerializerModeTypeRef, type.Value.Mode),
-                        new CustomAttributeArgument(assembly.MainModule.TypeSystem.Boolean, type.Value.Inherited),
-                        new CustomAttributeArgument(assembly.MainModule.TypeSystem.Boolean, type.Value.ComplexSerializer),
+                        new CustomAttributeArgument(module.TypeSystem.Boolean, type.Value.Inherited),
+                        new CustomAttributeArgument(module.TypeSystem.Boolean, type.Value.ComplexSerializer),
                     },
                     Properties =
                     {
-                        new CustomAttributeNamedArgument("Profile", new CustomAttributeArgument(assembly.MainModule.TypeSystem.String, profile.Key))
+                        new CustomAttributeNamedArgument("Profile", new CustomAttributeArgument(module.TypeSystem.String, profile.Key))
                     },
                 });
             }
@@ -364,93 +367,90 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         // Create Initialize method
         var initializeMethod = new MethodDefinition("Initialize",
             MethodAttributes.Assembly | MethodAttributes.HideBySig | MethodAttributes.Static,
-            assembly.MainModule.TypeSystem.Void);
+            module.TypeSystem.Void);
         serializerFactoryType.Methods.Add(initializeMethod);
 
         // Obtain the static constructor of <Module> and the return instruction
         var moduleConstructor = assembly.OpenModuleConstructor(out var returnInstruction);
 
-        // Get the IL processor of the module constructor
-        var il = moduleConstructor.Body.GetILProcessor();
+        // Get the IL processor of the module constructor (used only for InsertBefore at the end)
+        var moduleCtorIL = moduleConstructor.Body.GetILProcessor();
 
         // Create the call to Initialize method
-        var initializeMethodReference = assembly.MainModule.ImportReference(initializeMethod);
-        var callInitializeInstruction = il.Create(OpCodes.Call, initializeMethodReference);
+        var initializeMethodReference = module.ImportReference(initializeMethod);
+        var callInitializeInstruction = moduleCtorIL.Create(OpCodes.Call, initializeMethodReference);
 
-        var initializeMethodIL = initializeMethod.Body.GetILProcessor();
+        var initIL2 = new ILBuilder(initializeMethod.Body, module);
+
+        // Import reflection helpers once for the ILBuilder
+        var getTypeFromHandleRef = initIL2.Import(getTypeFromHandleMethod);
+        var getTypeInfoRef = initIL2.Import(getTokenInfoExMethod);
+        var getAssemblyRef = initIL2.Import(getTypeInfoAssembly);
+        var getModuleRef = initIL2.Import(getTypeInfoModule);
 
         // Generating: var assemblySerializers = new AssemblySerializers(typeof(<#=registry.ClassName#>).GetTypeInfo().Assembly);
         var assemblySerializersType = strideCoreModule.GetType("Stride.Core.Serialization.AssemblySerializers");
 
-        var assemblySerializersGetDataContractAliasesRef = assembly.MainModule.ImportReference(assemblySerializersType.Properties.First(x => x.Name == "DataContractAliases").GetMethod);
+        var assemblySerializersGetDataContractAliasesRef = module.ImportReference(assemblySerializersType.Properties.First(x => x.Name == "DataContractAliases").GetMethod);
         var assemblySerializersGetDataContractAliasesAdd = assemblySerializersGetDataContractAliasesRef.ReturnType.Resolve().Methods.First(x => x.Name == "Add");
         var dataContractAliasTypeRef = ((GenericInstanceType)assemblySerializersGetDataContractAliasesRef.ReturnType).GenericArguments[0];
-        var dataContractAliasTypeCtorRef = assembly.MainModule.ImportReference(dataContractAliasTypeRef.Resolve().GetConstructors().Single());
-        var assemblySerializersGetDataContractAliasesAddRef = assembly.MainModule.ImportReference(assemblySerializersGetDataContractAliasesAdd).MakeGeneric(dataContractAliasTypeRef);
-        initializeMethodIL.Emit(OpCodes.Ldtoken, serializerFactoryType);
-        initializeMethodIL.Emit(OpCodes.Call, assembly.MainModule.ImportReference(getTypeFromHandleMethod));
-        initializeMethodIL.Emit(OpCodes.Call, assembly.MainModule.ImportReference(getTokenInfoExMethod));
-        initializeMethodIL.Emit(OpCodes.Callvirt, assembly.MainModule.ImportReference(getTypeInfoAssembly));
-        initializeMethodIL.Emit(OpCodes.Newobj, assembly.MainModule.ImportReference(assemblySerializersType.Methods.Single(x => x.IsConstructor && x.Parameters.Count == 1)));
+        var dataContractAliasTypeCtorRef = module.ImportReference(dataContractAliasTypeRef.Resolve().GetConstructors().Single());
+        var assemblySerializersGetDataContractAliasesAddRef = module.ImportReference(assemblySerializersGetDataContractAliasesAdd).MakeGeneric(dataContractAliasTypeRef);
+
+        initIL2.EmitTypeofAssembly(serializerFactoryType, getTypeFromHandleRef, getTypeInfoRef, getAssemblyRef)
+               .Emit(OpCodes.Newobj, initIL2.Import(assemblySerializersType.Methods.Single(x => x.IsConstructor && x.Parameters.Count == 1)));
 
         foreach (var alias in registry.Context.DataContractAliases)
         {
-            initializeMethodIL.Emit(OpCodes.Dup);
-
             // Generating: assemblySerializers.DataContractAliases.Add(new AssemblySerializers.DataContractAlias(@"<#= alias.Item1 #>", typeof(<#= alias.Item2.ConvertCSharp(true) #>), <#=alias.Item3 ? "true" : "false"#>));
-            initializeMethodIL.Emit(OpCodes.Call, assemblySerializersGetDataContractAliasesRef);
-            initializeMethodIL.Emit(OpCodes.Ldstr, alias.Item1);
-            initializeMethodIL.Emit(OpCodes.Ldtoken, assembly.MainModule.ImportReference(alias.Item2));
-            initializeMethodIL.Emit(OpCodes.Call, assembly.MainModule.ImportReference(getTypeFromHandleMethod));
-            initializeMethodIL.Emit(alias.Item3 ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
-            initializeMethodIL.Emit(OpCodes.Newobj, dataContractAliasTypeCtorRef);
-            initializeMethodIL.Emit(OpCodes.Call, assemblySerializersGetDataContractAliasesAddRef);
+            initIL2.Emit(OpCodes.Dup)
+                   .Emit(OpCodes.Call, assemblySerializersGetDataContractAliasesRef)
+                   .Emit(OpCodes.Ldstr, alias.Item1)
+                   .EmitTypeof(initIL2.Import(alias.Item2), getTypeFromHandleRef)
+                   .Emit(alias.Item3 ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0)
+                   .Emit(OpCodes.Newobj, dataContractAliasTypeCtorRef)
+                   .Emit(OpCodes.Call, assemblySerializersGetDataContractAliasesAddRef);
         }
 
-        var assemblySerializersGetModulesRef = assembly.MainModule.ImportReference(assemblySerializersType.Properties.First(x => x.Name == "Modules").GetMethod);
+        var assemblySerializersGetModulesRef = module.ImportReference(assemblySerializersType.Properties.First(x => x.Name == "Modules").GetMethod);
         var assemblySerializersGetModulesAdd = assemblySerializersGetModulesRef.ReturnType.Resolve().Methods.First(x => x.Name == "Add");
         var moduleRef = ((GenericInstanceType)assemblySerializersGetModulesRef.ReturnType).GenericArguments[0];
-        var assemblySerializersGetModulesAddRef = assembly.MainModule.ImportReference(assemblySerializersGetModulesAdd).MakeGeneric(moduleRef);
+        var assemblySerializersGetModulesAddRef = module.ImportReference(assemblySerializersGetModulesAdd).MakeGeneric(moduleRef);
 
         foreach (var referencedAssemblySerializerFactoryType in registry.ReferencedAssemblySerializerFactoryTypes)
         {
-            initializeMethodIL.Emit(OpCodes.Dup);
-
             // Generating: assemblySerializers.Modules.Add(typeof(<#=referencedAssemblySerializerFactoryType.ConvertCSharp()#>).GetTypeInfo().Module);
-            initializeMethodIL.Emit(OpCodes.Call, assemblySerializersGetModulesRef);
-            initializeMethodIL.Emit(OpCodes.Ldtoken, assembly.MainModule.ImportReference(referencedAssemblySerializerFactoryType));
-            initializeMethodIL.Emit(OpCodes.Call, assembly.MainModule.ImportReference(getTypeFromHandleMethod));
-            initializeMethodIL.Emit(OpCodes.Call, assembly.MainModule.ImportReference(getTokenInfoExMethod));
-            initializeMethodIL.Emit(OpCodes.Callvirt, assembly.MainModule.ImportReference(getTypeInfoModule));
-            initializeMethodIL.Emit(OpCodes.Call, assemblySerializersGetModulesAddRef);
+            initIL2.Emit(OpCodes.Dup)
+                   .Emit(OpCodes.Call, assemblySerializersGetModulesRef)
+                   .EmitTypeofModule(initIL2.Import(referencedAssemblySerializerFactoryType), getTypeFromHandleRef, getTypeInfoRef, getModuleRef)
+                   .Emit(OpCodes.Call, assemblySerializersGetModulesAddRef);
         }
 
-        var objectIdCtorRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Storage.ObjectId").GetConstructors().Single(x => x.Parameters.Count == 4));
-        var serializerEntryTypeCtorRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.AssemblySerializerEntry").GetConstructors().Single());
+        var objectIdCtorRef = module.ImportReference(strideCoreModule.GetType("Stride.Core.Storage.ObjectId").GetConstructors().Single(x => x.Parameters.Count == 4));
+        var serializerEntryTypeCtorRef = module.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.AssemblySerializerEntry").GetConstructors().Single());
         var assemblySerializersPerProfileType = strideCoreModule.GetType("Stride.Core.Serialization.AssemblySerializersPerProfile");
-        var assemblySerializersPerProfileTypeAddRef = assembly.MainModule.ImportReference(assemblySerializersPerProfileType.BaseType.Resolve().Methods.First(x => x.Name == "Add")).MakeGeneric(serializerEntryTypeCtorRef.DeclaringType);
-        var assemblySerializersPerProfileTypeCtorRef = assembly.MainModule.ImportReference(assemblySerializersPerProfileType.GetEmptyConstructor());
-        var assemblySerializersGetProfilesRef = assembly.MainModule.ImportReference(assemblySerializersType.Properties.First(x => x.Name == "Profiles").GetMethod);
-        var assemblySerializersGetProfilesSetItemRef = assembly.MainModule.ImportReference(assemblySerializersGetProfilesRef.ReturnType.Resolve().Methods.First(x => x.Name == "set_Item"))
+        var assemblySerializersPerProfileTypeAddRef = module.ImportReference(assemblySerializersPerProfileType.BaseType.Resolve().Methods.First(x => x.Name == "Add")).MakeGeneric(serializerEntryTypeCtorRef.DeclaringType);
+        var assemblySerializersPerProfileTypeCtorRef = module.ImportReference(assemblySerializersPerProfileType.GetEmptyConstructor());
+        var assemblySerializersGetProfilesRef = module.ImportReference(assemblySerializersType.Properties.First(x => x.Name == "Profiles").GetMethod);
+        var assemblySerializersGetProfilesSetItemRef = module.ImportReference(assemblySerializersGetProfilesRef.ReturnType.Resolve().Methods.First(x => x.Name == "set_Item"))
             .MakeGeneric([.. ((GenericInstanceType)assemblySerializersGetProfilesRef.ReturnType).GenericArguments]);
 
         var runtimeHelpersType = mscorlibAssembly.MainModule.GetTypeResolved(typeof(RuntimeHelpers).FullName);
-        var runClassConstructorMethod = assembly.MainModule.ImportReference(runtimeHelpersType.Methods.Single(x => x.IsPublic && x.Name == "RunClassConstructor" && x.Parameters.Count == 1 && x.Parameters[0].ParameterType.FullName == typeof(RuntimeTypeHandle).FullName));
+        var runClassConstructorMethod = module.ImportReference(runtimeHelpersType.Methods.Single(x => x.IsPublic && x.Name == "RunClassConstructor" && x.Parameters.Count == 1 && x.Parameters[0].ParameterType.FullName == typeof(RuntimeTypeHandle).FullName));
 
         foreach (var profile in registry.Context.SerializableTypesProfiles)
         {
-            initializeMethodIL.Emit(OpCodes.Dup);
-
             // Generating: var assemblySerializersProfile = new AssemblySerializersPerProfile();
             // Generating: assemblySerializers.Profiles["<#=profile.Key#>"] = assemblySerializersProfile;
-            initializeMethodIL.Emit(OpCodes.Callvirt, assemblySerializersGetProfilesRef);
-            initializeMethodIL.Emit(OpCodes.Ldstr, profile.Key);
-            initializeMethodIL.Emit(OpCodes.Newobj, assemblySerializersPerProfileTypeCtorRef);
+            initIL2.Emit(OpCodes.Dup)
+                   .Emit(OpCodes.Callvirt, assemblySerializersGetProfilesRef)
+                   .Emit(OpCodes.Ldstr, profile.Key)
+                   .Emit(OpCodes.Newobj, assemblySerializersPerProfileTypeCtorRef);
 
             foreach (var type in profile.Value.SerializableTypes.Where(x => x.Value.Local))
             {
                 // Generating: assemblySerializersProfile.Add(new AssemblySerializerEntry(<#=type.Key.ConvertTypeId()#>, typeof(<#= type.Key.ConvertCSharp() #>), <# if (type.Value.SerializerType != null) { #>typeof(<#= type.Value.SerializerType.ConvertCSharp() #>)<# } else { #>null<# } #>));
-                initializeMethodIL.Emit(OpCodes.Dup);
+                initIL2.Emit(OpCodes.Dup);
 
                 var typeName = type.Key.ConvertCSharp(false);
                 var typeId = ObjectId.FromBytes(Encoding.UTF8.GetBytes(typeName));
@@ -460,66 +460,57 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
                         var typeIdHash = (int*)&typeId;
 
                         for (int i = 0; i < ObjectId.HashSize / 4; ++i)
-                            initializeMethodIL.Emit(OpCodes.Ldc_I4, typeIdHash[i]);
+                            initIL2.Emit(OpCodes.Ldc_I4, typeIdHash[i]);
                     }
 
-                initializeMethodIL.Emit(OpCodes.Newobj, objectIdCtorRef);
-
-                initializeMethodIL.Emit(OpCodes.Ldtoken, assembly.MainModule.ImportReference(type.Key));
-                initializeMethodIL.Emit(OpCodes.Call, assembly.MainModule.ImportReference(getTypeFromHandleMethod));
+                initIL2.Emit(OpCodes.Newobj, objectIdCtorRef)
+                       .EmitTypeof(initIL2.Import(type.Key), getTypeFromHandleRef);
 
                 if (type.Value.SerializerType != null)
                 {
-                    initializeMethodIL.Emit(OpCodes.Ldtoken, assembly.MainModule.ImportReference(type.Value.SerializerType));
-                    initializeMethodIL.Emit(OpCodes.Call, assembly.MainModule.ImportReference(getTypeFromHandleMethod));
+                    initIL2.EmitTypeof(initIL2.Import(type.Value.SerializerType), getTypeFromHandleRef);
                 }
                 else
                 {
-                    initializeMethodIL.Emit(OpCodes.Ldnull);
+                    initIL2.Emit(OpCodes.Ldnull);
                 }
 
-                initializeMethodIL.Emit(OpCodes.Newobj, serializerEntryTypeCtorRef);
-                initializeMethodIL.Emit(OpCodes.Callvirt, assemblySerializersPerProfileTypeAddRef);
+                initIL2.Emit(OpCodes.Newobj, serializerEntryTypeCtorRef)
+                       .Emit(OpCodes.Callvirt, assemblySerializersPerProfileTypeAddRef);
 
                 if (type.Value.SerializerType?.Resolve()?.Methods.Any(x => x.IsConstructor && x.IsStatic) == true)
                 {
                     // Generating: System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(<#=type.Value.SerializerType.ConvertCSharp()#>).TypeHandle);
-                    initializeMethodIL.Append(Instruction.Create(OpCodes.Ldtoken, type.Value.SerializerType));
-                    initializeMethodIL.Append(Instruction.Create(OpCodes.Call, assembly.MainModule.ImportReference(getTypeFromHandleMethod)));
-                    initializeMethodIL.Append(Instruction.Create(OpCodes.Callvirt, getTypeHandleMethodRef));
-                    initializeMethodIL.Append(Instruction.Create(OpCodes.Call, runClassConstructorMethod));
+                    initIL2.EmitTypeHandle(type.Value.SerializerType, initIL2.Import(getTypeFromHandleMethod), getTypeHandleMethodRef)
+                           .Emit(OpCodes.Call, runClassConstructorMethod);
                 }
             }
 
-            initializeMethodIL.Emit(OpCodes.Callvirt, assemblySerializersGetProfilesSetItemRef);
+            initIL2.Emit(OpCodes.Callvirt, assemblySerializersGetProfilesSetItemRef);
         }
 
         // Generating: DataSerializerFactory.RegisterSerializationAssembly(assemblySerializers);
-        var dataSerializerFactoryRegisterSerializationAssemblyMethodRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.DataSerializerFactory").Methods.Single(x => x.Name == "RegisterSerializationAssembly" && x.Parameters[0].ParameterType.FullName == assemblySerializersType.FullName));
-        initializeMethodIL.Emit(OpCodes.Call, dataSerializerFactoryRegisterSerializationAssemblyMethodRef);
+        var dataSerializerFactoryRegisterSerializationAssemblyMethodRef = module.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.DataSerializerFactory").Methods.Single(x => x.Name == "RegisterSerializationAssembly" && x.Parameters[0].ParameterType.FullName == assemblySerializersType.FullName));
+        initIL2.Emit(OpCodes.Call, dataSerializerFactoryRegisterSerializationAssemblyMethodRef);
 
         // Generating: AssemblyRegistry.Register(typeof(<#=registry.ClassName#>).GetTypeInfo().Assembly, AssemblyCommonCategories.Engine);
-        initializeMethodIL.Emit(OpCodes.Ldtoken, serializerFactoryType);
-        initializeMethodIL.Emit(OpCodes.Call, assembly.MainModule.ImportReference(getTypeFromHandleMethod));
-        initializeMethodIL.Emit(OpCodes.Call, assembly.MainModule.ImportReference(getTokenInfoExMethod));
-        initializeMethodIL.Emit(OpCodes.Callvirt, assembly.MainModule.ImportReference(getTypeInfoAssembly));
+        initIL2.EmitTypeofAssembly(serializerFactoryType, getTypeFromHandleRef, getTypeInfoRef, getAssemblyRef);
 
         // create new[] { AssemblyCommonCategories.Engine }
-        initializeMethodIL.Emit(OpCodes.Ldc_I4_1);
-        initializeMethodIL.Emit(OpCodes.Newarr, assembly.MainModule.TypeSystem.String);
-        initializeMethodIL.Emit(OpCodes.Dup);
-        initializeMethodIL.Emit(OpCodes.Ldc_I4_0);
-        initializeMethodIL.Emit(OpCodes.Ldstr, Reflection.AssemblyCommonCategories.Engine);
-        initializeMethodIL.Emit(OpCodes.Stelem_Ref);
+        initIL2.Emit(OpCodes.Ldc_I4_1)
+               .Emit(OpCodes.Newarr, module.TypeSystem.String)
+               .Emit(OpCodes.Dup)
+               .Emit(OpCodes.Ldc_I4_0)
+               .Emit(OpCodes.Ldstr, Reflection.AssemblyCommonCategories.Engine)
+               .Emit(OpCodes.Stelem_Ref);
 
-        var assemblyRegistryRegisterMethodRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Reflection.AssemblyRegistry").Methods.Single(x => x.Name == "Register" && x.Parameters[1].ParameterType.IsArray));
-        initializeMethodIL.Emit(OpCodes.Call, assemblyRegistryRegisterMethodRef);
-
-        initializeMethodIL.Emit(OpCodes.Ret);
+        var assemblyRegistryRegisterMethodRef = module.ImportReference(strideCoreModule.GetType("Stride.Core.Reflection.AssemblyRegistry").Methods.Single(x => x.Name == "Register" && x.Parameters[1].ParameterType.IsArray));
+        initIL2.Emit(OpCodes.Call, assemblyRegistryRegisterMethodRef)
+               .Emit(OpCodes.Ret);
 
         // Add AssemblySerializerFactoryAttribute
         var assemblySerializerFactoryAttribute = strideCoreModule.GetType("Stride.Core.Serialization.AssemblySerializerFactoryAttribute");
-        assembly.CustomAttributes.Add(new CustomAttribute(assembly.MainModule.ImportReference(assemblySerializerFactoryAttribute.GetEmptyConstructor()))
+        assembly.CustomAttributes.Add(new CustomAttribute(module.ImportReference(assemblySerializerFactoryAttribute.GetEmptyConstructor()))
         {
             Fields =
             {
@@ -527,7 +518,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
             }
         });
         // Insert the call before the end of the method body
-        il.InsertBefore(moduleConstructor.Body.Instructions.Last(), callInitializeInstruction);
+        moduleCtorIL.InsertBefore(moduleConstructor.Body.Instructions.Last(), callInitializeInstruction);
 
         serializationHash = hash.ComputeHash();
     }

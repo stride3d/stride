@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -103,7 +103,7 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
     }
 
     /// <summary>
-    /// Creates the write method with the following signature: 
+    /// Creates the write method with the following signature:
     /// <code>
     /// public static unsafe void* Write&lt;T&gt;(void* pDest, ref T data) where T : struct
     /// </code>
@@ -114,7 +114,7 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
         method.Body.Instructions.Clear();
         method.Body.InitLocals = true;
 
-        var gen = method.Body.GetILProcessor();
+        var il = new ILBuilder(method.Body, assembly.MainModule);
         var paramT = method.GenericParameters[0];
         // Preparing locals
         // local(0) int
@@ -123,34 +123,28 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
         method.Body.Variables.Add(new VariableDefinition(new PinnedType(new ByReferenceType(paramT))));
 
         // Push (0) pDest for memcpy
-        gen.Emit(OpCodes.Ldarg_0);
-
-        // fixed (void* pinnedData = &data[offset])
-        gen.Emit(OpCodes.Ldarg_1);
-        gen.Emit(OpCodes.Stloc_1);
-
-        // Push (1) pinnedData for memcpy
-        gen.Emit(OpCodes.Ldloc_1);
-
-        // totalSize = sizeof(T)
-        gen.Emit(OpCodes.Sizeof, paramT);
-        gen.Emit(OpCodes.Conv_I4);
-        gen.Emit(OpCodes.Stloc_0);
-
-        // Push (2) totalSize
-        gen.Emit(OpCodes.Ldloc_0);
+        il.Emit(OpCodes.Ldarg_0)
+          // fixed (void* pinnedData = &data[offset])
+          .Emit(OpCodes.Ldarg_1)
+          .Emit(OpCodes.Stloc_1)
+          // Push (1) pinnedData for memcpy
+          .Emit(OpCodes.Ldloc_1)
+          // totalSize = sizeof(T)
+          .Emit(OpCodes.Sizeof, paramT)
+          .Emit(OpCodes.Conv_I4)
+          .Emit(OpCodes.Stloc_0)
+          // Push (2) totalSize
+          .Emit(OpCodes.Ldloc_0);
 
         // Emit cpblk
-        EmitCpblk(method, gen);
+        EmitCpblk(il);
 
         // Return pDest + totalSize
-        gen.Emit(OpCodes.Ldloc_0);
-        gen.Emit(OpCodes.Conv_I);
-        gen.Emit(OpCodes.Ldarg_0);
-        gen.Emit(OpCodes.Add);
-
-        // Ret
-        gen.Emit(OpCodes.Ret);
+        il.Emit(OpCodes.Ldloc_0)
+          .Emit(OpCodes.Conv_I)
+          .Emit(OpCodes.Ldarg_0)
+          .Emit(OpCodes.Add)
+          .Emit(OpCodes.Ret);
     }
 
     private void ReplacePinStatement(MethodDefinition method, ILProcessor ilProcessor, Instruction fixedtoPatch)
@@ -348,12 +342,9 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
         method.Body.Instructions.Clear();
         method.Body.InitLocals = true;
 
-        var gen = method.Body.GetILProcessor();
-
-        gen.Emit(OpCodes.Ldarg_0);
-
-        // Ret
-        gen.Emit(OpCodes.Ret);
+        var il = new ILBuilder(method.Body, assembly.MainModule);
+        il.Emit(OpCodes.Ldarg_0)
+          .Emit(OpCodes.Ret);
     }
 
     /// <summary>
@@ -368,12 +359,9 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
         method.Body.Instructions.Clear();
         method.Body.InitLocals = true;
 
-        var gen = method.Body.GetILProcessor();
-
-        gen.Emit(OpCodes.Ldarg_0);
-
-        // Ret
-        gen.Emit(OpCodes.Ret);
+        var il = new ILBuilder(method.Body, assembly.MainModule);
+        il.Emit(OpCodes.Ldarg_0)
+          .Emit(OpCodes.Ret);
     }
 
     private void ReplaceFixedArrayStatement(MethodDefinition method, ILProcessor ilProcessor, Instruction fixedtoPatch)
@@ -431,7 +419,7 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
         method.Body.Instructions.Clear();
         method.Body.InitLocals = true;
 
-        var gen = method.Body.GetILProcessor();
+        var il = new ILBuilder(method.Body, assembly.MainModule);
         var paramT = method.GenericParameters[0];
         // Preparing locals
         // local(0) int
@@ -440,38 +428,32 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
         method.Body.Variables.Add(new VariableDefinition(new PinnedType(new ByReferenceType(paramT))));
 
         // Push (0) pDest for memcpy
-        gen.Emit(OpCodes.Ldarg_0);
-
-        // fixed (void* pinnedData = &data[offset])
-        gen.Emit(OpCodes.Ldarg_1);
-        gen.Emit(OpCodes.Ldarg_2);
-        gen.Emit(OpCodes.Ldelema, paramT);
-        gen.Emit(OpCodes.Stloc_1);
-
-        // Push (1) pinnedData for memcpy
-        gen.Emit(OpCodes.Ldloc_1);
-
-        // totalSize = sizeof(T) * count
-        gen.Emit(OpCodes.Sizeof, paramT);
-        gen.Emit(OpCodes.Conv_I4);
-        gen.Emit(OpCodes.Ldarg_3);
-        gen.Emit(OpCodes.Mul);
-        gen.Emit(OpCodes.Stloc_0);
-
-        // Push (2) totalSize
-        gen.Emit(OpCodes.Ldloc_0);
+        il.Emit(OpCodes.Ldarg_0)
+          // fixed (void* pinnedData = &data[offset])
+          .Emit(OpCodes.Ldarg_1)
+          .Emit(OpCodes.Ldarg_2)
+          .Emit(OpCodes.Ldelema, paramT)
+          .Emit(OpCodes.Stloc_1)
+          // Push (1) pinnedData for memcpy
+          .Emit(OpCodes.Ldloc_1)
+          // totalSize = sizeof(T) * count
+          .Emit(OpCodes.Sizeof, paramT)
+          .Emit(OpCodes.Conv_I4)
+          .Emit(OpCodes.Ldarg_3)
+          .Emit(OpCodes.Mul)
+          .Emit(OpCodes.Stloc_0)
+          // Push (2) totalSize
+          .Emit(OpCodes.Ldloc_0);
 
         // Emit cpblk
-        EmitCpblk(method, gen);
+        EmitCpblk(il);
 
         // Return pDest + totalSize
-        gen.Emit(OpCodes.Ldloc_0);
-        gen.Emit(OpCodes.Conv_I);
-        gen.Emit(OpCodes.Ldarg_0);
-        gen.Emit(OpCodes.Add);
-
-        // Ret
-        gen.Emit(OpCodes.Ret);
+        il.Emit(OpCodes.Ldloc_0)
+          .Emit(OpCodes.Conv_I)
+          .Emit(OpCodes.Ldarg_0)
+          .Emit(OpCodes.Add)
+          .Emit(OpCodes.Ret);
     }
 
     /// <summary>
@@ -486,45 +468,38 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
         method.Body.Instructions.Clear();
         method.Body.InitLocals = true;
 
-        var gen = method.Body.GetILProcessor();
+        var il = new ILBuilder(method.Body, assembly.MainModule);
         var paramT = method.GenericParameters[0];
 
         // Preparing locals
         // local(0) int
         method.Body.Variables.Add(new VariableDefinition(intType));
         // local(1) T*
-
         method.Body.Variables.Add(new VariableDefinition(new PinnedType(new ByReferenceType(paramT))));
 
         // fixed (void* pinnedData = &data[offset])
-        gen.Emit(OpCodes.Ldarg_1);
-        gen.Emit(OpCodes.Stloc_1);
-
-        // Push (0) pinnedData for memcpy
-        gen.Emit(OpCodes.Ldloc_1);
-
-        // Push (1) pSrc for memcpy
-        gen.Emit(OpCodes.Ldarg_0);
-
-        // totalSize = sizeof(T)
-        gen.Emit(OpCodes.Sizeof, paramT);
-        gen.Emit(OpCodes.Conv_I4);
-        gen.Emit(OpCodes.Stloc_0);
-
-        // Push (2) totalSize
-        gen.Emit(OpCodes.Ldloc_0);
+        il.Emit(OpCodes.Ldarg_1)
+          .Emit(OpCodes.Stloc_1)
+          // Push (0) pinnedData for memcpy
+          .Emit(OpCodes.Ldloc_1)
+          // Push (1) pSrc for memcpy
+          .Emit(OpCodes.Ldarg_0)
+          // totalSize = sizeof(T)
+          .Emit(OpCodes.Sizeof, paramT)
+          .Emit(OpCodes.Conv_I4)
+          .Emit(OpCodes.Stloc_0)
+          // Push (2) totalSize
+          .Emit(OpCodes.Ldloc_0);
 
         // Emit cpblk
-        EmitCpblk(method, gen);
+        EmitCpblk(il);
 
         // Return pDest + totalSize
-        gen.Emit(OpCodes.Ldloc_0);
-        gen.Emit(OpCodes.Conv_I);
-        gen.Emit(OpCodes.Ldarg_0);
-        gen.Emit(OpCodes.Add);
-
-        // Ret
-        gen.Emit(OpCodes.Ret);
+        il.Emit(OpCodes.Ldloc_0)
+          .Emit(OpCodes.Conv_I)
+          .Emit(OpCodes.Ldarg_0)
+          .Emit(OpCodes.Add)
+          .Emit(OpCodes.Ret);
     }
 
     /// <summary>
@@ -539,12 +514,10 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
         method.Body.Instructions.Clear();
         method.Body.InitLocals = true;
 
-        var gen = method.Body.GetILProcessor();
-        var paramT = method.GenericParameters[0];
+        var il = new ILBuilder(method.Body, assembly.MainModule);
 
         // Push (1) pSrc for memcpy
-        gen.Emit(OpCodes.Cpobj);
-
+        il.Emit(OpCodes.Cpobj);
     }
 
     /// <summary>
@@ -559,7 +532,7 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
         method.Body.Instructions.Clear();
         method.Body.InitLocals = true;
 
-        var gen = method.Body.GetILProcessor();
+        var il = new ILBuilder(method.Body, assembly.MainModule);
         var paramT = method.GenericParameters[0];
         // Preparing locals
         // local(0) int
@@ -568,39 +541,33 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
         method.Body.Variables.Add(new VariableDefinition(new PinnedType(new ByReferenceType(paramT))));
 
         // fixed (void* pinnedData = &data[offset])
-        gen.Emit(OpCodes.Ldarg_1);
-        gen.Emit(OpCodes.Ldarg_2);
-        gen.Emit(OpCodes.Ldelema, paramT);
-        gen.Emit(OpCodes.Stloc_1);
-
-        // Push (0) pinnedData for memcpy
-        gen.Emit(OpCodes.Ldloc_1);
-
-        // Push (1) pDest for memcpy
-        gen.Emit(OpCodes.Ldarg_0);
-
-        // totalSize = sizeof(T) * count
-        gen.Emit(OpCodes.Sizeof, paramT);
-        gen.Emit(OpCodes.Conv_I4);
-        gen.Emit(OpCodes.Ldarg_3);
-        gen.Emit(OpCodes.Conv_I4);
-        gen.Emit(OpCodes.Mul);
-        gen.Emit(OpCodes.Stloc_0);
-
-        // Push (2) totalSize
-        gen.Emit(OpCodes.Ldloc_0);
+        il.Emit(OpCodes.Ldarg_1)
+          .Emit(OpCodes.Ldarg_2)
+          .Emit(OpCodes.Ldelema, paramT)
+          .Emit(OpCodes.Stloc_1)
+          // Push (0) pinnedData for memcpy
+          .Emit(OpCodes.Ldloc_1)
+          // Push (1) pDest for memcpy
+          .Emit(OpCodes.Ldarg_0)
+          // totalSize = sizeof(T) * count
+          .Emit(OpCodes.Sizeof, paramT)
+          .Emit(OpCodes.Conv_I4)
+          .Emit(OpCodes.Ldarg_3)
+          .Emit(OpCodes.Conv_I4)
+          .Emit(OpCodes.Mul)
+          .Emit(OpCodes.Stloc_0)
+          // Push (2) totalSize
+          .Emit(OpCodes.Ldloc_0);
 
         // Emit cpblk
-        EmitCpblk(method, gen);
+        EmitCpblk(il);
 
         // Return pDest + totalSize
-        gen.Emit(OpCodes.Ldloc_0);
-        gen.Emit(OpCodes.Conv_I);
-        gen.Emit(OpCodes.Ldarg_0);
-        gen.Emit(OpCodes.Add);
-
-        // Ret
-        gen.Emit(OpCodes.Ret);
+        il.Emit(OpCodes.Ldloc_0)
+          .Emit(OpCodes.Conv_I)
+          .Emit(OpCodes.Ldarg_0)
+          .Emit(OpCodes.Add)
+          .Emit(OpCodes.Ret);
     }
 
     /// <summary>
@@ -614,16 +581,13 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
     {
         methodCopyStruct.Body.Instructions.Clear();
 
-        var gen = methodCopyStruct.Body.GetILProcessor();
-
-        gen.Emit(OpCodes.Ldarg_0);
-        gen.Emit(OpCodes.Ldarg_1);
-        gen.Emit(OpCodes.Ldarg_2);
-        gen.Emit(OpCodes.Unaligned, (byte)1);       // unaligned to 1
-        gen.Emit(OpCodes.Cpblk);
-
-        // Ret
-        gen.Emit(OpCodes.Ret);
+        var il = new ILBuilder(methodCopyStruct.Body, assembly.MainModule);
+        il.Emit(OpCodes.Ldarg_0)
+          .Emit(OpCodes.Ldarg_1)
+          .Emit(OpCodes.Ldarg_2)
+          .Emit(OpCodes.Unaligned, (byte)1)       // unaligned to 1
+          .Emit(OpCodes.Cpblk)
+          .Emit(OpCodes.Ret);
     }
 
     /// <summary>
@@ -637,32 +601,27 @@ internal class InteropProcessor : IAssemblyDefinitionProcessor
     {
         methodSetStruct.Body.Instructions.Clear();
 
-        var gen = methodSetStruct.Body.GetILProcessor();
-
-        gen.Emit(OpCodes.Ldarg_0);
-        gen.Emit(OpCodes.Ldarg_1);
-        gen.Emit(OpCodes.Ldarg_2);
-        gen.Emit(OpCodes.Unaligned, (byte)1);       // unaligned to 1
-        gen.Emit(OpCodes.Initblk);
-
-        // Ret
-        gen.Emit(OpCodes.Ret);
+        var il = new ILBuilder(methodSetStruct.Body, assembly.MainModule);
+        il.Emit(OpCodes.Ldarg_0)
+          .Emit(OpCodes.Ldarg_1)
+          .Emit(OpCodes.Ldarg_2)
+          .Emit(OpCodes.Unaligned, (byte)1)       // unaligned to 1
+          .Emit(OpCodes.Initblk)
+          .Emit(OpCodes.Ret);
     }
 
     /// <summary>
     /// Emits the cpblk method, supporting x86 and x64 platform.
     /// </summary>
-    /// <param name="method">The method.</param>
-    /// <param name="gen">The gen.</param>
-    private void EmitCpblk(MethodDefinition method, ILProcessor gen)
+    /// <param name="il">The IL builder.</param>
+    private static void EmitCpblk(ILBuilder il)
     {
-        var cpblk = gen.Create(OpCodes.Cpblk);
-        //gen.Emit(OpCodes.Sizeof, voidPointerType);
-        //gen.Emit(OpCodes.Ldc_I4_8);
-        //gen.Emit(OpCodes.Bne_Un_S, cpblk);
-        gen.Emit(OpCodes.Unaligned, (byte)1);       // unaligned to 1
-        gen.Append(cpblk);
-
+        var cpblk = Instruction.Create(OpCodes.Cpblk);
+        //il.Emit(OpCodes.Sizeof, voidPointerType);
+        //il.Emit(OpCodes.Ldc_I4_8);
+        //il.Emit(OpCodes.Bne_Un_S, cpblk);
+        il.Emit(OpCodes.Unaligned, (byte)1)       // unaligned to 1
+          .Append(cpblk);
     }
 
     private List<string> GetSharpDXAttributes(MethodDefinition method)
