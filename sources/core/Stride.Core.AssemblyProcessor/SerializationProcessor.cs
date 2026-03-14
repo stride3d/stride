@@ -58,6 +58,55 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     }
 
     /// <summary>
+    /// Creates the <see cref="TypeDefinition"/> for a serializer from its <see cref="SerializerDescriptor"/>,
+    /// adds it to the module, and wires it into the <see cref="CecilSerializerContext.SerializableTypeInfo"/>.
+    /// </summary>
+    private static TypeDefinition CreateSerializerTypeDefinition(
+        SerializerDescriptor descriptor,
+        ModuleDefinition module,
+        ModuleDefinition strideCoreModule)
+    {
+        var type = descriptor.DataType;
+        var serializerType = new TypeDefinition("Stride.Core.DataSerializers", descriptor.SerializerClassName,
+            TypeAttributes.AnsiClass | TypeAttributes.AutoClass | TypeAttributes.Sealed |
+            TypeAttributes.BeforeFieldInit |
+            (descriptor.IsPublic ? TypeAttributes.Public : TypeAttributes.NotPublic));
+
+        // Clone generic parameters from the data type
+        if (type.HasGenericParameters)
+        {
+            foreach (var genericParameter in type.GenericParameters)
+            {
+                var newGenericParameter = new GenericParameter(genericParameter.Name, serializerType)
+                {
+                    Attributes = genericParameter.Attributes
+                };
+
+                foreach (var constraint in genericParameter.Constraints)
+                    newGenericParameter.Constraints.Add(constraint);
+
+                serializerType.GenericParameters.Add(newGenericParameter);
+            }
+        }
+
+        // Setup base class
+        var baseSerializerName = descriptor.UseClassDataSerializer
+            ? "Stride.Core.Serialization.ClassDataSerializer`1"
+            : "Stride.Core.Serialization.DataSerializer`1";
+        var classDataSerializerType = strideCoreModule.GetType(baseSerializerName);
+        var parentType = module.ImportReference(classDataSerializerType)
+            .MakeGenericType(type.MakeGenericType(serializerType.GenericParameters.ToArray<TypeReference>()));
+        serializerType.BaseType = parentType;
+
+        module.Types.Add(serializerType);
+
+        // Update the SerializableTypeInfo to point to the real TypeDefinition
+        descriptor.SerializableTypeInfo.SerializerType = serializerType;
+
+        return serializerType;
+    }
+
+    /// <summary>
     /// Generates serializer classes (constructor, Initialize, Serialize methods) for each complex type.
     /// </summary>
     private static void GenerateComplexSerializerTypes(
@@ -75,10 +124,10 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         var dataSerializerSerializeMethod = dataSerializerTypeRef.Resolve().Methods.Single(x => x.Name == "Serialize" && (x.Attributes & MethodAttributes.Abstract) != 0);
         var dataSerializerSerializeMethodRef = module.ImportReference(dataSerializerSerializeMethod);
 
-        foreach (var complexType in registry.Context.ComplexTypes)
+        foreach (var descriptor in registry.Context.ComplexTypes)
         {
-            var type = complexType.Key;
-            var serializerType = (TypeDefinition)complexType.Value.SerializerType;
+            var type = descriptor.DataType;
+            var serializerType = CreateSerializerTypeDefinition(descriptor, module, strideCoreModule);
             var genericParameters = serializerType.GenericParameters.ToArray<TypeReference>();
             var typeWithGenerics = type.MakeGenericType(genericParameters);
 
@@ -87,9 +136,9 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
 
             TypeReference parentType = null;
             FieldDefinition parentSerializerField = null;
-            if (complexType.Value.ComplexSerializerProcessParentType != null)
+            if (descriptor.ComplexSerializerProcessParentType != null)
             {
-                parentType = complexType.Value.ComplexSerializerProcessParentType;
+                parentType = descriptor.ComplexSerializerProcessParentType;
                 serializerType.Fields.Add(parentSerializerField = new FieldDefinition("parentSerializer", Mono.Cecil.FieldAttributes.Private, dataSerializerTypeRef.MakeGenericType(parentType)));
 
                 hash.Write("parent");
@@ -141,7 +190,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
             var initialize = new MethodDefinition("Initialize", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual, module.TypeSystem.Void);
             initialize.Parameters.Add(new ParameterDefinition("serializerSelector", ParameterAttributes.None, serializerSelectorTypeRef));
             var initIL = new ILBuilder(initialize.Body, module);
-            if (complexType.Value.ComplexSerializerProcessParentType != null)
+            if (descriptor.ComplexSerializerProcessParentType != null)
             {
                 initIL.Emit(OpCodes.Ldarg_0)
                       .Emit(OpCodes.Ldarg_1)
@@ -161,7 +210,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
 
             // Add Serialize method
             GenerateSerializeMethod(type, serializerType, genericParameters, typeWithGenerics,
-                complexType.Value, serializableItems, serializableItemInfos, localsByTypes,
+                descriptor.SerializableTypeInfo, serializableItems, serializableItemInfos, localsByTypes,
                 dataSerializerSerializeMethod, dataSerializerSerializeMethodRef,
                 parentType, parentSerializerField, module);
         }

@@ -46,9 +46,10 @@ internal class CecilSerializerContext
     public ProfileInfo SerializableTypes { get; }
 
     /// <summary>
-    /// Gets the list of complex serializers to generate.
+    /// Gets the list of complex serializers to generate, keyed by the data type.
+    /// Populated during collection, consumed by the code generation phase.
     /// </summary>
-    public Dictionary<TypeDefinition, SerializableTypeInfo> ComplexTypes { get; }
+    public List<SerializerDescriptor> ComplexTypes { get; }
 
     /// <summary>
     /// Ensure the following type can be serialized. If not, try to register appropriate serializer.
@@ -348,32 +349,19 @@ internal class CecilSerializerContext
     {
         var isLocal = type.Resolve().Module.Assembly == Assembly;
 
-        // Create a fake TypeReference (even though it doesn't really exist yet, but at least ConvertCSharp to get its name will work).
-        TypeReference dataSerializerType;
+        // Create a forward TypeReference for the serializer (the actual TypeDefinition is created later during code generation).
         var className = ComplexSerializerRegistry.SerializerTypeName(type, false, true);
         if (type.HasGenericParameters)
             className += "`" + type.GenericParameters.Count;
-        if (isLocal && type is TypeDefinition)
-        {
-            dataSerializerType = new TypeDefinition("Stride.Core.DataSerializers", className,
-                TypeAttributes.AnsiClass | TypeAttributes.AutoClass | TypeAttributes.Sealed |
-                TypeAttributes.BeforeFieldInit |
-                (type.HasGenericParameters ? TypeAttributes.Public : TypeAttributes.NotPublic));
 
-            // TODO: Only if not using Roslyn
-            Assembly.MainModule.Types.Add((TypeDefinition)dataSerializerType);
-        }
-        else
-        {
-            dataSerializerType = new TypeReference("Stride.Core.DataSerializers", className, type.Module, type.Scope);
-        }
+        var dataSerializerType = new TypeReference("Stride.Core.DataSerializers", className, type.Module, isLocal ? Assembly.MainModule : type.Scope);
 
         var mode = DataSerializerGenericMode.None;
         if (type.HasGenericParameters)
         {
             mode = DataSerializerGenericMode.GenericArguments;
 
-            // Clone generic parameters
+            // Clone generic parameters onto the forward reference
             foreach (var genericParameter in type.GenericParameters)
             {
                 var newGenericParameter = new GenericParameter(genericParameter.Name, dataSerializerType)
@@ -381,7 +369,6 @@ internal class CecilSerializerContext
                     Attributes = genericParameter.Attributes
                 };
 
-                // Clone type constraints (others will be in Attributes)
                 foreach (var constraint in genericParameter.Constraints)
                     newGenericParameter.Constraints.Add(constraint);
 
@@ -389,25 +376,25 @@ internal class CecilSerializerContext
             }
         }
 
-        if (dataSerializerType is TypeDefinition dataSerializerTypeDefinition)
-        {
-            // Setup base class
-            var resolvedType = type.Resolve();
-            var useClassDataSerializer = resolvedType.IsClass && !resolvedType.IsValueType && !resolvedType.IsAbstract && !resolvedType.IsInterface && resolvedType.GetEmptyConstructor() != null;
-            var classDataSerializerType = Assembly.GetStrideCoreModule().GetType(useClassDataSerializer ? "Stride.Core.Serialization.ClassDataSerializer`1" : "Stride.Core.Serialization.DataSerializer`1");
-            var parentType = Assembly.MainModule.ImportReference(classDataSerializerType).MakeGenericType(type.MakeGenericType(dataSerializerType.GenericParameters.ToArray<TypeReference>()));
-            dataSerializerTypeDefinition.BaseType = parentType;
-        }
-
         var serializableTypeInfo = new SerializableTypeInfo(dataSerializerType, true, mode)
         {
-            Local = type.Resolve().Module.Assembly == Assembly
+            Local = isLocal
         };
         AddSerializableType(type, serializableTypeInfo);
 
         if (isLocal && type is TypeDefinition definition)
         {
-            ComplexTypes.Add(definition, serializableTypeInfo);
+            var resolvedType = type.Resolve();
+            var useClassDataSerializer = resolvedType.IsClass && !resolvedType.IsValueType && !resolvedType.IsAbstract && !resolvedType.IsInterface && resolvedType.GetEmptyConstructor() != null;
+
+            ComplexTypes.Add(new SerializerDescriptor
+            {
+                DataType = definition,
+                SerializerClassName = className,
+                IsPublic = type.HasGenericParameters,
+                UseClassDataSerializer = useClassDataSerializer,
+                SerializableTypeInfo = serializableTypeInfo,
+            });
         }
 
         serializableTypeInfo.ComplexSerializer = true;
