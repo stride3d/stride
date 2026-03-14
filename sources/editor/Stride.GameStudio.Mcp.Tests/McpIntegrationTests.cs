@@ -1394,7 +1394,7 @@ public sealed class McpIntegrationTests : IAsyncLifetime
 
         // Reload tools
         Assert.Contains("reload_scene", toolNames);
-        Assert.Contains("reload_project", toolNames);
+        Assert.Contains("restart_game_studio", toolNames);
         Assert.Contains("reload_assemblies", toolNames);
 
         // UI Page tools

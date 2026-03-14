@@ -59,7 +59,7 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 |------|-------------|
 | `save_project` | Saves all changes (scenes, entities, assets, etc.) to disk |
 | `reload_scene` | Closes and reopens a scene editor tab to refresh its state |
-| `reload_project` | Triggers a full GameStudio restart to reload the project from disk |
+| `restart_game_studio` | Restarts Game Studio entirely — use only for .csproj/.sln changes (drops MCP connection) |
 | `set_active_project` | Changes which project is active — select an Executable project for builds (warns if Library is selected) |
 
 ### Viewport
@@ -72,6 +72,7 @@ When Game Studio launches and opens a project, the MCP plugin automatically star
 |------|-------------|
 | `build_project` | Triggers an async build of the current game project |
 | `get_build_status` | Returns current build status, errors, and warnings |
+| `reload_assemblies` | Reloads game assemblies after a build to make user script types available |
 
 ## Configuration
 
@@ -258,12 +259,12 @@ Stride uses **root assets** to determine which assets get compiled into the game
 ## Project Reload Behavior
 
 ### save_project
-Writes the editor's in-memory state to disk. This **overwrites** any external changes made to scene/asset YAML files. If you have modified project files externally, use `reload_project` first to load those changes into the editor.
+Writes the editor's in-memory state to disk. This **overwrites** any external changes made to scene/asset YAML files. If you have modified project files externally, use `restart_game_studio` first to load those changes into the editor.
 
 ### reload_scene
 Closes and reopens a single scene editor tab. Useful after `build_project` completes (to pick up new script component types) or when the scene editor appears stale. Unsaved changes to that scene are discarded.
 
-### reload_project
+### restart_game_studio
 Triggers a full GameStudio restart (equivalent to File > Reload project). The MCP connection will be lost — the client must wait for the new GameStudio instance to start and reconnect to the new MCP server. If there are unsaved changes, the user will see a Save/Don't Save/Cancel dialog.
 
 ## Integration Tests
