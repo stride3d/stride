@@ -6,7 +6,7 @@ using Mono.Cecil;
 namespace Stride.Core.AssemblyProcessor.Serializers;
 
 /// <summary>
-/// Describes a complex serializer to be generated. Collected during the discovery phase
+/// Describes a serializer to be generated. Collected during the discovery phase
 /// and consumed by the code generation phase to create the actual <see cref="TypeDefinition"/>.
 /// </summary>
 internal class SerializerDescriptor
@@ -39,7 +39,7 @@ internal class SerializerDescriptor
 
     /// <summary>
     /// Base type whose serializer should be called first (for inheritance chains).
-    /// Set by <see cref="CecilSerializerContext.ProcessComplexSerializerMembers"/>.
+    /// Set by <see cref="CecilSerializerContext.CollectSerializerDependencies"/>.
     /// </summary>
-    public TypeReference? ComplexSerializerProcessParentType => SerializableTypeInfo.ComplexSerializerProcessParentType;
+    public TypeReference? SerializedParentType => SerializableTypeInfo.SerializedParentType;
 }

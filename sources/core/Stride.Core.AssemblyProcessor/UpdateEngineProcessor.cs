@@ -287,7 +287,7 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
         VariableDefinition emptyStruct = null;
 
         // Note: forcing fields and properties to be processed in all cases
-        foreach (var serializableItem in ComplexSerializerRegistry.GetSerializableItems(type, true, ComplexTypeSerializerFlags.SerializePublicFields | ComplexTypeSerializerFlags.SerializePublicProperties | ComplexTypeSerializerFlags.Updatable))
+        foreach (var serializableItem in SerializerRegistry.GetSerializableItems(type, true, ComplexTypeSerializerFlags.SerializePublicFields | ComplexTypeSerializerFlags.SerializePublicProperties | ComplexTypeSerializerFlags.Updatable))
         {
             if (serializableItem.MemberInfo is FieldReference fieldReference)
             {

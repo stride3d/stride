@@ -72,21 +72,6 @@
     <Compile Include="..\Stride.Core\Storage\ObjectIdBuilder.cs">
       <Link>Core\ObjectIdBuilder.cs</Link>
     </Compile>
-    <Compile Update="AssemblyScanCodeGenerator.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>AssemblyScanCodeGenerator.tt</DependentUpon>
-    </Compile>
-    <Compile Update="ComplexSerializerCodeGenerator.cs">
-      <DependentUpon>ComplexSerializerCodeGenerator.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Update="ComplexClassSerializerGenerator.cs">
-      <DependentUpon>ComplexClassSerializerGenerator.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
   </ItemGroup>
 
   <!-- Items that have no role in the build process -->

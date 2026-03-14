@@ -9,12 +9,12 @@ using Mono.Cecil;
 
 namespace Stride.Core.AssemblyProcessor;
 
-internal class ComplexSerializerRegistry
+internal class SerializerRegistry
 {
     private static readonly HashSet<string> forbiddenKeywords;
     private static readonly HashSet<IMemberDefinition> ignoredMembers;
 
-    static ComplexSerializerRegistry()
+    static SerializerRegistry()
     {
         ignoredMembers = [];
 
@@ -58,7 +58,7 @@ internal class ComplexSerializerRegistry
 
     public List<ICecilSerializerFactory> SerializerFactories { get; } = [];
 
-    public ComplexSerializerRegistry(PlatformType platform, AssemblyDefinition assembly, TextWriter log)
+    public SerializerRegistry(PlatformType platform, AssemblyDefinition assembly, TextWriter log)
     {
         Assembly = assembly;
         ClassName = Utilities.BuildValidClassName(assembly.Name.Name) + "SerializerFactory";
@@ -100,8 +100,8 @@ internal class ComplexSerializerRegistry
             // Import list of serializer registered by referenced assemblies
             new ReferencedAssemblySerializerProcessor(),
 
-            // Generate serializers for types tagged as serializable
-            new CecilComplexClassSerializerProcessor(),
+            // Discover [DataContract] types and resolve their serializers
+            new CecilDataContractSerializerProcessor(),
 
             // Generate serializers for PropertyKey and ParameterKey
             new PropertyKeySerializerProcessor(),

@@ -6,14 +6,13 @@ using Mono.Cecil.Rocks;
 
 namespace Stride.Core.AssemblyProcessor.Serializers;
 
-class CecilComplexClassSerializerProcessor : ICecilSerializerProcessor
+class CecilDataContractSerializerProcessor : ICecilSerializerProcessor
 {
     public void ProcessSerializers(CecilSerializerContext context)
     {
         foreach (var type in context.Assembly.MainModule.GetAllTypes().ToArray())
         {
-            // Force generation of serializers (complex types, etc...)
-            // Check complex type definitions
+            // Discover [DataContract] types and resolve their serializers
             ProcessType(context, type);
         }
     }

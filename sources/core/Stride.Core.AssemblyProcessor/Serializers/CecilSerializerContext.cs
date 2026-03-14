@@ -18,7 +18,7 @@ internal class CecilSerializerContext
         SerializableTypesProfiles = [];
         SerializableTypes = new ProfileInfo();
         SerializableTypesProfiles.Add("Default", SerializableTypes);
-        ComplexTypes = [];
+        PendingSerializers = [];
         this.log = log;
 
         StrideCoreModule = assembly.GetStrideCoreModule();
@@ -46,16 +46,16 @@ internal class CecilSerializerContext
     public ProfileInfo SerializableTypes { get; }
 
     /// <summary>
-    /// Gets the list of complex serializers to generate, keyed by the data type.
+    /// Gets the list of serializers pending code generation.
     /// Populated during collection, consumed by the code generation phase.
     /// </summary>
-    public List<SerializerDescriptor> ComplexTypes { get; }
+    public List<SerializerDescriptor> PendingSerializers { get; }
 
     /// <summary>
     /// Ensure the following type can be serialized. If not, try to register appropriate serializer.
     /// This method can be recursive.
     /// </summary>
-    public SerializableTypeInfo GenerateSerializer(TypeReference type, bool force = true, string profile = "Default", bool generic = false)
+    public SerializableTypeInfo ResolveSerializer(TypeReference type, bool force = true, string profile = "Default", bool generic = false)
     {
         var serializableTypes = GetSerializableTypes(profile);
 
@@ -67,17 +67,17 @@ internal class CecilSerializerContext
 
         // Arrays
         if (type is ArrayType arrayType)
-            return GenerateArraySerializer(arrayType, force, profile);
+            return ResolveArraySerializer(arrayType, force, profile);
 
         // Generic instances (List<T>, Dictionary<K,V>, etc.)
         if (type is GenericInstanceType genericInstanceType)
         {
-            serializableTypeInfo = GenerateGenericSerializer(genericInstanceType, profile);
+            serializableTypeInfo = ResolveGenericSerializer(genericInstanceType, profile);
             if (serializableTypeInfo != null)
                 return serializableTypeInfo;
         }
 
-        // Check complex type definitions (only in Default profile)
+        // Check type definitions for serializer info (only in Default profile)
         if (profile == "Default")
         {
             serializableTypeInfo = FindSerializerInfo(type, generic);
@@ -87,7 +87,7 @@ internal class CecilSerializerContext
 
         // Non-Default profiles fall back to Default
         if (profile != "Default")
-            return GenerateSerializer(type, force, "Default", generic);
+            return ResolveSerializer(type, force, "Default", generic);
 
         // Past this point, only proceed if a serializer is absolutely necessary.
         // This is skipped when scanning normal assembly types that might have nothing to do with serialization.
@@ -107,15 +107,15 @@ internal class CecilSerializerContext
         return null;
     }
 
-    private SerializableTypeInfo GenerateArraySerializer(ArrayType arrayType, bool force, string profile)
+    private SerializableTypeInfo ResolveArraySerializer(ArrayType arrayType, bool force, string profile)
     {
         // Only proceed if element type is serializable
-        if (GenerateSerializer(arrayType.ElementType, force, profile) == null)
+        if (ResolveSerializer(arrayType.ElementType, force, profile) == null)
             return null;
 
         // Non-Default profiles fall back to Default for array serializer registration
         if (profile != "Default")
-            return GenerateSerializer(arrayType, force, "Default");
+            return ResolveSerializer(arrayType, force, "Default");
 
         var arraySerializerType = StrideCoreModule.GetTypeResolved("Stride.Core.Serialization.Serializers.ArraySerializer`1");
         var serializerType = new GenericInstanceType(arraySerializerType);
@@ -126,20 +126,20 @@ internal class CecilSerializerContext
         return info;
     }
 
-    private SerializableTypeInfo GenerateGenericSerializer(GenericInstanceType type, string profile)
+    private SerializableTypeInfo ResolveGenericSerializer(GenericInstanceType type, string profile)
     {
         // Try to match with existing generic serializer (for List, Dictionary, etc.)
-        var elementInfo = GenerateSerializer(type.ElementType, false, profile, true);
+        var elementInfo = ResolveSerializer(type.ElementType, false, profile, true);
         if (elementInfo == null)
             return null;
 
         var serializerType = InstantiateSerializerType(elementInfo.SerializerType, elementInfo.Mode, type, type.GenericArguments);
 
-        var info = new SerializableTypeInfo(serializerType, true) { ComplexSerializer = elementInfo.ComplexSerializer };
+        var info = new SerializableTypeInfo(serializerType, true) { IsGeneratedSerializer = elementInfo.IsGeneratedSerializer };
         AddSerializableType(type, info, profile);
 
-        if (elementInfo.ComplexSerializer)
-            ProcessComplexSerializerMembers(type, info);
+        if (elementInfo.IsGeneratedSerializer)
+            CollectSerializerDependencies(type, info);
 
         return info;
     }
@@ -170,26 +170,24 @@ internal class CecilSerializerContext
         return serializerType;
     }
 
-    private void ProcessComplexSerializerMembers(TypeReference type, SerializableTypeInfo serializableTypeInfo, string profile = "Default")
+    private void CollectSerializerDependencies(TypeReference type, SerializableTypeInfo serializableTypeInfo, string profile = "Default")
     {
-        // Process base type (for complex serializers)
-        // Check if we have any serializable closed base type and collect it to pass it over to GenerateSerializerCode later,
-        // who'll ensure the generated serializer for this type calls into its base types' serializer
+        // Find the nearest serializable base type so the generated serializer can chain to it
         for (var baseType = type; (baseType = ResolveGenericsVisitor.Process(baseType, baseType.Resolve().BaseType)) != null;)
         {
             if (baseType.ContainsGenericParameter())
                 continue; // ResolveGenericsVisitor failed, the type it returned is not closed, we can't serialize it
 
-            var parentSerializableTypeInfo = GenerateSerializer(baseType, false, profile);
+            var parentSerializableTypeInfo = ResolveSerializer(baseType, false, profile);
             if (parentSerializableTypeInfo?.SerializerType != null)
             {
-                serializableTypeInfo.ComplexSerializerProcessParentType = baseType;
+                serializableTypeInfo.SerializedParentType = baseType;
                 break;
             }
         }
 
         // Process members
-        foreach (var serializableItem in ComplexSerializerRegistry.GetSerializableItems(type, true))
+        foreach (var serializableItem in SerializerRegistry.GetSerializableItems(type, true))
         {
             // Check that all closed types have a proper serializer
             if (serializableItem.Attributes.Any(x => x.AttributeType.FullName == "Stride.Core.DataMemberCustomSerializerAttribute")
@@ -203,9 +201,9 @@ internal class CecilSerializerContext
 
             try
             {
-                if (GenerateSerializer(serializableItem.Type, profile: profile) == null)
+                if (ResolveSerializer(serializableItem.Type, profile: profile) == null)
                 {
-                    ComplexSerializerRegistry.IgnoreMember(serializableItem.MemberInfo);
+                    SerializerRegistry.IgnoreMember(serializableItem.MemberInfo);
                     if (!isInterface)
                     {
                         log.Write(
@@ -252,7 +250,7 @@ internal class CecilSerializerContext
         if (dataSerializerAttribute != null)
             return ProcessDataSerializerAttribute(type, dataSerializerAttribute, generic);
 
-        // [DataContract] attribute — auto-generate complex serializer
+        // [DataContract] attribute — collect generated serializer
         var dataContractAttribute = resolvedType.CustomAttributes
             .FirstOrDefault(x => x.AttributeType.FullName == "Stride.Core.DataContractAttribute");
         if (dataContractAttribute != null)
@@ -262,9 +260,9 @@ internal class CecilSerializerContext
                 .Select(x => (bool)x.Argument.Value)
                 .FirstOrDefault();
 
-            var info = CreateComplexSerializer(type);
+            var info = CollectSerializer(type);
             info.Inherited = inherited;
-            ProcessComplexSerializerMembers(type, info);
+            CollectSerializerDependencies(type, info);
             return info;
         }
 
@@ -307,16 +305,16 @@ internal class CecilSerializerContext
             return null;
 
         // Generate serializer for parent type
-        var parentInfo = GenerateSerializer(parentType.Resolve(), false, generic: true);
+        var parentInfo = ResolveSerializer(parentType.Resolve(), false, generic: true);
         if (parentInfo?.Inherited != true)
             return null;
 
-        // Parent has a complex serializer — create one for this type too
-        if (parentInfo.ComplexSerializer)
+        // Parent has a generated serializer — collect one for this type too
+        if (parentInfo.IsGeneratedSerializer)
         {
-            var info = CreateComplexSerializer(type);
+            var info = CollectSerializer(type);
             info.Inherited = true;
-            ProcessComplexSerializerMembers(type, info);
+            CollectSerializerDependencies(type, info);
             return info;
         }
 
@@ -345,12 +343,12 @@ internal class CecilSerializerContext
         throw new InvalidOperationException("Not sure how to process this inherited serializer");
     }
 
-    private SerializableTypeInfo CreateComplexSerializer(TypeReference type)
+    private SerializableTypeInfo CollectSerializer(TypeReference type)
     {
         var isLocal = type.Resolve().Module.Assembly == Assembly;
 
         // Create a forward TypeReference for the serializer (the actual TypeDefinition is created later during code generation).
-        var className = ComplexSerializerRegistry.SerializerTypeName(type, false, true);
+        var className = SerializerRegistry.SerializerTypeName(type, false, true);
         if (type.HasGenericParameters)
             className += "`" + type.GenericParameters.Count;
 
@@ -387,7 +385,7 @@ internal class CecilSerializerContext
             var resolvedType = type.Resolve();
             var useClassDataSerializer = resolvedType.IsClass && !resolvedType.IsValueType && !resolvedType.IsAbstract && !resolvedType.IsInterface && resolvedType.GetEmptyConstructor() != null;
 
-            ComplexTypes.Add(new SerializerDescriptor
+            PendingSerializers.Add(new SerializerDescriptor
             {
                 DataType = definition,
                 SerializerClassName = className,
@@ -397,7 +395,7 @@ internal class CecilSerializerContext
             });
         }
 
-        serializableTypeInfo.ComplexSerializer = true;
+        serializableTypeInfo.IsGeneratedSerializer = true;
 
         return serializableTypeInfo;
     }
@@ -471,7 +469,7 @@ internal class CecilSerializerContext
             // Import type so that it becomes local to the assembly
             // (otherwise SerializableTypeInfo.Local will be false and it won't be instantiated)
             var importedType = Assembly.MainModule.ImportReference(dependentType);
-            if (GenerateSerializer(importedType) == null)
+            if (ResolveSerializer(importedType) == null)
             {
                 throw new InvalidOperationException(string.Format("Could not find serializer for generic dependent type {0} when processing {1}", dependentType, dataType));
             }
@@ -505,14 +503,14 @@ internal class CecilSerializerContext
         public bool Inherited;
 
         /// <summary>
-        /// True if it's a complex serializer.
+        /// True if the serializer is auto-generated (for [DataContract] types).
         /// </summary>
-        public bool ComplexSerializer;
+        public bool IsGeneratedSerializer;
 
         /// <summary>
-        /// Not null if it's a complex serializer and its base class should be serialized too.
+        /// Not null if the serializer should chain to its base type's serializer.
         /// </summary>
-        public TypeReference? ComplexSerializerProcessParentType;
+        public TypeReference? SerializedParentType;
 
         public SerializableTypeInfo(TypeReference serializerType, bool local, DataSerializerGenericMode mode = DataSerializerGenericMode.None)
         {

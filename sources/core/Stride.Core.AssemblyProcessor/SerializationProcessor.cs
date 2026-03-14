@@ -21,7 +21,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
 {
     public bool Process(AssemblyProcessorContext context)
     {
-        var registry = new ComplexSerializerRegistry(context.Platform, context.Assembly, context.Log);
+        var registry = new SerializerRegistry(context.Platform, context.Assembly, context.Log);
 
         // Register default serialization profile (to help AOT generic instantiation of serializers)
         RegisterDefaultSerializationProfile(context.AssemblyResolver, context.Assembly, registry, context.Log);
@@ -37,7 +37,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     /// <summary>
     /// Generates serializer code using Cecil and <see cref="ILBuilder"/> for readable IL emission.
     /// </summary>
-    private static void GenerateSerializerCode(ComplexSerializerRegistry registry, out ObjectId serializationHash)
+    private static void GenerateSerializerCode(SerializerRegistry registry, out ObjectId serializationHash)
     {
         var hash = new ObjectIdBuilder();
 
@@ -48,8 +48,8 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         var module = assembly.MainModule;
         var strideCoreModule = assembly.GetStrideCoreModule();
 
-        // Generate serializer classes for each complex type
-        GenerateComplexSerializerTypes(registry, module, strideCoreModule, hash);
+        // Generate serializer classes for each pending type
+        GenerateSerializerTypes(registry, module, strideCoreModule, hash);
 
         // Generate the factory type with attributes and module initializer
         GenerateSerializerFactory(registry, assembly, module, strideCoreModule);
@@ -107,10 +107,10 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     }
 
     /// <summary>
-    /// Generates serializer classes (constructor, Initialize, Serialize methods) for each complex type.
+    /// Generates serializer classes (constructor, Initialize, Serialize methods) for each pending type.
     /// </summary>
-    private static void GenerateComplexSerializerTypes(
-        ComplexSerializerRegistry registry,
+    private static void GenerateSerializerTypes(
+        SerializerRegistry registry,
         ModuleDefinition module,
         ModuleDefinition strideCoreModule,
         ObjectIdBuilder hash)
@@ -124,7 +124,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         var dataSerializerSerializeMethod = dataSerializerTypeRef.Resolve().Methods.Single(x => x.Name == "Serialize" && (x.Attributes & MethodAttributes.Abstract) != 0);
         var dataSerializerSerializeMethodRef = module.ImportReference(dataSerializerSerializeMethod);
 
-        foreach (var descriptor in registry.Context.ComplexTypes)
+        foreach (var descriptor in registry.Context.PendingSerializers)
         {
             var type = descriptor.DataType;
             var serializerType = CreateSerializerTypeDefinition(descriptor, module, strideCoreModule);
@@ -136,15 +136,15 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
 
             TypeReference parentType = null;
             FieldDefinition parentSerializerField = null;
-            if (descriptor.ComplexSerializerProcessParentType != null)
+            if (descriptor.SerializedParentType != null)
             {
-                parentType = descriptor.ComplexSerializerProcessParentType;
+                parentType = descriptor.SerializedParentType;
                 serializerType.Fields.Add(parentSerializerField = new FieldDefinition("parentSerializer", Mono.Cecil.FieldAttributes.Private, dataSerializerTypeRef.MakeGenericType(parentType)));
 
                 hash.Write("parent");
             }
 
-            var serializableItems = ComplexSerializerRegistry.GetSerializableItems(type, true).ToArray();
+            var serializableItems = SerializerRegistry.GetSerializableItems(type, true).ToArray();
             var serializableItemInfos = new Dictionary<TypeReference, (FieldDefinition SerializerField, TypeReference Type)>(TypeReferenceEqualityComparer.Default);
             var localsByTypes = new Dictionary<TypeReference, VariableDefinition>(TypeReferenceEqualityComparer.Default);
 
@@ -190,7 +190,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
             var initialize = new MethodDefinition("Initialize", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual, module.TypeSystem.Void);
             initialize.Parameters.Add(new ParameterDefinition("serializerSelector", ParameterAttributes.None, serializerSelectorTypeRef));
             var initIL = new ILBuilder(initialize.Body, module);
-            if (descriptor.ComplexSerializerProcessParentType != null)
+            if (descriptor.SerializedParentType != null)
             {
                 initIL.Emit(OpCodes.Ldarg_0)
                       .Emit(OpCodes.Ldarg_1)
@@ -225,7 +225,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         TypeReference[] genericParameters,
         TypeReference typeWithGenerics,
         CecilSerializerContext.SerializableTypeInfo typeInfo,
-        ComplexSerializerRegistry.SerializableItem[] serializableItems,
+        SerializerRegistry.SerializableItem[] serializableItems,
         Dictionary<TypeReference, (FieldDefinition SerializerField, TypeReference Type)> serializableItemInfos,
         Dictionary<TypeReference, VariableDefinition> localsByTypes,
         MethodDefinition dataSerializerSerializeMethod,
@@ -245,7 +245,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
 
         var il = new ILBuilder(serialize.Body, module);
 
-        if (typeInfo.ComplexSerializerProcessParentType != null)
+        if (typeInfo.SerializedParentType != null)
         {
             il.Emit(OpCodes.Ldarg_0)
               .Emit(OpCodes.Ldfld, parentSerializerField.MakeGeneric(genericParameters))
@@ -286,7 +286,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
                     }
 
                     var memberAssignBack = serializableItem.AssignBack;
-                    var memberVariableName = (serializableItem.MemberInfo is PropertyDefinition || !memberAssignBack) ? ComplexSerializerRegistry.CreateMemberVariableName(serializableItem.MemberInfo) : null;
+                    var memberVariableName = (serializableItem.MemberInfo is PropertyDefinition || !memberAssignBack) ? SerializerRegistry.CreateMemberVariableName(serializableItem.MemberInfo) : null;
                     var serializableItemInfo = serializableItemInfos[serializableItem.Type];
                     il.Emit(OpCodes.Ldarg_0)
                       .Emit(OpCodes.Ldfld, serializableItemInfo.SerializerField.MakeGeneric(genericParameters));
@@ -379,7 +379,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     /// and the module initializer that registers all serializers at runtime.
     /// </summary>
     private static void GenerateSerializerFactory(
-        ComplexSerializerRegistry registry,
+        SerializerRegistry registry,
         AssemblyDefinition assembly,
         ModuleDefinition module,
         ModuleDefinition strideCoreModule)
@@ -415,7 +415,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     /// Adds [DataSerializerGlobal] attributes to the factory type for each serializable type.
     /// </summary>
     private static void EmitDataSerializerGlobalAttributes(
-        ComplexSerializerRegistry registry,
+        SerializerRegistry registry,
         ModuleDefinition module,
         ModuleDefinition strideCoreModule,
         TypeReference typeTypeRef,
@@ -441,7 +441,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
                         new CustomAttributeArgument(typeTypeRef, module.ImportReference(type.Key)),
                         new CustomAttributeArgument(dataSerializerModeTypeRef, type.Value.Mode),
                         new CustomAttributeArgument(module.TypeSystem.Boolean, type.Value.Inherited),
-                        new CustomAttributeArgument(module.TypeSystem.Boolean, type.Value.ComplexSerializer),
+                        new CustomAttributeArgument(module.TypeSystem.Boolean, type.Value.IsGeneratedSerializer),
                     },
                     Properties =
                     {
@@ -457,7 +457,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
     /// registering all serializers with the runtime <see cref="DataSerializerFactory"/>.
     /// </summary>
     private static void GenerateInitializeMethod(
-        ComplexSerializerRegistry registry,
+        SerializerRegistry registry,
         AssemblyDefinition assembly,
         ModuleDefinition module,
         ModuleDefinition strideCoreModule,
@@ -609,7 +609,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         moduleCtorIL.InsertBefore(moduleConstructor.Body.Instructions.Last(), callInitializeInstruction);
     }
 
-    private static void RegisterDefaultSerializationProfile(IAssemblyResolver assemblyResolver, AssemblyDefinition assembly, ComplexSerializerRegistry registry, System.IO.TextWriter log)
+    private static void RegisterDefaultSerializationProfile(IAssemblyResolver assemblyResolver, AssemblyDefinition assembly, SerializerRegistry registry, System.IO.TextWriter log)
     {
         var mscorlibAssembly = CecilExtensions.FindCorlibAssembly(assembly);
         if (mscorlibAssembly == null)
