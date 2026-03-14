@@ -26,7 +26,7 @@ namespace Stride.GameStudio.Mcp.Tools;
 [McpServerToolType]
 public sealed class ModifyComponentTool
 {
-    [McpServerTool(Name = "modify_component"), Description("Adds, removes, or updates a component on an entity. The scene must be open in the editor (use open_scene first). Actions: 'add' creates a new component, 'remove' deletes a component by index, 'update' sets properties on a component by index. Supports bracket notation for dictionary/list entries (e.g. '{\"Animations[Idle]\":{\"assetId\":\"GUID\"}}') and whole-dictionary JSON objects. The TransformComponent (index 0) cannot be removed. This operation supports undo/redo in the editor. For 'update', asset reference properties (e.g. ModelComponent.Model, BackgroundComponent.Texture) can be set using {\"PropertyName\":{\"assetId\":\"GUID\"}} — use query_assets to find the asset ID. NOTE: User game script types require the project to be built first (use build_project).")]
+    [McpServerTool(Name = "modify_component"), Description("Adds, removes, or updates a component on an entity. The scene must be open in the editor (use open_scene first). Actions: 'add' creates a new component, 'remove' deletes a component by index, 'update' sets properties on a component by index. Supports bracket notation for dictionary/list entries (e.g. '{\"Animations[Idle]\":{\"assetId\":\"GUID\"}}') and whole-dictionary JSON objects. The TransformComponent (index 0) cannot be removed. This operation supports undo/redo in the editor. For 'update', asset reference properties (e.g. ModelComponent.Model, BackgroundComponent.Texture) can be set using {\"PropertyName\":{\"assetId\":\"GUID\"}} — use query_assets to find the asset ID. NOTE: User game script types require the project to be built and assemblies reloaded first (use build_project, then get_build_status to wait, then reload_assemblies).")]
     public static async Task<string> ModifyComponent(
         SessionViewModel session,
         DispatcherBridge dispatcher,
@@ -102,7 +102,7 @@ public sealed class ModifyComponentTool
             {
                 error = $"Component type not found: '{componentTypeName}'. "
                     + "Built-in examples: ModelComponent, LightComponent, CameraComponent, BackgroundComponent, SpriteComponent, AudioEmitterComponent, RigidbodyComponent, CharacterComponent. "
-                    + "User game script types (e.g. PlayerController) require the project to be built first — use `build_project`, then `get_build_status` to wait for completion, then try again. "
+                    + "User game script types (e.g. PlayerController) require the project to be built and assemblies reloaded — use `build_project`, then `get_build_status` to wait for completion, then `reload_assemblies` to load the new types. "
                     + "Also try the fully qualified type name (e.g. 'MyGame.PlayerController')."
                     + userTypesHint,
                 component = (object?)null,

@@ -16,7 +16,7 @@ namespace Stride.GameStudio.Mcp.Tools;
 [McpServerToolType]
 public sealed class GetBuildStatusTool
 {
-    [McpServerTool(Name = "get_build_status"), Description("Returns the current build status. Use after build_project to check progress. Returns: 'idle' (no build), 'building' (in progress), 'succeeded', or 'failed' with error messages.")]
+    [McpServerTool(Name = "get_build_status"), Description("Returns the current build status. Use after build_project to check progress. Returns: 'idle' (no build), 'building' (in progress), 'succeeded', or 'failed' with error messages. Also includes 'assemblyReloadPending' — if true after a successful build, call reload_assemblies to make new script types available.")]
     public static Task<string> GetBuildStatus(
         SessionViewModel session,
         DispatcherBridge dispatcher,
@@ -24,6 +24,7 @@ public sealed class GetBuildStatusTool
     {
         var (wrapperTask, logger, lastProject, assemblyPath, isCanceled) = BuildProjectTool.GetBuildState();
         var projectFileName = lastProject != null ? Path.GetFileName(lastProject) : null;
+        var reloadPending = ReloadAssembliesTool.IsReloadPending();
 
         if (wrapperTask == null)
         {
@@ -34,6 +35,7 @@ public sealed class GetBuildStatusTool
                 errors = (string[]?)null,
                 warnings = (string[]?)null,
                 assemblyPath = (string?)null,
+                assemblyReloadPending = reloadPending,
             }, new JsonSerializerOptions { WriteIndented = true }));
         }
 
@@ -46,6 +48,7 @@ public sealed class GetBuildStatusTool
                 errors = (string[]?)null,
                 warnings = (string[]?)null,
                 assemblyPath = (string?)null,
+                assemblyReloadPending = reloadPending,
             }, new JsonSerializerOptions { WriteIndented = true }));
         }
 
@@ -58,6 +61,7 @@ public sealed class GetBuildStatusTool
                 errors = (string[]?)null,
                 warnings = (string[]?)null,
                 assemblyPath = (string?)null,
+                assemblyReloadPending = reloadPending,
             }, new JsonSerializerOptions { WriteIndented = true }));
         }
 
@@ -78,6 +82,7 @@ public sealed class GetBuildStatusTool
             errors = errorMessages?.Length > 0 ? errorMessages : null,
             warnings = warningMessages?.Length > 0 ? warningMessages : null,
             assemblyPath = !hasErrors ? assemblyPath : null,
+            assemblyReloadPending = reloadPending,
         }, new JsonSerializerOptions { WriteIndented = true }));
     }
 }

@@ -1395,6 +1395,7 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         // Reload tools
         Assert.Contains("reload_scene", toolNames);
         Assert.Contains("reload_project", toolNames);
+        Assert.Contains("reload_assemblies", toolNames);
 
         // UI Page tools
         Assert.Contains("get_ui_tree", toolNames);
@@ -1448,6 +1449,42 @@ public sealed class McpIntegrationTests : IAsyncLifetime
         });
 
         Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task ReloadAssemblies_Status_ReturnsState()
+    {
+        var root = await CallToolAndParseJsonAsync("reload_assemblies", new Dictionary<string, object?>
+        {
+            ["action"] = "status",
+        });
+
+        Assert.Null(root.GetProperty("error").GetString());
+        var result = root.GetProperty("result");
+        // Should have assemblyReloadPending field (true or false)
+        Assert.True(result.TryGetProperty("assemblyReloadPending", out var pending));
+        Assert.True(pending.ValueKind == JsonValueKind.True || pending.ValueKind == JsonValueKind.False);
+        Assert.False(string.IsNullOrEmpty(result.GetProperty("message").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task ReloadAssemblies_InvalidAction_ReturnsError()
+    {
+        var root = await CallToolAndParseJsonAsync("reload_assemblies", new Dictionary<string, object?>
+        {
+            ["action"] = "invalid_action",
+        });
+
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("error").GetString()));
+    }
+
+    [McpIntegrationFact]
+    public async Task GetBuildStatus_IncludesAssemblyReloadPending()
+    {
+        var root = await CallToolAndParseJsonAsync("get_build_status");
+
+        Assert.True(root.TryGetProperty("assemblyReloadPending", out var pending));
+        Assert.True(pending.ValueKind == JsonValueKind.True || pending.ValueKind == JsonValueKind.False);
     }
 
     // =====================
