@@ -61,10 +61,10 @@ namespace Stride.Shaders.Compiler
             }
         }
 
-        public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixin, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId mixinObjectId)
+        public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixin, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId effectInputHash)
         {
             // Final url of the compiled bytecode
-            var compiledUrl = string.Format("{0}/{1}", CompiledShadersKey, mixinObjectId);
+            var compiledUrl = string.Format("{0}/{1}", CompiledShadersKey, effectInputHash);
 
             var bytecode = new KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>(null, EffectBytecodeCacheLoadSource.JustCompiled);
             lock (bytecodes)
@@ -90,9 +90,9 @@ namespace Stride.Shaders.Compiler
                 // ------------------------------------------------------------------------------------------------------------
                 // 2) Try to load from database cache
                 // ------------------------------------------------------------------------------------------------------------
-                if (bytecode.Key == null && database.ObjectDatabase.Exists(mixinObjectId))
+                if (bytecode.Key == null && database.ObjectDatabase.Exists(effectInputHash))
                 {
-                    using (var stream = database.ObjectDatabase.OpenStream(mixinObjectId))
+                    using (var stream = database.ObjectDatabase.OpenStream(effectInputHash))
                     {
                         // We have an existing stream, make sure the shader is compiled
                         var objectIdBuffer = new byte[ObjectId.HashSize];
@@ -115,7 +115,7 @@ namespace Stride.Shaders.Compiler
                 // ------------------------------------------------------------------------------------------------------------
                 if (bytecode.Key == null)
                 {
-                    var appCachePath = GetAppCachePath(mixin.Name, mixinObjectId);
+                    var appCachePath = GetAppCachePath(mixin.Name, effectInputHash);
                     if (VirtualFileSystem.ApplicationCache.FileExists(appCachePath))
                     {
                         try
@@ -149,7 +149,7 @@ namespace Stride.Shaders.Compiler
             lock (compilingShaders)
             {
                 Task<EffectBytecodeCompilerResult> compilingShaderTask;
-                if (compilingShaders.TryGetValue(mixinObjectId, out compilingShaderTask))
+                if (compilingShaders.TryGetValue(effectInputHash, out compilingShaderTask))
                 {
                     // Note: Task might still be compiling
                     return compilingShaderTask;
@@ -159,27 +159,27 @@ namespace Stride.Shaders.Compiler
                 if (CompileEffectAsynchronously)
                 {
                     var compilerParametersCopy = compilerParameters != null ? new CompilerParameters(compilerParameters) : null;
-                    var resultTask = Task.Factory.StartNew(() => CompileBytecode(mixin, effectParameters, compilerParametersCopy, mixinObjectId, database, compiledUrl), CancellationToken.None, TaskCreationOptions.None, taskSchedulerSelector != null ? taskSchedulerSelector(mixin, compilerParametersCopy.EffectParameters) : TaskScheduler.Default);
+                    var resultTask = Task.Factory.StartNew(() => CompileBytecode(mixin, effectParameters, compilerParametersCopy, effectInputHash, database, compiledUrl), CancellationToken.None, TaskCreationOptions.None, taskSchedulerSelector != null ? taskSchedulerSelector(mixin, compilerParametersCopy.EffectParameters) : TaskScheduler.Default);
 
-                    compilingShaders.Add(mixinObjectId, resultTask);
+                    compilingShaders.Add(effectInputHash, resultTask);
 
                     return resultTask;
                 }
                 else
                 {
-                    return CompileBytecode(mixin, effectParameters, compilerParameters, mixinObjectId, database, compiledUrl);
+                    return CompileBytecode(mixin, effectParameters, compilerParameters, effectInputHash, database, compiledUrl);
                 }
             }
         }
 
-        private EffectBytecodeCompilerResult CompileBytecode(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId mixinObjectId, DatabaseFileProvider database, string compiledUrl)
+        private EffectBytecodeCompilerResult CompileBytecode(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId effectInputHash, DatabaseFileProvider database, string compiledUrl)
         {
             // Open the database for writing
             var log = new LoggerResult();
             var effectLog = GlobalLogger.GetLogger("EffectCompilerCache");
 
             // Note: this compiler is expected to not be async and directly write stuff in localLogger
-            var compiledShader = base.Compile(mixinTree, effectParameters, compilerParameters, mixinObjectId).WaitForResult();
+            var compiledShader = base.Compile(mixinTree, effectParameters, compilerParameters, effectInputHash).WaitForResult();
             compiledShader.CompilationLog.CopyTo(log);
 
             // If there are any errors, return immediately
@@ -187,7 +187,7 @@ namespace Stride.Shaders.Compiler
             {
                 lock (compilingShaders)
                 {
-                    compilingShaders.Remove(mixinObjectId);
+                    compilingShaders.Remove(effectInputHash);
                 }
 
                 log.CopyTo(effectLog);
@@ -214,7 +214,7 @@ namespace Stride.Shaders.Compiler
                 if (CurrentCache == EffectBytecodeCacheLoadSource.DynamicCache)
                 {
                     // Persist to ApplicationCache (file-based, no ObjectDatabase index needed)
-                    var appCachePath = GetAppCachePath(mixinTree.Name, mixinObjectId);
+                    var appCachePath = GetAppCachePath(mixinTree.Name, effectInputHash);
                     try
                     {
                         var dir = Path.GetDirectoryName(appCachePath)!;
@@ -239,12 +239,12 @@ namespace Stride.Shaders.Compiler
                     memoryStream.SetLength(0);
                     memoryStream.Write((byte[])newBytecodeId, 0, ObjectId.HashSize);
                     memoryStream.Position = 0;
-                    database.ObjectDatabase.Write(memoryStream, mixinObjectId, true);
+                    database.ObjectDatabase.Write(memoryStream, effectInputHash, true);
                 }
 
                 if (!bytecodes.ContainsKey(newBytecodeId))
                 {
-                    log.Verbose($"New effect compiled #{effectCompileCount} [{mixinObjectId}] (db: {newBytecodeId})\r\n{compilerParameters?.ToStringPermutationsDetailed()}");
+                    log.Verbose($"New effect compiled #{effectCompileCount} [{effectInputHash}] (db: {newBytecodeId})\r\n{compilerParameters?.ToStringPermutationsDetailed()}");
                     Interlocked.Increment(ref effectCompileCount);
 
                     // Replace or add new bytecode
@@ -254,7 +254,7 @@ namespace Stride.Shaders.Compiler
 
             lock (compilingShaders)
             {
-                compilingShaders.Remove(mixinObjectId);
+                compilingShaders.Remove(effectInputHash);
             }
 
             log.CopyTo(effectLog);
@@ -341,8 +341,8 @@ namespace Stride.Shaders.Compiler
         public static string GetEffectCacheDirectory(string mixinName)
             => $"effects/{SanitizeMixinName(mixinName)}";
 
-        public static string GetAppCachePath(string mixinName, ObjectId mixinObjectId)
-            => $"{GetEffectCacheDirectory(mixinName)}/{mixinObjectId}";
+        public static string GetAppCachePath(string mixinName, ObjectId effectInputHash)
+            => $"{GetEffectCacheDirectory(mixinName)}/{effectInputHash}";
 
         public static string SanitizeMixinName(string name)
         {

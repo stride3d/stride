@@ -104,8 +104,8 @@ namespace Stride.EffectCompilerServer
             Console.WriteLine($"Compiling shader: {remoteEffectCompilerEffectRequest.MixinTree.Name}");
 
             // A shader has been requested, compile it (asynchronously)!
-            var mixinObjectId = ShaderMixinObjectId.Compute(remoteEffectCompilerEffectRequest.MixinTree, remoteEffectCompilerEffectRequest.EffectParameters);
-            var precompiledEffectShaderPass = await effectCompiler.Compile(remoteEffectCompilerEffectRequest.MixinTree, remoteEffectCompilerEffectRequest.EffectParameters, null, mixinObjectId).AwaitResult();
+            var effectInputHash = ShaderMixinObjectId.Compute(remoteEffectCompilerEffectRequest.MixinTree, remoteEffectCompilerEffectRequest.EffectParameters);
+            var precompiledEffectShaderPass = await effectCompiler.Compile(remoteEffectCompilerEffectRequest.MixinTree, remoteEffectCompilerEffectRequest.EffectParameters, null, effectInputHash).AwaitResult();
 
             // Send compiled shader
             await socketMessageLayer.Send(new RemoteEffectCompilerEffectAnswer

@@ -42,9 +42,9 @@ public sealed class EffectBytecode
 
 
     /// <summary>
-    ///   Computes a unique identifier for the Effect bytecode.
+    ///   Computes a hash of the compiled effect bytecode output (stages + reflection).
     /// </summary>
-    /// <returns>An unique <see cref="ObjectId"/> for the Effect bytecode.</returns>
+    /// <returns>A content-based <see cref="ObjectId"/> for the compiled effect bytecode output.</returns>
     public ObjectId ComputeId()
     {
         var effectBytecode = this;
