@@ -112,27 +112,45 @@ namespace Stride.Shaders.Compiler
 
                 // ------------------------------------------------------------------------------------------------------------
                 // 2.5) Try to load from application cache (DynamicCache entries)
+                //      Uses indirection: {effectInputHash}.cache contains the output hash,
+                //      then {outputHash} contains the actual bytecode (shared across inputs with same output).
                 // ------------------------------------------------------------------------------------------------------------
                 if (bytecode.Key == null)
                 {
-                    var appCachePath = GetAppCachePath(mixin.Name, effectInputHash);
-                    if (VirtualFileSystem.ApplicationCache.FileExists(appCachePath))
+                    var indirectionPath = GetAppCacheIndirectionPath(mixin.Name, effectInputHash);
+                    if (VirtualFileSystem.ApplicationCache.FileExists(indirectionPath))
                     {
                         try
                         {
-                            using var stream = VirtualFileSystem.ApplicationCache.OpenStream(
-                                appCachePath, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read);
-                            var loadedBytecode = EffectBytecode.FromStream(stream);
-                            if (loadedBytecode != null && !IsBytecodeObsolete(loadedBytecode))
+                            // Read the output hash from the indirection file
+                            ObjectId outputHash;
+                            using (var indirStream = VirtualFileSystem.ApplicationCache.OpenStream(
+                                indirectionPath, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read))
                             {
-                                bytecode = new KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>(
-                                    loadedBytecode, EffectBytecodeCacheLoadSource.DynamicCache);
-                                bytecodes[loadedBytecode.ComputeId()] = bytecode;
+                                var outputHashBuffer = new byte[ObjectId.HashSize];
+                                if (indirStream.Read(outputHashBuffer, 0, ObjectId.HashSize) != ObjectId.HashSize)
+                                    throw new InvalidOperationException("Truncated cache indirection file");
+                                outputHash = new ObjectId(outputHashBuffer);
+                            }
+
+                            // Load bytecode from the shared output file
+                            var bytecodePath = GetAppCachePath(mixin.Name, outputHash);
+                            if (VirtualFileSystem.ApplicationCache.FileExists(bytecodePath))
+                            {
+                                using var stream = VirtualFileSystem.ApplicationCache.OpenStream(
+                                    bytecodePath, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read);
+                                var loadedBytecode = EffectBytecode.FromStream(stream);
+                                if (loadedBytecode != null && !IsBytecodeObsolete(loadedBytecode))
+                                {
+                                    bytecode = new KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>(
+                                        loadedBytecode, EffectBytecodeCacheLoadSource.DynamicCache);
+                                    bytecodes[outputHash] = bytecode;
+                                }
                             }
                         }
                         catch (Exception ex)
                         {
-                            Log.Warning($"Failed to load effect bytecode from application cache '{appCachePath}': {ex.Message}");
+                            Log.Warning($"Failed to load effect bytecode from application cache: {ex.Message}");
                         }
                     }
                 }
@@ -213,20 +231,35 @@ namespace Stride.Shaders.Compiler
 
                 if (CurrentCache == EffectBytecodeCacheLoadSource.DynamicCache)
                 {
-                    // Persist to ApplicationCache (file-based, no ObjectDatabase index needed)
-                    var appCachePath = GetAppCachePath(mixinTree.Name, effectInputHash);
+                    // Persist to ApplicationCache with content-addressed dedup:
+                    //   {effectInputHash}.cache → 16-byte output hash (indirection)
+                    //   {outputHash}            → EffectBytecode (shared across inputs with same output)
+                    var bytecodePath = GetAppCachePath(mixinTree.Name, newBytecodeId);
+                    var indirectionPath = GetAppCacheIndirectionPath(mixinTree.Name, effectInputHash);
                     try
                     {
-                        var dir = Path.GetDirectoryName(appCachePath)!;
+                        var dir = Path.GetDirectoryName(bytecodePath)!;
                         if (!string.IsNullOrEmpty(dir) && !VirtualFileSystem.ApplicationCache.DirectoryExists(dir))
                             VirtualFileSystem.ApplicationCache.CreateDirectory(dir);
-                        using var appStream = VirtualFileSystem.ApplicationCache.OpenStream(
-                            appCachePath, VirtualFileMode.Create, VirtualFileAccess.Write);
-                        memoryStream.CopyTo(appStream);
+
+                        // Write bytecode (skip if already exists — another input already wrote the same output)
+                        if (!VirtualFileSystem.ApplicationCache.FileExists(bytecodePath))
+                        {
+                            using var appStream = VirtualFileSystem.ApplicationCache.OpenStream(
+                                bytecodePath, VirtualFileMode.Create, VirtualFileAccess.Write);
+                            memoryStream.CopyTo(appStream);
+                        }
+
+                        // Write indirection file (always, maps this input to its output)
+                        using (var indirStream = VirtualFileSystem.ApplicationCache.OpenStream(
+                            indirectionPath, VirtualFileMode.Create, VirtualFileAccess.Write))
+                        {
+                            indirStream.Write((byte[])newBytecodeId, 0, ObjectId.HashSize);
+                        }
                     }
                     catch (Exception ex)
                     {
-                        Log.Warning($"Failed to save effect bytecode to application cache '{appCachePath}': {ex.Message}");
+                        Log.Warning($"Failed to save effect bytecode to application cache: {ex.Message}");
                     }
                 }
                 else
@@ -341,8 +374,11 @@ namespace Stride.Shaders.Compiler
         public static string GetEffectCacheDirectory(string mixinName)
             => $"effects/{SanitizeMixinName(mixinName)}";
 
-        public static string GetAppCachePath(string mixinName, ObjectId effectInputHash)
-            => $"{GetEffectCacheDirectory(mixinName)}/{effectInputHash}";
+        public static string GetAppCachePath(string mixinName, ObjectId hash)
+            => $"{GetEffectCacheDirectory(mixinName)}/{hash}.sdfxbc";
+
+        public static string GetAppCacheIndirectionPath(string mixinName, ObjectId effectInputHash)
+            => $"{GetEffectCacheDirectory(mixinName)}/{effectInputHash}.cache";
 
         public static string SanitizeMixinName(string name)
         {

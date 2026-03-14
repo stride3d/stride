@@ -171,25 +171,13 @@ namespace Stride.Shaders.Compiler
             }*/
 
             // -------------------------------------------------------
-            // Save shader log to DynamicCache folder
+            // Prepare DynamicCache folder for debug files (written after compilation using output hash)
 #if STRIDE_PLATFORM_DESKTOP
             var effectDir = Path.Combine(
                 PlatformFolders.ApplicationCacheDirectory,
                 EffectCompilerCache.GetEffectCacheDirectory(fullEffectName));
             if (!Directory.Exists(effectDir))
                 Directory.CreateDirectory(effectDir);
-            var shaderBaseFilename = Path.Combine(effectDir, mixinObjectId.ToString());
-            lock (WriterLock) // protect write in case the same shader is created twice
-            {
-                // Write shader before generating to make sure that we are having a trace before compiling it (compiler may crash...etc.)
-                if (!File.Exists(shaderBaseFilename + ".spv"))
-                {
-                    File.WriteAllBytes(shaderBaseFilename + ".spv", spirvBytecode);
-                    File.WriteAllText(shaderBaseFilename + ".spvdis", Spirv.Tools.Spv.Dis(SpirvBytecode.CreateFromSpan(spirvBytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
-                }
-            }
-#else
-            string shaderBaseFilename = null;
 #endif
 
             // Select the correct backend compiler
@@ -218,6 +206,7 @@ namespace Stride.Shaders.Compiler
 
 #if STRIDE_PLATFORM_DESKTOP
             var stageStringBuilder = new StringBuilder();
+            var stageHlslSources = new List<(string Suffix, string Code)>();
 #endif
 
             var bytecode = new EffectBytecode { Reflection = effectReflection, HashSources = usedHashSources };
@@ -252,11 +241,8 @@ namespace Stride.Shaders.Compiler
                         ShaderStage.Pixel => "ps",
                         ShaderStage.Compute => "cs",
                     };
-                    var stageFilename = $"{shaderBaseFilename}_{stageSuffix}.hlsl";
-                    lock (WriterLock)
-                    {
-                        File.WriteAllText(stageFilename, code);
-                    }
+                    stageHlslSources.Add((stageSuffix, code));
+                    string stageFilename = null;
 #else
                     string stageFilename = null;
 #endif
@@ -354,65 +340,95 @@ namespace Stride.Shaders.Compiler
 
             bytecode.Stages = shaderStageBytecodes.ToArray();
 
+            // -------------------------------------------------------
+            // Write debug files using output hash (content-addressed, shared across inputs with same output)
 #if STRIDE_PLATFORM_DESKTOP
+            var outputHash = bytecode.ComputeId();
+            var shaderBaseFilename = Path.Combine(effectDir, outputHash.ToString());
             lock (WriterLock) // protect write in case the same shader is created twice
             {
-                var builder = new StringBuilder();
-                builder.AppendLine("/**************************");
-                builder.AppendLine("***** Compiler Parameters *****");
-                builder.AppendLine("***************************");
-                builder.Append("@P EffectName: ");
-                builder.AppendLine(fullEffectName ?? "");
-                builder.Append(compilerParameters?.ToStringPermutationsDetailed());
-                builder.AppendLine("***************************");
-
-                if (bytecode.Reflection.ConstantBuffers.Count > 0)
+                // Write SPV, disassembly and ShaderSource (skip if already written by another input with same output)
+                if (!File.Exists(shaderBaseFilename + ".spv"))
                 {
-                    builder.AppendLine("****  ConstantBuffers  ****");
+                    File.WriteAllBytes(shaderBaseFilename + ".spv", spirvBytecode);
+                    File.WriteAllText(shaderBaseFilename + ".spvdis", Spirv.Tools.Spv.Dis(SpirvBytecode.CreateFromSpan(spirvBytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
+                }
+
+                // Write per-stage HLSL
+                foreach (var (suffix, hlslCode) in stageHlslSources)
+                {
+                    var stageFile = $"{shaderBaseFilename}_{suffix}.hlsl";
+                    if (!File.Exists(stageFile))
+                        File.WriteAllText(stageFile, hlslCode);
+                }
+
+                if (!File.Exists(shaderBaseFilename + "_meta.txt"))
+                {
+                    var builder = new StringBuilder();
+                    builder.AppendLine("/**************************");
+                    builder.AppendLine("***** Compiler Parameters *****");
                     builder.AppendLine("***************************");
-                    foreach (var cBuffer in bytecode.Reflection.ConstantBuffers)
+                    builder.Append("@P EffectName: ");
+                    builder.AppendLine(fullEffectName ?? "");
+                    builder.Append(compilerParameters?.ToStringPermutationsDetailed());
+                    builder.AppendLine("***************************");
+                    builder.AppendLine("****   Shader Source   ****");
+                    builder.AppendLine("***************************");
+                    builder.AppendLine("// ShaderSource in C# that generated this EffectBytecode. You can copy-psate it to reproduce it easily in a unit test.");
+                    builder.AppendLine("// Note: Other slightly different ShaderSource inputs might produce the same EffectBytecode, only first one is saved here.");
+                    builder.Append("var shaderSource = ");
+                    builder.AppendLine(mixinTree.ToCode());
+                    builder.AppendLine("***************************");
+
+
+                    if (bytecode.Reflection.ConstantBuffers.Count > 0)
                     {
-                        builder.AppendFormat("cbuffer {0} [Size: {1}]", cBuffer.Name, cBuffer.Size).AppendLine();
-                        foreach (var parameter in cBuffer.Members)
+                        builder.AppendLine("****  ConstantBuffers  ****");
+                        builder.AppendLine("***************************");
+                        foreach (var cBuffer in bytecode.Reflection.ConstantBuffers)
                         {
-                            builder.AppendFormat("@C    {0} => {1} [LogicalGroup: {2}]", parameter.RawName, parameter.KeyInfo.KeyName, parameter.LogicalGroup).AppendLine();
+                            builder.AppendFormat("cbuffer {0} [Size: {1}]", cBuffer.Name, cBuffer.Size).AppendLine();
+                            foreach (var parameter in cBuffer.Members)
+                            {
+                                builder.AppendFormat("@C    {0} => {1} [LogicalGroup: {2}]", parameter.RawName, parameter.KeyInfo.KeyName, parameter.LogicalGroup).AppendLine();
+                            }
                         }
+                        builder.AppendLine("***************************");
                     }
-                    builder.AppendLine("***************************");
-                }
 
-                if (bytecode.Reflection.ResourceBindings.Count > 0)
-                {
-                    builder.AppendLine("******  Resources    ******");
-                    builder.AppendLine("***************************");
-                    foreach (var resource in bytecode.Reflection.ResourceBindings)
+                    if (bytecode.Reflection.ResourceBindings.Count > 0)
                     {
-                        builder.AppendFormat("@R    {0} => {1} [LogicalGroup: {2} Stage: {3}, Slot: ({4}-{5})]", resource.RawName, resource.KeyInfo.KeyName, resource.LogicalGroup, resource.Stage, resource.SlotStart, resource.SlotStart + resource.SlotCount - 1).AppendLine();
+                        builder.AppendLine("******  Resources    ******");
+                        builder.AppendLine("***************************");
+                        foreach (var resource in bytecode.Reflection.ResourceBindings)
+                        {
+                            builder.AppendFormat("@R    {0} => {1} [LogicalGroup: {2} Stage: {3}, Slot: ({4}-{5})]", resource.RawName, resource.KeyInfo.KeyName, resource.LogicalGroup, resource.Stage, resource.SlotStart, resource.SlotStart + resource.SlotCount - 1).AppendLine();
+                        }
+                        builder.AppendLine("***************************");
                     }
-                    builder.AppendLine("***************************");
-                }
 
-                if (bytecode.HashSources.Count > 0)
-                {
-                    builder.AppendLine("*****     Sources     *****");
-                    builder.AppendLine("***************************");
-                    foreach (var hashSource in bytecode.HashSources)
+                    if (bytecode.HashSources.Count > 0)
                     {
-                        builder.AppendFormat("@S    {0} => {1}", hashSource.Key, hashSource.Value).AppendLine();
+                        builder.AppendLine("*****     Sources     *****");
+                        builder.AppendLine("***************************");
+                        foreach (var hashSource in bytecode.HashSources)
+                        {
+                            builder.AppendFormat("@S    {0} => {1}", hashSource.Key, hashSource.Value).AppendLine();
+                        }
+                        builder.AppendLine("***************************");
                     }
-                    builder.AppendLine("***************************");
-                }
 
-                if (bytecode.Stages.Length > 0)
-                {
-                    builder.AppendLine("*****     Stages      *****");
-                    builder.AppendLine("***************************");
-                    builder.Append(stageStringBuilder);
-                    builder.AppendLine("***************************");
-                }
-                builder.AppendLine("*************************/");
+                    if (bytecode.Stages.Length > 0)
+                    {
+                        builder.AppendLine("*****     Stages      *****");
+                        builder.AppendLine("***************************");
+                        builder.Append(stageStringBuilder);
+                        builder.AppendLine("***************************");
+                    }
+                    builder.AppendLine("*************************/");
 
-                File.WriteAllText(shaderBaseFilename + "_meta.hlsl", builder.ToString());
+                    File.WriteAllText(shaderBaseFilename + "_meta.txt", builder.ToString());
+                }
             }
 #endif
 

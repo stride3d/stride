@@ -40,6 +40,7 @@ public sealed class EffectBytecode
     /// </summary>
     public ShaderBytecode[] Stages;
 
+    public override string ToString() => $"EffectBytecode {ComputeId()}";
 
     /// <summary>
     ///   Computes a hash of the compiled effect bytecode output (stages + reflection).

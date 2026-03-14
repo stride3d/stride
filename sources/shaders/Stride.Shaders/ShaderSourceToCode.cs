@@ -10,7 +10,7 @@ namespace Stride.Shaders
     /// <summary>
     /// Generates C# code to easily recreate a specific <see cref="ShaderSource"/> (i.e. for a unit test).
     /// </summary>
-    internal static class ShaderSourceToCode
+    public static class ShaderSourceToCode
     {
         public static string ToCode(this ShaderSource source)
         {
