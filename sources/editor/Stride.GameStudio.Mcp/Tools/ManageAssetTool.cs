@@ -12,26 +12,32 @@ using ModelContextProtocol.Server;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Diagnostics;
 
 namespace Stride.GameStudio.Mcp.Tools;
 
 [McpServerToolType]
 public sealed class ManageAssetTool
 {
-    [McpServerTool(Name = "manage_asset"), Description("Performs organizational operations on existing assets: rename, move, or delete. For delete, the tool checks for inbound references first and returns an error if the asset is still referenced (use get_asset_dependencies to check). All operations support undo/redo.")]
+    [McpServerTool(Name = "manage_asset"), Description("Performs organizational operations on existing assets: rename, move, delete, or reimport. For delete, the tool checks for inbound references first and returns an error if the asset is still referenced (use get_asset_dependencies to check). For reimport, the asset must have a source file (e.g. ModelAsset from FBX, TextureAsset from PNG) — this reloads the asset from the original source file on disk, preserving user-modified properties. All operations support undo/redo.")]
     public static async Task<string> ManageAsset(
         SessionViewModel session,
         DispatcherBridge dispatcher,
         [Description("The asset ID (GUID from query_assets)")] string assetId,
-        [Description("The action to perform: 'rename', 'move', or 'delete'")] string action,
+        [Description("The action to perform: 'rename', 'move', 'delete', or 'reimport'")] string action,
         [Description("For 'rename': the new name for the asset")] string? newName = null,
         [Description("For 'move': the target directory path (e.g. 'Materials/Environment')")] string? newDirectory = null,
         CancellationToken cancellationToken = default)
     {
-        // Delete uses async UI operations, so handle it specially
+        // Delete and reimport use async UI operations, so handle them specially
         if (action.Equals("delete", StringComparison.OrdinalIgnoreCase))
         {
             return await HandleDelete(session, dispatcher, assetId, cancellationToken);
+        }
+
+        if (action.Equals("reimport", StringComparison.OrdinalIgnoreCase))
+        {
+            return await HandleReimport(session, dispatcher, assetId, cancellationToken);
         }
 
         var result = await dispatcher.InvokeOnUIThread(() =>
@@ -54,7 +60,7 @@ public sealed class ManageAssetTool
                 case "move":
                     return HandleMove(session, assetVm, newDirectory);
                 default:
-                    return new { error = $"Unknown action: '{action}'. Expected 'rename', 'move', or 'delete'.", result = (object?)null };
+                    return new { error = $"Unknown action: '{action}'. Expected 'rename', 'move', 'delete', or 'reimport'.", result = (object?)null };
             }
         }, cancellationToken);
 
@@ -180,6 +186,66 @@ public sealed class ManageAssetTool
                     action = "deleted",
                     name = assetName,
                     type = assetType,
+                },
+            };
+        }, cancellationToken);
+
+        return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    private static async Task<string> HandleReimport(
+        SessionViewModel session,
+        DispatcherBridge dispatcher,
+        string assetId,
+        CancellationToken cancellationToken)
+    {
+        var result = await dispatcher.InvokeTaskOnUIThread(async () =>
+        {
+            if (!AssetId.TryParse(assetId, out var id))
+            {
+                return new { error = "Invalid asset ID format. Expected a GUID.", result = (object?)null };
+            }
+
+            var assetVm = session.GetAssetById(id);
+            if (assetVm == null)
+            {
+                return new { error = $"Asset not found: {assetId}", result = (object?)null };
+            }
+
+            // Check if the asset has a source file
+            var mainSource = assetVm.Asset.MainSource;
+            if (mainSource == null || string.IsNullOrEmpty(mainSource.ToString()))
+            {
+                return new { error = $"Asset '{assetVm.Name}' ({assetVm.Asset.GetType().Name}) does not have a source file to reimport from.", result = (object?)null };
+            }
+
+            if (!System.IO.File.Exists(mainSource.FullPath))
+            {
+                return new { error = $"Source file not found on disk: {mainSource}", result = (object?)null };
+            }
+
+            var logger = new LoggerResult();
+            await assetVm.Sources.UpdateAssetFromSource(logger);
+
+            var errors = logger.Messages
+                .Where(m => m.Type >= LogMessageType.Error)
+                .Select(m => m.Text)
+                .ToList();
+
+            if (errors.Count > 0)
+            {
+                return new { error = $"Reimport completed with errors: {string.Join("; ", errors)}", result = (object?)null };
+            }
+
+            return new
+            {
+                error = (string?)null,
+                result = (object)new
+                {
+                    action = "reimported",
+                    name = assetVm.Name,
+                    type = assetVm.Asset.GetType().Name,
+                    source = mainSource.ToString(),
                 },
             };
         }, cancellationToken);
