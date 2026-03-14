@@ -17,6 +17,7 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
+using Stride.Core.Extensions;
 using Stride.Core.Reflection;
 using Stride.Engine;
 
@@ -96,12 +97,14 @@ public sealed class ModifyComponentTool
         var resolvedType = ResolveComponentType(componentTypeName);
         if (resolvedType == null)
         {
+            var userTypesHint = GetAvailableUserComponentTypes();
             return new
             {
                 error = $"Component type not found: '{componentTypeName}'. "
                     + "Built-in examples: ModelComponent, LightComponent, CameraComponent, BackgroundComponent, SpriteComponent, AudioEmitterComponent, RigidbodyComponent, CharacterComponent. "
                     + "User game script types (e.g. PlayerController) require the project to be built first — use `build_project`, then `get_build_status` to wait for completion, then try again. "
-                    + "Also try the fully qualified type name (e.g. 'MyGame.PlayerController').",
+                    + "Also try the fully qualified type name (e.g. 'MyGame.PlayerController')."
+                    + userTypesHint,
                 component = (object?)null,
             };
         }
@@ -402,45 +405,57 @@ public sealed class ModifyComponentTool
 
     internal static Type? ResolveComponentType(string typeName)
     {
-        // Try exact match with assembly
-        var type = Type.GetType(typeName, throwOnError: false);
-        if (type != null && typeof(EntityComponent).IsAssignableFrom(type))
-            return type;
+        // Use the same discovery mechanism as the editor's "Add component" dropdown:
+        // typeof(EntityComponent).GetInheritedInstantiableTypes() queries AssemblyRegistry
+        // which includes user game script assemblies loaded from the project.
+        var allComponentTypes = typeof(EntityComponent).GetInheritedInstantiableTypes();
 
-        // Search in loaded assemblies by full name or short name
+        // Try exact name match (short name like "ModelComponent")
+        var match = allComponentTypes.FirstOrDefault(t => t.Name == typeName);
+        if (match != null)
+            return match;
+
+        // Try full name match (like "Stride.Engine.ModelComponent" or "MyGame.PlayerController")
+        match = allComponentTypes.FirstOrDefault(t => t.FullName == typeName);
+        if (match != null)
+            return match;
+
+        // Try case-insensitive match
+        match = allComponentTypes.FirstOrDefault(t =>
+            string.Equals(t.Name, typeName, StringComparison.OrdinalIgnoreCase));
+        if (match != null)
+            return match;
+
+        // Try case-insensitive full name match
+        match = allComponentTypes.FirstOrDefault(t =>
+            string.Equals(t.FullName, typeName, StringComparison.OrdinalIgnoreCase));
+        if (match != null)
+            return match;
+
+        // Fallback: search AppDomain assemblies for types not registered with AssemblyRegistry
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
-            // Try full name match
-            type = assembly.GetType(typeName, throwOnError: false);
+            var type = assembly.GetType(typeName, throwOnError: false);
             if (type != null && typeof(EntityComponent).IsAssignableFrom(type))
                 return type;
         }
 
-        // Try common Stride namespaces for short names
-        var candidateNamespaces = new[]
-        {
-            "Stride.Engine",
-            "Stride.Rendering",
-            "Stride.Rendering.Lights",
-            "Stride.Audio",
-            "Stride.Navigation",
-            "Stride.Particles.Components",
-            "Stride.Physics",
-            "Stride.SpriteStudio.Runtime",
-            "Stride.Video",
-        };
-
-        foreach (var ns in candidateNamespaces)
-        {
-            var qualifiedName = $"{ns}.{typeName}";
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                type = assembly.GetType(qualifiedName, throwOnError: false);
-                if (type != null && typeof(EntityComponent).IsAssignableFrom(type))
-                    return type;
-            }
-        }
-
         return null;
+    }
+
+    internal static string GetAvailableUserComponentTypes()
+    {
+        var allTypes = typeof(EntityComponent).GetInheritedInstantiableTypes();
+        // Filter to non-Stride types (user scripts)
+        var userTypes = allTypes
+            .Where(t => t.Namespace != null && !t.Namespace.StartsWith("Stride."))
+            .Select(t => t.FullName)
+            .OrderBy(n => n)
+            .ToArray();
+
+        if (userTypes.Length == 0)
+            return "";
+
+        return $" Available user script types: {string.Join(", ", userTypes)}.";
     }
 }
