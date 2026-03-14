@@ -19,6 +19,7 @@ internal class CecilSerializerContext
         SerializableTypes = new ProfileInfo();
         SerializableTypesProfiles.Add("Default", SerializableTypes);
         PendingSerializers = [];
+        IgnoredMembers = [];
         this.log = log;
 
         StrideCoreModule = assembly.GetStrideCoreModule();
@@ -50,6 +51,11 @@ internal class CecilSerializerContext
     /// Populated during collection, consumed by the code generation phase.
     /// </summary>
     public List<SerializerDescriptor> PendingSerializers { get; }
+
+    /// <summary>
+    /// Members that should be excluded from serialization (e.g. members without valid serializers).
+    /// </summary>
+    public HashSet<IMemberDefinition> IgnoredMembers { get; }
 
     /// <summary>
     /// Ensure the following type can be serialized. If not, try to register appropriate serializer.
@@ -188,7 +194,7 @@ internal class CecilSerializerContext
         }
 
         // Collect serializable items and cache them in the descriptor
-        var serializableItems = SerializerRegistry.GetSerializableItems(type, true).ToArray();
+        var serializableItems = SerializationHelpers.GetSerializableItems(type, true, ignoredMembers: IgnoredMembers).ToArray();
         if (descriptor is not null)
             descriptor.SerializableItems = serializableItems;
 
@@ -209,7 +215,7 @@ internal class CecilSerializerContext
             {
                 if (ResolveSerializer(serializableItem.Type, profile: profile) == null)
                 {
-                    SerializerRegistry.IgnoreMember(serializableItem.MemberInfo);
+                    IgnoredMembers.Add(serializableItem.MemberInfo);
                     if (!isInterface)
                     {
                         log.Write(
@@ -354,7 +360,7 @@ internal class CecilSerializerContext
         var isLocal = type.Resolve().Module.Assembly == Assembly;
 
         // Create a forward TypeReference for the serializer (the actual TypeDefinition is created later during code generation).
-        var className = SerializerRegistry.SerializerTypeName(type, false, true);
+        var className = SerializationHelpers.SerializerTypeName(type, false, true);
         if (type.HasGenericParameters)
             className += "`" + type.GenericParameters.Count;
 

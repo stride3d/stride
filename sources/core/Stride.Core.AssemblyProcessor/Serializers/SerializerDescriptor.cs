@@ -47,5 +47,5 @@ internal class SerializerDescriptor
     /// The serializable fields/properties of <see cref="DataType"/>.
     /// Computed once during collection and reused during code generation.
     /// </summary>
-    public SerializerRegistry.SerializableItem[] SerializableItems { get; set; }
+    public SerializationHelpers.SerializableItem[] SerializableItems { get; set; }
 }

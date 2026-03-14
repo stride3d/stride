@@ -18,7 +18,7 @@ class PropertyKeySerializerProcessor : ICecilSerializerProcessor
                 if (!member.IsStatic || member.IsPrivate)
                     continue;
 
-                if (SerializerRegistry.IsMemberIgnored(member.CustomAttributes, ComplexTypeSerializerFlags.SerializePublicFields, DataMemberMode.Default))
+                if (SerializationHelpers.IsMemberIgnored(member.CustomAttributes, ComplexTypeSerializerFlags.SerializePublicFields, DataMemberMode.Default))
                     continue;
 
                 if (member.FieldType.Name == "PropertyKey`1"

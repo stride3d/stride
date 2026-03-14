@@ -224,7 +224,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
         TypeDefinition serializerType,
         TypeReference[] genericParameters,
         TypeReference typeWithGenerics,
-        SerializerRegistry.SerializableItem[] serializableItems,
+        SerializationHelpers.SerializableItem[] serializableItems,
         Dictionary<TypeReference, (FieldDefinition SerializerField, TypeReference Type)> serializableItemInfos,
         Dictionary<TypeReference, VariableDefinition> localsByTypes,
         MethodDefinition dataSerializerSerializeMethod,
@@ -285,7 +285,7 @@ internal class SerializationProcessor : IAssemblyDefinitionProcessor
                     }
 
                     var memberAssignBack = serializableItem.AssignBack;
-                    var memberVariableName = (serializableItem.MemberInfo is PropertyDefinition || !memberAssignBack) ? SerializerRegistry.CreateMemberVariableName(serializableItem.MemberInfo) : null;
+                    var memberVariableName = (serializableItem.MemberInfo is PropertyDefinition || !memberAssignBack) ? SerializationHelpers.CreateMemberVariableName(serializableItem.MemberInfo) : null;
                     var serializableItemInfo = serializableItemInfos[serializableItem.Type];
                     il.Emit(OpCodes.Ldarg_0)
                       .Emit(OpCodes.Ldfld, serializableItemInfo.SerializerField.MakeGeneric(genericParameters));
