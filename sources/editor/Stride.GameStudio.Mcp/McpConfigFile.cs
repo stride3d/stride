@@ -87,6 +87,30 @@ public static class McpConfigFile
     }
 
     /// <summary>
+    /// Creates <c>.stride/mcp.json</c> with default settings if it does not already exist.
+    /// Called on every editor launch so users can discover and edit the file.
+    /// </summary>
+    public static void EnsureExists(string? solutionDir)
+    {
+        if (string.IsNullOrEmpty(solutionDir))
+            return;
+
+        try
+        {
+            var path = GetConfigPath(solutionDir);
+            if (File.Exists(path))
+                return;
+
+            Save(solutionDir, new McpConfig());
+            Log.Info($"Created default MCP config at {path}. Set \"enabled\": true to activate.");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning($"Failed to create default MCP config: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Serializes and writes the config file, creating the <c>.stride/</c> directory if needed.
     /// </summary>
     public static void Save(string? solutionDir, McpConfig config)

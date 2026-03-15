@@ -29,6 +29,7 @@ public sealed class McpEditorPlugin : StrideAssetsPlugin
         try
         {
             var solutionDir = ResolveSolutionDirectory(session);
+            McpConfigFile.EnsureExists(solutionDir);
             var mcpService = new McpServerService(session, solutionDir);
             session.ServiceProvider.RegisterService(mcpService);
             mcpService.StartAsync().ContinueWith(t =>
