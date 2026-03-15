@@ -116,14 +116,6 @@ namespace Stride.Shaders.Compiler
                     shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_DIRECT3D", 1);
                     shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_DIRECT3D12", 1);
                     break;
-                case GraphicsPlatform.OpenGL:
-                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_OPENGL", 1);
-                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_OPENGLCORE", 1);
-                    break;
-                case GraphicsPlatform.OpenGLES:
-                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_OPENGL", 1);
-                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_OPENGLES", 1);
-                    break;
                 case GraphicsPlatform.Vulkan:
                     shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_VULKAN", 1);
                     break;
@@ -209,8 +201,6 @@ namespace Stride.Shaders.Compiler
                     compiler = new Direct3D.ShaderCompiler();
                     break;
 #endif
-                case GraphicsPlatform.OpenGL:
-                case GraphicsPlatform.OpenGLES:
                 case GraphicsPlatform.Vulkan:
                     compiler = new OpenGL.ShaderCompiler();
                     break;
@@ -223,12 +213,6 @@ namespace Stride.Shaders.Compiler
 #if STRIDE_PLATFORM_DESKTOP
             var stageStringBuilder = new StringBuilder();
 #endif
-            // if the shader (non-compute) does not have a pixel shader, we should add it for OpenGL and OpenGL ES.
-            if ((effectParameters.Platform == GraphicsPlatform.OpenGL || effectParameters.Platform == GraphicsPlatform.OpenGLES) && !parsingResult.EntryPoints.ContainsKey(ShaderStage.Pixel) && !parsingResult.EntryPoints.ContainsKey(ShaderStage.Compute))
-            {
-                parsingResult.EntryPoints.Add(ShaderStage.Pixel, null);
-            }
-
             foreach (var stageBinding in parsingResult.EntryPoints)
             {
                 // Compile

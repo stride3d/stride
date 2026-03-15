@@ -106,7 +106,7 @@ namespace Stride.Graphics.Regression
         /// <summary>
         /// Forces render doc capture even if test didn't fail. This can be used only when <see cref="CaptureRenderDocOnError"/> is set.
         /// </summary>
-        public static bool ForceCaptureRenderDocOnSuccess = false;
+        public static bool ForceCaptureRenderDocOnSuccess = true;
 
         /// <summary>
         ///   Gets or sets a value indicating whether RenderDoc should capture a frame when an error occurs

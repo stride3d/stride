@@ -12,7 +12,7 @@ using Stride.PublicApiCheck;
 namespace Stride.Graphics
 {
     // CANNOT WORK INSIDE THE SAME SOLUTION. NEED TO RUN THIS OUTSIDE THE SOLUTION
-    [Description("Check public Graphics API consistency between Reference, Direct3D, OpenGL42, OpenGLES")]
+    [Description("Check public Graphics API consistency between Reference, Direct3D11, Direct3D12, Vulkan")]
     public class TestGraphicsApi
     {
         public const string Platform = "Windows";
@@ -24,8 +24,8 @@ namespace Stride.Graphics
 
         private static readonly string ReferencePath = Path.Combine(RootPath, GraphicsPath("Null"));
         private static readonly string GraphicsDirect3DPath = Path.Combine(RootPath, GraphicsPath("Direct3D"));
-        private static readonly string OpenGL4Path = Path.Combine(RootPath, GraphicsPath("OpenGL"));
-        private static readonly string OpenGLESPath = Path.Combine(RootPath, GraphicsPath("OpenGLES"));
+        private static readonly string GraphicsDirect3D12Path = Path.Combine(RootPath, GraphicsPath("Direct3D12"));
+        private static readonly string GraphicsVulkanPath = Path.Combine(RootPath, GraphicsPath("Vulkan"));
 
         private static string GraphicsPath(string api)
         {
@@ -40,15 +40,15 @@ namespace Stride.Graphics
         }
 
         [Fact]
-        public void TestOpenGL42()
+        public void TestDirect3D12()
         {
-            Assert.That(ApiCheck.DiffAssemblyToString(ReferencePath, OpenGL4Path), Is.Null);
+            Assert.That(ApiCheck.DiffAssemblyToString(ReferencePath, GraphicsDirect3D12Path), Is.Null);
         }
 
         [Fact]
-        public void TestOpenGLES()
+        public void TestVulkan()
         {
-            Assert.That(ApiCheck.DiffAssemblyToString(ReferencePath, OpenGLESPath), Is.Null);
+            Assert.That(ApiCheck.DiffAssemblyToString(ReferencePath, VulkanPath), Is.Null);
         }
     }
 }

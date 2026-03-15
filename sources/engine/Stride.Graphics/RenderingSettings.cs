@@ -48,17 +48,6 @@ namespace Stride.Graphics
         Direct3D12,
 
         /// <summary>
-        /// OpenGL.
-        /// </summary>
-        OpenGL,
-
-        /// <summary>
-        /// OpenGL ES.
-        /// </summary>
-        [Display("OpenGL ES")]
-        OpenGLES,
-
-        /// <summary>
         /// Vulkan
         /// </summary>
         Vulkan,

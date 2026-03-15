@@ -53,10 +53,6 @@ namespace Stride.Graphics.Regression
             result.DeviceName = "Direct3D12";
     #elif STRIDE_GRAPHICS_API_DIRECT3D11
             result.DeviceName = "Direct3D";
-    #elif STRIDE_GRAPHICS_API_OPENGLES
-            result.DeviceName = "OpenGLES";
-    #elif STRIDE_GRAPHICS_API_OPENGL
-            result.DeviceName = "OpenGL";
     #elif STRIDE_GRAPHICS_API_VULKAN
             result.DeviceName = "Vulkan";
     #endif
@@ -96,10 +92,6 @@ namespace Stride.Graphics.Regression
             {
                 case TestPlatform.WindowsDx:
                     return "Windows_Direct3D11";
-                case TestPlatform.WindowsOgl:
-                    return "Windows_OpenGL";
-                case TestPlatform.WindowsOgles:
-                    return "Windows_OpenGLES";
                 case TestPlatform.Android:
                     return "Android";
                 case TestPlatform.Ios:
@@ -119,10 +111,6 @@ namespace Stride.Graphics.Regression
             return TestPlatform.None;
 #elif STRIDE_GRAPHICS_API_DIRECT3D
             return TestPlatform.WindowsDx;
-#elif STRIDE_GRAPHICS_API_OPENGLES
-            return TestPlatform.WindowsOgles;
-#elif STRIDE_GRAPHICS_API_OPENGL
-            return TestPlatform.WindowsOgl;
 #elif STRIDE_GRAPHICS_API_VULKAN
             return TestPlatform.WindowsVulkan;
 #endif
@@ -182,8 +170,6 @@ namespace Stride.Graphics.Regression
     {
         None,
         WindowsDx,
-        WindowsOgl,
-        WindowsOgles,
         WindowsVulkan,
         Android,
         Ios
