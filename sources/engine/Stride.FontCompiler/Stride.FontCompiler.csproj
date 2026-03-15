@@ -1,5 +1,4 @@
-﻿<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Build.Sdk.Editor">
   <PropertyGroup>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
   </PropertyGroup>
@@ -16,6 +15,4 @@
     <ProjectReference Include="..\..\shaders\Stride.Core.Shaders\Stride.Core.Shaders.csproj" />
     <ProjectReference Include="..\Stride\Stride.csproj" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

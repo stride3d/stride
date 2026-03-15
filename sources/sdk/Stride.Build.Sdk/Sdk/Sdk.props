@@ -1,0 +1,48 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    ================================================================
+    Stride.Sdk - Early Property Definitions (Sdk.props)
+    ================================================================
+
+    EVALUATION ORDER: This file is imported BEFORE the project file!
+
+    What you CAN do here:
+    - Set DEFAULT property values (use Condition="'$(Property)' == ''")
+    - Define framework constants (net10.0, net10.0-android, etc.)
+    - Import other .props files
+
+    What you CANNOT do here:
+    - Check properties that users define in their .csproj (not visible yet!)
+    - Compute derived properties based on user values
+    - Conditionally enable features based on user properties
+
+    Rule: Properties defined in the user's .csproj are NOT visible here.
+          Move conditional logic to Sdk.targets instead.
+
+    See: build/docs/SDK-GUIDE.md#property-evaluation-order
+    ================================================================
+  -->
+
+  <!-- ================================================================ -->
+  <!-- Import supporting props files -->
+  <!-- ================================================================ -->
+  <Import Project="Stride.Frameworks.props" />
+  <Import Project="Stride.Platform.props" />
+  <Import Project="Stride.Graphics.props" />
+
+  <!-- ================================================================ -->
+  <!-- Import base Microsoft.NET.Sdk props -->
+  <!-- ================================================================ -->
+  <!-- This gives us all standard .NET SDK functionality -->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <!-- ================================================================ -->
+  <!-- Post-Microsoft.NET.Sdk defaults -->
+  <!-- ================================================================ -->
+  <!-- Must come AFTER Microsoft.NET.Sdk import which resets AllowUnsafeBlocks to false -->
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+</Project>

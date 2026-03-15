@@ -1,24 +1,15 @@
-<Project>
-  <Import Project="..\..\targets\Stride.UnitTests.props" />
+<Project Sdk="Stride.Build.Sdk.Tests">
   <PropertyGroup>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <StrideBuildTags>LinuxTools;WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
+    <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Core.Presentation.Quantum\Stride.Core.Presentation.Quantum.csproj" />
   </ItemGroup>
@@ -27,5 +18,4 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>  
   </ItemGroup>
-  <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>

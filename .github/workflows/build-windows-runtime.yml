@@ -4,14 +4,14 @@ on:
   pull_request:
     paths:
       - '.github/workflows/build-windows-runtime.yml'
-      - 'build/Stride.Runtime.sln'
+      - 'build/Stride.Runtime.slnf'
       - 'deps/**'
       - 'sources/core/**'
       - 'sources/engine/**'
       - 'sources/native/**'
       - 'sources/shaders/**'
       - 'sources/shared/**'
-      - 'sources/targets/**'
+      - 'sources/sdk/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'
@@ -65,9 +65,10 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - uses: ./.github/actions/build-sdk
       - name: Build
         run: |
-          dotnet build build\Stride.Runtime.sln `
+          dotnet build build\Stride.Runtime.slnf `
             -p:StrideNativeBuildMode=Clang `
             -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `

@@ -1,18 +1,12 @@
-<Project>
+<Project Sdk="Stride.Build.Sdk">
   <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <StrideNativeOutputName>libstridevr</StrideNativeOutputName>
     <StrideNativeWindowsArm64Enabled>false</StrideNativeWindowsArm64Enabled>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
-  <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
-    <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
   <Choose>
@@ -39,22 +33,16 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Games\Stride.Games.csproj" />
     <ProjectReference Include="..\Stride.Graphics\Stride.Graphics.csproj" />
-    <ProjectReference Include="..\Stride.Input\Stride.Input.csproj">
-      <Project>{84deb606-77ed-49cd-9aed-d2b13c1f5a1e}</Project>
-      <Name>Stride.Input</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Stride.Input\Stride.Input.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Stride.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="OculusOVR\OculusOVR.cpp" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Silk.NET.OpenXR" />
     <PackageReference Include="Silk.NET.OpenXR.Extensions.FB" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

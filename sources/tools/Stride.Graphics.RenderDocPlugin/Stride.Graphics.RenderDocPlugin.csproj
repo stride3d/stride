@@ -1,13 +1,11 @@
-<Project>
+<Project Sdk="Stride.Build.Sdk">
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
     <PackageReference Include="Microsoft.Win32.Registry" />
     <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

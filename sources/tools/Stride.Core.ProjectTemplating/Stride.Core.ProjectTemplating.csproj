@@ -1,5 +1,4 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Build.Sdk.Editor">
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
@@ -10,5 +9,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

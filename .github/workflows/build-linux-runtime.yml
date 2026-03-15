@@ -4,14 +4,14 @@ on:
   pull_request:
     paths:
       - '.github/workflows/build-linux-runtime.yml'
-      - 'build/Stride.Runtime.sln'
+      - 'build/Stride.Runtime.slnf'
       - 'deps/**'
       - 'sources/core/**'
       - 'sources/engine/**'
       - 'sources/native/**'
       - 'sources/shaders/**'
       - 'sources/shared/**'
-      - 'sources/targets/**'
+      - 'sources/sdk/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'
@@ -63,9 +63,10 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - uses: microsoft/setup-msbuild@v2
+      - uses: ./.github/actions/build-sdk
       - name: Build
         run: |
-          msbuild build\Stride.Runtime.sln `
+          msbuild build\Stride.Runtime.slnf `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `

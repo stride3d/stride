@@ -6,7 +6,7 @@ on:
       - '.github/workflows/build-vs-package.yml'
       - 'build/Stride.VisualStudio.sln'
       - 'sources/tools/Stride.VisualStudio.*/**'
-      - 'sources/targets/**'
+      - 'sources/sdk/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'
@@ -48,6 +48,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - uses: microsoft/setup-msbuild@v2
+      - uses: ./.github/actions/build-sdk
       - name: Build
         run: |
           msbuild build\Stride.VisualStudio.sln `

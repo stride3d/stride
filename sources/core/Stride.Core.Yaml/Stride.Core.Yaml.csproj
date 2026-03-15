@@ -1,20 +1,16 @@
-﻿<Project>
-  <Import Project="..\..\targets\Stride.Core.props" />
+<Project Sdk="Stride.Build.Sdk.Editor">
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.Reflection\Stride.Core.Reflection.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

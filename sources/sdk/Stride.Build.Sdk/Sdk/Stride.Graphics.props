@@ -1,0 +1,29 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    ================================================================
+    Stride.Sdk - Graphics API Defaults (Stride.Graphics.props)
+    ================================================================
+
+    EVALUATION PHASE: Early (BEFORE project file)
+
+    Sets default graphics API values. User can override StrideGraphicsApi
+    in their .csproj. Complex logic based on user values is in
+    Stride.Graphics.targets.
+
+    ================================================================
+  -->
+
+  <!-- ================================================================ -->
+  <!-- Default Graphics API per Platform -->
+  <!-- ================================================================ -->
+  <PropertyGroup>
+    <!-- Default graphics API for each platform (can be overridden) -->
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'Windows'">Direct3D11</StrideGraphicsApi>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'Linux'">OpenGL</StrideGraphicsApi>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'macOS'">Vulkan</StrideGraphicsApi>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'Android'">OpenGLES</StrideGraphicsApi>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StridePlatform)' == 'iOS'">OpenGLES</StrideGraphicsApi>
+  </PropertyGroup>
+
+</Project>

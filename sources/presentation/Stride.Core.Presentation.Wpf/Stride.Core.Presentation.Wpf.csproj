@@ -1,14 +1,9 @@
-<Project>
-
-  <Import Project="..\..\targets\Stride.Core.props" />
-
+<Project Sdk="Stride.Build.Sdk.Editor">
   <PropertyGroup>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StrideLocalized>true</StrideLocalized>
-    <RestorePackages>true</RestorePackages>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
   </PropertyGroup>
@@ -47,6 +42,4 @@
     <Resource Include="Resources\Images\cursor_west_east.png" />
     <Resource Include="Resources\Images\warning-32.png" />
   </ItemGroup>
-
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

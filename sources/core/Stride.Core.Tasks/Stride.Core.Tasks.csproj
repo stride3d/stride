@@ -1,19 +1,12 @@
-<Project>
-  <Import Project="..\..\targets\Stride.Core.props" />
+<Project Sdk="Stride.Build.Sdk.Editor">
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+    <OutputType>Exe</OutputType>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideOutputPath>bin\$(Configuration)\</StrideOutputPath>
-    <RestorePackages>true</RestorePackages>
-  </PropertyGroup>
-  <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
@@ -25,6 +18,7 @@
     </PackageReference>
     <PackageReference Include="Mono.Options" />
   </ItemGroup>
+
   <ItemGroup>
     <Compile Include="..\..\assets\Stride.Core.Assets.CompilerApp\Tasks\PackAssets.cs" Link="PackAssets.cs" />
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -32,8 +26,8 @@
     </Compile>
     <None Include="app.config" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

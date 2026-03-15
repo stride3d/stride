@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- TODO document that it is needed -->
+    <StrideRoot>$(MSBuildThisFileDirectory)../</StrideRoot>
+  </PropertyGroup>
+</Project>
