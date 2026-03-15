@@ -19,7 +19,7 @@ namespace Stride.Rendering
         /// Attach this <see cref="SubRenderFeature"/> to a <see cref="RootRenderFeature"/>.
         /// </summary>
         /// <param name="rootRenderFeature"></param>
-        internal void AttachRootRenderFeature(RootRenderFeature rootRenderFeature)
+        public void AttachRootRenderFeature(RootRenderFeature rootRenderFeature)
         {
             this.RootRenderFeature = rootRenderFeature;
             RenderSystem = rootRenderFeature.RenderSystem;
