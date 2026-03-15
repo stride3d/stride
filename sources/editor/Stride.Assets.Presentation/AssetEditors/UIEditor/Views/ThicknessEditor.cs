@@ -110,7 +110,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Views
         }
 
         /// <inheritdoc/>
-        protected override Thickness? UpateValueFromFloat(float value)
+        protected override Thickness? UpdateValueFromFloat(float value)
         {
             return Thickness.UniformCuboid(value);
         }

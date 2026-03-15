@@ -102,7 +102,7 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <inheritdoc/>
-        protected override Vector3? UpateValueFromFloat(float value)
+        protected override Vector3? UpdateValueFromFloat(float value)
         {
             return new Vector3(value);
         }

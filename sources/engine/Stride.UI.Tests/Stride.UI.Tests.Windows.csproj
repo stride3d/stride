@@ -42,6 +42,7 @@
     <Compile Include="Layering\GridTests.cs" />
     <Compile Include="Layering\ImageButtonTests.cs" />
     <Compile Include="Layering\ImageElementTests.cs" />
+    <Compile Include="Layering\ImageElementRotationTests.cs" />
     <Compile Include="Layering\MeasureArrangeValidator.cs" />
     <Compile Include="Layering\MeasureReflector.cs" />
     <Compile Include="Layering\MeasureValidator.cs" />

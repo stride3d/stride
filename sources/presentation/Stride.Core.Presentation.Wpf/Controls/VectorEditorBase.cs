@@ -105,7 +105,7 @@ namespace Stride.Core.Presentation.Controls
         /// <inheritdoc/>
         public override void SetVectorFromValue(float value)
         {
-            Value = UpateValueFromFloat(value);
+            Value = UpdateValueFromFloat(value);
         }
 
         /// <inheritdoc/>
@@ -130,7 +130,7 @@ namespace Stride.Core.Presentation.Controls
         /// Updates the <see cref="Value"/> property from a single float.
         /// </summary>
         /// <param name="value">The value to use to generate a vector.</param>
-        protected abstract T UpateValueFromFloat(float value);
+        protected abstract T UpdateValueFromFloat(float value);
 
         /// <summary>
         /// Raised when the <see cref="Value"/> property is modified.
