@@ -1,0 +1,24 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:l="using:Stride.Launcher.Assets.Localization"
+        mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="320"
+        Width="640" Height="320" WindowStartupLocation="CenterScreen"
+        x:Class="Stride.Launcher.SelfUpdateWindow"
+        Title="{x:Static l:Strings.SelfUpdateTitle}">
+  <DockPanel>
+    <TextBlock DockPanel.Dock="Top"
+               Text="{x:Static l:Strings.SelfUpdateMessage}"
+               Margin="40"
+               HorizontalAlignment="Center" VerticalAlignment="Center" />
+    <Button DockPanel.Dock="Bottom" x:Name="ExitButton"
+            Width="100" Margin="40"
+            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+            Content="{x:Static l:Strings.SelfUpdateExit}"
+            Click="ExitButtonClicked" />
+    <ProgressBar Height="32" Margin="40,0"
+                 VerticalAlignment="Center"
+                 IsIndeterminate="True" />
+  </DockPanel>
+</Window>
