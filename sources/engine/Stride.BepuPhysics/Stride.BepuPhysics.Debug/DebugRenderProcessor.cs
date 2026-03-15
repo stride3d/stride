@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Debug.Effects;
 using Stride.BepuPhysics.Debug.Effects.RenderFeatures;
 using Stride.BepuPhysics.Definitions;
@@ -17,6 +18,7 @@ namespace Stride.BepuPhysics.Debug;
 public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 {
     public SynchronizationMode Mode { get; set; } = SynchronizationMode.Physics; // Setting it to Physics by default to show when there is a large discrepancy between the entity and physics
+    public bool ShowCollisions { get; set; } = true;
 
     private bool _latent;
     private bool _visible;
@@ -25,6 +27,43 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     private ShapeCacheSystem _shapeCacheSystem = null!;
     private VisibilityGroup _visibilityGroup = null!;
     private readonly Dictionary<CollidableComponent, (WireFrameRenderObject[] Wireframes, object? cache)> _wireFrameRenderObject = new();
+
+    // Collision gizmo pooling:
+    private readonly List<CollisionGizmo> _collisionGizmos = new();
+    private int _collisionGizmosUsedThisFrame;
+
+    private sealed class CollisionGizmo
+    {
+        public WireFrameRenderObject Point = null!;
+        public WireFrameRenderObject Shaft = null!;
+        public WireFrameRenderObject Tip = null!;
+
+        public void SetVisible(bool visible, VisibilityGroup visibilityGroup)
+        {
+            if (visible && !Point.Enabled)
+            {
+                visibilityGroup.RenderObjects.Add(Point);
+                visibilityGroup.RenderObjects.Add(Shaft);
+                visibilityGroup.RenderObjects.Add(Tip);
+            }
+            else if (!visible && Point.Enabled)
+            {
+                visibilityGroup.RenderObjects.Remove(Point);
+                visibilityGroup.RenderObjects.Remove(Shaft);
+                visibilityGroup.RenderObjects.Remove(Tip);
+            }
+            Point.Enabled = visible;
+            Shaft.Enabled = visible;
+            Tip.Enabled = visible;
+        }
+
+        public void Dispose()
+        {
+            Point.Dispose();
+            Shaft.Dispose();
+            Tip.Dispose();
+        }
+    }
 
     public DebugRenderProcessor()
     {
@@ -70,7 +109,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
             Visible = component.Visible;
         else if (component.Visible)
             _latent = true;
-
+        Mode = component.Mode;
         component._processor = this;
     }
 
@@ -109,8 +148,13 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
         base.Draw(context);
 
-        foreach (var (collidable, (wireframes, cache)) in _wireFrameRenderObject)
+        // Collect sims that have at least one tracked collidable.
+        var simulations = new List<BepuSimulation>();
+        foreach (var (collidable, (wireframes, _)) in _wireFrameRenderObject)
         {
+            if (collidable.Simulation != null && !simulations.Contains(collidable.Simulation))
+                simulations.Add(collidable.Simulation);
+
             Matrix matrix;
             switch (Mode)
             {
@@ -144,15 +188,103 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
                 wireframe.Color = GetCurrentColor(collidable);
             }
         }
+
+        // Collisions rendering (pooled)
+        if (!ShowCollisions)
+        {
+            // Ensure physics doesn't waste time collecting.
+            for (int s = 0; s < simulations.Count; s++)
+                simulations[s].ContactEvents.DebugCollectAllContacts = false;
+
+            HideAllCollisionGizmos();
+            return;
+        }
+
+        _collisionGizmosUsedThisFrame = 0;
+
+        for (int s = 0; s < simulations.Count; s++)
+        {
+            var sim = simulations[s];
+            sim.ContactEvents.DebugCollectAllContacts = true;
+
+            var points = sim.ContactEvents.DebugPoints;
+            if (points.Length == 0)
+                continue;
+
+            EnsureCollisionGizmoCapacity(_collisionGizmosUsedThisFrame + points.Length);
+
+            for (int i = 0; i < points.Length; i++)
+            {
+                var p = points[i];
+
+                // Visual parameters
+                float pointRadius = 0.05f;
+                float normalLength = 0.35f;
+                float shaftRadius = 0.02f;
+                float tipRadius = 0.035f;
+
+                var n = p.WorldNormal;
+                if (n.LengthSquared() < 1e-6f)
+                    continue;
+
+                n.Normalize();
+
+                var start = p.WorldPoint;
+                var end = start + n * normalLength;
+                var mid = (start + end) * 0.5f;
+
+                // Align cylinder Y axis to normal
+                var rot = Quaternion.BetweenDirections(Vector3.UnitY, n);
+
+                var gizmo = _collisionGizmos[_collisionGizmosUsedThisFrame++];
+
+                // 1) contact point sphere
+                {
+                    gizmo.Point.Color = Color.Red;
+
+                    var scale = new Vector3(pointRadius);
+                    Matrix.Scaling(ref scale, out gizmo.Point.CollidableBaseMatrix);
+
+                    Matrix world;
+                    Matrix.Translation(ref start, out world);
+
+                    gizmo.Point.WorldMatrix = gizmo.Point.CollidableBaseMatrix * world;
+                }
+
+                // 2) normal shaft (cylinder)
+                {
+                    gizmo.Shaft.Color = Color.Yellow;
+
+                    var shaftScale = new Vector3(shaftRadius, normalLength, shaftRadius);
+
+                    // WorldMatrix directly
+                    Matrix.Transformation(ref shaftScale, ref rot, ref mid, out gizmo.Shaft.WorldMatrix);
+                    gizmo.Shaft.CollidableBaseMatrix = gizmo.Shaft.WorldMatrix;
+                }
+
+                // 3) normal tip (sphere)
+                {
+                    gizmo.Tip.Color = Color.Yellow;
+
+                    var tipScale = new Vector3(tipRadius);
+                    Matrix.Transformation(ref tipScale, ref rot, ref end, out gizmo.Tip.WorldMatrix);
+                    gizmo.Tip.CollidableBaseMatrix = gizmo.Tip.WorldMatrix;
+                }
+
+                gizmo.SetVisible(true, _visibilityGroup);
+            }
+        }
+
+        // Hide unused
+        for (int i = _collisionGizmosUsedThisFrame; i < _collisionGizmos.Count; i++)
+            _collisionGizmos[i].SetVisible(false, _visibilityGroup);
     }
 
     private void StartTracking(CollidableProcessor proc)
     {
         var shapeAndOffsets = new List<BasicMeshBuffers>();
         for (var collidables = proc.ComponentDataEnumerator; collidables.MoveNext();)
-        {
             StartTrackingCollidable(collidables.Current.Key, shapeAndOffsets);
-        }
     }
 
     private void StartTrackingCollidable(CollidableComponent collidable) => StartTrackingCollidable(collidable, new());
@@ -179,10 +311,11 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
             wireframes[i] = wireframe;
             _visibilityGroup.RenderObjects.Add(wireframe);
         }
-        _wireFrameRenderObject.Add(collidable, (wireframes, cache)); // We have to store the cache alongside it to ensure it doesn't get discarded for future calls to GetModelCache with the same model
+        // We have to store the cache alongside it to ensure it doesn't get discarded for future calls to GetModelCache with the same model
+        _wireFrameRenderObject.Add(collidable, (wireframes, cache));
     }
 
-    void CollidableUpdate(CollidableComponent collidable)
+    private void CollidableUpdate(CollidableComponent collidable)
     {
         ClearTrackingForCollidable(collidable);
         StartTrackingCollidable(collidable);
@@ -210,10 +343,87 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
             foreach (var wireframe in wireframes)
             {
                 wireframe.Dispose();
-                _visibilityGroup.RenderObjects.Remove(wireframe);
+                if (_visibilityGroup is not null)
+                    _visibilityGroup.RenderObjects.Remove(wireframe);
             }
         }
         _wireFrameRenderObject.Clear();
+
+        ClearCollisionGizmos();
+    }
+
+    // ------------------------------------------------------------------------
+    // Collision gizmo pool helpers
+    // ------------------------------------------------------------------------
+    private void HideAllCollisionGizmos()
+    {
+        _collisionGizmosUsedThisFrame = 0;
+        for (int i = 0; i < _collisionGizmos.Count; i++)
+            _collisionGizmos[i].SetVisible(false, _visibilityGroup);
+    }
+
+    private void EnsureCollisionGizmoCapacity(int required)
+    {
+        while (_collisionGizmos.Count < required)
+            _collisionGizmos.Add(CreateCollisionGizmo());
+    }
+
+    private CollisionGizmo CreateCollisionGizmo()
+    {
+        var gizmo = new CollisionGizmo
+        {
+            Point = WireFrameRenderObject.New(
+                _game.GraphicsDevice,
+                _shapeCacheSystem._sphereShapeData.Indices,
+                _shapeCacheSystem._sphereShapeData.Vertices),
+
+            Shaft = WireFrameRenderObject.New(
+                _game.GraphicsDevice,
+                _shapeCacheSystem._cylinderShapeData.Indices,
+                _shapeCacheSystem._cylinderShapeData.Vertices),
+
+            Tip = WireFrameRenderObject.New(
+                _game.GraphicsDevice,
+                _shapeCacheSystem._sphereShapeData.Indices,
+                _shapeCacheSystem._sphereShapeData.Vertices),
+        };
+
+        gizmo.Point.Color = Color.Red;
+        gizmo.Shaft.Color = Color.Yellow;
+        gizmo.Tip.Color = Color.Yellow;
+
+        // not the best code, but it works for now
+        _visibilityGroup.RenderObjects.Add(gizmo.Point);
+        _visibilityGroup.RenderObjects.Add(gizmo.Shaft);
+        _visibilityGroup.RenderObjects.Add(gizmo.Tip);
+        gizmo.SetVisible(false, _visibilityGroup);
+        return gizmo;
+    }
+
+    private void ClearCollisionGizmos()
+    {
+        if (_collisionGizmos.Count == 0)
+            return;
+
+        if (_visibilityGroup is not null)
+        {
+            for (int i = 0; i < _collisionGizmos.Count; i++)
+            {
+                var g = _collisionGizmos[i];
+                _visibilityGroup.RenderObjects.Remove(g.Point);
+                _visibilityGroup.RenderObjects.Remove(g.Shaft);
+                _visibilityGroup.RenderObjects.Remove(g.Tip);
+                g.Dispose();
+            }
+        }
+        else
+        {
+            for (int i = 0; i < _collisionGizmos.Count; i++)
+                _collisionGizmos[i].Dispose();
+        }
+
+        _collisionGizmos.Clear();
+        _collisionGizmosUsedThisFrame = 0;
     }
 
     private Color GetCurrentColor(CollidableComponent collidable)
