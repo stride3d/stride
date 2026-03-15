@@ -28,21 +28,28 @@ namespace Stride.Graphics
 
             // Create the default instance to enumerate physical devices
             defaultInstance = new GraphicsAdapterFactoryInstance(false);
+
+            var nativeInstance = defaultInstance.NativeInstance;
+            var nativeInstanceApi = defaultInstance.NativeInstanceApi;
+
             uint physicalDevicesCount = 0;
             defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, &physicalDevicesCount, null).CheckResult();
-
             if (physicalDevicesCount == 0)
                 throw new Exception("Vulkan: Failed to find GPUs with Vulkan support");
 
             Span<VkPhysicalDevice> nativePhysicalDevices = stackalloc VkPhysicalDevice[(int)physicalDevicesCount];
             defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, nativePhysicalDevices).CheckResult();
-            
+
             var adapterList = new List<GraphicsAdapter>();
             for (int index = 0; index < nativePhysicalDevices.Length; index++)
             {
-                VkPhysicalDeviceProperties properties;
-                defaultInstance.NativeInstanceApi.vkGetPhysicalDeviceProperties(nativePhysicalDevices[index], out properties);
-                var adapter = new GraphicsAdapter(nativePhysicalDevices[index], properties, index);
+                VkPhysicalDevice nativePhysicalDevice = nativePhysicalDevices[index];
+                List<DisplayInfo> displayInfos = VulkanDisplayHelper.GetDisplayInfos(nativeInstance, nativeInstanceApi, nativePhysicalDevice);
+
+                defaultInstance.NativeInstanceApi.vkGetPhysicalDeviceProperties(nativePhysicalDevice, out VkPhysicalDeviceProperties deviceProperties);
+
+                var adapter = new GraphicsAdapter(nativePhysicalDevice, displayInfos, deviceProperties, index);
+
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
             }
