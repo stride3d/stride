@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -11,7 +12,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
-using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Services;
@@ -46,33 +46,40 @@ public sealed class McpServerService : IDisposable
 
     /// <summary>
     /// Determines whether the MCP server should start based on settings and environment variables.
-    /// Environment variable STRIDE_MCP_ENABLED overrides the setting (for CI/tests).
+    /// Priority: env var > per-project .sdpkg.user setting > default (false).
     /// </summary>
-    private static bool IsEnabled()
+    private bool IsEnabled()
     {
         // Env var takes highest priority (for CI, tests, and command-line override)
         var envEnabled = Environment.GetEnvironmentVariable("STRIDE_MCP_ENABLED");
         if (envEnabled != null)
             return !string.Equals(envEnabled, "false", StringComparison.OrdinalIgnoreCase);
 
-        // Fall back to editor setting (default: false)
-        return EditorSettings.McpServerEnabled.GetValue();
+        // Fall back to per-project setting (default: false)
+        var project = _session.CurrentProject;
+        if (project != null)
+            return project.UserSettings.GetValue(McpProjectSettings.McpServerEnabled);
+
+        return false;
     }
 
     /// <summary>
-    /// Resolves the port to use. Priority: env var > setting > auto-select.
+    /// Resolves the port to use. Priority: env var > per-project .sdpkg.user setting > auto-select.
     /// A setting/env value of 0 means auto-select starting from DefaultPort.
     /// </summary>
-    private static int ResolveConfiguredPort()
+    private int ResolveConfiguredPort()
     {
         // Env var takes highest priority
         var portStr = Environment.GetEnvironmentVariable("STRIDE_MCP_PORT");
         if (int.TryParse(portStr, out var envPort))
             return envPort;
 
-        // Fall back to editor setting (default: 0 = auto)
-        var settingsPort = EditorSettings.McpServerPort.GetValue();
-        return settingsPort;
+        // Fall back to per-project setting (default: 0 = auto)
+        var project = _session.CurrentProject;
+        if (project != null)
+            return project.UserSettings.GetValue(McpProjectSettings.McpServerPort);
+
+        return 0;
     }
 
     public async Task StartAsync()

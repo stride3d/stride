@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
@@ -18,6 +19,12 @@ namespace Stride.GameStudio.Mcp;
 public sealed class McpEditorPlugin : StrideAssetsPlugin
 {
     private static readonly Logger Log = GlobalLogger.GetLogger("McpPlugin");
+
+    public McpEditorPlugin()
+    {
+        ProfileSettings.Add(new PackageSettingsEntry(McpProjectSettings.McpServerEnabled, TargetPackage.Executable));
+        ProfileSettings.Add(new PackageSettingsEntry(McpProjectSettings.McpServerPort, TargetPackage.Executable));
+    }
 
     protected override void Initialize(ILogger logger)
     {
