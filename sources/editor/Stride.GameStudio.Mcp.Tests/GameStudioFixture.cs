@@ -40,6 +40,11 @@ public sealed class GameStudioFixture : IAsyncLifetime
     /// </summary>
     public bool IsReady { get; private set; }
 
+    /// <summary>
+    /// The temporary directory containing the copied test project (solution root).
+    /// </summary>
+    public string? TempProjectDir => _tempProjectDir;
+
     private static bool IsEnabled =>
         string.Equals(
             Environment.GetEnvironmentVariable("STRIDE_MCP_INTEGRATION_TESTS"),

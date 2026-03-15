@@ -62,6 +62,27 @@ public sealed class McpIntegrationTests : IAsyncLifetime
     }
 
     [McpIntegrationFact]
+    public async Task McpConfigFile_WritesRuntimeInfo()
+    {
+        // The MCP server should write .stride/mcp.json with runtime info on startup
+        var solutionDir = _fixture.TempProjectDir;
+        Assert.NotNull(solutionDir);
+
+        var configPath = Path.Combine(solutionDir, ".stride", "mcp.json");
+        Assert.True(File.Exists(configPath), $"Expected .stride/mcp.json at: {configPath}");
+
+        var json = await File.ReadAllTextAsync(configPath);
+        var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        // Runtime info should be present with correct values
+        Assert.True(root.TryGetProperty("runtime", out var runtime), "Expected 'runtime' property in mcp.json");
+        Assert.Equal(_fixture.Port, runtime.GetProperty("actualPort").GetInt32());
+        Assert.True(runtime.GetProperty("pid").GetInt32() > 0);
+        Assert.False(string.IsNullOrEmpty(runtime.GetProperty("startedAt").GetString()));
+    }
+
+    [McpIntegrationFact]
     public async Task QueryAssets_ReturnsAssets()
     {
         var root = await CallToolAndParseJsonAsync("query_assets", new Dictionary<string, object?>
