@@ -1,0 +1,41 @@
+!PrefabAsset
+Id: a954e461-1843-4050-96cd-6e43e6b82b47
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+    Parts:
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: ab043dcf-3513-4a3c-be2d-87125a0bf4fb
+                Name: Platform_Thin_long
+                Components:
+                    434ef69de74e6501fc61289ef3259ebc: !TransformComponent
+                        Id: 04b94243-5955-4207-a4cd-1930534e527d
+                        Position: {X: 5.0, Y: -5.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5b0a5872e9545d1a89edc9001b489567: !SpriteComponent
+                        Id: 42b0d164-010b-4cfc-a003-c5a215e164ff
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    10073a8d05bb76a838b430a04a8ed5d7: !StaticColliderComponent
+                        Id: 0b6ee4c5-2730-42d9-a630-61e308948b9f
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e1f5063c512e0cee9eda177cf7f75895: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 2.01, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}

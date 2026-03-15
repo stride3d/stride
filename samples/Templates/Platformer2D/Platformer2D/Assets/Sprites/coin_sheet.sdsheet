@@ -1,0 +1,104 @@
+!SpriteSheet
+Id: c9c540bb-2671-42de-bf06-b935954cd604
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: Sprite2D
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+Packing: {}
+Sprites:
+    11c7232b6b95611a617109444fd2eb30:
+        Source: !file ../../Resources/coin.png
+        Name: coin_0
+        TextureRegion: {X: 0, Y: 0, Width: 16, Height: 16}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    8982b889347b53d50b778103a3359113:
+        Source: !file ../../Resources/coin.png
+        Name: coin_1
+        TextureRegion: {X: 16, Y: 0, Width: 16, Height: 16}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    ea92186c4227d545f91e18983a339cc6:
+        Source: !file ../../Resources/coin.png
+        Name: coin_2
+        TextureRegion: {X: 32, Y: 0, Width: 16, Height: 16}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    049fa447233fea6f9418765b266d17b6:
+        Source: !file ../../Resources/coin.png
+        Name: coin_3
+        TextureRegion: {X: 48, Y: 0, Width: 16, Height: 16}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    0d51d74e8852bda127ac5515853080d7:
+        Source: !file ../../Resources/coin.png
+        Name: coin_4
+        TextureRegion: {X: 64, Y: 0, Width: 16, Height: 16}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    beeefe95329af5c68f8a56d87ce97a3c:
+        Source: !file ../../Resources/coin.png
+        Name: coin_5
+        TextureRegion: {X: 80, Y: 0, Width: 16, Height: 16}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    3a5ba65f13cf86400ceaab226b77ed2b:
+        Source: !file ../../Resources/coin.png
+        Name: coin_6
+        TextureRegion: {X: 96, Y: 0, Width: 16, Height: 16}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    595d05f6fcff29c84db1423286bcca2e:
+        Source: !file ../../Resources/coin.png
+        Name: coin_7
+        TextureRegion: {X: 112, Y: 0, Width: 16, Height: 16}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    ed078696aa11e4b2e4e4a9bf7c47ea09:
+        Source: !file ../../Resources/coin.png
+        Name: coin_8
+        TextureRegion: {X: 128, Y: 0, Width: 16, Height: 16}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    050188a4c71e78165ae1404b4d158dbe:
+        Source: !file ../../Resources/coin.png
+        Name: coin_9
+        TextureRegion: {X: 144, Y: 0, Width: 16, Height: 16}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    82bd686c511a8452b0f2099e21a0e10a:
+        Source: !file ../../Resources/coin.png
+        Name: coin_10
+        TextureRegion: {X: 160, Y: 0, Width: 16, Height: 16}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    ebe87ba1f73954173b812cf66ed48777:
+        Source: !file ../../Resources/coin.png
+        Name: coin_11
+        TextureRegion: {X: 176, Y: 0, Width: 16, Height: 16}
+        PixelsPerUnit: 16.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}

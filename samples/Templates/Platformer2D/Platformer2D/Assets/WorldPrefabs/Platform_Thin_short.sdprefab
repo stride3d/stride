@@ -1,0 +1,42 @@
+!PrefabAsset
+Id: b4f4dad7-71d0-41ed-96e8-4c44deb4e618
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! d5871d1f-0974-4d34-8dd7-9955583ffe62
+    Parts:
+        -   Folder: Map/Plattforms
+            Entity:
+                Id: d5871d1f-0974-4d34-8dd7-9955583ffe62
+                Name: Platform_Thin_short
+                Components:
+                    89fda52fd0dcd43889322555fec8d1da: !TransformComponent
+                        Id: 812d76b9-5f12-49b9-a46a-1307882a992c
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    38f388c3d5cc14129696b9b4940105b6: !SpriteComponent
+                        Id: 38a9f3eb-8397-45f9-a56c-e53400c54156
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 1
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    fdbc84f119d35b74720fafb625a63045: !StaticColliderComponent
+                        Id: 909b2408-9760-48f5-b976-41c3c0607b5b
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a3e271dc2945c92633e135fb0746b73b: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 0.5, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
