@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -29,6 +30,7 @@ public sealed class McpServerService : IDisposable
     private const int MaxPortRetries = 10;
 
     private readonly SessionViewModel _session;
+    private readonly string? _solutionDir;
     private readonly DispatcherBridge _dispatcherBridge;
     private WebApplication? _webApp;
     private CancellationTokenSource? _cts;
@@ -36,17 +38,18 @@ public sealed class McpServerService : IDisposable
     public int Port { get; private set; }
     public bool IsRunning => _webApp != null;
 
-    public McpServerService(SessionViewModel session)
+    public McpServerService(SessionViewModel session, string? solutionDir)
     {
         _session = session ?? throw new ArgumentNullException(nameof(session));
+        _solutionDir = solutionDir;
 
         var dispatcher = session.ServiceProvider.Get<IDispatcherService>();
         _dispatcherBridge = new DispatcherBridge(dispatcher);
     }
 
     /// <summary>
-    /// Determines whether the MCP server should start based on settings and environment variables.
-    /// Priority: env var > per-project .sdpkg.user setting > default (false).
+    /// Determines whether the MCP server should start.
+    /// Priority: env var > .stride/mcp.json > default (false).
     /// </summary>
     private bool IsEnabled()
     {
@@ -55,17 +58,14 @@ public sealed class McpServerService : IDisposable
         if (envEnabled != null)
             return !string.Equals(envEnabled, "false", StringComparison.OrdinalIgnoreCase);
 
-        // Fall back to per-project setting (default: false)
-        var project = _session.CurrentProject;
-        if (project != null)
-            return project.UserSettings.GetValue(McpProjectSettings.McpServerEnabled);
-
-        return false;
+        // Fall back to .stride/mcp.json (default: false)
+        return McpConfigFile.Load(_solutionDir).Enabled;
     }
 
     /// <summary>
-    /// Resolves the port to use. Priority: env var > per-project .sdpkg.user setting > auto-select.
-    /// A setting/env value of 0 means auto-select starting from DefaultPort.
+    /// Resolves the port to use.
+    /// Priority: env var > .stride/mcp.json > auto-select.
+    /// A value of 0 means auto-select starting from DefaultPort.
     /// </summary>
     private int ResolveConfiguredPort()
     {
@@ -74,19 +74,15 @@ public sealed class McpServerService : IDisposable
         if (int.TryParse(portStr, out var envPort))
             return envPort;
 
-        // Fall back to per-project setting (default: 0 = auto)
-        var project = _session.CurrentProject;
-        if (project != null)
-            return project.UserSettings.GetValue(McpProjectSettings.McpServerPort);
-
-        return 0;
+        // Fall back to .stride/mcp.json (default: 0 = auto)
+        return McpConfigFile.Load(_solutionDir).Port;
     }
 
     public async Task StartAsync()
     {
         if (!IsEnabled())
         {
-            Log.Info("MCP server is disabled. Enable it in Tools settings or set STRIDE_MCP_ENABLED=true.");
+            Log.Info("MCP server is disabled. Create .stride/mcp.json with {\"enabled\": true} or set STRIDE_MCP_ENABLED=true.");
             return;
         }
 
@@ -170,6 +166,10 @@ public sealed class McpServerService : IDisposable
             await _webApp.StartAsync(_cts!.Token);
             Port = port;
             Log.Info($"MCP server started successfully on http://localhost:{port}/sse");
+
+            // Write runtime info for agent discovery
+            var pid = Process.GetCurrentProcess().Id;
+            McpConfigFile.WriteRuntimeInfo(_solutionDir, port, pid);
         }
         catch (Exception ex)
         {
@@ -216,6 +216,9 @@ public sealed class McpServerService : IDisposable
             _webApp = null;
             _cts?.Dispose();
             _cts = null;
+
+            // Clear runtime info so agents know the server is gone
+            McpConfigFile.ClearRuntimeInfo(_solutionDir);
         }
     }
 

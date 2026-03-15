@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
@@ -20,12 +19,6 @@ public sealed class McpEditorPlugin : StrideAssetsPlugin
 {
     private static readonly Logger Log = GlobalLogger.GetLogger("McpPlugin");
 
-    public McpEditorPlugin()
-    {
-        ProfileSettings.Add(new PackageSettingsEntry(McpProjectSettings.McpServerEnabled, TargetPackage.Executable));
-        ProfileSettings.Add(new PackageSettingsEntry(McpProjectSettings.McpServerPort, TargetPackage.Executable));
-    }
-
     protected override void Initialize(ILogger logger)
     {
         // No static initialization needed
@@ -35,7 +28,8 @@ public sealed class McpEditorPlugin : StrideAssetsPlugin
     {
         try
         {
-            var mcpService = new McpServerService(session);
+            var solutionDir = ResolveSolutionDirectory(session);
+            var mcpService = new McpServerService(session, solutionDir);
             session.ServiceProvider.RegisterService(mcpService);
             mcpService.StartAsync().ContinueWith(t =>
             {
@@ -69,5 +63,18 @@ public sealed class McpEditorPlugin : StrideAssetsPlugin
     public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
     {
         // No preview types to register
+    }
+
+    /// <summary>
+    /// Resolves the solution root directory from the session's solution path.
+    /// Returns null if no solution path is available.
+    /// </summary>
+    private static string? ResolveSolutionDirectory(SessionViewModel session)
+    {
+        var solutionPath = session.SolutionPath;
+        if (solutionPath == null)
+            return null;
+
+        return solutionPath.GetFullDirectory()?.ToOSPath();
     }
 }
