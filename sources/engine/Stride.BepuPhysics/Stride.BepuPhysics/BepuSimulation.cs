@@ -366,7 +366,7 @@ public sealed class BepuSimulation : IDisposable
     public bool RayCast(in Vector3 origin, in Vector3 dir, float maxDistance, out HitInfo result, CollisionMask collisionMask = CollisionMask.Everything)
     {
         var handler = new RayClosestHitHandler(this, collisionMask);
-        Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, ref handler);
+        Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, BufferPool, ref handler);
         if (handler.HitInformation.HasValue)
         {
             result = handler.HitInformation.Value;
@@ -397,7 +397,7 @@ public sealed class BepuSimulation : IDisposable
         fixed (HitInfoStack* ptr = &buffer[0])
         {
             var handler = new RayHitsStackHandler(ptr, buffer.Length, this, collisionMask);
-            Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, ref handler);
+            Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, BufferPool, ref handler);
             return new (buffer[..handler.Head], new ManagedConverter(this));
         }
     }
@@ -414,7 +414,7 @@ public sealed class BepuSimulation : IDisposable
     public void RayCastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, ICollection<HitInfo> collection, CollisionMask collisionMask = CollisionMask.Everything)
     {
         var handler = new RayHitsCollectionHandler(this, collection, collisionMask);
-        Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, ref handler);
+        Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, BufferPool, ref handler);
     }
 
     /// <summary>
@@ -622,7 +622,7 @@ public sealed class BepuSimulation : IDisposable
 
             try
             {
-                Simulation.BroadPhase.GetOverlaps(boundingBoxMin, boundingBoxMax, ref broadPhaseEnumerator);
+                Simulation.BroadPhase.GetOverlaps(boundingBoxMin, boundingBoxMax, BufferPool, ref broadPhaseEnumerator);
 
                 var batcher = new CollisionBatcher<BatcherCallbacks<TCollector>>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, new()
                 {
