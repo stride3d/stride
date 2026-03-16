@@ -112,7 +112,7 @@ public class EffectCodeWriter : ShaderWriter
                 parameterType = a.BaseType;
             }
 
-            if (parameterType is ShaderSymbol or TextureType or BufferType or StructuredBufferType or ByteAddressBufferType or SamplerType)
+            if (parameterType is ShaderSymbol or TextureType or BufferType or StructuredBufferType or AppendStructuredBufferType or ConsumeStructuredBufferType or ByteAddressBufferType or SamplerType)
             {
                 parameterKeyType = "Object";
             }
@@ -415,7 +415,7 @@ public class EffectCodeWriter : ShaderWriter
         {
             Write("Matrix");
         }
-        else if (typeName.Type is BufferType or StructuredBufferType or ByteAddressBufferType)
+        else if (typeName.Type is BufferType or StructuredBufferType or AppendStructuredBufferType or ConsumeStructuredBufferType or ByteAddressBufferType)
         {
             Write("Buffer");
         }

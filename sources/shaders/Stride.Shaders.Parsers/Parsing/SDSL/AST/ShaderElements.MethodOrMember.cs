@@ -195,10 +195,17 @@ public sealed partial class ShaderMember(
             memberType = TypeName.Type;
         }
 
+        if (memberType is AppendStructuredBufferType or ConsumeStructuredBufferType)
+        {
+            var bufTypeName = memberType is AppendStructuredBufferType ? "AppendStructuredBuffer" : "ConsumeStructuredBuffer";
+            table.AddError(new(TypeName.Info, $"{bufTypeName} is not supported. Use RWStructuredBuffer with a separate counter buffer instead (variable '{Name}')."));
+            return;
+        }
+
         var storageClass = (memberType, StorageClass, StreamKind) switch
         {
             (TextureType or BufferType, _, _) => Specification.StorageClass.UniformConstant,
-            (StructuredBufferType or ByteAddressBufferType or AppendStructuredBufferType or ConsumeStructuredBufferType, _, _) => Specification.StorageClass.StorageBuffer,
+            (StructuredBufferType or ByteAddressBufferType, _, _) => Specification.StorageClass.StorageBuffer,
             (_, StorageClass.GroupShared, _) => Specification.StorageClass.Workgroup,
             (_, StorageClass.Static, _) => Specification.StorageClass.Private,
             (_, _, StreamKind.Stream or StreamKind.PatchStream) => Specification.StorageClass.Private,
@@ -298,16 +305,12 @@ public sealed partial class ShaderMember(
         if (StreamKind == StreamKind.PatchStream)
             context.Add(new OpDecorate(variable, Specification.Decoration.Patch, []));
 
-        if (pointerType.BaseType is AppendStructuredBufferType asb)
-            context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, $"appendstructuredbuffer:<{asb.BaseType.ToId().ToLowerInvariant()}>"));
-        else if (pointerType.BaseType is ConsumeStructuredBufferType csb)
-            context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, $"consumestructuredbuffer:<{csb.BaseType.ToId().ToLowerInvariant()}>"));
-        else if (pointerType.BaseType is StructuredBufferType sb)
+        if (pointerType.BaseType is StructuredBufferType sb)
             context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, $"{(sb.WriteAllowed ? "rw" : "")}structuredbuffer:<{sb.BaseType.ToId().ToLowerInvariant()}>"));
         else if (pointerType.BaseType is ByteAddressBufferType bab)
             context.Add(new OpDecorateString(variable, Specification.Decoration.UserTypeGOOGLE, bab.WriteAllowed ? "rwbyteaddressbuffer" : "byteaddressbuffer"));
 
-        if (pointerType.BaseType is ByteAddressBufferType { WriteAllowed: false } or StructuredBufferType { WriteAllowed: false } or ConsumeStructuredBufferType)
+        if (pointerType.BaseType is ByteAddressBufferType { WriteAllowed: false } or StructuredBufferType { WriteAllowed: false })
             context.Add(new OpDecorate(variable, Specification.Decoration.NonWritable, []));
 
         RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);

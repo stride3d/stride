@@ -29,6 +29,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
     public void MergeSDSL(ShaderSource shaderSource, Options options, ILogger log, out Span<byte> bytecode, out EffectReflection effectReflection, out HashSourceCollection usedHashSources, out List<InterfaceProcessor.EntryPointInfo> entryPoints)
     {
+        bytecode = default;
+        effectReflection = default;
+        usedHashSources = default;
+        entryPoints = default;
+
         // Create new buffer for the merged result
         var temp = new SpirvBuffer();
 
@@ -37,6 +42,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         context.Add(new OpCapability(Capability.Shader));
         context.Add(new OpExtension("SPV_GOOGLE_user_type"));
         context.Add(new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
+        if (ShaderLoader is ShaderLoaderBase shaderLoaderBase)
+            shaderLoaderBase.Log = log;
         var shaderLoader = new CaptureLoadedShaders(ShaderLoader);
         var table = new SymbolTable(context) { ShaderLoader = shaderLoader };
 
@@ -59,7 +66,24 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Process name and types imported by constants due to generics instantiation
         ShaderClass.ProcessNameAndTypes(context);
 
-        var rootMixin = MergeMixinNode(globalContext, context, temp, shaderSource2);
+        MixinNode rootMixin;
+        try
+        {
+            rootMixin = MergeMixinNode(globalContext, context, temp, shaderSource2);
+        }
+        catch (Exception e)
+        {
+            log.Error(e.Message, e);
+            return;
+        }
+
+        // If any semantic errors were collected during shader compilation, stop mixing
+        if (table.Errors.Count > 0)
+        {
+            foreach (var error in table.Errors)
+                log.Error(error.Message);
+            return;
+        }
 
         // Add optional capabilities
         foreach (var i in context)
@@ -827,7 +851,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         // Process member call (composition)
                         if (!instanceMixinGroup.MethodGroupsByName.TryGetValue((function.Name, functionType), out functionId)
                             && (instanceMixinGroup.Stage == null || !instanceMixinGroup.Stage.MethodGroupsByName.TryGetValue((function.Name, functionType), out functionId)))
-                            throw new InvalidOperationException($"Can't find function ID for {context.Names[functionId]}");
+                            throw new InvalidOperationException($"Can't find function {function.Name} in current mixin");
                     }
 
                     bool foundInStage = false;

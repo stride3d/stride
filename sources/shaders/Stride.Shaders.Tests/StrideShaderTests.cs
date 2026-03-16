@@ -337,11 +337,11 @@ new ShaderMacro("class", "shader"),
 },
         };
 
-        var logger = new Stride.Core.Diagnostics.LoggerResult();
+        var log = new Stride.Core.Diagnostics.LoggerResult();
         var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/Stride/SDSL"));
-        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), logger, out var bytecode, out var effectReflection, out _, out _);
+        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var effectReflection, out _, out _);
 
-        var warnings = logger.Messages
+        var warnings = log.Messages
             .Where(m => m.Type == Stride.Core.Diagnostics.LogMessageType.Warning && m.Text.Contains("Mismatched decorations"))
             .Select(m => m.Text).ToList();
         Assert.Empty(warnings);
@@ -520,16 +520,17 @@ new ShaderMacro("class", "shader"),
 },
         };
 
-        TestCore(shaderSource);
+        TestCore("StrideTessellation", shaderSource, "./assets/Stride/SDSL");
     }
 
-    private static void TestCore(ShaderMixinSource shaderSource)
+    private static void TestCore(string shaderName, ShaderMixinSource shaderSource, params string[] searchPaths)
     {
-        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/Stride/SDSL"));
-        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), new Stride.Core.Diagnostics.LoggerResult(), out var bytecode, out var effectReflection, out _, out _);
+        var shaderMixer = new ShaderMixer(new ShaderLoader(searchPaths));
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var effectReflection, out _, out _);
 
-        File.WriteAllBytes($"StrideTessellation.spv", bytecode);
-        File.WriteAllText($"StrideTessellation.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
+        File.WriteAllBytes($"{shaderName}.spv", bytecode);
+        File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
         var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
         var entryPoints = translator.GetEntryPoints();

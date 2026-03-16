@@ -1,3 +1,5 @@
+using Stride.Core.Diagnostics;
+using Stride.Core.Storage;
 using Stride.Shaders.Compilers.SDSL;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Spirv.Building;
@@ -6,13 +8,17 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using Stride.Core.Storage;
 
 namespace Stride.Shaders.Compilers;
 
 public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShaderLoader
 {
     public IShaderCache Cache => fileCache;
+
+    /// <summary>
+    /// Optional logger for compilation errors. If not set, errors are thrown as exceptions.
+    /// </summary>
+    public ILogger? Log { get; set; }
 
     public bool Exists(string name)
     {
@@ -43,6 +49,9 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
         if (!LoadFromCode(filename, code, hash, defines, out buffer))
         {
+            // If a logger is set, errors are already logged — just return false
+            if (Log != null)
+                return false;
             throw new InvalidOperationException($"Shader {name} could not be compiled");
         }
 
@@ -60,6 +69,9 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         hash = ObjectId.FromBytes(Encoding.UTF8.GetBytes(code));
         if (!LoadFromCode(filename, code, hash, defines, out buffer))
         {
+            // If a logger is set, errors are already logged — just return false
+            if (Log != null)
+                return false;
             throw new InvalidOperationException($"Shader {name} could not be compiled");
         }
 
@@ -78,6 +90,14 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
             ShaderLoader = this,
         };
 
-        return sdslc.Compile(filename, text, hash, macros, out buffer);
+        // Use provided logger, or a temporary one that throws on errors
+        var log = Log ?? new LoggerResult();
+        if (!sdslc.Compile(filename, text, hash, macros, log, out buffer))
+        {
+            if (Log == null && log is LoggerResult loggerResult && loggerResult.HasErrors)
+                throw new InvalidOperationException(string.Join(Environment.NewLine, loggerResult.Messages.Where(m => m.Type >= LogMessageType.Error).Select(m => m.Text)));
+            return false;
+        }
+        return true;
     }
 }

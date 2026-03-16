@@ -41,7 +41,8 @@ public partial class RenderingTests
         // (since there are multiple shader/effects in a simple file, simply using the effect would not go through normal load and it wouldn't know about the shaders in the file)
         shaderMixer.ShaderLoader.LoadExternalBuffer(shaderName, [], out _, out _, out _);
 
-        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), new Stride.Core.Diagnostics.LoggerResult(), out var bytecode, out var effectReflection, out _, out _);
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var effectReflection, out _, out _);
 
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
         File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
@@ -86,7 +87,8 @@ public partial class RenderingTests
         // (since there are multiple shader/effects in a simple file, simply using the effect would not go through normal load and it wouldn't know about the shaders in the file)
         shaderMixer.ShaderLoader.LoadExternalBuffer(shaderName, [], out _, out _, out _);
 
-        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), new Stride.Core.Diagnostics.LoggerResult(), out var bytecode, out var effectReflection, out _, out _);
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var effectReflection, out _, out _);
 
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
         File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
@@ -155,7 +157,8 @@ public partial class RenderingTests
 
         shaderMixer.ShaderLoader.LoadExternalBuffer(shaderName, [], out _, out _, out _);
 
-        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), new Stride.Core.Diagnostics.LoggerResult(), out var bytecode, out var effectReflection, out _, out _);
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var effectReflection, out _, out _);
 
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
         File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));

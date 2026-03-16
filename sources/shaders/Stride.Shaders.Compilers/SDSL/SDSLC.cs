@@ -9,6 +9,7 @@ using Stride.Shaders.Spirv.Processing;
 using Stride.Shaders.Spirv.Tools;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Stride.Core.Diagnostics;
 using Stride.Core.Storage;
 using Stride.Shaders.Parsing.SDFX.AST;
 
@@ -16,92 +17,76 @@ namespace Stride.Shaders.Compilers.SDSL;
 
 public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 {
-    public readonly bool Compile(string filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, [MaybeNullWhen(false)] out ShaderBuffers lastBuffer)
+    public readonly bool Compile(string filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, ILogger log, [MaybeNullWhen(false)] out ShaderBuffers lastBuffer)
     {
-        var parsed = SDSLParser.Parse(code);
         lastBuffer = default;
+
+        var parsed = SDSLParser.Parse(code);
         if (parsed.Errors.Count > 0)
         {
-            throw new Exception($"Some parse errors:{Environment.NewLine}{string.Join(Environment.NewLine, parsed.Errors)}");
-        }
-        if (parsed.AST is ShaderFile sf)
-        {
-            // TODO: support namespace
-            var declarations = sf.Namespaces.SelectMany(x => x.Declarations).Concat(sf.RootDeclarations);
-            foreach (var declaration in declarations)
-            {
-                if (declaration is ShaderClass shader)
-                {
-                    var compiler = new CompilerUnit();
-                    SymbolTable table = new(compiler.Context)
-                    {
-                        ShaderLoader = ShaderLoader,
-                        CurrentMacros = [.. macros],
-                    };
-                    
-                    // Add OpSource
-                    var filenameId = compiler.Context.Add(new OpString(compiler.Context.Bound++, filename)).ResultId;
-                    // TODO: Add SourceLanguage.SDSL
-                    compiler.Context.Add(new OpSource(Spirv.Specification.SourceLanguage.Unknown, 0, filenameId, null));
-                    compiler.Context.Add(new OpSourceHashSDSL(filenameId, (int)hash.Hash1, (int)hash.Hash2, (int)hash.Hash3, (int)hash.Hash4));
-                    // TODO: Do we want to record macros with a custom OpMacroSDSL? (mostly for debug purposes)
-
-                    compiler.Macros.AddRange(macros);
-                    shader.Compile(table, compiler);
-
-                    if (table.Errors.Count > 0)
-                        throw new Exception($"Some parse errors:{Environment.NewLine}{string.Join(Environment.NewLine, table.Errors)}");
-
-                    lastBuffer = compiler.ToShaderBuffers();
-                    ShaderLoader.Cache.RegisterShader(shader.Name, null, macros, lastBuffer, hash);
-                }
-                else if (declaration is ShaderEffect or EffectParameters)
-                {
-                    // Ignore (using C# codegen for now)
-
-                }
-                // Compiling SDFX to SPIR-V is not supported (we might switch to it in the future instead of using C# codegen)
-                /*else if (declaration is ShaderEffect effect)
-                {
-                    var compiler = new CompilerUnit();
-                    SymbolTable table = new(compiler.Context)
-                    {
-                        ShaderLoader = ShaderLoader,
-                        CurrentMacros = [..macros],
-                    };
-                    compiler.Macros.AddRange(macros);
-                    effect.Compile(table, compiler);
-
-                    lastBuffer = compiler.ToShaderBuffers();
-                    ShaderLoader.FileCache.RegisterShader(effect.Name, macros, lastBuffer, hash);
-                }
-                else if (declaration is EffectParameters parameters)
-                {
-                    var compiler = new CompilerUnit();
-                    SymbolTable table = new(compiler.Context)
-                    {
-                        ShaderLoader = ShaderLoader,
-                        CurrentMacros = [..macros],
-                    };
-                    compiler.Macros.AddRange(macros);
-                    parameters.Compile(table, compiler);
-
-                    lastBuffer = compiler.ToShaderBuffers();
-
-                    ShaderLoader.FileCache.RegisterShader(parameters.Name, [], lastBuffer, hash);
-                }*/
-                else
-                {
-                    throw new NotImplementedException($"Compiling declaration [{declaration.GetType()}] is not implemented");
-                }
-            }
-
-            return lastBuffer != null;
-        }
-        else
-        {
-            lastBuffer = default;
+            foreach (var error in parsed.Errors)
+                log.Error(error.ToString());
             return false;
         }
+        if (parsed.AST is not ShaderFile sf)
+            return false;
+
+        // TODO: support namespace
+        var declarations = sf.Namespaces.SelectMany(x => x.Declarations).Concat(sf.RootDeclarations);
+        foreach (var declaration in declarations)
+        {
+            if (declaration is ShaderClass shader)
+            {
+                var compiler = new CompilerUnit();
+                SymbolTable table = new(compiler.Context)
+                {
+                    ShaderLoader = ShaderLoader,
+                    CurrentMacros = [.. macros],
+                };
+
+                // Add OpSource
+                var filenameId = compiler.Context.Add(new OpString(compiler.Context.Bound++, filename)).ResultId;
+                // TODO: Add SourceLanguage.SDSL
+                compiler.Context.Add(new OpSource(Spirv.Specification.SourceLanguage.Unknown, 0, filenameId, null));
+                compiler.Context.Add(new OpSourceHashSDSL(filenameId, (int)hash.Hash1, (int)hash.Hash2, (int)hash.Hash3, (int)hash.Hash4));
+                // TODO: Do we want to record macros with a custom OpMacroSDSL? (mostly for debug purposes)
+
+                compiler.Macros.AddRange(macros);
+                bool hasErrors = false;
+                try
+                {
+                    shader.Compile(table, compiler);
+                }
+                catch (Exception e)
+                {
+                    log.Error(e.Message, e);
+                    hasErrors = true;
+                }
+
+                if (table.Errors.Count > 0)
+                {
+                    foreach (var error in table.Errors)
+                        log.Error(error.ToString());
+                    hasErrors = true;
+                }
+
+                if (hasErrors)
+                    return false;
+
+                lastBuffer = compiler.ToShaderBuffers();
+                ShaderLoader.Cache.RegisterShader(shader.Name, null, macros, lastBuffer, hash);
+            }
+            else if (declaration is ShaderEffect or EffectParameters)
+            {
+                // Ignore (using C# codegen for now)
+            }
+            else
+            {
+                log.Error($"Compiling declaration [{declaration.GetType()}] is not implemented");
+                return false;
+            }
+        }
+
+        return lastBuffer != null;
     }
 }

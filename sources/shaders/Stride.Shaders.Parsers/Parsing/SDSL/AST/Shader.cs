@@ -557,6 +557,11 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         // (SPIR-V allow forward calling)
         foreach (var method in Elements.OfType<ShaderMethod>())
             method.ProcessSymbol(table, context);
+
+        // If any errors occurred during symbol processing, skip method body analysis and compilation
+        if (table.Errors.Count > 0)
+            return;
+
         if (!hasUnresolvableGenerics)
         {
             foreach (var member in Elements.OfType<ShaderMethod>())
