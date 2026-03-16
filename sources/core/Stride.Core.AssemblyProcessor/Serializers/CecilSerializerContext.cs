@@ -223,13 +223,8 @@ internal class CecilSerializerContext
             }
         }
 
-        // Collect serializable items and cache them in the descriptor
-        var serializableItems = SerializationHelpers.GetSerializableItems(type, true, ignoredMembers: IgnoredMembers).ToArray();
-        if (descriptor is not null)
-            descriptor.SerializableItems = serializableItems;
-
-        // Process members
-        foreach (var serializableItem in serializableItems)
+        // Resolve serializers for all members, ignoring those without valid serializers
+        foreach (var serializableItem in SerializationHelpers.GetSerializableItems(type, true, ignoredMembers: IgnoredMembers))
         {
             // Check that all closed types have a proper serializer
             if (serializableItem.Attributes.Any(x => x.AttributeType.FullName == "Stride.Core.DataMemberCustomSerializerAttribute")
@@ -258,6 +253,10 @@ internal class CecilSerializerContext
                 throw new InvalidOperationException($"Could not process serialization for member {serializableItem.MemberInfo}", e);
             }
         }
+
+        // Cache final serializable items (after ignored members have been updated)
+        if (descriptor is not null)
+            descriptor.SerializableItems = SerializationHelpers.GetSerializableItems(type, true, ignoredMembers: IgnoredMembers).ToArray();
     }
 
     /// <summary>
