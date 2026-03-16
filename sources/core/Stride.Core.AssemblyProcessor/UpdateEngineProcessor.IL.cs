@@ -14,41 +14,9 @@ internal partial class UpdateEngineProcessor
         var assembly = context.Assembly;
 
         // Check "#if IL" directly in the source to easily see what is generated
-        GenerateUpdateEngineHelperCode(assembly);
         GenerateUpdatableFieldCode(assembly);
         new UpdatablePropertyCodeGenerator(assembly).GenerateUpdatablePropertyCode();
         new UpdatableListCodeGenerator(assembly).GenerateUpdatablePropertyCode();
-    }
-
-    /// <summary>
-    /// Rewrites UpdateEngineHelper methods with raw IL (unsafe pointer/object conversions).
-    /// </summary>
-    private static void GenerateUpdateEngineHelperCode(AssemblyDefinition assembly)
-    {
-        var updateEngineHelperType = assembly.MainModule.GetType("Stride.Updater.UpdateEngineHelper");
-
-        // Generates: IntPtr ObjectToPtr(object obj) => (IntPtr)obj;
-        var objectToPtr = RewriteBody(updateEngineHelperType.Methods.First(x => x.Name == "ObjectToPtr"), assembly);
-        objectToPtr.Emit(OpCodes.Ldarg, objectToPtr.Body.Method.Parameters[0])
-                   .Emit(OpCodes.Conv_I)
-                   .Emit(OpCodes.Ret);
-
-        // Generates: object PtrToObject(IntPtr ptr) { object tmp; *(IntPtr*)&tmp = ptr; return tmp; }
-        // Note: simpler "ldarg.0 + ret" doesn't work with Xamarin: https://bugzilla.xamarin.com/show_bug.cgi?id=40608
-        // Xamarin forces us to do a roundtrip through a local object variable
-        var ptrToObject = RewriteBody(updateEngineHelperType.Methods.First(x => x.Name == "PtrToObject"), assembly);
-        var ptrToObjectLocal = ptrToObject.AddLocal(assembly.MainModule.TypeSystem.Object);
-        ptrToObject.Emit(OpCodes.Ldloca_S, ptrToObjectLocal)
-                   .Emit(OpCodes.Ldarg, ptrToObject.Body.Method.Parameters[0])
-                   .Emit(OpCodes.Stind_I)
-                   .Emit(OpCodes.Ldloc_0)
-                   .Emit(OpCodes.Ret);
-
-        // Generates: T* Unbox<T>(object obj) => (T*)Unbox(obj);  (returns pointer to boxed value)
-        var unbox = RewriteBody(updateEngineHelperType.Methods.First(x => x.Name == "Unbox"), assembly);
-        unbox.Emit(OpCodes.Ldarg, unbox.Body.Method.Parameters[0])
-             .Emit(OpCodes.Unbox, unbox.Body.Method.GenericParameters[0])
-             .Emit(OpCodes.Ret);
     }
 
     /// <summary>
