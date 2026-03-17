@@ -585,7 +585,7 @@ public partial class Identifier(string name, TextLocation info) : IdentifierBase
         {
             if (++currentIndex == Name.Length || Name[currentIndex] == '_')
             {
-                if (!TryParseOne(Name.AsSpan(startIndex, currentIndex - startIndex), m.Rows, m.Columns, out var component))
+                if (!TryParseOne(Name.AsSpan(startIndex, currentIndex - startIndex), m.Columns, m.Rows, out var component))
                     return false;
 
                 result.Add(component);
