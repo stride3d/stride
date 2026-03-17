@@ -52,6 +52,9 @@ public sealed class BuildProjectTool
                 }
             }
 
+            // Reimport any assets whose source files have changed on disk
+            var reimportedAssets = await AssetReimportHelper.ReimportModifiedAssets(session);
+
             // Auto-save before building (matching the editor's Build button behavior via PrepareBuild)
             var saved = await session.SaveSession();
             if (!saved)
@@ -133,6 +136,9 @@ public sealed class BuildProjectTool
                         status = "started",
                         project = Path.GetFileName(projectPath),
                         configuration = config,
+                        reimportedAssets = reimportedAssets.Count > 0
+                            ? reimportedAssets
+                            : null,
                     },
                 };
             }
