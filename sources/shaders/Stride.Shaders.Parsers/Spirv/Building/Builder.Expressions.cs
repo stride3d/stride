@@ -106,16 +106,22 @@ public partial class SpirvBuilder
         {
             (ScalarType { Type: Scalar.Int64 }, _) or (_, ScalarType { Type: Scalar.Int64 }) => throw new NotImplementedException("64bit integers"),
             // Matching types
-            (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Float or Scalar.Double or Scalar.Boolean } l, ScalarType r) when l == r => l,
-            // If one side is float and other is non-floating, promote to floating
+            (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Half or Scalar.Float or Scalar.Double or Scalar.Boolean } l, ScalarType r) when l == r => l,
+            // If one side is float/double and other is integer, promote to floating
             (ScalarType { Type: Scalar.Int or Scalar.UInt } l, ScalarType { Type: Scalar.Float or Scalar.Double } r) => r,
             (ScalarType { Type: Scalar.Float or Scalar.Double } l, ScalarType { Type: Scalar.Int or Scalar.UInt } r) => l,
+            // Half mixed with float/double: HLSL narrows to half
+            (ScalarType { Type: Scalar.Half } l, ScalarType { Type: Scalar.Float or Scalar.Double }) => l,
+            (ScalarType { Type: Scalar.Float or Scalar.Double }, ScalarType { Type: Scalar.Half } r) => r,
+            // Half mixed with integer promotes to half
+            (ScalarType { Type: Scalar.Int or Scalar.UInt } l, ScalarType { Type: Scalar.Half } r) => r,
+            (ScalarType { Type: Scalar.Half } l, ScalarType { Type: Scalar.Int or Scalar.UInt } r) => l,
             // If one side is unsigned, promote to unsigned (bitcast)
             (ScalarType { Type: Scalar.Int } l, ScalarType { Type: Scalar.UInt } r) => r,
             (ScalarType { Type: Scalar.UInt } l, ScalarType { Type: Scalar.Int } r) => l,
             // Bool promotes to int/uint/float in arithmetic contexts (HLSL implicit conversion)
-            (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Float or Scalar.Double } r) => r,
-            (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Float or Scalar.Double } l, ScalarType { Type: Scalar.Boolean }) => l,
+            (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Half or Scalar.Float or Scalar.Double } r) => r,
+            (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Half or Scalar.Float or Scalar.Double } l, ScalarType { Type: Scalar.Boolean }) => l,
             _ => throw new NotImplementedException($"Couldn't figure out element type for binary operation between {leftElementType} and {rightElementType}"),
         };
     }
@@ -450,8 +456,14 @@ public partial class SpirvBuilder
 
             // https://learn.microsoft.com/en-us/windows/win32/direct3d9/casting-and-conversion
             (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Int or Scalar.UInt }) => 7,
-            (ScalarType { Type: Scalar.Float or Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Boolean }) => 7,
+            (ScalarType { Type: Scalar.Float or Scalar.Half or Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Boolean }) => 7,
             (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Boolean }, ScalarType { Type: Scalar.Float }) => 2,
+
+            // Half conversions: half=>float (widening) is cheaper than float=>half (narrowing/lossy)
+            (ScalarType { Type: Scalar.Half }, ScalarType { Type: Scalar.Float or Scalar.Double }) => 1,
+            (ScalarType { Type: Scalar.Float or Scalar.Double }, ScalarType { Type: Scalar.Half }) => 3,
+            (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Boolean }, ScalarType { Type: Scalar.Half }) => 2,
+            (ScalarType { Type: Scalar.Half }, ScalarType { Type: Scalar.Int or Scalar.UInt }) => 7,
 
             // Bitcast (int=>uint or uint=>int) — cheaper than int=>float since no precision change
             (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.UInt }) => 1,
@@ -713,7 +725,7 @@ internal static class SymbolExtensions
     };
     public static bool IsSignedInteger(this SymbolType symbol) => symbol is ScalarType { Type: Scalar.Int or Scalar.Int64 };
     public static bool IsUnsignedInteger(this SymbolType symbol) => symbol is ScalarType { Type: Scalar.UInt or Scalar.UInt64 };
-    public static bool IsFloating(this SymbolType symbol) => symbol is ScalarType { Type: Scalar.Float or Scalar.Double };
+    public static bool IsFloating(this SymbolType symbol) => symbol is ScalarType { Type: Scalar.Half or Scalar.Float or Scalar.Double };
     public static bool IsInteger(this SymbolType symbol) => symbol.IsSignedInteger() || symbol.IsUnsignedInteger();
     public static bool IsNumber(this SymbolType symbol) => symbol.IsInteger() || symbol.IsFloating();
     public static bool IsSigned(this SymbolType symbol) => symbol.IsSignedInteger() || symbol.IsFloating();
