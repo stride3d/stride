@@ -37,6 +37,10 @@ RenderStages:
         Name: GBuffer
         EffectSlotName: GBuffer
         SortMode: !FrontToBackSortMode {}
+    8173f8afa6474074a01555031d91a238:
+        Id: d5bc762c-e00f-48aa-a41a-13ad0a61e923
+        Name: UserInterface
+        EffectSlotName: Main
 RenderFeatures:
     d8fb80b0e7995140a46bca8dc36ee8a2: !Stride.Rendering.MeshRenderFeature,Stride.Rendering
         RenderStageSelectors:
@@ -97,23 +101,23 @@ RenderFeatures:
             d74665cff080638a2439c4422e542d85: !Stride.Rendering.Sprites.SpriteTransparentRenderStageSelector,Stride.Rendering
                 OpaqueRenderStage: ref!! 50671147-a5c1-49d4-b4ad-3625f71439b3
                 TransparentRenderStage: ref!! 0fa30591-02ee-486d-9347-2b6aee83d035
-                EffectName: Test
+                EffectName: Sprites
     60780391e205770513fdd53e07279a01: !Stride.Rendering.Background.BackgroundRenderFeature,Stride.Rendering
         RenderStageSelectors:
             11c8b8ccb522e3cd1dd6688016062a6d: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Rendering
                 RenderStage: ref!! 50671147-a5c1-49d4-b4ad-3625f71439b3
-                EffectName: Test
+                EffectName: Background
     93933ad00d0c357d4915ad462cbfd04c: !Stride.Rendering.UI.UIRenderFeature,Stride.UI
         RenderStageSelectors:
-            14a071694411235038a102ac3794bb4d: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Rendering
-                RenderStage: ref!! 0fa30591-02ee-486d-9347-2b6aee83d035
-                EffectName: Test
+            fb515eb25305092868a4d549fc360f74: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Rendering
+                RenderStage: ref!! d5bc762c-e00f-48aa-a41a-13ad0a61e923
+                EffectName: UI
     9013eab3ea0ef6c98bf133b86c173d45: !Stride.Particles.Rendering.ParticleEmitterRenderFeature,Stride.Particles
         RenderStageSelectors:
             af1bd241305893ef8ff7952184e1cb0b: !Stride.Particles.Rendering.ParticleEmitterTransparentRenderStageSelector,Stride.Particles
                 OpaqueRenderStage: ref!! 50671147-a5c1-49d4-b4ad-3625f71439b3
                 TransparentRenderStage: ref!! 0fa30591-02ee-486d-9347-2b6aee83d035
-                EffectName: null
+                EffectName: Particles
         PipelineProcessors: {}
 SharedRenderers:
     60459475d3a3adaf2d1ba5d99913ca75: !Stride.Rendering.Compositing.ForwardRenderer,Stride.Engine
@@ -196,6 +200,12 @@ Game: !Stride.Rendering.Compositing.SceneCameraRenderer,Stride.Engine
         Id: 82568e46-92e7-421a-8dca-114a74e0cd69
         Children:
             d39c5ddbf8b7d5ca02bafb6496b1cc3c: !Stride.Rendering.Compositing.ForwardRenderer,Stride.Engine ref!! 4d409a59-d3c6-4b55-a5c7-4bd9b8886ea5
+            44e345fb04abc21c3f07a844d5498996: !Stride.Rendering.Compositing.SingleStageRenderer,Stride.Rendering
+                Id: f46f9b2f-09c8-48e6-8cbc-95d0d6d83e66
+                RenderStage: ref!! d5bc762c-e00f-48aa-a41a-13ad0a61e923
             01d338078e9b21121ead0868932613dd: !Stride.Rendering.Compositing.DebugRenderer,Stride.Rendering ref!! f15a53d4-4af3-4b1d-8783-bdb49d3c96e2
 SingleView: !Stride.Rendering.Compositing.ForwardRenderer,Stride.Engine ref!! 776f2112-aca9-4510-9db5-6b13b6d795d7
-Editor: !Stride.Rendering.Compositing.ForwardRenderer,Stride.Engine ref!! 4d409a59-d3c6-4b55-a5c7-4bd9b8886ea5
+Editor: !Stride.Rendering.Compositing.SceneRendererCollection,Stride.Rendering
+    Id: 26321417-3b7f-4848-a784-ca08582c28a2
+    Children:
+        61e8ef126f330d0edf9d8fb1f3f4b4be: !Stride.Rendering.Compositing.ForwardRenderer,Stride.Engine ref!! 4d409a59-d3c6-4b55-a5c7-4bd9b8886ea5
