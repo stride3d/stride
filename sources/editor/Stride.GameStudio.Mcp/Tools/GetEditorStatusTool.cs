@@ -59,6 +59,10 @@ public sealed class GetEditorStatusTool
             var assetCount = allAssets.Count;
             var rootAssetCount = session.CurrentProject?.RootAssets.Count ?? 0;
 
+            var suppressedDialogs = new List<string>();
+            while (DispatcherBridge.RecentSuppressedDialogs.TryDequeue(out var msg))
+                suppressedDialogs.Add(msg);
+
             return new
             {
                 status = "connected",
@@ -69,6 +73,7 @@ public sealed class GetEditorStatusTool
                 assetCount,
                 rootAssetCount,
                 scenes,
+                lastSuppressedDialogs = suppressedDialogs.Count > 0 ? suppressedDialogs : null,
             };
         }, cancellationToken);
 
