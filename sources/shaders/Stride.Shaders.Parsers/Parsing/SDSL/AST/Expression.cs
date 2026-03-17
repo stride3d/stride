@@ -436,16 +436,24 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
                 .OrderBy(x => x.Key.Score)
                 .ToList();
 
+            static string FormatSignature(string name, FunctionType ft)
+                => $"{name}({string.Join(", ", ft.ParameterTypes.Select(p => p.Type.GetValueType()))})";
+
             if (accessibleMethods.Count == 0)
             {
-                table.AddError(new(info, $"Can't find a valid method overload to call for {Name} (among {functionSymbol.GroupMembers} candidate(s))"));
+                var callStr = FormatSignature(Name, new FunctionType(null, [.. argumentTypes.Select(t => new FunctionParameter(t, ParameterModifiers.None))]));
+                var candidatesStr = string.Join("\n  ", functionSymbol.GroupMembers.Select(x => FormatSignature(Name, (FunctionType)x.Type)));
+                table.AddError(new(info, $"Can't find a valid method overload for '{callStr}'. Candidates:\n  {candidatesStr}"));
                 return false;
             }
 
             // Check if there is an ambiguous call (multiple method groups with the lowest score)
             if (accessibleMethods.Count > 1 && accessibleMethods[0].Key.Score == accessibleMethods[1].Key.Score)
             {
-                table.AddError(new(info, $"Ambiguous method overload when calling for {Name} (among {functionSymbol.GroupMembers} candidate(s))"));
+                var callStr = FormatSignature(Name, new FunctionType(null, [.. argumentTypes.Select(t => new FunctionParameter(t, ParameterModifiers.None))]));
+                var ambiguousStr = string.Join("\n  ", accessibleMethods.Where(g => g.Key.Score == accessibleMethods[0].Key.Score)
+                    .SelectMany(g => g).Select(x => $"{FormatSignature(Name, (FunctionType)x.Symbol.Type)} [score: {x.Score}]"));
+                table.AddError(new(info, $"Ambiguous method overload for '{callStr}'. Matching candidates:\n  {ambiguousStr}"));
                 return false;
             }
 

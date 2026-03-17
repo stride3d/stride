@@ -58,7 +58,11 @@ public class IntrinsicCallHelper
 
             ByteAddressBufferType { WriteAllowed: false } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.ByteAddressBufferMethods), IntrinsicsDefinitions.ByteAddressBufferMethods), ByteAddressBufferMethodsImplementations.Instance),
             ByteAddressBufferType { WriteAllowed: true } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.RWByteAddressBufferMethods), IntrinsicsDefinitions.RWByteAddressBufferMethods), ByteAddressBufferMethodsImplementations.Instance),
+            _ => (null, null),
         };
+
+        if (templateExpander == null)
+            return false;
 
         if (!templateExpander.TryGetOrGenerateIntrinsicsDefinition(name, out var overloads))
         {

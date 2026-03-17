@@ -415,8 +415,8 @@ public partial class SpirvBuilder
             (VectorType v1, VectorType v2) when v1.Size == v2.Size => 0,
             (MatrixType m1, MatrixType m2) when m1.Rows == m2.Rows && m1.Columns == m2.Columns => 0,
 
-            // Promotion scalar to scalar, vector or matrix (replicate value)
-            (ScalarType, VectorType or MatrixType) => 1,
+            // Promotion scalar to vector or matrix (replicate value) — more expensive than scalar-to-scalar conversion
+            (ScalarType, VectorType or MatrixType) => 5,
 
             // Truncation
             // Shape-changing truncation (vector/matrix to scalar) costs more than dimension-reducing truncation
@@ -451,11 +451,11 @@ public partial class SpirvBuilder
             // https://learn.microsoft.com/en-us/windows/win32/direct3d9/casting-and-conversion
             (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Int or Scalar.UInt }) => 7,
             (ScalarType { Type: Scalar.Float or Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Boolean }) => 7,
-            (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Boolean }, ScalarType { Type: Scalar.Float }) => 1,
+            (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Boolean }, ScalarType { Type: Scalar.Float }) => 2,
 
-            // Bitcast (int=>uint or uint=>int)
-            (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.UInt }) => 2,
-            (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Int }) => 2,
+            // Bitcast (int=>uint or uint=>int) — cheaper than int=>float since no precision change
+            (ScalarType { Type: Scalar.Int }, ScalarType { Type: Scalar.UInt }) => 1,
+            (ScalarType { Type: Scalar.UInt }, ScalarType { Type: Scalar.Int }) => 1,
 
             _ => int.MaxValue,
         };
