@@ -5,7 +5,7 @@ namespace Stride.Rendering.Shadows
     /// <summary>
     /// Creates shadow map for variance shadow mapping.
     /// </summary>
-    shader ShadowMapCasterVsm : ShadowMapCasterBase
+    shader ShadowMapCasterVsm : ShaderBase
     {
         /// --------------------------------------------------------------------------------
         /// Pixel Shader

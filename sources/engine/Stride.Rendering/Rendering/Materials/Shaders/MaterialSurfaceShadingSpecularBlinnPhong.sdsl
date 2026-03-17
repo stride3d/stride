@@ -7,6 +7,8 @@ namespace Stride.Rendering.Materials
     /// </summary>
     shader MaterialSurfaceShadingSpecularBlinnPhong : IMaterialSurfaceShading, NormalStream
     {
+        ComputeColor BRDFBlinnPhong;
+
         override float3 ComputeDirectLightContribution()
         {
             float k = BRDFBlinnPhong.Compute(streams.lightDirectionWS, streams.normalWS, streams.viewWS, streams.matSpecularPower);

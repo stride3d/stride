@@ -15,7 +15,7 @@ namespace Stride.Rendering.Materials
                 displacement = displacement * 2 - 1;
             }
 
-            displacement *= streams.matDisplacementIntensity;
+            //displacement *= streams.matDisplacementIntensity;
             
             streams.Position = float4(streams.Position.xyz + displacement * streams.meshNormal, streams.Position.w);
         }
