@@ -529,12 +529,18 @@ new ShaderMacro("class", "shader"),
         var log = new Stride.Core.Diagnostics.LoggerResult();
         shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var effectReflection, out _, out _);
 
+        if (log.HasErrors)
+            Assert.Fail(string.Join(Environment.NewLine, log.Messages.Where(m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error).Select(m => m.Text)));
+
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
         File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
         var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
         var entryPoints = translator.GetEntryPoints();
-        var codeHS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.TessellationControl));
-        var codeDS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.TessellationEvaluation));
+        foreach (var entryPoint in entryPoints)
+        {
+            var hlsl = translator.Translate(Backend.Hlsl, entryPoint);
+            Console.WriteLine(hlsl);
+        }
     }
 }
