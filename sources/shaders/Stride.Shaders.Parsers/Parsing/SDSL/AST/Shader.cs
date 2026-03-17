@@ -545,6 +545,8 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         }
 
         // Process symbols and generate types
+        foreach (var td in Elements.OfType<TypeDef>())
+            table.AddError(new(td.Info, $"typedef is not implemented: '{td}'"));
         foreach (var member in Elements.OfType<ShaderStruct>())
             member.ProcessSymbol(table, context);
         foreach (var member in Elements.OfType<ShaderMember>())
