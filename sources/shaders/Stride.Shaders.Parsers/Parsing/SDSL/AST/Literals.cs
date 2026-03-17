@@ -223,6 +223,14 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
             }
         }
 
+        // Scalar splat: float3(x) means float3(x, x, x)
+        if (elementIndex == 1 && totalCount > 1 && Type is VectorType or MatrixType)
+        {
+            for (int j = 1; j < totalCount; ++j)
+                values[j] = values[0];
+            elementIndex = totalCount;
+        }
+
         if (elementIndex != totalCount)
             throw new InvalidOperationException($"{nameof(VectorLiteral)}: Expecting {totalCount} elements but got {elementIndex} for type {Type}");
 
