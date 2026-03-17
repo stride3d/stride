@@ -41,22 +41,37 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
         // Obtain the static constructor of <Module> and the return instruction
         var moduleConstructor = assembly.OpenModuleConstructor(out var returnInstruction);
 
-        // Get the IL processor of the module constructor
-        var il = moduleConstructor.Body.GetILProcessor();
+        // Get the IL processor of the module constructor (used only for InsertBefore)
+        var moduleCtorIL = moduleConstructor.Body.GetILProcessor();
 
         // Create the call to Initialize method
         var initializeMethodReference = assembly.MainModule.ImportReference(mainPrepareMethod);
-        var callInitializeInstruction = il.Create(OpCodes.Call, initializeMethodReference);
-        il.InsertBefore(moduleConstructor.Body.Instructions.Last(), callInitializeInstruction);
+        var callInitializeInstruction = moduleCtorIL.Create(OpCodes.Call, initializeMethodReference);
+        moduleCtorIL.InsertBefore(moduleConstructor.Body.Instructions.Last(), callInitializeInstruction);
 
         return mainPrepareMethod;
     }
 
+    /// <summary>
+    /// Creates a static dispatcher method for virtual/interface property access via <c>ldvirtftn</c>/<c>calli</c>.
+    /// </summary>
+    /// <remarks>
+    /// Generates code equivalent to:
+    /// <code>
+    /// static TReturn Dispatcher_get_Property(object @this /*, params... */)
+    /// {
+    ///     return @this./* virtual call via ldvirtftn+calli */get_Property(/* params... */);
+    /// }
+    /// </code>
+    /// This is needed because <c>ldftn</c> of a virtual method gives the base slot, not the override.
+    /// The dispatcher uses <c>ldvirtftn</c> to resolve the actual vtable entry at runtime.
+    /// </remarks>
     private MethodReference CreateDispatcher(AssemblyDefinition assembly, MethodReference method)
     {
         var updateEngineType = GetOrCreateUpdateType(assembly, true);
+        var module = assembly.MainModule;
 
-        var dispatcherMethod = new MethodDefinition($"Dispatcher_{method.Name}", MethodAttributes.HideBySig | MethodAttributes.Assembly | MethodAttributes.Static, assembly.MainModule.ImportReference(method.ReturnType));
+        var dispatcherMethod = new MethodDefinition($"Dispatcher_{method.Name}", MethodAttributes.HideBySig | MethodAttributes.Assembly | MethodAttributes.Static, module.ImportReference(method.ReturnType));
         updateEngineType.Methods.Add(dispatcherMethod);
 
         dispatcherMethod.Parameters.Add(new ParameterDefinition("this", ParameterAttributes.None, method.DeclaringType));
@@ -65,19 +80,22 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
             dispatcherMethod.Parameters.Add(new ParameterDefinition(param.Name, param.Attributes, param.ParameterType));
         }
 
-        var il = dispatcherMethod.Body.GetILProcessor();
+        // Emit: load all args, then resolve virtual method and call via calli
+        var il = new ILBuilder(dispatcherMethod.Body, module);
         il.Emit(OpCodes.Ldarg_0);
-        foreach (var param in dispatcherMethod.Parameters.Skip(1)) // first parameter is "this"
+        // note: first parameter is "this"
+        foreach (var param in dispatcherMethod.Parameters.Skip(1))
         {
             il.Emit(OpCodes.Ldarg, param);
         }
-        il.Emit(OpCodes.Ldarg_0);
-        il.Emit(OpCodes.Ldvirtftn, method);
         var callsite = new Mono.Cecil.CallSite(method.ReturnType) { HasThis = true };
         foreach (var param in method.Parameters)
             callsite.Parameters.Add(param);
-        il.Emit(OpCodes.Calli, callsite);
-        il.Emit(OpCodes.Ret);
+        // Emit: @this.ldvirtftn(method) then calli — resolves the actual override at runtime
+        il.Emit(OpCodes.Ldarg_0)
+          .Emit(OpCodes.Ldvirtftn, method)
+          .Emit(OpCodes.Calli, callsite)
+          .Emit(OpCodes.Ret);
 
         return dispatcherMethod;
     }
@@ -88,6 +106,7 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
         EnumerateReferences(references, context.Assembly);
 
         var coreAssembly = CecilExtensions.FindCorlibAssembly(context.Assembly);
+        var module = context.Assembly.MainModule;
 
         // Only process assemblies depending on Stride.Engine
         if (!references.Any(x => x.Name.Name == "Stride.Engine"))
@@ -97,12 +116,12 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
             var serializationAssemblyName = "Stride.Engine.Serializers";
 
             // Add [InteralsVisibleTo] attribute
-            var internalsVisibleToAttributeCtor = context.Assembly.MainModule.ImportReference(internalsVisibleToAttribute.GetConstructors().Single());
+            var internalsVisibleToAttributeCtor = module.ImportReference(internalsVisibleToAttribute.GetConstructors().Single());
             var internalsVisibleAttribute = new CustomAttribute(internalsVisibleToAttributeCtor)
             {
                 ConstructorArguments =
                         {
-                            new CustomAttributeArgument(context.Assembly.MainModule.ImportReference(context.Assembly.MainModule.TypeSystem.String), serializationAssemblyName)
+                            new CustomAttributeArgument(module.ImportReference(module.TypeSystem.String), serializationAssemblyName)
                         }
             };
             context.Assembly.CustomAttributes.Add(internalsVisibleAttribute);
@@ -112,7 +131,7 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
 
         var strideEngineAssembly = context.Assembly.Name.Name == "Stride.Engine"
                 ? context.Assembly
-                : context.Assembly.MainModule.AssemblyResolver.Resolve(new AssemblyNameReference("Stride.Engine", null));
+                : module.AssemblyResolver.Resolve(new AssemblyNameReference("Stride.Engine", null));
         var strideEngineModule = strideEngineAssembly.MainModule;
 
         // Generate IL for Stride.Core
@@ -140,14 +159,14 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
         parameterCollectionResolverInstantiateValueAccessor = parameterCollectionResolver.Methods.First(x => x.Name == "InstantiateValueAccessor");
 
         var registerMemberMethod = strideEngineModule.GetType("Stride.Updater.UpdateEngine").Methods.First(x => x.Name == "RegisterMember");
-        updateEngineRegisterMemberMethod = context.Assembly.MainModule.ImportReference(registerMemberMethod);
+        updateEngineRegisterMemberMethod = module.ImportReference(registerMemberMethod);
 
         var registerMemberResolverMethod = strideEngineModule.GetType("Stride.Updater.UpdateEngine").Methods.First(x => x.Name == "RegisterMemberResolver");
         //pclVisitor.VisitMethod(registerMemberResolverMethod);
-        updateEngineRegisterMemberResolverMethod = context.Assembly.MainModule.ImportReference(registerMemberResolverMethod);
+        updateEngineRegisterMemberResolverMethod = module.ImportReference(registerMemberResolverMethod);
 
         var typeType = coreAssembly.MainModule.GetTypeResolved(typeof(Type).FullName);
-        getTypeFromHandleMethod = context.Assembly.MainModule.ImportReference(typeType.Methods.First(x => x.Name == "GetTypeFromHandle"));
+        getTypeFromHandleMethod = module.ImportReference(typeType.Methods.First(x => x.Name == "GetTypeFromHandle"));
 
         var mainPrepareMethod = CreateUpdateMethod(context.Assembly);
 
@@ -168,7 +187,7 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
 
             try
             {
-                ProcessType(context, context.Assembly.MainModule.ImportReference(typeDefinition), mainPrepareMethod);
+                ProcessType(context, module.ImportReference(typeDefinition), mainPrepareMethod);
             }
             catch (Exception e)
             {
@@ -176,15 +195,20 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
             }
         }
 
-        // Force generic instantiations
-        var il = mainPrepareMethod.Body.GetILProcessor();
+        // Force generic instantiations — register resolvers for lists, arrays, and trigger generic update methods
+        // Generates calls like:
+        //   UpdateEngine.RegisterMemberResolver(new ListUpdateResolver<ElementType>());
+        //   UpdateEngine.RegisterMemberResolver(new ArrayUpdateResolver<ElementType>());
+        //   ParameterCollectionResolver.InstantiateValueAccessor<KeyType>();  // iOS AOT only
+        //   UpdateGeneric_TypeName<T1, T2>();  // for closed generic types
+        var il = new ILBuilder(mainPrepareMethod.Body, module);
         foreach (var serializableType in context.SerializableTypesProfiles.SelectMany(x => x.Value.SerializableTypes).ToArray())
         {
             // Special case: when processing Stride.Engine assembly, we automatically add dependent assemblies types too
             if (!serializableType.Value.Local && strideEngineAssembly != context.Assembly)
                 continue;
 
-            // Try to find if original method definition was generated  
+            // Try to find if original method definition was generated
             var typeDefinition = serializableType.Key.Resolve();
 
             // If using List<T>, register this type in UpdateEngine
@@ -196,8 +220,8 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
                 {
                     //call Updater.UpdateEngine.RegisterMemberResolver(new Updater.ListUpdateResolver<T>());
                     var elementType = ResolveGenericsVisitor.Process(serializableType.Key, listInterfaceType.GenericArguments[0]);
-                    il.Emit(OpCodes.Newobj, context.Assembly.MainModule.ImportReference(updatableListUpdateResolverGenericCtor).MakeGeneric(context.Assembly.MainModule.ImportReference(elementType)));
-                    il.Emit(OpCodes.Call, updateEngineRegisterMemberResolverMethod);
+                    il.Emit(OpCodes.Newobj, il.Import(updatableListUpdateResolverGenericCtor).MakeGeneric(il.Import(elementType)))
+                      .Emit(OpCodes.Call, updateEngineRegisterMemberResolverMethod);
                 }
 
                 parentTypeDefinition = parentTypeDefinition.BaseType?.Resolve();
@@ -208,15 +232,15 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
             {
                 //call Updater.UpdateEngine.RegisterMemberResolver(new Updater.ArrayUpdateResolver<T>());
                 var elementType = ResolveGenericsVisitor.Process(serializableType.Key, arrayType.ElementType);
-                il.Emit(OpCodes.Newobj, context.Assembly.MainModule.ImportReference(updatableArrayUpdateResolverGenericCtor).MakeGeneric(context.Assembly.MainModule.ImportReference(elementType)));
-                il.Emit(OpCodes.Call, updateEngineRegisterMemberResolverMethod);
+                il.Emit(OpCodes.Newobj, il.Import(updatableArrayUpdateResolverGenericCtor).MakeGeneric(il.Import(elementType)))
+                  .Emit(OpCodes.Call, updateEngineRegisterMemberResolverMethod);
             }
 
             // Generic instantiation for AOT platforms
             if (context.Platform == Core.PlatformType.iOS && serializableType.Key.Name == "ValueParameterKey`1")
             {
                 var keyType = ((GenericInstanceType)serializableType.Key).GenericArguments[0];
-                il.Emit(OpCodes.Call, context.Assembly.MainModule.ImportReference(parameterCollectionResolverInstantiateValueAccessor).MakeGenericMethod(context.Assembly.MainModule.ImportReference(keyType)));
+                il.Emit(OpCodes.Call, il.Import(parameterCollectionResolverInstantiateValueAccessor).MakeGenericMethod(il.Import(keyType)));
             }
 
             if (serializableType.Key is GenericInstanceType genericInstanceType)
@@ -233,9 +257,9 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
                 if (updateMethod != null)
                 {
                     // Emit call to update engine setup method with generic arguments of current type
-                    il.Emit(OpCodes.Call, context.Assembly.MainModule.ImportReference(updateMethod)
+                    il.Emit(OpCodes.Call, il.Import(updateMethod)
                         .MakeGenericMethod(genericInstanceType.GenericArguments
-                            .Select(context.Assembly.MainModule.ImportReference)
+                            .Select(x => module.ImportReference(x))
                             .ToArray()));
                 }
             }
@@ -244,6 +268,11 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
         il.Emit(OpCodes.Ret);
     }
 
+    /// <summary>
+    /// Registers all updatable fields and properties of a type with the update engine.
+    /// For generic types, creates a separate <c>UpdateGeneric_TypeName&lt;T&gt;()</c> method
+    /// that can be instantiated per closed generic type.
+    /// </summary>
     public void ProcessType(CecilSerializerContext context, TypeReference type, MethodDefinition updateMainMethod)
     {
         var typeDefinition = type.Resolve();
@@ -252,14 +281,14 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
         if (typeDefinition.IsEnum)
             return;
 
+        var module = context.Assembly.MainModule;
         var updateCurrentMethod = updateMainMethod;
         ResolveGenericsVisitor replaceGenericsVisitor = null;
 
         if (typeDefinition.HasGenericParameters)
         {
             // Make a prepare method for just this object since it might need multiple instantiation
-            updateCurrentMethod = new MethodDefinition(ComputeUpdateMethodName(typeDefinition), MethodAttributes.HideBySig | MethodAttributes.Public | MethodAttributes.Static, context.Assembly.MainModule.TypeSystem.Void);
-            var genericsMapping = new Dictionary<TypeReference, TypeReference>();
+            updateCurrentMethod = new MethodDefinition(ComputeUpdateMethodName(typeDefinition), MethodAttributes.HideBySig | MethodAttributes.Public | MethodAttributes.Static, module.TypeSystem.Void);
             foreach (var genericParameter in typeDefinition.GenericParameters)
             {
                 var genericParameterCopy = new GenericParameter(genericParameter.Name, updateCurrentMethod)
@@ -267,125 +296,28 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
                     Attributes = genericParameter.Attributes,
                 };
                 foreach (var constraint in genericParameter.Constraints)
-                    genericParameterCopy.Constraints.Add(new GenericParameterConstraint(context.Assembly.MainModule.ImportReference(constraint.ConstraintType)));
+                    genericParameterCopy.Constraints.Add(new GenericParameterConstraint(module.ImportReference(constraint.ConstraintType)));
                 updateCurrentMethod.GenericParameters.Add(genericParameterCopy);
-
-                genericsMapping[genericParameter] = genericParameterCopy;
             }
 
-            replaceGenericsVisitor = new ResolveGenericsVisitor(genericsMapping);
+            replaceGenericsVisitor = ResolveGenericsVisitor.FromMapping(typeDefinition, updateCurrentMethod);
 
             updateMainMethod.DeclaringType.Methods.Add(updateCurrentMethod);
         }
 
-        var il = updateCurrentMethod.Body.GetILProcessor();
+        var il = new ILBuilder(updateCurrentMethod.Body, module);
         var typeIsValueType = type.IsResolvedValueType();
         var emptyObjectField = typeIsValueType ? null : updateMainMethod.DeclaringType.Fields.FirstOrDefault(x => x.Name == "emptyObject");
         VariableDefinition emptyStruct = null;
 
         // Note: forcing fields and properties to be processed in all cases
-        foreach (var serializableItem in ComplexSerializerRegistry.GetSerializableItems(type, true, ComplexTypeSerializerFlags.SerializePublicFields | ComplexTypeSerializerFlags.SerializePublicProperties | ComplexTypeSerializerFlags.Updatable))
+        foreach (var serializableItem in SerializationHelpers.GetSerializableItems(type, true, ComplexTypeSerializerFlags.SerializePublicFields | ComplexTypeSerializerFlags.SerializePublicProperties | ComplexTypeSerializerFlags.Updatable, context.IgnoredMembers))
         {
             if (serializableItem.MemberInfo is FieldReference fieldReference)
-            {
-                var field = fieldReference.Resolve();
-
-                // First time it is needed, let's create empty object in the class (var emptyObject = new object()) or empty local struct in the method
-                if (typeIsValueType)
-                {
-                    if (emptyStruct == null)
-                    {
-                        emptyStruct = new VariableDefinition(type);
-                        updateMainMethod.Body.Variables.Add(emptyStruct);
-                    }
-                }
-                else
-                {
-                    if (emptyObjectField == null)
-                    {
-                        emptyObjectField = new FieldDefinition("emptyObject", FieldAttributes.Static | FieldAttributes.Private, context.Assembly.MainModule.TypeSystem.Object);
-
-                        // Create static ctor that will initialize this object
-                        var staticConstructor = new MethodDefinition(".cctor",
-                                                MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Static | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
-                                                context.Assembly.MainModule.TypeSystem.Void);
-                        var staticConstructorIL = staticConstructor.Body.GetILProcessor();
-                        staticConstructorIL.Emit(OpCodes.Newobj, context.Assembly.MainModule.ImportReference(emptyObjectField.FieldType.Resolve().GetConstructors().Single(x => !x.IsStatic && !x.HasParameters)));
-                        staticConstructorIL.Emit(OpCodes.Stsfld, emptyObjectField);
-                        staticConstructorIL.Emit(OpCodes.Ret);
-
-                        updateMainMethod.DeclaringType.Fields.Add(emptyObjectField);
-                        updateMainMethod.DeclaringType.Methods.Add(staticConstructor);
-                    }
-                }
-
-                il.Emit(OpCodes.Ldtoken, type);
-                il.Emit(OpCodes.Call, getTypeFromHandleMethod);
-                il.Emit(OpCodes.Ldstr, field.Name);
-
-                if (typeIsValueType)
-                    il.Emit(OpCodes.Ldloca, emptyStruct);
-                else
-                    il.Emit(OpCodes.Ldsfld, emptyObjectField);
-                il.Emit(OpCodes.Ldflda, context.Assembly.MainModule.ImportReference(fieldReference));
-                il.Emit(OpCodes.Conv_I);
-                if (typeIsValueType)
-                    il.Emit(OpCodes.Ldloca, emptyStruct);
-                else
-                    il.Emit(OpCodes.Ldsfld, emptyObjectField);
-                il.Emit(OpCodes.Conv_I);
-                il.Emit(OpCodes.Sub);
-                il.Emit(OpCodes.Conv_I4);
-
-                var fieldType = context.Assembly.MainModule.ImportReference(replaceGenericsVisitor != null ? replaceGenericsVisitor.VisitDynamic(field.FieldType) : field.FieldType);
-                il.Emit(OpCodes.Newobj, context.Assembly.MainModule.ImportReference(updatableFieldGenericCtor).MakeGeneric(fieldType));
-                il.Emit(OpCodes.Call, updateEngineRegisterMemberMethod);
-            }
+                EmitFieldRegistration(il, fieldReference, type, typeIsValueType, replaceGenericsVisitor, module, updateMainMethod, ref emptyObjectField, ref emptyStruct);
 
             if (serializableItem.MemberInfo is PropertyReference propertyReference)
-            {
-                var property = propertyReference.Resolve();
-
-                var propertyGetMethod = context.Assembly.MainModule.ImportReference(property.GetMethod).MakeGeneric(updateCurrentMethod.GenericParameters.ToArray());
-
-                il.Emit(OpCodes.Ldtoken, type);
-                il.Emit(OpCodes.Call, getTypeFromHandleMethod);
-                il.Emit(OpCodes.Ldstr, property.Name);
-
-                // If it's a virtual or interface call, we need to create a dispatcher using ldvirtftn
-                if (property.GetMethod.IsVirtual)
-                    propertyGetMethod = CreateDispatcher(context.Assembly, propertyGetMethod);
-
-                il.Emit(OpCodes.Ldftn, propertyGetMethod);
-
-                // Set whether getter method uses a VirtualDispatch (static call) or instance call
-                il.Emit(property.GetMethod.IsVirtual ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
-
-                // Only uses setter if it exists and it's public
-                if (property.SetMethod?.IsPublic == true)
-                {
-                    var propertySetMethod = context.Assembly.MainModule.ImportReference(property.SetMethod).MakeGeneric(updateCurrentMethod.GenericParameters.ToArray());
-                    if (property.SetMethod.IsVirtual)
-                        propertySetMethod = CreateDispatcher(context.Assembly, propertySetMethod);
-                    il.Emit(OpCodes.Ldftn, propertySetMethod);
-                }
-                else
-                {
-                    // 0 (native int)
-                    il.Emit(OpCodes.Ldc_I4_0);
-                    il.Emit(OpCodes.Conv_I);
-                }
-
-                // Set whether setter method uses a VirtualDispatch (static call) or instance call
-                il.Emit((property.SetMethod?.IsVirtual ?? false) ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
-
-                var propertyType = context.Assembly.MainModule.ImportReference(replaceGenericsVisitor != null ? replaceGenericsVisitor.VisitDynamic(property.PropertyType) : property.PropertyType);
-
-                var updatablePropertyInflatedCtor = GetOrCreateUpdatablePropertyCtor(context.Assembly, propertyType);
-
-                il.Emit(OpCodes.Newobj, updatablePropertyInflatedCtor);
-                il.Emit(OpCodes.Call, updateEngineRegisterMemberMethod);
-            }
+                EmitPropertyRegistration(il, propertyReference, type, replaceGenericsVisitor, context.Assembly, updateCurrentMethod);
         }
 
         if (updateCurrentMethod != updateMainMethod)
@@ -396,10 +328,148 @@ internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
             // Also call it from main method if it was a closed generic instantiation
             if (type is GenericInstanceType genericInstanceType)
             {
-                il = updateMainMethod.Body.GetILProcessor();
-                il.Emit(OpCodes.Call, updateCurrentMethod.MakeGeneric(genericInstanceType.GenericArguments.Select(context.Assembly.MainModule.ImportReference).ToArray()));
+                var mainIL = new ILBuilder(updateMainMethod.Body, module);
+                mainIL.Emit(OpCodes.Call, updateCurrentMethod.MakeGeneric(genericInstanceType.GenericArguments.Select(module.ImportReference).ToArray()));
             }
         }
+    }
+
+    /// <summary>
+    /// Emits field registration with the update engine using pointer offset computation.
+    /// </summary>
+    /// <remarks>
+    /// Generates code equivalent to:
+    /// <code>
+    /// // For reference types:
+    /// UpdateEngine.RegisterMember(typeof(T), "fieldName",
+    ///     new UpdatableField&lt;FieldType&gt;(&amp;emptyObject.field - &amp;emptyObject));
+    /// // For value types:
+    /// UpdateEngine.RegisterMember(typeof(T), "fieldName",
+    ///     new UpdatableField&lt;FieldType&gt;(&amp;emptyStruct.field - &amp;emptyStruct));
+    /// </code>
+    /// </remarks>
+    private void EmitFieldRegistration(
+        ILBuilder il, FieldReference fieldReference, TypeReference type, bool typeIsValueType,
+        ResolveGenericsVisitor replaceGenericsVisitor, ModuleDefinition module,
+        MethodDefinition updateMainMethod, ref FieldDefinition emptyObjectField, ref VariableDefinition emptyStruct)
+    {
+        var field = fieldReference.Resolve();
+
+        // We need a dummy instance to compute field offsets via pointer math: &empty.field - &empty
+        // For reference types: a static field initialized in .cctor (var emptyObject = new object())
+        // For value types: a local variable (T emptyStruct)
+        if (typeIsValueType)
+        {
+            if (emptyStruct == null)
+            {
+                emptyStruct = new VariableDefinition(type);
+                updateMainMethod.Body.Variables.Add(emptyStruct);
+            }
+        }
+        else
+        {
+            if (emptyObjectField == null)
+            {
+                emptyObjectField = new FieldDefinition("emptyObject", FieldAttributes.Static | FieldAttributes.Private, module.TypeSystem.Object);
+
+                // Create static ctor that will initialize this object
+                var staticConstructor = new MethodDefinition(".cctor",
+                                        MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Static | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
+                                        module.TypeSystem.Void);
+                var staticCtorIL = new ILBuilder(staticConstructor.Body, module);
+                staticCtorIL.Emit(OpCodes.Newobj, module.ImportReference(emptyObjectField.FieldType.Resolve().GetConstructors().Single(x => !x.IsStatic && !x.HasParameters)))
+                            .Emit(OpCodes.Stsfld, emptyObjectField)
+                            .Emit(OpCodes.Ret);
+
+                updateMainMethod.DeclaringType.Fields.Add(emptyObjectField);
+                updateMainMethod.DeclaringType.Methods.Add(staticConstructor);
+            }
+        }
+
+        // Emit: typeof(T), "fieldName"
+        il.EmitTypeof(type, getTypeFromHandleMethod)
+          .Emit(OpCodes.Ldstr, field.Name);
+
+        // Emit: (int)(&empty.field - &empty) — computes field byte offset
+        if (typeIsValueType)
+            il.Emit(OpCodes.Ldloca, emptyStruct);
+        else
+            il.Emit(OpCodes.Ldsfld, emptyObjectField);
+        il.Emit(OpCodes.Ldflda, il.Import(fieldReference))
+          .Emit(OpCodes.Conv_I);
+        if (typeIsValueType)
+            il.Emit(OpCodes.Ldloca, emptyStruct);
+        else
+            il.Emit(OpCodes.Ldsfld, emptyObjectField);
+        il.Emit(OpCodes.Conv_I)
+          .Emit(OpCodes.Sub)
+          .Emit(OpCodes.Conv_I4);
+
+        // Emit: new UpdatableField<FieldType>(offset)
+        var fieldType = il.Import(replaceGenericsVisitor != null ? replaceGenericsVisitor.VisitDynamic(field.FieldType) : field.FieldType);
+        il.Emit(OpCodes.Newobj, il.Import(updatableFieldGenericCtor).MakeGeneric(fieldType))
+          // Emit: UpdateEngine.RegisterMember(typeof(T), "fieldName", updatableField);
+          .Emit(OpCodes.Call, updateEngineRegisterMemberMethod);
+    }
+
+    /// <summary>
+    /// Emits property registration with the update engine using function pointers.
+    /// </summary>
+    /// <remarks>
+    /// Generates code equivalent to:
+    /// <code>
+    /// UpdateEngine.RegisterMember(typeof(T), "PropertyName",
+    ///     new UpdatableProperty&lt;PropType&gt;(
+    ///         ldftn(get_Property),      // or ldftn(Dispatcher_get_Property) for virtual
+    ///         isGetterVirtual,
+    ///         ldftn(set_Property),      // or IntPtr.Zero if no public setter
+    ///         isSetterVirtual));
+    /// </code>
+    /// Virtual/interface properties use a dispatcher trampoline (see <see cref="CreateDispatcher"/>).
+    /// </remarks>
+    private void EmitPropertyRegistration(
+        ILBuilder il, PropertyReference propertyReference, TypeReference type,
+        ResolveGenericsVisitor replaceGenericsVisitor, AssemblyDefinition assembly,
+        MethodDefinition updateCurrentMethod)
+    {
+        var property = propertyReference.Resolve();
+
+        var propertyGetMethod = il.Import(property.GetMethod).MakeGeneric(updateCurrentMethod.GenericParameters.ToArray());
+
+        // Emit: typeof(T), "PropertyName"
+        il.EmitTypeof(type, getTypeFromHandleMethod)
+          .Emit(OpCodes.Ldstr, property.Name);
+
+        // Emit: ldftn(get_Property) — for virtual, wrap in a dispatcher that uses ldvirtftn+calli
+        if (property.GetMethod.IsVirtual)
+            propertyGetMethod = CreateDispatcher(assembly, propertyGetMethod);
+        il.Emit(OpCodes.Ldftn, propertyGetMethod)
+          // Set whether setter method uses a VirtualDispatch (static call) or instance call
+          .Emit(property.GetMethod.IsVirtual ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+
+        // Emit: ldftn(set_Property) or IntPtr.Zero if no public setter
+        if (property.SetMethod?.IsPublic == true)
+        {
+            var propertySetMethod = il.Import(property.SetMethod).MakeGeneric(updateCurrentMethod.GenericParameters.ToArray());
+            if (property.SetMethod.IsVirtual)
+                propertySetMethod = CreateDispatcher(assembly, propertySetMethod);
+            il.Emit(OpCodes.Ldftn, propertySetMethod);
+        }
+        else
+        {
+            il.Emit(OpCodes.Ldc_I4_0)
+              .Emit(OpCodes.Conv_I);
+        }
+
+        // Set whether setter method uses a VirtualDispatch (static call) or instance call
+        il.Emit((property.SetMethod?.IsVirtual ?? false) ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+
+        // Emit: new UpdatableProperty<PropType>(getter, isGetterVirtual, setter, isSetterVirtual)
+        var propertyType = il.Import(replaceGenericsVisitor != null ? replaceGenericsVisitor.VisitDynamic(property.PropertyType) : property.PropertyType);
+        var updatablePropertyInflatedCtor = GetOrCreateUpdatablePropertyCtor(assembly, propertyType);
+        il.Emit(OpCodes.Newobj, updatablePropertyInflatedCtor)
+          // Emit: UpdateEngine.RegisterMember(typeof(T), "PropertyName", updatableProperty);
+          .Emit(OpCodes.Call, updateEngineRegisterMemberMethod);
     }
 
     private static string ComputeUpdateMethodName(TypeDefinition typeDefinition)

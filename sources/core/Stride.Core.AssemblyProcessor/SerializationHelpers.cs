@@ -1,144 +1,38 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Runtime.Versioning;
-using Stride.Core.AssemblyProcessor.Serializers;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Mono.Cecil;
 
 namespace Stride.Core.AssemblyProcessor;
 
-internal class ComplexSerializerRegistry
+/// <summary>
+/// Static utility methods for analyzing serializable types and generating names.
+/// </summary>
+internal static class SerializationHelpers
 {
-    private static readonly HashSet<string> forbiddenKeywords;
-    private static readonly HashSet<IMemberDefinition> ignoredMembers;
-
-    static ComplexSerializerRegistry()
-    {
-        ignoredMembers = [];
-
-        forbiddenKeywords =
-            [ "obj", "stream", "mode",
-                "abstract", "event", "new", "struct",
-                "as", "explicit", "null", "switch",
-                "base", "extern", "object", "this",
-                "bool", "false", "operator", "throw",
-                "break", "finally", "out", "true",
-                "byte", "fixed", "override", "try",
-                "case", "float", "params", "typeof",
-                "catch", "for", "private", "uint",
-                "char", "foreach", "protected", "ulong",
-                "checked", "goto", "public", "unchecked",
-                "class", "if", "readonly", "unsafe",
-                "const", "implicit", "ref", "ushort",
-                "continue", "in", "return", "using",
-                "decimal", "int", "sbyte", "virtual",
-                "default", "interface", "sealed", "volatile",
-                "delegate", "internal", "short", "void",
-                "do", "is", "sizeof", "while",
-                "double", "lock", "stackalloc",
-                "else", "long", "static",
-                "enum", "namespace", "string" ];
-    }
-
-    public List<TypeReference> ReferencedAssemblySerializerFactoryTypes { get; } = [];
-
-    public CecilSerializerContext Context { get; }
-
-    //private List<IDataSerializerFactory> serializerFactories = new List<IDataSerializerFactory>();
-
-    public string? TargetFramework { get; }
-
-    public string ClassName { get; }
-
-    public AssemblyDefinition Assembly { get; }
-
-    public List<ICecilSerializerDependency> SerializerDependencies { get; } = [];
-
-    public List<ICecilSerializerFactory> SerializerFactories { get; } = [];
-
-    public ComplexSerializerRegistry(PlatformType platform, AssemblyDefinition assembly, TextWriter log)
-    {
-        Assembly = assembly;
-        ClassName = Utilities.BuildValidClassName(assembly.Name.Name) + "SerializerFactory";
-
-        // Register referenced assemblies serializer factory, so that we can call them recursively
-        foreach (var referencedAssemblyName in assembly.MainModule.AssemblyReferences)
-        {
-            try
-            {
-                var referencedAssembly = assembly.MainModule.AssemblyResolver.Resolve(referencedAssemblyName);
-
-                var assemblySerializerFactoryType = GetSerializerFactoryType(referencedAssembly);
-                if (assemblySerializerFactoryType != null)
-                    ReferencedAssemblySerializerFactoryTypes.Add(assemblySerializerFactoryType);
-            }
-            catch (AssemblyResolutionException)
-            {
-                continue;
-            }
-        }
-
-        // Find target framework and replicate it for serializer assembly.
-        var targetFrameworkAttribute = assembly.CustomAttributes
-            .FirstOrDefault(x => x.AttributeType.FullName == typeof(TargetFrameworkAttribute).FullName);
-        if (targetFrameworkAttribute != null)
-        {
-            TargetFramework = "\"" + (string)targetFrameworkAttribute.ConstructorArguments[0].Value + "\"";
-            var frameworkDisplayNameField = targetFrameworkAttribute.Properties.FirstOrDefault(x => x.Name == "FrameworkDisplayName");
-            if (frameworkDisplayNameField.Name != null)
-            {
-                TargetFramework += ", FrameworkDisplayName=\"" + (string)frameworkDisplayNameField.Argument.Value + "\"";
-            }
-        }
-
-        // Prepare serializer processors
-        Context = new CecilSerializerContext(platform, assembly, log);
-        var processors = new List<ICecilSerializerProcessor>
-        {
-            // Import list of serializer registered by referenced assemblies
-            new ReferencedAssemblySerializerProcessor(),
-
-            // Generate serializers for types tagged as serializable
-            new CecilComplexClassSerializerProcessor(),
-
-            // Generate serializers for PropertyKey and ParameterKey
-            new PropertyKeySerializerProcessor(),
-
-            // Update Engine (with AnimationData<T>)
-            new UpdateEngineProcessor(),
-
-            // Profile serializers
-            new ProfileSerializerProcessor(),
-
-            // Data contract aliases
-            new DataContractAliasProcessor()
-        };
-
-        // Apply each processor
-        foreach (var processor in processors)
-            processor.ProcessSerializers(Context);
-    }
-
-    private static TypeDefinition? GetSerializerFactoryType(AssemblyDefinition referencedAssembly)
-    {
-        var assemblySerializerFactoryAttribute =
-            referencedAssembly.CustomAttributes.FirstOrDefault(
-                x =>
-                    x.AttributeType.FullName ==
-                    "Stride.Core.Serialization.AssemblySerializerFactoryAttribute");
-
-        // No serializer factory?
-        if (assemblySerializerFactoryAttribute == null)
-            return null;
-
-        var typeReference = (TypeReference)assemblySerializerFactoryAttribute.Fields.Single(x => x.Name == "Type").Argument.Value;
-        if (typeReference == null)
-            return null;
-
-        return typeReference.Resolve();
-    }
+    private static readonly HashSet<string> forbiddenKeywords =
+        [ "obj", "stream", "mode",
+            "abstract", "event", "new", "struct",
+            "as", "explicit", "null", "switch",
+            "base", "extern", "object", "this",
+            "bool", "false", "operator", "throw",
+            "break", "finally", "out", "true",
+            "byte", "fixed", "override", "try",
+            "case", "float", "params", "typeof",
+            "catch", "for", "private", "uint",
+            "char", "foreach", "protected", "ulong",
+            "checked", "goto", "public", "unchecked",
+            "class", "if", "readonly", "unsafe",
+            "const", "implicit", "ref", "ushort",
+            "continue", "in", "return", "using",
+            "decimal", "int", "sbyte", "virtual",
+            "default", "interface", "sealed", "volatile",
+            "delegate", "internal", "short", "void",
+            "do", "is", "sizeof", "while",
+            "double", "lock", "stackalloc",
+            "else", "long", "static",
+            "enum", "namespace", "string" ];
 
     private static string TypeNameWithoutGenericEnding(TypeReference type)
     {
@@ -175,88 +69,17 @@ internal class ComplexSerializerRegistry
         return typeName;
     }
 
-    public static string GetSerializerInstantiateMethodName(TypeReference serializerType, bool appendGenerics)
+    public static string CreateMemberVariableName(IMemberDefinition memberInfo)
     {
-        return "Instantiate_" + SerializerTypeName(serializerType, appendGenerics, false);
+        var memberVariableName = char.ToLowerInvariant(memberInfo.Name[0]) + memberInfo.Name[1..];
+        if (forbiddenKeywords.Contains(memberVariableName))
+            memberVariableName += "_";
+        return memberVariableName;
     }
 
-    /// <summary>
-    /// Generates the generic constraints in a code form.
-    /// </summary>
-    /// <param name="type">The type.</param>
-    /// <returns></returns>
-    public static string GenerateGenericConstraints(TypeReference type)
+    public static IEnumerable<SerializableItem> GetSerializableItems(TypeReference type, bool serializeFields, ComplexTypeSerializerFlags? flagsOverride = null, HashSet<IMemberDefinition>? ignoredMembers = null)
     {
-        if (!type.HasGenericParameters)
-            return string.Empty;
-
-        var result = new StringBuilder();
-        foreach (var genericParameter in type.GenericParameters)
-        {
-            // If no constraints, skip it
-            var hasContraints = genericParameter.HasReferenceTypeConstraint || genericParameter.HasNotNullableValueTypeConstraint || genericParameter.Constraints.Count > 0 || genericParameter.HasDefaultConstructorConstraint;
-            if (!hasContraints)
-            {
-                continue;
-            }
-
-            bool hasFirstContraint = false;
-
-            result.AppendFormat(" where {0}: ", genericParameter.Name);
-
-            // Where class/struct constraint must be before any other constraint
-            if (genericParameter.HasReferenceTypeConstraint)
-            {
-                result.AppendFormat("class");
-                hasFirstContraint = true;
-            }
-            else if (genericParameter.HasNotNullableValueTypeConstraint)
-            {
-                result.AppendFormat("struct");
-                hasFirstContraint = true;
-            }
-
-            foreach (var genericParameterConstraint in genericParameter.Constraints)
-            {
-                // Skip value type constraint
-                if (genericParameterConstraint.ConstraintType.FullName != typeof(ValueType).FullName)
-                {
-                    if (hasFirstContraint)
-                    {
-                        result.Append(", ");
-                    }
-
-                    result.AppendFormat("{0}", genericParameterConstraint.ConstraintType.ConvertCSharp());
-                    result.AppendLine();
-
-                    hasFirstContraint = true;
-                }
-            }
-
-            // New constraint must be last
-            if (!genericParameter.HasNotNullableValueTypeConstraint && genericParameter.HasDefaultConstructorConstraint)
-            {
-                if (hasFirstContraint)
-                {
-                    result.Append(", ");
-                }
-
-                result.AppendFormat("new()");
-                result.AppendLine();
-            }
-        }
-
-        return result.ToString();
-    }
-
-    public static void IgnoreMember(IMemberDefinition memberInfo)
-    {
-        ignoredMembers.Add(memberInfo);
-    }
-
-    public static IEnumerable<SerializableItem> GetSerializableItems(TypeReference type, bool serializeFields, ComplexTypeSerializerFlags? flagsOverride = null)
-    {
-        foreach (var serializableItemOriginal in GetSerializableItems(type.Resolve(), serializeFields, flagsOverride))
+        foreach (var serializableItemOriginal in GetSerializableItems(type.Resolve(), serializeFields, flagsOverride, ignoredMembers))
         {
             var serializableItem = serializableItemOriginal;
 
@@ -270,7 +93,7 @@ internal class ComplexSerializerRegistry
         }
     }
 
-    public static IEnumerable<SerializableItem> GetSerializableItems(TypeDefinition type, bool serializeFields, ComplexTypeSerializerFlags? flagsOverride = null)
+    public static IEnumerable<SerializableItem> GetSerializableItems(TypeDefinition type, bool serializeFields, ComplexTypeSerializerFlags? flagsOverride = null, HashSet<IMemberDefinition>? ignoredMembers = null)
     {
         ComplexTypeSerializerFlags flags;
 
@@ -282,7 +105,7 @@ internal class ComplexSerializerRegistry
             if (field.IsStatic)
                 continue;
 
-            if (ignoredMembers.Contains(field))
+            if (ignoredMembers?.Contains(field) == true)
                 continue;
 
             if (field.IsPublic || (field.IsAssembly && field.CustomAttributes.Any(a => a.AttributeType.FullName == "Stride.Core.DataMemberAttribute")))
@@ -315,7 +138,7 @@ internal class ComplexSerializerRegistry
             }
 
             // Ignore blacklisted properties
-            if (ignoredMembers.Contains(property))
+            if (ignoredMembers?.Contains(property) == true)
                 continue;
 
             properties.Add(property);
@@ -385,7 +208,7 @@ internal class ComplexSerializerRegistry
         }
     }
 
-    static bool IsAccessibleThroughAccessModifiers(PropertyDefinition property)
+    private static bool IsAccessibleThroughAccessModifiers(PropertyDefinition property)
     {
         var get = property.GetMethod;
         var set = property.SetMethod;
@@ -443,14 +266,6 @@ internal class ComplexSerializerRegistry
         return type.MetadataType != MetadataType.String
             // sometimes class/valuetype is not properly set in some reference types (not sure if it was the exact same case)
             && !((type.MetadataType == MetadataType.ValueType || type.MetadataType == MetadataType.Class) && type.Resolve().IsValueType);
-    }
-
-    public static string CreateMemberVariableName(IMemberDefinition memberInfo)
-    {
-        var memberVariableName = char.ToLowerInvariant(memberInfo.Name[0]) + memberInfo.Name[1..];
-        if (forbiddenKeywords.Contains(memberVariableName))
-            memberVariableName += "_";
-        return memberVariableName;
     }
 
     public struct SerializableItem

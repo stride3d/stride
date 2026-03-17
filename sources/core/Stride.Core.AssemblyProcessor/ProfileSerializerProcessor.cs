@@ -22,7 +22,7 @@ internal class ProfileSerializerProcessor : ICecilSerializerProcessor
             // For each profile, try to instantiate all types existing in default profile
             foreach (var type in defaultProfile.SerializableTypes)
             {
-                context.GenerateSerializer(type.Key, false, profile.Key);
+                context.ResolveSerializer(type.Key, false, profile.Key);
             }
         }
     }
