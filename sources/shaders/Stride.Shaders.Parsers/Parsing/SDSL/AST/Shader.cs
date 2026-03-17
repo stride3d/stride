@@ -603,6 +603,13 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     {
         genericParameter.TypeName.ProcessSymbol(table);
         var genericParameterType = genericParameter.TypeName.Type;
+
+        // Wrap resource types in pointer (same as member variables)
+        if (genericParameterType is TextureType or BufferType)
+            genericParameterType = new PointerType(genericParameterType, Specification.StorageClass.UniformConstant);
+        else if (genericParameterType is StructuredBufferType or ByteAddressBufferType)
+            genericParameterType = new PointerType(genericParameterType, Specification.StorageClass.StorageBuffer);
+
         table.DeclaredTypes.TryAdd(genericParameterType.ToString(), genericParameterType);
 
         var genericParameterTypeId = context.GetOrRegister(genericParameterType);
