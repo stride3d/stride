@@ -408,16 +408,17 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                     methodsDefaultParameters.Add(target, new(shaderBuffers.Context, defaultIds));
                 }
             }
-            if (i.Op == Op.OpDecorate && (OpDecorate)i is
+            if (i.Op == Op.OpDecorateString && (OpDecorateString)i is
             {
                 Decoration: Decoration.ShaderConstantSDSL,
                 Target: var target2,
-            } decorateShaderConstant)
+                Value: var constName,
+            })
             {
                 if (!shaderBuffers.Context.GetBuffer().TryGetInstructionById(target2, out var typeInstruction))
                     throw new InvalidOperationException();
                 var resultType = typeInstruction.Data.IdResultType.Value;
-                var symbol = new Symbol(new(shaderBuffers.Context.Names[target2], SymbolKind.Constant), shaderBuffers.Context.ReverseTypes[resultType], 0, ExternalConstant: new(shaderBuffers.Context, target2), OwnerType: shaderType);
+                var symbol = new Symbol(new(constName, SymbolKind.Constant), shaderBuffers.Context.ReverseTypes[resultType], 0, ExternalConstant: new(shaderBuffers.Context, target2), OwnerType: shaderType);
                 variables.Add((symbol, VariableFlagsMask.None));
             }
         }

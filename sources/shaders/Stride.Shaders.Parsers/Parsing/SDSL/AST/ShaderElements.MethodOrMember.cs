@@ -224,8 +224,8 @@ public sealed partial class ShaderMember(
             table.CurrentFrame.Add(Name, constant);
             Type = memberType;
 
-            // This constant is visible when inherited
-            context.Add(new OpDecorate(constantValue.Id, Specification.Decoration.ShaderConstantSDSL, []));
+            // This constant is visible when inherited (name stored in decoration to avoid dedup conflicts)
+            context.Add(new OpDecorateString(constantValue.Id, Specification.Decoration.ShaderConstantSDSL, Name));
         }
         else
         {
