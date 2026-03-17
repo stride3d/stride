@@ -63,6 +63,9 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     hasErrors = true;
                 }
 
+                foreach (var warning in table.Warnings)
+                    log.Warning(warning.ToString());
+
                 if (table.Errors.Count > 0)
                 {
                     foreach (var error in table.Errors)

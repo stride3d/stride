@@ -432,6 +432,31 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
     protected virtual SpirvValue CompileSymbol(SymbolTable table, SpirvBuilder builder, SpirvContext context, bool constantOnly)
     {
         var symbol = LoadedShaderSymbol.ImportSymbol(table, context, ResolvedSymbol);
+
+        // Track when a stage method accesses a non-stage variable (without composition qualifier).
+        // This forces the shader to be fully imported at root level instead of stage-only during mixin.
+        if (symbol.MemberAccessWithImplicitThis != null && !symbol.Id.IsStage && builder.CurrentFunction is { IsStage: true })
+        {
+            var varOwner = symbol.OwnerType;
+            if (varOwner != null && varOwner != table.CurrentShader)
+            {
+                foreach (var inst in context)
+                {
+                    if (inst.Op == Spirv.Specification.Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)inst is { } inherit
+                        && context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is LoadedShaderSymbol lss && lss.Name == varOwner.Name)
+                    {
+                        inherit.Flags |= Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                builder.CurrentFunction = builder.CurrentFunction.Value with { ReferencesNonStageMembers = true };
+            }
+            table.AddWarning(new(info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage variable '{varOwner?.Name ?? "?"}.{Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
+        }
+
         return EmitSymbol(builder, context, symbol, constantOnly);
     }
 }

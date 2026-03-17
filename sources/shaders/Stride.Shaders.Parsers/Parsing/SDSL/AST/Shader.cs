@@ -661,7 +661,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             table.CurrentShader.InheritedShaders.Add(shaderType);
 
         // Mark inherit
-        context.Add(new OpSDSLMixinInherit(shaderId));
+        context.Add(new OpSDSLMixinInherit(shaderId, Spirv.Specification.MixinInheritFlagsMask.None));
     }
 
     public static LoadedShaderSymbol LoadAndCacheExternalShaderType(SymbolTable table, SpirvContext context, ShaderClassInstantiation classSource)

@@ -36,6 +36,10 @@
         {
           "kind": "IdRef",
           "name": "shader"
+        },
+        {
+          "kind": "MixinInheritFlags",
+          "name": "flags"
         }
       ]
     },
@@ -458,6 +462,20 @@
   "operand_kinds": [
     {
       "category": "BitEnum",
+      "kind": "MixinInheritFlags",
+      "enumerants": [
+        {
+          "enumerant": "None",
+          "value": "0x0000"
+        },
+        {
+          "enumerant": "NeedsFullImport",
+          "value": "0x0001"
+        }
+      ]
+    },
+    {
+      "category": "BitEnum",
       "kind": "FunctionFlags",
       "enumerants": [
         {
@@ -479,6 +497,10 @@
         {
           "enumerant": "Override",
           "value": "0x0040"
+        },
+        {
+          "enumerant": "ReferencesNonStage",
+          "value": "0x0080"
         }
       ]
     },

@@ -231,6 +231,32 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
                 // Note: we make a copy to not mutate original
                 functionSymbol = functionSymbol with { IdRef = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(functionType), context.Bound++, instanceId, functionSymbol.IdRef)).ResultId };
 
+            // Track when a stage method references non-stage members (without composition qualifier).
+            // This forces the shader to be fully imported at root level instead of stage-only during mixin.
+            if (builder.CurrentFunction is { IsStage: true } && !functionSymbol.Id.IsStage && MemberCall == null)
+            {
+                var calleeOwner = functionSymbol.OwnerType;
+                if (calleeOwner != null && calleeOwner != table.CurrentShader)
+                {
+                    // Parent shader: mark its OpSDSLMixinInherit with NeedsFullImport
+                    foreach (var inst in context)
+                    {
+                        if (inst.Op == Spirv.Specification.Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)inst is { } inherit
+                            && context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is LoadedShaderSymbol lss && lss.Name == calleeOwner.Name)
+                        {
+                            inherit.Flags |= Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // Self: mark current function
+                    builder.CurrentFunction = builder.CurrentFunction.Value with { ReferencesNonStageMembers = true };
+                }
+                table.AddWarning(new(info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage method '{calleeOwner?.Name ?? "?"}.{Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
+            }
+
             result = builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
         }
 

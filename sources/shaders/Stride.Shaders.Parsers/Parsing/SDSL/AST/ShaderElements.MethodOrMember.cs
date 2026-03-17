@@ -599,6 +599,11 @@ public partial class ShaderMethod(
         {
             builder.Insert(new OpUnreachable());
         }
+
+        // After compiling the body, check if this stage function referenced non-stage members
+        if (builder.CurrentFunction is { ReferencesNonStageMembers: true })
+            functionInfo.Flags |= Specification.FunctionFlagsMask.ReferencesNonStage;
+
         builder.EndFunction();
         table.Pop();
     }

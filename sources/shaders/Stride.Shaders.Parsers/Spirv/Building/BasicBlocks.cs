@@ -23,6 +23,7 @@ public struct SpirvFunction(int id, string name, FunctionType type) : IInstructi
     public int Id { get; } = id;
     public string Name { get; } = name;
     public bool IsStage { get; set; }
+    public bool ReferencesNonStageMembers { get; set; }
     public FunctionType FunctionType { get; private set; } = type;
     public Dictionary<string, SpirvValue> Parameters { get; } = [];
     public SortedList<int, SpirvBlock> BasicBlocks { get; } = [];
