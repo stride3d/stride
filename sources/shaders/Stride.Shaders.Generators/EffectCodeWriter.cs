@@ -658,8 +658,6 @@ public class EffectCodeWriter : ShaderWriter
             {
                 WriteLinkLine(parameter);
                 WriteVariableAsParameterKey(true, parameter.Type, parameter.Identifier, parameter.DefaultValue, []);
-                if (parameter.DefaultValue != null)
-                    throw new NotImplementedException();
             }
 
             CloseBrace(false).WriteLine();
