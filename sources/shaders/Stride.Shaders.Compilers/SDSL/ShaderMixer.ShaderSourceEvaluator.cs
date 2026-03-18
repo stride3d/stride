@@ -102,8 +102,6 @@ public partial class ShaderMixer
 
                 if (mixinList.Contains(shaderName))
                 {
-                    // This shader is planned for normal addition later at root level.
-                    // Pull it forward now (with its full inheritance) so it's available for the current composition.
                     var currentlyMixedList = result.Mixins[..];
                     SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, shaderName, shaderMixinSource.Macros.AsSpan(), currentlyMixedList, ResolveStep.Mix);
 
@@ -112,8 +110,25 @@ public partial class ShaderMixer
                 }
                 else if (needsFullImport.Contains(shaderName.ClassName))
                 {
-                    // Stage methods reference non-stage members from this shader — import fully
-                    result.Mixins.Add(shaderName);
+                    // A fully-imported shader needs its parent shaders also fully imported,
+                    // because its non-stage code may call non-stage methods from parents.
+                    // Build the inheritance chain and add any missing parents (upgrading stage-only to full).
+                    var inheritanceList = new List<ShaderClassInstantiation>();
+                    SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, shaderName, shaderMixinSource.Macros.AsSpan(), inheritanceList, ResolveStep.Mix);
+                    foreach (var ancestor in inheritanceList)
+                    {
+                        var ancestorStageOnly = new ShaderClassInstantiation(ancestor.ClassName, ancestor.GenericArguments, ImportStageOnly: true) { Buffer = ancestor.Buffer, Symbol = ancestor.Symbol };
+                        // Upgrade stage-only to full import
+                        var stageOnlyIndex = result.Mixins.IndexOf(ancestorStageOnly);
+                        if (stageOnlyIndex >= 0)
+                        {
+                            result.Mixins[stageOnlyIndex] = ancestor;
+                        }
+                        else if (!result.Mixins.Contains(ancestor))
+                        {
+                            result.Mixins.Add(ancestor);
+                        }
+                    }
                 }
                 else
                 {

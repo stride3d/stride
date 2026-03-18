@@ -47,7 +47,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
                 };
                 return true;
             }
-            else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0013, scanner[scanner.Position], scanner.Memory));
+            else return Parsers.Exit(ref scanner, result, out parsed, position);
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }

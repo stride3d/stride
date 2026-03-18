@@ -19,8 +19,7 @@ public static class Parsers
             parsed = null!;
             return false;
         }
-        if (result.Errors.Count == 0)
-            scanner.Position = beginningPosition;
+        scanner.Position = beginningPosition;
         parsed = null!;
         return false;
     }
