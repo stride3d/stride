@@ -25,7 +25,10 @@ internal class ContactEventsManager : IDisposable
     private IndexSet _staticListenerFlags;
     private IndexSet _bodyListenerFlags;
     private IPerTypeManifoldStore[][] _manifoldStoresPerWorker;
-
+    private readonly List<DebugContactPoint>[] _debugPointsPerWorker;
+    private readonly List<DebugContactPoint> _debugPointsMerged = new(256);
+    internal bool DebugCollectAllContacts;
+    internal ReadOnlySpan<DebugContactPoint> DebugPoints => CollectionsMarshal.AsSpan(_debugPointsMerged);
     public ContactEventsManager(BufferPool pool, BepuSimulation simulation, int workerCount)
     {
         _pool = pool;
@@ -33,6 +36,9 @@ internal class ContactEventsManager : IDisposable
         _manifoldStoresPerWorker = new IPerTypeManifoldStore[workerCount][];
         for (int i = 0; i < _manifoldStoresPerWorker.Length; i++)
             _manifoldStoresPerWorker[i] = [];
+        _debugPointsPerWorker = new List<DebugContactPoint>[workerCount];
+        for (int i = 0; i < workerCount; i++)
+            _debugPointsPerWorker[i] = new List<DebugContactPoint>(128);
     }
 
     public void Initialize()
@@ -163,10 +169,50 @@ internal class ContactEventsManager : IDisposable
     {
         bool aListener = IsRegistered(pair.A);
         bool bListener = IsRegistered(pair.B);
-        if (aListener == false && bListener == false)
+        if (aListener == false && bListener == false && !DebugCollectAllContacts)
             return;
 
-        IPerTypeManifoldStore.StoreManifold(_manifoldStoresPerWorker, workerIndex, ref manifold, pair, childIndexA, childIndexB);
+        if (aListener || bListener)
+            IPerTypeManifoldStore.StoreManifold(_manifoldStoresPerWorker, workerIndex, ref manifold, pair, childIndexA, childIndexB);
+
+        CollectDebugContacts(workerIndex, pair, ref manifold);
+    }
+    private void CollectDebugContacts<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold)
+    where TManifold : unmanaged, IContactManifold<TManifold>
+    {
+        var compA = _simulation.GetComponent(pair.A);
+        if (compA.Pose is not { } poseA)
+            return;
+
+        var worldRotStride = poseA.Orientation.ToStride();
+        var worldOriginStride = poseA.Position.ToStride();
+                
+        for (int j = 0; j < manifold.Count; j++)
+        {
+            float depth = manifold.GetDepth(j);
+            if (depth < 0)
+                continue;
+
+            var offsetN = manifold.GetOffset(j);
+            var normalN = manifold.GetNormal(j); 
+
+            var offsetStride = offsetN.ToStride();
+            var normalStride = normalN.ToStride();
+
+            var worldPointStride = worldOriginStride + offsetStride;
+
+            var worldNormalStride = normalStride;// Vector3.Transform(normalStride, worldRotStride); 
+
+            _debugPointsPerWorker[workerIndex].Add(new DebugContactPoint
+            {
+                WorldPoint = worldPointStride,
+                WorldNormal = worldNormalStride,
+                Depth = depth,
+                PackedA = pair.A.Packed,
+                PackedB = pair.B.Packed
+            });
+        }
+
     }
 
     private void RunManifoldEvent<TManifold>(Span<ContactGroup<TManifold>> unsafeInfos) where TManifold : unmanaged, IContactManifold<TManifold>
@@ -283,6 +329,17 @@ internal class ContactEventsManager : IDisposable
         //Remove any stale collisions. Stale collisions are those which should have received a new manifold update but did not because the manifold is no longer active.
         foreach (var pair in _outdatedPairs)
             ClearCollision(pair);
+
+        _debugPointsMerged.Clear();
+        for (int i = 0; i < _debugPointsPerWorker.Length; i++)
+        {
+            var list = _debugPointsPerWorker[i];
+            if (list.Count > 0)
+            {
+                _debugPointsMerged.AddRange(list);
+                list.Clear();
+            }
+        }
     }
 
     /// <summary>
@@ -445,6 +502,14 @@ internal class ContactEventsManager : IDisposable
         TouchingB = 0b10,
     }
 
+    internal struct DebugContactPoint
+    {
+        public Stride.Core.Mathematics.Vector3 WorldPoint;
+        public Stride.Core.Mathematics.Vector3 WorldNormal;
+        public float Depth;
+        public uint PackedA;
+        public uint PackedB;
+    }
 
     private struct EmptyManifold : IContactManifold<EmptyManifold>
     {
