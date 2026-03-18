@@ -282,23 +282,38 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
 
             if (paramDefinition.Type is PointerType)
             {
-                var paramVariable = context.Bound++;
-                builder.AddFunctionVariable(context.GetOrRegister(paramDefinition.Type), paramVariable);
-
-                if (inOutFlags != ParameterModifiers.Out)
+                // For ref params, pass the original pointer directly.
+                // Required for atomic intrinsics (InterlockedAdd, etc.) that need
+                // the actual memory pointer (Workgroup, StorageBuffer, etc.).
+                if (paramDefinition.Modifiers == ParameterModifiers.Ref)
                 {
-                    var paramSource = arguments.Values[i].CompileAsValue(table, compiler, paramDefinition.Type.GetValueType());
-
-                    // Convert type (if necessary)
-                    var paramExpectedValueType = paramDefinition.Type;
-                    if (paramExpectedValueType is PointerType pointerType)
-                        paramExpectedValueType = pointerType.BaseType;
-                    paramSource = builder.Convert(context, paramSource, paramExpectedValueType);
-
-                    builder.Insert(new OpStore(paramVariable, paramSource.Id, null, []));
+                    var paramPointer = arguments.Values[i].Compile(table, compiler);
+                    if (context.ReverseTypes[paramPointer.TypeId] is not PointerType)
+                        table.AddError(new(arguments.Values[i].Info,
+                            $"'ref' parameter at index {i} requires an l-value (pointer), but got {context.ReverseTypes[paramPointer.TypeId]}"));
+                    compiledParams[i] = paramPointer.Id;
                 }
+                else
+                {
+                    // Fallback for out/inout: copy-in/copy-out via function-local variable
+                    var paramVariable = context.Bound++;
+                    builder.AddFunctionVariable(context.GetOrRegister(paramDefinition.Type), paramVariable);
 
-                compiledParams[i] = paramVariable;
+                    if (inOutFlags != ParameterModifiers.Out)
+                    {
+                        var paramSource = arguments.Values[i].CompileAsValue(table, compiler, paramDefinition.Type.GetValueType());
+
+                        // Convert type (if necessary)
+                        var paramExpectedValueType = paramDefinition.Type;
+                        if (paramExpectedValueType is PointerType pointerType)
+                            paramExpectedValueType = pointerType.BaseType;
+                        paramSource = builder.Convert(context, paramSource, paramExpectedValueType);
+
+                        builder.Insert(new OpStore(paramVariable, paramSource.Id, null, []));
+                    }
+
+                    compiledParams[i] = paramVariable;
+                }
             }
             else
             {

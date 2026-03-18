@@ -68,6 +68,14 @@ public enum ParameterModifiers : int
     Out = 0x2,
     InOut = In | Out,
 
+    /// <summary>
+    /// Pass the original pointer directly without copy-in/copy-out.
+    /// Unlike InOut which copies to a Function-local variable, Ref requires the argument
+    /// to be an l-value in non-Function storage (Workgroup, StorageBuffer, etc.).
+    /// Used by atomic intrinsics (InterlockedAdd, etc.) that need the actual memory pointer.
+    /// </summary>
+    Ref = 0x4,
+
     Const = 0x10,
 
     Point = 0x20,

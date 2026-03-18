@@ -378,12 +378,13 @@ public class IntrinsicTemplateExpander(SymbolType? thisType, string @namespace, 
                             {
                                 Qualifier.In => ParameterModifiers.In,
                                 Qualifier.Out => ParameterModifiers.Out,
-                                Qualifier.InOut or Qualifier.Ref => ParameterModifiers.InOut,
+                                Qualifier.InOut => ParameterModifiers.InOut,
+                                Qualifier.Ref => ParameterModifiers.Ref,
                                 null => ParameterModifiers.None,
                             };
 
-                            // Wrap out/inout parameters in PointerType, matching user-defined function convention
-                            if ((modifier & ParameterModifiers.Out) != 0)
+                            // Wrap out/inout/ref parameters in PointerType, matching user-defined function convention
+                            if ((modifier & ParameterModifiers.Out) != 0 || modifier == ParameterModifiers.Ref)
                                 paramType = new PointerType(paramType, Specification.StorageClass.Function);
 
                             functionParameters.Add(new(paramType, modifier));

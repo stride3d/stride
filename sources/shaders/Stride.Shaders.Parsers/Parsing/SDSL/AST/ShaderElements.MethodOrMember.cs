@@ -409,7 +409,7 @@ public partial class ShaderMethod(
             var argSym = p.TypeName.Type;
             table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
             p.Type = argSym;
-            var parameterType = new PointerType(p.Type, Specification.StorageClass.Function);
+            var parameterType = GenerateParameterType(p);
             ftype.ParameterTypes.Add(new(parameterType, p.Modifiers));
             var parameterSymbol = new Symbol(new(p.Name, SymbolKind.Variable), parameterType, 0, OwnerType: table.CurrentShader);
             table.CurrentFrame.Add(p.Name, parameterSymbol);
@@ -455,6 +455,13 @@ public partial class ShaderMethod(
 
         SymbolFrame = table.Pop();
         table.CurrentShader.Methods.Add((symbol, functionFlags));
+    }
+
+    private static PointerType GenerateParameterType(MethodParameter p)
+    {
+        // Default: wrap everything in Function pointer
+        // TODO: what happens if we want to pass texture/sampler around as parameters?
+        return new PointerType(p.Type, Specification.StorageClass.Function);
     }
 
     public void ProcessSymbolBody(SymbolTable table, SpirvContext context)
