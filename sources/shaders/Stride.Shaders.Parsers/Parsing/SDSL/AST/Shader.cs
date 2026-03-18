@@ -201,9 +201,12 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                         name = $"_member{index}";
                     fields.Add(new(name, type, TypeModifier.None));
                 }
+                // TODO: Ideally we shouldn't depend on struct OpName, so we should use UserTypeGOOGLE?
                 StructuredType structType = (blocks.Contains(typeStructInstruction.ResultId))
                     ? structName switch
                     {
+                        "type.ByteAddressBuffer" => new ByteAddressBufferType(false),
+                        "type.RWByteAddressBuffer" => new ByteAddressBufferType(true),
                         var s when s.StartsWith("type.StructuredBuffer.") => new StructuredBufferType(fields[0].Type is ArrayType a ? a.BaseType : fields[0].Type),
                         var s when s.StartsWith("type.RWStructuredBuffer.") => new StructuredBufferType(fields[0].Type is ArrayType a2 ? a2.BaseType : fields[0].Type, true),
                         var s when s.StartsWith("type.AppendStructuredBuffer.") => new AppendStructuredBufferType(fields[0].Type is ArrayType a3 ? a3.BaseType : fields[0].Type),

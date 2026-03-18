@@ -276,19 +276,19 @@ public sealed partial record StructType(string Name, List<StructuredTypeMember> 
     public override string ToString() => base.ToString();
 }
 
-public sealed partial record StructuredBufferType(SymbolType BaseType, bool WriteAllowed = false) : StructuredType($"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType.ToId()}>", [new(string.Empty, BaseType, TypeModifier.None)])
+public sealed partial record StructuredBufferType(SymbolType BaseType, bool WriteAllowed = false) : StructuredType($"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType.ToId()}>", [new(string.Empty, new ArrayType(BaseType, -1), TypeModifier.None)])
 {
     public override string ToId() => $"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType.ToId()}>";
     public override string ToString() => $"{(WriteAllowed ? "RW" : "")}StructuredBuffer<{BaseType}>";
 }
 
-public sealed partial record AppendStructuredBufferType(SymbolType BaseType) : StructuredType($"AppendStructuredBuffer<{BaseType.ToId()}>", [new(string.Empty, BaseType, TypeModifier.None)])
+public sealed partial record AppendStructuredBufferType(SymbolType BaseType) : StructuredType($"AppendStructuredBuffer<{BaseType.ToId()}>", [new(string.Empty, new ArrayType(BaseType, -1), TypeModifier.None)])
 {
     public override string ToId() => $"AppendStructuredBuffer<{BaseType.ToId()}>";
     public override string ToString() => $"AppendStructuredBuffer<{BaseType}>";
 }
 
-public sealed partial record ConsumeStructuredBufferType(SymbolType BaseType) : StructuredType($"ConsumeStructuredBuffer<{BaseType.ToId()}>", [new(string.Empty, BaseType, TypeModifier.None)])
+public sealed partial record ConsumeStructuredBufferType(SymbolType BaseType) : StructuredType($"ConsumeStructuredBuffer<{BaseType.ToId()}>", [new(string.Empty, new ArrayType(BaseType, -1), TypeModifier.None)])
 {
     public override string ToId() => $"ConsumeStructuredBuffer<{BaseType.ToId()}>";
     public override string ToString() => $"ConsumeStructuredBuffer<{BaseType}>";
@@ -299,7 +299,7 @@ public sealed partial record BufferType(ScalarType BaseType, bool WriteAllowed =
     public override string ToString() => $"{(WriteAllowed ? "RW" : "")}Buffer<{BaseType}>";
 }
 
-public sealed partial record ByteAddressBufferType(bool WriteAllowed = false) : SymbolType()
+public sealed partial record ByteAddressBufferType(bool WriteAllowed = false) : StructuredType($"{(WriteAllowed ? "RW" : "")}ByteAddressBuffer", [new(string.Empty, new ArrayType(ScalarType.UInt, -1), TypeModifier.None)])
 {
     public override string ToId() => $"{(WriteAllowed ? "RW" : "")}ByteAddressBuffer";
     public override string ToString() => $"{(WriteAllowed ? "RW" : "")}ByteAddressBuffer";
