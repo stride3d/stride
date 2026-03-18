@@ -1,0 +1,54 @@
+// This file provides shaders for the CompositionStageInheritedNotPromotedToRoot test in StrideShaderTests.cs.
+// The test builds a ShaderMixinSource manually (not via effect block) to reproduce a bug where
+// a parent shader's stage functions are not promoted to root level when the child is used in a composition.
+
+namespace Stride.Shaders.Tests;
+
+// Parent shader with a non-stage helper function (like TerrainQuery).
+shader StageParentHelper
+{
+    float4 ComputeHelper()
+    {
+        return float4(1.0, 1.0, 1.0, 1.0) / 255.0;
+    }
+}
+
+// Child shader inherits parent, has a stage method that calls parent's stage function.
+// Mimics MaterialTreeDisplacementFeature inheriting TerrainQuery.
+shader StageChildComposition : StageParentHelper
+{
+    stage void PreTransform()
+    {
+        float4 c = ComputeHelper();
+    }
+}
+
+// Root shader that declares a composition slot and calls the stage method.
+shader CompositionStageInheritedNotPromotedToRootShader
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+
+    stage void PreTransform() {}
+
+    compose StageChildComposition vertexStageComposition;
+
+    void VSMain()
+    {
+        PreTransform();
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0) / 255.0;
+    }
+}
+
+// PSMain(ExpectedResult=#01010101)
+effect CompositionStageInheritedNotPromotedToRoot
+{
+    mixin CompositionStageInheritedNotPromotedToRootShader;
+    mixin compose vertexStageComposition = StageChildComposition;
+}
