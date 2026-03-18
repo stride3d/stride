@@ -52,7 +52,7 @@ public class ShaderCache : IShaderCache
         ref var loadedShadersByName = ref CollectionsMarshal.GetValueRefOrAddDefault(loadedShaders, (name, generics), out var exists);
         if (!exists)
             loadedShadersByName = hash != null ? new(hash.Value, new()) : new();
-        loadedShadersByName.BuffersPerMacros.Add(new(defines.ToArray()), bytecode);
+        loadedShadersByName.BuffersPerMacros[new(defines.ToArray())] = bytecode;
         if (hash != null)
             loadedShadersByName.Hash = hash.Value;
     }

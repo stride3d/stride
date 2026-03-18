@@ -53,6 +53,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 
                 compiler.Macros.AddRange(macros);
                 bool hasErrors = false;
+
                 try
                 {
                     shader.Compile(table, compiler);
@@ -61,6 +62,21 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 {
                     log.Error(e.Message, e);
                     hasErrors = true;
+                }
+
+                // Collect dependency hashes from all shaders loaded during compilation.
+                // Each loaded shader's buffer has its own OpSourceHashSDSL — copy them into this shader's context.
+                var seenHashes = new HashSet<ObjectId>();
+                // Add own hash so we don't duplicate it
+                seenHashes.Add(hash);
+                foreach (var declaredType in table.DeclaredTypes.Values)
+                {
+                    if (declaredType is LoadedShaderSymbol loadedShader
+                        && loadedShader.Name != shader.Name
+                        && ShaderLoader.Cache.TryLoadFromCache(loadedShader.Name, null, macros, out var depBuffer, out _))
+                    {
+                        CopySourceHashes(depBuffer, compiler.Context, seenHashes);
+                    }
                 }
 
                 foreach (var warning in table.Warnings)
@@ -91,5 +107,33 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
         }
 
         return lastBuffer != null;
+    }
+
+    /// <summary>
+    /// Copies OpSourceHashSDSL entries from a dependency's buffer into the target context, skipping duplicates.
+    /// </summary>
+    private static void CopySourceHashes(ShaderBuffers source, SpirvContext target, HashSet<ObjectId> seenHashes)
+    {
+        foreach (var inst in source.Context)
+        {
+            if (inst.Op != Spirv.Specification.Op.OpSourceHashSDSL)
+                continue;
+
+            var sourceHash = (OpSourceHashSDSL)inst;
+            var depHash = new ObjectId((uint)sourceHash.Hash1, (uint)sourceHash.Hash2, (uint)sourceHash.Hash3, (uint)sourceHash.Hash4);
+            if (!seenHashes.Add(depHash))
+                continue;
+
+            // Find the filename string from the source context
+            foreach (var s in source.Context)
+            {
+                if (s.Op == Spirv.Specification.Op.OpString && ((OpString)s).ResultId == sourceHash.File)
+                {
+                    var depFilenameId = target.Add(new OpString(target.Bound++, ((OpString)s).Value)).ResultId;
+                    target.Add(new OpSourceHashSDSL(depFilenameId, sourceHash.Hash1, sourceHash.Hash2, sourceHash.Hash3, sourceHash.Hash4));
+                    break;
+                }
+            }
+        }
     }
 }

@@ -2,7 +2,9 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Storage;
 using Stride.Shaders.Compilers.SDSL;
 using Stride.Shaders.Parsing;
+using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System;
 using System.Collections.Generic;
@@ -35,7 +37,12 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
     {
         isFromCache = Cache.TryLoadFromCache(name, null, defines, out buffer, out hash);
         if (isFromCache)
-            return true;
+        {
+            if (ValidateCachedHashes(buffer))
+                return true;
+            // A dependency changed — invalidate and recompile
+            isFromCache = false;
+        }
 
         if (!ExternalFileExists(name))
         {
@@ -75,6 +82,44 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
             throw new InvalidOperationException($"Shader {name} could not be compiled");
         }
 
+        return true;
+    }
+
+    /// <summary>
+    /// Validates all OpSourceHashSDSL entries in a cached buffer against current file content.
+    /// Returns false if any dependency has changed.
+    /// </summary>
+    private bool ValidateCachedHashes(ShaderBuffers buffer)
+    {
+        foreach (var i in buffer.Context)
+        {
+            if (i.Op == Specification.Op.OpSourceHashSDSL && (OpSourceHashSDSL)i is { } sourceHash)
+            {
+                var cachedHash = new ObjectId((uint)sourceHash.Hash1, (uint)sourceHash.Hash2, (uint)sourceHash.Hash3, (uint)sourceHash.Hash4);
+
+                // Resolve filename from OpString
+                string? filename = null;
+                foreach (var s in buffer.Context)
+                {
+                    if (s.Op == Specification.Op.OpString && ((OpString)s).ResultId == sourceHash.File)
+                    {
+                        filename = ((OpString)s).Value;
+                        break;
+                    }
+                }
+                if (filename == null)
+                    continue;
+
+                // Extract shader name from filename (strip path and extension)
+                var shaderName = Path.GetFileNameWithoutExtension(filename);
+                if (LoadExternalFileContent(shaderName, out _, out _, out var currentHash))
+                {
+                    if (cachedHash != currentHash)
+                        return false;
+                }
+                // If file not found, it might be an internal shader — skip validation
+            }
+        }
         return true;
     }
 
