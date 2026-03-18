@@ -15,11 +15,7 @@ public partial class ShaderMixer
     /// <summary>
     /// Expands inheritance (including implicit and transitive ones) and composition (including shaders that should be merged at stage level).
     /// </summary>
-    /// <param name="shaderSource"></param>
-    /// <param name="root"></param>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
-    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderMixinSource? parent, ShaderSource shaderSource, Action<ShaderClassInstantiation>? addToRoot = null, HashSet<string>? needsFullImport = null)
+    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderMixinSource? parent, ShaderSource shaderSource, Action<ShaderClassInstantiation>? promoteToParent = null, HashSet<string>? needsFullImport = null)
     {
         var mixinList = new List<ShaderClassInstantiation>();
 
@@ -58,16 +54,28 @@ public partial class ShaderMixer
             SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, mixinToMerge2, macros, mixinList, ResolveStep.Mix);
         }
 
-        ProcessClasses(shaderLoader, context, mixinList, shaderMixinSource, result, compositions, addToRoot, needsFullImport);
+        ProcessClasses(shaderLoader, context, mixinList, shaderMixinSource, result, compositions, promoteToParent, needsFullImport);
 
         return result;
     }
 
-    private void ProcessClasses(IExternalShaderLoader shaderLoader, SpirvContext context, List<ShaderClassInstantiation> mixinList, ShaderMixinSource shaderMixinSource, ShaderMixinInstantiation result, Dictionary<string, ShaderMixinInstantiation[]> compositions, Action<ShaderClassInstantiation>? addToRoot = null, HashSet<string>? needsFullImport = null)
+    /// <summary>
+    /// Processes a flat mixin list (already expanded with inheritance) to produce the final ShaderMixinInstantiation.
+    ///
+    /// Algorithm:
+    ///   1. Pre-scan: identify shaders that need full (non-stage-only) import at root level,
+    ///      based on NeedsFullImport flags set by the parser when a stage method calls non-stage members.
+    ///   2. Build a promoteToParent callback for compositions to promote stage shaders to the parent level.
+    ///      At root level (promoteToParent == null), this creates a closure that adds shaders to the root result,
+    ///      choosing between stage-only, full import, or pull-forward based on needsFullImport and mixinList membership.
+    ///   3. Main loop: iterate each shader in mixinList, detect stage members and compositions,
+    ///      recursively process compositions, then promote stage/needsFullImport shaders to parent.
+    ///   4. Post-processing (root only): upgrade any stage-only imports to full imports if compositions
+    ///      discovered during step 3 that their non-stage members are needed.
+    /// </summary>
+    private void ProcessClasses(IExternalShaderLoader shaderLoader, SpirvContext context, List<ShaderClassInstantiation> mixinList, ShaderMixinSource shaderMixinSource, ShaderMixinInstantiation result, Dictionary<string, ShaderMixinInstantiation[]> compositions, Action<ShaderClassInstantiation>? promoteToParent = null, HashSet<string>? needsFullImport = null)
     {
-        int shaderIndex = 0;
-
-        // Pre-scan: build set of shader names that need full import (not stage-only) at root level.
+        // --- Step 1: Pre-scan for shaders needing full import ---
         // Two sources:
         //   - OpSDSLMixinInherit with NeedsFullImport: parent shader whose non-stage members are called by a child's stage method
         //   - OpSDSLFunctionInfo with ReferencesNonStage: shader's own non-stage members are called by its own stage method
@@ -75,136 +83,74 @@ public partial class ShaderMixer
         needsFullImport ??= new HashSet<string>();
         foreach (var shader in mixinList)
         {
-            var buf = shader.Buffer.Value;
-            foreach (var i in buf.Context)
-            {
-                if (i.Op == Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)i is { } inherit
-                    && (inherit.Flags & MixinInheritFlagsMask.NeedsFullImport) != 0
-                    && buf.Context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is LoadedShaderSymbol lss)
-                {
-                    needsFullImport.Add(lss.Name);
-                }
-            }
-            foreach (var i in buf.Buffer)
-            {
-                if (i.Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)i is { } fi
-                    && (fi.Flags & FunctionFlagsMask.ReferencesNonStage) != 0)
-                {
-                    needsFullImport.Add(shader.ClassName);
-                    break;
-                }
-            }
+            ScanNeedsFullImport(shader, needsFullImport);
         }
 
-        var addToRootRecursive = addToRoot;
-        if (addToRootRecursive == null)
+        // --- Step 2: Build the promote-to-parent callback ---
+        // At root level, we create a closure that decides how to add shaders to the root mixin list.
+        // At composition level, we reuse the parent's callback directly.
+        var promoteToParentForCompositions = promoteToParent;
+        if (promoteToParentForCompositions == null)
         {
-            addToRootRecursive = shaderName =>
+            promoteToParentForCompositions = shaderName =>
             {
-                var shaderNameStageOnly = new ShaderClassInstantiation(shaderName.ClassName, shaderName.GenericArguments, ImportStageOnly: true) { Buffer = shaderName.Buffer, Symbol = shaderName.Symbol };
+                var stageOnlyVariant = new ShaderClassInstantiation(shaderName.ClassName, shaderName.GenericArguments, ImportStageOnly: true) { Buffer = shaderName.Buffer, Symbol = shaderName.Symbol };
 
+                // Skip if already added (either standard or stage-only)
+                if (result.Mixins.Contains(shaderName) || result.Mixins.Contains(stageOnlyVariant))
+                    return;
 
-                // Make sure it's not already added yet (either standard or stage only)
-                if (!result.Mixins.Contains(shaderName) && !result!.Mixins.Contains(shaderNameStageOnly))
+                if (mixinList.Contains(shaderName))
                 {
-                    // Check if mixin will be added in future as a non-stage
-                    if (mixinList.Contains(shaderName))
-                    {
-                        // Special case: the current stage-only mixin is planned to be added later as a normal mixin at the root level
-                        // It's a bit complex: we need to inherit from it right now instead of later
-                        var currentlyMixedList = result.Mixins[..];
-                        SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, shaderName, shaderMixinSource.Macros.AsSpan(), currentlyMixedList, ResolveStep.Mix);
+                    // This shader is planned for normal addition later at root level.
+                    // Pull it forward now (with its full inheritance) so it's available for the current composition.
+                    var currentlyMixedList = result.Mixins[..];
+                    SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, shaderName, shaderMixinSource.Macros.AsSpan(), currentlyMixedList, ResolveStep.Mix);
 
-                        var newShadersToMergeNow = currentlyMixedList[result.Mixins.Count..];
-                        result.Mixins.AddRange(newShadersToMergeNow);
-                    }
-                    else if (needsFullImport.Contains(shaderName.ClassName))
-                    {
-                        // Stage methods reference non-stage members from this shader, import fully
-                        result.Mixins.Add(shaderName);
-                    }
-                    else
-                    {
-                        result.Mixins.Add(shaderNameStageOnly);
-                    }
+                    var newShadersToMergeNow = currentlyMixedList[result.Mixins.Count..];
+                    result.Mixins.AddRange(newShadersToMergeNow);
+                }
+                else if (needsFullImport.Contains(shaderName.ClassName))
+                {
+                    // Stage methods reference non-stage members from this shader — import fully
+                    result.Mixins.Add(shaderName);
+                }
+                else
+                {
+                    result.Mixins.Add(stageOnlyVariant);
                 }
             };
         }
 
-        for (; shaderIndex < mixinList.Count; shaderIndex++)
+        // --- Step 3: Main loop — detect stage members, process compositions, promote to parent ---
+        for (int shaderIndex = 0; shaderIndex < mixinList.Count; shaderIndex++)
         {
             var shaderName = mixinList[shaderIndex];
 
-            // Note: this should only happen due to addToRootRecursive readding some mixin earlier
+            // May already be present if promoteToParent pulled it forward earlier
             if (result.Mixins.Contains(shaderName))
                 continue;
 
             var shader = shaderName.Buffer.Value;
-            bool hasStage = false;
-            foreach (var i in shader.Context)
-            {
-                if (i.Op == Op.OpTypeStruct)
-                {
-                    hasStage = true;
-                }
-            }
 
-            foreach (var i in shader.Buffer)
-            {
-                if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.StorageClass != Specification.StorageClass.Function)
-                {
-                    hasStage |= (variable.Flags & VariableFlagsMask.Stage) != 0;
+            bool hasStage = HasStageMembersOrCompositions(shader);
 
-                    var variableType = shader.Context.ReverseTypes[variable.ResultType];
-                    if (variableType is PointerType pointer && pointer.BaseType is ShaderSymbol or ArrayType { BaseType: ShaderSymbol })
-                    {
-                        var variableName = shader.Context.Names[variable.ResultId];
-                        // Make sure we have a ShaderMixinSource
-                        // If composition is not specified, use default class
-                        if (!shaderMixinSource.Compositions.TryGetValue(variableName, out var compositionMixin))
-                        {
-                            if (pointer.BaseType is ShaderSymbol shaderSymbol)
-                                compositionMixin = new ShaderMixinSource { Mixins = { new ShaderClassSource(shaderSymbol.Name) } };
-                            else if (pointer.BaseType is ArrayType { BaseType: ShaderSymbol })
-                                compositionMixin = new ShaderArraySource();
-                            else
-                                throw new NotImplementedException();
-                        }
+            // Discover and recursively process compositions
+            ProcessCompositions(shaderLoader, context, shader, shaderMixinSource, compositions, promoteToParentForCompositions, needsFullImport);
 
-                        if (compositionMixin is ShaderArraySource shaderArraySource)
-                        {
-                            var variableCompositions = new List<ShaderMixinInstantiation>();
-                            foreach (var value in shaderArraySource.Values)
-                                variableCompositions.Add(EvaluateInheritanceAndCompositions(shaderLoader, context, shaderMixinSource, value, addToRootRecursive, needsFullImport));
-                            compositions[variableName] = [.. variableCompositions];
-                        }
-                        else
-                        {
-                            var variableComposition = EvaluateInheritanceAndCompositions(shaderLoader, context, shaderMixinSource, compositionMixin, addToRootRecursive, needsFullImport);
-                            compositions[variableName] = [variableComposition];
-                        }
-                    }
-                }
+            // Promote to parent level if this shader has stage members or needs full import
+            if (hasStage || needsFullImport.Contains(shaderName.ClassName))
+                promoteToParent?.Invoke(shaderName);
 
-                if (i.Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)i is { } functionInfo)
-                {
-                    hasStage |= (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
-                }
-            }
-
-            // If there are any stage variables/methods, add class to root
-            if (hasStage)
-                addToRoot?.Invoke(shaderName);
-
-            // Note: make sure to add only *after* compositions EvaluateInheritanceAndCompositions recursive call is done (a composition might add a "stage" inheritance with root!.Mixins.Add()
-            //       and this should be done before the composition mixin is added.
-            //       For example, a composition might import a struct, so if we import and mix the composition mixin before the "stage" one defining the struct, the struct is not defined before the composition using it.
+            // Add to result *after* compositions are processed — a composition might add a "stage" inheritance
+            // that defines a struct, and that must come before the composition shader that uses it.
             result.Mixins.Add(shaderName);
         }
 
-        // Post-processing: upgrade stage-only imports to full imports if compositions discovered
-        // that their non-stage members are needed (via needsFullImport set populated during composition processing)
-        if (addToRoot == null)
+        // --- Step 4: Post-processing (root only) — upgrade stage-only to full import ---
+        // Compositions processed in step 3 may have added entries to needsFullImport.
+        // Shaders already added as stage-only need upgrading.
+        if (promoteToParent == null)
         {
             for (int i = 0; i < result.Mixins.Count; i++)
             {
@@ -213,6 +159,109 @@ public partial class ShaderMixer
                 {
                     result.Mixins[i] = new ShaderClassInstantiation(mixin.ClassName, mixin.GenericArguments) { Buffer = mixin.Buffer, Symbol = mixin.Symbol };
                 }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Scans a shader's SPIR-V buffer for NeedsFullImport flags and adds matching shader names to the set.
+    /// </summary>
+    private static void ScanNeedsFullImport(ShaderClassInstantiation shader, HashSet<string> needsFullImport)
+    {
+        var buf = shader.Buffer.Value;
+        foreach (var i in buf.Context)
+        {
+            if (i.Op == Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)i is { } inherit
+                && (inherit.Flags & MixinInheritFlagsMask.NeedsFullImport) != 0
+                && buf.Context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is LoadedShaderSymbol lss)
+            {
+                needsFullImport.Add(lss.Name);
+            }
+        }
+        foreach (var i in buf.Buffer)
+        {
+            if (i.Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)i is { } fi
+                && (fi.Flags & FunctionFlagsMask.ReferencesNonStage) != 0)
+            {
+                needsFullImport.Add(shader.ClassName);
+                break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Checks whether a shader buffer contains stage members (structs/streams, stage variables, or stage functions).
+    /// Also detects composition variables (returns true via hasStage if struct declarations exist).
+    /// </summary>
+    private static bool HasStageMembersOrCompositions(ShaderBuffers shader)
+    {
+        bool hasStage = false;
+        foreach (var i in shader.Context)
+        {
+            if (i.Op == Op.OpTypeStruct)
+            {
+                hasStage = true;
+            }
+        }
+
+        foreach (var i in shader.Buffer)
+        {
+            if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.StorageClass != Specification.StorageClass.Function)
+            {
+                hasStage |= (variable.Flags & VariableFlagsMask.Stage) != 0;
+            }
+
+            if (i.Op == Op.OpSDSLFunctionInfo && (OpSDSLFunctionInfo)i is { } functionInfo)
+            {
+                hasStage |= (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
+            }
+        }
+
+        return hasStage;
+    }
+
+    /// <summary>
+    /// Discovers composition variables in a shader buffer and recursively evaluates them.
+    /// </summary>
+    private void ProcessCompositions(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderBuffers shader, ShaderMixinSource shaderMixinSource, Dictionary<string, ShaderMixinInstantiation[]> compositions, Action<ShaderClassInstantiation> promoteToParent, HashSet<string> needsFullImport)
+    {
+        foreach (var i in shader.Buffer)
+        {
+            if (i.Op != Op.OpVariableSDSL)
+                continue;
+
+            var variable = (OpVariableSDSL)i;
+            if (variable.StorageClass == Specification.StorageClass.Function)
+                continue;
+
+            var variableType = shader.Context.ReverseTypes[variable.ResultType];
+            if (variableType is not PointerType pointer || pointer.BaseType is not (ShaderSymbol or ArrayType { BaseType: ShaderSymbol }))
+                continue;
+
+            var variableName = shader.Context.Names[variable.ResultId];
+
+            // Use the composition from ShaderMixinSource if specified, otherwise use the default type
+            if (!shaderMixinSource.Compositions.TryGetValue(variableName, out var compositionMixin))
+            {
+                if (pointer.BaseType is ShaderSymbol shaderSymbol)
+                    compositionMixin = new ShaderMixinSource { Mixins = { new ShaderClassSource(shaderSymbol.Name) } };
+                else if (pointer.BaseType is ArrayType { BaseType: ShaderSymbol })
+                    compositionMixin = new ShaderArraySource();
+                else
+                    throw new NotImplementedException();
+            }
+
+            if (compositionMixin is ShaderArraySource shaderArraySource)
+            {
+                var variableCompositions = new List<ShaderMixinInstantiation>();
+                foreach (var value in shaderArraySource.Values)
+                    variableCompositions.Add(EvaluateInheritanceAndCompositions(shaderLoader, context, shaderMixinSource, value, promoteToParent, needsFullImport));
+                compositions[variableName] = [.. variableCompositions];
+            }
+            else
+            {
+                var variableComposition = EvaluateInheritanceAndCompositions(shaderLoader, context, shaderMixinSource, compositionMixin, promoteToParent, needsFullImport);
+                compositions[variableName] = [variableComposition];
             }
         }
     }
