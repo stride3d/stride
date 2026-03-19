@@ -27,11 +27,17 @@ namespace Stride.Shaders.Compiler
     public class EffectCompilerCache : EffectCompilerChain
     {
         private static readonly Logger Log = GlobalLogger.GetLogger("EffectCompilerCache");
+        // Key is EffectBytecode.ComputeId() (hash of bytecode itself)
         private readonly Dictionary<ObjectId, KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>> bytecodes = new Dictionary<ObjectId, KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>>();
         private readonly HashSet<ObjectId> bytecodesByPassingStorage = new HashSet<ObjectId>();
         private const string CompiledShadersKey = "__shaders_bytecode__";
 
+        // Key is effectInputHash (inputs to generate this bytecode) for both of those dictionaries
+        // Used for currently compiling shaders (when CompileEffectAsynchronously is true)
         private readonly Dictionary<ObjectId, Task<EffectBytecodeCompilerResult>> compilingShaders = new Dictionary<ObjectId, Task<EffectBytecodeCompilerResult>>();
+        // Used when shader is compiled (esp. when CompileEffectAsynchronously is false, but also when true during some specific race conditions)
+        private readonly Dictionary<ObjectId, EffectBytecodeCompilerResult> compiledShaders = new Dictionary<ObjectId, EffectBytecodeCompilerResult>();
+
         private readonly DatabaseFileProvider database;
         private readonly TaskSchedulerSelector taskSchedulerSelector;
 
@@ -166,11 +172,19 @@ namespace Stride.Shaders.Compiler
             // ------------------------------------------------------------------------------------------------------------
             lock (compilingShaders)
             {
+                // Check if shader is still compiling
                 Task<EffectBytecodeCompilerResult> compilingShaderTask;
                 if (compilingShaders.TryGetValue(effectInputHash, out compilingShaderTask))
                 {
-                    // Note: Task might still be compiling
                     return compilingShaderTask;
+                }
+
+                // Check if shader is already compiled, it can happen in two cases:
+                // - CompileEffectAsynchronously == false: if multiple same shaders waiting on lock (compilingShaders)
+                // - CompileEffectAsynchronously == true: race condition when shader is requested after async compilingShaders has been removed but cache was still not filled when we checked earlier
+                if (compiledShaders.TryGetValue(effectInputHash, out var result))
+                {
+                    return result;
                 }
 
                 // Compile the mixin in a Task
@@ -288,6 +302,7 @@ namespace Stride.Shaders.Compiler
             lock (compilingShaders)
             {
                 compilingShaders.Remove(effectInputHash);
+                compiledShaders.Add(effectInputHash, compiledShader);
             }
 
             log.CopyTo(effectLog);
