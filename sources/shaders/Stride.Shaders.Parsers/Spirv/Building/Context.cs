@@ -49,24 +49,29 @@ public class ShaderCache : IShaderCache
 
     public virtual void RegisterShader(string name, string? generics, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode, ObjectId? hash = null)
     {
-        // Freeze the context so any accidental mutation after caching is caught
         bytecode.Context.Frozen = true;
-
-        ref var loadedShadersByName = ref CollectionsMarshal.GetValueRefOrAddDefault(loadedShaders, (name, generics), out var exists);
-        if (!exists)
-            loadedShadersByName = hash != null ? new(hash.Value, new()) : new();
-        loadedShadersByName.BuffersPerMacros[new(defines.ToArray())] = bytecode;
-        if (hash != null)
-            loadedShadersByName.Hash = hash.Value;
+		
+        lock (loadedShaders)
+        {
+            ref var loadedShadersByName = ref CollectionsMarshal.GetValueRefOrAddDefault(loadedShaders, (name, generics), out var exists);
+            if (!exists)
+                loadedShadersByName = hash != null ? new(hash.Value, new()) : new();
+            loadedShadersByName.BuffersPerMacros[new(defines.ToArray())] = bytecode;
+            if (hash != null)
+                loadedShadersByName.Hash = hash.Value;
+        }
     }
 
     public bool TryLoadFromCache(string name, string? generics, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash)
     {
-        if (loadedShaders.TryGetValue((name, generics), out var loadedShadersByName)
-            && loadedShadersByName.BuffersPerMacros.TryGetValue(new(defines.ToArray()), out buffer))
+        lock (loadedShaders)
         {
-            hash = loadedShadersByName.Hash;
-            return true;
+            if (loadedShaders.TryGetValue((name, generics), out var loadedShadersByName)
+                && loadedShadersByName.BuffersPerMacros.TryGetValue(new(defines.ToArray()), out buffer))
+            {
+                hash = loadedShadersByName.Hash;
+                return true;
+            }
         }
 
         hash = default;

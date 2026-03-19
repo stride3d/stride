@@ -18,6 +18,7 @@ namespace Stride.Shaders.Compilers;
 /// </summary>
 public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath = "shaders") : IShaderCache
 {
+    private readonly object lockObject = new();
     private readonly ShaderCache memoryCache = new();
 
     public bool Exists(string name)
@@ -44,12 +45,16 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
         {
             var path = GetCachePath(name, generics, defines);
             var dir = path[..path.LastIndexOf('/')];
-            if (!fileProvider.DirectoryExists(dir))
-                fileProvider.CreateDirectory(dir);
 
-            using var stream = fileProvider.OpenStream(path, VirtualFileMode.Create, VirtualFileAccess.Write);
-            using var writer = new BinaryWriter(stream);
-            Serialize(writer, bytecode, hash ?? ObjectId.Empty);
+            lock (lockObject)
+            {
+                if (!fileProvider.DirectoryExists(dir))
+                    fileProvider.CreateDirectory(dir);
+
+                using var stream = fileProvider.OpenStream(path, VirtualFileMode.Create, VirtualFileAccess.Write);
+                using var writer = new BinaryWriter(stream);
+                Serialize(writer, bytecode, hash ?? ObjectId.Empty);
+            }
         }
         catch
         {
@@ -65,16 +70,19 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
         try
         {
             var path = GetCachePath(name, generics, defines);
-            if (!fileProvider.FileExists(path))
+            lock (lockObject)
             {
-                buffer = default;
-                hash = default;
-                return false;
-            }
+                if (!fileProvider.FileExists(path))
+                {
+                    buffer = default;
+                    hash = default;
+                    return false;
+                }
 
-            using var stream = fileProvider.OpenStream(path, VirtualFileMode.Open, VirtualFileAccess.Read);
-            using var reader = new BinaryReader(stream);
-            buffer = Deserialize(reader, out hash);
+                using var stream = fileProvider.OpenStream(path, VirtualFileMode.Open, VirtualFileAccess.Read);
+                using var reader = new BinaryReader(stream);
+                buffer = Deserialize(reader, out hash);
+            }
 
             // Populate in-memory cache for subsequent lookups
             memoryCache.RegisterShader(name, generics, defines, buffer, hash);

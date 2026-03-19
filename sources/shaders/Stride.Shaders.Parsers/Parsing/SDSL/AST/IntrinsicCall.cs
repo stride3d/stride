@@ -20,9 +20,12 @@ public class IntrinsicCallHelper
 
         static IntrinsicTemplateExpander GetOrCreateExpander(SymbolType type, string @namespace, FrozenDictionary<string, IntrinsicDefinition[]> intrinsicsDefinitions)
         {
-            if (!ClassTemplateExpanders.TryGetValue(type, out var value))
-                ClassTemplateExpanders.Add(type, value = new(type, @namespace, intrinsicsDefinitions));
-            return value;
+            lock (ClassTemplateExpanders)
+            {
+                if (!ClassTemplateExpanders.TryGetValue(type, out var value))
+                    ClassTemplateExpanders.Add(type, value = new(type, @namespace, intrinsicsDefinitions));
+                return value;
+            }
         }
 
         (var templateExpander, var intrinsicCompiler) = thisType switch
