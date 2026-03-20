@@ -49,6 +49,9 @@ public class ShaderCache : IShaderCache
 
     public virtual void RegisterShader(string name, string? generics, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode, ObjectId? hash = null)
     {
+        // Freeze the context so any accidental mutation after caching is caught
+        bytecode.Context.Frozen = true;
+
         ref var loadedShadersByName = ref CollectionsMarshal.GetValueRefOrAddDefault(loadedShaders, (name, generics), out var exists);
         if (!exists)
             loadedShadersByName = hash != null ? new(hash.Value, new()) : new();
@@ -93,9 +96,32 @@ public partial class SpirvContext
     private int bound = 1;
     public int ResourceGroupBound { get; set; } = 1;
     public ref int Bound => ref bound;
-    public Dictionary<SymbolType, int> Types { get; init; } = [];
-    public Dictionary<int, SymbolType> ReverseTypes { get; init; } = [];
-    public Dictionary<int, string> Names { get; init; } = [];
+    public FreezeableDictionary<SymbolType, int> Types { get; init; } = new();
+    public FreezeableDictionary<int, SymbolType> ReverseTypes { get; init; } = new();
+    public FreezeableDictionary<int, string> Names { get; init; } = new();
+
+    /// <summary>
+    /// When true, any mutation to this context will throw.
+    /// Set after caching to catch thread-safety violations during development.
+    /// </summary>
+    public bool Frozen
+    {
+        get => frozen;
+        set
+        {
+            frozen = value;
+            Types.Frozen = value;
+            ReverseTypes.Frozen = value;
+            Names.Frozen = value;
+        }
+    }
+    private bool frozen;
+
+    private void ThrowIfFrozen()
+    {
+        if (Frozen)
+            throw new InvalidOperationException("Attempted to mutate a frozen SpirvContext. Cached shader contexts must not be modified.");
+    }
 
     public OpDataIndex this[int index] => new(index, Buffer);
 
@@ -144,6 +170,7 @@ public partial class SpirvContext
     /// <param name="name"></param>
     public void AddName(int target, string name)
     {
+        ThrowIfFrozen();
         Buffer.Add(new OpName(target, name));
         Names.Add(target, name);
     }
@@ -155,6 +182,7 @@ public partial class SpirvContext
     /// <param name="name"></param>
     public void SetName(int target, string name)
     {
+        ThrowIfFrozen();
         Names[target] = name;
 
         foreach (var i in Buffer)
@@ -171,10 +199,14 @@ public partial class SpirvContext
     }
 
     public void AddMemberName(int target, int accessor, string name)
-        => Buffer.AddData(new OpMemberName(target, accessor, name.Replace('.', '_')));
+    {
+        ThrowIfFrozen();
+        Buffer.AddData(new OpMemberName(target, accessor, name.Replace('.', '_')));
+    }
 
     public void SetEntryPoint(ExecutionModel model, int function, string name, ReadOnlySpan<Symbol> variables)
     {
+        ThrowIfFrozen();
         Span<int> pvariables = stackalloc int[variables.Length];
         int pos = 0;
         foreach (var v in variables)
@@ -185,35 +217,36 @@ public partial class SpirvContext
 
     public T Insert<T>(int index, in T value)
         where T : struct, IMemoryInstruction, allows ref struct
-        => Buffer.Insert(index, value);
+    { ThrowIfFrozen(); return Buffer.Insert(index, value); }
 
     public OpData InsertData<T>(int index, in T value)
         where T : struct, IMemoryInstruction, allows ref struct
-        => Buffer.InsertData(index, value);
+    { ThrowIfFrozen(); return Buffer.InsertData(index, value); }
 
     public OpDataIndex Insert(int index, OpData data)
-        => Buffer.Insert(index, data);
+    { ThrowIfFrozen(); return Buffer.Insert(index, data); }
 
     public T Add<T>(in T value)
         where T : struct, IMemoryInstruction, allows ref struct
-        => Buffer.Add(value);
+    { ThrowIfFrozen(); return Buffer.Add(value); }
 
     public OpData AddData<T>(in T value)
         where T : struct, IMemoryInstruction, allows ref struct
-        => Buffer.AddData(value);
+    { ThrowIfFrozen(); return Buffer.AddData(value); }
 
     public OpDataIndex Add(OpData data)
-        => Buffer.Add(data);
+    { ThrowIfFrozen(); return Buffer.Add(data); }
 
     public void RemoveAt(int index, bool dispose = true)
-        => Buffer.RemoveAt(index, dispose);
+    { ThrowIfFrozen(); Buffer.RemoveAt(index, dispose); }
 
     public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction, allows ref struct
-        => Buffer.Replace(index, instruction);
+    { ThrowIfFrozen(); return Buffer.Replace(index, instruction); }
 
     public SpirvContext FluentAdd<T>(in T value, out T result)
         where T : struct, IMemoryInstruction, allows ref struct
     {
+        ThrowIfFrozen();
         Buffer.FluentAdd(value, out result);
         return this;
     }
@@ -243,7 +276,7 @@ public partial class SpirvContext
         }
     }
 
-    public void Sort() => Buffer.Sort();
+    public void Sort() { ThrowIfFrozen(); Buffer.Sort(); }
 
     [Obsolete("Use the insert method instead")]
     public SpirvBuffer GetBuffer() => Buffer;
