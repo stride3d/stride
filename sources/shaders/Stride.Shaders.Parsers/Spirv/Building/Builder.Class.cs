@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -169,7 +168,10 @@ public partial class SpirvBuilder
         {
             if (i.Op == Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)i is { } inherit)
             {
-                var shaderName = shaderMapping[inherit.Shader];
+                if (!shaderMapping.TryGetValue(inherit.Shader, out var shaderName))
+                {
+                    throw new InvalidOperationException($"BuildInheritanceListWithoutSelf: OpSDSLMixinInherit references shader ID {inherit.Shader} not found in shaderMapping (shader: {classSource.ToClassNameWithGenerics()}, mapping keys: [{string.Join(", ", shaderMapping.Keys)}])");
+                }
 
                 // Remap/import generics
                 var remappedGenericArguments = shaderName.GenericArguments.ToArray();
@@ -395,6 +397,7 @@ public partial class SpirvBuilder
         var semantics = new Dictionary<string, string>();
 
         var genericParameters = new List<GenericParameter>();
+        Dictionary<string, int[]>? importMap = null;
         for (int index = 0; index < shaderBuffers.Context.Count; ++index)
         {
             var i = shaderBuffers.Context[index];
@@ -421,6 +424,34 @@ public partial class SpirvBuilder
                     case GenericParameterType g when g.Kind is GenericParameterKindSDSL.Semantic:
                         semantics.Add(shaderBuffers.Context.Names[genericParameter.ResultId], textValue);
                         break;
+                }
+            }
+
+            // Resolve OpSDSLGenericReference by looking up the parent import's argument
+            if (i.Op == Op.OpSDSLGenericReference)
+            {
+                // Build import map lazily (after all GenericParameters are resolved above)
+                if (importMap == null)
+                {
+                    importMap = new();
+                    foreach (var inst in shaderBuffers.Context)
+                    {
+                        if (inst.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)inst is { } import)
+                            importMap[import.ShaderName] = import.Generics.Elements.Memory.ToArray();
+                    }
+                }
+
+                // OpSDSLGenericReference has the same layout as OpSDSLGenericParameter
+                var genRef = (OpSDSLGenericParameter)i;
+                if (importMap.TryGetValue(genRef.DeclaringClass, out var args) && genRef.Index < args.Length)
+                {
+                    var resolvedArgId = args[genRef.Index];
+                    // Extract the resolved constant and its dependencies from the context buffer
+                    var constantBuffer = SpirvContext.ExtractConstantFromBuffer(resolvedArgId, shaderBuffers.Context.GetBuffer());
+                    // Remove the GenericReference and insert the resolved constant with the same ResultId
+                    shaderBuffers.Context.RemoveAt(index);
+                    shaderBuffers.Context.InsertWithoutDuplicates(ref index, genRef.ResultId, constantBuffer);
+                    index--; // adjust for loop increment
                 }
             }
 
@@ -789,6 +820,7 @@ public partial class SpirvBuilder
                 shaderBuffers.Buffer = CopyBuffer(shaderBuffers.Buffer);
 
                 InstantiateGenericShader(ref shaderBuffers, classNameWithGenerics, genericResolver, shaderLoader, macros);
+
                 cache.RegisterShader(className, genericArguments, macros, shaderBuffers, hash);
             }
 

@@ -50,7 +50,7 @@ public class ShaderCache : IShaderCache
     public virtual void RegisterShader(string name, string? generics, ReadOnlySpan<ShaderMacro> defines, ShaderBuffers bytecode, ObjectId? hash = null)
     {
         bytecode.Context.Frozen = true;
-		
+
         lock (loadedShaders)
         {
             ref var loadedShadersByName = ref CollectionsMarshal.GetValueRefOrAddDefault(loadedShaders, (name, generics), out var exists);
@@ -258,6 +258,7 @@ public partial class SpirvContext
 
     public void RemoveNameAndDecorations(HashSet<int> ids)
     {
+        ThrowIfFrozen();
         foreach (var i in Buffer)
         {
             if (i.Op == Op.OpDecorate && ((OpDecorate)i) is { } decorate)

@@ -149,6 +149,7 @@ public partial class SpirvContext
 
             if (simplifyInBuffer)
             {
+                ThrowIfFrozen();
                 if (value is int valueI)
                     Buffer.Replace(i.Index, new OpConstant<int>(resultType, resultId, valueI));
                 else if (value is float valueF)
