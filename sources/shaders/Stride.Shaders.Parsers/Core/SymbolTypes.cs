@@ -429,6 +429,20 @@ public sealed partial record EffectSymbol(string Name, List<(string Name, Symbol
 
 public partial record ShaderSymbol(string Name, int[] GenericArguments) : SymbolType
 {
+    public virtual bool Equals(ShaderSymbol? other)
+        => other is not null
+        && Name == other.Name
+        && GenericArguments.AsSpan().SequenceEqual(other.GenericArguments);
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Name);
+        foreach (var arg in GenericArguments)
+            hash.Add(arg);
+        return hash.ToHashCode();
+    }
+
     public string ToClassName()
     {
         if (GenericArguments.Length == 0)
@@ -458,14 +472,42 @@ public partial record ShaderSymbol(string Name, int[] GenericArguments) : Symbol
     }
 }
 
-public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArguments) : ShaderSymbol(Name, GenericArguments)
+public sealed partial record ShaderDefinition(string Name, int[] GenericArguments)
 {
+    public string ToClassName()
+    {
+        if (GenericArguments.Length == 0)
+            return Name;
+
+        var className = new ShaderClassInstantiation(Name, GenericArguments);
+        return className.ToClassNameWithGenerics();
+    }
+
+    public override string ToString()
+    {
+        var builder = new StringBuilder();
+        builder.Append(Name);
+        if (GenericArguments.Length > 0)
+        {
+            builder.Append('<');
+            for (int i = 0; i < GenericArguments.Length; i++)
+            {
+                if (i > 0)
+                    builder.Append(',');
+                builder.Append('%');
+                builder.Append(GenericArguments[i]);
+            }
+            builder.Append('>');
+        }
+        return builder.ToString();
+    }
+
     public List<(Symbol Symbol, VariableFlagsMask Flags)> Variables { get; init; } = [];
 
     public List<(Symbol Symbol, FunctionFlagsMask Flags)> Methods { get; init; } = [];
 
     public List<(StructuredType Type, int ImportedId)> StructTypes { get; init; } = [];
-    public List<LoadedShaderSymbol> InheritedShaders { get; init; } = [];
+    public List<ShaderDefinition> InheritedShaders { get; init; } = [];
 
     public static Symbol ImportSymbol(SymbolTable table, SpirvContext context, Symbol symbol)
     {
@@ -500,7 +542,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
                     {
                         // Emit symbol
                         // TODO: emit it only when this specific method is *selected* as proper overload (signature) & override (base vs this)
-                        var shaderId = context.GetOrRegister(symbol.OwnerType);
+                        var shaderId = context.GetOrImportShader(symbol.OwnerType);
                         context.ImportShaderMethod(shaderId, ref c.Symbol, c.Flags);
                     }
 
@@ -522,7 +564,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
                     if (c.Symbol.IdRef == 0)
                     {
                         // Emit symbol
-                        var shaderId = context.GetOrRegister(symbol.OwnerType);
+                        var shaderId = context.GetOrImportShader(symbol.OwnerType);
                         context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
                     }
 
@@ -545,7 +587,7 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
                             if (c.Symbol.IdRef == 0 && context != null)
                             {
                                 // Emit symbol
-                                var shaderId = context.GetOrRegister(symbol.OwnerType);
+                                var shaderId = context.GetOrImportShader(symbol.OwnerType);
                                 context.ImportShaderVariable(shaderId, ref c.Symbol, c.Flags);
                             }
 
@@ -723,8 +765,6 @@ public sealed partial record LoadedShaderSymbol(string Name, int[] GenericArgume
         }
         return found;
     }
-
-    public override string ToString() => base.ToString();
 }
 
 public sealed partial record GenericParameterType(GenericParameterKindSDSL Kind) : SymbolType;

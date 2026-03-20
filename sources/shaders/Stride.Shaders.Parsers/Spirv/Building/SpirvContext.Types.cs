@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
@@ -10,6 +10,16 @@ public partial class SpirvContext
     // Cache for RuntimeArray types keyed by element type ID, to avoid creating duplicates
     // that would lose their ArrayStride decoration during type deduplication in the mixer.
     private Dictionary<int, int> runtimeArrayCache = [];
+
+    // Maps logical shader class name (e.g. "SomeMixin<3>") to the registered import ID,
+    // to deduplicate ShaderDefinitions that represent the same logical shader but differ
+    // only in their GenericArguments int[] reference (which breaks record equality).
+    private Dictionary<string, int> shaderImportIds = [];
+
+    // Cache of known ShaderDefinitions by name, populated by GetOrImportShader.
+    // Used by GetOrRegister to resolve ShaderSymbol → full import when encountering
+    // shader types from cached dependency contexts.
+    private Dictionary<string, ShaderDefinition> knownShaderDefs = [];
 
     private int GetOrCreateRuntimeArray(int elementTypeId, int arrayStride)
     {
@@ -28,18 +38,78 @@ public partial class SpirvContext
             throw new ArgumentException($"Type is null");
         if (Types.TryGetValue(type, out var res))
             return res;
+        // ShaderSymbol is a lightweight placeholder — its ID is tracked in shaderImportIds, not Types
+        if (type is ShaderSymbol ss)
+        {
+            if (shaderImportIds.TryGetValue(ss.Name, out var importId))
+                return importId;
+            // Try full import if the ShaderDefinition is known (populated by GetOrImportShader)
+            if (knownShaderDefs.TryGetValue(ss.Name, out var shaderDef))
+                return GetOrImportShader(shaderDef);
+            // Fallback: create a minimal import for unresolved shader symbols
+            ThrowIfFrozen();
+            var id = Bound++;
+            Add(new OpSDSLImportShader(id, new(ss.Name), new(ss.GenericArguments.AsSpan())));
+            AddName(id, ss.Name);
+            shaderImportIds[ss.Name] = id;
+            return id;
+        }
 
+        ThrowIfFrozen();
         return RegisterType(type, Bound++);
+    }
+
+    /// <summary>
+    /// Returns the SPIR-V import ID for a shader definition, creating an OpSDSLImportShader
+    /// instruction if this is the first time this shader is imported in this context.
+    /// Struct types from the shader are registered in Types/ReverseTypes (they are real SPIR-V types).
+    /// </summary>
+    public int GetOrImportShader(ShaderDefinition shaderDef)
+    {
+        var key = shaderDef.Name; // For non-generic shaders
+        if (shaderDef.GenericArguments.Length > 0)
+        {
+            var resolved = ResolveShaderStringKey(shaderDef.Name, shaderDef.GenericArguments);
+            if (resolved != null)
+                key = resolved;
+        }
+
+        // Cache the definition so GetOrRegister can resolve ShaderSymbol → full import
+        knownShaderDefs.TryAdd(shaderDef.Name, shaderDef);
+
+        if (shaderImportIds.TryGetValue(key, out var id))
+            return id;
+
+        ThrowIfFrozen();
+        return ImportShaderType(shaderDef, key);
+    }
+
+    // Resolve a shader's generic argument IDs in this context to build a string key like "Shader<3,true>".
+    // Returns null if any generic arg can't be resolved as a constant.
+    private string? ResolveShaderStringKey(string name, int[] genericArguments)
+    {
+        if (genericArguments.Length == 0)
+            return name;
+        var args = new string[genericArguments.Length];
+        for (int j = 0; j < genericArguments.Length; j++)
+        {
+            if (!TryGetConstantValue(genericArguments[j], out var value, out _, false))
+                return null;
+            args[j] = ShaderClassSource.ConvertGenericArgToString(value);
+        }
+        return $"{name}<{string.Join(",", args)}>";
     }
 
     public void ReplaceType(SymbolType type, int id)
     {
+        ThrowIfFrozen();
         RemoveType(id);
         RegisterType(type, id);
     }
 
     public int RemoveType(SymbolType type)
     {
+        ThrowIfFrozen();
         var typeId = Types[type];
         RemoveType(typeId);
         return typeId;
@@ -47,6 +117,7 @@ public partial class SpirvContext
 
     public void RemoveType(int typeId)
     {
+        ThrowIfFrozen();
         foreach (var i in Buffer)
         {
             if (i.Data.IdResult == typeId)
@@ -90,7 +161,6 @@ public partial class SpirvContext
             StructType st => RegisterStructuredType(st.ToId(), st),
             FunctionType f => RegisterFunctionType(f, id),
             PointerType p => RegisterPointerType(p, id),
-            LoadedShaderSymbol s => ImportShaderType(s, id),
             Texture1DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType.GetElementType()), t.Dimension,
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
             Texture2DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType.GetElementType()), t.Dimension,
@@ -209,19 +279,21 @@ public partial class SpirvContext
         return Buffer.Add(new OpTypeArray(Bound++, GetOrRegister(a.BaseType), sizeId)).ResultId;
     }
 
-    public int ImportShaderType(LoadedShaderSymbol shaderSymbol, int id)
+    private int ImportShaderType(ShaderDefinition shaderSymbol, string key)
     {
+        var id = Bound++;
         Add(new OpSDSLImportShader(id, new(shaderSymbol.Name), new(shaderSymbol.GenericArguments.AsSpan())));
         AddName(id, shaderSymbol.Name);
+        shaderImportIds[key] = id;
 
-        // Import struct
+        // Import struct types — these ARE real SPIR-V types and belong in Types/ReverseTypes
         var structTypes = CollectionsMarshal.AsSpan(shaderSymbol.StructTypes);
         foreach (ref var structType in structTypes)
         {
             ImportShaderStruct(id, structType.Type, out structType.ImportedId);
         }
 
-        // Note: Variables and methods are imported lazily in LoadedShaderSymbol.TryResolveSymbol()
+        // Note: Variables and methods are imported lazily in ShaderDefinition.TryResolveSymbol()
 
         return id;
     }

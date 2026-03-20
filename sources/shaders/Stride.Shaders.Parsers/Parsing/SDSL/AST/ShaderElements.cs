@@ -283,7 +283,7 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
                                     // Try to resolve generic parameter when encoded as string (deprecated)
                                     if (table.TryResolveSymbol(linkLiteral.Value, out var linkLiteralSymbol))
                                     {
-                                        linkLiteralSymbol = LoadedShaderSymbol.ImportSymbol(table, context, linkLiteralSymbol);
+                                        linkLiteralSymbol = ShaderDefinition.ImportSymbol(table, context, linkLiteralSymbol);
                                         // TODO: make it a warning only?
                                         //table.AddError(new(info, "LinkType generics should be passed without quotes"));
                                         result.LinkId = linkLiteralSymbol.IdRef;
@@ -299,7 +299,7 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
                                     {
                                         throw new InvalidOperationException();
                                     }
-                                    linkSymbol = LoadedShaderSymbol.ImportSymbol(table, context, linkSymbol);
+                                    linkSymbol = ShaderDefinition.ImportSymbol(table, context, linkSymbol);
                                     result.LinkId = linkSymbol.IdRef;
                                 }
                                 else

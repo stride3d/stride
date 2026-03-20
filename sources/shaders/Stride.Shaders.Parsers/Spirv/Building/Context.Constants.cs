@@ -188,10 +188,12 @@ public partial class SpirvContext
             return true;
         }
 
-        typeId = i.Op switch
+        if (i.Op is not (Specification.Op.OpConstant or Specification.Op.OpSpecConstant))
         {
-            Specification.Op.OpConstant or Specification.Op.OpSpecConstant => i.Data.Memory.Span[1],
-        };
+            value = null;
+            return false;
+        }
+        typeId = i.Data.Memory.Span[1];
         var operand = i.Data.Get("value");
         if (Buffer.TryGetInstructionById(typeId, out var typeInst))
         {

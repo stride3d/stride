@@ -26,7 +26,7 @@ public partial class ShaderMixer
         /// </summary>
         public ShaderInfo? Stage { get; set; }
 
-        public LoadedShaderSymbol Symbol { get; set; }
+        public ShaderDefinition Symbol { get; set; }
 
         /// <summary>
         /// Kept for debug purpose.

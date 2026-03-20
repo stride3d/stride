@@ -439,7 +439,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
 
     protected virtual SpirvValue CompileSymbol(SymbolTable table, SpirvBuilder builder, SpirvContext context, bool constantOnly)
     {
-        var symbol = LoadedShaderSymbol.ImportSymbol(table, context, ResolvedSymbol);
+        var symbol = ShaderDefinition.ImportSymbol(table, context, ResolvedSymbol);
 
         // Track when a stage method accesses a non-stage variable (without composition qualifier).
         // This forces the shader to be fully imported at root level instead of stage-only during mixin.
@@ -451,7 +451,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
                 foreach (var inst in context)
                 {
                     if (inst.Op == Spirv.Specification.Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)inst is { } inherit
-                        && context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is LoadedShaderSymbol lss && lss.Name == varOwner.Name)
+                        && table.ResolveShader(inherit.Shader) is { } lss && lss.Name == varOwner.Name)
                     {
                         inherit.Flags |= Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport;
                         break;
@@ -656,8 +656,8 @@ public partial class GenericIdentifier(Identifier name, ShaderExpressionList? ge
             }
 
             // We add the typename as a symbol (similar to static access in C#)
-            var shaderId = context.GetOrRegister(classSource.Symbol);
-            symbol = new Symbol(new(classSource.Symbol.Name, SymbolKind.Shader), new PointerType(classSource.Symbol, Specification.StorageClass.Private), shaderId);
+            var shaderId = context.GetOrImportShader(classSource.Symbol);
+            symbol = new Symbol(new(classSource.Symbol.Name, SymbolKind.Shader), new PointerType(new ShaderSymbol(classSource.Symbol.Name, classSource.Symbol.GenericArguments), Specification.StorageClass.Private), shaderId);
             table.CurrentFrame.Add(classSource.ToClassNameWithGenerics(), symbol);
         }
 
@@ -709,6 +709,12 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
             if (table.DeclaredTypes.TryGetValue(fullTypeName, out symbolType))
             {
 
+            }
+            else if (table.DeclaredShaders.TryGetValue(fullTypeName, out var shaderDef))
+            {
+                symbolType = new ShaderSymbol(shaderDef.Name, shaderDef.GenericArguments);
+                // Ensure the shader is imported in the current context so shaderImportIds has an entry
+                context.GetOrImportShader(shaderDef);
             }
             else if (Name == "PointStream" || Name == "LineStream" || Name == "TriangleStream")
             {

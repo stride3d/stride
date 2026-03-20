@@ -199,7 +199,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
     {
         var (builder, context) = compiler;
 
-        var functionSymbol = resolvedIntrinsicOverload != null ? null : LoadedShaderSymbol.ImportSymbol(table, context, ResolvedFunctionSymbol);
+        var functionSymbol = resolvedIntrinsicOverload != null ? null : ShaderDefinition.ImportSymbol(table, context, ResolvedFunctionSymbol);
         var functionType = resolvedIntrinsicOverload != null ? resolvedIntrinsicOverload.Value.Type : (FunctionType)functionSymbol.Type;
 
         Span<int> compiledParams = stackalloc int[functionType.ParameterTypes.Count];
@@ -242,7 +242,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
                     foreach (var inst in context)
                     {
                         if (inst.Op == Spirv.Specification.Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)inst is { } inherit
-                            && context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is LoadedShaderSymbol lss && lss.Name == calleeOwner.Name)
+                            && table.ResolveShader(inherit.Shader) is { } lss && lss.Name == calleeOwner.Name)
                         {
                             inherit.Flags |= Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport;
                             break;
@@ -421,7 +421,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
     private bool TryResolveFunctionSymbol(SymbolTable table, SymbolType[] argumentTypes, out Symbol functionSymbol)
     {
         // Note: for now, TypeId 0 is used for this/base; let's improve that later
-        if (MemberCallBaseType is LoadedShaderSymbol loadedShaderSymbol)
+        if (MemberCallBaseType is ShaderSymbol shaderSym && table.ResolveShader(shaderSym) is { } loadedShaderSymbol)
         {
             if (!loadedShaderSymbol.TryResolveSymbol(Name, out functionSymbol))
             {
@@ -1024,7 +1024,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     methodCall.MemberCall = result;
                     result = methodCall.Compile(table, compiler);
                     break;
-                case (PointerType { BaseType: LoadedShaderSymbol s }, Identifier field):
+                case (PointerType { BaseType: ShaderSymbol ss }, Identifier field) when table.ResolveShader(ss) is { } s:
                     {
                         if (compiler == null)
                         {
@@ -1040,7 +1040,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         }
 
                         var (builder, context) = compiler;
-                        var importedVariable = LoadedShaderSymbol.ImportSymbol(table, context, field.ResolvedSymbol);
+                        var importedVariable = ShaderDefinition.ImportSymbol(table, context, field.ResolvedSymbol);
 
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds, i - 1);
@@ -1270,7 +1270,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     }
                     break;
                 // Array indexer for shader compositions
-                case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol s } }, IndexerExpression { Index: IntegerLiteral { Value: var compositionIndex } }):
+                case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol } }, IndexerExpression { Index: IntegerLiteral { Value: var compositionIndex } }):
                     throw new NotImplementedException();
                 // Array indexer for arrays
                 case (PointerType { BaseType: ArrayType { BaseType: var t } } p, IndexerExpression indexer):

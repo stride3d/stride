@@ -188,7 +188,7 @@ public partial class ShaderMixer
         {
             if (i.Op == Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)i is { } inherit
                 && (inherit.Flags & MixinInheritFlagsMask.NeedsFullImport) != 0
-                && buf.Context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is LoadedShaderSymbol lss)
+                && buf.Context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is ShaderSymbol lss)
             {
                 needsFullImport.Add(lss.Name);
             }

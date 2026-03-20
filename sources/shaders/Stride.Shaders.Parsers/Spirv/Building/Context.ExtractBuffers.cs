@@ -12,7 +12,7 @@ public partial class SpirvContext
         return InsertWithoutDuplicates(ref index, desiredResultId, source);
     }
 
-    public int InsertWithoutDuplicates(ref int instructionIndex, int? desiredResultId, SpirvBuffer source)
+    public int InsertWithoutDuplicates(ref int instructionIndex, int? desiredResultId, SpirvBuffer source, IReadOnlyDictionary<int, string>? sourceNames = null)
     {
         // Import in current buffer (without duplicate)
         var typeDuplicateInserter = new TypeDuplicateHelper(this);
@@ -113,8 +113,29 @@ public partial class SpirvContext
         // Note: we made sure to not copy last instruction which should have the constant we want, so this case shouldn't happen anymore
         if (desiredResultId != null && lastResultId != desiredResultId)
             throw new InvalidOperationException();
-        // Note: if we were to readd this, we would also need to process the main buffer 
-        //SpirvBuilder.RemapIds(Buffer, 0, Buffer.Count, new Dictionary<int, int> { { lastResultId, desiredResultId.Value } });
+
+        // Carry over names from source context for all remapped IDs
+        if (sourceNames != null)
+        {
+            foreach (var (sourceId, destId) in remapIds)
+            {
+                if (sourceNames.TryGetValue(sourceId, out var name))
+                    Names.TryAdd(destId, name);
+            }
+        }
+
+        // Carry over OpName entries from the source buffer using remapped IDs.
+        // OpName has no IdResult so it is skipped in the main loop above.
+        // Process them here in a second pass so remapIds is fully populated.
+        foreach (var inst in source)
+        {
+            if (inst.Op == Specification.Op.OpName)
+            {
+                OpName nameInst = inst;
+                if (remapIds.TryGetValue(nameInst.Target, out var remappedTarget))
+                    Names.TryAdd(remappedTarget, nameInst.Name);
+            }
+        }
 
         return lastResultId;
     }

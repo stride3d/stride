@@ -20,6 +20,35 @@ public partial class SymbolTable : ISymbolProvider
 
     public Dictionary<string, SymbolType> DeclaredTypes { get; } = [];
 
+    /// <summary>
+    /// Maps shader class names to their resolved definitions. Separate from DeclaredTypes
+    /// because ShaderDefinition is not a SymbolType.
+    /// </summary>
+    public Dictionary<string, ShaderDefinition> DeclaredShaders { get; } = [];
+
+    /// <summary>
+    /// Maps SPIR-V IDs to resolved shader symbols. Separate from ReverseTypes to avoid mutating cached contexts.
+    /// </summary>
+    private readonly Dictionary<int, ShaderDefinition> loadedShaders = [];
+
+    public ShaderDefinition? ResolveShader(int id) => loadedShaders.GetValueOrDefault(id);
+
+    public ShaderDefinition? ResolveShader(ShaderSymbol symbol)
+    {
+        if (Context.Types.TryGetValue(symbol, out var id))
+            return ResolveShader(id);
+        // Fallback: look up by name in DeclaredShaders (ShaderDefinition is no longer a SymbolType,
+        // so it may not have a corresponding entry in Context.Types during compilation)
+        if (DeclaredShaders.TryGetValue(symbol.Name, out var result))
+            return result;
+        // Try with full generic class name (e.g. "LightPointGroup<3>")
+        if (symbol.GenericArguments.Length > 0)
+            return DeclaredShaders.GetValueOrDefault(symbol.ToClassName());
+        return null;
+    }
+
+    public void RegisterLoadedShader(int id, ShaderDefinition shader) => loadedShaders[id] = shader;
+
     public SpirvContext Context { get; init; }
 
     public RootSymbolFrame RootSymbols { get; }
@@ -32,7 +61,7 @@ public partial class SymbolTable : ISymbolProvider
     public List<SymbolFrame> CurrentSymbols { get; } = new();
 
     // Only valid during compilation (not during ShaderMixin phase)
-    public LoadedShaderSymbol? CurrentShader { get; set; }
+    public ShaderDefinition? CurrentShader { get; set; }
     public List<ShaderMacro> CurrentMacros { get; set; }
     // Only valid during compilation (not during ShaderMixin phase)
     public List<ShaderClassInstantiation> InheritedShaders { get; set; }

@@ -66,7 +66,7 @@ public record class ShaderClassInstantiation(string ClassName, int[] GenericArgu
 
     public int[] GenericArguments { get; set; } = GenericArguments;
 
-    public LoadedShaderSymbol Symbol { get; set; }
+    public ShaderDefinition Symbol { get; set; }
 
     public string ToClassNameWithGenerics()
     {

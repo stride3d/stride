@@ -69,10 +69,9 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 var seenHashes = new HashSet<ObjectId>();
                 // Add own hash so we don't duplicate it
                 seenHashes.Add(hash);
-                foreach (var declaredType in table.DeclaredTypes.Values)
+                foreach (var loadedShader in table.DeclaredShaders.Values)
                 {
-                    if (declaredType is LoadedShaderSymbol loadedShader
-                        && loadedShader.Name != shader.Name
+                    if (loadedShader.Name != shader.Name
                         && ShaderLoader.Cache.TryLoadFromCache(loadedShader.Name, null, macros, out var depBuffer, out _))
                     {
                         CopySourceHashes(depBuffer, compiler.Context, seenHashes);
@@ -93,6 +92,12 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     return false;
 
                 lastBuffer = compiler.ToShaderBuffers();
+
+                // Ensure all names and types from OpName/OpType instructions are registered
+                // in the context dictionaries. The compiler may not explicitly register everything
+                // (e.g. names for imported IDs, or types from InsertWithoutDuplicates).
+                ShaderClass.ProcessNameAndTypes(lastBuffer.Context);
+
                 ShaderLoader.Cache.RegisterShader(shader.Name, null, macros, lastBuffer, hash);
             }
             else if (declaration is ShaderEffect or EffectParameters)
