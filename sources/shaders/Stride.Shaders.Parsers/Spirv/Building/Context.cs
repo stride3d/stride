@@ -94,9 +94,8 @@ public interface IExternalShaderLoader
 // SPIR-V parameters
 public partial class SpirvContext
 {
-    // Used internally by GenericResolverFromInstantiatingBuffer (cache from constant ID to string representation)
+    // Used internally by GenericResolverFromInstantiatingBuffer
     internal IShaderCache GenericCache { get; } = new ShaderCache();
-    internal Dictionary<int, string> GenericValueCache { get; } = new();
 
     private int bound = 1;
     public int ResourceGroupBound { get; set; } = 1;
