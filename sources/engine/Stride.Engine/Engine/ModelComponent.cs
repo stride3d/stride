@@ -124,6 +124,9 @@ namespace Stride.Engine
 
         private void CheckSkeleton()
         {
+            if (model == null)
+                return;
+
             if (modelViewHierarchyDirty || meshInfos.Count != model.Meshes.Count)
             {
                 ModelUpdated();

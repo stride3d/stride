@@ -20,6 +20,17 @@ namespace Stride.Core.Presentation.Dialogs
 {
     public class DialogService : IDialogService2
     {
+        /// <summary>
+        /// When true on the current thread, dialog methods skip showing UI and record messages instead.
+        /// Used by MCP dispatch to prevent modal dialogs from blocking tool execution.
+        /// </summary>
+        [ThreadStatic] public static bool SuppressDialogs;
+
+        /// <summary>
+        /// When <see cref="SuppressDialogs"/> is true, dialog messages are added here (if non-null).
+        /// </summary>
+        [ThreadStatic] public static List<string> SuppressedDialogMessages;
+
         private Action onClosedAction;
 
         public DialogService([NotNull] IDispatcherService dispatcher, string applicationName)
@@ -51,46 +62,91 @@ namespace Stride.Core.Presentation.Dialogs
 
         public async Task<MessageBoxResult> MessageBoxAsync(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
         {
+            if (SuppressDialogs)
+            {
+                SuppressedDialogMessages?.Add(message);
+                return MessageBoxResult.OK;
+            }
             return (MessageBoxResult)await DialogHelper.MessageBox(Dispatcher, message, ApplicationName, IDialogService.GetButtons(buttons), image);
         }
 
         public Task<int> MessageBoxAsync(string message, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
         {
+            if (SuppressDialogs)
+            {
+                SuppressedDialogMessages?.Add(message);
+                return Task.FromResult(0);
+            }
             return DialogHelper.MessageBox(Dispatcher, message, ApplicationName, buttons, image);
         }
 
         public async Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
         {
+            if (SuppressDialogs)
+            {
+                SuppressedDialogMessages?.Add(message);
+                return new CheckedMessageBoxResult(MessageBoxResult.OK, isChecked);
+            }
             return await DialogHelper.CheckedMessageBox(Dispatcher, message, ApplicationName, isChecked, checkboxMessage, IDialogService.GetButtons(button), image);
         }
 
         public Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
         {
+            if (SuppressDialogs)
+            {
+                SuppressedDialogMessages?.Add(message);
+                return Task.FromResult(new CheckedMessageBoxResult(MessageBoxResult.OK, isChecked));
+            }
             return DialogHelper.CheckedMessageBox(Dispatcher, message, ApplicationName, isChecked, checkboxMessage, buttons, image);
         }
 
         public MessageBoxResult BlockingMessageBox(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
         {
+            if (SuppressDialogs)
+            {
+                SuppressedDialogMessages?.Add(message);
+                return MessageBoxResult.OK;
+            }
             return (MessageBoxResult)DialogHelper.BlockingMessageBox(Dispatcher, message, ApplicationName, IDialogService.GetButtons(buttons), image);
         }
 
         public int BlockingMessageBox(string message, IEnumerable<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
         {
+            if (SuppressDialogs)
+            {
+                SuppressedDialogMessages?.Add(message);
+                return 0;
+            }
             return DialogHelper.BlockingMessageBox(Dispatcher, message, ApplicationName, buttons, image);
         }
 
         public CheckedMessageBoxResult BlockingCheckedMessageBox(string message, bool? isChecked, MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
         {
+            if (SuppressDialogs)
+            {
+                SuppressedDialogMessages?.Add(message);
+                return new CheckedMessageBoxResult(MessageBoxResult.OK, isChecked);
+            }
             return BlockingCheckedMessageBox(message, isChecked, DialogHelper.DontAskAgain, button, image);
         }
 
         public CheckedMessageBoxResult BlockingCheckedMessageBox(string message, bool? isChecked, string checkboxMessage, MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
         {
+            if (SuppressDialogs)
+            {
+                SuppressedDialogMessages?.Add(message);
+                return new CheckedMessageBoxResult(MessageBoxResult.OK, isChecked);
+            }
             return DialogHelper.BlockingCheckedMessageBox(Dispatcher, message, ApplicationName, isChecked, checkboxMessage, IDialogService.GetButtons(button), image);
         }
 
         public CheckedMessageBoxResult BlockingCheckedMessageBox(string message, bool? isChecked, string checkboxMessage, IEnumerable<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
         {
+            if (SuppressDialogs)
+            {
+                SuppressedDialogMessages?.Add(message);
+                return new CheckedMessageBoxResult(MessageBoxResult.OK, isChecked);
+            }
             return DialogHelper.BlockingCheckedMessageBox(Dispatcher, message, ApplicationName, isChecked, checkboxMessage, buttons, image);
         }
 

@@ -36,6 +36,7 @@ using Stride.Core.Translation.Providers;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.GameStudio.Helpers;
+using Stride.GameStudio.Mcp;
 using Stride.GameStudio.Plugin;
 using Stride.GameStudio.Services;
 using Stride.GameStudio.View;
@@ -252,6 +253,7 @@ public static class Program
             AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
             var strideEditorPlugin = (StrideEditorPlugin)AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
             strideEditorPlugin.EnableThumbnailService = enableThumbnailServices;
+            AssetsPlugin.RegisterPlugin(typeof(McpEditorPlugin));
 
             // Attempt to load the startup session, if available
             if (!UPath.IsNullOrEmpty(initialSessionPath))

@@ -1,0 +1,42 @@
+<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+  <Import Project="..\..\..\targets\Stride.props" />
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- Restrict to Direct3D11 only (like Stride.UnitTests.targets does) -->
+    <StrideGraphicsApis>Direct3D11</StrideGraphicsApis>
+    <StrideGraphicsApi>Direct3D11</StrideGraphicsApi>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StridePlatformDependent>true</StridePlatformDependent>
+    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>*</StrideBuildTags>
+    <DefineConstants>STRIDE_PLATFORM_DESKTOP</DefineConstants>
+    <!-- Asset compilation -->
+    <StrideCompileAssets>true</StrideCompileAssets>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+    <StrideCompileAssetOptions>--compile-property:BuildProjectReferences=false</StrideCompileAssetOptions>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\..\Stride.Engine.Mcp\Stride.Engine.Mcp.csproj" />
+    <!-- Asset compiler (build-only dependency) -->
+    <ProjectReference Include="..\..\..\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(StrideSdkTargets)" />
+  <!-- Import asset compiler targets -->
+  <Import Project="..\..\..\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
+</Project>

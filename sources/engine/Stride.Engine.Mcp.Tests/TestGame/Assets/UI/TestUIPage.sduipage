@@ -1,0 +1,55 @@
+!UIPageAsset
+Id: aabd516e-97c9-4e00-b6b9-d77e9faddde8
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+Design:
+    Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+Hierarchy:
+    RootParts:
+        - !Grid ref!! ca17bcee-b67e-4d0a-bb03-63dcaf152a69
+    Parts:
+        -   UIElement: !Canvas
+                Id: b89bef8f-7db8-4849-bb29-443e53565950
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Width: 100.0
+                Height: 40.0
+                HorizontalAlignment: Left
+                VerticalAlignment: Top
+                Margin: {Left: 50.0, Top: 30.0}
+                Name: TopLeftButton
+                Children: {}
+        -   UIElement: !Canvas
+                Id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Width: 200.0
+                Height: 50.0
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                Name: CenterButton
+                Children: {}
+        -   UIElement: !Canvas
+                Id: c2d3e4f5-6789-0abc-def1-234567890abc
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Width: 150.0
+                Height: 60.0
+                HorizontalAlignment: Right
+                VerticalAlignment: Bottom
+                Margin: {Right: 50.0, Bottom: 30.0}
+                Name: BottomRightButton
+                Children: {}
+        -   UIElement: !Grid
+                Id: ca17bcee-b67e-4d0a-bb03-63dcaf152a69
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                Children:
+                    6e3d90cd1d86beb727a9b80e504ec5a2: !Canvas ref!! b89bef8f-7db8-4849-bb29-443e53565950
+                    a1b2c3d4e5f67890abcdef1234567890: !Canvas ref!! a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    c2d3e4f567890abcdef1234567890abc: !Canvas ref!! c2d3e4f5-6789-0abc-def1-234567890abc
+                RowDefinitions: {}
+                ColumnDefinitions: {}
+                LayerDefinitions: {}
