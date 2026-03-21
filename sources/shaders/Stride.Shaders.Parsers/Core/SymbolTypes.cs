@@ -424,7 +424,7 @@ public sealed partial record ConstantBufferSymbol(string Name, List<StructuredTy
 public sealed partial record ParamsSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
 public sealed partial record EffectSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
 
-public partial record ShaderSymbol(string Name, int[] GenericArguments) : SymbolType
+public partial record ShaderSymbol(string Name, ConstantExpression[] GenericArguments) : SymbolType
 {
     public virtual bool Equals(ShaderSymbol? other)
         => other is not null
@@ -460,7 +460,6 @@ public partial record ShaderSymbol(string Name, int[] GenericArguments) : Symbol
             {
                 if (i > 0)
                     builder.Append(',');
-                builder.Append('%');
                 builder.Append(GenericArguments[i]);
             }
             builder.Append('>');
@@ -469,7 +468,7 @@ public partial record ShaderSymbol(string Name, int[] GenericArguments) : Symbol
     }
 }
 
-public sealed partial record ShaderDefinition(string Name, int[] GenericArguments)
+public sealed partial record ShaderDefinition(string Name, ConstantExpression[] GenericArguments)
 {
     public string ToClassName()
     {
@@ -491,7 +490,6 @@ public sealed partial record ShaderDefinition(string Name, int[] GenericArgument
             {
                 if (i > 0)
                     builder.Append(',');
-                builder.Append('%');
                 builder.Append(GenericArguments[i]);
             }
             builder.Append('>');

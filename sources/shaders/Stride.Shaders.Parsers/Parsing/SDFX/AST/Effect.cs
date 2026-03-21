@@ -27,10 +27,10 @@ public partial class ShaderEffect(TypeName name, bool isPartial, TextLocation in
         Block.Compile(table, compiler);
     }
 
-    internal static int[] CompileGenerics(SymbolTable table, SpirvContext context, ShaderExpressionList? generics)
+    internal static ConstantExpression[] CompileGenerics(SymbolTable table, SpirvContext context, ShaderExpressionList? generics)
     {
         var genericCount = generics != null ? generics.Values.Count : 0;
-        var genericValues = new int[genericCount];
+        var genericValues = new ConstantExpression[genericCount];
         if (genericCount > 0)
         {
             int genericIndex = 0;
@@ -40,7 +40,7 @@ public partial class ShaderEffect(TypeName name, bool isPartial, TextLocation in
                     throw new InvalidOperationException($"Generic value {generic} is not a literal");
                 generic.ProcessSymbol(table);
                 var compiledValue = generic.CompileConstantValue(table, context);
-                genericValues[genericIndex++] = compiledValue.Id;
+                genericValues[genericIndex++] = ConstantExpression.ParseFromBuffer(compiledValue.Id, context.GetBuffer(), context);
             }
         }
 

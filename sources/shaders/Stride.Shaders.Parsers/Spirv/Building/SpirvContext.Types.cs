@@ -49,7 +49,10 @@ public partial class SpirvContext
             // Fallback: create a minimal import for unresolved shader symbols
             ThrowIfFrozen();
             var id = Bound++;
-            Add(new OpSDSLImportShader(id, new(ss.Name), new(ss.GenericArguments.AsSpan())));
+            var emittedArgs = new int[ss.GenericArguments.Length];
+            for (int i = 0; i < emittedArgs.Length; i++)
+                emittedArgs[i] = ss.GenericArguments[i].Emit(this);
+            Add(new OpSDSLImportShader(id, new(ss.Name), new(emittedArgs.AsSpan())));
             AddName(id, ss.Name);
             shaderImportIds[ss.Name] = id;
             return id;
@@ -84,16 +87,16 @@ public partial class SpirvContext
         return ImportShaderType(shaderDef, key);
     }
 
-    // Resolve a shader's generic argument IDs in this context to build a string key like "Shader<3,true>".
-    // Returns null if any generic arg can't be resolved as a constant.
-    private string? ResolveShaderStringKey(string name, int[] genericArguments)
+    // Resolve a shader's generic arguments to build a string key like "Shader<3,true>".
+    // Returns null if any generic arg can't be evaluated to a concrete value.
+    private static string? ResolveShaderStringKey(string name, ConstantExpression[] genericArguments)
     {
         if (genericArguments.Length == 0)
             return name;
         var args = new string[genericArguments.Length];
         for (int j = 0; j < genericArguments.Length; j++)
         {
-            if (!TryGetConstantValue(genericArguments[j], out var value, out _, false))
+            if (!genericArguments[j].TryEvaluate(out var value) || value is null)
                 return null;
             args[j] = ShaderClassSource.ConvertGenericArgToString(value);
         }
@@ -261,7 +264,10 @@ public partial class SpirvContext
     private int ImportShaderType(ShaderDefinition shaderSymbol, string key)
     {
         var id = Bound++;
-        Add(new OpSDSLImportShader(id, new(shaderSymbol.Name), new(shaderSymbol.GenericArguments.AsSpan())));
+        var emittedArgs = new int[shaderSymbol.GenericArguments.Length];
+        for (int i = 0; i < emittedArgs.Length; i++)
+            emittedArgs[i] = shaderSymbol.GenericArguments[i].Emit(this);
+        Add(new OpSDSLImportShader(id, new(shaderSymbol.Name), new(emittedArgs.AsSpan())));
         AddName(id, shaderSymbol.Name);
         shaderImportIds[key] = id;
 

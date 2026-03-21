@@ -57,13 +57,13 @@ public enum ResolveStep
     Mix,
 }
 
-public record class ShaderClassInstantiation(string ClassName, int[] GenericArguments, bool ImportStageOnly = false) : IEquatable<ShaderClassInstantiation>
+public record class ShaderClassInstantiation(string ClassName, ConstantExpression[] GenericArguments, bool ImportStageOnly = false) : IEquatable<ShaderClassInstantiation>
 {
     public ShaderBuffers? Buffer { get; set; }
 
     public string ClassName { get; set; } = ClassName;
 
-    public int[] GenericArguments { get; set; } = GenericArguments;
+    public ConstantExpression[] GenericArguments { get; set; } = GenericArguments;
 
     public ShaderDefinition Symbol { get; set; }
 
@@ -77,7 +77,7 @@ public record class ShaderClassInstantiation(string ClassName, int[] GenericArgu
         if (GenericArguments != null && GenericArguments.Length > 0)
         {
             result.Append('<');
-            result.Append(string.Join(",", GenericArguments.Select(x => $"%{x}")));
+            result.Append(string.Join(",", GenericArguments.Select(x => x.ToString())));
             result.Append('>');
         }
 
@@ -132,35 +132,42 @@ public partial class SpirvBuilder
 {
     public static void BuildInheritanceListWithoutSelf(IExternalShaderLoader shaderLoader, SpirvContext topLevelContext, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, SpirvContext declaringContext, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
     {
-        // Build shader name mapping
+        // Build shader name mapping and collect generic parameter expressions
         var shaderMapping = new Dictionary<int, ShaderClassInstantiation>();
-        var genericParameterRemapping = new Dictionary<int, int>();
+        // Map generic parameter index → resolved expression from classSource
+        ConstantExpression[]? resolvedGenericArgs = null;
+        string? declaringClassName = null;
+        // Also build import-level resolution: map shader name → its import's generic args (as expressions)
+        // Used to resolve GenericParamExpr that reference parent shaders' generics
+        var importArgsByName = new Dictionary<string, ConstantExpression[]>();
+
         foreach (var i in declaringContext)
         {
             if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
             {
                 if (genericParameter.Index >= classSource.GenericArguments.Length)
                     throw new NotImplementedException($"Not enough generic parameters specified when instantiating {classSource.ToClassNameWithGenerics()}");
-                genericParameterRemapping.Add(genericParameter.ResultId, classSource.GenericArguments[genericParameter.Index]);
+                resolvedGenericArgs ??= classSource.GenericArguments;
+                declaringClassName ??= genericParameter.DeclaringClass;
             }
             if (i.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)i is { } importShader)
             {
                 var shaderClassSource = ConvertToShaderClassSource(declaringContext, importShader);
-
                 shaderMapping[importShader.ResultId] = shaderClassSource;
+                if (shaderClassSource.GenericArguments.Length > 0)
+                    importArgsByName[importShader.ShaderName] = shaderClassSource.GenericArguments;
             }
         }
 
-        int RemapGenericParameter(int localGeneric)
+        ConstantExpression ResolveGenericArg(ConstantExpression arg)
         {
-            if (genericParameterRemapping.TryGetValue(localGeneric, out var generic))
-                return generic;
-
-            // Otherwise, assume it's a constsant we need to import
-            var constantBuffer = declaringContext.ExtractConstantAsSpirvBuffer(localGeneric);
-            var resultId = topLevelContext.InsertWithoutDuplicates(null, constantBuffer);
-
-            return resultId;
+            // First substitute the current shader's own generics
+            if (resolvedGenericArgs != null && declaringClassName != null)
+                arg = arg.Substitute(declaringClassName, resolvedGenericArgs);
+            // Then resolve any remaining GenericParamExpr by looking up parent imports
+            if (arg is GenericParamExpr genParam && importArgsByName.TryGetValue(genParam.DeclaringClass, out var parentArgs) && genParam.Index < parentArgs.Length)
+                arg = ResolveGenericArg(parentArgs[genParam.Index]);
+            return arg;
         }
 
         // Check inheritance
@@ -173,20 +180,27 @@ public partial class SpirvBuilder
                     throw new InvalidOperationException($"BuildInheritanceListWithoutSelf: OpSDSLMixinInherit references shader ID {inherit.Shader} not found in shaderMapping (shader: {classSource.ToClassNameWithGenerics()}, mapping keys: [{string.Join(", ", shaderMapping.Keys)}])");
                 }
 
-                // Remap/import generics
-                var remappedGenericArguments = shaderName.GenericArguments.ToArray();
-                for (int index = 0; index < remappedGenericArguments.Length; index++)
-                    remappedGenericArguments[index] = RemapGenericParameter(remappedGenericArguments[index]);
+                // Resolve generic arguments: substitute own generics + resolve parent references
+                if (shaderName.GenericArguments.Length > 0)
+                {
+                    var remappedArgs = new ConstantExpression[shaderName.GenericArguments.Length];
+                    for (int index = 0; index < remappedArgs.Length; index++)
+                        remappedArgs[index] = ResolveGenericArg(shaderName.GenericArguments[index]);
+                    shaderName = shaderName with { GenericArguments = remappedArgs };
+                }
 
-                var remappedShaderName = shaderName with { GenericArguments = remappedGenericArguments };
-                BuildInheritanceListIncludingSelf(shaderLoader, topLevelContext, remappedShaderName, macros, inheritanceList, resolveStep);
+                BuildInheritanceListIncludingSelf(shaderLoader, topLevelContext, shaderName, macros, inheritanceList, resolveStep);
             }
         }
     }
 
     public static ShaderClassInstantiation ConvertToShaderClassSource(SpirvContext declaringContext, OpSDSLImportShader importShader)
     {
-        return new ShaderClassInstantiation(importShader.ShaderName, importShader.Generics.Elements.Memory.ToArray());
+        var genericIds = importShader.Generics.Elements.Memory;
+        var exprs = new ConstantExpression[genericIds.Length];
+        for (int i = 0; i < genericIds.Length; i++)
+            exprs[i] = ConstantExpression.ParseFromBuffer(genericIds.Span[i], declaringContext.GetBuffer(), declaringContext);
+        return new ShaderClassInstantiation(importShader.ShaderName, exprs);
     }
 
     public static ShaderClassInstantiation BuildInheritanceListIncludingSelf(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, List<ShaderClassInstantiation> inheritanceList, ResolveStep resolveStep)
@@ -306,64 +320,40 @@ public partial class SpirvBuilder
 
         public override string ResolveGenericAsString(int genericIndex)
         {
-            var constantId = classSource.GenericArguments[genericIndex];
-            if (!declaringContext.GenericValueCache.TryGetValue(constantId, out var textValue))
-            {
-                textValue = declaringContext.TryGetConstantValue(constantId, out var constantValue, out _, false)
-                    ? ShaderClassSource.ConvertGenericArgToString(constantValue)
-                    : GetIdRefAsString(genericIndex);
-
-                declaringContext.GenericValueCache.Add(constantId, textValue);
-            }
-
-            return textValue;
-        }
-
-        private string GetIdRefAsString(int index)
-        {
-            return declaringContext.Names.TryGetValue(classSource.GenericArguments[index], out var genericArgumentName)
-                ? $"%{genericArgumentName}[{classSource.GenericArguments[index]}]"
-                : $"%{classSource.GenericArguments[index]}";
+            var expr = classSource.GenericArguments[genericIndex];
+            if (expr.TryEvaluate(out var constantValue) && constantValue is not null)
+                return ShaderClassSource.ConvertGenericArgToString(constantValue);
+            return expr.ToString();
         }
 
         public override bool TryResolveGenericValue(SymbolType genericParameterType, string genericParameterName, int index, out object value)
         {
-            if (!declaringContext.TryGetConstantValue(classSource.GenericArguments[index], out value, out _, false))
+            var expr = classSource.GenericArguments[index];
+            if (expr.TryEvaluate(out var result) && result is not null)
             {
-                value = GetIdRefAsString(index);
-                return false;
+                value = result;
+                return true;
             }
 
-            return true;
+            value = expr.ToString();
+            return false;
         }
 
         public override bool ResolveGenericValueInBuffer(SymbolType genericParameterType, string genericParameterName, int genericIndex, SpirvContext context, ref int instructionIndex, out string textValue)
         {
-            // TODO: optimization: if it can be resolved fully (declaringContext.TryGetConstantValue succeeds), we could simply use/inject the value as is
             textValue = ResolveGenericAsString(genericIndex);
 
             var genericParameter = (OpSDSLGenericParameter)context[instructionIndex];
-            var bufferWithConstant = declaringContext.ExtractConstantAsSpirvBuffer(classSource.GenericArguments[genericIndex]);
+            var expr = classSource.GenericArguments[genericIndex];
 
-            bool resolved = true;
-
-            // Remap OpSDSLGenericParameter to OpSDSLGenericReference
-            for (int index = 0; index < bufferWithConstant.Count; ++index)
-            {
-                var i = bufferWithConstant[index];
-
-                if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter2)
-                {
-                    bufferWithConstant.Replace(index, new OpSDSLGenericReference(genericParameter2.ResultType, genericParameter2.ResultId, genericParameter2.Index, genericParameter2.DeclaringClass));
-                    resolved = false;
-                }
-            }
+            // Build a standalone buffer from the expression, then import with the desired result ID.
+            // This replaces the old extract-from-declaring-context + GenericParameter→GenericReference conversion.
+            var constantBuffer = expr.EmitToBuffer();
 
             context.RemoveAt(instructionIndex);
 
-            // TODO: Try to simplify constant
             var bound = context.Bound;
-            int resultId = context.InsertWithoutDuplicates(ref instructionIndex, genericParameter.ResultId, bufferWithConstant);
+            context.InsertWithoutDuplicates(ref instructionIndex, genericParameter.ResultId, constantBuffer);
             context.Bound = bound;
 
             return true;
@@ -397,12 +387,14 @@ public partial class SpirvBuilder
         var semantics = new Dictionary<string, string>();
 
         var genericParameters = new List<GenericParameter>();
+        string? currentShaderDeclaringClass = null;
         Dictionary<string, int[]>? importMap = null;
         for (int index = 0; index < shaderBuffers.Context.Count; ++index)
         {
             var i = shaderBuffers.Context[index];
             if (i.Op == Op.OpSDSLGenericParameter && (OpSDSLGenericParameter)i is { } genericParameter)
             {
+                currentShaderDeclaringClass ??= genericParameter.DeclaringClass;
                 var genericParameterType = shaderBuffers.Context.ReverseTypes[genericParameter.ResultType];
                 var genericParameterName = shaderBuffers.Context.Names[genericParameter.ResultId];
                 var instructionStart = index;
@@ -438,6 +430,15 @@ public partial class SpirvBuilder
                     {
                         if (inst.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)inst is { } import)
                             importMap[import.ShaderName] = import.Generics.Elements.Memory.ToArray();
+                    }
+                    // Also map the current shader's own resolved generics, so references to
+                    // the current shader's declaring class can be resolved.
+                    if (currentShaderDeclaringClass != null && genericParameters.Count > 0)
+                    {
+                        var currentShaderArgs = new int[genericParameters.Count];
+                        for (int j = 0; j < genericParameters.Count; j++)
+                            currentShaderArgs[j] = genericParameters[j].ResultId;
+                        importMap[currentShaderDeclaringClass] = currentShaderArgs;
                     }
                 }
 
@@ -763,11 +764,11 @@ public partial class SpirvBuilder
             var genericValues = new string[classSource.GenericArguments.Length];
             for (int i = 0; i < genericValues.Length; i++)
             {
-                var constantId = classSource.GenericArguments[i];
-                if (context.TryGetConstantValue(constantId, out var constantValue, out _, false))
+                var expr = classSource.GenericArguments[i];
+                if (expr.TryEvaluate(out var constantValue) && constantValue is not null)
                     genericValues[i] = ShaderClassSource.ConvertGenericArgToString(constantValue);
                 else
-                    throw new InvalidOperationException($"Generic argument {i} (ID %{constantId}) for {classSource.ClassName} could not be resolved during mix phase");
+                    throw new InvalidOperationException($"Generic argument {i} ({expr}) for {classSource.ClassName} could not be resolved during mix phase");
             }
 
             var result = GetOrLoadShader(shaderLoader, classSource.ClassName, genericValues, macros);

@@ -333,7 +333,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             // When called with allowReplace=true from CreateShaderType, these get upgraded to real ShaderDefinition.
             else if (instruction.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)instruction is { } importShader)
             {
-                var classSource = new ShaderClassInstantiation(importShader.ShaderName, importShader.Generics.Elements.Memory.ToArray());
+                var classSource = SpirvBuilder.ConvertToShaderClassSource(context, importShader);
                 var shaderSymbol = realShaderImporter.Import(classSource, context);
                 RegisterType(importShader.ResultId, shaderSymbol);
             }
@@ -374,11 +374,11 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             var instruction = shaderContext[i];
             if (instruction.Op == Op.OpSDSLImportShader && (OpSDSLImportShader)instruction is { } importShader)
             {
-                var genericIds = importShader.Generics.Elements.Memory.ToArray();
+                var classSource = SpirvBuilder.ConvertToShaderClassSource(shaderContext, importShader);
 
                 // Check if already loaded by name (not by ID — IDs are context-local and can collide
                 // between different cached shader contexts)
-                var stringKey = ResolveImportStringKey(importShader.ShaderName, genericIds, shaderContext);
+                var stringKey = ResolveImportStringKey(importShader.ShaderName, classSource.GenericArguments);
                 if (stringKey != null
                     && table.DeclaredShaders.TryGetValue(stringKey, out var existingDef))
                 {
@@ -386,7 +386,6 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                     continue;
                 }
 
-                var classSource = new ShaderClassInstantiation(importShader.ShaderName, genericIds);
                 var shaderDef = LoadAndCacheExternalShaderType(table, mainContext, classSource, shaderContext);
                 table.RegisterLoadedShader(importShader.ResultId, shaderDef);
             }
@@ -398,14 +397,14 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
     /// the fully-qualified shader name (e.g. "SphericalHarmonicsUtils&lt;3&gt;"), or null if
     /// any generic argument cannot be resolved as a constant.
     /// </summary>
-    private static string? ResolveImportStringKey(string shaderName, int[] genericIds, SpirvContext shaderContext)
+    private static string? ResolveImportStringKey(string shaderName, ConstantExpression[] genericArgs)
     {
-        if (genericIds.Length == 0)
+        if (genericArgs.Length == 0)
             return shaderName;
-        var args = new string[genericIds.Length];
-        for (int j = 0; j < genericIds.Length; j++)
+        var args = new string[genericArgs.Length];
+        for (int j = 0; j < genericArgs.Length; j++)
         {
-            if (!shaderContext.TryGetConstantValue(genericIds[j], out var value, out _, false))
+            if (!genericArgs[j].TryEvaluate(out var value) || value is null)
                 return null;
             args[j] = ShaderClassSource.ConvertGenericArgToString(value);
         }
@@ -527,7 +526,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         var (builder, context) = compiler;
         builder.Insert(new OpSDSLShader(name));
 
-        var openGenerics = new int[Generics != null ? Generics.Parameters.Count : 0];
+        var openGenerics = new ConstantExpression[Generics != null ? Generics.Parameters.Count : 0];
         var currentShader = new ShaderDefinition(Name, openGenerics);
         table.Push();
         table.CurrentShader = currentShader;
@@ -538,7 +537,8 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             for (int i = 0; i < Generics.Parameters.Count; i++)
             {
                 var genericParameter = Generics.Parameters[i];
-                openGenerics[i] = ProcessGenericSymbol(table, context, i, genericParameter);
+                ProcessGenericSymbol(table, context, i, genericParameter);
+                openGenerics[i] = new GenericParamExpr(i, Name);
                 var genericParameterType = genericParameter.TypeName.Type;
 
                 if (genericParameterType is GenericParameterType { Kind: GenericParameterKindSDSL.MemberName })
@@ -550,7 +550,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         foreach (var mixin in Mixins)
         {
             var mixinGenerics = (mixin as GenericIdentifier)?.Generics;
-            var generics = new int[mixinGenerics != null ? mixinGenerics.Values.Count : 0];
+            var generics = new ConstantExpression[mixinGenerics != null ? mixinGenerics.Values.Count : 0];
             if (mixinGenerics != null)
             {
                 for (int i = 0; i < mixinGenerics.Values.Count; i++)
@@ -561,21 +561,23 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                         if (table.TryResolveSymbol(identifier.Name, out var symbol))
                         {
                             mixinGenerics.Values[i].ProcessSymbol(table);
-                            generics[i] = mixinGenerics.Values[i].CompileConstantValue(table, context).Id;
+                            var constantId = mixinGenerics.Values[i].CompileConstantValue(table, context).Id;
+                            generics[i] = ConstantExpression.ParseFromBuffer(constantId, context.GetBuffer(), context);
                         }
                         else
                         {
-                            generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, identifier.Name)).ResultId;
+                            generics[i] = new StringConstExpr(identifier.Name);
                         }
                     }
                     else if (mixinGenerics.Values[i] is AccessorChainExpression accessChain)
                     {
-                        generics[i] = context.Add(new OpConstantStringSDSL(context.Bound++, accessChain.ToString())).ResultId;
+                        generics[i] = new StringConstExpr(accessChain.ToString());
                     }
                     else
                     {
                         mixinGenerics.Values[i].ProcessSymbol(table);
-                        generics[i] = mixinGenerics.Values[i].CompileConstantValue(table, context).Id;
+                        var constantId = mixinGenerics.Values[i].CompileConstantValue(table, context).Id;
+                        generics[i] = ConstantExpression.ParseFromBuffer(constantId, context.GetBuffer(), context);
                     }
                 }
             }

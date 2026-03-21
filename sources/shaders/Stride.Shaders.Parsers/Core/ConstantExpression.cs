@@ -43,6 +43,17 @@ public abstract record ConstantExpression
     }
 
     /// <summary>
+    /// Emit the expression into a temporary standalone SpirvBuffer.
+    /// Used when the expression needs to be imported into another context via InsertWithoutDuplicates.
+    /// </summary>
+    public SpirvBuffer EmitToBuffer()
+    {
+        var tempContext = new SpirvContext();
+        var resultId = Emit(tempContext);
+        return SpirvContext.ExtractConstantFromBuffer(resultId, tempContext.GetBuffer());
+    }
+
+    /// <summary>
     /// Create a ConstantExpression from a concrete runtime value.
     /// </summary>
     public static ConstantExpression FromValue(object value) => value switch
