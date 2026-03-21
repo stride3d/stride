@@ -40,13 +40,9 @@ public partial class SpirvContext
             var iData = new OpData(source[index].Data.Memory.Span);
             SpirvBuilder.RemapIds(remapIds, ref iData);
 
-            //// If it's a generic reference, remap to OpSDSLGenericParameter which has to match during typeDuplicateInserter.CheckForDuplicates()
-            var isGenericReference = iData.Op == Specification.Op.OpSDSLGenericReference;
-            // Also detect raw OpSDSLGenericParameter from parent contexts — these must be
-            // converted to references so they don't get mis-counted as the current shader's own generics.
-            var isRawGenericParameter = !isGenericReference && iData.Op == Specification.Op.OpSDSLGenericParameter;
-            if (isGenericReference)
-                iData.Memory.Span[0] = (int)(iData.Memory.Span[0] & 0xFFFF0000) | (int)Specification.Op.OpSDSLGenericParameter;
+            // For dedup: normalize GenericReference → GenericParameter so it matches existing entries.
+            // Also detect raw GenericParameter leaked from parent contexts.
+            var isGenericLike = NormalizeGenericForDedup(ref iData, out var isGenericReference);
 
             // For OpTypeImage: find the UserTypeGOOGLE decoration in the source buffer so CheckForDuplicates
             // can distinguish e.g. Texture2D<float2> vs Texture2D<float4> (same binary, different return type).
@@ -70,7 +66,7 @@ public partial class SpirvContext
             }
 
             // Note: we try to avoid duplicating the last (constant) instruction if there is a desired ID (so that it keeps its name/identity)
-            if ((TypeDuplicateHelper.OpCheckDuplicateForTypesAndImport(iData.Op) || TypeDuplicateHelper.OpCheckDuplicateForConstant(iData.Op) || isGenericReference || isRawGenericParameter)
+            if ((TypeDuplicateHelper.OpCheckDuplicateForTypesAndImport(iData.Op) || TypeDuplicateHelper.OpCheckDuplicateForConstant(iData.Op) || isGenericLike)
                 && typeDuplicateInserter.CheckForDuplicates(iData, sourceUserTypeGOOGLE, out var existingData)
                 && (index != lastResultIndex || desiredResultId == null))
             {
@@ -87,8 +83,10 @@ public partial class SpirvContext
             }
             else
             {
-                if (isGenericReference || isRawGenericParameter)
-                    iData.Memory.Span[0] = (int)(iData.Memory.Span[0] & 0xFFFF0000) | (int)Specification.Op.OpSDSLGenericReference;
+                // After dedup failed, restore generic instructions to GenericReference
+                // so they're properly marked as parent-context references.
+                if (isGenericLike)
+                    RestoreGenericReference(ref iData);
 
                 if (iData.IdResult.HasValue)
                 {
@@ -147,6 +145,29 @@ public partial class SpirvContext
         }
 
         return lastResultId;
+    }
+
+    /// <summary>
+    /// For dedup: temporarily convert GenericReference (and leaked raw GenericParameter from
+    /// parent contexts) to GenericParameter so they match existing entries during CheckForDuplicates.
+    /// </summary>
+    /// <returns>True if the instruction is a generic-like instruction that participates in dedup.</returns>
+    private static bool NormalizeGenericForDedup(ref OpData iData, out bool isGenericReference)
+    {
+        isGenericReference = iData.Op == Specification.Op.OpSDSLGenericReference;
+        var isRawGenericParameter = !isGenericReference && iData.Op == Specification.Op.OpSDSLGenericParameter;
+        if (isGenericReference)
+            iData.Memory.Span[0] = (int)(iData.Memory.Span[0] & 0xFFFF0000) | (int)Specification.Op.OpSDSLGenericParameter;
+        return isGenericReference || isRawGenericParameter;
+    }
+
+    /// <summary>
+    /// After a non-deduplicated generic instruction is inserted, restore its opcode
+    /// to GenericReference so it's properly marked as a parent-context reference.
+    /// </summary>
+    private static void RestoreGenericReference(ref OpData iData)
+    {
+        iData.Memory.Span[0] = (int)(iData.Memory.Span[0] & 0xFFFF0000) | (int)Specification.Op.OpSDSLGenericReference;
     }
 
     /// <summary>
