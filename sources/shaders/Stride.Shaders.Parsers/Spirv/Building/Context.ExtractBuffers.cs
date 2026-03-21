@@ -42,9 +42,8 @@ public partial class SpirvContext
 
             //// If it's a generic reference, remap to OpSDSLGenericParameter which has to match during typeDuplicateInserter.CheckForDuplicates()
             var isGenericReference = iData.Op == Specification.Op.OpSDSLGenericReference;
-            // Also detect raw OpSDSLGenericParameter from parent contexts — these leaked through
-            // ExtractConstantAsSpirvBuffer and must be converted to references so they don't get
-            // mis-counted as the current shader's own generics.
+            // Also detect raw OpSDSLGenericParameter from parent contexts — these must be
+            // converted to references so they don't get mis-counted as the current shader's own generics.
             var isRawGenericParameter = !isGenericReference && iData.Op == Specification.Op.OpSDSLGenericParameter;
             if (isGenericReference)
                 iData.Memory.Span[0] = (int)(iData.Memory.Span[0] & 0xFFFF0000) | (int)Specification.Op.OpSDSLGenericParameter;
@@ -148,15 +147,6 @@ public partial class SpirvContext
         }
 
         return lastResultId;
-    }
-
-    public SpirvBuffer ExtractConstantAsSpirvBuffer(int constantId)
-    {
-        // First, run a simplification pass
-        // TODO: separate simplification from computing value?
-        TryGetConstantValue(constantId, out _, out _, true);
-
-        return ExtractConstantFromBuffer(constantId, Buffer);
     }
 
     /// <summary>

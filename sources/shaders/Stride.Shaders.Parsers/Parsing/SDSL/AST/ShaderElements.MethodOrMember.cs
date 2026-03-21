@@ -444,9 +444,13 @@ public partial class ShaderMethod(
         {
             context.Add(new OpDecorate(function.Id, Specification.Decoration.FunctionParameterDefaultValueSDSL, [.. defaultParameters[firstDefaultParameter..]]));
 
+            var defaultExprs = new ConstantExpression[defaultParameters.Length - firstDefaultParameter];
+            for (int i = 0; i < defaultExprs.Length; i++)
+                defaultExprs[i] = ConstantExpression.ParseFromBuffer(defaultParameters[firstDefaultParameter + i], context.GetBuffer(), context);
+
             symbol = symbol with
             {
-                MethodDefaultParameters = new(context, defaultParameters.Slice(firstDefaultParameter).ToArray()),
+                MethodDefaultParameters = new(defaultExprs),
             };
         }
 

@@ -142,6 +142,19 @@ public abstract record ConstantExpression
                 return new GenericParamExpr(genParam.Index, genParam.DeclaringClass);
             }
 
+            case Op.OpConstantComposite:
+            case Op.OpSpecConstantComposite:
+            {
+                var typeId = inst.Data.Memory.Span[1];
+                if (!context.ReverseTypes.TryGetValue(typeId, out var compositeType))
+                    throw new InvalidOperationException($"Cannot find type for composite constant type id {typeId}");
+                var constituents = inst.Data.Memory.Span[3..];
+                var components = new ConstantExpression[constituents.Length];
+                for (int i = 0; i < constituents.Length; i++)
+                    components[i] = ParseFromBuffer(constituents[i], buffer, context);
+                return new CompositeConstExpr(compositeType, components);
+            }
+
             case Op.OpSpecConstantOp:
             {
                 var op = (Op)inst.Data.Memory.Span[3];
@@ -504,5 +517,55 @@ public sealed record SelectExpr(ConstantExpression Cond, ConstantExpression True
     }
 
     public override string ToString() => $"({Cond} ? {TrueVal} : {FalseVal})";
+}
+
+/// <summary>
+/// Composite constant (vector, array, struct). Stores constituent expressions and the composite type.
+/// </summary>
+public sealed record CompositeConstExpr(SymbolType Type, ConstantExpression[] Components) : ConstantExpression
+{
+    public override int Emit(SpirvContext context)
+    {
+        Span<int> componentIds = stackalloc int[Components.Length];
+        for (int i = 0; i < Components.Length; i++)
+            componentIds[i] = Components[i].Emit(context);
+        var typeId = context.GetOrRegister(Type);
+        var resultId = context.Bound++;
+        context.AddData(new OpConstantComposite(typeId, resultId, new(componentIds)));
+        return resultId;
+    }
+
+    public override bool TryEvaluate(out object? value)
+    {
+        value = null;
+        return false;
+    }
+
+    public override ConstantExpression Substitute(string declaringClass, ConstantExpression[] args)
+    {
+        var newComponents = new ConstantExpression[Components.Length];
+        bool changed = false;
+        for (int i = 0; i < Components.Length; i++)
+        {
+            newComponents[i] = Components[i].Substitute(declaringClass, args);
+            if (!ReferenceEquals(newComponents[i], Components[i]))
+                changed = true;
+        }
+        return changed ? new CompositeConstExpr(Type, newComponents) : this;
+    }
+
+    public bool Equals(CompositeConstExpr? other) =>
+        other is not null && Type == other.Type && Components.AsSpan().SequenceEqual(other.Components);
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Type);
+        foreach (var c in Components)
+            hash.Add(c);
+        return hash.ToHashCode();
+    }
+
+    public override string ToString() => $"composite({Type}, [{string.Join(", ", (object[])Components)}])";
 }
 

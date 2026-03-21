@@ -339,13 +339,8 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
                 {
                     var paramDefinition = functionType.ParameterTypes[arguments.Values.Count + i];
 
-                    var source = methodDefaultParametersValue.DefaultValues[^(missingParameters - i)];
-                    // Import in current buffer
-                    if (methodDefaultParametersValue.SourceContext != context)
-                    {
-                        var bufferForConstant = methodDefaultParametersValue.SourceContext.ExtractConstantAsSpirvBuffer(source);
-                        source = context.InsertWithoutDuplicates(null, bufferForConstant);
-                    }
+                    var expr = methodDefaultParametersValue.DefaultValues[^(missingParameters - i)];
+                    var source = expr.Emit(context);
 
                     var paramVariable = context.Bound++;
                     builder.AddFunctionVariable(context.GetOrRegister(paramDefinition.Type), paramVariable);

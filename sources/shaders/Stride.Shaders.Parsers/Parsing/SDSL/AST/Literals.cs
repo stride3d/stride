@@ -385,15 +385,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
 
         if (symbol.ExternalConstant is { } externalConstant)
         {
-            if (externalConstant.SourceContext != context)
-            {
-                var bufferForConstant = externalConstant.SourceContext.ExtractConstantAsSpirvBuffer(externalConstant.ConstantId);
-                result.Id = context.InsertWithoutDuplicates(null, bufferForConstant);
-            }
-            else
-            {
-                result.Id = externalConstant.ConstantId;
-            }
+            result.Id = externalConstant.Expression.Emit(context);
         }
         else if (symbol.MemberAccessWithImplicitThis is { } thisType)
         {

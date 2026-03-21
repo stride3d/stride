@@ -457,8 +457,11 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 if (span.Length >= 3 && span[2] == (int)Decoration.FunctionParameterDefaultValueSDSL)
                 {
                     var target = span[1];
-                    var defaultIds = span[3..].ToArray();
-                    methodsDefaultParameters.Add(target, new(shaderBuffers.Context, defaultIds));
+                    var defaultIds = span[3..];
+                    var defaultExprs = new ConstantExpression[defaultIds.Length];
+                    for (int j = 0; j < defaultIds.Length; j++)
+                        defaultExprs[j] = ConstantExpression.ParseFromBuffer(defaultIds[j], shaderBuffers.Context.GetBuffer(), shaderBuffers.Context);
+                    methodsDefaultParameters.Add(target, new(defaultExprs));
                 }
             }
             if (i.Op == Op.OpDecorateString && (OpDecorateString)i is
@@ -471,7 +474,8 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 if (!shaderBuffers.Context.GetBuffer().TryGetInstructionById(target2, out var typeInstruction))
                     throw new InvalidOperationException();
                 var resultType = typeInstruction.Data.IdResultType.Value;
-                var symbol = new Symbol(new(constName, SymbolKind.Constant), shaderBuffers.Context.ReverseTypes[resultType], 0, ExternalConstant: new(shaderBuffers.Context, target2), OwnerType: shaderType);
+                var constExpr = ConstantExpression.ParseFromBuffer(target2, shaderBuffers.Context.GetBuffer(), shaderBuffers.Context);
+                var symbol = new Symbol(new(constName, SymbolKind.Constant), shaderBuffers.Context.ReverseTypes[resultType], 0, ExternalConstant: new(constExpr), OwnerType: shaderType);
                 variables.Add((symbol, VariableFlagsMask.None));
             }
         }

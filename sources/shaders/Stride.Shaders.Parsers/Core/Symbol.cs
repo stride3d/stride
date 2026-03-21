@@ -1,6 +1,4 @@
 using System.Collections.Immutable;
-using Stride.Shaders.Spirv;
-using Stride.Shaders.Spirv.Building;
 
 namespace Stride.Shaders.Core;
 
@@ -44,9 +42,9 @@ public enum StreamIO : byte
 public record struct SymbolID(string Name, SymbolKind Kind, Storage Storage = 0, bool IsStage = false);
 public record struct StreamInfo(ushort EntryPoint, StreamIO Stream);
 
-public record struct MethodSymbolDefaultParameters(SpirvContext SourceContext, int[] DefaultValues);
+public record struct MethodSymbolDefaultParameters(ConstantExpression[] DefaultValues);
 
-public record struct ExternalConstant(SpirvContext SourceContext, int ConstantId);
+public record struct ExternalConstant(ConstantExpression Expression);
 
 /// <summary>
 /// Defines a symbol.
