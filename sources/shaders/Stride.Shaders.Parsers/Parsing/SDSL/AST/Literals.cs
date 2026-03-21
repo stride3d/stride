@@ -779,12 +779,12 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
                     arrayComputedSize = (int)i.Value;
 
                 var constantArraySize = arraySize.CompileConstantValue(table, context);
-                if (context.TryGetConstantValue(constantArraySize.Id, out var value, out _, true))
-                    arrayComputedSize = (int)value;
+                var sizeExpr = ConstantExpression.ParseFromBuffer(constantArraySize.Id, context.GetBuffer(), context);
+                if (sizeExpr.TryEvaluate(out var value) && value is IConvertible)
+                    arrayComputedSize = Convert.ToInt32(value);
                 arraySymbolType = arrayComputedSize != -1
                     ? new ArrayType(arraySymbolType, arrayComputedSize)
-                    : new ArrayType(arraySymbolType, arrayComputedSize,
-                        ConstantExpression.ParseFromBuffer(constantArraySize.Id, context.GetBuffer(), context));
+                    : new ArrayType(arraySymbolType, arrayComputedSize, sizeExpr);
             }
         }
 

@@ -474,11 +474,21 @@ public partial class SpirvBuilder
 
             if (i.Op == Op.OpTypeArray && (OpTypeArray)i is { } typeArray)
             {
-                // Make sure constant is a proper OpConstant (i.e. not an OpSpecConstant)
+                // Make sure constant is a proper OpConstant (i.e. not an OpSpecConstant/OpSpecConstantOp)
                 if (!shaderBuffers.Context.GetBuffer().TryGetInstructionById(typeArray.Length, out var lengthInstruction))
                     throw new InvalidOperationException();
-                if (lengthInstruction.Op != Op.OpConstant && shaderBuffers.Context.TryGetConstantValue(typeArray.Length, out var value, out _, true))
+                if (lengthInstruction.Op != Op.OpConstant)
                 {
+                    var expr = ConstantExpression.ParseFromBuffer(typeArray.Length, shaderBuffers.Context.GetBuffer(), shaderBuffers.Context);
+                    if (expr.TryEvaluate(out var value) && value != null)
+                    {
+                        var resultType = lengthInstruction.Data.IdResultType!.Value;
+                        var resultId = lengthInstruction.Data.IdResult!.Value;
+                        if (value is int or long)
+                            shaderBuffers.Context.Replace(lengthInstruction.Index, new OpConstant<int>(resultType, resultId, System.Convert.ToInt32(value)));
+                        else if (value is float or double)
+                            shaderBuffers.Context.Replace(lengthInstruction.Index, new OpConstant<float>(resultType, resultId, System.Convert.ToSingle(value)));
+                    }
                 }
             }
         }
