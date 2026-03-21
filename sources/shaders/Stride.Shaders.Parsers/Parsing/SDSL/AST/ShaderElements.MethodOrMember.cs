@@ -490,33 +490,30 @@ public partial class ShaderMethod(
                         Span<int> parameters = stackalloc int[anyAttribute.Parameters.Count];
                         for (var index = 0; index < anyAttribute.Parameters.Count; index++)
                         {
-                            var parameter = anyAttribute.Parameters[index];
-
-                            // TODO: avoid emitting in context (use a temp buffer?)
-                            var constantArraySize = parameter.CompileConstantValue(table, context);
-                            if (!context.TryGetConstantValue(constantArraySize.Id, out var value, out _))
+                            var compiled = anyAttribute.Parameters[index].CompileConstantValue(table, context);
+                            var expr = ConstantExpression.ParseFromBuffer(compiled.Id, context.GetBuffer(), context);
+                            if (!expr.TryEvaluate(out var value) || value is null)
                                 throw new InvalidOperationException();
-
-                            parameters[index] = (int)value;
+                            parameters[index] = Convert.ToInt32(value);
                         }
 
                         context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.LocalSize, new(parameters)));
                     }
                     else if (anyAttribute.Name == "maxvertexcount")
                     {
-                        var maxVertexCount = anyAttribute.Parameters[0].CompileConstantValue(table, context);
-                        if (!context.TryGetConstantValue(maxVertexCount.Id, out var maxVertexCountValue, out _))
+                        var compiled = anyAttribute.Parameters[0].CompileConstantValue(table, context);
+                        var expr = ConstantExpression.ParseFromBuffer(compiled.Id, context.GetBuffer(), context);
+                        if (!expr.TryEvaluate(out var value) || value is null)
                             throw new InvalidOperationException();
-
-                        context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new((int)maxVertexCountValue)));
+                        context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new(Convert.ToInt32(value))));
                     }
                     else if (anyAttribute.Name == "outputcontrolpoints")
                     {
-                        var outputControlPoints = anyAttribute.Parameters[0].CompileConstantValue(table, context);
-                        if (!context.TryGetConstantValue(outputControlPoints.Id, out var outputControlPointsValue, out _))
+                        var compiled = anyAttribute.Parameters[0].CompileConstantValue(table, context);
+                        var expr = ConstantExpression.ParseFromBuffer(compiled.Id, context.GetBuffer(), context);
+                        if (!expr.TryEvaluate(out var value) || value is null)
                             throw new InvalidOperationException();
-
-                        context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new((int)outputControlPointsValue)));
+                        context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new(Convert.ToInt32(value))));
                     }
                     else if (anyAttribute.Name == "patchconstantfunc")
                     {

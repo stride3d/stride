@@ -239,17 +239,11 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             else if (instruction.Op == Op.OpTypeArray && (OpTypeArray)instruction is { } typeArray)
             {
                 var innerType = context.ReverseTypes[typeArray.ElementType];
-                if (context.TryGetConstantValue(typeArray.Length, out var arraySizeObject, out _))
-                {
-                    var arraySize = Convert.ToInt32(arraySizeObject);
-                    RegisterType(typeArray.ResultId, new ArrayType(innerType, arraySize));
-                }
+                var sizeExpr = ConstantExpression.ParseFromBuffer(typeArray.Length, context.GetBuffer(), context);
+                if (sizeExpr.TryEvaluate(out var arraySizeObj) && arraySizeObj is IConvertible)
+                    RegisterType(typeArray.ResultId, new ArrayType(innerType, Convert.ToInt32(arraySizeObj)));
                 else
-                {
-                    // Constant can't be computed (e.g. generic-dependent); parse into expression tree
-                    var expr = ConstantExpression.ParseFromBuffer(typeArray.Length, context.GetBuffer(), context);
-                    RegisterType(typeArray.ResultId, new ArrayType(innerType, -1, expr));
-                }
+                    RegisterType(typeArray.ResultId, new ArrayType(innerType, -1, sizeExpr));
             }
             else if (instruction.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)instruction is { } typeRuntimeArray)
             {
