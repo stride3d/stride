@@ -157,8 +157,8 @@ public class TypeDuplicateHelper
         if (id1 == id2)
             return 0;
 
-        var value1Success = context.TryGetConstantValue(id1, out var value1, out _, false);
-        var value2Success = context.TryGetConstantValue(id2, out var value2, out _, false);
+        var value1Success = context.TryGetConstantValue(id1, out var value1, out _);
+        var value2Success = context.TryGetConstantValue(id2, out var value2, out _);
 
         return (value1Success, value2Success) switch
         {

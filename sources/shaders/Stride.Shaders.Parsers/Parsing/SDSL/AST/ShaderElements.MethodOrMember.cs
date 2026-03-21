@@ -494,7 +494,7 @@ public partial class ShaderMethod(
 
                             // TODO: avoid emitting in context (use a temp buffer?)
                             var constantArraySize = parameter.CompileConstantValue(table, context);
-                            if (!context.TryGetConstantValue(constantArraySize.Id, out var value, out _, false))
+                            if (!context.TryGetConstantValue(constantArraySize.Id, out var value, out _))
                                 throw new InvalidOperationException();
 
                             parameters[index] = (int)value;
@@ -505,7 +505,7 @@ public partial class ShaderMethod(
                     else if (anyAttribute.Name == "maxvertexcount")
                     {
                         var maxVertexCount = anyAttribute.Parameters[0].CompileConstantValue(table, context);
-                        if (!context.TryGetConstantValue(maxVertexCount.Id, out var maxVertexCountValue, out _, false))
+                        if (!context.TryGetConstantValue(maxVertexCount.Id, out var maxVertexCountValue, out _))
                             throw new InvalidOperationException();
 
                         context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new((int)maxVertexCountValue)));
@@ -513,7 +513,7 @@ public partial class ShaderMethod(
                     else if (anyAttribute.Name == "outputcontrolpoints")
                     {
                         var outputControlPoints = anyAttribute.Parameters[0].CompileConstantValue(table, context);
-                        if (!context.TryGetConstantValue(outputControlPoints.Id, out var outputControlPointsValue, out _, false))
+                        if (!context.TryGetConstantValue(outputControlPoints.Id, out var outputControlPointsValue, out _))
                             throw new InvalidOperationException();
 
                         context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new((int)outputControlPointsValue)));

@@ -41,11 +41,11 @@ public partial class SpirvContext
         throw new Exception("Cannot find constant instruction for id " + constantId);
     }
 
-    public bool TryGetConstantValue(int constantId, [MaybeNullWhen(false)] out object value, out int typeId, bool simplifyInBuffer = false)
+    public bool TryGetConstantValue(int constantId, [MaybeNullWhen(false)] out object value, out int typeId)
     {
         if (Buffer.TryGetInstructionById(constantId, out var constant))
         {
-            return TryGetConstantValue(constant, out value, out typeId, simplifyInBuffer);
+            return TryGetConstantValue(constant, out value, out typeId);
         }
 
         typeId = 0;
@@ -55,14 +55,14 @@ public partial class SpirvContext
 
     public object ResolveConstantValue(OpDataIndex i)
     {
-        if (!TryGetConstantValue(i, out var value, out _, false))
+        if (!TryGetConstantValue(i, out var value, out _))
             throw new InvalidOperationException($"Can't process constant {i.Data.IdResult}");
 
         return value;
     }
 
     // Note: this will return false if constant can't be resolved yet (i.e. due to unresolved generics). If it is not meant to become a constant (even later), behavior is undefined.
-    public bool TryGetConstantValue(OpDataIndex i, [MaybeNullWhen(false)] out object value, out int typeId, bool simplifyInBuffer = false)
+    public bool TryGetConstantValue(OpDataIndex i, [MaybeNullWhen(false)] out object value, out int typeId)
     {
         typeId = 0;
         value = null;
@@ -144,17 +144,6 @@ public partial class SpirvContext
                     };
                     break;
                 default:
-                    throw new NotImplementedException();
-            }
-
-            if (simplifyInBuffer)
-            {
-                ThrowIfFrozen();
-                if (value is int valueI)
-                    Buffer.Replace(i.Index, new OpConstant<int>(resultType, resultId, valueI));
-                else if (value is float valueF)
-                    Buffer.Replace(i.Index, new OpConstant<float>(resultType, resultId, valueF));
-                else
                     throw new NotImplementedException();
             }
 

@@ -239,7 +239,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             else if (instruction.Op == Op.OpTypeArray && (OpTypeArray)instruction is { } typeArray)
             {
                 var innerType = context.ReverseTypes[typeArray.ElementType];
-                if (context.TryGetConstantValue(typeArray.Length, out var arraySizeObject, out _, false))
+                if (context.TryGetConstantValue(typeArray.Length, out var arraySizeObject, out _))
                 {
                     var arraySize = Convert.ToInt32(arraySizeObject);
                     RegisterType(typeArray.ResultId, new ArrayType(innerType, arraySize));
