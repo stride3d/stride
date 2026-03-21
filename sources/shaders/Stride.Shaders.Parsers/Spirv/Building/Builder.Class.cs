@@ -447,6 +447,22 @@ public partial class SpirvBuilder
                 if (importMap.TryGetValue(genRef.DeclaringClass, out var args) && genRef.Index < args.Length)
                 {
                     var resolvedArgId = args[genRef.Index];
+
+                    // Follow transitive references: the resolved arg may itself be a GenericReference
+                    // (e.g., ShadowMapReceiverBase refs → ShadowMapReceiverDirectional refs → concrete).
+                    // Resolve the chain before extracting.
+                    var visited = new HashSet<int>();
+                    while (shaderBuffers.Context.GetBuffer().TryGetInstructionById(resolvedArgId, out var resolvedInst)
+                           && (resolvedInst.Op == Op.OpSDSLGenericReference || resolvedInst.Op == Op.OpSDSLGenericParameter)
+                           && visited.Add(resolvedArgId))
+                    {
+                        var innerRef = (OpSDSLGenericParameter)resolvedInst;
+                        if (importMap.TryGetValue(innerRef.DeclaringClass, out var innerArgs) && innerRef.Index < innerArgs.Length)
+                            resolvedArgId = innerArgs[innerRef.Index];
+                        else
+                            break; // Can't resolve further
+                    }
+
                     // Extract the resolved constant and its dependencies from the context buffer
                     var constantBuffer = SpirvContext.ExtractConstantFromBuffer(resolvedArgId, shaderBuffers.Context.GetBuffer());
                     // Remove the GenericReference and insert the resolved constant with the same ResultId
