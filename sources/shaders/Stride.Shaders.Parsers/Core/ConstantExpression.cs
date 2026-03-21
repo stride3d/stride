@@ -355,6 +355,10 @@ public sealed record UnaryOpExpr(Op Op, ConstantExpression Operand) : ConstantEx
 {
     public override int Emit(SpirvContext context)
     {
+        // Try constant folding first — avoids OpSpecConstantOp which some backends don't support.
+        if (TryEvaluate(out var folded) && folded is not null)
+            return FromValue(folded).Emit(context);
+
         var operandId = Operand.Emit(context);
         var operandTypeId = GetEmittedTypeId(context, operandId);
         var resultTypeId = ResolveResultType(context, operandTypeId);
@@ -418,6 +422,10 @@ public sealed record BinaryOpExpr(Op Op, ConstantExpression Left, ConstantExpres
 {
     public override int Emit(SpirvContext context)
     {
+        // Try constant folding first — avoids OpSpecConstantOp which some backends don't support.
+        if (TryEvaluate(out var folded) && folded is not null)
+            return FromValue(folded).Emit(context);
+
         var leftId = Left.Emit(context);
         var rightId = Right.Emit(context);
         var resultTypeId = GetEmittedTypeId(context, leftId);
@@ -486,6 +494,10 @@ public sealed record SelectExpr(ConstantExpression Cond, ConstantExpression True
 {
     public override int Emit(SpirvContext context)
     {
+        // Try constant folding first — avoids OpSpecConstantOp which some backends don't support.
+        if (TryEvaluate(out var folded) && folded is not null)
+            return FromValue(folded).Emit(context);
+
         var condId = Cond.Emit(context);
         var trueId = TrueVal.Emit(context);
         var falseId = FalseVal.Emit(context);

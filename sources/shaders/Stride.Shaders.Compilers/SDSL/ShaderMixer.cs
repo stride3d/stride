@@ -963,18 +963,63 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
+    /// <summary>
+    /// SPIR-V spec constants can express operations like OpFMul, OpConvertSToF, etc. via
+    /// OpSpecConstantOp.  However, not all backends (e.g. SPIRV-Cross → HLSL/GLSL) support
+    /// every operation inside OpSpecConstantOp.  This method finds OpSpecConstantOp instructions
+    /// whose inner operation is NOT in the backend-supported set, resolves them to a concrete
+    /// value at compile time, and replaces them with plain OpConstant instructions so that
+    /// the cross-compiler can consume them.
+    /// </summary>
     private void SimplifyNotSupportedConstantsInShader(SpirvContext context, SpirvBuffer temp)
     {
+        // Collect instructions to simplify first to avoid modifying the buffer during iteration
+        var toSimplify = new List<(int Index, object Value, int TypeId, int ResultId)>();
         foreach (var i in context)
         {
             if (i.Op == Op.OpSpecConstantOp && (OpSpecConstantOp)i is { } specConstantOp)
             {
                 if (!ExpressionExtensions.ShaderSpecConstantOpSupportedOps.Contains((Op)specConstantOp.Opcode))
                 {
-                    // Simplify the constant
-                    context.TryGetConstantValue(i, out _, out _, true);
+                    var resultType = i.Data.Memory.Span[1];
+                    if (context.TryGetConstantValue(i, out var value, out _) && value != null)
+                        toSimplify.Add((i.Index, value, resultType, i.Data.IdResult!.Value));
                 }
             }
+        }
+
+        // Replace each OpSpecConstantOp with a resolved OpConstant
+        var buffer = context.GetBuffer();
+        foreach (var (index, value, typeId, resultId) in toSimplify)
+        {
+            // Build replacement OpConstant instruction manually
+            var wordCount = value is long or ulong or double ? 5 : 4;
+            var mem = CommunityToolkit.HighPerformance.Buffers.MemoryOwner<int>.Allocate(wordCount);
+            mem.Span[0] = (wordCount << 16) | (int)Op.OpConstant;
+            mem.Span[1] = typeId;
+            mem.Span[2] = resultId;
+            switch (value)
+            {
+                case int v: mem.Span[3] = v; break;
+                case uint v: mem.Span[3] = unchecked((int)v); break;
+                case float v: mem.Span[3] = BitConverter.SingleToInt32Bits(v); break;
+                case long v:
+                    mem.Span[3] = (int)(v & 0xFFFFFFFF);
+                    mem.Span[4] = (int)(v >> 32);
+                    break;
+                case ulong v:
+                    mem.Span[3] = (int)(v & 0xFFFFFFFF);
+                    mem.Span[4] = (int)(v >> 32);
+                    break;
+                case double v:
+                    var bits = BitConverter.DoubleToInt64Bits(v);
+                    mem.Span[3] = (int)(bits & 0xFFFFFFFF);
+                    mem.Span[4] = (int)(bits >> 32);
+                    break;
+                default:
+                    throw new NotSupportedException($"Cannot simplify constant of type {value.GetType()}");
+            }
+            buffer.Replace(index, new OpData(mem));
         }
     }
 
