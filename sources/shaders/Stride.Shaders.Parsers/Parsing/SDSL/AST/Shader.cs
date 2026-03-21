@@ -246,9 +246,9 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 }
                 else
                 {
-                    // Constant can't be computed; we need to save aside all opcodes
-                    var bufferForConstant = context.ExtractConstantAsSpirvBuffer(typeArray.Length);
-                    RegisterType(typeArray.ResultId, new ArrayType(innerType, -1, (typeArray.Length, bufferForConstant)));
+                    // Constant can't be computed (e.g. generic-dependent); parse into expression tree
+                    var expr = ConstantExpression.ParseFromBuffer(typeArray.Length, context.GetBuffer(), context);
+                    RegisterType(typeArray.ResultId, new ArrayType(innerType, -1, expr));
                 }
             }
             else if (instruction.Op == Op.OpTypeRuntimeArray && (OpTypeRuntimeArray)instruction is { } typeRuntimeArray)

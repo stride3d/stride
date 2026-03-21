@@ -791,7 +791,8 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
                     arrayComputedSize = (int)value;
                 arraySymbolType = arrayComputedSize != -1
                     ? new ArrayType(arraySymbolType, arrayComputedSize)
-                    : new ArrayType(arraySymbolType, arrayComputedSize, (constantArraySize.Id, context.GetBuffer()));
+                    : new ArrayType(arraySymbolType, arrayComputedSize,
+                        ConstantExpression.ParseFromBuffer(constantArraySize.Id, context.GetBuffer(), context));
             }
         }
 

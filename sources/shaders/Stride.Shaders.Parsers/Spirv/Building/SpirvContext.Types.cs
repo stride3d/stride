@@ -249,35 +249,11 @@ public partial class SpirvContext
     {
         int sizeId;
         if (a.Size != -1)
-        {
             sizeId = CompileConstant((int)a.Size).Id;
-        }
-        else if (a.SizeExpression is { } sizeExpression)
-        {
-            // Import constants from the foreign buffer into this context
-            var importBuffer = sizeExpression.Buffer;
-            if (importBuffer != Buffer)
-            {
-                // Extract just the constant and its dependencies to avoid importing
-                // unrelated types (e.g. OpTypeStruct, OpTypePointer) from the full buffer.
-                var constantBuffer = ExtractConstantFromBuffer(sizeExpression.Id, importBuffer);
-                var resultId = InsertWithoutDuplicates(null, constantBuffer);
-                // Do NOT mutate a.SizeExpression — the ArrayType may be shared across
-                // cached ShaderDefinitions. Use a local copy for the deduplication check.
-                var localArray = a with { SizeExpression = (resultId, Buffer) };
-                if (Types.TryGetValue(localArray, out var res))
-                    return res;
-                sizeId = resultId;
-            }
-            else
-            {
-                sizeId = sizeExpression.Id;
-            }
-        }
+        else if (a.SizeExpression is { } expr)
+            sizeId = expr.Emit(this);
         else
-        {
             throw new InvalidOperationException();
-        }
 
         return Buffer.Add(new OpTypeArray(Bound++, GetOrRegister(a.BaseType), sizeId)).ResultId;
     }
