@@ -553,6 +553,7 @@ Hierarchy:
                         SpriteProvider: !SpriteFromSheet
                             Sheet: c805102c-bb90-4d52-9429-dc7e873a001c:Sprites/knight_sheet
                         Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        IsAlphaCutoff: true
                         Sampler: PointClamp
                     1aae5b7c99a80425dad5a895b79aca36: !CharacterComponent
                         Id: 6c53052b-df5e-4b94-9a69-5d71f11000e2
@@ -575,7 +576,6 @@ Hierarchy:
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     c6a4e0b10f6435cda498bfaa02311444: !Platformer2D.Player.PlayerController,Platformer2D
                         Id: 61d3db51-dd47-4c05-971d-15dc8b6cb6dc
-                        spriteSheet: null
                         CharacterComponent: ref!! 6c53052b-df5e-4b94-9a69-5d71f11000e2
                         Sprite: ref!! 9eb91181-85f7-4026-9827-4f687df669d9
         -   Entity:
