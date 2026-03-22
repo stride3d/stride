@@ -25,7 +25,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- Enable assembly processor for test projects -->
-    <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
 
     <!-- Use cross-platform editor target framework by default -->
     <TargetFramework Condition="'$(TargetFramework)' == '' And '$(TargetFrameworks)' == ''">$(StrideXplatEditorTargetFramework)</TargetFramework>
@@ -37,14 +37,14 @@
   <PropertyGroup>
     <!-- Compute test output directory using StrideRoot (set by sources/Directory.Build.props) -->
     <_StrideTestOutputDir Condition="'$(StrideRoot)' != ''">$(StrideRoot)bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\</_StrideTestOutputDir>
-    <_StrideTestOutputDir Condition="'$(StrideGraphicsApiDependent)' == 'true'">$(_StrideTestOutputDir)$(StrideGraphicsApi)\</_StrideTestOutputDir>
+    <_StrideTestOutputDir Condition="'$(StrideGraphicsApi)' != ''">$(_StrideTestOutputDir)$(StrideGraphicsApi)\</_StrideTestOutputDir>
 
     <!-- Set output path (use custom path if not already set) -->
     <OutputPath Condition="'$(OutputPath)' == ''">$(_StrideTestOutputDir)</OutputPath>
 
     <!-- Set intermediate output path -->
-    <IntermediateOutputPath Condition="'$(StrideGraphicsApiDependent)' != 'true'">$(BaseIntermediateOutputPath)$(StridePlatform)\$(Configuration)\</IntermediateOutputPath>
-    <IntermediateOutputPath Condition="'$(StrideGraphicsApiDependent)' == 'true'">$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
+    <IntermediateOutputPath Condition="'$(StrideGraphicsApi)' == ''">$(BaseIntermediateOutputPath)$(StridePlatform)\$(Configuration)\</IntermediateOutputPath>
+    <IntermediateOutputPath Condition="'$(StrideGraphicsApi)' != ''">$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
 
   <!-- ================================================================ -->
