@@ -178,7 +178,7 @@ namespace Stride.Navigation.Processors
             data.Component.SceneOffset = data.Component.NavigationMesh != null ? data.Component.Entity.Scene.Offset : Vector3.Zero;
         }
 
-        private void GameSystemsOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs trackingCollectionChangedEventArgs)
+        private void GameSystemsOnCollectionChanged(object sender,  TrackingCollectionChangedEventArgs<IGameSystemBase> trackingCollectionChangedEventArgs)
         {
             TryRegisterDynamicNavigationMeshSystem();
         }
