@@ -145,36 +145,8 @@ namespace Stride.Shaders.Compiler
             var shaderMixer = new ShaderMixer(GetFileShaderLoader());
             shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(effectParameters.Platform is not GraphicsPlatform.Vulkan), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints);
 
-            if (log.HasErrors)
-                return new EffectBytecodeCompilerResult(null, log);
-
-            /*var parsingResult = GetMixinParser().Parse(shaderMixinSource, shaderMixinSource.Macros.ToArray());
-
-            // Copy log from parser results to output
-            CopyLogs(parsingResult, log);
-
-            // Return directly if there are any errors
-            if (parsingResult.HasErrors)
-            {
-                return new EffectBytecodeCompilerResult(null, log);
-            }
-
-            // Convert the AST to HLSL
-            var writer = new Stride.Core.Shaders.Writer.Hlsl.HlslWriter
-            {
-                EnablePreprocessorLine = false, // Allow to output links to original pdxsl via #line pragmas
-            };
-            writer.Visit(parsingResult.Shader);
-            var shaderSourceText = writer.Text;
-
-            if (string.IsNullOrEmpty(shaderSourceText))
-            {
-                log.Error($"No code generated for effect [{fullEffectName}]");
-                return new EffectBytecodeCompilerResult(null, log);
-            }*/
-
             // -------------------------------------------------------
-            // Prepare DynamicCache folder for debug files (written after compilation using output hash)
+            // Prepare DynamicCache folder for debug files
 #if STRIDE_PLATFORM_DESKTOP
             var effectDir = Path.Combine(
                 PlatformFolders.ApplicationCacheDirectory,
@@ -182,6 +154,16 @@ namespace Stride.Shaders.Compiler
             if (!Directory.Exists(effectDir))
                 Directory.CreateDirectory(effectDir);
 #endif
+
+            if (log.HasErrors)
+            {
+#if STRIDE_PLATFORM_DESKTOP
+                if (spirvBytecode is { Length: > 0 })
+                    lock (WriterLock)
+                        WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecode.ToArray());
+#endif
+                return new EffectBytecodeCompilerResult(null, log);
+            }
 
             // Select the correct backend compiler
             IShaderCompiler compiler;
@@ -213,132 +195,146 @@ namespace Stride.Shaders.Compiler
 #endif
 
             var bytecode = new EffectBytecode { Reflection = effectReflection, HashSources = usedHashSources };
-
-            if (translatorBackend != null)
-            {
-                var translator = new SpirvTranslator(spirvBytecode.ToArray().AsMemory().Cast<byte, uint>());
-                var translatorEntryPoints = translator.GetEntryPoints();
-                foreach (var entryPoint in translatorEntryPoints)
-                {
-                    var code = translator.Translate(Backend.Hlsl, entryPoint);
-
-                    // Compile
-                    // TODO: We could compile stages in different threads to improve compiler throughput?
-                    var shaderStage = entryPoint.ExecutionModel switch
-                    {
-                        ExecutionModel.Vertex => ShaderStage.Vertex,
-                        ExecutionModel.TessellationControl => ShaderStage.Hull,
-                        ExecutionModel.TessellationEvaluation => ShaderStage.Domain,
-                        ExecutionModel.Geometry => ShaderStage.Geometry,
-                        ExecutionModel.Fragment => ShaderStage.Pixel,
-                        ExecutionModel.GLCompute => ShaderStage.Compute,
-                    };
-
 #if STRIDE_PLATFORM_DESKTOP
-                    var stageSuffix = shaderStage switch
-                    {
-                        ShaderStage.Vertex => "vs",
-                        ShaderStage.Hull => "hs",
-                        ShaderStage.Domain => "ds",
-                        ShaderStage.Geometry => "gs",
-                        ShaderStage.Pixel => "ps",
-                        ShaderStage.Compute => "cs",
-                    };
-                    stageHlslSources.Add((stageSuffix, code));
-                    string stageFilename = null;
-#else
-                    string stageFilename = null;
+            var spirvBytecodeForDebug = spirvBytecode.ToArray();
 #endif
-                    var result = compiler.Compile(code, entryPoint.TranslatedName, shaderStage, effectParameters, bytecode.Reflection, stageFilename);
-                    result.CopyTo(log);
 
-                    if (result.HasErrors)
-                    {
-                        continue;
-                    }
-
-                    // -------------------------------------------------------
-                    // Append bytecode id to shader log
-#if STRIDE_PLATFORM_DESKTOP
-                    stageStringBuilder.AppendLine("@G    {0} => {1}".ToFormat(shaderStage, result.Bytecode.Id));
-                    if (result.DisassembleText != null)
-                    {
-                        stageStringBuilder.Append(result.DisassembleText);
-                    }
-#endif
-                    // -------------------------------------------------------
-
-                    shaderStageBytecodes.Add(result.Bytecode);
-
-                    // When this is a compute shader, there is no need to scan other stages
-                    if (shaderStage == ShaderStage.Compute)
-                        break;
-                }
-
-                // Remove unused reflection data, as it is entirely resolved at compile time.
-                CleanupReflection(bytecode.Reflection);
-            }
-            // TODO: Move that code inside ShaderCompiler (need a new interface for processing SPIR-V)
-            else if (effectParameters.Platform == GraphicsPlatform.Direct3D12)
+            try
             {
-                // Check API
-                Spv2DXIL.spirv_to_dxil_get_version();
-                foreach (var entryPoint in entryPoints)
+                if (translatorBackend != null)
                 {
-                    unsafe
+                    var translator = new SpirvTranslator(spirvBytecode.ToArray().AsMemory().Cast<byte, uint>());
+                    var translatorEntryPoints = translator.GetEntryPoints();
+                    foreach (var entryPoint in translatorEntryPoints)
                     {
-                        fixed (byte* shaderData = spirvBytecode)
+                        var code = translator.Translate(Backend.Hlsl, entryPoint);
+
+                        // Compile
+                        // TODO: We could compile stages in different threads to improve compiler throughput?
+                        var shaderStage = entryPoint.ExecutionModel switch
                         {
-                            var debugOptions = new DebugOptions();
-                            var runtimeConf = new RuntimeConf
-                            {
-                                runtime_data_cbv = { base_shader_register = 0, register_space = 31 },
-                                //first_vertex_and_base_instance_mode = SysvalType.Zero,
-                                yzflip_mode = FlipMode.YZFlipNone,
-                                shader_model_max = dxil_shader_model.SHADER_MODEL_6_0,
-                            };
-                            var logger = new DXILSpirvLogger();
-                            var result = Spv2DXIL.spirv_to_dxil((uint*)shaderData, spirvBytecode.Length / 4,
-                                null, 0,
-                                entryPoint.Stage switch
-                                {
-                                    ShaderStage.Vertex => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_VERTEX,
-                                    ShaderStage.Hull => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_TESS_CTRL,
-                                    ShaderStage.Domain => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_TESS_CTRL,
-                                    ShaderStage.Geometry => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_GEOMETRY,
-                                    ShaderStage.Pixel => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_FRAGMENT,
-                                    ShaderStage.Compute => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_COMPUTE,
-                                },
-                                entryPoint.Name,
-                                ValidatorVersion.DXIL_VALIDATOR_1_4,
-                                ref debugOptions, ref runtimeConf, ref logger, out var dxil);
+                            ExecutionModel.Vertex => ShaderStage.Vertex,
+                            ExecutionModel.TessellationControl => ShaderStage.Hull,
+                            ExecutionModel.TessellationEvaluation => ShaderStage.Domain,
+                            ExecutionModel.Geometry => ShaderStage.Geometry,
+                            ExecutionModel.Fragment => ShaderStage.Pixel,
+                            ExecutionModel.GLCompute => ShaderStage.Compute,
+                        };
 
-                            Span<byte> dxilSpan = new(dxil.buffer, (int)dxil.size);
-                            fixed (byte* dxilSpanPtr = dxilSpan)
-                                DxilHash.ComputeHashRetail(&dxilSpanPtr[20], (uint)(dxilSpan.Length - 20), &dxilSpanPtr[4]);
-                            shaderStageBytecodes.Add(new ShaderBytecode(entryPoint.Stage, ObjectId.FromBytes(dxilSpan), dxilSpan.ToArray()));
+#if STRIDE_PLATFORM_DESKTOP
+                        var stageSuffix = shaderStage switch
+                        {
+                            ShaderStage.Vertex => "vs",
+                            ShaderStage.Hull => "hs",
+                            ShaderStage.Domain => "ds",
+                            ShaderStage.Geometry => "gs",
+                            ShaderStage.Pixel => "ps",
+                            ShaderStage.Compute => "cs",
+                        };
+                        stageHlslSources.Add((stageSuffix, code));
+                        string stageFilename = null;
+#else
+                        string stageFilename = null;
+#endif
+                        var result = compiler.Compile(code, entryPoint.TranslatedName, shaderStage, effectParameters, bytecode.Reflection, stageFilename);
+                        result.CopyTo(log);
+
+                        if (result.HasErrors)
+                        {
+                            continue;
+                        }
+
+                        // -------------------------------------------------------
+                        // Append bytecode id to shader log
+#if STRIDE_PLATFORM_DESKTOP
+                        stageStringBuilder.AppendLine("@G    {0} => {1}".ToFormat(shaderStage, result.Bytecode.Id));
+                        if (result.DisassembleText != null)
+                        {
+                            stageStringBuilder.Append(result.DisassembleText);
+                        }
+#endif
+                        // -------------------------------------------------------
+
+                        shaderStageBytecodes.Add(result.Bytecode);
+
+                        // When this is a compute shader, there is no need to scan other stages
+                        if (shaderStage == ShaderStage.Compute)
+                            break;
+                    }
+
+                    // Remove unused reflection data, as it is entirely resolved at compile time.
+                    CleanupReflection(bytecode.Reflection);
+                }
+                // TODO: Move that code inside ShaderCompiler (need a new interface for processing SPIR-V)
+                else if (effectParameters.Platform == GraphicsPlatform.Direct3D12)
+                {
+                    // Check API
+                    Spv2DXIL.spirv_to_dxil_get_version();
+                    foreach (var entryPoint in entryPoints)
+                    {
+                        unsafe
+                        {
+                            fixed (byte* shaderData = spirvBytecode)
+                            {
+                                var debugOptions = new DebugOptions();
+                                var runtimeConf = new RuntimeConf
+                                {
+                                    runtime_data_cbv = { base_shader_register = 0, register_space = 31 },
+                                    //first_vertex_and_base_instance_mode = SysvalType.Zero,
+                                    yzflip_mode = FlipMode.YZFlipNone,
+                                    shader_model_max = dxil_shader_model.SHADER_MODEL_6_0,
+                                };
+                                var logger = new DXILSpirvLogger();
+                                var result = Spv2DXIL.spirv_to_dxil((uint*)shaderData, spirvBytecode.Length / 4,
+                                    null, 0,
+                                    entryPoint.Stage switch
+                                    {
+                                        ShaderStage.Vertex => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_VERTEX,
+                                        ShaderStage.Hull => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_TESS_CTRL,
+                                        ShaderStage.Domain => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_TESS_CTRL,
+                                        ShaderStage.Geometry => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_GEOMETRY,
+                                        ShaderStage.Pixel => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_FRAGMENT,
+                                        ShaderStage.Compute => Compilers.Direct3D.ShaderStage.DXIL_SPIRV_SHADER_COMPUTE,
+                                    },
+                                    entryPoint.Name,
+                                    ValidatorVersion.DXIL_VALIDATOR_1_4,
+                                    ref debugOptions, ref runtimeConf, ref logger, out var dxil);
+
+                                Span<byte> dxilSpan = new(dxil.buffer, (int)dxil.size);
+                                fixed (byte* dxilSpanPtr = dxilSpan)
+                                    DxilHash.ComputeHashRetail(&dxilSpanPtr[20], (uint)(dxilSpan.Length - 20), &dxilSpanPtr[4]);
+                                shaderStageBytecodes.Add(new ShaderBytecode(entryPoint.Stage, ObjectId.FromBytes(dxilSpan), dxilSpan.ToArray()));
+                            }
                         }
                     }
                 }
-            }
-            else
-            {
-                var spirvBytecodeArray = spirvBytecode.ToArray();
-                var spirvBytecodeId = ObjectId.FromBytes(spirvBytecode);
-                foreach (var entryPoint in entryPoints)
+                else
                 {
-                    var entryPointName = new byte[Encoding.UTF8.GetByteCount(entryPoint.Name) + 1];
-                    entryPointName[^1] = 0;
-                    Encoding.UTF8.GetBytes(entryPoint.Name.AsSpan(), entryPointName);
-
-                    shaderStageBytecodes.Add(new ShaderBytecode
+                    var spirvBytecodeArray = spirvBytecode.ToArray();
+                    var spirvBytecodeId = ObjectId.FromBytes(spirvBytecode);
+                    foreach (var entryPoint in entryPoints)
                     {
-                        Stage = entryPoint.Stage,
-                        Data = spirvBytecodeArray,
-                        Id = spirvBytecodeId,
-                        EntryPoint = entryPointName,
-                    });
+                        var entryPointName = new byte[Encoding.UTF8.GetByteCount(entryPoint.Name) + 1];
+                        entryPointName[^1] = 0;
+                        Encoding.UTF8.GetBytes(entryPoint.Name.AsSpan(), entryPointName);
+
+                        shaderStageBytecodes.Add(new ShaderBytecode
+                        {
+                            Stage = entryPoint.Stage,
+                            Data = spirvBytecodeArray,
+                            Id = spirvBytecodeId,
+                            EntryPoint = entryPointName,
+                        });
+                    }
                 }
+            }
+            catch (Exception)
+            {
+#if STRIDE_PLATFORM_DESKTOP
+                lock (WriterLock)
+                    WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecodeForDebug);
+#endif
+                throw;
             }
 
             bytecode.Stages = shaderStageBytecodes.ToArray();
@@ -350,12 +346,8 @@ namespace Stride.Shaders.Compiler
             var shaderBaseFilename = Path.Combine(effectDir, outputHash.ToString());
             lock (WriterLock) // protect write in case the same shader is created twice
             {
-                // Write SPV, disassembly and ShaderSource (skip if already written by another input with same output)
-                if (!File.Exists(shaderBaseFilename + ".spv"))
-                {
-                    File.WriteAllBytes(shaderBaseFilename + ".spv", spirvBytecode);
-                    File.WriteAllText(shaderBaseFilename + ".spvdis", Spirv.Tools.Spv.Dis(SpirvBytecode.CreateFromSpan(spirvBytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
-                }
+                // Note: we used input hash in previous case because bytecode was not valid, but when available we prefer bytecode hash
+                WriteSpvDebugFiles(effectDir, outputHash.ToString(), spirvBytecodeForDebug);
 
                 // Write per-stage HLSL
                 foreach (var (suffix, hlslCode) in stageHlslSources)
@@ -505,5 +497,20 @@ namespace Stride.Shaders.Compiler
                 }
             }
         }
+
+#if STRIDE_PLATFORM_DESKTOP
+        /// <summary>
+        /// Writes .spv and .spvdis files. Caller must hold WriterLock.
+        /// </summary>
+        private static void WriteSpvDebugFiles(string effectDir, string hashName, byte[] spirvBytecode)
+        {
+            var baseFilename = Path.Combine(effectDir, hashName);
+            if (!File.Exists(baseFilename + ".spv"))
+            {
+                File.WriteAllBytes(baseFilename + ".spv", spirvBytecode);
+                File.WriteAllText(baseFilename + ".spvdis", Spirv.Tools.Spv.Dis(SpirvBytecode.CreateFromSpan(spirvBytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
+            }
+        }
+#endif
     }
 }
