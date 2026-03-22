@@ -39,7 +39,7 @@ jobs:
   VS-Package:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,7 +47,9 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - uses: microsoft/setup-msbuild@v2
+      - uses: microsoft/setup-msbuild@v3
+        with:
+          vs-version: '[18.0,19.0)'
       - uses: ./.github/actions/build-sdk
       - name: Build
         run: |
