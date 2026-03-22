@@ -192,7 +192,9 @@
   <!-- Original: NuGet.Build.Tasks.Pack.targets
        Standard NuGet uses _ProjectsWithTFM (one per TFM). We override
        to use @(_InnerBuildProjects) which includes TFM x API combos.
-       This ensures all graphics API variants get included in the package. -->
+       This ensures all graphics API variants get included in the package.
+       Workaround for https://github.com/NuGet/Home/issues/10556 — once NuGet
+       supports custom inner build dimensions, this override can be removed. -->
   <Target Name="_WalkEachTargetPerFramework" DependsOnTargets="_ComputeTargetFrameworkItems">
     <MSBuild
       Condition="'$(IncludeBuildOutput)' == 'true'"
