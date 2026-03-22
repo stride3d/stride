@@ -10,6 +10,7 @@
     <StrideBuildTags>LinuxTools;WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>

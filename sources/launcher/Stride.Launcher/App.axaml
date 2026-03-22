@@ -1,0 +1,61 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Stride.Launcher.App"
+             RequestedThemeVariant="Default">
+  <Application.Resources>
+    <ResourceDictionary>
+      <Image x:Key="ImageFacebook"
+             Height="24" Width="24"
+             Source="/Assets/Images/facebook.png" />
+      <Image x:Key="ImageOpenCollective"
+             Height="24" Width="24"
+             Source="/Assets/Images/opencollective.png" />
+      <Image x:Key="ImageReddit"
+             Height="24" Width="24"
+             Source="/Assets/Images/reddit.png" />
+      <Image x:Key="ImageTwitter"
+             Height="24" Width="24"
+             Source="/Assets/Images/xtwitter.png" />
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Default">
+          <SolidColorBrush x:Key="BackgroundEmphasis" Color="#900520" />
+          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0434343" />
+          <SolidColorBrush x:Key="BorderBrushTile" Color="Transparent" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="BackgroundEmphasis" Color="{DynamicResource SystemAccentColorDark1}" />
+          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0434343" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="BackgroundEmphasis" Color="{DynamicResource SystemAccentColorLight1}" />
+          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0BCBCBC" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+      <Thickness x:Key="BorderThicknessTile">12</Thickness>
+      <Thickness x:Key="BorderThicknessTileList">0,0,0,20</Thickness>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Dark"/>
+        <ColorPaletteResources x:Key="Light"/>
+      </FluentTheme.Palettes>
+    </FluentTheme>
+
+    <Style Selector="Button.MediaButton">
+      <Setter Property="Margin" Value="2" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="Button.MediaButton:pointerover">
+      <Setter Property="Opacity" Value="0.6" />
+    </Style>
+    <Style Selector="Button.TransparentButton">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="ToggleButton.TransparentButton">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+  </Application.Styles>
+</Application>
