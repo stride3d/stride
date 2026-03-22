@@ -50,16 +50,25 @@ if %ERRORLEVEL% NEQ 0 (
     echo Cannot find msbuild.
     goto exit
 )
-rem Check that msbuild is version 15 or greater
+rem Check that msbuild is version 17 or greater (VS 2022+)
 for /f "tokens=1 delims=." %%i in ('msbuild /nologo /version') do set __BuildVersion=%%i
 
-if %__BuildVersion% LSS 15 (
-    echo MSbuild version 15 or greater is required
+if %__BuildVersion% LSS 17 (
+    echo MSBuild version 17 or greater is required (Visual Studio 2022+)
     goto exit
 )
 
 set XXMSBUILD=msbuild.exe
 set _platform_target=Mixed Platforms
+
+rem Build SDK packages (required before any project can load)
+echo Building SDK packages...
+dotnet build "%~dp0..\sources\sdk\Stride.Build.Sdk.slnx" -v:m
+if %ERRORLEVEL% NEQ 0 (
+    echo Error: Failed to build SDK packages. All projects depend on these.
+    goto exit
+)
+echo.
 
 rem Compiling the various solutions
 
