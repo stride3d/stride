@@ -65,7 +65,7 @@ For detailed SDK documentation, see [SDK-GUIDE.md](../build/docs/SDK-GUIDE.md).
 
 There are two options to integrate this repository in your own repository:
 
-* __git subtree__ [documentation](https://github.com/git/git/blob/master/contrib/subtree/git-subtree.txt) and [blog post](http://psionides.eu/2010/02/04/sharing-code-between-projects-with-git-subtree/)
+* __git subtree__ [documentation](https://github.com/git/git/blob/master/contrib/subtree/git-subtree.adoc)
 * __git submodule__
 
 ### Basic use ###
