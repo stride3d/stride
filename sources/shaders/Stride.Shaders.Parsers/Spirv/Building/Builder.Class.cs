@@ -10,6 +10,7 @@ using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Processing;
 using Stride.Shaders.Spirv.Tools;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -817,6 +818,22 @@ public partial class SpirvBuilder
         return GetOrLoadShader(shaderLoader, className, new GenericResolverFromValues(genericValues), macros);
     }
 
+    /// <summary>
+    /// Ensures only one thread instantiates a given generic shader at a time.
+    /// </summary>
+    private static readonly ConcurrentDictionary<(string Name, string? Generics, int MacrosHash), Lazy<(ShaderBuffers Buffer, ObjectId Hash)>> compilingGenericShaders = new();
+
+    private static int ComputeMacrosHash(ReadOnlySpan<ShaderMacro> macros)
+    {
+        unchecked
+        {
+            int hash = 0;
+            foreach (var m in macros)
+                hash = hash * 397 ^ m.GetHashCode();
+            return hash;
+        }
+    }
+
     private static ShaderBuffers GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, GenericResolver genericResolver, ReadOnlySpan<ShaderMacro> macros)
     {
         var shaderBuffers = GetOrLoadShader(shaderLoader, className, macros, out var hash, out var isFromCache);
@@ -834,21 +851,51 @@ public partial class SpirvBuilder
             }
             else
             {
-                InstantiateMemberNames(ref shaderBuffers, className, genericResolver, shaderLoader, macros);
+                // Coordinate parallel instantiations: only one thread instantiates a given generic shader.
+                var macrosHash = ComputeMacrosHash(macros);
+                var macrosArray = macros.ToArray();
+                var key = (className, genericArguments, macrosHash);
 
-                // Copy buffers (we don't want to edit original non-instantiated code as it might be reloaded through caching
-                shaderBuffers.Context = new SpirvContext(CopyBuffer(shaderBuffers.Context.GetBuffer()))
+                var lazy = compilingGenericShaders.GetOrAdd(key, _ => new Lazy<(ShaderBuffers, ObjectId)>(() =>
                 {
-                    Bound = shaderBuffers.Context.Bound,
-                    Names = new(shaderBuffers.Context.Names),
-                    Types = new(shaderBuffers.Context.Types),
-                    ReverseTypes = new(shaderBuffers.Context.ReverseTypes),
-                };
-                shaderBuffers.Buffer = CopyBuffer(shaderBuffers.Buffer);
+                    // Double-check cache
+                    if (cache.TryLoadFromCache(className, genericArguments, macrosArray, out var buf, out var h))
+                        return (buf, h);
 
-                InstantiateGenericShader(ref shaderBuffers, classNameWithGenerics, genericResolver, shaderLoader, macros);
+                    var localBuffers = shaderBuffers;
+                    InstantiateMemberNames(ref localBuffers, className, genericResolver, shaderLoader, macrosArray);
 
-                cache.RegisterShader(className, genericArguments, macros, shaderBuffers, hash);
+                    // Copy buffers (we don't want to edit original non-instantiated code as it might be reloaded through caching)
+                    localBuffers.Context = new SpirvContext(CopyBuffer(localBuffers.Context.GetBuffer()))
+                    {
+                        Bound = localBuffers.Context.Bound,
+                        Names = new(localBuffers.Context.Names),
+                        Types = new(localBuffers.Context.Types),
+                        ReverseTypes = new(localBuffers.Context.ReverseTypes),
+                    };
+                    localBuffers.Buffer = CopyBuffer(localBuffers.Buffer);
+
+                    InstantiateGenericShader(ref localBuffers, classNameWithGenerics, genericResolver, shaderLoader, macrosArray);
+
+                    cache.RegisterShader(className, genericArguments, macrosArray, localBuffers, hash);
+                    return (localBuffers, hash);
+                }, LazyThreadSafetyMode.ExecutionAndPublication));
+
+                try
+                {
+                    var result = lazy.Value;
+                    shaderBuffers = result.Buffer;
+                    hash = result.Hash;
+                }
+                catch
+                {
+                    compilingGenericShaders.TryRemove(key, out _);
+                    throw;
+                }
+                finally
+                {
+                    compilingGenericShaders.TryRemove(key, out _);
+                }
             }
 
             // Run in all cases (even if cached)

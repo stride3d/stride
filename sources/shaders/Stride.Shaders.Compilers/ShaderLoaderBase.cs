@@ -7,6 +7,7 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -16,6 +17,11 @@ namespace Stride.Shaders.Compilers;
 public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShaderLoader
 {
     public IShaderCache Cache => fileCache;
+
+    /// <summary>
+    /// Ensures only one thread compiles a given shader at a time. Other threads wait for the result.
+    /// </summary>
+    private readonly ConcurrentDictionary<(string Name, int MacrosHash), Lazy<(ShaderBuffers Buffer, ObjectId Hash)>> compilingShaders = new();
 
     /// <summary>
     /// Optional logger for compilation errors. If not set, errors are thrown as exceptions.
@@ -44,25 +50,46 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
             isFromCache = false;
         }
 
-        if (!ExternalFileExists(name))
-        {
-            throw new InvalidOperationException($"Shader {name} could not be found");
-        }
+        // Coordinate parallel compilations: only one thread compiles a given (name, macros) pair.
+        var macrosHash = ComputeMacrosHash(defines);
+        var macrosArray = defines.ToArray();
+        var key = (name, macrosHash);
 
-        if (!LoadExternalFileContent(name, out var filename, out var code, out hash))
+        var lazy = compilingShaders.GetOrAdd(key, _ => new Lazy<(ShaderBuffers, ObjectId)>(() =>
         {
-            throw new InvalidOperationException($"Shader {name} could not be loaded");
-        }
+            // Double-check cache (another thread may have finished between our check and this factory)
+            if (Cache.TryLoadFromCache(name, null, macrosArray, out var buf, out var h))
+                return (buf, h);
 
-        if (!LoadFromCode(filename, code, hash, defines, out buffer))
+            if (!ExternalFileExists(name))
+                throw new InvalidOperationException($"Shader {name} could not be found");
+
+            if (!LoadExternalFileContent(name, out var filename, out var code, out h))
+                throw new InvalidOperationException($"Shader {name} could not be loaded");
+
+            if (!LoadFromCode(filename, code, h, macrosArray, out buf))
+                throw new InvalidOperationException($"Shader {name} could not be compiled");
+
+            return (buf, h);
+        }, LazyThreadSafetyMode.ExecutionAndPublication));
+
+        try
         {
-            // If a logger is set, errors are already logged — just return false
-            if (Log != null)
-                return false;
-            throw new InvalidOperationException($"Shader {name} could not be compiled");
+            var result = lazy.Value;
+            buffer = result.Buffer;
+            hash = result.Hash;
+            isFromCache = false;
+            return true;
         }
-
-        return true;
+        catch
+        {
+            compilingShaders.TryRemove(key, out _);
+            throw;
+        }
+        finally
+        {
+            compilingShaders.TryRemove(key, out _);
+        }
     }
 
     public bool LoadExternalBuffer(string name, string? filename, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash, out bool isFromCache)
@@ -120,6 +147,17 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
             }
         }
         return true;
+    }
+
+    private static int ComputeMacrosHash(ReadOnlySpan<ShaderMacro> macros)
+    {
+        unchecked
+        {
+            int hash = 0;
+            foreach (var m in macros)
+                hash = hash * 397 ^ m.GetHashCode();
+            return hash;
+        }
     }
 
     protected virtual bool LoadFromCode(string? filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, out ShaderBuffers buffer, bool registerInCache = true)
