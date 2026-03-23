@@ -530,6 +530,8 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         table.CurrentShader = currentShader;
 
         var hasUnresolvableGenerics = false;
+        // Map MemberName parameter names to their GenericParamExpr so inheritance args can reference them
+        var memberNameParams = new Dictionary<string, GenericParamExpr>();
         if (Generics != null)
         {
             for (int i = 0; i < Generics.Parameters.Count; i++)
@@ -540,7 +542,10 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 var genericParameterType = genericParameter.TypeName.Type;
 
                 if (genericParameterType is GenericParameterType { Kind: GenericParameterKindSDSL.MemberName })
+                {
                     hasUnresolvableGenerics = true;
+                    memberNameParams[genericParameter.Name] = new GenericParamExpr(i, Name);
+                }
             }
         }
 
@@ -561,6 +566,12 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                             mixinGenerics.Values[i].ProcessSymbol(table);
                             var constantId = mixinGenerics.Values[i].CompileConstantValue(table, context).Id;
                             generics[i] = ConstantExpression.ParseFromBuffer(constantId, context.GetBuffer(), context);
+                        }
+                        else if (memberNameParams.TryGetValue(identifier.Name, out var memberNameRef))
+                        {
+                            // MemberName generic params aren't in the symbol table but should be
+                            // referenced as GenericParamExpr so they participate in generic resolution
+                            generics[i] = memberNameRef;
                         }
                         else
                         {

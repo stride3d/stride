@@ -139,7 +139,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         var log = Log ?? new LoggerResult();
         if (!sdslc.Compile(filename, text, hash, macros, log, out buffer))
         {
-            if (Log == null && log is LoggerResult loggerResult && loggerResult.HasErrors)
+            if (log is LoggerResult loggerResult && loggerResult.HasErrors)
                 throw new InvalidOperationException(string.Join(Environment.NewLine, loggerResult.Messages.Where(m => m.Type >= LogMessageType.Error).Select(m => m.Text)));
             return false;
         }

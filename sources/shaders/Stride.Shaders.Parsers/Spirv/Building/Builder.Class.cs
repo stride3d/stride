@@ -580,17 +580,17 @@ public partial class SpirvBuilder
                 var code = unresolvableShader.ShaderCode;
                 if (instantiatedGenericsMacros.Count > 0)
                 {
-                    // Add something to shaderName (which is used as key in ShaderLoader cache)
-                    var originalShaderName = shaderName;
-                    shaderName += $"_{string.Join("_", instantiatedGenericsMacros.Select(x => RemoveInvalidCharactersFromSymbol(x.Definition)))}";
+                    // Use a unique cache key but keep the original shader class name in the source code.
+                    // This ensures OpSDSLGenericReference.DeclaringClass still matches the import name.
+                    var cacheKey = shaderName + $"_{string.Join("_", instantiatedGenericsMacros.Select(x => RemoveInvalidCharactersFromSymbol(x.Definition)))}";
 
                     // Note: we apply the preprocessor only the shader body to transform generics parameter into their actual value without touching the generic definition
                     code = code.Substring(0, unresolvableShader.ShaderCodeNameEnd)
-                                // Update shader name for ShaderLoader cache
-                                .Replace(originalShaderName, shaderName)
                                 // Mark MemberName as resolved
                                 .Replace("MemberName ", "MemberNameResolved ")
                         + MonoGamePreProcessor.Run(code.Substring(unresolvableShader.ShaderCodeNameEnd), $"{shaderName}.sdsl", CollectionsMarshal.AsSpan(instantiatedGenericsMacros));
+
+                    shaderName = cacheKey;
                 }
 
                 // TODO: Cache?
