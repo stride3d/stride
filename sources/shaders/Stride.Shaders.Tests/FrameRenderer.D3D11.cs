@@ -20,7 +20,7 @@ namespace Stride.Shaders.Parsers.Tests;
 
 public class D3D11FrameRenderer(uint width = 800, uint height = 600, byte[]? fragmentSpirv = null, byte[]? vertexSpirv = null) : FrameRenderer(width, height, vertexSpirv, fragmentSpirv)
 {
-    static IWindow? window;
+    IWindow? window;
     DXGI dxgi = null!;
     D3D11 d3d11 = null!;
     D3DCompiler compiler = null!;
