@@ -71,7 +71,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         if (isFromCache)
             return true;
 
-        var filename = $"{code}{(Path.HasExtension(code) ? "" : ".sdsl")}";
+        var filename = $"{name}{(Path.HasExtension(name) ? "" : ".sdsl")}";
 
         hash = ObjectId.FromBytes(Encoding.UTF8.GetBytes(code));
         if (!LoadFromCode(filename, code, hash, defines, out buffer))
