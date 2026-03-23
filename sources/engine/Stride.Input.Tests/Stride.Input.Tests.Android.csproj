@@ -86,11 +86,10 @@
     <Compile Label="Stride.DoNotSync" Include="..\..\..\sources\shared\tests\nunitlite\NUnitLiteLauncher.Android.cs">
       <Link>NUnitLiteLauncher.Android.cs</Link>
     </Compile>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
     <Compile Include="AdvancedInputTest.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="InputTestBase.cs" />
@@ -109,7 +108,6 @@
     <None Include="GameAssets\SpriteSheet.sdsheet" />
     <None Include="GameAssets\Teapot.sdpromodel" />
     <None Include="Stride.Input.Tests.sdpkg" />
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <Import Project="$(StridePackageProps)" Condition="Exists('$(StridePackageProps)')" />

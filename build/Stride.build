@@ -171,16 +171,6 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=Direct3D12;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
-  <Target Name="BuildWindowsOpenGL">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApis=OpenGL"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
-  </Target>
-
-  <Target Name="BuildWindowsOpenGLES">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApis=OpenGLES"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=OpenGLES;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
-  </Target>
-
   <Target Name="BuildAndroid">
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Android;StrideSolution=$(StrideSolution).Android"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).Android.sln" Properties="$(BuildProperties);StridePlatforms=Android;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
@@ -211,7 +201,7 @@ Example of use:
       <StridePlatforms>Linux</StridePlatforms>
     </PropertyGroup>
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
   </Target> 
 
   <Target Name="BuildLinuxVulkan">
@@ -271,13 +261,13 @@ Example of use:
   </ItemGroup>
   
   <ItemGroup>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Engine.Tests\Stride.Engine.Tests-Signed.apk"/>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Physics.Tests\Stride.Physics.Tests-Signed.apk"/>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Audio.Tests\Stride.Audio.Tests-Signed.apk"/>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests_10_0-Signed.apk"/>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Graphics.Tests\Stride.Graphics.Tests-Signed.apk"/>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Input.Tests\Stride.Input.Tests-Signed.apk"/>
-    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Particles.Tests\Stride.Particles.Tests-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Engine.Tests\Stride.Engine.Tests-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Physics.Tests\Stride.Physics.Tests-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Audio.Tests\Stride.Audio.Tests-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests_10_0-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Graphics.Tests\Stride.Graphics.Tests-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Input.Tests\Stride.Input.Tests-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\Vulkan\Stride.Particles.Tests\Stride.Particles.Tests-Signed.apk"/>
   </ItemGroup>
   
   <Target Name="RunTestsMobile" DependsOnTargets="DownloadXunitRunnerConsole" Outputs="%(MobileUnitTestProject.Identity)">

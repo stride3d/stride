@@ -28,7 +28,6 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="..\Stride.Graphics\OpenGL\OpenGLUtils.cs" Link="OpenGLUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Graphics\Stride.Graphics.csproj" />

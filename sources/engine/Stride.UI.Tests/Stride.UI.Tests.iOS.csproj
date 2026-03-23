@@ -113,11 +113,10 @@
     <Compile Label="Stride.DoNotSync" Include="..\..\..\sources\shared\tests\nunitlite\NUnitLiteLauncher.iPhone.cs">
       <Link>NUnitLiteLauncher.iPhone.cs</Link>
     </Compile>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="Events\EventManagerTests.cs" />
     <Compile Include="Events\MyTestRoutedEventArgs.cs" />
@@ -151,7 +150,6 @@
     <Compile Include="Layering\ToggleButtonTests.cs" />
     <Compile Include="Layering\UIElementLayeringTests.cs" />
     <Compile Include="Layering\UniformGridTests.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="RandomExtension.cs" />
     <Compile Include="Regression\BillboardModeTests.cs" />
     <Compile Include="Regression\BorderImageTest.cs" />
@@ -221,8 +219,6 @@
     <None Include="Resources\EditTextInactive.dds" />
     <None Include="Resources\EditTextOverred.dds" />
     <None Include="Stride.UI.Tests.sdpkg" />
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
     <None Include="Resources\ToggleChecked.dds" />
     <None Include="Resources\ToggleIndetermate.dds" />
     <None Include="Resources\ToggleUnchecked.dds" />

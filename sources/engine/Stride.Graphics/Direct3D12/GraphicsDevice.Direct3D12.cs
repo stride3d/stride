@@ -240,7 +240,7 @@ namespace Stride.Graphics
         ///   Enables or disables profiling.
         /// </summary>
         /// <param name="enabledFlag"><see langword="true"/> to enable profiling; <see langword="false"/> to disable it.</param>
-        public void EnableProfile(bool enabledFlag) { }  // TODO: Implement profiling with PIX markers? Currently, profiling is only implemented for OpenGL
+        public void EnableProfile(bool enabledFlag) { }  // TODO: Implement profiling with PIX markers?
 
         /// <summary>
         ///   Marks the Graphics Device Context as <strong>inactive</strong> on the current thread.
