@@ -17,7 +17,7 @@ namespace Stride.Shaders.Compilers.SDSL;
 
 public record struct SDSLC(IExternalShaderLoader ShaderLoader)
 {
-    public readonly bool Compile(string filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, ILogger log, [MaybeNullWhen(false)] out ShaderBuffers lastBuffer)
+    public readonly bool Compile(string? filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, ILogger log, [MaybeNullWhen(false)] out ShaderBuffers lastBuffer, bool registerInCache = true)
     {
         lastBuffer = default;
 
@@ -44,11 +44,14 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     CurrentMacros = [.. macros],
                 };
 
-                // Add OpSource
-                var filenameId = compiler.Context.Add(new OpString(compiler.Context.Bound++, filename)).ResultId;
-                // TODO: Add SourceLanguage.SDSL
-                compiler.Context.Add(new OpSource(Spirv.Specification.SourceLanguage.Unknown, 0, filenameId, null));
-                compiler.Context.Add(new OpSourceHashSDSL(filenameId, (int)hash.Hash1, (int)hash.Hash2, (int)hash.Hash3, (int)hash.Hash4));
+                // Add OpSource (skip for MemberName recompilations that have no real file)
+                if (filename != null)
+                {
+                    var filenameId = compiler.Context.Add(new OpString(compiler.Context.Bound++, filename)).ResultId;
+                    // TODO: Add SourceLanguage.SDSL
+                    compiler.Context.Add(new OpSource(Spirv.Specification.SourceLanguage.Unknown, 0, filenameId, null));
+                    compiler.Context.Add(new OpSourceHashSDSL(filenameId, (int)hash.Hash1, (int)hash.Hash2, (int)hash.Hash3, (int)hash.Hash4));
+                }
                 // TODO: Do we want to record macros with a custom OpMacroSDSL? (mostly for debug purposes)
 
                 compiler.Macros.AddRange(macros);
@@ -98,7 +101,8 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 // (e.g. names for imported IDs, or types from InsertWithoutDuplicates).
                 ShaderClass.ProcessNameAndTypes(lastBuffer.Context);
 
-                ShaderLoader.Cache.RegisterShader(shader.Name, null, macros, lastBuffer, hash);
+                if (registerInCache)
+                    ShaderLoader.Cache.RegisterShader(shader.Name, null, macros, lastBuffer, hash);
             }
             else if (declaration is ShaderEffect or EffectParameters)
             {

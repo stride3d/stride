@@ -65,16 +65,15 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         return true;
     }
 
-    public bool LoadExternalBuffer(string name, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash, out bool isFromCache)
+    public bool LoadExternalBuffer(string name, string? filename, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash, out bool isFromCache)
     {
         isFromCache = Cache.TryLoadFromCache(name, null, defines, out buffer, out hash);
         if (isFromCache)
             return true;
 
-        var filename = $"{name}{(Path.HasExtension(name) ? "" : ".sdsl")}";
-
         hash = ObjectId.FromBytes(Encoding.UTF8.GetBytes(code));
-        if (!LoadFromCode(filename, code, hash, defines, out buffer))
+        // Don't auto-register in SDSLC — the caller (InstantiateMemberNames) registers under the cache key
+        if (!LoadFromCode(filename, code, hash, defines, out buffer, registerInCache: false))
         {
             // If a logger is set, errors are already logged — just return false
             if (Log != null)
@@ -123,13 +122,13 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         return true;
     }
 
-    protected virtual bool LoadFromCode(string filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, out ShaderBuffers buffer)
+    protected virtual bool LoadFromCode(string? filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, out ShaderBuffers buffer, bool registerInCache = true)
     {
         var defines = new (string Name, string Definition)[macros.Length];
         for (int i = 0; i < macros.Length; ++i)
             defines[i] = (macros[i].Name, macros[i].Definition);
 
-        var text = MonoGamePreProcessor.Run(code, Path.GetFileName(filename), defines);
+        var text = MonoGamePreProcessor.Run(code, filename, defines);
         var sdslc = new SDSLC
         {
             ShaderLoader = this,
@@ -137,7 +136,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
         // Use provided logger, or a temporary one that throws on errors
         var log = Log ?? new LoggerResult();
-        if (!sdslc.Compile(filename, text, hash, macros, log, out buffer))
+        if (!sdslc.Compile(filename, text, hash, macros, log, out buffer, registerInCache))
         {
             if (log is LoggerResult loggerResult && loggerResult.HasErrors)
                 throw new InvalidOperationException(string.Join(Environment.NewLine, loggerResult.Messages.Where(m => m.Type >= LogMessageType.Error).Select(m => m.Text)));

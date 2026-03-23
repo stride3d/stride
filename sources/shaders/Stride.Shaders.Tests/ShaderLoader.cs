@@ -45,7 +45,7 @@ class ShaderLoader(params string[] searchPaths) : ShaderLoaderBase(new TestShade
 
     protected override bool LoadFromCode(string filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, out ShaderBuffers buffer)
     {
-        var result = base.LoadFromCode(filename, code, hash, macros, out buffer);
+        var result = base.LoadFromCode(filename, code, hash, macros, out buffer, registerInCache);
         if (result)
         {
             Console.WriteLine($"Loading shader {filename}");

@@ -580,22 +580,24 @@ public partial class SpirvBuilder
                 var code = unresolvableShader.ShaderCode;
                 if (instantiatedGenericsMacros.Count > 0)
                 {
-                    // Use a unique cache key but keep the original shader class name in the source code.
-                    // This ensures OpSDSLGenericReference.DeclaringClass still matches the import name.
                     var cacheKey = shaderName + $"_{string.Join("_", instantiatedGenericsMacros.Select(x => RemoveInvalidCharactersFromSymbol(x.Definition)))}";
 
-                    // Note: we apply the preprocessor only the shader body to transform generics parameter into their actual value without touching the generic definition
+                    // Apply the preprocessor only to the shader body to substitute MemberName values
+                    // without touching the generic definition
                     code = code.Substring(0, unresolvableShader.ShaderCodeNameEnd)
-                                // Mark MemberName as resolved
                                 .Replace("MemberName ", "MemberNameResolved ")
                         + MonoGamePreProcessor.Run(code.Substring(unresolvableShader.ShaderCodeNameEnd), $"{shaderName}.sdsl", CollectionsMarshal.AsSpan(instantiatedGenericsMacros));
 
                     shaderName = cacheKey;
                 }
 
-                // TODO: Cache?
-                if (!shaderLoader.LoadExternalBuffer(shaderName, code, macros, out shaderBuffers, out _, out _))
+                // filename: null — no OpSource emitted (this is a MemberName recompilation, not a real file)
+                // registerInCache: false — we register under the cache key ourselves
+                if (!shaderLoader.LoadExternalBuffer(shaderName, null, code, macros, out shaderBuffers, out var compiledHash, out _))
                     throw new InvalidOperationException();
+
+                // Register under the MemberName cache key (e.g. "Foo_PerMaterial")
+                shaderLoader.Cache.RegisterShader(shaderName, null, macros, shaderBuffers, compiledHash);
             }
         }
     }
@@ -818,8 +820,6 @@ public partial class SpirvBuilder
     private static ShaderBuffers GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, GenericResolver genericResolver, ReadOnlySpan<ShaderMacro> macros)
     {
         var shaderBuffers = GetOrLoadShader(shaderLoader, className, macros, out var hash, out var isFromCache);
-
-        // Split context and buffer
 
         if (genericResolver.GenericArgumentCount > 0)
         {
