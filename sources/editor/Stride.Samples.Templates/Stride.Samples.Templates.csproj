@@ -1,6 +1,4 @@
-﻿<Project>
-  <Import Project="..\..\targets\Stride.props" />
-
+<Project Sdk="Stride.Build.Sdk.Editor">
   <PropertyGroup>
     <StridePackAssets>true</StridePackAssets>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
@@ -24,6 +22,4 @@
     <Compile Include="ThisPackageVersion.PackageBuild.cs" />
     <Compile Include="ThisPackageVersion.DevBuild.cs" />
   </ItemGroup>
-
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

@@ -1,44 +1,23 @@
-<Project>
-
+<Project Sdk="Stride.Build.Sdk">
   <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideRuntime>true</StrideRuntime>
-    <StrideRuntimeNetStandardNoRuntimeIdentifiers>true</StrideRuntimeNetStandardNoRuntimeIdentifiers>
-  </PropertyGroup>
-
-  <Import Project="..\..\targets\Stride.props" />
-
-  <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-    <StridePlatformDependent>true</StridePlatformDependent>
-    <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
-    <!-- SharpDX is needed for WIC -->
-    <PackageReference Include="SharpDX.Direct2D1" Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
     <PackageReference Include="System.Drawing.Common" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
     <ProjectReference Include="..\..\tools\Stride.FreeImage\Stride.FreeImage.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-
-  <Import Project="$(StrideSdkTargets)" />
-
 </Project>

@@ -8,25 +8,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10-CoreRuntime", "10-CoreRu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "20-StrideRuntime", "20-StrideRuntime", "{4C142567-C42B-40F5-B092-798882190209}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Targets.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Config.Private", "00-Config.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
 	ProjectSection(SolutionItems) = preProject
 		..\sources\Directory.Packages.props = ..\sources\Directory.Packages.props
 		..\nuget.config = ..\nuget.config
-		..\sources\targets\Stride.Core.CompilerServices.props = ..\sources\targets\Stride.Core.CompilerServices.props
-		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
-		..\sources\targets\Stride.Core.props = ..\sources\targets\Stride.Core.props
-		..\sources\targets\Stride.Core.TargetFrameworks.Editor.props = ..\sources\targets\Stride.Core.TargetFrameworks.Editor.props
-		..\sources\targets\Stride.Core.targets = ..\sources\targets\Stride.Core.targets
-		..\sources\targets\Stride.GraphicsApi.Dev.targets = ..\sources\targets\Stride.GraphicsApi.Dev.targets
-		..\sources\targets\Stride.GraphicsApi.PackageReference.targets = ..\sources\targets\Stride.GraphicsApi.PackageReference.targets
 		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
-		..\sources\targets\Stride.PackageVersion.targets = ..\sources\targets\Stride.PackageVersion.targets
-		..\sources\targets\Stride.props = ..\sources\targets\Stride.props
-		..\sources\targets\Stride.targets = ..\sources\targets\Stride.targets
-		..\sources\targets\Stride.UnitTests.CrossTargeting.targets = ..\sources\targets\Stride.UnitTests.CrossTargeting.targets
-		..\sources\targets\Stride.UnitTests.DisableBuild.targets = ..\sources\targets\Stride.UnitTests.DisableBuild.targets
-		..\sources\targets\Stride.UnitTests.props = ..\sources\targets\Stride.UnitTests.props
-		..\sources\targets\Stride.UnitTests.targets = ..\sources\targets\Stride.UnitTests.targets
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "80-Shaders", "80-Shaders", "{10D145AF-C8AE-428F-A80F-CA1B591D0DB2}"

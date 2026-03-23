@@ -1,6 +1,4 @@
-<Project>
-  <Import Project="..\..\targets\Stride.Core.props" />
-
+<Project Sdk="Stride.Build.Sdk.Editor">
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
@@ -19,6 +17,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
   </ItemGroup>
-
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

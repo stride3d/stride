@@ -1,15 +1,9 @@
-<Project>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Build.Sdk.Editor">
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{164A5B9A-E684-4B3F-9EF4-B7765FC0A8A1}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-    <RestorePackages>true</RestorePackages>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
@@ -25,5 +19,4 @@
     <ProjectReference Include="..\..\core\Stride.Core.Translation\Stride.Core.Translation.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Translation.Presentation\Stride.Core.Translation.Presentation.csproj" />
   </ItemGroup>
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

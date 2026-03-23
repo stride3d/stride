@@ -1,34 +1,22 @@
-﻿<Project>
-
-  <PropertyGroup>
-    <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-
-  <Import Project="..\..\targets\Stride.props" />
-
+<Project Sdk="Stride.Build.Sdk">
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <StrideRuntime>true</StrideRuntime>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization</StrideAssemblyProcessorOptions>
-    <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
-  </ItemGroup>
-
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="DotRecast.Core" />
     <PackageReference Include="DotRecast.Detour" />
     <PackageReference Include="DotRecast.Recast" />
   </ItemGroup>
-
-  <Import Project="$(StrideSdkTargets)" />
-
 </Project>

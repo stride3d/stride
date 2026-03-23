@@ -1,9 +1,4 @@
-<Project>
-  <PropertyGroup>
-    <StrideRuntime>true</StrideRuntime>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.Core.props" />
-  
+<Project Sdk="Stride.Build.Sdk">  
   <PropertyGroup>
     <Description>Core assembly for all Stride assemblies.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -11,13 +6,12 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
+    <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
   
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-    <StrideBuildTags>*</StrideBuildTags>
-    <RestorePackages>true</RestorePackages>
     <ExtrasUwpMetaPackageVersion>6.2.12</ExtrasUwpMetaPackageVersion>
   </PropertyGroup>
   
@@ -94,6 +88,4 @@
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
-  
-  <Import Project="$(StrideSdkTargets)" />
 </Project>

@@ -78,8 +78,8 @@
   </ItemGroup>
   <!-- Visual Studio dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.0.31902.203" />
-    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232" />
+    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.14.40265" />
+    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.14.2120" />
   </ItemGroup>
   <!-- Test dependencies -->
   <ItemGroup>

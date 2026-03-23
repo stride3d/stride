@@ -1,0 +1,10 @@
+name: Build Stride SDK
+description: Build and install Stride.Build.Sdk MSBuild SDK packages into the local NuGet cache
+
+runs:
+  using: composite
+  steps:
+    - name: Build Stride SDK
+      shell: pwsh
+      run: |
+        dotnet build sources/sdk/Stride.Build.Sdk.slnx -v:m

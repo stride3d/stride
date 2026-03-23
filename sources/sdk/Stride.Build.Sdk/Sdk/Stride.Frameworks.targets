@@ -1,0 +1,28 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    StrideRuntime is checked here in .targets (not .props) because
+    it's defined in the user's .csproj which loads AFTER Sdk.props
+    but BEFORE Sdk.targets.
+  -->
+
+  <!-- Define target frameworks for runtime -->
+  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
+    <!-- Add default framework no matter what (needed for references) -->
+    <StrideRuntimeTargetFrameworks>$(StrideFramework)</StrideRuntimeTargetFrameworks>
+
+    <!-- Desktop platforms: Add net10.0-windows only if explicitly requested -->
+    <!-- Most projects only need net10.0; net10.0-windows is for WPF/WinForms dependencies -->
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkWindows)</StrideRuntimeTargetFrameworks>
+
+    <!-- Mobile/UWP platforms -->
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkAndroid)</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkUWP)</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);$(StrideFrameworkiOS)</StrideRuntimeTargetFrameworks>
+
+    <StrideRuntimeTargetFrameworks>$([MSBuild]::Unescape($(StrideRuntimeTargetFrameworks.Trim(';'))))</StrideRuntimeTargetFrameworks>
+
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+</Project>

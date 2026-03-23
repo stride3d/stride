@@ -1,8 +1,4 @@
-<Project>
-  <PropertyGroup>
-    <StridePlatform>Windows</StridePlatform>
-  </PropertyGroup>
-  <Import Project="..\..\targets\Stride.props" />
+<Project Sdk="Stride.Build.Sdk.Editor">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
@@ -34,5 +30,4 @@
     <ProjectReference Include="..\..\engine\Stride.UI\Stride.UI.csproj" />
   </ItemGroup>
   <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
-  <Import Project="$(StrideSdkTargets)" />
 </Project>
