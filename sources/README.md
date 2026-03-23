@@ -35,6 +35,8 @@ For detailed SDK documentation, see [SDK-GUIDE.md](../build/docs/SDK-GUIDE.md).
    High-level serialization and git-like CAS storage system.
 * __Stride.Core.MicroThreading__:
    Micro-threading library based on C# 5.0 async (a.k.a. stackless programming)
+* __Stride.Core.AssemblyProcessor__:
+   Internal tool used to patch assemblies to add various features, such as Serialization auto-generation, various memory/pinning operations, module initializers, etc...
 
 ### presentation ###
 
@@ -56,3 +58,38 @@ For detailed SDK documentation, see [SDK-GUIDE.md](../build/docs/SDK-GUIDE.md).
 ### sdk ###
 
 * MSBuild SDK packages that provide build logic for all Stride projects. See [Build System](#build-system) above.
+
+## Use in your project
+
+### Source repository ###
+
+There are two options to integrate this repository in your own repository:
+
+* __git subtree__ [documentation](https://github.com/git/git/blob/master/contrib/subtree/git-subtree.txt) and [blog post](http://psionides.eu/2010/02/04/sharing-code-between-projects-with-git-subtree/)
+* __git submodule__
+
+### Basic use ###
+
+Projects should reference the Stride MSBuild SDK instead of importing targets manually:
+
+```xml
+<Project Sdk="Stride.Build.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+</Project>
+```
+
+Make sure your `global.json` includes the SDK version mapping and your `nuget.config` points to the `build/packages/` folder where the SDK `.nupkg` files are produced. See the [root README](../README.md#build-stride) for full setup instructions.
+
+### Optional: Activate assembly processor ###
+
+If you want to use auto-generated `Serialization` code, some of `Utilities` functions or `ModuleInitializer`, enable the assembly processor in your project file:
+
+```xml
+<Project Sdk="Stride.Build.Sdk">
+  <PropertyGroup>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+  </PropertyGroup>
+</Project>
+```
