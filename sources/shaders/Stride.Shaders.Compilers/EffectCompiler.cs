@@ -382,10 +382,10 @@ namespace Stride.Shaders.Compiler
                         builder.AppendLine("***************************");
                         foreach (var cBuffer in bytecode.Reflection.ConstantBuffers)
                         {
-                            builder.AppendFormat("cbuffer {0} [Size: {1}]", cBuffer.Name, cBuffer.Size).AppendLine();
+                            builder.AppendLine($"cbuffer {cBuffer.Name} [Size: {cBuffer.Size}]");
                             foreach (var parameter in cBuffer.Members)
                             {
-                                builder.AppendFormat("@C    {0} => {1} [LogicalGroup: {2}]", parameter.RawName, parameter.KeyInfo.KeyName, parameter.LogicalGroup).AppendLine();
+                                builder.AppendLine($"@C    {parameter.RawName} => {parameter.KeyInfo.KeyName} [LogicalGroup: {parameter.LogicalGroup}]");
                             }
                         }
                         builder.AppendLine("***************************");
@@ -397,7 +397,7 @@ namespace Stride.Shaders.Compiler
                         builder.AppendLine("***************************");
                         foreach (var resource in bytecode.Reflection.ResourceBindings)
                         {
-                            builder.AppendFormat("@R    {0} => {1} [LogicalGroup: {2} Stage: {3}, Slot: ({4}-{5})]", resource.RawName, resource.KeyInfo.KeyName, resource.LogicalGroup, resource.Stage, resource.SlotStart, resource.SlotStart + resource.SlotCount - 1).AppendLine();
+                            builder.AppendLine($"@R    {resource.RawName} => {resource.KeyInfo.KeyName} [ResourceGroup: {resource.ResourceGroup} LogicalGroup: {resource.LogicalGroup} Stage: {resource.Stage}, Slot: ({resource.SlotStart}-{resource.SlotStart + resource.SlotCount - 1})]");
                         }
                         builder.AppendLine("***************************");
                     }
@@ -408,7 +408,7 @@ namespace Stride.Shaders.Compiler
                         builder.AppendLine("***************************");
                         foreach (var hashSource in bytecode.HashSources)
                         {
-                            builder.AppendFormat("@S    {0} => {1}", hashSource.Key, hashSource.Value).AppendLine();
+                            builder.AppendLine($"@S    {hashSource.Key} => {hashSource.Value}");
                         }
                         builder.AppendLine("***************************");
                     }

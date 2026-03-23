@@ -87,13 +87,12 @@ namespace Stride.Shaders
 
                     if (mixinSource.Macros != null && mixinSource.Macros.Count > 0)
                     {
-                        sb.AppendLine($"Macros =");
-                        sb.AppendLine($"{{");
+                        sb.Append($"Macros = {{ ");
                         for (int i = 0; i < mixinSource.Macros.Count; i++)
                         {
-                            sb.AppendLine($"new ShaderMacro(\"{mixinSource.Macros[i].Name}\", \"{mixinSource.Macros[i].Definition}\"),");
+                            sb.Append($"new ShaderMacro(\"{mixinSource.Macros[i].Name}\", \"{mixinSource.Macros[i].Definition}\"),");
                         }
-                        sb.AppendLine($"}},");
+                        sb.AppendLine($" }},");
                     }
 
                     sb.Append($"}}");
