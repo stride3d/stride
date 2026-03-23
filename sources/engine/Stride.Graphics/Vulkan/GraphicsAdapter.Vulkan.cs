@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Stride.Core;
 using Vortice.Vulkan;
 
 using static Vortice.Vulkan.Vulkan;
@@ -21,10 +22,11 @@ namespace Stride.Graphics
     public partial class GraphicsAdapter
     {
         private VkPhysicalDevice defaultPhysicalDevice;
-        private VkPhysicalDevice debugPhysicalDevice;
+        private Lazy<VkPhysicalDevice> debugPhysicalDevice;
 
         private readonly int adapterOrdinal;
-        private readonly VkPhysicalDeviceProperties properties;
+        private readonly string description;
+        private readonly VkPhysicalDeviceProperties deviceProperties;
 
         private static readonly Dictionary<int, string> VendorNames = new Dictionary<int, string>
         {
@@ -41,18 +43,24 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="physicalDevice">The default factory.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
-        internal GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, VkPhysicalDeviceProperties properties, int adapterOrdinal)
+        internal unsafe GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice,
+            List<DisplayInfo> displayInfos,
+            VkPhysicalDeviceProperties deviceProperties,
+            int adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
+            this.debugPhysicalDevice = new Lazy<VkPhysicalDevice>(GetDebugPhysicalDevice);
             this.defaultPhysicalDevice = defaultPhysicalDevice;
-            this.properties = properties;
+            this.deviceProperties = deviceProperties;
 
-            // TODO VULKAN
-            //var displayProperties = physicalDevice.DisplayProperties;
-            //outputs = new GraphicsOutput[displayProperties.Length];
-            //for (var i = 0; i < outputs.Length; i++)
-            //    outputs[i] = new GraphicsOutput(this, displayProperties[i], i).DisposeBy(this);
-            graphicsOutputs = [ new GraphicsOutput() ];
+            description = Marshal.PtrToStringAnsi((IntPtr)deviceProperties.deviceName);
+            if (VendorNames.TryGetValue(VendorId, out var vendorName))
+                description = $"{vendorName} {description}";
+
+            graphicsOutputs = new GraphicsOutput[displayInfos.Count];
+
+            for (var index = 0; index < graphicsOutputs.Length; index++)
+                graphicsOutputs[index] = new GraphicsOutput(this, displayInfos[index], index).DisposeBy(this);
         }
 
         /// <summary>
@@ -63,13 +71,6 @@ namespace Stride.Graphics
         {
             get
             {
-                // TODO VULKAN api
-                var propertiesCopy = properties;
-
-                var description = Marshal.PtrToStringAnsi((IntPtr)propertiesCopy.deviceName);
-                if (VendorNames.TryGetValue(VendorId, out var vendorName))
-                    description = $"{vendorName} {description}";
-
                 return description;
             }
         }
@@ -84,7 +85,7 @@ namespace Stride.Graphics
         {
             get
             {
-                return (int)properties.vendorID;
+                return (int)deviceProperties.vendorID;
             }
         }
 
@@ -101,26 +102,9 @@ namespace Stride.Graphics
 
         internal unsafe VkPhysicalDevice GetPhysicalDevice(bool enableValidation)
         {
-            if (enableValidation)
-            {
-                if (debugPhysicalDevice == VkPhysicalDevice.Null)
-                {
-                    GraphicsAdapterFactoryInstance defaultInstance = GraphicsAdapterFactory.GetInstance(true);
-                    uint physicalDevicesCount = 0;
-                    defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, &physicalDevicesCount, null).CheckResult();
-
-                    Span<VkPhysicalDevice> nativePhysicalDevices = stackalloc VkPhysicalDevice[(int)physicalDevicesCount];
-                    defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, nativePhysicalDevices).CheckResult();
-
-                    debugPhysicalDevice = nativePhysicalDevices[adapterOrdinal];
-                }
-
-                return debugPhysicalDevice;
-            }
-            else
-            {
-                return defaultPhysicalDevice;
-            }
+            return enableValidation
+                ? debugPhysicalDevice.Value
+                : defaultPhysicalDevice;
         }
 
         /// <summary>
@@ -130,9 +114,26 @@ namespace Stride.Graphics
         /// <returns>true if the profile is supported</returns>
         public bool IsProfileSupported(GraphicsProfile graphicsProfile)
         {
-            // TODO VULKAN
-            return true;
-            //return SharpDX.Direct3D11.Device.IsSupportedFeatureLevel(this.NativeAdapter, (SharpDX.Direct3D.FeatureLevel)graphicsProfile);
+            // Lower profiles are always supported on any conformant Vulkan device
+            if (graphicsProfile <= GraphicsProfile.Level_10_1)
+                return true;
+
+            if (graphicsProfile >= GraphicsProfile.Level_11_0)
+                return deviceProperties.apiVersion >= VkVersion.Version_1_1;
+
+            return false;
+        }
+
+        private unsafe VkPhysicalDevice GetDebugPhysicalDevice()
+        {
+            GraphicsAdapterFactoryInstance defaultInstance = GraphicsAdapterFactory.GetInstance(true);
+            uint physicalDevicesCount = 0;
+            defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, &physicalDevicesCount, null).CheckResult();
+
+            Span<VkPhysicalDevice> nativePhysicalDevices = stackalloc VkPhysicalDevice[(int)physicalDevicesCount];
+            defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, nativePhysicalDevices).CheckResult();
+
+            return nativePhysicalDevices[adapterOrdinal];
         }
     }
 }

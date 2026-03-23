@@ -43,6 +43,8 @@
     </ProjectReference>
     <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
     <ProjectReference Include="..\Stride\Stride.csproj" />
+    <PackageReference Include="SDL3-CS" />
+    <PackageReference Include="SDL3-CS.Native" />
     <PackageReference Include="System.Memory" />
     <PackageReference Include="WinPixEventRuntime" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
     <PackageReference Include="Vortice.Vulkan" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
