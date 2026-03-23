@@ -300,7 +300,7 @@ public partial class ShaderMixer
 
                         if (variableType is TextureType t)
                         {
-                            globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                            var resolved = effectResourceBinding with
                             {
                                 Type = (t, t.Multisampled, t.Sampled == 2) switch
                                 {
@@ -313,21 +313,27 @@ public partial class ShaderMixer
                                     (Texture2DType, false, true) => EffectParameterType.RWTexture2D,
                                     (Texture3DType, false, true) => EffectParameterType.RWTexture3D,
                                 },
-                            });
+                            };
+                            globalContext.Reflection.ResourceBindings.Add(resolved);
+                            EmitResourceEntry(globalContext, resolved);
                         }
                         else if (variableType is BufferType bufferType)
                         {
-                            globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                            var resolved = effectResourceBinding with
                             {
                                 Type = bufferType.WriteAllowed ? EffectParameterType.RWBuffer : EffectParameterType.Buffer,
-                            });
+                            };
+                            globalContext.Reflection.ResourceBindings.Add(resolved);
+                            EmitResourceEntry(globalContext, resolved);
                         }
                         else if (variableType is StructuredBufferType structuredBufferType)
                         {
-                            globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                            var resolved = effectResourceBinding with
                             {
                                 Type = structuredBufferType.WriteAllowed ? EffectParameterType.RWStructuredBuffer : EffectParameterType.StructuredBuffer,
-                            });
+                            };
+                            globalContext.Reflection.ResourceBindings.Add(resolved);
+                            EmitResourceEntry(globalContext, resolved);
 
                             // Add UserTypeGOOGLE decoration so SPIRV-Cross preserves StructuredBuffer type
                             context.Add(new OpDecorateString(variable.ResultId, Specification.Decoration.UserTypeGOOGLE, $"{(structuredBufferType.WriteAllowed ? "rw" : "")}structuredbuffer:<{structuredBufferType.BaseType.ToId().ToLowerInvariant()}>"));
@@ -340,10 +346,12 @@ public partial class ShaderMixer
                         }
                         else if (variableType is ByteAddressBufferType byteAddressBufferType)
                         {
-                            globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                            var resolved = effectResourceBinding with
                             {
                                 Type = byteAddressBufferType.WriteAllowed ? EffectParameterType.RWByteAddressBuffer : EffectParameterType.ByteAddressBuffer,
-                            });
+                            };
+                            globalContext.Reflection.ResourceBindings.Add(resolved);
+                            EmitResourceEntry(globalContext, resolved);
 
                             // Add UserTypeGOOGLE decoration so SPIRV-Cross preserves ByteAddressBuffer type
                             context.Add(new OpDecorateString(variable.ResultId, Specification.Decoration.UserTypeGOOGLE, byteAddressBufferType.WriteAllowed ? "rwbyteaddressbuffer" : "byteaddressbuffer"));
@@ -353,33 +361,43 @@ public partial class ShaderMixer
                     }
                     else if (variableType is SamplerType)
                     {
-                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                        var resolved = effectResourceBinding with
                         {
                             Class = EffectParameterClass.Sampler,
                             Type = EffectParameterType.Sampler,
                             SlotStart = samplerSlot,
                             SlotCount = 1,
-                        });
+                        };
+                        globalContext.Reflection.ResourceBindings.Add(resolved);
+
+                        Graphics.SamplerStateDescription? samplerDesc = null;
+                        if (samplerStates.TryGetValue(variable.ResultId, out var samplerState))
+                        {
+                            globalContext.Reflection.SamplerStates.Add(
+                                new EffectSamplerStateBinding(linkName, samplerState));
+                            samplerDesc = samplerState;
+                        }
+
+                        EmitResourceEntry(globalContext, resolved, samplerDesc);
 
                         context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
                         context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [samplerSlot]));
-
-                        if (samplerStates.TryGetValue(variable.ResultId, out var samplerState))
-                            globalContext.Reflection.SamplerStates.Add(
-                                new EffectSamplerStateBinding(linkName, samplerState));
 
                         samplerSlot++;
                     }
                     else if (variableType is ConstantBufferSymbol)
                     {
-                        globalContext.Reflection.ResourceBindings.Add(effectResourceBinding with
+                        var resolved = effectResourceBinding with
                         {
                             Class = EffectParameterClass.ConstantBuffer,
                             Type = EffectParameterType.ConstantBuffer,
                             SlotStart = cbufferSlot,
                             SlotCount = 1,
                             ResourceGroup = name,
-                        });
+                        };
+                        globalContext.Reflection.ResourceBindings.Add(resolved);
+                        // cbuffer entry is emitted first in the group (before textures/samplers)
+                        EmitResourceEntry(globalContext, resolved);
 
                         context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.DescriptorSet, [0]));
                         context.Add(new OpDecorate(variable.ResultId, Specification.Decoration.Binding, [cbufferSlot]));
@@ -389,5 +407,15 @@ public partial class ShaderMixer
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Emits an <see cref="EffectResourceEntry"/> into the appropriate <see cref="EffectResourceGroupDescription"/>.
+    /// </summary>
+    private static void EmitResourceEntry(MixinGlobalContext globalContext, in EffectResourceBindingDescription binding, Graphics.SamplerStateDescription? samplerState = null)
+    {
+        var groupName = binding.ResourceGroup ?? "Globals";
+        var group = globalContext.Reflection.GetOrCreateGroup(groupName);
+        group.Entries.Add(new EffectResourceEntry(binding, samplerState));
     }
 }

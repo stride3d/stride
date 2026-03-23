@@ -293,6 +293,12 @@ namespace Stride.Shaders.Compiler.Direct3D
                     ValidateConstantBufferReflection(constantBuffer, ref constantBufferDesc, linkBuffer, log);
                 }
 
+                // Build a lookup index for ResourceGroups entries by RawName (avoids O(n) search per resource)
+                var resourceEntryIndex = new Dictionary<string, (EffectResourceGroupDescription Group, int Index)>();
+                foreach (var group in effectReflection.ResourceGroups)
+                    for (int idx = 0; idx < group.Entries.Count; idx++)
+                        resourceEntryIndex[group.Entries[idx].RawName] = (group, idx);
+
                 // Bound Resources
                 for (uint i = 0; i < shaderReflectionDesc.BoundResources; ++i)
                 {
@@ -331,6 +337,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                         binding.ElementType = elementType;
 
                         effectReflection.ResourceBindings.Add(binding);
+
+                        // Update stage flags on the new ResourceGroups structure
+                        UpdateResourceGroupStageFlags(resourceEntryIndex, resourceName, shaderBytecode.Stage, binding.SlotStart);
                     }
                 }
 
@@ -734,6 +743,21 @@ namespace Stride.Shaders.Compiler.Direct3D
             static ComPtr<T> ToComPtr<T>(T* comPtr) where T : unmanaged, IComVtbl<T>
             {
                 return new ComPtr<T> { Handle = comPtr };
+            }
+
+            static void UpdateResourceGroupStageFlags(Dictionary<string, (EffectResourceGroupDescription Group, int Index)> index, string resourceName, ShaderStage stage, int slotStart)
+            {
+                if (!index.TryGetValue(resourceName, out var loc))
+                    return;
+
+                var entry = loc.Group.Entries[loc.Index];
+                if (entry.SlotStart != slotStart)
+                    throw new InvalidOperationException(
+                        $"Resource '{resourceName}' has slot {slotStart} in {stage} " +
+                        $"but slot {entry.SlotStart} was expected (from SDSL compiler). " +
+                        $"Cross-stage slot mismatch is not supported.");
+                entry.Stages |= stage.ToFlag();
+                loc.Group.Entries[loc.Index] = entry;
             }
         }
     }

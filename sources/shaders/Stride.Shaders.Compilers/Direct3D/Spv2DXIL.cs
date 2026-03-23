@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Stride.Core;
 
 [assembly: DisableRuntimeMarshalling]
 
@@ -148,10 +149,14 @@ public enum ValidatorVersion
 
 public static partial class Spv2DXIL
 {
+    static Spv2DXIL()
+    {
+        NativeLibraryHelper.PreloadLibrary("spirv_to_dxil", typeof(Spv2DXIL));
+    }
 
     // Import user32.dll (containing the function we need) and define
     // the method corresponding to the native function.
-    [LibraryImport("./native/spirv_to_dxil.dll", StringMarshalling = StringMarshalling.Utf8, SetLastError = true)]
+    [LibraryImport("spirv_to_dxil.dll", StringMarshalling = StringMarshalling.Utf8, SetLastError = true)]
     [UnmanagedCallConv(CallConvs = new Type[] { typeof(CallConvCdecl) })]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static unsafe partial bool spirv_to_dxil(
@@ -169,6 +174,6 @@ public static partial class Spv2DXIL
     );
 
 
-    [LibraryImport("./native/spirv_to_dxil.dll", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+    [LibraryImport("spirv_to_dxil.dll", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
     public static partial ulong spirv_to_dxil_get_version();
 }

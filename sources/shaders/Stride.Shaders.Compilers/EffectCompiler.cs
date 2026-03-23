@@ -263,7 +263,7 @@ namespace Stride.Shaders.Compiler
                     }
 
                     // Remove unused reflection data, as it is entirely resolved at compile time.
-                    CleanupReflection(bytecode.Reflection);
+                    //CleanupReflection(bytecode.Reflection);
                 }
                 // TODO: Move that code inside ShaderCompiler (need a new interface for processing SPIR-V)
                 else if (effectParameters.Platform == GraphicsPlatform.Direct3D12)
@@ -393,13 +393,113 @@ namespace Stride.Shaders.Compiler
 
                     if (bytecode.Reflection.ResourceBindings.Count > 0)
                     {
-                        builder.AppendLine("******  Resources    ******");
+                        builder.AppendLine("******** Resources ********");
                         builder.AppendLine("***************************");
+
+                        // Build sampler state lookup from ResourceGroups entries
+                        var samplerStateByRawName = new Dictionary<string, Graphics.SamplerStateDescription>();
+                        foreach (var group in bytecode.Reflection.ResourceGroups)
+                            foreach (var entry in group.Entries)
+                                if (entry.SamplerStateDescription.HasValue)
+                                    samplerStateByRawName[entry.RawName] = entry.SamplerStateDescription.Value;
+
+                        // Aggregate stages per resource (keyed by RawName) so we can show a bitfield instead of duplicates
+                        var stagesByRawName = new Dictionary<string, (EffectResourceBindingDescription Binding, List<ShaderStage> Stages)>();
                         foreach (var resource in bytecode.Reflection.ResourceBindings)
                         {
-                            builder.AppendLine($"@R    {resource.RawName} => {resource.KeyInfo.KeyName} [ResourceGroup: {resource.ResourceGroup} LogicalGroup: {resource.LogicalGroup} Stage: {resource.Stage}, Slot: ({resource.SlotStart}-{resource.SlotStart + resource.SlotCount - 1})]");
+                            if (resource.Stage == ShaderStage.None)
+                                continue; // metadata-only entry, will be merged via KeyName
+                            if (!stagesByRawName.TryGetValue(resource.RawName, out var entry))
+                                stagesByRawName[resource.RawName] = (resource, new List<ShaderStage> { resource.Stage });
+                            else
+                                entry.Stages.Add(resource.Stage);
                         }
-                        builder.AppendLine("***************************");
+                        // For resources that only have Stage:None (no per-stage entry), include them too
+                        foreach (var resource in bytecode.Reflection.ResourceBindings)
+                        {
+                            if (resource.Stage == ShaderStage.None && !stagesByRawName.ContainsKey(resource.RawName))
+                                stagesByRawName[resource.RawName] = (resource, new List<ShaderStage>());
+                        }
+
+                        // Build cbuffer lookup by name
+                        var cbuffersByName = new Dictionary<string, EffectConstantBufferDescription>();
+                        foreach (var cb in bytecode.Reflection.ConstantBuffers)
+                            cbuffersByName[cb.Name] = cb;
+
+                        // Group by ResourceGroup, then LogicalGroup
+                        var byResourceGroup = new Dictionary<string, List<(EffectResourceBindingDescription Binding, string StageStr)>>();
+                        foreach (var (rawName, (binding, stages)) in stagesByRawName)
+                        {
+                            var rgKey = binding.ResourceGroup ?? "";
+                            if (!byResourceGroup.TryGetValue(rgKey, out var list))
+                                byResourceGroup[rgKey] = list = new();
+                            var stageStr = stages.Count > 0 ? string.Join("|", stages.Select(s => s switch { ShaderStage.Vertex => "VS", ShaderStage.Hull => "HS", ShaderStage.Domain => "DS", ShaderStage.Geometry => "GS", ShaderStage.Pixel => "PS", ShaderStage.Compute => "CS", _ => s.ToString() })) : "None";
+                            list.Add((binding, stageStr));
+                        }
+
+                        foreach (var (resourceGroup, resources) in byResourceGroup)
+                        {
+                            builder.AppendLine($"ResourceGroup: {(string.IsNullOrEmpty(resourceGroup) ? "(Default)" : resourceGroup)}");
+
+                            // Group by LogicalGroup
+                            var byLogicalGroup = new Dictionary<string, List<(EffectResourceBindingDescription Binding, string StageStr)>>();
+                            foreach (var r in resources)
+                            {
+                                var lgKey = r.Binding.LogicalGroup ?? "";
+                                if (!byLogicalGroup.TryGetValue(lgKey, out var list))
+                                    byLogicalGroup[lgKey] = list = new();
+                                list.Add(r);
+                            }
+
+                            foreach (var (logicalGroup, lgResources) in byLogicalGroup)
+                            {
+                                builder.AppendLine($"  LogicalGroup: {(string.IsNullOrEmpty(logicalGroup) ? "(Default)" : logicalGroup)}");
+
+                                foreach (var (binding, stageStr) in lgResources)
+                                {
+                                    if (binding.Class == EffectParameterClass.ConstantBuffer && cbuffersByName.TryGetValue(binding.RawName, out var cb))
+                                    {
+                                        // Find members belonging to this logical group and compute offset/size range
+                                        var lgMembers = new List<EffectValueDescription>();
+                                        foreach (var m in cb.Members)
+                                        {
+                                            var memberLg = m.LogicalGroup ?? "";
+                                            if (memberLg == logicalGroup)
+                                                lgMembers.Add(m);
+                                        }
+                                        if (lgMembers.Count > 0)
+                                        {
+                                            var minOffset = lgMembers.Min(m => m.Offset);
+                                            var maxEnd = lgMembers.Max(m => m.Offset + m.Size);
+                                            builder.AppendLine($"    cbuffer {cb.Name} [slot: {binding.SlotStart}-{binding.SlotStart + binding.SlotCount - 1}, offset: {minOffset}, size: {maxEnd - minOffset}, stage: {stageStr}]");
+                                            foreach (var m in lgMembers)
+                                                builder.AppendLine($"      {m.RawName} => {m.KeyInfo.KeyName} (offset: {m.Offset}, size: {m.Size})");
+                                        }
+                                        else
+                                        {
+                                            builder.AppendLine($"    cbuffer {cb.Name} [slot: {binding.SlotStart}-{binding.SlotStart + binding.SlotCount - 1}, stage: {stageStr}]");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Texture, sampler, buffer, etc.
+                                        var slotPrefix = binding.Class switch
+                                        {
+                                            EffectParameterClass.ShaderResourceView => "t",
+                                            EffectParameterClass.UnorderedAccessView => "u",
+                                            EffectParameterClass.Sampler => "s",
+                                            _ => $"slot {binding.SlotStart}"
+                                        };
+                                        var slotStr = slotPrefix is "t" or "u" or "s" ? $"{slotPrefix}{binding.SlotStart}" : slotPrefix;
+                                        var samplerInfo = binding.Class == EffectParameterClass.Sampler && samplerStateByRawName.TryGetValue(binding.RawName, out var sd)
+                                            ? $" {{Filter={sd.Filter}, Compare={sd.CompareFunction}}}"
+                                            : binding.Class == EffectParameterClass.Sampler ? " {NO SAMPLER STATE}" : "";
+                                        builder.AppendLine($"    {binding.RawName} => {binding.KeyInfo.KeyName} [{slotStr}, stage: {stageStr}]{samplerInfo}");
+                                    }
+                                }
+                            }
+                        }
+                        builder.AppendLine("****************************");
                     }
 
                     if (bytecode.HashSources.Count > 0)

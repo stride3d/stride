@@ -76,7 +76,9 @@ namespace Stride.Rendering
                         // For now we assume first Constant Buffer will be the main one
                         if (cbuffer is null)
                         {
-                            cbuffer = effectBytecode.Reflection.ConstantBuffers.First(x => x.Name == layoutEntry.Key.Name);
+                            var resourceGroup = effectBytecode.Reflection.ResourceGroups.FirstOrDefault(g => g.Name == layoutEntry.Key.Name);
+                            cbuffer = resourceGroup?.ConstantBuffer
+                                ?? effectBytecode.Reflection.ConstantBuffers.First(x => x.Name == layoutEntry.Key.Name);
                             ParameterCollectionLayout.ProcessConstantBuffer(cbuffer);
                         }
                     }

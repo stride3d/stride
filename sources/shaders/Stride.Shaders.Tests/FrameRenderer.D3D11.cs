@@ -749,7 +749,11 @@ float4 main(vs_out input) : SV_TARGET {
 
             if (resourceType == "cbuffer")
             {
-                var cbReflection = EffectReflection.ConstantBuffers.Single(x => x.Name == resourceName);
+                Shaders.EffectConstantBufferDescription cbReflection = null;
+                foreach (var group in EffectReflection.ResourceGroups)
+                    if (group.ConstantBuffer?.Name == resourceName)
+                    { cbReflection = group.ConstantBuffer; break; }
+                cbReflection ??= EffectReflection.ConstantBuffers.Single(x => x.Name == resourceName);
                 var cbufferData = new byte[cbReflection.Size];
                 foreach (var cbufferParameter in TestHeaderParser.ParseParameters(param.Value))
                 {

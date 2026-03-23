@@ -152,6 +152,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Process reflection
         ProcessReflection(globalContext, context, temp, options);
 
+        // Ensure each resource group has cbuffer entries first (ordering expected by consumers)
+        foreach (var group in globalContext.Reflection.ResourceGroups)
+        {
+            group.Entries.Sort((a, b) =>
+            {
+                var aIsCb = a.Class == EffectParameterClass.ConstantBuffer ? 0 : 1;
+                var bIsCb = b.Class == EffectParameterClass.ConstantBuffer ? 0 : 1;
+                return aIsCb.CompareTo(bIsCb);
+            });
+        }
+
         SimplifyNotSupportedConstantsInShader(context, temp);
 
         foreach (var inst in context)

@@ -21,4 +21,8 @@ internal struct DescriptorSetEntry(object value, int offset, int size)
 
     /// <summary><inheritdoc cref="DescriptorSetEntry(object, int, int)" path='/param[@name="size"]'/></summary>
     public int Size = size;
+
+    /// <inheritdoc/>
+    public override readonly string ToString()
+        => $"{Value ?? "null"} (Offset = {Offset}, Size = {Size})";
 }

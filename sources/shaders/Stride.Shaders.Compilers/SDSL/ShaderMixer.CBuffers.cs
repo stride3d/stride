@@ -1,5 +1,6 @@
 using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
@@ -436,7 +437,7 @@ namespace Stride.Shaders.Compilers.SDSL
                         Offset = constantBufferOffset,
                         Size = memberSize,
                         LogicalGroup = metadata.LogicalGroup,
-                        DefaultValue = metadata.DefaultValue,
+                        DefaultValue = ConvertDefaultValue(metadata.DefaultValue),
                     };
                     if (metadata.Color)
                     {
@@ -451,7 +452,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     SpirvBuilder.PadOffsetAfterArray(member.Type, member.TypeModifier, memberInfos[index].Offset, ref constantBufferOffset, SpirvBuilder.AlignmentRules.CBuffer);
                 }
 
-                globalContext.Reflection.ConstantBuffers.Add(new EffectConstantBufferDescription
+                var cbufferDesc = new EffectConstantBufferDescription
                 {
                     Name = context.Names[cbuffer.VariableId],
                     // Round buffer size to next multiple of 16 bytes
@@ -459,7 +460,12 @@ namespace Stride.Shaders.Compilers.SDSL
 
                     Type = ConstantBufferType.ConstantBuffer,
                     Members = memberInfos,
-                });
+                };
+                globalContext.Reflection.ConstantBuffers.Add(cbufferDesc);
+
+                // Also attach to the matching resource group
+                var group = globalContext.Reflection.GetOrCreateGroup(cbufferDesc.Name);
+                group.ConstantBuffer = cbufferDesc;
             }
         }
 
@@ -584,6 +590,42 @@ namespace Stride.Shaders.Compilers.SDSL
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Converts compiler-internal <see cref="ConstantVector"/> to serializable CLR types
+        /// that the engine expects (Vector2/3/4, Int2/3/4, etc.).
+        /// Scalars (float, int, uint, bool) pass through unchanged.
+        /// </summary>
+        private static object ConvertDefaultValue(object value)
+        {
+            if (value is not ConstantVector cv)
+                return value;
+
+            var v = cv.Values;
+            return v[0] switch
+            {
+                float => v.Length switch
+                {
+                    2 => new Vector2((float)v[0], (float)v[1]),
+                    3 => new Vector3((float)v[0], (float)v[1], (float)v[2]),
+                    4 => (object)new Vector4((float)v[0], (float)v[1], (float)v[2], (float)v[3]),
+                    _ => throw new NotSupportedException($"Unsupported float vector size: {v.Length}"),
+                },
+                int => v.Length switch
+                {
+                    2 => new Int2((int)v[0], (int)v[1]),
+                    3 => new Int3((int)v[0], (int)v[1], (int)v[2]),
+                    4 => (object)new Int4((int)v[0], (int)v[1], (int)v[2], (int)v[3]),
+                    _ => throw new NotSupportedException($"Unsupported int vector size: {v.Length}"),
+                },
+                uint => v.Length switch
+                {
+                    4 => (object)new UInt4((uint)v[0], (uint)v[1], (uint)v[2], (uint)v[3]),
+                    _ => throw new NotSupportedException($"Unsupported uint vector size: {v.Length}"),
+                },
+                _ => throw new NotSupportedException($"Unsupported constant composite element type: {v[0]?.GetType()}"),
+            };
         }
     }
 }

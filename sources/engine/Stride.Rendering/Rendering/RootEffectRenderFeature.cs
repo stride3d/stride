@@ -626,7 +626,21 @@ namespace Stride.Rendering
                                     if (descriptorSet.Layout == null)
                                         continue;
 
-                                    var constantBufferReflection = effectBytecode.Reflection.ConstantBuffers.FirstOrDefault(x => x.Name == descriptorSet.Name);
+                                    var resourceGroup = effectBytecode.Reflection.FindResourceGroup(descriptorSet.Name);
+                                    var constantBufferReflection = resourceGroup?.ConstantBuffer;
+
+                                    // For the default set slot, also check unnamed/Globals groups for a cbuffer
+                                    if (constantBufferReflection == null && descriptorSet.Name == "PerFrame")
+                                    {
+                                        foreach (var fallbackGroup in effectBytecode.Reflection.ResourceGroups)
+                                        {
+                                            if (fallbackGroup.Name is null or "Globals" && fallbackGroup.ConstantBuffer != null)
+                                            {
+                                                constantBufferReflection = fallbackGroup.ConstantBuffer;
+                                                break;
+                                            }
+                                        }
+                                    }
 
                                     renderEffectReflection.ResourceGroupDescriptions[index] = new ResourceGroupDescription(descriptorSet.Layout, constantBufferReflection);
                                 }

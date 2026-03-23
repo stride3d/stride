@@ -161,7 +161,6 @@ public partial class SpirvContext
                     return false;
             }
 
-            // For now we assume it's a vector type (but we would need to revisit that later if we handle more advanced constants such as matrix or arrays)
             value = new ConstantVector { Values = constants };
 
             return true;
