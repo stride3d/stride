@@ -47,15 +47,15 @@ public ref struct OpDataEnumerator
 
     private bool FindOperandInfo(OperandParameters p, ParameterizedOperandKey key, [MaybeNullWhen(false)] out ParameterizedOperand[] operands)
     {
-        if (p.TryGetValue(key, out operands))
-            return true;
-
-        // ImageOperands is used as a flag. Each flag set will expect corresponding operand(s) (flags should be tested in ascending order)
-        // TODO: Does it apply to other operand kinds as well?
-        if (key.Kind == OperandKind.ImageOperands)
+        // In case it's run multithreaded
+        lock (p)
         {
-            // In case it's run multithreaded
-            lock (p)
+            if (p.TryGetValue(key, out operands))
+                return true;
+
+            // ImageOperands is used as a flag. Each flag set will expect corresponding operand(s) (flags should be tested in ascending order)
+            // TODO: Does it apply to other operand kinds as well?
+            if (key.Kind == OperandKind.ImageOperands)
             {
                 // First time we encounter this combination, build it using flags
                 var operandsList = new List<ParameterizedOperand>();
