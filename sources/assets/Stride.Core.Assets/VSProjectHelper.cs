@@ -55,7 +55,7 @@ public static class VSProjectHelper
         {
             return null;
         }
-        return (T)Enum.Parse(typeof(T), value);
+        return Enum.Parse<T>(value);
     }
 
     public static string GetOrCompileProjectAssembly(string fullProjectLocation, ILogger logger, string targets, bool autoCompileProject, string configuration, string platform = "AnyCPU", Dictionary<string, string>? extraProperties = null, bool onlyErrors = false, BuildRequestDataFlags flags = BuildRequestDataFlags.None)

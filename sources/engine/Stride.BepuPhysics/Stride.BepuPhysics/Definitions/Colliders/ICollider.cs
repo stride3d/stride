@@ -33,7 +33,7 @@ public interface ICollider
         in NRigidPose pose,
         in RayData ray,
         ref float maximumT,
-        BufferPool pool,
-        ref TRayHitHandler hitHandler)
+        ref TRayHitHandler hitHandler,
+        BufferPool pool)
         where TRayHitHandler : struct, IShapeRayHitHandler;
 }

@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
+using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Font;
@@ -20,54 +22,72 @@ namespace Stride.UI.Renderers
         {
         }
 
-        private void RenderSelection(EditText editText, UIRenderingContext context, int start, int length, Color color, out float offsetTextStart, out float offsetAlignment, out float selectionSize)
+        private void RenderSelection([NotNull] EditText editText, [NotNull] UIRenderingContext context, in Vector2 textRegion, int start, int length, Color color, out Matrix caret, out float caretHeight)
         {
-            // calculate the size of the text region by removing padding
-            var textRegionSize = new Vector2(editText.ActualWidth - editText.Padding.Left - editText.Padding.Right,
-                                                editText.ActualHeight - editText.Padding.Top - editText.Padding.Bottom);
-
+            var snapText = context.ShouldSnapText && !editText.DoNotSnapText;
+            var requestedFontSize = editText.ActualTextSize;
+            var realVirtualResolutionRatio = editText.LayoutingContext.RealVirtualResolutionRatio;
             var font = editText.Font;
 
-            // determine the image to draw in background of the edit text
-            var fontScale = editText.LayoutingContext.RealVirtualResolutionRatio;
-            var provider = editText.IsSelectionActive ? editText.ActiveImage : editText.MouseOverState == MouseOverState.MouseOverElement ? editText.MouseOverImage : editText.InactiveImage;
-            var image = provider?.GetSprite();
+            font.TypeSpecificRatios(requestedFontSize, ref snapText, ref realVirtualResolutionRatio, out var fontSize);
 
-            var fontSize = new Vector2(fontScale.Y * editText.ActualTextSize);
-            offsetTextStart = font.MeasureString(editText.TextToDisplay, ref fontSize, start).X;
-            selectionSize = font.MeasureString(editText.TextToDisplay, ref fontSize, start + length).X - offsetTextStart;
-            var lineSpacing = font.GetTotalLineSpacing(editText.ActualTextSize);
-            if (font.FontType == SpriteFontType.Dynamic)
+            var lineHeight = font.GetTotalLineSpacing(fontSize.Y);
+
+            var worldMatrix = editText.WorldMatrixInternal;
+            worldMatrix.TranslationVector -= worldMatrix.Right * textRegion.X * 0.5f + worldMatrix.Up * (textRegion.Y * 0.5f - lineHeight * 0.5f);
+
+            Vector2 selectionStart = default, selectionEnd = default, lineStart = default, lineEnd = default;
+            var end = start + length;
+            foreach (var glyphInfo in new SpriteFont.GlyphEnumerator(null, new SpriteFont.StringProxy(editText.TextToDisplay), fontSize, false, 0, editText.TextToDisplay.Length, font, (editText.TextAlignment, textRegion)))
             {
-                offsetTextStart /= fontScale.X;
-                selectionSize /= fontScale.X;
+                if (glyphInfo.Index < start)
+                {
+                    lineEnd = lineStart = selectionEnd = selectionStart = new Vector2(glyphInfo.NextX, glyphInfo.Position.Y);
+                }
+                else if (glyphInfo.Index == start)
+                {
+                    lineStart = selectionEnd = selectionStart = glyphInfo.Position;
+                    lineEnd = new Vector2(glyphInfo.NextX, glyphInfo.Position.Y);
+                }
+                else if (glyphInfo.Index <= end)
+                {
+                    // We're between start and end
+                    if (lineStart.Y != glyphInfo.Y) // Skipped a line, draw a selection rect between the edges of the previous line
+                    {
+                        DrawSelectionOnGlyphRange(context, color, worldMatrix, lineStart, lineEnd, lineHeight);
+                        lineStart = glyphInfo.Position;
+                    }
+
+                    lineEnd = new Vector2(glyphInfo.NextX, glyphInfo.Position.Y);
+                    if (glyphInfo.Index < end)
+                        selectionEnd = new Vector2(glyphInfo.NextX, glyphInfo.Position.Y);
+                    else
+                        selectionEnd = glyphInfo.Position;
+                }
+                else
+                {
+                    break;
+                }
             }
 
-            var scaleRatio = editText.ActualTextSize / font.Size;
-            if (font.FontType == SpriteFontType.SDF)
+            if (end == editText.TextToDisplay.Length) // Edge case for single character selected at the end of a string
             {
-                offsetTextStart *= scaleRatio;
-                selectionSize *= scaleRatio;
-                lineSpacing *= editText.ActualTextSize / font.Size;
+                selectionEnd.X = lineEnd.X;
             }
 
+            DrawSelectionOnGlyphRange(context, color, worldMatrix, lineStart, selectionEnd, lineHeight);
 
-            offsetAlignment = -textRegionSize.X / 2f;
-            if (editText.TextAlignment != TextAlignment.Left)
-            {
-                var textWidth = font.MeasureString(editText.TextToDisplay, ref fontSize).X;
-                if (font.FontType == SpriteFontType.Dynamic)
-                    textWidth /= fontScale.X;
-                if (font.FontType == SpriteFontType.SDF)
-                    textWidth *= scaleRatio;
+            caretHeight = lineHeight;
+            caret = worldMatrix;
+            caret.TranslationVector += caret.Right * selectionStart.X + caret.Up * selectionStart.Y;
+        }
 
-                offsetAlignment = editText.TextAlignment == TextAlignment.Center ? -textWidth / 2 : -textRegionSize.X / 2f + (textRegionSize.X - textWidth);
-            }
-
-            var selectionWorldMatrix = editText.WorldMatrixInternal;
-            selectionWorldMatrix.M41 += offsetTextStart + selectionSize / 2 + offsetAlignment;
-            var selectionScaleVector = new Vector3(selectionSize, editText.LineCount * lineSpacing, 0);
-            Batch.DrawRectangle(ref selectionWorldMatrix, ref selectionScaleVector, ref color, context.DepthBias + 1);
+        private void DrawSelectionOnGlyphRange(UIRenderingContext context, Color color, in Matrix worldMatrix, Vector2 start, Vector2 end, float lineHeight)
+        {
+            var tempMatrix = worldMatrix;
+            var selectionRect = new Vector3(end.X - start.X, lineHeight, 0);
+            tempMatrix.TranslationVector += worldMatrix.Right * (start.X + selectionRect.X * 0.5f) + worldMatrix.Up * start.Y;
+            Batch.DrawRectangle(ref tempMatrix, ref selectionRect, ref color, context.DepthBias + 1);
         }
 
         public override void RenderColor(UIElement element, UIRenderingContext context)
@@ -91,27 +111,25 @@ namespace Stride.UI.Renderers
             }
             
             // calculate the size of the text region by removing padding
-            var textRegionSize = new Vector2(editText.ActualWidth - editText.Padding.Left - editText.Padding.Right,
-                                                editText.ActualHeight - editText.Padding.Top - editText.Padding.Bottom);
+            var textRegionSize = editText.GetTextRegionSize();
 
             var font = editText.Font;
             var caretColor = editText.RenderOpacity * editText.CaretColor;
 
-            var offsetTextStart = 0f;
-            var offsetAlignment = 0f;
-            var selectionSize = 0f;
+            var caretMatrix = Matrix.Identity;
+            var caretHeight = 0f;
 
             // Draw the composition selection
             if (editText.Composition.Length > 0)
             {
                 var imeSelectionColor = editText.RenderOpacity * editText.IMESelectionColor;
-                RenderSelection(editText, context, editText.SelectionStart, editText.Composition.Length, imeSelectionColor, out offsetTextStart, out offsetAlignment, out selectionSize);
+                RenderSelection(editText, context, textRegionSize, editText.SelectionStart, editText.Composition.Length, imeSelectionColor, out caretMatrix, out caretHeight);
             }
             // Draw the regular selection
             else if (editText.IsSelectionActive)
             {
                 var selectionColor = editText.RenderOpacity * editText.SelectionColor;
-                RenderSelection(editText, context, editText.SelectionStart, editText.SelectionLength, selectionColor, out offsetTextStart, out offsetAlignment, out selectionSize);
+                RenderSelection(editText, context, textRegionSize, editText.SelectionStart, editText.SelectionLength, selectionColor, out caretMatrix, out caretHeight);
             }
 
             // create the text draw command
@@ -146,15 +164,8 @@ namespace Stride.UI.Renderers
             // Draw the cursor
             if (editText.IsCaretVisible)
             {
-                var lineSpacing = editText.Font.GetTotalLineSpacing(editText.ActualTextSize);
-                if (editText.Font.FontType == SpriteFontType.SDF)
-                    lineSpacing *= editText.ActualTextSize / font.Size;
-
-                var sizeCaret = editText.CaretWidth / fontScale.X;
-                var caretWorldMatrix = element.WorldMatrixInternal;
-                caretWorldMatrix.M41 += offsetTextStart + offsetAlignment + (editText.CaretPosition > editText.SelectionStart? selectionSize: 0);
-                var caretScaleVector = new Vector3(sizeCaret, editText.LineCount * lineSpacing, 0);
-                Batch.DrawRectangle(ref caretWorldMatrix, ref caretScaleVector, ref caretColor, context.DepthBias + 3);
+                var caretScaleVector = new Vector3(editText.CaretWidth / fontScale.X, caretHeight, 0);
+                Batch.DrawRectangle(ref caretMatrix, ref caretScaleVector, ref caretColor, context.DepthBias + 3);
             }
         }
     }

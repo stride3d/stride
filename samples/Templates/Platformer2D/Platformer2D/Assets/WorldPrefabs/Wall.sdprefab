@@ -1,0 +1,42 @@
+!PrefabAsset
+Id: 6ae6f190-d593-4f6d-b6cf-6bb146502ecb
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 67c8a1fc-cdbb-4798-941f-aed2d085334c
+    Parts:
+        -   Folder: Map/Wall
+            Entity:
+                Id: 67c8a1fc-cdbb-4798-941f-aed2d085334c
+                Name: Wall
+                Components:
+                    6b042eb4e809616483fdaf58b8c948eb: !TransformComponent
+                        Id: 3c47f86a-2715-448d-9b02-0caa734cb31a
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e9a80b3e9215ef8e6674eb86dae7c874: !SpriteComponent
+                        Id: c0b665c4-ce75-49ae-a2e1-020ff3ddd197
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: 58a69aad-99db-4bb0-a3b8-951270816915:Sprites/ground_sheet
+                            CurrentFrame: 4
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Sampler: PointClamp
+                    a4ebe4bf882a3966e7cf2dcdc873274d: !StaticColliderComponent
+                        Id: 7fe1158b-5b77-4c8a-bd59-222df956ad23
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            35efa962fb0e5d173f33a90520ed0753: !BoxColliderShapeDesc
+                                Is2D: true
+                                Size: {X: 1.0, Y: 2.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}

@@ -105,7 +105,6 @@ public sealed class ViewModelServiceProvider : IViewModelServiceProvider
     /// <inheritdoc/>
     public T Get<T>() where T : class
     {
-        var result = TryGet(typeof(T)) as T;
-        return result ?? throw new InvalidOperationException("No service matches the given type.");
+        return TryGet<T>() ?? throw new InvalidOperationException("No service matches the given type.");
     }
 }

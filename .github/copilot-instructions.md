@@ -20,5 +20,13 @@ Stride is a game engine project that requires careful code reviews to maintain q
 - If you find a bug or performance issue, suggest a concrete fix in the PR.
 - For large PRs (20+ C#/*.cs files), do not attempt a full review, only highlight critical or blocking issues.
 - Always consider the context and established patterns in the Stride codebase before making suggestions.
+- **Always check for missing, incomplete, or incorrect XML documentation comments** on public types, methods, properties, and fields.
+- **Provide XML comment suggestions as individual, separate items** so they can be reviewed and approved independently.
+- **Do not rewrite existing XML comments unless they contain errors** such as incorrect information, poor grammar, typos, or lack clarity. Preserve well-written documentation.
+- When suggesting XML comments, ensure they are:
+  - Accurate and describe the actual functionality
+  - Consistent with existing documentation style in the codebase
+  - Include `<summary>`, `<param>`, `<returns>`, `<exception>` and `<remarks>` tags where appropriate
+  - Clear and helpful for API consumers 
 
 The goal is to minimize noise and maximize helpful, actionable feedback.

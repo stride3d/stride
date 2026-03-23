@@ -331,7 +331,7 @@ namespace Stride.Assets.Navigation
                                                 object loadedHeightfieldInitialData;
                                                 if (!loadedHeightfieldInitialDatas.TryGetValue(assetReference.Url, out loadedHeightfieldInitialData))
                                                 {
-                                                    loadedHeightfieldInitialData = contentManager.Load(typeof(Heightmap), assetReference.Url);
+                                                    loadedHeightfieldInitialData = contentManager.Load<Heightmap>(assetReference.Url);
                                                     loadedHeightfieldInitialDatas.Add(assetReference.Url, loadedHeightfieldInitialData);
                                                 }
                                                 heightmapSource.Heightmap = loadedHeightfieldInitialData as Heightmap;

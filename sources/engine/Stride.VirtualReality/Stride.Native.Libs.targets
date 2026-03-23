@@ -1,6 +1,8 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <StrideNativePathLibsWindows>LibOVR.lib</StrideNativePathLibsWindows>
+    <StrideNativePathLibsWindows_x86>$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\dotnet\win-x86\LibOVR.lib</StrideNativePathLibsWindows_x86>
+    <StrideNativePathLibsWindows_x64>$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\dotnet\win-x64\LibOVR.lib</StrideNativePathLibsWindows_x64>
+    <StrideNativePathLibsWindowsArm64>$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\dotnet\win-arm64\LibOVR.lib</StrideNativePathLibsWindowsArm64>
   </PropertyGroup>
 
   <!--

@@ -97,7 +97,7 @@ namespace Stride.TextureConverter.Tests
         {
             TexImage image = TestTools.Load(library, file);
 
-            Assert.True(image.Format == Stride.Graphics.PixelFormat.B8G8R8A8_UNorm);
+            Assert.Equal(Stride.Graphics.PixelFormat.B8G8R8A8_UNorm, image.Format);
 
             try
             {

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- 
+    Stride Native Build Mode Configuration
+    
+    Manages which toolchain is used for native C++ compilation and linking.
+    
+    Build Modes:
+    - Msvc (default on Windows): Uses clang for compilation and MSVC linker for linking (Windows only)
+                                 Requires Visual Studio or MSVC toolset
+                                 Default for Windows builds to preserve existing behavior
+    
+    - Clang:                     Uses clang for compilation and LLVM LLD for linking
+                                 Works on Windows, Linux, macOS, iOS, Android
+                                 RECOMMENDED: Cross-platform, no MSVC dependency
+                                 Default for non-Windows platforms
+    
+    Usage:
+    1. Command line:
+       dotnet build /p:StrideNativeBuildMode=Clang
+    
+    2. Environment variable:
+       set StrideNativeBuildMode=Clang
+    
+    3. In .csproj/.props file:
+       <StrideNativeBuildMode>Clang</StrideNativeBuildMode>
+    
+    4. User configuration file:
+       %APPDATA%\Stride\Stride.Build.props or similar
+  -->
+
+  <PropertyGroup>
+    <!-- 
+      Platform-aware default build mode selection:
+      - Windows (build on Windows): Msvc (preserve existing behavior)
+      - Linux (build on Linux): Clang (MSVC not available)
+      - macOS (build on macOS): Clang (MSVC not available, use darwin_ld)
+      - iOS, Android: Platform-specific (unchanged)
+    -->
+    
+    <!-- Check if we're building on Windows OS -->
+    <_IsWindowsBuildForWindows Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</_IsWindowsBuildForWindows>
+    <_IsWindowsBuildForWindows Condition="'$(_IsWindowsBuildForWindows)' == ''">false</_IsWindowsBuildForWindows>
+    
+    <!-- Default to MSVC only for Windows builds on Windows platform, otherwise use Clang -->
+    <StrideNativeBuildMode Condition="'$(StrideNativeBuildMode)' == '' And '$(_IsWindowsBuildForWindows)' == 'true'">Msvc</StrideNativeBuildMode>
+    <StrideNativeBuildMode Condition="'$(StrideNativeBuildMode)' == ''">Clang</StrideNativeBuildMode>
+    
+    <!-- Validate build mode is one of the supported values -->
+    <_ValidBuildModes>Clang;Msvc</_ValidBuildModes>
+  </PropertyGroup>
+
+  <!-- Set boolean flags for each build mode -->
+  <PropertyGroup>
+    <StrideNativeBuildModeClang Condition="'$(StrideNativeBuildMode)' == 'Clang'">true</StrideNativeBuildModeClang>
+    <StrideNativeBuildModeClang Condition="'$(StrideNativeBuildMode)' != 'Clang'">false</StrideNativeBuildModeClang>
+    
+    <StrideNativeBuildModeMsvc Condition="'$(StrideNativeBuildMode)' == 'Msvc'">true</StrideNativeBuildModeMsvc>
+    <StrideNativeBuildModeMsvc Condition="'$(StrideNativeBuildMode)' != 'Msvc'">false</StrideNativeBuildModeMsvc>
+  </PropertyGroup>
+
+  <!-- Diagnostic target to inform user of build mode -->
+  <Target Name="_StrideNativeBuildModeInfo" BeforeTargets="Build" Condition="'$(StrideNativeOutputName)' != ''">
+    <Message Text="[Stride] Native build mode: $(StrideNativeBuildMode) (platform: $(_IsWindowsBuildForWindows))" Importance="normal" />
+    <Message Text="[Stride] To override: dotnet build /p:StrideNativeBuildMode=Clang|Msvc" Importance="low" />
+  </Target>
+
+  <!-- Help target -->
+  <Target Name="StrideNativeBuildModeHelp">
+    <Message Text="" Importance="high" />
+    <Message Text="======================================" Importance="high" />
+    <Message Text="Stride Native Build Modes" Importance="high" />
+    <Message Text="======================================" Importance="high" />
+    <Message Text="" Importance="high" />
+    <Message Text="Platform-Specific Defaults:" Importance="high" />
+    <Message Text="  Windows (on Windows):  Msvc mode (default, preserves existing behavior)" Importance="high" />
+    <Message Text="  Linux (on Linux):      Clang mode (MSVC unavailable)" Importance="high" />
+    <Message Text="  macOS (on macOS):      Clang mode (MSVC unavailable)" Importance="high" />
+    <Message Text="  iOS, Android:          Platform-specific" Importance="high" />
+    <Message Text="" Importance="high" />
+    <Message Text="Manual Override (all platforms):" Importance="high" />
+    <Message Text="  Clang+LLD:" Importance="high" />
+    <Message Text="    dotnet build /p:StrideNativeBuildMode=Clang" Importance="high" />
+    <Message Text="" Importance="high" />
+    <Message Text="  MSVC (Windows only):" Importance="high" />
+    <Message Text="    dotnet build /p:StrideNativeBuildMode=Msvc" Importance="high" />
+    <Message Text="" Importance="high" />
+  </Target>
+
+</Project>

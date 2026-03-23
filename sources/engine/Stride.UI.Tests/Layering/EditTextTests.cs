@@ -29,7 +29,6 @@ namespace Stride.UI.Tests.Layering
             services.AddService<IGame>(new Game());
 
             var edit = new EditText();
-            edit.UIElementServices = new UIElementServices { Services = services };
 
             // - test the properties that are supposed to invalidate the object measurement
             UIElementLayeringTests.TestMeasureInvalidation(edit, () => edit.Font = new DummyFont());

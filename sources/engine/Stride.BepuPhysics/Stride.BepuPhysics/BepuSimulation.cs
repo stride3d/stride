@@ -18,6 +18,7 @@ using Stride.Core.Threading;
 using Stride.Core;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Stride.Core.MicroThreading;
 using Stride.Core.Serialization;
 using Stride.Engine;
 using NVector3 = System.Numerics.Vector3;
@@ -43,6 +44,7 @@ public sealed class BepuSimulation : IDisposable
     private TimeSpan _softStartRemainingDuration;
     private bool _softStartScheduled = false;
     private UrlReference<Scene>? _associatedScene = null;
+    private Scheduler? _scheduler;
     private AwaitRunner _preTickRunner = new();
     private AwaitRunner _postTickRunner = new();
 
@@ -335,13 +337,23 @@ public sealed class BepuSimulation : IDisposable
     /// Yields execution until right before the next physics tick
     /// </summary>
     /// <returns>Task that will resume next tick.</returns>
-    public TickAwaiter NextUpdate() => new TickAwaiter(_preTickRunner);
+    public TickAwaiter NextUpdate()
+    {
+        if (Scheduler.CurrentMicroThread is null || SynchronizationContext.Current is null)
+            throw new Exception($"{nameof(NextUpdate)} cannot be called out of the micro-thread context.");
+        return new TickAwaiter(_preTickRunner, Scheduler.CurrentMicroThread, SynchronizationContext.Current);
+    }
 
     /// <summary>
     /// Yields execution until right after the next physics tick
     /// </summary>
     /// <returns>Task that will resume next tick.</returns>
-    public TickAwaiter AfterUpdate() => new TickAwaiter(_postTickRunner);
+    public TickAwaiter AfterUpdate()
+    {
+        if (Scheduler.CurrentMicroThread is null || SynchronizationContext.Current is null)
+            throw new Exception($"{nameof(AfterUpdate)} cannot be called out of the micro-thread context.");
+        return new TickAwaiter(_postTickRunner, Scheduler.CurrentMicroThread, SynchronizationContext.Current);
+    }
 
     /// <summary>
     /// Whether a physics test with <paramref name="mask"/> against <paramref name="collidable"/> should be performed or entirely ignored
@@ -967,14 +979,14 @@ public sealed class BepuSimulation : IDisposable
     internal class AwaitRunner
     {
         private Lock _addLock = new();
-        private List<Action> _scheduled = new();
-        private List<Action> _processed = new();
+        private List<(Action action, SynchronizationContext context)> _scheduled = new();
+        private List<(Action action, SynchronizationContext context)> _processed = new();
 
-        public void Add(Action a)
+        public void Add(Action action, SynchronizationContext context)
         {
             lock (_addLock)
             {
-                _scheduled.Add(a);
+                _scheduled.Add((action, context));
             }
         }
 
@@ -985,8 +997,19 @@ public sealed class BepuSimulation : IDisposable
                 (_processed, _scheduled) = (_scheduled, _processed);
             }
 
-            foreach (var item in _processed)
-                item.Invoke();
+            foreach (var (action, context) in _processed)
+            {
+                var previousSyncContext = SynchronizationContext.Current;
+                SynchronizationContext.SetSynchronizationContext(context);
+                try
+                {
+                    action.Invoke();
+                }
+                finally
+                {
+                    SynchronizationContext.SetSynchronizationContext(previousSyncContext);
+                }
+            }
 
             _processed.Clear();
         }
@@ -995,20 +1018,30 @@ public sealed class BepuSimulation : IDisposable
     /// <summary>
     /// Await this struct to continue during a physics tick
     /// </summary>
-    public struct TickAwaiter : INotifyCompletion
+    public readonly struct TickAwaiter : INotifyCompletion
     {
-        private AwaitRunner _runner;
+        private readonly AwaitRunner _runner;
+        private readonly MicroThread _microThread;
+        private readonly SynchronizationContext _context;
 
-        internal TickAwaiter(AwaitRunner runner)
+        internal TickAwaiter(AwaitRunner runner, MicroThread microThread, SynchronizationContext context)
         {
             _runner = runner;
+            _microThread = microThread;
+            _context = context;
         }
 
-        public bool IsCompleted => false; // Forces the awaiter to call OnCompleted() right away to schedule asynchronous method continuation with our runner
+        public bool IsCompleted
+        {
+            get
+            {
+                return _microThread.IsOver;
+            }
+        }
 
-        public void OnCompleted(Action continuation) => _runner.Add(continuation);
+        public void OnCompleted(Action continuation) => _runner.Add(continuation, _context);
 
-        public void GetResult() { }
+        public void GetResult() => _microThread.CancellationToken.ThrowIfCancellationRequested();
 
         public TickAwaiter GetAwaiter() => this;
     }

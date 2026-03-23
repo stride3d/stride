@@ -465,6 +465,6 @@ public abstract class CollidableComponent : EntityComponent
         if (ShapeIndex.Exists == false || Simulation is null)
             return;
 
-        Collider.RayTest(Simulation.Simulation.Shapes, ShapeIndex, Pose!.Value, new RayData { Origin = origin, Direction = dir }, ref maximumT, Simulation.BufferPool, ref hitHandler);
+        Collider.RayTest(Simulation.Simulation.Shapes, ShapeIndex, Pose!.Value, new RayData { Origin = origin, Direction = dir }, ref maximumT, ref hitHandler, Simulation.BufferPool);
     }
 }

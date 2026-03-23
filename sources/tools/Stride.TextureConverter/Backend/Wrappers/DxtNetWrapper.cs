@@ -827,7 +827,7 @@ namespace Stride.TextureConverter.DxtWrapper
 
         public TexMetadata metadata
         {
-            get {return (TexMetadata)Marshal.PtrToStructure(dxtGetMetadata(ptr), typeof(TexMetadata));}
+            get {return Marshal.PtrToStructure<TexMetadata>(dxtGetMetadata(ptr)); }
         }
 
         public IntPtr data
@@ -847,7 +847,7 @@ namespace Stride.TextureConverter.DxtWrapper
 
         public DxtImage GetImage(int mip, int item, int slice)
         {
-            return (DxtImage)Marshal.PtrToStructure(dxtGetImage(ptr, mip, item, slice), typeof(DxtImage));
+            return Marshal.PtrToStructure<DxtImage>(dxtGetImage(ptr, mip, item, slice));
         }
 
         public DxtImage[] GetImages()
@@ -860,7 +860,7 @@ namespace Stride.TextureConverter.DxtWrapper
 
             for(int i=0;i<imagenb;++i)
             {
-                dxtImages[i] = (DxtImage)Marshal.PtrToStructure(imagesPtr + i * Marshal.SizeOf(dxtImages[0]), typeof(DxtImage));
+                dxtImages[i] = Marshal.PtrToStructure<DxtImage>(imagesPtr + i * Marshal.SizeOf(dxtImages[0]));
             }
 
             return dxtImages;
@@ -931,7 +931,7 @@ namespace Stride.TextureConverter.DxtWrapper
                 int headerSize = sizeof(DDSHeaderDX9);  // 128byte
                 byte[] buffer = new byte[headerSize];
                 DDSHeaderDX9 header;
-                fileStream.Read(buffer, 0, headerSize);
+                fileStream.ReadExactly(buffer, 0, headerSize);
                 fixed (byte* ptr = buffer)
                 {
                     DDSHeaderDX9* headerPtr = &header;

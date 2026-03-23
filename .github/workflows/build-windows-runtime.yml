@@ -65,11 +65,11 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - uses: microsoft/setup-msbuild@v2
       - name: Build
         run: |
-          msbuild build\Stride.Runtime.sln `
-            -restore -m:1 -nr:false `
+          dotnet build build\Stride.Runtime.sln `
+            -p:StrideNativeBuildMode=Clang `
+            -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
