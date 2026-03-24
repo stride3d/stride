@@ -1104,6 +1104,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
                             var (builder, context) = compiler;
                             EmitOpAccessChain(accessChainIds, i - 1);
+                            result = new(builder.InsertData(new OpLoad(context.GetOrRegister(m), context.Bound++, result.Id, null, [])));
                             (result, accessor.Type) = builder.ApplyMatrixSwizzles(context, result, m, swizzles.AsSpan());
                         }
                         else
