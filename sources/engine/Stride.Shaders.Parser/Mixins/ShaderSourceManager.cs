@@ -49,6 +49,14 @@ namespace Stride.Shaders.Parser.Mixins
         public bool UseFileSystem { get; set; }
 
         /// <summary>
+        /// If enabled and on Windows, the shader source will try to be loaded from the original path first.
+        /// Please note that in certain scenarios (like regression test) this feature can cause issues 
+        /// in case the original file is in a different state than the one the app or game was built with.
+        /// </summary>
+        /// <remarks>For backward compatibility reason this is enabled by default.</remarks>
+        public bool LoadFromOriginalPathFirst { get; set; } = true;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ShaderSourceManager" /> class.
         /// </summary>
         /// <param name="fileProvider">The file provider to use for loading shader sources.</param>
@@ -136,8 +144,8 @@ namespace Stride.Shaders.Parser.Mixins
                             shaderSource.Path = sourceUrl;
                         }
 
-                        // On Windows, Always try to load first from the original URL in order to get the latest version
-                        if (Platform.IsWindowsDesktop)
+                        // On Windows and if enabled, try to load first from the original URL in order to get the latest version
+                        if (Platform.IsWindowsDesktop && LoadFromOriginalPathFirst)
                         {
                             // TODO: the "/path" is hardcoded, used in ImportStreamCommand and EffectSystem. Find a place to share this correctly.
                             var pathUrl = sourceUrl + "/path";
