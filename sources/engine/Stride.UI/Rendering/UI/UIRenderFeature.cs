@@ -100,6 +100,9 @@ namespace Stride.Rendering.UI
                 uiElementStates.Add(new UIElementState(renderElement));
             }
 
+            // sort by RenderOrder so components with lower value are drawn first (behind)
+            uiElementStates.Sort(static (a, b) => a.RenderObject.RenderOrder.CompareTo(b.RenderObject.RenderOrder));
+
             // evaluate the current draw time (game instance is null for thumbnails)
             var drawTime = game != null ? game.DrawTime : new GameTime();
 

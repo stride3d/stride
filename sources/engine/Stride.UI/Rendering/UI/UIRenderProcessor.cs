@@ -52,6 +52,7 @@ namespace Stride.Rendering.UI
                 renderUIElement.IsBillboard = uiComponent.IsBillboard;
                 renderUIElement.SnapText = uiComponent.SnapText;
                 renderUIElement.IsFixedSize = uiComponent.IsFixedSize;
+                renderUIElement.RenderOrder = uiComponent.RenderOrder;
 
                 if (renderUIElement.RenderGroup != uiComponent.RenderGroup)
                 {

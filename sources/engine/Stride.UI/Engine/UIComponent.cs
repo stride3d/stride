@@ -130,6 +130,15 @@ namespace Stride.Engine
         public RenderGroup RenderGroup { get; set; }
 
         /// <summary>
+        /// Gets or sets the render order of this UI component. Components with a lower value
+        /// are rendered first (behind), higher values are rendered on top.
+        /// </summary>
+        [DataMember(90)]
+        [Display("Render Order")]
+        [DefaultValue(0)]
+        public int RenderOrder { get; set; }
+
+        /// <summary>
         /// A fixed size UI component with height of 1 will be this much of the vertical resolution on screen
         /// </summary>
         [DataMemberIgnore]

@@ -37,6 +37,7 @@ namespace Stride.Rendering.UI
         public bool IsBillboard;
         public bool SnapText;
         public bool IsFixedSize;
+        public int RenderOrder;
 
         /// <summary>
         /// Last registered position of teh mouse
