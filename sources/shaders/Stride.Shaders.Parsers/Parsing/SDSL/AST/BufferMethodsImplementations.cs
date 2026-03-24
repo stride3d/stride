@@ -10,8 +10,18 @@ public class BufferMethodsImplementations : BufferMethodsDeclarations
 
     public override SpirvValue CompileLoad(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue buffer, SpirvValue x, SpirvValue? status = null)
     {
-        var loadResult = builder.Insert(new OpImageRead(context.GetOrRegister(functionType.ReturnType), context.Bound++, buffer.Id, x.Id, null, []));
-        return new(loadResult.ResultId, loadResult.ResultType);
+        var bufferType = (BufferType)context.ReverseTypes[buffer.TypeId];
+        var resultTypeId = context.GetOrRegister(functionType.ReturnType);
+        if (bufferType.WriteAllowed)
+        {
+            var loadResult = builder.Insert(new OpImageRead(resultTypeId, context.Bound++, buffer.Id, x.Id, null, []));
+            return new(loadResult.ResultId, loadResult.ResultType);
+        }
+        else
+        {
+            var loadResult = builder.Insert(new OpImageFetch(resultTypeId, context.Bound++, buffer.Id, x.Id, null, []));
+            return new(loadResult.ResultId, loadResult.ResultType);
+        }
     }
 
     public override SpirvValue CompileGetDimensions(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue buffer, SpirvValue width)
