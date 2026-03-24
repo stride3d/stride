@@ -52,7 +52,7 @@ namespace Stride.Shaders.Compiler
 
         public EffectCompilerCache(EffectCompilerBase compiler, DatabaseFileProvider database, TaskSchedulerSelector taskSchedulerSelector = null) : base(compiler)
         {
-            CompileEffectAsynchronously = false;
+            CompileEffectAsynchronously = true;
             this.database = database ?? throw new ArgumentNullException(nameof(database), "Using the cache requires a database.");
             this.taskSchedulerSelector = taskSchedulerSelector;
         }
