@@ -405,13 +405,17 @@ internal static class EntryPointWrapperGenerator
         Span<int> entryPointInterfaceVariables = stackalloc int[streamLayout.InputStreams.Count + streamLayout.OutputStreams.Count + streamLayout.PatchInputStreams.Count + streamLayout.PatchOutputStreams.Count + 1 + analysisResult.Variables.Count + analysisResult.CBuffers.Count + analysisResult.Resources.Count + entryPointExtraVariables.Count];
         int pvariableIndex = 0;
         foreach (var inputStream in streamLayout.InputStreams)
-            entryPointInterfaceVariables[pvariableIndex++] = inputStream.Id;
+            if (inputStream.Info.UsedThisStage)
+                entryPointInterfaceVariables[pvariableIndex++] = inputStream.Id;
         foreach (var outputStream in streamLayout.OutputStreams)
-            entryPointInterfaceVariables[pvariableIndex++] = outputStream.Id;
+            if (outputStream.Info.UsedThisStage)
+                entryPointInterfaceVariables[pvariableIndex++] = outputStream.Id;
         foreach (var inputStream in streamLayout.PatchInputStreams)
-            entryPointInterfaceVariables[pvariableIndex++] = inputStream.Id;
+            if (inputStream.Info.UsedThisStage)
+                entryPointInterfaceVariables[pvariableIndex++] = inputStream.Id;
         foreach (var outputStream in streamLayout.PatchOutputStreams)
-            entryPointInterfaceVariables[pvariableIndex++] = outputStream.Id;
+            if (outputStream.Info.UsedThisStage)
+                entryPointInterfaceVariables[pvariableIndex++] = outputStream.Id;
         entryPointInterfaceVariables[pvariableIndex++] = streamLayout.StreamsVariableId;
         foreach (var variable in analysisResult.Variables)
         {

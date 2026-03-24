@@ -117,12 +117,20 @@ namespace Stride.Shaders.Compilers.SDSL
                 }
             }
 
-            // Update entry points to include this cbuffer
+            // Update entry points to include this cbuffer and remove old variable IDs
             foreach (var i in context)
             {
                 if (i.Op == Op.OpEntryPoint && (OpEntryPoint)i is { } entryPoint)
                 {
-                    entryPoint.InterfaceIds = new([.. entryPoint.InterfaceIds, cbufferVariable.ResultId]);
+                    var ids = entryPoint.InterfaceIds.Elements.Span;
+                    var newIds = new List<int>(ids.Length + 1);
+                    foreach (var id in ids)
+                    {
+                        if (!variableToMemberIndices.ContainsKey(id))
+                            newIds.Add(id);
+                    }
+                    newIds.Add(cbufferVariable.ResultId);
+                    entryPoint.InterfaceIds = new([.. newIds]);
                 }
             }
 
