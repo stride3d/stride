@@ -85,40 +85,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             return;
         }
 
-        // Add optional capabilities
-        foreach (var i in context)
-        {
-            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Buffer && typeImage.Sampled is 0 or 1)
-            {
-                context.Add(new OpCapability(Capability.SampledBuffer));
-                break;
-            }
-        }
-        foreach (var i in context)
-        {
-            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Buffer && typeImage.Sampled is 2)
-            {
-                context.Add(new OpCapability(Capability.ImageBuffer));
-                break;
-            }
-        }
-        foreach (var i in context)
-        {
-            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Sampled is 2 && typeImage.ImageFormat == ImageFormat.Unknown)
-            {
-                context.Add(new OpCapability(Capability.StorageImageWriteWithoutFormat));
-                break;
-            }
-        }
-        foreach (var i in temp)
-        {
-            if (i.Op is Op.OpImageQuerySizeLod or Op.OpImageQuerySize or Op.OpImageQueryLevels or Op.OpImageQuerySamples)
-            {
-                context.Add(new OpCapability(Capability.ImageQuery));
-                break;
-            }
-        }
-
         // Process streams and remove unused code/cbuffer/variable/resources
         var interfaceProcessor = new InterfaceProcessor
         {
@@ -165,6 +131,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         SimplifyNotSupportedConstantsInShader(context, temp);
 
+        AddRequiredCapabilities(context, temp);
+
         foreach (var inst in context)
             temp.Add(inst.Data);
 
@@ -176,6 +144,67 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         effectReflection = globalContext.Reflection;
         usedHashSources = shaderLoader.Sources;
+    }
+
+    private static void AddRequiredCapabilities(SpirvContext context, SpirvBuffer temp)
+    {
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Buffer && typeImage.Sampled is 0 or 1)
+            {
+                context.Add(new OpCapability(Capability.SampledBuffer));
+                break;
+            }
+        }
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Buffer && typeImage.Sampled is 2)
+            {
+                context.Add(new OpCapability(Capability.ImageBuffer));
+                break;
+            }
+        }
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Sampled is 2 && typeImage.ImageFormat == ImageFormat.Unknown)
+            {
+                context.Add(new OpCapability(Capability.StorageImageWriteWithoutFormat));
+                break;
+            }
+        }
+        foreach (var i in temp)
+        {
+            if (i.Op is Op.OpImageQuerySizeLod or Op.OpImageQuerySize or Op.OpImageQueryLevels or Op.OpImageQuerySamples)
+            {
+                context.Add(new OpCapability(Capability.ImageQuery));
+                break;
+            }
+        }
+        foreach (var i in temp)
+        {
+            // ImageGatherExtended is required when Offset (0x10) or ConstOffsets (0x20) image operands are used
+            // The ImageOperands word position varies by instruction layout
+            var imageOperandsIndex = i.Op switch
+            {
+                Op.OpImageSampleImplicitLod or Op.OpImageSampleExplicitLod
+                or Op.OpImageSampleProjImplicitLod or Op.OpImageSampleProjExplicitLod
+                or Op.OpImageFetch or Op.OpImageRead => 5,
+                Op.OpImageSampleDrefImplicitLod or Op.OpImageSampleDrefExplicitLod
+                or Op.OpImageSampleProjDrefImplicitLod or Op.OpImageSampleProjDrefExplicitLod
+                or Op.OpImageGather or Op.OpImageDrefGather => 6,
+                Op.OpImageWrite => 4,
+                _ => -1
+            };
+            if (imageOperandsIndex >= 0)
+            {
+                var span = i.Data.Memory.Span;
+                if (span.Length > imageOperandsIndex && (span[imageOperandsIndex] & ((int)ImageOperandsMask.Offset | (int)ImageOperandsMask.ConstOffsets)) != 0)
+                {
+                    context.Add(new OpCapability(Capability.ImageGatherExtended));
+                    break;
+                }
+            }
+        }
     }
 
     class MixinGlobalContext(SymbolTable table, ILogger log)
