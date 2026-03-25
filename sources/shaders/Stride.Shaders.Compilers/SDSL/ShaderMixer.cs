@@ -1179,14 +1179,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpSDSLFunctionInfo
                 || i.Op == Op.OpSourceHashSDSL)
                 return true;
-            if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && ((OpDecorate)i).Decoration is
+            if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && (Decoration)i.Data.Memory.Span[2] is
                     Decoration.FunctionParameterDefaultValueSDSL
                     or Decoration.ShaderConstantSDSL
                     or Decoration.PatchConstantFuncSDSL
                     or Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL or Decoration.ResourceGroupIdSDSL
                     or Decoration.SamplerStateSDSL)
                 return true;
-            if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && ((OpMemberDecorate)i).Decoration is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
+            if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && (Decoration)i.Data.Memory.Span[3] is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
                 return true;
 
             // Remove SPIR-V about pointer types to other shaders (variable and types themselves are removed as well)
