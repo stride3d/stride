@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/build-windows-full.yml'
-      - 'build/Stride.sln'
+      - 'build/Stride.slnx'
       - 'deps/**'
       - 'sources/**'
       - '!**/.all-contributorsrc'
@@ -50,7 +50,7 @@ jobs:
       - uses: ./.github/actions/build-sdk
       - name: Build
         run: |
-          dotnet build build\Stride.sln `
+          dotnet build build\Stride.slnx `
             -p:StrideNativeBuildMode=Clang `
             -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `

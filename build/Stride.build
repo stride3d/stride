@@ -7,7 +7,7 @@ Example of use:
 <Project ToolsVersion="15.0" DefaultTarget="Help" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <StrideRoot>$(MSBuildThisFileDirectory)..\</StrideRoot>
-    <StrideSolution>$(StrideRoot)build\Stride.sln</StrideSolution>
+    <StrideSolution>$(StrideRoot)build\Stride.slnx</StrideSolution>
     <StrideVisualStudioSolution>$(StrideRoot)build\Stride.VisualStudio.sln</StrideVisualStudioSolution>
     <StrideSolutionLauncher>$(StrideRoot)build\Stride.Launcher.sln</StrideSolutionLauncher>
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
