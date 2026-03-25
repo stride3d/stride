@@ -8,7 +8,7 @@ Example of use:
   <PropertyGroup>
     <StrideRoot>$(MSBuildThisFileDirectory)..\</StrideRoot>
     <StrideSolution>$(StrideRoot)build\Stride.slnx</StrideSolution>
-    <StrideVisualStudioSolution>$(StrideRoot)build\Stride.VisualStudio.sln</StrideVisualStudioSolution>
+    <StrideVisualStudioSolution>$(StrideRoot)build\Stride.VisualStudio.slnx</StrideVisualStudioSolution>
     <StrideSolutionLauncher>$(StrideRoot)build\Stride.Launcher.sln</StrideSolutionLauncher>
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
     <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)</BuildProperties>

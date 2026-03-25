@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/build-vs-package.yml'
-      - 'build/Stride.VisualStudio.sln'
+      - 'build/Stride.VisualStudio.slnx'
       - 'sources/tools/Stride.VisualStudio.*/**'
       - 'sources/sdk/**'
       - '!**/.all-contributorsrc'
@@ -53,7 +53,7 @@ jobs:
       - uses: ./.github/actions/build-sdk
       - name: Build
         run: |
-          msbuild build\Stride.VisualStudio.sln `
+          msbuild build\Stride.VisualStudio.slnx `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
