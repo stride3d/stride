@@ -28,6 +28,7 @@ internal record class CBufferInfo(string name)
 {
     public string Name { get; } = name;
 
+    public ResourceGroup ResourceGroup { get; set; }
     public string? LogicalGroup { get; set; }
 
     /// <summary>

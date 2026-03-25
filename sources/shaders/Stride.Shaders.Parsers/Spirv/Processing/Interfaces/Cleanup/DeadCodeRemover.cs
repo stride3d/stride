@@ -123,23 +123,10 @@ internal static class DeadCodeRemover
                 && analysisResult.CBuffers.TryGetValue(variable, out var cbufferInfo))
             {
                 // Keep cbuffer alive if any resource in its resource group is used,
-                // matching the logic for resources at line 141.
+                // matching the logic for resources.
                 // This ensures shadow pass effects keep the PerMaterial cbuffer entry
                 // even when no cbuffer members are referenced.
-                bool resourceGroupUsed = false;
-                if (!cbufferInfo.UsedAnyStage)
-                {
-                    foreach (var rg in analysisResult.ResourceGroups.Values)
-                    {
-                        if (rg.Name == cbufferInfo.Name && rg.Used)
-                        {
-                            resourceGroupUsed = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!cbufferInfo.UsedAnyStage && !resourceGroupUsed)
+                if (!cbufferInfo.UsedAnyStage && cbufferInfo.ResourceGroup is not { Used: true })
                 {
                     removedIds.Add(variable.ResultId);
                     SpirvBuilder.SetOpNop(i.Data.Memory.Span);

@@ -138,15 +138,17 @@ internal static class StreamAnalyzer
             {
                 var n = m.To<DecorationParams.ResourceGroupIdSDSL>();
 
+                if (!resourceGroups.TryGetValue(n.ResourceGroup, out var resourceGroup))
+                    resourceGroups.Add(n.ResourceGroup, resourceGroup = new());
+
                 if (resources.TryGetValue(resourceGroupIdDecorate.Target, out var resourceInfo))
                 {
-                    if (!resourceGroups.TryGetValue(n.ResourceGroup, out var resourceGroup))
-                        resourceGroups.Add(n.ResourceGroup, resourceGroup = new());
-
                     resourceGroup.Resources.Add(resourceInfo);
-
                     resourceInfo.ResourceGroup = resourceGroup;
-
+                }
+                else if (cbuffers.TryGetValue(resourceGroupIdDecorate.Target, out var cbufferInfo))
+                {
+                    cbufferInfo.ResourceGroup = resourceGroup;
                 }
             }
         }
