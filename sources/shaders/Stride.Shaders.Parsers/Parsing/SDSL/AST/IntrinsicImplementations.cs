@@ -23,10 +23,39 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         throw new NotImplementedException();
     }
 
-    public override SpirvValue CompileAsdouble(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue y) => throw new NotImplementedException();
-    public override SpirvValue CompileAsfloat16(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
-    public override SpirvValue CompileAsint16(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
-    public override SpirvValue CompileAsuint16(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
+    public override SpirvValue CompileAsdouble(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue y)
+    {
+        // asdouble(uint, uint) -> double  OR  asdouble(uint2, uint2) -> double2
+        // Each pair of uints is packed into uint2 then bitcast to double
+        var inputType = context.ReverseTypes[x.TypeId];
+        var uint2Type = context.GetOrRegister(new VectorType(ScalarType.UInt, 2));
+        var doubleType = context.GetOrRegister(ScalarType.Double);
+
+        if (inputType is ScalarType)
+        {
+            var packed = builder.Insert(new OpCompositeConstruct(uint2Type, context.Bound++, [x.Id, y.Id]));
+            var result = builder.Insert(new OpBitcast(doubleType, context.Bound++, packed.ResultId));
+            return new(result.ResultId, result.ResultType);
+        }
+        else if (inputType is VectorType v)
+        {
+            var uintType = context.GetOrRegister(ScalarType.UInt);
+            var components = new int[v.Size];
+            for (int i = 0; i < v.Size; i++)
+            {
+                var xi = builder.Insert(new OpCompositeExtract(uintType, context.Bound++, x.Id, [i]));
+                var yi = builder.Insert(new OpCompositeExtract(uintType, context.Bound++, y.Id, [i]));
+                var packed = builder.Insert(new OpCompositeConstruct(uint2Type, context.Bound++, [xi.ResultId, yi.ResultId]));
+                components[i] = builder.Insert(new OpBitcast(doubleType, context.Bound++, packed.ResultId)).ResultId;
+            }
+            var result = new SpirvValue(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(functionType.ReturnType), context.Bound++, [.. components])));
+            return result;
+        }
+        throw new InvalidOperationException($"Unexpected type {inputType} for asdouble");
+    }
+    public override SpirvValue CompileAsfloat16(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileBitcastCall(context, builder, functionType, x);
+    public override SpirvValue CompileAsint16(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileBitcastCall(context, builder, functionType, x);
+    public override SpirvValue CompileAsuint16(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileBitcastCall(context, builder, functionType, x);
 
     // Trigo
     public override SpirvValue CompileSin(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLSin, x);
@@ -39,7 +68,15 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileTanh(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLTanh, x);
     public override SpirvValue CompileAtan(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLAtan, x);
     public override SpirvValue CompileAtan2(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue y) => CompileGLSLFloatBinaryCall(context, builder, functionType, Specification.GLSLOp.GLSLAtan2, x, y);
-    public override SpirvValue CompileSincos(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue s, SpirvValue c) => throw new NotImplementedException();
+    public override SpirvValue CompileSincos(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue s, SpirvValue c)
+    {
+        // sincos(x, out s, out c): compute sin and cos separately, store to out params
+        var sinVal = CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLSin, x);
+        var cosVal = CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLCos, x);
+        builder.Insert(new OpStore(s.Id, sinVal.Id, null, []));
+        builder.Insert(new OpStore(c.Id, cosVal.Id, null, []));
+        return new();
+    }
 
     // Derivatives
     public override SpirvValue CompileDdx(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileFloatUnaryCall(context, builder, functionType, Specification.Op.OpDPdx, x);
@@ -409,10 +446,27 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         }
         throw new InvalidOperationException($"Unexpected type {inputType} for f32tof16");
     }
-    public override SpirvValue CompileFirstbitlow(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
-    public override SpirvValue CompileFma(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, SpirvValue c) => throw new NotImplementedException();
-    public override SpirvValue CompileFrexp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue exp) => throw new NotImplementedException();
-    public override SpirvValue CompileIsfinite(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
+    public override SpirvValue CompileFirstbitlow(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => CompileGLSLFloatUnaryCall(context, builder, functionType, Specification.GLSLOp.GLSLFindILsb, x);
+    public override SpirvValue CompileFma(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, SpirvValue c)
+    {
+        var instruction = builder.Insert(new GLSLFma(a.TypeId, context.Bound++, context.GetGLSL(), a.Id, b.Id, c.Id));
+        return new(instruction.ResultId, instruction.ResultType);
+    }
+    public override SpirvValue CompileFrexp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue exp)
+    {
+        var instruction = builder.Insert(new GLSLFrexp(context.GetOrRegister(functionType.ReturnType), context.Bound++, context.GetGLSL(), x.Id, exp.Id));
+        return new(instruction.ResultId, instruction.ResultType);
+    }
+    public override SpirvValue CompileIsfinite(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x)
+    {
+        // isfinite(x) = !(isinf(x) || isnan(x))
+        var boolType = context.GetOrRegister(functionType.ReturnType);
+        var isInf = builder.Insert(new OpIsInf(boolType, context.Bound++, x.Id));
+        var isNan = builder.Insert(new OpIsNan(boolType, context.Bound++, x.Id));
+        var infOrNan = builder.Insert(new OpLogicalOr(boolType, context.Bound++, isInf.ResultId, isNan.ResultId));
+        var result = builder.Insert(new OpLogicalNot(boolType, context.Bound++, infOrNan.ResultId));
+        return new(result.ResultId, result.ResultType);
+    }
     public override SpirvValue CompileIsnormal(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x) => throw new NotImplementedException();
     public override SpirvValue CompileLdexp(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue exp) => throw new NotImplementedException();
     public override SpirvValue CompileLit(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue l, SpirvValue h, SpirvValue m) => throw new NotImplementedException();
