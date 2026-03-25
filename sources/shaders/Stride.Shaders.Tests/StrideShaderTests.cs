@@ -535,6 +535,10 @@ new ShaderMacro("class", "shader"),
         File.WriteAllBytes($"{shaderName}.spv", bytecode);
         File.WriteAllText($"{shaderName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
+        // Validate SPIR-V
+        var validationResult = Spv.ValidateFile($"{shaderName}.spv");
+        Assert.True(validationResult.IsValid, validationResult.Output);
+
         var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
         var entryPoints = translator.GetEntryPoints();
         foreach (var entryPoint in entryPoints)
