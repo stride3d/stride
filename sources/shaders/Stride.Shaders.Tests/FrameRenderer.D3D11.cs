@@ -85,6 +85,7 @@ float4 main(vs_out input) : SV_TARGET {
         ";
 
     private CancellationTokenSource cts;
+    private Task infoQueueTask;
 
     //Vertex data, uploaded to the VBO.
     private static readonly float[] Vertices =
@@ -180,7 +181,7 @@ float4 main(vs_out input) : SV_TARGET {
         if (OperatingSystem.IsWindows())
         {
             // Log debug messages for this device (given that we've enabled the debug flag). Don't do this in release code!
-            device.SetInfoQueueCallback(msg => Console.WriteLine(SilkMarshal.PtrToString((nint)msg.PDescription)), cts.Token);
+            infoQueueTask = device.SetInfoQueueCallback(msg => Console.WriteLine(SilkMarshal.PtrToString((nint)msg.PDescription)), cts.Token);
         }
 
         // Create our swapchain.
@@ -253,6 +254,7 @@ float4 main(vs_out input) : SV_TARGET {
         swapchain.Present(1, 0);
 
         cts.Cancel();
+        try { infoQueueTask?.Wait(); } catch (AggregateException) { }
         cts.Dispose();
 
         window.Close();
