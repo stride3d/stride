@@ -185,6 +185,19 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 break;
             }
         }
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.ImageFormat is
+                ImageFormat.Rg32f or ImageFormat.Rg16f or ImageFormat.R11fG11fB10f or ImageFormat.R16f or
+                ImageFormat.Rgba16 or ImageFormat.Rgb10A2 or ImageFormat.Rg16 or ImageFormat.Rg8 or ImageFormat.R16 or ImageFormat.R8 or
+                ImageFormat.Rgba16Snorm or ImageFormat.Rg16Snorm or ImageFormat.Rg8Snorm or ImageFormat.R16Snorm or ImageFormat.R8Snorm or
+                ImageFormat.Rg32i or ImageFormat.Rg16i or ImageFormat.Rg8i or ImageFormat.R16i or ImageFormat.R8i or
+                ImageFormat.Rgb10a2ui or ImageFormat.Rg32ui or ImageFormat.Rg16ui or ImageFormat.Rg8ui or ImageFormat.R16ui or ImageFormat.R8ui)
+            {
+                context.Add(new OpCapability(Capability.StorageImageExtendedFormats));
+                break;
+            }
+        }
         foreach (var i in temp)
         {
             if (i.Op is Op.OpImageQuerySizeLod or Op.OpImageQuerySize or Op.OpImageQueryLevels or Op.OpImageQuerySamples)
