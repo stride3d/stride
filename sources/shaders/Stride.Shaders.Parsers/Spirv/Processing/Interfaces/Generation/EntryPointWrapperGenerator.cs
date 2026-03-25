@@ -351,6 +351,11 @@ internal static class EntryPointWrapperGenerator
                 var executionMode = entryPointFunctionType.ParameterTypes[0].Modifiers;
                 if (executionMode == ParameterModifiers.None)
                     throw new InvalidOperationException("Execution mode primitive is missing for first parameter of geometry shader");
+
+                // Extract output topology from the GeometryStreamType parameter before removing it
+                var outputStreamType = ((PointerType)entryPointFunctionType.ParameterTypes[1].Type).BaseType as GeometryStreamType
+                    ?? throw new InvalidOperationException("Second parameter of geometry shader must be a GeometryStreamType");
+
                 entryPointFunctionType.ParameterTypes[0] = entryPointFunctionType.ParameterTypes[0] with { Modifiers = ParameterModifiers.None };
                 entryPointFunctionType.ParameterTypes.RemoveAt(1);
 
@@ -362,6 +367,12 @@ internal static class EntryPointWrapperGenerator
                     ParameterModifiers.LineAdjacency => ExecutionMode.InputLinesAdjacency,
                     ParameterModifiers.Triangle => ExecutionMode.Triangles,
                     ParameterModifiers.TriangleAdjacency => ExecutionMode.InputTrianglesAdjacency,
+                }, []));
+                context.Add(new OpExecutionMode(entryPoint.IdRef, outputStreamType.Kind switch
+                {
+                    GeometryStreamOutputKindSDSL.Point => ExecutionMode.OutputPoints,
+                    GeometryStreamOutputKindSDSL.Line => ExecutionMode.OutputLineStrip,
+                    GeometryStreamOutputKindSDSL.Triangle => ExecutionMode.OutputTriangleStrip,
                 }, []));
 
                 arguments[0] = inputsVariable;
