@@ -7,6 +7,7 @@ using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Processing;
 using Stride.Shaders.Spirv.Tools;
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -14,6 +15,49 @@ using Stride.Core.Storage;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Building;
+
+/// <summary>
+/// Coordinates parallel generic shader instantiations so only one thread compiles a given (name, generics, macros) combination.
+/// </summary>
+public class GenericShaderCache
+{
+    private readonly ConcurrentDictionary<(string Name, string? Generics, int MacrosHash), Lazy<(ShaderBuffers Buffer, ObjectId Hash)>> compilingShaders = new();
+
+    private static int ComputeMacrosHash(ReadOnlySpan<ShaderMacro> macros)
+    {
+        unchecked
+        {
+            int hash = 0;
+            foreach (var m in macros)
+                hash = hash * 397 ^ m.GetHashCode();
+            return hash;
+        }
+    }
+
+    public (ShaderBuffers Buffer, ObjectId Hash) GetOrInstantiate(
+        string name, string? generics, ReadOnlySpan<ShaderMacro> macros,
+        Func<(ShaderBuffers Buffer, ObjectId Hash)> factory)
+    {
+        var macrosHash = ComputeMacrosHash(macros);
+        var key = (name, generics, macrosHash);
+
+        var lazy = compilingShaders.GetOrAdd(key, _ => new Lazy<(ShaderBuffers, ObjectId)>(factory, LazyThreadSafetyMode.ExecutionAndPublication));
+
+        try
+        {
+            return lazy.Value;
+        }
+        catch
+        {
+            compilingShaders.TryRemove(key, out _);
+            throw;
+        }
+        finally
+        {
+            compilingShaders.TryRemove(key, out _);
+        }
+    }
+}
 
 public interface IShaderCache
 {
@@ -83,6 +127,7 @@ public class ShaderCache : IShaderCache
 public interface IExternalShaderLoader
 {
     public IShaderCache Cache { get; }
+    public GenericShaderCache GenericCache { get; }
 
     public bool Exists(string name);
     public bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash);

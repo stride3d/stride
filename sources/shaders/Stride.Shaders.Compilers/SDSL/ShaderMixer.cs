@@ -1245,6 +1245,7 @@ public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShader
     /// </summary>
     /// <remarks>Expects hash to be stored.</remarks>
     public IShaderCache Cache => inner.Cache;
+    public GenericShaderCache GenericCache => inner.GenericCache;
 
     public HashSourceCollection Sources { get; } = new();
 

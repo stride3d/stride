@@ -10,7 +10,6 @@ using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Processing;
 using Stride.Shaders.Spirv.Tools;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -818,22 +817,6 @@ public partial class SpirvBuilder
         return GetOrLoadShader(shaderLoader, className, new GenericResolverFromValues(genericValues), macros);
     }
 
-    /// <summary>
-    /// Ensures only one thread instantiates a given generic shader at a time.
-    /// </summary>
-    private static readonly ConcurrentDictionary<(string Name, string? Generics, int MacrosHash), Lazy<(ShaderBuffers Buffer, ObjectId Hash)>> compilingGenericShaders = new();
-
-    private static int ComputeMacrosHash(ReadOnlySpan<ShaderMacro> macros)
-    {
-        unchecked
-        {
-            int hash = 0;
-            foreach (var m in macros)
-                hash = hash * 397 ^ m.GetHashCode();
-            return hash;
-        }
-    }
-
     private static ShaderBuffers GetOrLoadShader(IExternalShaderLoader shaderLoader, string className, GenericResolver genericResolver, ReadOnlySpan<ShaderMacro> macros)
     {
         var shaderBuffers = GetOrLoadShader(shaderLoader, className, macros, out var hash, out var isFromCache);
@@ -851,18 +834,16 @@ public partial class SpirvBuilder
             }
             else
             {
-                // Coordinate parallel instantiations: only one thread instantiates a given generic shader.
-                var macrosHash = ComputeMacrosHash(macros);
                 var macrosArray = macros.ToArray();
-                var key = (className, genericArguments, macrosHash);
-
-                var lazy = compilingGenericShaders.GetOrAdd(key, _ => new Lazy<(ShaderBuffers, ObjectId)>(() =>
+                var localShaderBuffers = shaderBuffers;
+                var localHash = hash;
+                var result = shaderLoader.GenericCache.GetOrInstantiate(className, genericArguments, macros, () =>
                 {
                     // Double-check cache
                     if (cache.TryLoadFromCache(className, genericArguments, macrosArray, out var buf, out var h))
                         return (buf, h);
 
-                    var localBuffers = shaderBuffers;
+                    var localBuffers = localShaderBuffers;
                     InstantiateMemberNames(ref localBuffers, className, genericResolver, shaderLoader, macrosArray);
 
                     // Copy buffers (we don't want to edit original non-instantiated code as it might be reloaded through caching)
@@ -877,25 +858,12 @@ public partial class SpirvBuilder
 
                     InstantiateGenericShader(ref localBuffers, classNameWithGenerics, genericResolver, shaderLoader, macrosArray);
 
-                    cache.RegisterShader(className, genericArguments, macrosArray, localBuffers, hash);
-                    return (localBuffers, hash);
-                }, LazyThreadSafetyMode.ExecutionAndPublication));
+                    cache.RegisterShader(className, genericArguments, macrosArray, localBuffers, localHash);
+                    return (localBuffers, localHash);
+                });
 
-                try
-                {
-                    var result = lazy.Value;
-                    shaderBuffers = result.Buffer;
-                    hash = result.Hash;
-                }
-                catch
-                {
-                    compilingGenericShaders.TryRemove(key, out _);
-                    throw;
-                }
-                finally
-                {
-                    compilingGenericShaders.TryRemove(key, out _);
-                }
+                shaderBuffers = result.Buffer;
+                hash = result.Hash;
             }
 
             // Run in all cases (even if cached)
