@@ -61,30 +61,30 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
 
         var (vec4TypeId, needsExtract) = GetImageSampleResultType(context, functionType, textureType);
 
-        if (imageCoordSize > textureDim)
+        // Extract LOD from coords if present (sampled images only, not storage)
+        SpirvValue? lod = null;
+        if (textureType.Sampled != 2 && imageCoordSize > textureDim)
         {
-            // Coord has extra component (LOD): extract it and strip from coord
             var coordType = imageCoordType.GetElementType().GetVectorOrScalar(imageCoordSize - 1);
             Span<int> shuffleIndices = stackalloc int[imageCoordSize - 1];
             for (int i = 0; i < shuffleIndices.Length; ++i)
                 shuffleIndices[i] = i;
 
-            var lod = new SpirvValue(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(ScalarType.Int), context.Bound++, x.Id, [imageCoordSize - 1])));
+            lod = new SpirvValue(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(ScalarType.Int), context.Bound++, x.Id, [imageCoordSize - 1])));
             x = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(coordType), context.Bound++, x.Id, x.Id, new(shuffleIndices))));
+        }
 
-            TextureGenerateImageOperands(context, builder, lod, o, s, out var imask, out var imParams);
-            var loadResult = builder.Insert(new OpImageFetch(vec4TypeId, context.Bound++, texture.Id, x.Id, imask, imParams));
-            if (needsExtract) return ExtractFromVec4(context, builder, functionType, loadResult.ResultId);
-            return new(loadResult.ResultId, loadResult.ResultType);
-        }
+        TextureGenerateImageOperands(context, builder, lod, o, s, out var imask, out var imParams);
+
+        // Storage images (RWTexture, Sampled=2) use OpImageRead; sampled images use OpImageFetch
+        int loadResultId;
+        if (textureType.Sampled == 2)
+            loadResultId = builder.Insert(new OpImageRead(vec4TypeId, context.Bound++, texture.Id, x.Id, imask, imParams)).ResultId;
         else
-        {
-            // No LOD component (e.g. RWTexture): use coord directly
-            TextureGenerateImageOperands(context, builder, null, o, s, out var imask, out var imParams);
-            var loadResult = builder.Insert(new OpImageFetch(vec4TypeId, context.Bound++, texture.Id, x.Id, imask, imParams));
-            if (needsExtract) return ExtractFromVec4(context, builder, functionType, loadResult.ResultId);
-            return new(loadResult.ResultId, loadResult.ResultType);
-        }
+            loadResultId = builder.Insert(new OpImageFetch(vec4TypeId, context.Bound++, texture.Id, x.Id, imask, imParams)).ResultId;
+
+        if (needsExtract) return ExtractFromVec4(context, builder, functionType, loadResultId);
+        return new(loadResultId, vec4TypeId);
     }
 
     public override SpirvValue CompileSample(SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue texture, SpirvValue s, SpirvValue x, SpirvValue? o = null, SpirvValue? clamp = null, SpirvValue? status = null)
