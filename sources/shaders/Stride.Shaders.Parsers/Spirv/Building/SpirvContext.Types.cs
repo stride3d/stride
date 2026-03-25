@@ -164,13 +164,16 @@ public partial class SpirvContext
             StructType st => RegisterStructuredType(st.ToId(), st),
             FunctionType f => RegisterFunctionType(f, id),
             PointerType p => RegisterPointerType(p, id),
-            Texture1DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType.GetElementType()), t.Dimension,
+            // SampledType stores the full return type (e.g. float4, not just float) so that
+            // Texture<float> and Texture<float4> produce structurally distinct OpTypeImage during merge.
+            // ShaderMixer normalizes SampledType back to scalar before final SPIR-V emission.
+            Texture1DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
-            Texture2DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType.GetElementType()), t.Dimension,
+            Texture2DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
-            Texture3DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType.GetElementType()), t.Dimension,
+            Texture3DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
-            TextureCubeType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType.GetElementType()), t.Dimension,
+            TextureCubeType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Sampled == 2 ? GetStorageImageFormat(t.ReturnType) : t.Format, null)).IdResult,
             SamplerType st => Buffer.AddData(new OpTypeSampler(id)).IdResult,
             BufferType b => Buffer.AddData(new OpTypeImage(id, GetOrRegister(b.BaseType), Specification.Dim.Buffer,
@@ -187,22 +190,6 @@ public partial class SpirvContext
             // StructSymbol st => RegisterStruct(st),
             _ => throw new NotImplementedException($"Can't add type {type}")
         };
-        if (type is TextureType texType && instruction.HasValue)
-        {
-            var prefix = texType.Sampled == 2 ? "rw" : "";
-            var dim = texType.Dimension switch
-            {
-                Specification.Dim.Dim1D => "texture1d",
-                Specification.Dim.Dim2D => "texture2d",
-                Specification.Dim.Dim3D => "texture3d",
-                Specification.Dim.Cube => "texturecube",
-                _ => throw new NotSupportedException($"Unsupported texture dimension {texType.Dimension}")
-            };
-            var ms = texType.Multisampled ? "ms" : "";
-            var array = texType.Arrayed ? "array" : "";
-            Buffer.Add(new OpDecorateString(instruction.Value, Specification.Decoration.UserTypeGOOGLE, $"{prefix}{dim}{ms}{array}:<{texType.ReturnType.ToId()}>"));
-        }
-
         Types[type] = instruction ?? -1;
         ReverseTypes[instruction ?? -1] = type;
         return instruction ?? -1;

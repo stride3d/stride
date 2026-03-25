@@ -133,6 +133,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         AddRequiredCapabilities(context, temp);
 
+        // Normalize OpTypeImage: replace full return types (e.g. float4) with scalar base types
+        // as required by SPIR-V spec, then dedup any resulting identical types.
+        NormalizeImageSampledTypes(context);
+        new TypeDuplicateHelper(context).RemoveDuplicateImageTypes(temp);
+
         foreach (var inst in context)
             temp.Add(inst.Data);
 
@@ -212,6 +217,40 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     break;
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// SPIR-V requires OpTypeImage's SampledType to be a scalar.
+    /// During compilation we store the full return type (e.g. float4) to keep textures structurally distinct.
+    /// This normalizes SampledType back to scalar. Runs on context before copy to temp.
+    /// </summary>
+    private static void NormalizeImageSampledTypes(SpirvContext context)
+    {
+        for (var idx = 0; idx < context.Count; idx++)
+        {
+            var inst = context[idx];
+            if (inst.Op != Op.OpTypeImage)
+                continue;
+
+            var typeImage = (OpTypeImage)inst;
+            if (!context.ReverseTypes.TryGetValue(typeImage.SampledType, out var sampledSymbol))
+                continue;
+
+            var scalarType = sampledSymbol switch
+            {
+                VectorType v => (SymbolType)v.BaseType,
+                MatrixType m => (SymbolType)m.BaseType,
+                _ => null
+            };
+
+            if (scalarType == null)
+                continue; // already scalar
+
+            if (!context.Types.TryGetValue(scalarType, out var scalarId))
+                continue;
+
+            typeImage.SampledType = scalarId;
         }
     }
 
@@ -498,14 +537,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     }
                     else
                     {
-                        // For OpTypeImage: find UserTypeGOOGLE decoration (already in context from earlier processing)
-                        // so CheckForDuplicates can distinguish textures with different return types.
-                        string? sourceUserTypeGOOGLE = null;
-                        if (i2.Op == Op.OpTypeImage && i2.IdResult.HasValue)
-                            sourceUserTypeGOOGLE = typeDuplicateInserter.FindUserTypeGOOGLE(i2.IdResult.Value);
-
                         // Check if type already exists in context (deduplicate them)
-                        if (typeDuplicateInserter.CheckForDuplicates(i2, sourceUserTypeGOOGLE, out var existingInstruction))
+                        if (typeDuplicateInserter.CheckForDuplicates(i2, out var existingInstruction))
                         {
                             if (i2.IdResult is int id)
                             {

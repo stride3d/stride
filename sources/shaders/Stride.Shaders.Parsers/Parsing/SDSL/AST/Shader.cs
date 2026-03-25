@@ -107,33 +107,6 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             _        => null,
         };
 
-        // Parse spec-compliant "texture2d:<float4>" format.
-        static SymbolType? ParseTextureReturnType(string s)
-        {
-            var colonIdx = s.IndexOf(':');
-            if (colonIdx >= 0 && s.Length > colonIdx + 2 && s[colonIdx + 1] == '<' && s[^1] == '>')
-                return ParseReturnType(s[(colonIdx + 2)..^1]);
-            return null;
-        }
-
-        // Pre-pass: collect UserTypeGOOGLE decorations on texture types so we can
-        // recover the exact ReturnType (e.g. float2) when reading OpTypeImage.
-        var textureReturnTypes = new Dictionary<int, SymbolType>();
-        for (var i = start; i < end; i++)
-        {
-            var inst = context[i];
-            if (inst.Op == Op.OpDecorateString)
-            {
-                OpDecorateString dec = inst;
-                if (dec.Decoration == Decoration.UserTypeGOOGLE)
-                {
-                    var symbolType = ParseTextureReturnType(dec.Value);
-                    if (symbolType != null)
-                        textureReturnTypes[dec.Target] = symbolType;
-                }
-            }
-        }
-
         var realShaderImporter = shaderImporter ?? new EmptyShaderImporter();
         var importedShaders = new Dictionary<int, ShaderSymbol>();
 
@@ -263,26 +236,14 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             }
             else if (instruction.Op == Op.OpTypeImage && new OpTypeImage(instruction) is { } typeImage)
             {
-                var sampledType = (ScalarType)context.ReverseTypes[typeImage.SampledType];
+                // SampledType now stores the full return type (e.g. float4) during compilation.
+                var returnType = context.ReverseTypes[typeImage.SampledType];
                 if (typeImage.Dim == Dim.Buffer)
                 {
-                    RegisterType(typeImage.ResultId, new BufferType(sampledType, typeImage.Sampled == 2));
+                    RegisterType(typeImage.ResultId, new BufferType(returnType is ScalarType s ? s : ScalarType.Float, typeImage.Sampled == 2));
                 }
                 else
                 {
-                    // Prefer UserTypeGOOGLE decoration (exact ReturnType from compilation).
-                    // Fall back to ImageFormat for RW textures, or float4 for sampled (HLSL convention).
-                    SymbolType returnType = textureReturnTypes.TryGetValue(typeImage.ResultId, out var userType)
-                        ? userType
-                        : (typeImage.Sampled == 2
-                            ? typeImage.ImageFormat switch
-                            {
-                                Specification.ImageFormat.Rg32f or Specification.ImageFormat.Rg32i or Specification.ImageFormat.Rg32ui => new VectorType(sampledType, 2),
-                                Specification.ImageFormat.Rgba32f or Specification.ImageFormat.Rgba32i or Specification.ImageFormat.Rgba32ui => new VectorType(sampledType, 4),
-                                _ => (SymbolType)sampledType,
-                            }
-                            : new VectorType(sampledType, 4));
-
                     TextureType textureType = typeImage.Dim switch
                     {
                         Dim.Dim1D => new Texture1DType(returnType),

@@ -44,30 +44,9 @@ public partial class SpirvContext
             // Also detect raw GenericParameter leaked from parent contexts.
             var isGenericLike = NormalizeGenericForDedup(ref iData, out var isGenericReference);
 
-            // For OpTypeImage: find the UserTypeGOOGLE decoration in the source buffer so CheckForDuplicates
-            // can distinguish e.g. Texture2D<float2> vs Texture2D<float4> (same binary, different return type).
-            // IdResult is still the original source ID here because RemapIds does not remap the current instruction's own result.
-            string? sourceUserTypeGOOGLE = null;
-            if (iData.Op == Specification.Op.OpTypeImage && iData.IdResult.HasValue)
-            {
-                var originalId = iData.IdResult.Value;
-                foreach (var inst in source)
-                {
-                    if (inst.Op == Specification.Op.OpDecorateString)
-                    {
-                        Spirv.Core.OpDecorateString dec = inst;
-                        if (dec.Decoration == Specification.Decoration.UserTypeGOOGLE && dec.Target == originalId)
-                        {
-                            sourceUserTypeGOOGLE = dec.Value;
-                            break;
-                        }
-                    }
-                }
-            }
-
             // Note: we try to avoid duplicating the last (constant) instruction if there is a desired ID (so that it keeps its name/identity)
             if ((TypeDuplicateHelper.OpCheckDuplicateForTypesAndImport(iData.Op) || TypeDuplicateHelper.OpCheckDuplicateForConstant(iData.Op) || isGenericLike)
-                && typeDuplicateInserter.CheckForDuplicates(iData, sourceUserTypeGOOGLE, out var existingData)
+                && typeDuplicateInserter.CheckForDuplicates(iData, out var existingData)
                 && (index != lastResultIndex || desiredResultId == null))
             {
                 // Make sure this data is declared at current index, otherwise move it.
@@ -98,14 +77,6 @@ public partial class SpirvContext
                     remapIds.Add(iData.IdResult.Value, resultId);
                     iData.IdResult = resultId;
                     typeDuplicateInserter.InsertInstruction(instructionIndex++, iData);
-
-                    // For OpTypeImage: also insert the UserTypeGOOGLE decoration so it stays
-                    // paired with the type during future deduplication in the mixer.
-                    if (sourceUserTypeGOOGLE != null)
-                    {
-                        var dec = new OpDecorateString(resultId, Specification.Decoration.UserTypeGOOGLE, sourceUserTypeGOOGLE);
-                        typeDuplicateInserter.InsertInstruction(instructionIndex++, new OpData(dec.InstructionMemory));
-                    }
 
                     lastResultId = resultId;
                 }

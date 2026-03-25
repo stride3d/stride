@@ -45,7 +45,6 @@ public class TypeDuplicateHelper
     // Note: Target is only for OpName and OpMember
     record struct InstructionSortHelper(Op Op, int Index, OpData Data)
     {
-        public string? UserTypeGOOGLE { get; set; }
         public InstructionSortHelper(OpDataIndex i) : this(i.Op, i.Index, i.Data) { }
 
         public override string ToString() => Data.Memory != null ? Data.ToString() : $"{Op} Index: {Index}";
@@ -119,21 +118,6 @@ public class TypeDuplicateHelper
                 comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[2..], y.Data.Memory.Span[2..]);
                 if (comparison != 0)
                     return comparison;
-
-                // For OpTypeImage, also compare UserTypeGOOGLE decoration to distinguish e.g. Texture2D<float2> vs Texture2D<float4>.
-                // x.UserTypeGOOGLE is used as an override (set on search keys that have Index=-1 and can't look up the buffer).
-                if (x.Op == Op.OpTypeImage && Helper != null)
-                {
-                    var xUserType = x.UserTypeGOOGLE ?? (x.Index >= 0 ? Helper.FindUserTypeGOOGLE(x.Data.IdResult ?? 0) : null);
-                    var yUserType = y.UserTypeGOOGLE ?? (y.Index >= 0 ? Helper.FindUserTypeGOOGLE(y.Data.IdResult ?? 0) : null);
-                    // Only treat as conflicting when both sides have the decoration; null means "unknown/old binary" → compatible.
-                    if (xUserType != null && yUserType != null)
-                    {
-                        comparison = string.Compare(xUserType, yUserType, StringComparison.Ordinal);
-                        if (comparison != 0)
-                            return comparison;
-                    }
-                }
             }
             else if (x.Op == Op.OpName || x.Op == Op.OpDecorate || x.Op == Op.OpDecorateString || x.Op == Op.OpMemberName || x.Op == Op.OpMemberDecorate || x.Op == Op.OpMemberDecorateString)
             {
@@ -193,7 +177,7 @@ public class TypeDuplicateHelper
         namesByOp.Sort(comparerSort);
         instructionsByOp.Sort(comparerSort);
 
-        comparerInsert = new OperationComparer(context, false, this); // UserTypeGOOGLE override in search key covers Index=-1 case
+        comparerInsert = new OperationComparer(context, false, this);
     }
 
     public OpDataIndex InsertInstruction(int index, OpData data)
@@ -429,29 +413,9 @@ public class TypeDuplicateHelper
         return mismatches;
     }
 
-    public string? FindUserTypeGOOGLE(int typeId)
-    {
-        var (start, end) = FindDecorationRange(typeId);
-        var span = CollectionsMarshal.AsSpan(namesByOp);
-        var buffer = context.GetBuffer();
-        for (int i = start; i < end; i++)
-        {
-            if (span[i].Op == Op.OpDecorateString)
-            {
-                OpDecorateString dec = new OpDataIndex(span[i].Index, buffer);
-                if (dec.Decoration == Decoration.UserTypeGOOGLE)
-                    return dec.Value;
-            }
-        }
-        return null;
-    }
-
     public bool CheckForDuplicates(OpData data, out OpDataIndex foundData)
-        => CheckForDuplicates(data, null, out foundData);
-
-    public bool CheckForDuplicates(OpData data, string? userTypeGOOGLE, out OpDataIndex foundData)
     {
-        var searchKey = new InstructionSortHelper { Op = data.Op, Index = -1, Data = data, UserTypeGOOGLE = userTypeGOOGLE };
+        var searchKey = new InstructionSortHelper { Op = data.Op, Index = -1, Data = data };
         var index = instructionsByOp.BinarySearch(searchKey, comparerInsert);
 
         if (index >= 0)
@@ -462,6 +426,14 @@ public class TypeDuplicateHelper
 
         foundData = default;
         return false;
+    }
+
+    public void RemoveDuplicateImageTypes(params SpirvBuffer[] additionalBuffers)
+    {
+        var buffer = context.GetBuffer();
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeImage, Op.OpTypeImage, true, comparerSort, additionalBuffers);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypeSampledImage, Op.OpTypeSampledImage, true, comparerSort, additionalBuffers);
+        ProcessInstructions(buffer, instructionsByOp, Op.OpTypePointer, Op.OpTypePointer, true, comparerSort, additionalBuffers);
     }
 
     public void RemoveDuplicates()
@@ -489,7 +461,7 @@ public class TypeDuplicateHelper
         ProcessInstructions(buffer, namesByOp, Op.OpName, Op.OpName, true, comparerSort);
     }
 
-    private static void ProcessInstructions(SpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, Op startOp, Op endOp, bool sort, OperationComparer comparer)
+    private static void ProcessInstructions(SpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, Op startOp, Op endOp, bool sort, OperationComparer comparer, SpirvBuffer[]? additionalBuffers = null)
     {
         var start = ~instructionsByOp.BinarySearch(new InstructionSortHelper { Op = startOp, Index = -1 }, comparer);
         var end = ~instructionsByOp.BinarySearch(new InstructionSortHelper { Op = endOp, Index = int.MaxValue }, comparer);
@@ -500,10 +472,10 @@ public class TypeDuplicateHelper
             instructionsByOp.Sort(start, end - start, comparer);
         }
 
-        ProcessSortedInstructions(buffer, instructionsByOp, start, end, comparer);
+        ProcessSortedInstructions(buffer, instructionsByOp, start, end, comparer, additionalBuffers);
     }
 
-    private static void ProcessSortedInstructions(SpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, int start, int end, OperationComparer comparer)
+    private static void ProcessSortedInstructions(SpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, int start, int end, OperationComparer comparer, SpirvBuffer[]? additionalBuffers = null)
     {
         for (var firstIndex = start; firstIndex < end;)
         {
@@ -541,7 +513,13 @@ public class TypeDuplicateHelper
 
                 // Replace all IdResult at once to the one of first instruction
                 if (!isOpWithResultId)
-                    ReplaceRefs(matchingRefs, i.Data.IdResult ?? throw new InvalidOperationException(), buffer);
+                {
+                    var canonicalId = i.Data.IdResult ?? throw new InvalidOperationException();
+                    ReplaceRefs(matchingRefs, canonicalId, buffer);
+                    if (additionalBuffers != null)
+                        foreach (var extra in additionalBuffers)
+                            ReplaceRefs(matchingRefs, canonicalId, extra);
+                }
             }
 
             // Restart from last different instruction
