@@ -99,7 +99,7 @@ internal static class DeadCodeRemover
             var i = buffer[index];
             if (i.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
-                bool isReferenced = liveAnalysis.ReferencedMethods.ContainsKey(function.ResultId)
+                bool isReferenced = (liveAnalysis.ReferencedMethods.TryGetValue(function.ResultId, out var methodInfo) && methodInfo.UsedAnyStage)
                     || liveAnalysis.ExtraReferencedMethods.Contains(function.ResultId);
                 if (!isReferenced)
                 {

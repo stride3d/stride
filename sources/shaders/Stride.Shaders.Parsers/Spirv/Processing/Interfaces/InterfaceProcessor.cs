@@ -121,6 +121,17 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
 
                     buffer.Add(new OpExecutionMode(psEntry.Id, ExecutionMode.OriginUpperLeft, []));
                 }
+                else
+                {
+                    // No PS wrapper generated — undo UsedAnyStage for methods marked during PS analysis
+                    // (otherwise they survive dead code removal with unpatched OpStreamsSDSL instructions)
+                    // Safe to clear UsedAnyStage since PS is always the first stage analyzed
+                    foreach (var method in liveAnalysis.ReferencedMethods)
+                    {
+                        method.Value.UsedThisStage = false;
+                        method.Value.UsedAnyStage = false;
+                    }
+                }
 
                 // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
                 foreach (var stream in streams)

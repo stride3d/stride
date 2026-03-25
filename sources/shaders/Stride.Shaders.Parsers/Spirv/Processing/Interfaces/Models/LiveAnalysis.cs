@@ -12,7 +12,7 @@ internal class MethodInfo
     /// <summary>
     /// Used at all (in any stage)
     /// </summary>
-    public bool UsedAnyStage { get; private set; }
+    public bool UsedAnyStage { get; internal set; }
 
     public List<OpData>? OriginalMethodCode { get; set; }
     public int? ThisStageMethodId { get; set; }
