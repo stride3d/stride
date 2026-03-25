@@ -925,8 +925,13 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                                 // Intrinsic expects more components than input (e.g. Texture2D.Load takes int3 = coord + LOD)
                                 // Decompose input coord, append LOD=0, recompose
                                 Span<int> values = stackalloc int[texcoordSize];
+                                var sourceElementType = context.ReverseTypes[indexValue.TypeId].GetElementType();
+                                var targetElementType = texcoordType.GetElementType();
                                 for (int j = 0; j < inputSize; ++j)
-                                    values[j] = builder.Insert(new OpCompositeExtract(context.GetOrRegister(context.ReverseTypes[indexValue.TypeId].GetElementType()), context.Bound++, indexValue.Id, [j])).ResultId;
+                                {
+                                    var extractedValue = new SpirvValue(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(sourceElementType), context.Bound++, indexValue.Id, [j])));
+                                    values[j] = builder.Convert(context, extractedValue, targetElementType).Id;
+                                }
                                 for (int j = inputSize; j < texcoordSize; ++j)
                                     values[j] = context.CompileConstant((int)0).Id;
                                 indexValue = new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(texcoordType), context.Bound++, [.. values])));
